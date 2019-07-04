@@ -41,29 +41,29 @@ integer(kind=int16) :: z1,z2,z3
 integer(kind=int16) :: a1,a2,a3
 integer(kind=int16) :: tmpid 
 
-  tmpid = id - 1000000000;
+  tmpid = id - 1000000000
 
-  tmpid = tmpid / 10;
-  a1 = mod(tmpid,10_int16);
+  tmpid = tmpid / 10
+  a1 = mod(tmpid,10_int16)
 
-  tmpid = tmpid / 10;
-  a2 = mod(tmpid,10_int16);
+  tmpid = tmpid / 10
+  a2 = mod(tmpid,10_int16)
 
-  tmpid = tmpid / 10;
-  a3 = mod(tmpid,10_int16);
+  tmpid = tmpid / 10
+  a3 = mod(tmpid,10_int16)
 
-  a = a1 + 10*a2 + 100*a3;
+  a = a1 + 10*a2 + 100*a3
 
-  tmpid = tmpid / 10;
-  z1 = mod(tmpid,10_int16);
+  tmpid = tmpid / 10
+  z1 = mod(tmpid,10_int16)
 
-  tmpid = tmpid / 10;
-  z2 = mod(tmpid,10_int16);
+  tmpid = tmpid / 10
+  z2 = mod(tmpid,10_int16)
 
-  tmpid = tmpid / 10;
-  z3 = mod(tmpid,10_int16);
+  tmpid = tmpid / 10
+  z3 = mod(tmpid,10_int16)
 
-  z = z1 + 10*z2 + 100*z3;
+  z = z1 + 10*z2 + 100*z3
 
 end subroutine CalculateAZ
 
@@ -329,7 +329,7 @@ else if(fluka_id .eq. -2 .or. fluka_id .eq. -3 .or. fluka_id .eq. -4 .or. fluka_
 !something else
 else
   write(lout,'(a,i12,a)') 'Unknown particle ID in FLUKA to PDG id conversion: ', fluka_id, '  - exiting!'
-  call prror(-1)
+  call prror()
 end if
 
 return

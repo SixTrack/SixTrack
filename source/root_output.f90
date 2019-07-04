@@ -291,7 +291,7 @@ subroutine root_FLUKA_Names(id_in, name_in, name_len, ins_type) bind(C,name="roo
 end subroutine
 
 subroutine root_DumpAperture(apname_in, apname_len, aptype_in, aptype_len, s_in, ap1_in, ap2_in, ap3_in, ap4_in, ap5_in, ap6_in, &
-& ap7_in, ap8_in, ap9_in ) bind(C,name="root_DumpAperture")
+& ap7_in, ap8_in, ap9_in, ap10_in, ap11_in) bind(C,name="root_DumpAperture")
   use, intrinsic :: iso_c_binding
   implicit none
   character(kind=C_CHAR,len=1), intent(in)  :: apname_in
@@ -308,6 +308,8 @@ subroutine root_DumpAperture(apname_in, apname_len, aptype_in, aptype_len, s_in,
   real(kind=C_DOUBLE), intent(in), value :: ap7_in
   real(kind=C_DOUBLE), intent(in), value :: ap8_in
   real(kind=C_DOUBLE), intent(in), value :: ap9_in
+  real(kind=C_DOUBLE), intent(in), value :: ap10_in
+  real(kind=C_DOUBLE), intent(in), value :: ap11_in
 end subroutine
 
 end interface

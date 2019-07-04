@@ -3106,12 +3106,6 @@ end subroutine aper_inputParsingDone
 #ifdef ROOT
 
 subroutine root_dump_aperture_model
-!-----------------------------------------------------------------------
-!     by P.Garcia Ortega, for the FLUKA Team, and A.Mereghetti
-!     last modified: 08-12-2016
-!     dump all apertures declared in machine
-!     always in main code
-!-----------------------------------------------------------------------
   use parpro
   implicit none
 
@@ -3120,7 +3114,7 @@ subroutine root_dump_aperture_model
   logical lopen
 
   integer iOld, ixOld, niter, oKApe, jj
-  real(kind=fPrec) aprr(9),slos
+  real(kind=fPrec) aprr(11),slos
   character(len=mNameLen), parameter :: interpolated = 'interpolated'
 
 ! First element of lattice
@@ -3163,12 +3157,6 @@ subroutine root_dump_aperture_model
 end subroutine root_dump_aperture_model
 
 subroutine root_dump_aperture( name, aptype, spos, ape )
-!-----------------------------------------------------------------------
-!     by A.Mereghetti
-!     last modified: 08-12-2016
-!     dump any aperture marker
-!     always in main code
-!-----------------------------------------------------------------------
   use mod_settings
 
   use root_output
@@ -3178,7 +3166,7 @@ subroutine root_dump_aperture( name, aptype, spos, ape )
 ! interface variables
   integer aptype
   character(len=mNameLen) name
-  real(kind=fPrec) ape(9)
+  real(kind=fPrec) ape(11)
   real(kind=fPrec) spos
 
   character(len=mNameLen+1) this_name
@@ -3193,22 +3181,22 @@ subroutine root_dump_aperture( name, aptype, spos, ape )
      select case(aptype)
      case(-1) ! transition
         call root_DumpAperture( this_name, len_trim(this_name), this_type, len_trim(this_type), spos, &
-                                ape(1), ape(2), ape(3), ape(4), ape(5), ape(6), ape(7), ape(8), ape(9) )
+                                ape(1), ape(2), ape(3), ape(4), ape(5), ape(6), ape(7), ape(8), ape(9), ape(10), ape(11) )
      case(0) ! not an aperture marker
         call root_DumpAperture( this_name, len_trim(this_name), this_type, len_trim(this_type), spos, &
-                                ape(2), ape(2), ape(3), ape(4), ape(5), ape(6), ape(7), ape(8), ape(9) )
+                                ape(2), ape(2), ape(3), ape(4), ape(5), ape(6), ape(7), ape(8), ape(9), ape(10), ape(11) )
      case(1) ! Circle
         call root_DumpAperture( this_name, len_trim(this_name), this_type, len_trim(this_type), spos, &
-                                ape(1), zero, zero, zero, zero, zero, ape(7), ape(8), ape(9) )
+                                ape(1), zero, zero, zero, zero, zero, ape(7), ape(8), ape(9), ape(10), ape(11) )
      case(2) ! Rectangle
         call root_DumpAperture( this_name, len_trim(this_name), this_type, len_trim(this_type), spos, &
-                                ape(1), ape(2), zero, zero, zero, zero, ape(7), ape(8), ape(9) )
+                                ape(1), ape(2), zero, zero, zero, zero, ape(7), ape(8), ape(9), ape(10), ape(11) )
      case(3) ! Ellipse
         call root_DumpAperture( this_name, len_trim(this_name), this_type, len_trim(this_type), spos, &
-                                ape(3), ape(4), zero, zero, zero, zero, ape(7), ape(8), ape(9) )
+                                ape(3), ape(4), zero, zero, zero, zero, ape(7), ape(8), ape(9), ape(10), ape(11) )
      case(4) ! Rectellipse
         call root_DumpAperture( this_name, len_trim(this_name), this_type, len_trim(this_type), spos, &
-                                ape(1), ape(2), ape(3), ape(4), zero, zero, ape(7), ape(8), ape(9) )
+                                ape(1), ape(2), ape(3), ape(4), zero, zero, ape(7), ape(8), ape(9), ape(10), ape(11) )
      case(5) ! Octagon
         ! get angles from points passing through x1,y1 and x2,y2
         ! x1=ape(1)
@@ -3217,27 +3205,21 @@ subroutine root_dump_aperture( name, aptype, spos, ape )
         ! y2=ape(2)
         call root_DumpAperture( this_name, len_trim(this_name), this_type, len_trim(this_type), spos, &
                                 ape(1), ape(2),atan2_mb(ape(1)*ape(5)+ape(6),ape(1)), atan2_mb(ape(2),(ape(2)-ape(6))/ape(5)), &
-                                zero, zero, ape(7), ape(8), ape(9) )
+                                zero, zero, ape(7), ape(8), ape(9), ape(10), ape(11) )
      case(6) ! Racetrack
         call root_DumpAperture( this_name, len_trim(this_name), this_type, len_trim(this_type), spos, &
-                                ape(1), ape(2), ape(3), zero, zero, zero, ape(7), ape(8), ape(9) )
+                                ape(1), ape(2), ape(3), zero, zero, zero, ape(7), ape(8), ape(9), ape(10), ape(11) )
      end select
      end if
 end subroutine root_dump_aperture
 
 subroutine root_dump_aperture_marker( ixEl, iEl )
-!-----------------------------------------------------------------------
-!     by A.Mereghetti
-!     last modified: 08-12-2016
-!     dump single aperture marker, existing in aperture DB
-!     always in main code
-!-----------------------------------------------------------------------
   implicit none
 
 ! interface variables
   integer iEl, ixEl
 
-  call root_dump_aperture( bez(ixEl), kape(ixEl), dcum(iEl), ape(1:9,ixEl) )
+  call root_dump_aperture( bez(ixEl), kape(ixEl), dcum(iEl), ape(1:11,ixEl) )
   return
 end subroutine root_dump_aperture_marker
 
