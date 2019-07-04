@@ -1103,7 +1103,7 @@ subroutine kernel_fluka_element( nturn, i, ix )
         write(unit208,*) fluka_geo_index(fluka_ix), nnuc0-nnuc1, c1m3*(ien0-ien1)
 #ifdef ROOT
         if(root_flag .and. root_FLUKA .eq. 1) then
-          call root_FLUKA_EnergyDeposition(fluka_geo_index(fluka_ix), nnuc0-nnuc1, c1m3*(ien0-ien1))
+          call root_EnergyDeposition(fluka_geo_index(fluka_ix), nnuc0-nnuc1, c1m3*(ien0-ien1))
         end if
 #endif
       ! hisix debugging:
@@ -1327,7 +1327,7 @@ subroutine kernel_fluka_exit
           write(unit208,*) fluka_geo_index(ix), nnuc0-nnuc1, c1m3*(ien0-ien1)
 #ifdef ROOT
           if(root_flag .and. root_FLUKA .eq. 1) then
-            call root_FLUKA_EnergyDeposition(fluka_geo_index(ix), nnuc0-nnuc1, c1m3*(ien0-ien1))
+            call root_EnergyDeposition(fluka_geo_index(ix), nnuc0-nnuc1, c1m3*(ien0-ien1))
           end if
 #endif
 
