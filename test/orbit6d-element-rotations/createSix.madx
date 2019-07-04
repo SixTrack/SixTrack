@@ -1,0 +1,78 @@
+circum=120.;
+lcell=20.;
+f=lcell/sin(pi/5)/4;
+k=1.0/f;
+
+beam, particle=proton, energy = 2;
+angle = 2*pi/6;
+qfstart: multipole, knl={0, 0.99*k};
+qf: multipole, knl={0, k};
+qd: multipole, knl={0, -k};
+hkick: HKICKER,L=real, KICK=0.0012, TILT=real;
+vkick: VKICKER,L=real, KICK=0.0133, TILT=real;
+rfcav: RFCAVITY, VOLT=0.1, LAG=0.0, L =0.0, HARMON=100;
+
+beam, particle=proton, energy = 20;
+
+!qf: QUADRUPOLE, L:=1,K1:=0.1;
+qf:  MULTIPOLE, KNL={0.00, 0.001};
+rotx: XROTATION, angle=0.1;
+arotx: XROTATION, angle=-0.1;
+roty: YROTATION, angle=0.2;
+aroty: YROTATION, angle=-0.2;
+rots: SROTATION, angle=0.25;
+arots: SROTATION, angle=-0.25;
+
+xin=0.001;
+xpin=0.002;
+yin=0.003;
+ypin=0.004;
+ptin = 0.0000;
+
+
+circum=120.;
+lcell=20.;
+f=lcell/sin(pi/5)/4;
+k=1.0/f;
+
+beam, particle=proton, energy = 2;
+angle = 2*pi/6;
+qfstart: multipole, knl={0, 0.99*k};
+qf: multipole, knl={0, k};
+qd: multipole, knl={0, -k};
+hkick: HKICKER,L=real, KICK=0.0012, TILT=real;
+vkick: VKICKER,L=real, KICK=0.0133, TILT=real;
+rfcav: RFCAVITY, VOLT=0.1, LAG=0.0, L =0.0, HARMON=100;
+
+seq: sequence, refer=center, l=circum;
+rotx: rotx, at =0;
+qfstart: qfstart, at = 0.00*lcell ;
+arotx: arotx, at =0;
+qd: qd, at = 0.5 * lcell;
+roty: roty, at =0.55* lcell;
+hkick: hkick, at =0.55* lcell;
+aroty: aroty, at =0.55* lcell;
+rots: rots, at =0.56* lcell;
+vkick: vkick, at =0.56* lcell;
+arots: arots, at =0.56* lcell;
+qf: qf, at = 1.0 * lcell;
+qd: qd, at = 1.5 * lcell;
+qf: qf, at = 2.0 * lcell;
+qd: qd, at = 2.5 * lcell;
+qf: qf, at =  3*lcell;
+rfcav:rfcav, at = 3.001*lcell;
+qd: qd, at = 0.5 * lcell+3*lcell;
+qf: qf, at = 1.0 * lcell+3*lcell;
+qd: qd, at = 1.5 * lcell+3*lcell;
+qf: qf, at = 2.0 * lcell+3*lcell;
+qd: qd, at = 2.5 * lcell+3*lcell;
+endsequence;
+
+use, sequence=seq;
+twiss;
+sixtrack, CAVALL;
+TRACK, file = "trackFile.out",ONEPASS, ONETABLE;
+OBSERVE, PLACE="arots";
+START,  x=xin, y=yin, t=0.0, pt=0, px=xpin, py=ypin;
+run, turns=2;
+

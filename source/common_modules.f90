@@ -101,8 +101,12 @@ module mod_settings
   logical, save :: st_debug        = .false. ! Global DEBUG flag
   logical, save :: st_partsum      = .false. ! Flag to print final particle summary
   logical, save :: st_writefort12  = .false. ! Flag to write fort.12 after tracking
-  integer, save :: st_initialstate = 0       ! Dump particle initial state (mod_particles)
-  integer, save :: st_finalstate   = 0       ! Dump particle final state (mod_particles)
+  logical, save :: st_fStateWrite  = .false. ! Dump particle final state file
+  logical, save :: st_fStateText   = .false. ! Dump particle final state file as text
+  logical, save :: st_fStateIons   = .false. ! Dump particle final state file with ion columns
+  logical, save :: st_iStateWrite  = .false. ! Dump particle initial state file
+  logical, save :: st_iStateText   = .false. ! Dump particle initial state file as text
+  logical, save :: st_iStateIons   = .false. ! Dump particle initial state file with ion columns
 
   ! Checpoint/Restart Kills Switch Settings
   logical,              save :: st_killswitch = .false. ! Enables the kill on turn number debug feature
@@ -372,7 +376,7 @@ module mod_common
 
   ! Other Variables
   integer,          save :: ichromc    = 0
-  integer,          save :: ilinc      = 0
+  integer,          save :: ilinc      = 0    ! 2 = Beam-beam closed orbit calc
   integer,          save :: iqmodc     = 0
   real(kind=fPrec), save :: corr(3,3)  = zero
   real(kind=fPrec), save :: chromc(2)  = 9.999999e23_fPrec
@@ -770,9 +774,9 @@ module mod_common_track
   integer,          save :: nwri     = 0     ! Flag for frequency of calls to writebin. Set by nwr(3) in TRAC
 
   ! Chromaticity
-  real(kind=fPrec), save :: cro(2)   = zero
-  integer,          save :: is(2)    = 0
-  integer,          save :: ichrom   = 0
+  real(kind=fPrec), save :: cro(2)   = zero  ! Desired values of the chromaticity
+  integer,          save :: crois(2) = 0     ! Index of the elements in the single elements list
+  integer,          save :: ichrom   = 0     ! Flag for calculation, 1: "traditional", 2: including beam-beam, 3: both
 
   ! tas
   real(kind=fPrec), save :: tasm(6,6)
@@ -789,7 +793,6 @@ module mod_common_track
   ! Substitute variables for x,y and is for DA version
   real(kind=fPrec), save :: xxtr(mpa,2)
   real(kind=fPrec), save :: yytr(mpa,2)
-  integer,          save :: issss(2)
 
 contains
 
@@ -818,14 +821,12 @@ end subroutine mod_commont_expand_arrays
 subroutine comt_daStart
   xxtr(1:mpa,1:2) = x(1:mpa,1:2)
   yytr(1:mpa,1:2) = y(1:mpa,1:2)
-  issss(1:2)      = is(1:2)
 end subroutine comt_daStart
 
 ! Copy from temp DA variables to actual variables
 subroutine comt_daEnd
   x(1:mpa,1:2) = xxtr(1:mpa,1:2)
   y(1:mpa,1:2) = yytr(1:mpa,1:2)
-  is(1:2)      = issss(1:2)
 end subroutine comt_daEnd
 
 end module mod_common_track

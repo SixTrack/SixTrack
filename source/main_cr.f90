@@ -150,6 +150,9 @@ program maincr
 #ifdef CR
   featList = featList//" CR"
 #endif
+#ifdef ZLIB
+  featList = featList//" ZLIB"
+#endif
 #ifdef ROOT
   featList = featList//" ROOT"
 #endif
@@ -465,7 +468,7 @@ program maincr
 
   if(irmod2.eq.1) call rmod(dp1)
   if(iqmod.ne.0) call qmod0
-  if(ichrom.eq.1.or.ichrom.eq.3) call chroma
+  if(ichrom == 1 .or. ichrom == 3) call chroma
   if(iskew.ne.0) call decoup
   if(ilin.eq.1.or.ilin.eq.3) then
     call linopt(dp1)
@@ -562,9 +565,9 @@ program maincr
     do ncrr=1,iu
       ix = ic(ncrr)
       if(ix > nblo) ix = ix-nblo
-      if(ix == is(1) .or. iratioe(ix) == is(1)) then
+      if(ix == crois(1) .or. iratioe(ix) == crois(1)) then
         smiv(ncrr) = smi(ncrr)
-      else if(ix == is(2) .or. iratioe(ix) == is(2)) then
+      else if(ix == crois(2) .or. iratioe(ix) == crois(2)) then
         smiv(ncrr) = smi(ncrr)
       end if
     end do
@@ -1243,7 +1246,14 @@ program maincr
 ! ---------------------------------------------------------------------------- !
   write(lout,10200)
   call part_setParticleID
-  call part_writeState(0)
+
+  if(st_iStateWrite) then
+    if(st_iStateText) then
+      call part_writeState("initial_state.dat",.true.,st_iStateIons)
+    else
+      call part_writeState("initial_state.bin",.false.,st_iStateIons)
+    end if
+  end if
 
   time1=0.
   call time_timerCheck(time1)
@@ -1413,7 +1423,13 @@ program maincr
 470 continue
 
   ! Dump the final state of the particle arrays
-  call part_writeState(1)
+  if(st_fStateWrite) then
+    if(st_fStateText) then
+      call part_writeState("final_state.dat",.true.,st_fStateIons)
+    else
+      call part_writeState("final_state.bin",.false.,st_fStateIons)
+    end if
+  end if
 
 #ifdef FLUKA
 

@@ -29,6 +29,13 @@ set_tests_properties(SelfTest_read90 PROPERTIES PASS_REGULAR_EXPRESSION "Error i
 add_test(NAME SelfTest_readDump3 COMMAND readDump3)
 set_tests_properties(SelfTest_readDump3 PROPERTIES PASS_REGULAR_EXPRESSION "Expected 2 arguments: inputfile outputfile\n.*3")
 
+if(ZLIB)
+  add_test(NAME SelfTest_zlib COMMAND ${CMAKE_BINARY_DIR}/zlib/example)
+  if(64BIT)
+    add_test(NAME SelfTest_zlib_64 COMMAND ${CMAKE_BINARY_DIR}/zlib/example64)
+  endif()
+endif()
+
 ##
 ## Checks
 ##
@@ -130,6 +137,7 @@ list(APPEND SIXTRACK_TESTS
   orbit6d-element-solenoid
   orbit6d-element-trombone
   orbit6d-element-trombone-kick
+  orbit6d-element-rotations
   orbit6d-ions
   orbit6d-ions-long
   part_state_binary_ions
@@ -277,6 +285,7 @@ set(TESTS_NOFORT10
   orbit6d-element-solenoid
   orbit6d-element-trombone
   orbit6d-element-trombone-kick
+  orbit6d-element-rotations
   orbit6d-ions
   orbit6d-ions-long
   part_state_binary_ions
@@ -317,6 +326,7 @@ set(TESTS_NO_STF_FORT90
   collimation_old-db_new-block
   collimation_old-db_old-block
   crabs
+  orbit6d-element-rotations
   dipedge
   dump_all_highprec
   dump4
@@ -632,6 +642,7 @@ set(FAST_TESTS
   orbit6d-element-solenoid
   orbit6d-element-trombone
   orbit6d-element-trombone-kick
+  orbit6d-element-rotations
   orbit6d-ions
   orbit6d-ions-long
   part_state_binary_ions
@@ -726,6 +737,14 @@ set(SELFTEST_TOOLS
 foreach(TOOL IN ITEMS ${SELFTEST_TOOLS})
   set_property(TEST ${TOOL} PROPERTY LABELS tool fast)
 endforeach()
+
+# Zlib tests
+if(ZLIB)
+  set_property(TEST SelfTest_zlib PROPERTY LABELS tool fast)
+  if(64BIT)
+    set_property(TEST SelfTest_zlib_64 PROPERTY LABELS tool fast)
+  endif()
+endif()
 
 # Inputs
 set(SELFTEST_INPUT

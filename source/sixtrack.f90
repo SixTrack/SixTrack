@@ -29,7 +29,7 @@ subroutine daten
   use dynk,      only : dynk_enabled,dynk_debug,dynk_dumpdata,dynk_inputsanitycheck,dynk_allocate,dynk_parseInputLine
   use fma,       only : fma_parseInputLine, fma_allocate
   use dump,      only : dump_parseInputLine,dump_parseInputDone
-  use zipf,      only : zipf_parseInputLine,zipf_parseInputDone
+  use zipf,      only : zipf_parseInputLine
   use bdex,      only : bdex_parseInputLine,bdex_parseInputDone
   use mod_fluc,  only : fluc_parseInputLine,fluc_readInputs
   use wire,      only : wire_parseInputLine,wire_parseInputDone
@@ -754,7 +754,7 @@ subroutine daten
     if(openBlock) then
       continue
     elseif(closeBlock) then
-      call zipf_parseInputDone
+      continue
     else
       call zipf_parseInputline(inLine,inErr)
       if(inErr) goto 9999
@@ -1839,6 +1839,11 @@ subroutine initialize_element(ix,lfirst)
 
   ! BEAM-BEAM
   elseif(kz(ix) == 20) then
+
+    if(nbeam == 0 .and. .not. lfirst) then
+      write(lerr,"(a)") "BEAMBEAM> ERROR Beam-beam element encountered, but no BEAM block in '"//trim(fort3)//"'"
+      call prror
+    end if
 
     if(lfirst) then
       ptnfac(ix)  = el(ix)
@@ -2997,7 +3002,7 @@ subroutine chroma
           suxy=zero
           suzy=zero
           do 30 l=1,2
-            isl=is(l)
+            isl=crois(l)
             if(kz(isl).ne.3) then
               write(lerr,"(a)") "CHROMA> ERROR Element specified for chromaticity correction is not a sextupole."
               call prror
@@ -3024,7 +3029,7 @@ subroutine chroma
             suzy=suzy+oz*dpp
    40     continue
           do 50 l=1,2
-            isl=is(l)
+            isl=crois(l)
             ed(isl)=ed(isl)-dsm(l,ii)
             if(kp(isl).eq.5) call combel(isl)
    50     continue
@@ -3047,8 +3052,8 @@ subroutine chroma
             dm(2)=(cro0(1)*zi(1)-cro0(2)*xi(1))/det                      !hr06
 
             do l=1,2
-              sm0(l)=ed(is(l))
-              isl=is(l)
+              sm0(l)=ed(crois(l))
+              isl=crois(l)
               ed(isl)=ed(isl)+dm(l)
               if(kp(isl).eq.5) call combel(isl)
             end do
@@ -3060,8 +3065,7 @@ subroutine chroma
         write(lout,10020) sens(1,1),sens(1,4),sens(2,1),sens(2,4)
         chromc(1)=sens(1,4)*c1m3
         chromc(2)=sens(2,4)*c1m3
-        write(lout,10030) sm0(1),ed(is(1)),bez(is(1)), sm0(2),ed(is(2)),&
-     &bez(is(2))
+        write(lout,10030) sm0(1),ed(crois(1)),bez(crois(1)),sm0(2),ed(crois(2)),bez(crois(2))
         write(lout,10040) xi,zi
         write(lout,10010)
         if(abs(sens(1,4)-cro(1)).lt.dech.and.abs(sens(2,4)-cro(2))      &
@@ -3117,8 +3121,8 @@ subroutine chromda
 #include "include/beamcou.f90"
       endif
       ncorru=ncorruo
-      iq1=is(1)
-      iq2=is(2)
+      iq1=crois(1)
+      iq2=crois(2)
       edcor(1)=ed(iq1)
       edcor(2)=ed(iq2)
       edcor1=edcor(1)

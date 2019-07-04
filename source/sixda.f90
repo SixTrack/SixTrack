@@ -323,6 +323,7 @@ subroutine runcav
 
   write(lout,10010)
 !-----------------------------------------------------------------------
+! Do not remove or modify the comment below.
 !     DADAL AUTOMATIC INCLUSION
   time2=0.
   call time_timerCheck(time2)
@@ -451,7 +452,7 @@ subroutine runda
   real(kind=fPrec) beamoff1,beamoff2, beamoff3, beamoff4,beamoff5,beamoff6,benkcc,betr0,cbxb,       &
     cbzb,cik,crk,crxb,crzb,dare,dpdav,dpdav2,dummy,fake,ox,oxp,oz,ozp,r0,r000,r0a,r2b,r2bf,rb,rbf,  &
     rho2b,rkb,rkbf,scikveb,scrkveb,sigmdac,startco,tkb,xbb,xrb,xs,zbb,zfeld1,zfeld2,zrb,zs,crabfreq,&
-    crabpht,crabpht2,crabpht3,crabpht4
+    crabpht,crabpht2,crabpht3,crabpht4,sin_t,cos_t,tan_t
   logical fErr
   character(len=300) ch
   common/daele/alda,asda,aldaq,asdaq,smida,xx,yy,dpda,dpda1,sigmda,ej1,ejf1,rv
@@ -770,6 +771,7 @@ subroutine runda
           write(lout,*) ' WARNING: in the 5*6 mode no extra parameters allowed'
         endif
         rewind 19
+! Do not remove or modify the comment below.
 !     DADAL AUTOMATIC INCLUSION
         return
       endif
@@ -1666,6 +1668,7 @@ subroutine runda
   write(lout,10010)
 
 520 continue
+! Do not remove or modify the comment below.
 !     DADAL AUTOMATIC INCLUSION
   time2=0.
   call time_timerCheck(time2)

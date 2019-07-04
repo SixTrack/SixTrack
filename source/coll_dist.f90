@@ -29,8 +29,9 @@ module coll_dist
   real(kind=fPrec),         public,  save :: cdist_smearX   = zero
   real(kind=fPrec),         public,  save :: cdist_smearY   = zero
   real(kind=fPrec),         public,  save :: cdist_smearR   = zero
-  real(kind=fPrec),         public,  save :: cdist_spreadE  = zero
-  real(kind=fPrec),         public,  save :: cdist_bunchLen = zero
+  real(kind=fPrec),         public,  save :: cdist_spreadE  = zero ! Energy spread for longitudinal phase-space
+  real(kind=fPrec),         public,  save :: cdist_bunchLen = zero ! Bunch length in longitudinal phase-space
+  real(kind=fPrec),         public,  save :: cdist_longCut  = 2    ! Cut in sigma for longitudinal phase-space
 
   character(len=mFileName), public,  save :: cdist_fileName = " "
 
@@ -159,7 +160,7 @@ end subroutine cdist_makeDist_fmt1
 
 ! ================================================================================================ !
 !  Generation of Distribution Format 2
-!  Uses format 1, and generates the transverse beam size in the direction set to zero in fort.3
+!  Uses format 1 for the cleaning plane, and generates a Gaussian distribution in the other plane.
 !  Written by:   S. Redaelli, 2005-05-08
 !  Rewritten by: V.K. Berglyd Olsen, 2019-03-26
 ! ================================================================================================ !
@@ -214,18 +215,15 @@ subroutine cdist_makeDist_fmt3
   use mod_common, only : napx
   use mod_common_main, only : xv1, xv2, yv1, yv2, ejv, sigmv
 
-  real(kind=fPrec) :: long_cut, a_st, b_st
+  real(kind=fPrec) :: a_st, b_st
   integer          :: j
-
-  ! For longitudinal phase-space, add a cut at 2 sigma
-  long_cut = 2
 
   do j=1,napx
     ! 1st: Generate napx numbers within the chosen cut
     a_st = ran_gauss(five)
     b_st = ran_gauss(five)
 
-    do while ((a_st**2 + b_st**2) > long_cut**2)
+    do while ((a_st**2 + b_st**2) > cdist_longCut**2)
       a_st = ran_gauss(five)
       b_st = ran_gauss(five)
     end do

@@ -98,8 +98,11 @@ subroutine cr_fileInit
 
   use mod_units
   use mod_common, only : fort6
+#ifdef ZLIB
+  use zipf
+#endif
 
-  integer i
+  integer i, zErr
   logical fErr
   character(len=256) fileName
 
@@ -129,7 +132,18 @@ subroutine cr_fileInit
       ! Name hardcoded in our boinc_unzip_.
       ! Either it is only the fort.* input data or it is a restart.
       call boincrf("Sixin.zip",fileName)
+#if defined(LIBARCHIVE)
       call f_read_archive(trim(fileName),".")
+#elif defined(ZLIB)
+      call minizip_unzip(trim(fileName),".",zErr,len_trim(fileName),1)
+      if(zErr /= 0) then
+        write(cr_errUnit,"(a)") "SIXTRACR> ERROR Could not extract 'Sixin.zip'"
+        call prror
+      end if
+#else
+      write(cr_errUnit,"(a)") "SIXTRACR> ERROR No library available to extract zipfile 'Sixin.zip'"
+      call prror
+#endif
       goto 10 ! Go to top and check everything again after unzip
     end if
     call f_open(unit=output_unit,file=fort6,formatted=.true.,mode="rw",err=fErr)
@@ -305,6 +319,7 @@ subroutine crcheck
   use scatter,  only : scatter_active, scatter_crcheck_readdata, scatter_crcheck_positionFiles
   use elens,    only : melens, elens_crcheck
   use mod_meta, only : meta_crcheck
+  use mod_time, only : time_crcheck
 
   integer j,k,l,m
   integer nPoint, ioStat
@@ -409,6 +424,11 @@ subroutine crcheck
     write(crlog,"(a)") "CR_CHECK>  * META variables"
     flush(crlog)
     call meta_crcheck(cr_pntUnit(nPoint),rErr)
+    if(rErr) cycle
+
+    write(crlog,"(a)") "CR_CHECK>  * TIME variables"
+    flush(crlog)
+    call time_crcheck(cr_pntUnit(nPoint),rErr)
     if(rErr) cycle
 
     write(crlog,"(a)") "CR_CHECK>  * DUMP variables"
@@ -570,6 +590,8 @@ subroutine crpoint
     return
   end if
 
+  call time_startClock(time_clockCR)
+
   ! Copy lout to output_unit
   call cr_copyOut
 
@@ -649,6 +671,13 @@ subroutine crpoint
     if(wErr) goto 100
 
     if(st_debug) then
+      write(crlog,"(a)") "CR_POINT>  * TIME variables"
+      flush(crlog)
+    end if
+    call time_crpoint(cr_pntUnit(nPoint),wErr)
+    if(wErr) goto 100
+
+    if(st_debug) then
       write(crlog,"(a)") "CR_POINT>  * DUMP variables"
       flush(crlog)
     end if
@@ -696,6 +725,8 @@ subroutine crpoint
 
   end do ! Loop over nPoint
 
+  call time_stopClock(time_clockCR)
+
   return
 
 100 continue
@@ -728,6 +759,7 @@ subroutine crstart
   use scatter,  only : scatter_active, scatter_crstart
   use elens,    only : melens, elens_crstart
   use mod_meta, only : meta_crstart
+  use mod_time, only : time_crstart
 
   logical fErr
   integer j, k, l, m, nPoint, ioStat
@@ -736,7 +768,7 @@ subroutine crstart
   flush(crlog)
   cr_numl = crnumlcr
 
-  ! We do NOT reset numl so that a run can be extended for
+  ! We do NOT reset numl so that a run can be extended
   ! for more turns from the last checkpoint
   binrec   = crbinrec
 
@@ -802,6 +834,7 @@ subroutine crstart
 
   ! Module data
   call meta_crstart
+  call time_crstart
   if(dynk_enabled) then
     call dynk_crstart
   end if

@@ -53,7 +53,7 @@ module collimation
 
   ! Distribution
   integer,          private, save :: do_thisdis   = 0
-  real(kind=fPrec), private, save :: myenom       = zero
+  real(kind=fPrec), public,  save :: myenom       = zero
 
   ! Jaw Slicing
   integer,          private, save :: n_slices     = 0
@@ -690,7 +690,7 @@ subroutine collimate_init()
   write(lout,"(a,e15.8)") 'COLL> Info: DIST_DEX            = ', cdist_smearX
   write(lout,"(a,e15.8)") 'COLL> Info: DIST_NEY            = ', cdist_ampY
   write(lout,"(a,e15.8)") 'COLL> Info: DIST_DEY            = ', cdist_smearY
-  write(lout,"(a,a)")     'COLL> Info: DIST_FILES          = ', trim(cdist_fileName)
+  write(lout,"(a,a)")     'COLL> Info: DIST_FILE           = ', trim(cdist_fileName)
   write(lout,"(a,e15.8)") 'COLL> Info: DIST_EN_ERROR       = ', cdist_spreadE
   write(lout,"(a,e15.8)") 'COLL> Info: DIST_BUNCHLENGTH    = ', cdist_bunchLen
   write(lout,"(a,i0)")    'COLL> Info: RSELECT             = ', int(rselect)
@@ -1675,6 +1675,7 @@ subroutine collimate_start
   integer fmtHdf
 #endif
   integer i,j,k,jb
+  real(kind=fPrec) dummy
 
 ! HERE WE OPEN ALL THE NEEDED OUTPUT FILES
 
@@ -1845,7 +1846,7 @@ subroutine collimate_start
     if(firstrun) write(RHIClosses_unit,'(a)') '# 1=name 2=turn 3=s 4=x 5=xp 6=y 7=yp 8=dp/p 9=type'
   end if
 
-  ! Copy new particles to tracking arrays. Also add the orbit offset at start of ring!
+  ! Adding the orbit offset at start of ring
   if(do_thisdis /= 0 .or. radial) then
     xv1(1:napx) = c1e3 * xv1(1:napx) + torbx(1)
     yv1(1:napx) = c1e3 * yv1(1:napx) + torbxp(1)
@@ -1905,12 +1906,6 @@ subroutine collimate_start
     flukaname(j)      = 0
   end do
 
-!++  This we only do once, for the first call to this routine. Numbers
-!++  are saved in memory to use exactly the same info for each sample.
-!++  COMMON block to decide for first usage and to save coll info.
-  if(firstrun) then
-  !Reading of collimation database moved to subroutine collimate_init
-
 #ifdef BEAMGAS
 !YIL call beam gas initiation routine
   call beamGasInit(myenom)
@@ -1948,7 +1943,6 @@ subroutine collimate_start
   rnd_k1  = 0
   rnd_k2  = 0
   call rluxgo(rnd_lux, c_offsettilt_seed, rnd_k1, rnd_k2)
-!      write(outlun,*) 'INFO>  c_offsettilt seed: ', c_offsettilt_seed
 
 !++  Generate random tilts (Gaussian distribution plus systematic)
 !++  Do this only for the first call of this routine (first sample)
@@ -1965,12 +1959,12 @@ subroutine collimate_start
         c_systilt = c_systilt_sec
       end if
 
-      db_tilt(icoll,1) = c_systilt+c_rmstilt*myran_gauss(three)
+      db_tilt(icoll,1) = c_systilt+c_rmstilt*ran_gauss2(three)
 
       if(systilt_antisymm) then
-        db_tilt(icoll,2) = -one*c_systilt+c_rmstilt*myran_gauss(three)
+        db_tilt(icoll,2) = -one*c_systilt+c_rmstilt*ran_gauss2(three)
       else
-        db_tilt(icoll,2) =      c_systilt+c_rmstilt*myran_gauss(three)
+        db_tilt(icoll,2) =      c_systilt+c_rmstilt*ran_gauss2(three)
       end if
 
       write(outlun,*) 'INFO>  Collimator ', cdb_cNameUC(icoll), ' jaw 1 has tilt [rad]: ', db_tilt(icoll,1)
@@ -1987,9 +1981,9 @@ subroutine collimate_start
    do icoll = 1, cdb_nColl
 
      if(cdb_cNameUC(icoll)(1:3).eq.'TCP') then
-       cdb_cOffset(icoll) = c_sysoffset_prim + c_rmsoffset_prim*myran_gauss(three)
+       cdb_cOffset(icoll) = c_sysoffset_prim + c_rmsoffset_prim*ran_gauss2(three)
      else
-       cdb_cOffset(icoll) = c_sysoffset_sec +  c_rmsoffset_sec*myran_gauss(three)
+       cdb_cOffset(icoll) = c_sysoffset_sec +  c_rmsoffset_sec*ran_gauss2(three)
      end if
 
      write(outlun,*) 'INFO>  offset: ', cdb_cNameUC(icoll), cdb_cOffset(icoll)
@@ -2004,7 +1998,7 @@ subroutine collimate_start
 !         if (c_rmserror_gap.gt.0.) then
 !            write(outlun,*) 'INFO> c_rmserror_gap = ',c_rmserror_gap
   do icoll = 1, cdb_nColl
-    gap_rms_error(icoll) = c_rmserror_gap * myran_gauss(three)
+    gap_rms_error(icoll) = c_rmserror_gap * ran_gauss2(three)
     write(outlun,*) 'INFO>  gap_rms_error: ', cdb_cNameUC(icoll),gap_rms_error(icoll)
   end do
 
@@ -2119,12 +2113,20 @@ subroutine collimate_start
 
 !****** re-intialize random generator with rnd_seed
 !       reinit with initial value used in first call
+
+  ! This sets the random geenrator back to the default seed rather than the one used for coll gaps.
+  ! However, this doesn't actually restore the random generator to the state it would have been in without the
+  ! coll gaps errors being generated as rndm5() will extract 30000 new random numbers from ranlux and discard
+  ! the ones it already holds and would have used.
+  ! Alternatively, we can use ranecu instead, which is capable of continuing a chain of random numbers from
+  ! a given set of seeds.
+  ! It is probably unnecessary to use different random seeds here in the first place.
   rnd_lux = 3
   rnd_k1  = 0
   rnd_k2  = 0
   call rluxgo(rnd_lux, rnd_seed, rnd_k2, rnd_k2)
-!  call recuin(rnd_seed, 0)
-! TW - 01/2007
+! call recuin(rnd_seed, 0)
+  dummy = rndm5(1) ! Reset rndm5 too
 
 !GRD INITIALIZE LOCAL ADDITIVE PARAMETERS, I.E. THE ONE WE DON'T WANT
 !GRD TO KEEP OVER EACH LOOP
@@ -2158,10 +2160,6 @@ subroutine collimate_start
     csqsum(j) = zero
   end do
 
-!++ End of first call stuff (end of first run)
-  end if
-
-!GRD NOW WE CAN BEGIN THE LOOPS
 end subroutine collimate_start
 
 !>
@@ -6188,55 +6186,6 @@ subroutine makedis_coll(myalphax, myalphay, mybetax, mybetay, mynex, myney)
   end do
 
 end subroutine makedis_coll
-
-!ccccccccccccccccccccccccccccccccccccccc
-real(kind=fPrec) function myran_gauss(cut)
-!*********************************************************************
-!
-! myran_gauss - will generate a normal distribution from a uniform
-!     distribution between [0,1].
-!     See "Communications of the ACM", V. 15 (1972), p. 873.
-!
-!     cut - real(kind=fPrec) - cut for distribution in units of sigma
-!     the cut must be greater than 0.5
-!
-!     changed rndm4 to rndm5(irnd) and defined flag as true
-!
-!*********************************************************************
-
-  use numerical_constants, only : twopi
-  use mathlib_bouncer
-  use mod_ranlux
-
-  implicit none
-
-  logical flag
-  real(kind=fPrec) x, u1, u2, r,cut
-  save
-
-  flag = .true. !Does this initialize only once, or is it executed every pass?
-                !See ran_gauss(cut)
-
-1 if (flag) then
-    r = real(rndm5(0),fPrec)
-    r = max(r, half**32)
-    r = min(r, one-half**32)
-    u1 = sqrt(-two*log_mb( r ))
-    u2 = real(rndm5(0),fPrec)
-    x = u1 * cos_mb(twopi*u2)
-  else
-     x = u1 * sin_mb(twopi*u2)
-  endif
-
-  flag = .not. flag
-
-!     cut the distribution if cut > 0.5
-  if (cut .gt. half .and. abs(x) .gt. cut) goto 1
-
-  myran_gauss = x
-  return
-end function myran_gauss
-
 
 !cccccccccccccccccccccccccccccccccccccccccccccccccc
 subroutine funlxp (func,xfcum,x2low,x2high)
