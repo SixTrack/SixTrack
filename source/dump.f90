@@ -1787,8 +1787,7 @@ call h5_finaliseWrite(dump_hdf5DataSet(ix))
       end if
 
       ! Flush
-      endfile (unit,iostat=ierro)
-      backspace (unit,iostat=ierro)
+      flush(unit,iostat=ierro)
 #ifdef CR
       dumpfilepos(dumpIdx) = dumpfilepos(dumpIdx)+napx
 #endif
