@@ -435,6 +435,10 @@ module collimation
   integer, private, save :: CollPositions_unit, all_absorptions_unit, efficiency_2d_unit
   integer, private, save :: collsettings_unit, outlun
 
+#ifdef G4COLLIMATION
+  integer, public :: unit208 ! Holds the actual units of fort.208
+#endif
+
 #ifdef HDF5
   ! Variables to save hdf5 dataset indices
   integer, private, save :: coll_hdf5_survival
@@ -894,6 +898,10 @@ subroutine collimate_init()
 #endif
 
 #ifdef G4COLLIMATION
+! Open the edep file
+  call f_requestUnit("fort.208", unit208)
+  call f_open(unit=unit208, file="fort.208",formatted=.true.,mode="w")
+
 !! This function lives in the G4Interface.cpp file in the g4collimat folder
 !! Accessed by linking libg4collimat.a
 !! Set the energy cut at 70% - i.e. 30% energy loss
@@ -2290,6 +2298,7 @@ subroutine collimate_do_collimator(stracki)
   real(kind=fPrec) x_tmp,y_tmp,xp_tmp,yp_tmp
 
   ! ien0,ien1: ion energy entering/leaving the collimator
+  ! energy in MeV
   real(kind=fPrec)    :: ien0, ien1
   integer(kind=int16) :: nnuc0,nnuc1
 #endif
@@ -2945,10 +2954,10 @@ subroutine collimate_do_collimator(stracki)
             y_tmp = rcy(j)
             xp_tmp = rcxp(j)
             yp_tmp = rcyp(j)
-            rcx(j) =  x_tmp *cos_mb(c_rotation) - sin_mb(c_rotation)*y_tmp
-            rcy(j) =  y_tmp *cos_mb(c_rotation) + sin_mb(c_rotation)*x_tmp
-            rcxp(j) = xp_tmp*cos_mb(c_rotation) - sin_mb(c_rotation)*yp_tmp
-            rcyp(j) = yp_tmp*cos_mb(c_rotation) + sin_mb(c_rotation)*xp_tmp
+            rcx(j) =  x_tmp *cos_mb(c_rotation) + sin_mb(c_rotation)*y_tmp
+            rcy(j) =  y_tmp *cos_mb(c_rotation) - sin_mb(c_rotation)*x_tmp
+            rcxp(j) = xp_tmp*cos_mb(c_rotation) + sin_mb(c_rotation)*yp_tmp
+            rcyp(j) = yp_tmp*cos_mb(c_rotation) - sin_mb(c_rotation)*xp_tmp
 
 !! Add all particles
 
@@ -2987,10 +2996,10 @@ subroutine collimate_do_collimator(stracki)
             y_tmp   = rcy(j)
             xp_tmp  = rcxp(j)
             yp_tmp  = rcyp(j)
-            rcx(j)  = x_tmp *cos_mb(-one*c_rotation) - sin_mb(-one*c_rotation)*y_tmp
-            rcy(j)  = y_tmp *cos_mb(-one*c_rotation) + sin_mb(-one*c_rotation)*x_tmp
-            rcxp(j) = xp_tmp*cos_mb(-one*c_rotation) - sin_mb(-one*c_rotation)*yp_tmp
-            rcyp(j) = yp_tmp*cos_mb(-one*c_rotation) + sin_mb(-one*c_rotation)*xp_tmp
+            rcx(j)  = x_tmp *cos_mb(-one*c_rotation) + sin_mb(-one*c_rotation)*y_tmp
+            rcy(j)  = y_tmp *cos_mb(-one*c_rotation) - sin_mb(-one*c_rotation)*x_tmp
+            rcxp(j) = xp_tmp*cos_mb(-one*c_rotation) + sin_mb(-one*c_rotation)*yp_tmp
+            rcyp(j) = yp_tmp*cos_mb(-one*c_rotation) - sin_mb(-one*c_rotation)*xp_tmp
 
 ! This needs fixing - FIXME
             sigmv(j) = zero
@@ -3049,8 +3058,8 @@ subroutine collimate_do_collimator(stracki)
       call root_EnergyDeposition(icoll, nnuc0-nnuc1,c1m3*(ien0-ien1))
     end if
 #endif
-    write(208,*) icoll, (nnuc0-nnuc1), c1m3*(ien0-ien1)
-    flush(208)
+    write(unit208,*) icoll, (nnuc0-nnuc1), c1m3*(ien0-ien1)
+    flush(unit208)
   end if
 
 #endif

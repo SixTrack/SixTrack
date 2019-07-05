@@ -521,6 +521,7 @@ subroutine sixin_parseInputLineSIMU(inLine, iLine, iErr)
   use mod_common
   use mod_commons
   use mod_common_track
+  use mod_pdgid
   use physical_constants
 
   character(len=*), intent(in)    :: inLine
@@ -652,6 +653,9 @@ subroutine sixin_parseInputLineSIMU(inLine, iLine, iErr)
       select case(chr_toLower(lnSplit(2)))
       case("proton","pdg2212")
         pdgid0 = 2212
+        aa0    = 1
+        zz0    = 1
+        qq0    = 1
       case default
         write(lerr,"(a)") "SIMU> ERROR Unknown or unsupported named particle mass or PDG ID '"//trim(lnSplit(2))//"'"
         iErr = .true.
@@ -665,10 +669,13 @@ subroutine sixin_parseInputLineSIMU(inLine, iLine, iErr)
     if(nSplit > 3) then
       call chr_cast(lnSplit(4),aa0,iErr)
       call chr_cast(lnSplit(5),zz0,iErr)
-    else
-      zz0 = qq0
     end if
+
+!   aa0, zz0 will default to 1
+    call CalculatePDGid(pdgid0, aa0, zz0)
+
     if(st_debug) then
+      call sixin_echoVal("PDGid",        pdgid0,   "SIMU",iLine)
       call sixin_echoVal("charge",       int(qq0), "SIMU",iLine)
       call sixin_echoVal("A",            int(aa0), "SIMU",iLine)
       call sixin_echoVal("Z",            int(zz0), "SIMU",iLine)

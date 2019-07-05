@@ -209,7 +209,7 @@ else if(pdgid .gt. 1000000000) then
 !something else
 else
   write(lerr,'(a,i0,a)') 'Unknown particle ID in PDG id to FLUKA conversion: ', pdgid, '  - exiting!'
-  call prror()
+  call prror
 end if
 
 return
@@ -328,8 +328,8 @@ else if(fluka_id .eq. -2 .or. fluka_id .eq. -3 .or. fluka_id .eq. -4 .or. fluka_
   call CalculatePDGid(pdg_id, A, Z)
 !something else
 else
-  write(lout,'(a,i12,a)') 'Unknown particle ID in FLUKA to PDG id conversion: ', fluka_id, '  - exiting!'
-  call prror()
+  write(lerr,'(a,i12,a)') 'Unknown particle ID in FLUKA to PDG id conversion: ', fluka_id, '  - exiting!'
+  call prror
 end if
 
 return

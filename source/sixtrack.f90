@@ -837,7 +837,7 @@ subroutine daten
 
   case("GNT4") ! ROOT Input Block
 #ifndef G4COLLIMATION
-    write(lout,"(a)") "INPUT> ERROR SixTrack was not compiled with the G4COLLIMATION flag."
+    write(lerr,"(a)") "INPUT> ERROR SixTrack was not compiled with the G4COLLIMATION flag."
     goto 9999
 #else
   if(openBlock) then
@@ -845,7 +845,7 @@ subroutine daten
   elseif(closeBlock) then
     call geant4_parseInputDone
   else
-    call geant4_daten(inLine,inErr)
+    call geant4_parseInputLine(inLine,inErr)
     if(inErr) goto 9999
   end if
 #endif
@@ -893,13 +893,16 @@ subroutine daten
 
     if(sixin_hionSet .eqv. .false.) then
       ! If we don't have the HION block, we need to set some variables - default to the proton values
-      zz0   = 1
-      aa0   = 1
-      nucm0 = pma
+      zz0    = 1
+      aa0    = 1
+      qq0    = 1
+      pdgid0 = 2212
+      nucm0  = pma
       write(lout,"(a)")        "ENDE> No HION block found. Defaulting to the proton values: "
       write(lout,"(a,i0)")     "ENDE>  * Z = ",zz0
       write(lout,"(a,i0)")     "ENDE>  * A = ",aa0
       write(lout,"(a,e22.15)") "ENDE>  * M = ",nucm0
+      write(lout,"(a,i0)")     "ENDE>  * Q = ",qq0
     end if
   
     ! Init arrays
@@ -2661,6 +2664,7 @@ subroutine betalf(dpp,qw)
       use mod_common
       use mod_commons
       use mod_common_track
+      use crcoall
       implicit none
       integer i,j
       real(kind=fPrec) am,det,detb,detc,dpp,egwg1,egwg2,f0,f1,f2,fak1,  &
@@ -2681,7 +2685,7 @@ subroutine betalf(dpp,qw)
       f1=spa+spd
       f2=f0**2+four*det                                                  !hr06
       if(f2 .lt. zero) then 
-!        write(lout,'(a,F12.5, a, F12.5, a, F12.5)') 'ERROR in betalf() - f2 < 0: ',  f2, ' f0: ', f0, ' det: ', det
+        write(lerr,'(a,F12.5, a, F12.5, a, F12.5)') 'ERROR in betalf() - f2 < 0: ',  f2, ' f0: ', f0, ' det: ', det
         goto 160
       end if
       f2=sqrt(f2)
@@ -2716,13 +2720,13 @@ subroutine betalf(dpp,qw)
       rclam2=(egwg2+rca2)*half
       yclam2=yca2*half
       if(egwg1**2 .ge. four) then 
-!        write(lout,'(a,F12.5,a,F12.5,a,F12.5,a,F12.5,a,F12.5,a,F12.5)') 'ERROR in betalf() - egwg1**2 > 4: ',&
-!        egwg1**2, ' f0: ', spa-spd, ' f1: ', spa+spd, ' f2: ', f0**2+four*det, ' spa: ', spa, ' spd: ', spd
-!        write(lout,'(a,F12.5)') 'ERROR in betalf() - am: ',  am
+        write(lerr,'(a,F12.5,a,F12.5,a,F12.5,a,F12.5,a,F12.5,a,F12.5)') 'ERROR in betalf() - egwg1**2 > 4: ',&
+        egwg1**2, ' f0: ', spa-spd, ' f1: ', spa+spd, ' f2: ', f0**2+four*det, ' spa: ', spa, ' spd: ', spd
+        write(lerr,'(a,F12.5)') 'ERROR in betalf() - am: ',  am
         goto 160                                    !hr06
       end if
       if(egwg2**2 .ge. four) then
-!        write(lout,'(a,F12.5)') 'ERROR in betalf() - egwg2**2 > 4: ',  egwg2**2
+        write(lerr,'(a,F12.5)') 'ERROR in betalf() - egwg2**2 > 4: ',  egwg2**2
         goto 160                                    !hr06
       end if
    50 continue
@@ -2792,7 +2796,7 @@ subroutine betalf(dpp,qw)
      &+ta(3,1)*ta(4,2))-ta(4,1)*ta(3,2)                                  !hr06
       if(rn1.lt.zero) goto 70                                             !hr06
       if(rn1.eq.zero) then 
-!        write(lout,'(a,F12.5)') 'ERROR in betalf() - rn1 = 0: ', rn1
+        write(lerr,'(a,F12.5)') 'ERROR in betalf() - rn1 = 0: ', rn1
         goto 160                                            !hr06
       end if
       if(rn1.gt.zero) goto 90                                             !hr06
@@ -2813,7 +2817,7 @@ subroutine betalf(dpp,qw)
      &+ta(3,3)*ta(4,4))-ta(4,3)*ta(3,4)                                  !hr06
       if(rn2.lt.zero) goto 110                                           !hr06
       if(rn2.eq.zero) then
-!        write(lout,'(a,F12.5)') 'ERROR in betalf() - rn2 = 0: ', rn2
+        write(lerr,'(a,F12.5)') 'ERROR in betalf() - rn2 = 0: ', rn2
         goto 160                                           !hr06
       end if
       if(rn2.gt.zero) goto 130                                           !hr06

@@ -20,7 +20,7 @@ module geant4
 
 contains
 
-subroutine geant4_daten(inLine,iErr)
+subroutine geant4_parseInputLine(inLine,iErr)
 
   use string_tools
   use crcoall
@@ -36,7 +36,7 @@ subroutine geant4_daten(inLine,iErr)
 
   call chr_split(inLine,lnSplit,nSplit,spErr)
   if(spErr) then
-    write(lout,"(a)") "GEANT4> ERROR Failed to parse input line."
+    write(lerr,"(a)") "GEANT4> ERROR Failed to parse input line."
     iErr = .true.
     return
   end if
@@ -45,8 +45,13 @@ subroutine geant4_daten(inLine,iErr)
     return
   end if
 
+!Enable/disable debug
+  if(lnSplit(1) == 'DEBUG') then
+    g4_debug = .true.
+  end if
+
   if(nSplit /= 2) then
-    write(lout,"(a,i0)") "GEANT4> ERROR Expected 2 entries per line, got ",nSplit
+    write(lerr,"(a,i0)") "GEANT4> ERROR Expected 2 entries per line, got ",nSplit
     iErr = .true.
     return
   end if
@@ -71,9 +76,6 @@ subroutine geant4_daten(inLine,iErr)
   else if(lnSplit(1) == 'RANGECUT') then
     call chr_cast(lnSplit(2),g4_rangecut,cErr)
 
-!Enable/disable debug
-  else if(lnSplit(1) == 'DEBUG') then
-    g4_debug = .true.
   else if(lnSplit(1) == 'RETURN') then
     phys_str = trim(lnSplit(2))
     if(phys_str .eq. 'STABLE') then
@@ -109,7 +111,7 @@ subroutine geant4_daten(inLine,iErr)
 !Check configuration
 
 !check + enable flags
-end subroutine
+end subroutine geant4_parseInputLine
 
 subroutine geant4_parseInputDone
 
@@ -117,7 +119,7 @@ subroutine geant4_parseInputDone
 
   !GEANT4 is enabled
   g4_enabled = .true.
-end subroutine
+end subroutine geant4_parseInputDone
 
 end module geant4
 

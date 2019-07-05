@@ -140,7 +140,7 @@ module mod_fluka
   real(kind=fPrec), public :: fluka_brho0  ! [Tm]
   integer(kind=int16),          public :: fluka_chrg0  ! []
   integer(kind=int16),          public :: fluka_a0     ! nucelon number (hisix)
-  integer(kind=int16),          public :: fluka_z0     ! charge multiplicity (hisix)
+  integer(kind=int16),          public :: fluka_z0     ! nuclear charge
 
   save
 
@@ -661,12 +661,12 @@ contains
 
   !----------------------------------------------------------------------------
   ! set reference particle properties (mainly for longitudinal dynamics)
-  integer function fluka_set_synch_part( e0, pc0, mass0, a0, z0 )
+  integer function fluka_set_synch_part( e0, pc0, mass0, a0, z0, q0 )
     implicit none
 
     ! interface variables
     real(kind=fPrec) :: e0, pc0, mass0
-    integer(kind=int16)          :: a0, z0
+    integer(kind=int16) :: a0, z0, q0
 
     ! Auxiliary variables
     integer(kind=int32) :: n
@@ -676,21 +676,21 @@ contains
     fluka_e0    = e0    *c1m3 ! from  [MeV]    to [GeV]
     fluka_pc0   = pc0   *c1m3 ! from  [MeV/c]  to [GeV/c]
     fluka_mass0 = mass0 *c1m3 ! from  [MeV/c2] to [GeV/c2]
-!    fluka_chrg0 = chrg0
     fluka_a0 = a0
     fluka_z0 = z0
+    fluka_chrg0 = q0
 
     write(fluka_log_unit,*) ' updated synch part:'
     write(fluka_log_unit,*) ' - total en    [GeV]:',fluka_e0
     write(fluka_log_unit,*) ' - momentum  [GeV/c]:',fluka_pc0
     write(fluka_log_unit,*) ' - mass     [GeV/c2]:',fluka_mass0
-!    write(fluka_log_unit,*) ' - charge        [e]:',fluka_chrg0
-    write(fluka_log_unit,*) ' - mass number    []:',fluka_a0
-    write(fluka_log_unit,*) ' - charge        [e]:',fluka_z0
+    write(fluka_log_unit,*) ' - A mass number  []:',fluka_a0
+    write(fluka_log_unit,*) ' - Z number       []:',fluka_z0
+    write(fluka_log_unit,*) ' - charge state  [e]:',fluka_chrg0
     flush(fluka_log_unit)
 
     ! update magnetic rigidity, unless division by clight and 10^-9
-    fluka_brho0 = fluka_pc0 / real(fluka_z0,real64)
+    fluka_brho0 = fluka_pc0 / real(fluka_chrg0,real64)
 
     ! inform Fluka about the new magnetic rigidity
     n = ntsendbrhono(fluka_cid, fluka_brho0)
@@ -995,7 +995,7 @@ subroutine root_FLUKA_DumpInsertions
       continue
     else
 
-      if(fluka_type(k) .eq. FLUKA_ENTRY .or. fluka_type(k) .eq. FLUKA_EXIT) then
+      if(fluka_type(k) /= FLUKA_NONE) then
 !       this entry exists, so add it to root
         this_name = trim(adjustl(bez(k))) // C_NULL_CHAR
         call root_FLUKA_Names(ii, this_name, len_trim(this_name), fluka_type(k))

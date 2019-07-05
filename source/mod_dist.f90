@@ -176,6 +176,8 @@ subroutine dist_readDist
   if(nSplit > 11) call chr_cast(lnSplit(12), nucm(j), cErr)
   if(nSplit > 12) call chr_cast(lnSplit(13), ejfv(j), cErr)
   if(nSplit > 13) call chr_cast(lnSplit(14), dt(j),   cErr)
+  if(nSplit > 14) call chr_cast(lnSplit(15), nqq(j),  cErr)
+  if(nSplit > 15) call chr_cast(lnSplit(16), pdgid(j),cErr)
   if(cErr) goto 20
 
   xv1(j)      = xv1(j)*c1e3
@@ -185,13 +187,20 @@ subroutine dist_readDist
   ejfv(j)     = ejfv(j)*c1e3
   nucm(j)     = nucm(j)*c1e3
   sigmv(j)    = -(e0f/e0)*((dt(j)*clight)*c1e3)
-  nqq(j)      = nzz(j)
+
+  if(nSplit <= 14) then
+    nqq(j)=nzz(j)
+  end if
+
   mtc(j)      = (nqq(j)*nucm0)/(qq0*nucm(j))
   partID(j)   = j
   parentID(j) = j
   pstop(j)    = .false.
   ejf0v(j)    = ejfv(j)
-  call CalculatePDGid(pdgid(j), naa(j), nzz(j)) 
+
+  if(nSplit <= 15) then
+    call CalculatePDGid(pdgid(j), naa(j), nzz(j))
+  end if
 
   goto 10
 
@@ -262,10 +271,12 @@ subroutine dist_finaliseDist
 
       if(abs(nucm(j)/nucm0-one) < c1m15) then
         nucm(j) = nucm0
-        if(nzz(j) == zz0 .or. naa(j) == aa0) then
-          naa(j) = aa0
-          nzz(j) = zz0
-          mtc(j) = one
+        if(nzz(j) == zz0 .or. naa(j) == aa0 .or. nqq(j) == qq0 .or. pdgid(j) == pdgid0) then
+          naa(j)   = aa0
+          nzz(j)   = zz0
+          nqq(j)   = qq0
+          pdgid(j) = pdgid0
+          mtc(j)   = one
         else
           write(lerr,"(a)") "DIST> ERROR Mass and/or charge mismatch with relation to sync particle"
           call prror
@@ -290,6 +301,7 @@ subroutine dist_finaliseDist
     naa(j)      = aa0
     nzz(j)      = zz0
     nqq(j)      = qq0
+    pdgid(j)    = pdgid0
     nucm(j)     = nucm0
     moidpsv(j)  = one
     omoidpsv(j) = zero

@@ -258,9 +258,6 @@ program maincr
   call fluka_mod_init(npart_initial, nele_initial, clight)
 #endif
 
-!#ifdef G4COLLIMATION
-!  call geant4_fortran_init()
-!#endif
   call ffield_mod_init
 
   call daten
@@ -1229,7 +1226,7 @@ program maincr
     flush(lout)
     flush(fluka_log_unit)
 
-    fluka_con = fluka_set_synch_part( e0, e0f, nucm0, aa0, zz0)
+    fluka_con = fluka_set_synch_part( e0, e0f, nucm0, aa0, zz0, qq0)
 
     if(fluka_con < 0) then
       write(lerr,"(a)") "FLUKA> ERROR Failed to update the reference particle"

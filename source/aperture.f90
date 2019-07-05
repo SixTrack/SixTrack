@@ -3182,9 +3182,6 @@ subroutine root_dump_aperture( name, aptype, spos, ape )
      case(-1) ! transition
         call root_DumpAperture( this_name, len_trim(this_name), this_type, len_trim(this_type), spos, &
                                 ape(1), ape(2), ape(3), ape(4), ape(5), ape(6), ape(7), ape(8), ape(9), ape(10), ape(11) )
-     case(0) ! not an aperture marker
-        call root_DumpAperture( this_name, len_trim(this_name), this_type, len_trim(this_type), spos, &
-                                ape(2), ape(2), ape(3), ape(4), ape(5), ape(6), ape(7), ape(8), ape(9), ape(10), ape(11) )
      case(1) ! Circle
         call root_DumpAperture( this_name, len_trim(this_name), this_type, len_trim(this_type), spos, &
                                 ape(1), zero, zero, zero, zero, zero, ape(7), ape(8), ape(9), ape(10), ape(11) )
@@ -3204,11 +3201,11 @@ subroutine root_dump_aperture( name, aptype, spos, ape )
         ! x2=ape(2)/tan(theta2)
         ! y2=ape(2)
         call root_DumpAperture( this_name, len_trim(this_name), this_type, len_trim(this_type), spos, &
-                                ape(1), ape(2),atan2_mb(ape(1)*ape(5)+ape(6),ape(1)), atan2_mb(ape(2),(ape(2)-ape(6))/ape(5)), &
-                                zero, zero, ape(7), ape(8), ape(9), ape(10), ape(11) )
+                                ape(1), ape(2),atan2_mb(ape(1)*ape(7)+ape(8),ape(1)), atan2_mb(ape(2),(ape(2)-ape(8))/ape(7)), &
+                                zero, zero, zero, zero, ape(9), ape(10), ape(11) )
      case(6) ! Racetrack
         call root_DumpAperture( this_name, len_trim(this_name), this_type, len_trim(this_type), spos, &
-                                ape(1), ape(2), ape(3), zero, zero, zero, ape(7), ape(8), ape(9), ape(10), ape(11) )
+                                ape(5), ape(6), ape(3), ape(4), zero, zero, zero, zero, ape(9), ape(10), ape(11) )
      end select
      end if
 end subroutine root_dump_aperture
