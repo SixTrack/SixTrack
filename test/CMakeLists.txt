@@ -194,6 +194,7 @@ if(NOT CR)
     collimation_dist_6
     collimation_dist_radial
     collimation_k2
+    collimation_new-db_new-block
     collimation_old-db_new-block
     collimation_old-db_old-block
     scatter_collimation
@@ -256,6 +257,7 @@ set(TESTS_NOFORT10
   collimation_dist_6
   collimation_dist_radial
   collimation_k2
+  collimation_new-db_new-block
   collimation_old-db_new-block
   collimation_old-db_old-block
   dump_2_all_ele_highprec
@@ -320,6 +322,7 @@ set(TESTS_NO_STF_FORT90
   collimation_dist_6
   collimation_dist_radial
   collimation_k2
+  collimation_new-db_new-block
   collimation_old-db_new-block
   collimation_old-db_old-block
   crabs
