@@ -6,9 +6,9 @@
 ! ================================================================================================ !
 module coll_db
 
-  use parpro
   use floatPrecision
-  use numerical_constants, only : c1e3
+  use parpro, only : mFileName
+  use numerical_constants, only : zero
 
   implicit none
 
@@ -16,7 +16,7 @@ module coll_db
   public :: cdb_getFamilyNSig
 
   integer,                  parameter     :: cdb_fNameLen  = 16     ! Length of collimator family name
-  real(kind=fPrec),         parameter     :: cdb_defColGap = c1e3   ! Default collimator gap in sigma
+  real(kind=fPrec),         parameter     :: cdb_defColGap = zero   ! Default collimator gap in sigma
 
   character(len=mFileName), public,  save :: cdb_fileName = " "     ! Database file
   logical,                  private, save :: cdb_dbOld    = .false. ! Old or new DB format
@@ -50,6 +50,7 @@ contains
 
 subroutine cdb_allocDB
 
+  use parpro
   use mod_alloc
   use numerical_constants
 
@@ -70,6 +71,7 @@ end subroutine cdb_allocDB
 
 subroutine cdb_allocFam
 
+  use parpro
   use mod_alloc
 
   call alloc(cdb_famName, cdb_fNameLen, cdb_nFam, " ",           "cdb_famName")
@@ -95,6 +97,7 @@ end subroutine cdb_expand_arrays
 ! ================================================================================================ !
 subroutine cdb_readCollDB
 
+  use parpro
   use crcoall
   use mod_units
   use mod_common
