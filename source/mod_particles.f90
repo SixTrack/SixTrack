@@ -5,7 +5,6 @@
 ! ================================================================================================ !
 module mod_particles
 
-  use crcoall
   use floatPrecision
 
   implicit none
@@ -67,6 +66,7 @@ end subroutine part_applyClosedOrbit
 ! ================================================================================================ !
 subroutine part_updateRefEnergy(refEnergy)
 
+  use crcoall
   use mod_common
   use mod_common_main
   use numerical_constants, only : one, c1m6
@@ -110,6 +110,7 @@ end subroutine part_updateRefEnergy
 ! ================================================================================================ !
 subroutine part_updatePartEnergy(refArray,updateAngle)
 
+  use crcoall
   use mod_common
   use mod_common_track
   use mod_common_main
@@ -182,8 +183,8 @@ end subroutine part_updatePartEnergy
 ! ================================================================================================ !
 subroutine part_writeState(fileName, isText, withIons)
 
-  use mod_units
   use parpro
+  use mod_units
   use mod_common
   use mod_common_main
   use mod_common_track
