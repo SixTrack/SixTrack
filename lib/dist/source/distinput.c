@@ -10,16 +10,15 @@
 /*
 This allocates the the memory for the distributions
 */
-void initializedistribution_(int *numberOfDist){
-    dist = (struct distparam*)malloc((*numberOfDist)*sizeof(struct distparam));
+void initializedistribution(int numberOfDist){
+    dist = (struct distparam*)malloc((numberOfDist)*sizeof(struct distparam));
     dim  = 6;
     
-        for(int i = 0; i <*numberOfDist; i++)
+        for(int i = 0; i <numberOfDist; i++)
         {
         
         (dist + i)->ref = (struct refparam*)malloc(sizeof(struct refparam));
         (dist + i)->coord = (struct parameters**)malloc(dim*sizeof(struct parameters*));
-        
         (dist + i)->cuts2apply = (struct appliedcut*)malloc(sizeof(struct appliedcut));
         (dist + i)->cuts2apply->physical = (struct cut**)malloc(dim*sizeof(struct cut*));
         (dist + i)->cuts2apply->normalized = (struct cut**)malloc(dim*sizeof(struct cut*));
@@ -39,8 +38,6 @@ void initializedistribution_(int *numberOfDist){
             (dist + i)->tas[k] =(double*)malloc(dim*sizeof(double));
             (dist + i)->invtas[k] =(double*)malloc(dim*sizeof(double));
         }
-        
-
         (dist + i)->coordtype   =-1;
         (dist + i)->disttype = 0;
         for(int j=0; j<dim; j++)
@@ -58,21 +55,14 @@ void initializedistribution_(int *numberOfDist){
     diststart=dist;
 }
 
-
-
-void setdisttype(int *disttype){
-	dist->disttype=*disttype;
+void setdistribution(int ndist){
+		dist = diststart + ndist;
 }
 
-
-void setdistribution_(int *ndist){
-		dist = diststart + *ndist;
-}
-
-void addclosedorbit_(double *clo){
+void addclosedorbit(double *clo){
 	for(int i=0; i<dim;i++){
 		dist->closedorbit[i] = clo[i];
-	}
+    }
 }
 
 void setphysicalcut(int variable, double min, double max){
@@ -88,5 +78,24 @@ void setnormalizedcut(int variable, double min, double max){
 	dist->cuts2apply->normalized[variable-1]->min=min;
 	dist->cuts2apply->normalized[variable-1]->max=max;
 	dist->cuts2apply->normalized[variable-1]->isset=1;
+
+}
+
+void get6trackcoord(double *x, double *xp, double *y, double *yp, double *sigma, double *deltap, int *totparticles){
+    double tmp[6];
+    if(dist->isDistrcalculated ==0){
+        gen2sixcoord();
+    }
+
+    for(int i=0; i<dist->totoutcoord; i++){
+        canonical2six(dist->incoord[i]->physical, dist->ref->beta0, dist->ref->pc0, dist->ref->mass0, dist->incoord[i]->mass, tmp);
+        x[i]  = tmp[0];
+        xp[i] = tmp[1];
+        y[i]  = tmp[2];
+        yp[i] = tmp[3];
+        sigma[i]  = tmp[4];
+        deltap[i] = tmp[5];
+   }
+    *totparticles=dist->totoutcoord;
 
 }

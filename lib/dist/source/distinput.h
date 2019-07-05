@@ -23,6 +23,8 @@ struct refparam{
 	double mass0;
 	double beta0;
 	int en_like;
+	int time_like;
+	int ang_like;
 	struct emittances* emitt;
 
 };
@@ -73,8 +75,8 @@ struct distparam* diststart;
 int dim;
 int distn;
 
-void initializedistribution_(int *numberOfDist);
-void setdistribution_(int *ndist);
+void initializedistribution_(int numberOfDist);
+void setdistribution(int ndist);
 void setphysicalcut(int variable, double min, double max);
 void setnormalizedcut(int variable, double min, double max);
 

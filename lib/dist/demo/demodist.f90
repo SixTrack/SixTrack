@@ -17,10 +17,11 @@ program demodist
       implicit none
 
 
-      integer i ;
+      integer i, npart ;
       real(kind=real64), dimension(6) :: coordinates 
+      real(kind=real64), dimension(6) :: closed
       real(kind=real64), dimension(2500,6) :: distribution1
-      real(kind=real64), dimension(10002) :: x,xp,y, yp, sigma, delta
+      real(kind=real64), dimension(10002) :: x,xp,y, yp, sigma, deltap
       real(kind=real64) momentum, mass, one, e1,e2, e3, dp, betx1, zero, pia2, six
       real(kind=real64), dimension(6, 6) :: identity, results, testm, tas
       real(kind=real64) dim
@@ -38,16 +39,20 @@ program demodist
       mass = 938.0
       one =1d0
       six = 6.000d0
-
+      closed(1)=10
       
 
 
       ! Initialize 3 distributions with dimenstion 6
 
-      call initializedistribution(3)
+      call dist_initializedistribution(3)
       ! Set the tas matrix 
-      filename = "mynameeeee.out"
       call dist_readfile(filename)
+      call dist_addclosedorbit(closed)
+      call dist_get6trackcoord(x,xp,y,yp,sigma,deltap, npart)
+      do i=1,npart
+        print *, x(i),y(i),sigma(i)
+      enddo
 
     !Distribution 2: a matched distribution
 
