@@ -835,7 +835,7 @@ subroutine daten
   end if
 #endif
 
-  case("GNT4") ! ROOT Input Block
+  case("GNT4") ! Geant4 Input Block
 #ifndef G4COLLIMATION
     write(lerr,"(a)") "INPUT> ERROR SixTrack was not compiled with the G4COLLIMATION flag."
     goto 9999

@@ -3121,8 +3121,8 @@ subroutine root_dump_aperture_model
   i=1
   ix=ic(i)-nblo
   if( kape(ix).eq.0 ) then
-    write(lout,"(a)") "APER> ERROR Frst element of lattice structure is not assigned any aperture type"
-    call prror(-1)
+    write(lerr,"(a)") "APER> ERROR Frst element of lattice structure is not assigned any aperture type"
+    call prror
   end if
   call root_dump_aperture_marker( ix, i )
   iOld=i

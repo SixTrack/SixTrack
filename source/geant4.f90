@@ -48,6 +48,7 @@ subroutine geant4_parseInputLine(inLine,iErr)
 !Enable/disable debug
   if(lnSplit(1) == 'DEBUG') then
     g4_debug = .true.
+    return
   end if
 
   if(nSplit /= 2) then
