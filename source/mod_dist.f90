@@ -44,9 +44,9 @@ module mod_dist
 
   !  Column formats
   ! ================
-  integer, parameter :: dist_fmtNONE        = 0
-  integer, parameter :: dist_fmtPartID      = 1
-  integer, parameter :: dist_fmtParentID    = 2
+  integer, parameter :: dist_fmtNONE        = 0  ! Column ignored
+  integer, parameter :: dist_fmtPartID      = 1  ! Paricle ID
+  integer, parameter :: dist_fmtParentID    = 2  ! Particle parent ID (for secondary particles, otherwise equal particle ID)
 
   ! Physical Coordinates
   integer, parameter :: dist_fmtX           = 11 ! Horizontal position
@@ -79,8 +79,8 @@ module mod_dist
   ! Ion Columns
   integer, parameter :: dist_fmtMASS        = 51 ! Particle mass
   integer, parameter :: dist_fmtCHARGE      = 52 ! Particle Charge
-  integer, parameter :: dist_fmtIonA        = 53 ! Ion atomic number
-  integer, parameter :: dist_fmtIonZ        = 54 ! Ion atomic charge
+  integer, parameter :: dist_fmtIonA        = 53 ! Ion atomic mass
+  integer, parameter :: dist_fmtIonZ        = 54 ! Ion atomic number
   integer, parameter :: dist_fmtPDGID       = 55 ! Particle PDG ID
 
 contains
@@ -200,9 +200,9 @@ subroutine dist_setColumnFormat(fmtName, fErr)
     call dist_appendFormat(dist_fmtE, one)           ! Particle energy
   case("P")
     call dist_appendFormat(dist_fmtP, one)           ! Particle momentum
-  case("DE/E0")
+  case("DE/E0","DEE0")
     call dist_appendFormat(dist_fmtDEE0, one)        ! Relative particle energy (to reference particle)
-  case("DP/P0")
+  case("DP/P0","DPP0")
     call dist_appendFormat(dist_fmtDPP0, one)        ! Relative particle momentum (to reference particle)
 
   case("X_NORM")
@@ -225,9 +225,9 @@ subroutine dist_setColumnFormat(fmtName, fErr)
     call dist_appendFormat(dist_fmtE_NORM, one)      ! Normalised particle energy
   case("P_NORM")
     call dist_appendFormat(dist_fmtP_NORM, one)      ! Normalised particle momentum
-  case("DE/E0_NORM")
+  case("DE/E0_NORM","DEE0_NORM")
     call dist_appendFormat(dist_fmtDEE0_NORM, one)   ! Normalised relative particle energy (to reference particle)
-  case("DP/P0_NORM")
+  case("DP/P0_NORM","DPP0_NORM")
     call dist_appendFormat(dist_fmtDPP0_NORM, one)   ! Normalised relative particle momentum (to reference particle)
 
   case("MASS","M")
@@ -235,9 +235,9 @@ subroutine dist_setColumnFormat(fmtName, fErr)
   case("CHARGE","Q")
     call dist_appendFormat(dist_fmtCHARGE, one)      ! Particle charge
   case("ION_A")
-    call dist_appendFormat(dist_fmtIonA, one)        ! Ion atomic number
+    call dist_appendFormat(dist_fmtIonA, one)        ! Ion atomic mass
   case("ION_Z")
-    call dist_appendFormat(dist_fmtIonZ, one)        ! Ion atomic charge
+    call dist_appendFormat(dist_fmtIonZ, one)        ! Ion atomic number
   case("PDGID")
     call dist_appendFormat(dist_fmtPDGID, one)       ! Particle PDG ID
 
@@ -269,7 +269,14 @@ subroutine dist_setColumnFormat(fmtName, fErr)
     call dist_appendFormat(dist_fmtSIGMA_NORM, one)  ! Normalised longitudinal relative position
     call dist_appendFormat(dist_fmtDPP0_NORM, one)   ! Normalised relative particle momentum (to reference particle)
 
-  case("DEFAULT_OLD") ! The old DIST block file format
+  case("IONS") ! The ion columns
+    call dist_appendFormat(dist_fmtMASS, c1e3)       ! Particle mass
+    call dist_appendFormat(dist_fmtCHARGE, one)      ! Particle charge
+    call dist_appendFormat(dist_fmtIonA, one)        ! Ion atomic mass
+    call dist_appendFormat(dist_fmtIonZ, one)        ! Ion atomic number
+    call dist_appendFormat(dist_fmtPDGID, one)       ! Particle PDG ID
+
+  case("OLD_DIST") ! The old DIST block file format
     call dist_appendFormat(dist_fmtPartID, one)      ! Particle ID
     call dist_appendFormat(dist_fmtNONE, one)        ! Ignored
     call dist_appendFormat(dist_fmtNONE, one)        ! Ignored
@@ -279,8 +286,8 @@ subroutine dist_setColumnFormat(fmtName, fErr)
     call dist_appendFormat(dist_fmtXP, c1e3)         ! Horizontal angle
     call dist_appendFormat(dist_fmtYP, c1e3)         ! Vertical angle
     call dist_appendFormat(dist_fmtNONE, one)        ! Ignored
-    call dist_appendFormat(dist_fmtIonA, one)        ! Ion atomic number
-    call dist_appendFormat(dist_fmtIonZ, one)        ! Ion atomic charge
+    call dist_appendFormat(dist_fmtIonA, one)        ! Ion atomic mass
+    call dist_appendFormat(dist_fmtIonZ, one)        ! Ion atomic number
     call dist_appendFormat(dist_fmtMASS, c1e3)       ! Particle mass
     call dist_appendFormat(dist_fmtP, c1e3)          ! Particle momentum
     call dist_appendFormat(dist_fmtDT, one)          ! Time delay
@@ -356,7 +363,7 @@ subroutine dist_readDist
   cErr = .false.
 
   if(dist_hasFormat .eqv. .false.) then
-    call dist_setColumnFormat("DEFAULT_OLD",cErr)
+    call dist_setColumnFormat("OLD_DIST",cErr)
   end if
 
   call f_open(unit=dist_readUnit,file=dist_readFile,mode='r',err=cErr,formatted=.true.,status="old")
