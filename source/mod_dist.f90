@@ -27,20 +27,22 @@ module mod_dist
 
   use crcoall
   use floatPrecision
+  use parpro, only : mFileName
 
   implicit none
 
-  logical,            public,  save :: dist_enable     ! DIST input block given
-  logical,            public,  save :: dist_echo       ! Echo the read distribution?
-  logical,            public,  save :: dist_hasFormat  ! Whether the format flag is set
-  character(len=256), public,  save :: dist_readFile   ! File name for reading the distribution
-  character(len=256), public,  save :: dist_echoFile   ! File name for echoing the distribution
-  integer,            private, save :: dist_readUnit   ! Unit for reading the distribution
-  integer,            private, save :: dist_echoUnit   ! Unit for echoing the distribution
+  logical,                  public,  save :: dist_enable    = .false. ! DIST input block given
+  logical,                  public,  save :: dist_echo      = .false. ! Echo the read distribution?
+  logical,                  private, save :: dist_hasFormat = .false. ! Whether the FORMAT keyword exists in block or not
+  character(len=mFileName), public,  save :: dist_distFile  = " "     ! File name for reading the distribution
+  character(len=mFileName), public,  save :: dist_echoFile  = " "     ! File name for echoing the distribution
 
   integer,          allocatable, private, save :: dist_colFormat(:) ! The format of the file columns
   real(kind=fPrec), allocatable, private, save :: dist_colScale(:)  ! Scaling factor for the file columns
   integer,                       private, save :: dist_nColumns = 0 ! The number of columns in the file
+
+  character(len=:), allocatable, private, save :: dist_partLine(:)  ! PARTICLE definitions in the block
+  integer,                       public,  save :: dist_numPart = 0  ! Number of PARTICLE keywords in block
 
   !  Column formats
   ! ================
@@ -86,16 +88,51 @@ module mod_dist
 contains
 
 ! ================================================================================================ !
+!  Master Module Subrotuine
+!  V.K. Berglyd Olsen, BE-ABP-HSS
+!  Created: 2019-07-08
+!  Updated: 2019-07-08
+!  Called from main_cr if dist_enable is true. This should handle everything needed.
+! ================================================================================================ !
+subroutine dist_generateDist
+
+  use mod_particles
+
+  logical hasParticles
+
+  hasParticles = .false.
+
+  if(dist_numPart > 0) then
+    call dist_parseParticles
+    hasParticles = .true.
+  end if
+
+  if(dist_distFile /= " ") then
+    call dist_readDist
+    hasParticles = .true.
+  end if
+
+  if(hasParticles) then
+    call dist_finaliseDist
+    call part_applyClosedOrbit
+    if(dist_echo) then
+      call dist_echoDist
+    end if
+  end if
+
+end subroutine dist_generateDist
+
+! ================================================================================================ !
 !  A. Mereghetti and D. Sinuela Pastor, for the FLUKA Team
 !  V.K. Berglyd Olsen, BE-ABP-HSS
-!  Last modified: 2018-10-30
+!  Updated: 2018-10-30
 ! ================================================================================================ !
 subroutine dist_parseInputLine(inLine, iLine, iErr)
 
-  use string_tools
+  use parpro
+  use mod_alloc
   use mod_units
-
-  implicit none
+  use string_tools
 
   character(len=*), intent(in)    :: inLine
   integer,          intent(inout) :: iLine
@@ -138,9 +175,23 @@ subroutine dist_parseInputLine(inLine, iLine, iErr)
       iErr = .true.
       return
     end if
-    dist_readFile = trim(lnSplit(2))
-    call f_requestUnit(dist_readFile, dist_readUnit)
-    if(.not.dist_enable) dist_enable = .true.
+    dist_distFile = trim(lnSplit(2))
+
+  case("PARTICLE")
+    if(dist_hasFormat .eqv. .false.) then
+      write(lerr,"(a,i0)") "DIST> ERROR PARTICLE requires a FORMAT definition to be defined first"
+      iErr = .true.
+      return
+    end if
+    if(nSplit /= dist_nColumns + 1) then
+      write(lerr,"(a)")       "DIST> ERROR PARTICLE values must match the number of definitions in FORMAT"
+      write(lerr,"(2(a,i0))") "DIST>       Got ",nsplit-1," values, but FORMAT defines ",dist_nColumns
+      iErr = .true.
+      return
+    end if
+    dist_numPart = dist_numPart + 1
+    call alloc(dist_partLine, mInputLn, dist_numPart, " ", "dist_partLine")
+    dist_partLine(dist_numPart) = trim(inLine)
 
   case("ECHO")
     if(nSplit >= 2) then
@@ -149,7 +200,6 @@ subroutine dist_parseInputLine(inLine, iLine, iErr)
       dist_echoFile = "echo_distribution.dat"
     end if
     dist_echo = .true.
-    call f_requestUnit(dist_echoFile, dist_echoUnit)
 
   case default
     write(lerr,"(a)") "DIST> ERROR Unknown keyword '"//trim(lnSplit(1))//"'."
@@ -184,7 +234,7 @@ subroutine dist_setColumnFormat(fmtName, fErr)
 
   fmtLen = len_trim(fmtName)
   if(fmtLen < 1) then
-    write(lout,"(a)") "DIST> ERROR Unknown column format '"//trim(fmtName)//"'"
+    write(lerr,"(a)") "DIST> ERROR Unknown column format '"//trim(fmtName)//"'"
     fErr = .true.
   end if
 
@@ -206,7 +256,7 @@ subroutine dist_setColumnFormat(fmtName, fErr)
 
   select case(chr_toUpper(fmtBase))
 
-  case("NONE","SKIP") ! Ignored
+  case("OFF","SKIP") ! Ignored
     call dist_appendFormat(dist_fmtNONE, one)
   case("ID") ! Particle ID
     call dist_appendFormat(dist_fmtPartID, one)
@@ -339,7 +389,7 @@ subroutine dist_setColumnFormat(fmtName, fErr)
   ! call dist_appendFormat(dist_fmtPDGID, one)      ! Particle PDG ID
 
   case default
-    write(lout,"(a)") "DIST> ERROR Unknown column format '"//trim(fmtName)//"'"
+    write(lerr,"(a)") "DIST> ERROR Unknown column format '"//trim(fmtName)//"'"
     fErr = .true.
 
   end select
@@ -427,7 +477,7 @@ subroutine dist_unitScale(fmtName, fmtUnit, unitType, unitScale, uErr)
   return
 
 100 continue
-  write(lout,"(a)") "DIST> ERROR Unrecognised or invalid unit for format identifier '"//trim(fmtName)//"'"
+  write(lerr,"(a)") "DIST> ERROR Unrecognised or invalid unit for format identifier '"//trim(fmtName)//"'"
   uErr = .true.
 
 end subroutine dist_unitScale
@@ -456,6 +506,33 @@ subroutine dist_appendFormat(fmtID, colScale)
 
 end subroutine dist_appendFormat
 
+subroutine dist_parseParticles
+
+  use mod_common
+  use string_tools
+
+  character(len=:), allocatable :: lnSplit(:)
+  integer i, j, nSplit
+  logical spErr, cErr
+
+  if(dist_numPart > 0) then
+    do j=1,dist_numPart
+      call chr_split(dist_partLine(j), lnSplit, nSplit, spErr)
+      if(spErr) goto 20
+      do i=2,nSplit
+        call dist_saveParticle(j, i-1, lnSplit(i), cErr)
+      end do
+      if(cErr) goto 20
+    end do
+  end if
+
+  return
+
+20 continue
+  write(lout,"(a,i0,a)") "DIST> ERROR Could not parse PARTICLE definition number ",j," from "//trim(fort3)
+
+end subroutine dist_parseParticles
+
 ! ================================================================================================ !
 !  A. Mereghetti and D. Sinuela Pastor, for the FLUKA Team
 !  V.K. Berglyd Olsen, BE-ABP-HSS
@@ -468,19 +545,15 @@ subroutine dist_readDist
   use mod_common_main
   use string_tools
   use mod_particles
-  use physical_constants
   use numerical_constants
-  use mod_units, only : f_open, f_close
+  use mod_units
 
-  implicit none
-
-  integer                 id, gen, i, j, ln, nSplit
-  real(kind=fPrec)        weight, z, zp, dt(npart)
-  logical                 spErr, cErr
-  character(len=mInputLn) inLine
   character(len=:), allocatable :: lnSplit(:)
+  character(len=mInputLn) inLine
+  integer i, j, nSplit, lineNo, fUnit
+  logical spErr, cErr
 
-  write(lout,"(a)") "DIST> Reading particles from '"//trim(dist_readFile)//"'"
+  write(lout,"(a)") "DIST> Reading particles from '"//trim(dist_distFile)//"'"
 
   xv1(:)   = zero
   yv1(:)   = zero
@@ -492,22 +565,22 @@ subroutine dist_readDist
   naa(:)   = 0
   nzz(:)   = 0
   nucm(:)  = zero
-  dt(:)    = zero
 
-  j    = 0
-  ln   = 0
-  cErr = .false.
+  lineNo = 0
+  cErr   = .false.
+  j      = dist_numPart ! PARTICLE definitions in the block are saved first
 
   if(dist_hasFormat .eqv. .false.) then
     call dist_setColumnFormat("OLD_DIST",cErr)
   end if
 
-  call f_open(unit=dist_readUnit,file=dist_readFile,mode='r',err=cErr,formatted=.true.,status="old")
+  call f_requestUnit(dist_distFile, fUnit)
+  call f_open(unit=fUnit,file=dist_distFile,mode='r',err=cErr,formatted=.true.,status="old")
   if(cErr) goto 19
 
 10 continue
-  read(dist_readUnit,"(a)",end=30,err=20) inLine
-  ln = ln+1
+  read(fUnit,"(a)",end=30,err=20) inLine
+  lineNo = lineNo+1
 
   if(inLine(1:1) == "*") goto 10
   if(inLine(1:1) == "#") goto 10
@@ -522,24 +595,26 @@ subroutine dist_readDist
 
   call chr_split(inLine, lnSplit, nSplit, spErr)
   if(spErr) goto 20
+  if(nSplit == 0) goto 10
+  if(nSplit /= dist_nColumns) then
+    write(lerr,"(2(a,i0))") "DIST> ERROR Number of columns in file on line ",lineNo,&
+      " does not match format with ",dist_nColumns," columns"
+    call prror
+  end if
   do i=1,nSplit
     call dist_saveParticle(j, i, lnSplit(i), cErr)
   end do
   if(cErr) goto 20
 
-  mtc(j)   = (nzz(j)*nucm0)/(zz0*nucm(j))
-  pstop(j) = .false.
-  ejf0v(j) = ejfv(j)
-
   goto 10
 
 19 continue
-  write(lerr,"(a)") "DIST> ERROR Opening file '"//trim(dist_readFile)//"'"
+  write(lerr,"(a)") "DIST> ERROR Opening file '"//trim(dist_distFile)//"'"
   call prror
   return
 
 20 continue
-  write(lerr,"(a,i0)") "DIST> ERROR Reading particles from line ",ln
+  write(lerr,"(a,i0)") "DIST> ERROR Reading particles from line ",lineNo
   call prror
   return
 
@@ -550,8 +625,8 @@ subroutine dist_readDist
     return
   end if
 
-  call f_close(dist_readUnit)
-  write(lout,"(a,i0,a)") "DIST> Read ",j," particles from file '"//trim(dist_readFile)//"'"
+  call f_close(fUnit)
+  write(lout,"(a,i0,a)") "DIST> Read ",j," particles from file '"//trim(dist_distFile)//"'"
 
   call dist_postprParticles(nSplit, cErr)
 
@@ -571,67 +646,59 @@ subroutine dist_saveParticle(partNo, colNo, inVal, sErr)
   use mod_common_main
   use string_tools
 
-  integer,          intent(in)  :: partNo
-  integer,          intent(in)  :: colNo
-  character(len=*), intent(in)  :: inVal
-  logical,          intent(out) :: sErr
-
-  real(kind=fPrec) pScale
-  logical cErr
-
-  sErr = .false.
-  cErr = .false.
-
-  pScale = dist_colScale(colNo)
+  integer,          intent(in)    :: partNo
+  integer,          intent(in)    :: colNo
+  character(len=*), intent(in)    :: inVal
+  logical,          intent(inout) :: sErr
 
   select case(dist_colFormat(colNo))
 
   case(dist_fmtNONE)
     return
   case(dist_fmtPartID)
-    call chr_cast(inVal,partID(partNo),cErr)
+    call chr_cast(inVal,partID(partNo),sErr)
   case(dist_fmtParentID)
-    call chr_cast(inVal,parentID(partNo),cErr)
+    call chr_cast(inVal,parentID(partNo),sErr)
 
   case(dist_fmtX, dist_fmtX_NORM)
-    call chr_cast(inVal, xv1(partNo), cErr)
-    xv1(partNo) = xv1(partNo) * pScale
+    call chr_cast(inVal, xv1(partNo), sErr)
+    xv1(partNo) = xv1(partNo) * dist_colScale(colNo)
   case(dist_fmtY, dist_fmtY_NORM)
-    call chr_cast(inVal, xv2(partNo), cErr)
-    xv2(partNo) = xv2(partNo) * pScale
+    call chr_cast(inVal, xv2(partNo), sErr)
+    xv2(partNo) = xv2(partNo) * dist_colScale(colNo)
   case(dist_fmtXP, dist_fmtPX, dist_fmtXP_NORM, dist_fmtPX_NORM)
-    call chr_cast(inVal, yv1(partNo), cErr)
-    yv1(partNo) = yv1(partNo) * pScale
+    call chr_cast(inVal, yv1(partNo), sErr)
+    yv1(partNo) = yv1(partNo) * dist_colScale(colNo)
   case(dist_fmtYP, dist_fmtPY, dist_fmtYP_NORM, dist_fmtPY_NORM)
-    call chr_cast(inVal, yv2(partNo), cErr)
-    yv2(partNo) = yv2(partNo) * pScale
+    call chr_cast(inVal, yv2(partNo), sErr)
+    yv2(partNo) = yv2(partNo) * dist_colScale(colNo)
 
   case(dist_fmtSIGMA, dist_fmtDT, dist_fmtSIGMA_NORM, dist_fmtDT_NORM)
-    call chr_cast(inVal, sigmv(partNo), cErr)
-    sigmv(partNo) = sigmv(partNo) * pScale
+    call chr_cast(inVal, sigmv(partNo), sErr)
+    sigmv(partNo) = sigmv(partNo) * dist_colScale(colNo)
   case(dist_fmtE, dist_fmtE_NORM)
-    call chr_cast(inVal, ejv(partNo), cErr)
-    ejv(partNo) = ejv(partNo) * pScale
+    call chr_cast(inVal, ejv(partNo), sErr)
+    ejv(partNo) = ejv(partNo) * dist_colScale(colNo)
   case(dist_fmtP, dist_fmtP_NORM)
-    call chr_cast(inVal, ejfv(partNo), cErr)
-    ejfv(partNo) = ejfv(partNo) * pScale
+    call chr_cast(inVal, ejfv(partNo), sErr)
+    ejfv(partNo) = ejfv(partNo) * dist_colScale(colNo)
   case(dist_fmtDEE0, dist_fmtDEE0_NORM)
-    call chr_cast(inVal, ejv(partNo), cErr)
-    ejv(partNo) = ejv(partNo) * pScale
+    call chr_cast(inVal, ejv(partNo), sErr)
+    ejv(partNo) = ejv(partNo) * dist_colScale(colNo)
   case(dist_fmtDPP0, dist_fmtDPP0_NORM)
-    call chr_cast(inVal, dpsv(partNo), cErr)
+    call chr_cast(inVal, dpsv(partNo), sErr)
 
   case(dist_fmtMASS)
-    call chr_cast(inVal, nucm(partNo), cErr)
-    nucm(partNo) = nucm(partNo) * pScale
+    call chr_cast(inVal, nucm(partNo), sErr)
+    nucm(partNo) = nucm(partNo) * dist_colScale(colNo)
   case(dist_fmtCHARGE)
-    call chr_cast(inVal, nqq(partNo), cErr)
+    call chr_cast(inVal, nqq(partNo), sErr)
   case(dist_fmtIonA)
-    call chr_cast(inVal, naa(partNo), cErr)
+    call chr_cast(inVal, naa(partNo), sErr)
   case(dist_fmtIonZ)
-    call chr_cast(inVal, nzz(partNo), cErr)
+    call chr_cast(inVal, nzz(partNo), sErr)
 ! case(dist_fmtPDGID)
-!   call chr_cast(inVal, pdgid(partNo), cErr)
+!   call chr_cast(inVal, pdgid(partNo), sErr)
 
   end select
 
@@ -641,34 +708,25 @@ subroutine dist_postprParticles(numCols, sErr)
 
   use mod_common
   use mod_common_main
-  use mathlib_bouncer
   use numerical_constants
   use physical_constants
 
-  integer, intent(in)  :: numCols
-  logical, intent(out) :: sErr
+  integer, intent(in)    :: numCols
+  logical, intent(inout) :: sErr
 
-  integer i, j
-  logical cErr
-
-  sErr = .false.
-  cErr = .false.
+  integer i
 
   do i=1,numCols
     select case(dist_colFormat(i))
 
     case(dist_fmtPX)
-      do j=1, napx
-        yv1(j) = tan_mb(yv1(j)/ejfv(j))*c1e3
-      end do
+      yv1(1:napx) = (yv1(1:napx)/ejfv(1:napx))*c1e3
     case(dist_fmtPY)
-      do j=1, napx
-        yv2(j) = tan_mb(yv2(j)/ejfv(j))*c1e3
-      end do
+      yv2(1:napx) = (yv2(1:napx)/ejfv(1:napx))*c1e3
     case(dist_fmtDT)
-      sigmv(:) = -(e0f/e0)*(sigmv(:)*clight)
+      sigmv(1:napx) = -(e0f/e0)*(sigmv(1:napx)*clight)
     case(dist_fmtDEE0)
-      ejv(:) = ejv(:)*e0
+      ejv(1:napx) = (one + ejv(1:napx))*e0
 
     case(dist_fmtX_NORM)
       return
@@ -697,6 +755,10 @@ subroutine dist_postprParticles(numCols, sErr)
 
     end select
   end do
+
+  mtc(1:napx)   = (nzz(1:napx)*nucm0)/(zz0*nucm(1:napx))
+  pstop(1:napx) = .false.
+  ejf0v(1:napx) = ejfv(1:napx)
 
 end subroutine dist_postprParticles
 
@@ -780,23 +842,24 @@ subroutine dist_echoDist
 
   use mod_common
   use mod_common_main
-  use mod_units, only : f_open, f_close
+  use mod_units
 
-  integer j
+  integer j, fUnit
   logical cErr
 
-  call f_open(unit=dist_echoUnit,file=dist_echoFile,mode='w',err=cErr,formatted=.true.)
+  call f_requestUnit(dist_echoFile, fUnit)
+  call f_open(unit=fUnit,file=dist_echoFile,mode='w',err=cErr,formatted=.true.)
   if(cErr) goto 19
 
-  rewind(dist_echoUnit)
-  write(dist_echoUnit,"(a,1pe25.18)") "# Total energy of synch part [MeV]: ",e0
-  write(dist_echoUnit,"(a,1pe25.18)") "# Momentum of synch part [MeV/c]:   ",e0f
-  write(dist_echoUnit,"(a)")          "#"
-  write(dist_echoUnit,"(a)")          "# x[mm], y[mm], xp[mrad], yp[mrad], sigmv[mm], ejfv[MeV/c]"
+  rewind(fUnit)
+  write(fUnit,"(a,1pe25.18)") "# Total energy of synch part [MeV]: ",e0
+  write(fUnit,"(a,1pe25.18)") "# Momentum of synch part [MeV/c]:   ",e0f
+  write(fUnit,"(a)")          "#"
+  write(fUnit,"(a)")          "# x[mm], y[mm], xp[mrad], yp[mrad], sigmv[mm], ejfv[MeV/c]"
   do j=1, napx
-    write(dist_echoUnit,"(6(1x,1pe25.18))") xv1(j), yv1(j), xv2(j), yv2(j), sigmv(j), ejfv(j)
+    write(fUnit,"(6(1x,1pe25.18))") xv1(j), yv1(j), xv2(j), yv2(j), sigmv(j), ejfv(j)
   end do
-  call f_close(dist_echoUnit)
+  call f_close(fUnit)
 
   return
 

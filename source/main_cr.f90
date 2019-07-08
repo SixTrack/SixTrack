@@ -968,12 +968,7 @@ program maincr
 
   if(dist_enable) then
     ! DIST Block
-    call dist_readDist
-    call dist_finaliseDist
-    call part_applyClosedOrbit
-    if(dist_echo) then
-      call dist_echoDist
-    end if
+    call dist_generateDist
   elseif(rdfort13) then
     ! Restart from fort.13
     call readFort13
