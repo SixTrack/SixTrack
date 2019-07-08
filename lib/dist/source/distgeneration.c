@@ -4,7 +4,7 @@
 #include <string.h>
 #include "helper.h"
 #include "distgeneration.h"
-#include "distinput.h"
+#include "distinterface.h"
 #include "outputdist.h"
 
 

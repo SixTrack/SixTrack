@@ -4,7 +4,7 @@
 #include <string.h>
 #include <ctype.h>
 #include "helper.h"
-#include "distinput.h"
+#include "distinterface.h"
 #include "outputdist.h"
 
 /*This function converts from canoncial to sixtrack tracking variables*/

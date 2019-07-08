@@ -4,7 +4,7 @@
 #include <string.h>
 #include <ctype.h>
 #include "helper.h"
-#include "distinput.h"
+#include "distinterface.h"
 #include "outputdist.h"
 #include "file_reader.h"
 #include "round_near.c"

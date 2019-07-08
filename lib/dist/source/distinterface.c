@@ -3,7 +3,7 @@
 #include <math.h>
 #include <string.h>
 #include "helper.h"
-#include "distinput.h"
+#include "distinterface.h"
 #include "distgeneration.h"
 #include "outputdist.h"
 #include "file_reader.h"
