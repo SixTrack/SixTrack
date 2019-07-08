@@ -976,6 +976,7 @@ program maincr
   end do
   rat0 = rat
 
+  call part_setParticleID ! Must be set before reading DIST
   if(dist_enable) then
     ! DIST Block
     call dist_generateDist
@@ -1250,7 +1251,6 @@ program maincr
 !  START OF TRACKING
 ! ---------------------------------------------------------------------------- !
   write(lout,10200)
-  call part_setParticleID
 
   if(st_iStateWrite) then
     if(st_iStateText) then

@@ -341,19 +341,14 @@ subroutine dist_setColumnFormat(fmtName, fErr)
   case("MASS","M") ! Particle mass
     call dist_unitScale(fmtName, fmtUnit, 3, uFac, fErr)
     call dist_appendFormat(dist_fmtMASS, uFac)
-    dist_readMass = .true.
   case("CHARGE","Q") ! Particle charge
     call dist_appendFormat(dist_fmtCHARGE, one)
-    dist_readCharge = .true.
   case("ION_A") ! Ion atomic mass
     call dist_appendFormat(dist_fmtIonA, one)
-    dist_readIonA = .true.
   case("ION_Z") ! Ion atomic number
     call dist_appendFormat(dist_fmtIonZ, one)
-    dist_readIonZ = .true.
   case("PDGID") ! Particle PDG ID
     call dist_appendFormat(dist_fmtPDGID, one)
-    dist_readPDGID = .true.
 
   case("DEFAULT_4D") ! 4D default coordinates
     call dist_appendFormat(dist_fmtX, one)          ! Horizontal position
@@ -570,27 +565,16 @@ subroutine dist_readDist
 
   character(len=:), allocatable :: lnSplit(:)
   character(len=mInputLn) inLine
-  integer i, j, nSplit, lineNo, fUnit
-  logical spErr, cErr
+  integer i, j, nSplit, lineNo, fUnit, fmtCols
+  logical spErr, cErr, isFirst
 
   write(lout,"(a)") "DIST> Reading particles from '"//trim(dist_distFile)//"'"
 
-  xv1(:)   = zero
-  yv1(:)   = zero
-  xv2(:)   = zero
-  yv2(:)   = zero
-  sigmv(:) = zero
-  ejfv(:)  = zero
-  ejf0v(:) = zero
-  naa(:)   = 0
-  nzz(:)   = 0
-  nqq(:)   = 0
-  pdgid(:) = 0
-  nucm(:)  = zero
-
-  lineNo = 0
-  cErr   = .false.
-  j      = dist_numPart ! PARTICLE definitions in the block are saved first
+  isFirst = .true.
+  fmtCols = dist_nColumns
+  lineNo  = 0
+  cErr    = .false.
+  j       = dist_numPart ! PARTICLE definitions in the block are saved first
 
   if(dist_hasFormat .eqv. .false.) then
     call dist_setColumnFormat("OLD_DIST",cErr)
@@ -602,15 +586,15 @@ subroutine dist_readDist
 
 10 continue
   read(fUnit,"(a)",end=30,err=20) inLine
-  lineNo = lineNo+1
+  lineNo = lineNo + 1
 
   if(inLine(1:1) == "*") goto 10
   if(inLine(1:1) == "#") goto 10
   if(inLine(1:1) == "!") goto 10
-  j = j+1
+  j = j + 1
 
   if(j > napx) then
-    write(lout,"(a,i0,a)") "DIST> Stopping reading file as ",napx," particles have been read, as requested in "//trim(fort3)
+    write(lout,"(a,i0,a)") "DIST> Stopping reading file as ",napx," particles have been read, as requested in '"//trim(fort3)//"'"
     j = napx
     goto 30
   end if
@@ -618,12 +602,20 @@ subroutine dist_readDist
   call chr_split(inLine, lnSplit, nSplit, spErr)
   if(spErr) goto 20
   if(nSplit == 0) goto 10
-  if(nSplit /= dist_nColumns) then
+
+  if(isFirst) then
+    if(nSplit < dist_nColumns) then
+      fmtCols = nSplit
+      write(lout,"(2(a,i0))") "DIST> WARNING Distribution file has ",nSplit," columns, but format has ",dist_nColumns
+    end if
+    isFirst = .false.
+  end if
+  if(nSplit < fmtCols) then
     write(lerr,"(3(a,i0),a)") "DIST> ERROR Number of columns in file on line ",lineNo," is ",nSplit,&
-      " and does not match format with ",dist_nColumns," columns"
+      " but expected ",fmtCols," columns"
     call prror
   end if
-  do i=1,nSplit
+  do i=1,fmtCols
     call dist_saveParticle(j, i, lnSplit(i), cErr)
   end do
   if(cErr) goto 20
@@ -712,15 +704,20 @@ subroutine dist_saveParticle(partNo, colNo, inVal, sErr)
 
   case(dist_fmtMASS)
     call chr_cast(inVal, nucm(partNo), sErr)
-    nucm(partNo) = nucm(partNo) * dist_colScale(colNo)
+    nucm(partNo)  = nucm(partNo) * dist_colScale(colNo)
+    dist_readMass = .true.
   case(dist_fmtCHARGE)
     call chr_cast(inVal, nqq(partNo), sErr)
+    dist_readCharge = .true.
   case(dist_fmtIonA)
     call chr_cast(inVal, naa(partNo), sErr)
+    dist_readIonA = .true.
   case(dist_fmtIonZ)
     call chr_cast(inVal, nzz(partNo), sErr)
+    dist_readIonZ = .true.
   case(dist_fmtPDGID)
     call chr_cast(inVal, pdgid(partNo), sErr)
+    dist_readPDGID = .true.
 
   end select
 
@@ -778,6 +775,11 @@ subroutine dist_postprParticles(numCols, sErr)
 
     end select
   end do
+
+  if(dist_readIonA .neqv. dist_readIonZ) then
+    write(lerr,"(a)") "DIST> ERROR ION_A and ION_Z columns have to both be present if one of them is"
+    call prror
+  end if
 
   if(dist_readIonZ .and. .not. dist_readCharge) then
     nqq(1:napx) = nzz(1:napx)
