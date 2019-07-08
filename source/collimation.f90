@@ -913,7 +913,7 @@ subroutine collimate_init()
 !! 1 = QGSP_BERT
 !  g4_physics = 0
 
-  call g4_collimation_init(e0, rnd_seed, g4_recut, g4_aecut, g4_rcut, g4_physics, g4_debug, g4_keep_stable)
+  call g4_collimation_init(e0, rnd_seed, g4_recut, g4_aecut, g4_rcut, g4_rangecut_mm, g4_physics, g4_debug, g4_keep_stable)
 #endif
 
   write (lout,"(a)") ""
@@ -3109,7 +3109,7 @@ subroutine collimate_end_collimator(stracki)
   real(kind=fPrec) hdfx,hdfxp,hdfy,hdfyp,hdfdee,hdfs
 #endif
 
-  real(kind=fPrec) stracki
+  real(kind=fPrec), intent(in) :: stracki
 
 !++  Output information:
 !++

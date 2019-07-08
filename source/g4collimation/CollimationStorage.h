@@ -4,12 +4,13 @@
 #include "G4Types.hh"
 
 //g4_add_particle(rcx(j), rcy(j), rcxp(j), rcyp(j), rcp(j), pdgid(j), nzz(j), naa(j), nqq(j))
-struct G4Stuff
+struct CollimationParticle
 {
 	G4double x;
 	G4double y;
 	G4double px;
 	G4double py;
+	G4double pz;
 	G4double e;
 	G4double p;
 	G4double m;

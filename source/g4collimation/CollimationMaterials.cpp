@@ -45,14 +45,19 @@ CollimationMaterials::CollimationMaterials()
 
 	AddMaterial("CU", Cu);
 
-	G4Material* AC150K = new G4Material("AC150K", 1.650*CLHEP::g/CLHEP::cm3,1);
+// Remember:
+//  void AddMaterial(G4Material* material,                        //the material
+//                   G4double   fraction);                        //fractionOfMass
+// Mass fractions!
+//
+	G4Material* AC150K = new G4Material("AC150K", 1.670*CLHEP::g/CLHEP::cm3,1);
 	AC150K->AddMaterial(C,1.0);
 	AddMaterial("C", AC150K);
 
-	//Mo Graphite - FIXME fractions
+	//Mo Graphite - fractions from https://twiki.cern.ch/twiki/pub/LHCAtHome/SixTrackCollimatVer/material_test_2015-03-30_corretto.xlsx
 	G4Material* MoGr = new G4Material("MoGr", 2.5*CLHEP::g/CLHEP::cm3,2);
-	MoGr->AddMaterial(Mo,0.5);
-	MoGr->AddMaterial(C,0.5);
+	MoGr->AddMaterial(Mo,0.137);
+	MoGr->AddMaterial(C,0.863);
 	AddMaterial("MoGr", MoGr);
 	AddMaterial("MoGR", MoGr);
 
@@ -72,12 +77,12 @@ CollimationMaterials::CollimationMaterials()
 	Iner->AddMaterial(Cu,0.015);
 	AddMaterial("Iner", Iner);
 
-	//Copper diamond - FIXME fractions
+	//Copper diamond - fractions from https://twiki.cern.ch/twiki/pub/LHCAtHome/SixTrackCollimatVer/material_test_2015-03-30_corretto.xlsx
 	//https://cds.cern.ch/record/2112203/files/tho4ab03.pdf
 	G4Material* CuCD = new G4Material("CuCD", 5.4*CLHEP::g/CLHEP::cm3,3);
-	CuCD->AddMaterial(Cu,0.39);
-	CuCD->AddMaterial(C,0.6);
-	CuCD->AddMaterial(B,0.01);
+	CuCD->AddMaterial(Cu,0.647);
+	CuCD->AddMaterial(C,0.349);
+	CuCD->AddMaterial(B,0.004);
 	AddMaterial("CuCD", CuCD);
 }
 

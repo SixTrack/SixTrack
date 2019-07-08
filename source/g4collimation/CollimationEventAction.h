@@ -15,13 +15,13 @@ public:
 	void BeginOfEventAction(const G4Event*);
 	void EndOfEventAction(const G4Event*);
 
-	void SetOutputVector(std::vector<G4Stuff>*);
-	void AddOutputParticle(G4Stuff);
+	void SetOutputVector(std::vector<CollimationParticle>*);
+	void AddOutputParticle(CollimationParticle);
 
 private:
 	unsigned int ProtonCount;
 	const G4Event* ThisEvent;
-	std::vector<G4Stuff>* output_particles;
+	std::vector<CollimationParticle>* output_particles;
 };
 
 #endif

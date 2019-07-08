@@ -436,7 +436,6 @@ if(G4COLLIMATION)
   message(STATUS "Geant4 use file: ${Geant4_USE_FILE}")
   message(STATUS "Geant4 libraries: ${Geant4_LIBRARIES}")
   message(STATUS "Geant4 definitions: ${Geant4_DEFINITIONS}")
-#	include(${Geant4_USE_FILE})
   add_subdirectory(${CMAKE_SOURCE_DIR}/source/g4collimation)
 endif(G4COLLIMATION)
 

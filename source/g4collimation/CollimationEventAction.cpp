@@ -32,13 +32,13 @@ void CollimationEventAction::EndOfEventAction(const G4Event*)
 //	std::cout << "Exiting were " << ProtonCount << " protons" << std::endl;
 }
 
-void CollimationEventAction::SetOutputVector(std::vector<G4Stuff>* out)
+void CollimationEventAction::SetOutputVector(std::vector<CollimationParticle>* out)
 {
 	output_particles = out;
 }
 
-void CollimationEventAction::AddOutputParticle(G4Stuff stuff)
+void CollimationEventAction::AddOutputParticle(CollimationParticle aParticle)
 {
-	output_particles->push_back(stuff);
+	output_particles->push_back(aParticle);
 }
 

@@ -96,12 +96,13 @@ void CollimationTrackingAction::PostUserTrackingAction(const G4Track* Track)
 //Energy cut
 		if((Track->GetKineticEnergy() > ReferenceEnergy*RelativeEnergyCut) && (Track->GetKineticEnergy() > AbsoluteEnergyCut) && (keep_this == true))
 		{
-			G4Stuff exit_particle;
+			CollimationParticle exit_particle;
 
 			exit_particle.x = Track->GetPosition().x()  / CLHEP::m;
 			exit_particle.y = Track->GetPosition().y()  / CLHEP::m;
 			exit_particle.px = Track->GetMomentum().x() / CLHEP::GeV;
 			exit_particle.py = Track->GetMomentum().y() / CLHEP::GeV;
+			exit_particle.pz = Track->GetMomentum().z() / CLHEP::GeV;
 
 			double p2 = pow(Track->GetMomentum().x()/CLHEP::GeV,2) + pow(Track->GetMomentum().y()/CLHEP::GeV,2) + pow(Track->GetMomentum().z()/CLHEP::GeV,2); 
 

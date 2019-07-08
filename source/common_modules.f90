@@ -31,7 +31,7 @@ module parpro
   integer, parameter :: nelb  = 280       ! Maximum elements per BLOC
 
   ! Maximum length of strings
-  integer, parameter :: mNameLen  = 48    ! Maximum length of element names. Keep in sync with MadX
+  integer, parameter :: mNameLen  = 48    ! Maximum length of element names. Keep in sync with MadX (and inside Geant4 code!)
   integer, parameter :: mFileName = 64    ! Maximum length of file names
   integer, parameter :: mPathName = 255   ! Maximum length of path names
   integer, parameter :: mStrLen   = 161   ! Standard string length

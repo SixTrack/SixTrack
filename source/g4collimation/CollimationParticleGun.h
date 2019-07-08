@@ -13,7 +13,7 @@ public:
 	~CollimationParticleGun();
 
 	void GeneratePrimaries(G4Event*);
-	void SetParticleDetails(double x, double y, double xp, double yp, double e, double p, int pdgid, int q);
+	void SetParticleDetails(double x, double y, double xp, double yp, double zp, double e, double p, int pdgid, int q);
 	void SetReferenceEnergy(double);
 	double GetReferenceEnergy();
 	void SetDebug(bool);
