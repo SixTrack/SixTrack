@@ -17,6 +17,10 @@ module collimation
   use floatPrecision
   use numerical_constants
 
+#ifdef G4COLLIMATION
+  use geant4
+#endif
+
   implicit none
 
   integer, parameter :: max_ncoll  = 100
@@ -431,6 +435,10 @@ module collimation
   integer, private, save :: CollPositions_unit, all_absorptions_unit, efficiency_2d_unit
   integer, private, save :: collsettings_unit, outlun
 
+#ifdef G4COLLIMATION
+  integer, public :: unit208 ! Holds the actual units of fort.208
+#endif
+
 #ifdef HDF5
   ! Variables to save hdf5 dataset indices
   integer, private, save :: coll_hdf5_survival
@@ -613,12 +621,6 @@ subroutine collimate_init()
 
 #ifdef HDF5
   if(h5_useForCOLL) call h5_initForCollimation
-#endif
-
-#ifdef G4COLLIMAT
-  ! These should be configured in the scatter block when possible/enabled
-  real(kind=fPrec) g4_ecut
-  integer g4_physics
 #endif
 
   call f_requestUnit("colltrack.out", outlun)
@@ -894,25 +896,30 @@ subroutine collimate_init()
 #ifdef MERLINSCATTER
   call collimate_init_merlin
 #endif
-#ifdef G4COLLIMAT
-  ! This function lives in the G4Interface.cpp file in the g4collimat folder
-  ! Accessed by linking libg4collimat.a
-  ! Set the energy cut at 70% - i.e. 30% energy loss
-  g4_ecut = 0.7_fPrec
 
-  ! Select the physics engine to use
-  ! 0 = FTFP_BERT
-  ! 1 = QGSP_BERT
-  g4_physics = 0
+#ifdef G4COLLIMATION
+! Open the edep file
+  call f_requestUnit("fort.208", unit208)
+  call f_open(unit=unit208, file="fort.208",formatted=.true.,mode="w")
 
-  call g4_collimation_init(e0, rnd_seed, g4_ecut, g4_physics)
+!! This function lives in the G4Interface.cpp file in the g4collimat folder
+!! Accessed by linking libg4collimat.a
+!! Set the energy cut at 70% - i.e. 30% energy loss
+!  g4_ecut = 0.7_fPrec
+!  g4_ecut = zero
+
+!! Select the physics engine to use
+!! 0 = FTFP_BERT
+!! 1 = QGSP_BERT
+!  g4_physics = 0
+
+  call g4_collimation_init(e0, rnd_seed, g4_recut, g4_aecut, g4_rcut, g4_rangecut_mm, g4_physics, g4_debug, g4_keep_stable)
 #endif
 
   write (lout,"(a)") ""
   write (lout,"(a)") "COLL> Finished collimate initialisation"
   write (lout,"(a)") ""
 
-  ! Always one sample, so call it here
   call collimate_start
 
 end subroutine collimate_init
@@ -1580,7 +1587,7 @@ subroutine collimate_parseInputLine(inLine, iLine, iErr)
     call chr_cast(lnSplit(3), pencil_rmsx,  iErr)
     call chr_cast(lnSplit(4), pencil_rmsy,  iErr)
     call chr_cast(lnSplit(5), pencil_distr, iErr)
-#ifdef G4COLLIMAT
+#ifdef G4COLLIMATION
     if(ipencil > 0) then
       write(lerr,"(a)") "COLL> ERROR Pencil distribution not supported with geant4"
       iErr = .true.
@@ -2273,17 +2280,27 @@ subroutine collimate_do_collimator(stracki)
   use mod_units
   use mathlib_bouncer
 
+#ifdef ROOT
+  use root_output
+#endif
+
   implicit none
 
   real(kind=fPrec), intent(in) :: stracki
 
   integer j,jjj
 
-#ifdef G4COLLIMAT
-  integer g4_lostc
+#ifdef G4COLLIMATION
+  integer :: g4_lostc
+  integer :: g4_npart
   integer :: part_hit_flag = 0
   integer :: part_abs_flag = 0
   real(kind=fPrec) x_tmp,y_tmp,xp_tmp,yp_tmp
+
+  ! ien0,ien1: ion energy entering/leaving the collimator
+  ! energy in MeV
+  real(kind=fPrec)    :: ien0, ien1
+  integer(kind=int16) :: nnuc0,nnuc1
 #endif
 
 !-----------------------------------------------------------------------
@@ -2905,7 +2922,7 @@ subroutine collimate_do_collimator(stracki)
       else !if(n_slices.gt.one .and. totals.gt.smin_slices .and. totals.lt.smax_slices .and.
 !     Treatment of non-sliced collimators
 
-#ifdef G4COLLIMAT
+#ifdef G4COLLIMATION
 !! Add the geant4 geometry
         if(firstrun.and.iturn.eq.1) then
           call g4_add_collimator(cdb_cNameUC(icoll), c_material, c_length, c_aperture, c_rotation, c_offset)
@@ -2918,26 +2935,74 @@ subroutine collimate_do_collimator(stracki)
 
 !! Loop over all our particles
         g4_lostc = 0
+        nnuc0 = 0
+        ien0  = zero
+        nnuc1 = 0
+        ien1  = zero
+
+        if(g4_debug .eqv. .true.) then
+          write(lout,"(2a)") 'COLLIMATOR:', cdb_cNameUC(icoll)
+          write(lout,"(2a)") '                               id       pdgid                     mass                        ',&
+&                            'x                        y                       xp                       yp                        p'
+          flush(lout)
+        end if
+
         do j = 1, napx
-          if(part_abs_pos(j).eq.0 .and. part_abs_turn(j).eq.0) then
+!!!!          if(part_abs_pos(j).eq.0 .and. part_abs_turn(j).eq.0) then
 !! Rotate particles in the frame of the collimator
 !! There is more precision if we do it here rather
 !! than in the g4 geometry
+
+            if(g4_debug .eqv. .true.) then
+              write(lout,"(a,2(1X,I11),6(1X,E24.16))") 'g4 sending particle: ', j, pdgid(j), nucm(j), rcx(j), rcy(j), rcxp(j), &
+&                   rcyp(j), rcp(j)
+            end if
+
             x_tmp = rcx(j)
             y_tmp = rcy(j)
             xp_tmp = rcxp(j)
             yp_tmp = rcyp(j)
-            rcx(j) = x_tmp*cos_mb(c_rotation) +sin_mb(c_rotation)*y_tmp
-            rcy(j) = y_tmp*cos_mb(c_rotation) -sin_mb(c_rotation)*x_tmp
-            rcxp(j) = xp_tmp*cos_mb(c_rotation)+sin_mb(c_rotation)*yp_tmp
-            rcyp(j) = yp_tmp*cos_mb(c_rotation)-sin_mb(c_rotation)*xp_tmp
+            rcx(j) =  x_tmp *cos_mb(c_rotation) + sin_mb(c_rotation)*y_tmp
+            rcy(j) =  y_tmp *cos_mb(c_rotation) - sin_mb(c_rotation)*x_tmp
+            rcxp(j) = xp_tmp*cos_mb(c_rotation) + sin_mb(c_rotation)*yp_tmp
+            rcyp(j) = yp_tmp*cos_mb(c_rotation) - sin_mb(c_rotation)*xp_tmp
+
+!! Add all particles
+
+            call g4_add_particle(rcx(j), rcy(j), rcxp(j), rcyp(j), rcp(j), pdgid(j), nzz(j), naa(j), nqq(j), nucm(j))
+!!!!          end if
+
+! Log input energy + nucleons as per the FLUKA coupling
+        nnuc0   = nnuc0 + naa(j)
+        ien0    = ien0 + rcp(j) * c1e3
+        end do
 
 !! Call the geant4 collimation function
-            call g4_collimate(rcx(j), rcy(j), rcxp(j), rcyp(j), rcp(j))
+!            call g4_collimate(rcx(j), rcy(j), rcxp(j), rcyp(j), rcp(j))
+        call g4_collimate()
 
+!! Get the particle number back
+        call g4_get_particle_count(g4_npart)
+
+!! resize arrays
+        call expand_arrays(nele, g4_npart, nblz, nblo)
+
+!! Reset napx to the correct value
+        napx = g4_npart
+
+        if(g4_debug .eqv. .true.) then
+          write(lout,"(2a)") '                               id       pdgid                     mass                        ',&
+&                            'x                        y                       xp                       yp                        p'
+        end if
+
+        do j = 1, napx
 !! Get the particle back + information
-            call g4_collimate_return(rcx(j), rcy(j), rcxp(j), rcyp(j), rcp(j), part_hit_flag, part_abs_flag, &
- &                                   part_impact(j), part_indiv(j), part_linteract(j))
+!! Remember C arrays start at 0, fortran at 1 here.
+            call g4_collimate_return(j-1, rcx(j), rcy(j), rcxp(j), rcyp(j), rcp(j), pdgid(j), nucm(j), nzz(j), naa(j), nqq(j), &
+ & part_hit_flag, part_abs_flag, part_impact(j), part_indiv(j), part_linteract(j))
+
+            partID(j) = j
+            pstop (j) = .false.
 
 !! Rotate back into the accelerator frame
             x_tmp   = rcx(j)
@@ -2949,34 +3014,70 @@ subroutine collimate_do_collimator(stracki)
             rcxp(j) = xp_tmp*cos_mb(-one*c_rotation) + sin_mb(-one*c_rotation)*yp_tmp
             rcyp(j) = yp_tmp*cos_mb(-one*c_rotation) - sin_mb(-one*c_rotation)*xp_tmp
 
-!           If a particle hit
-            if(part_hit_flag.ne.0) then
-              part_hit_pos(j) = ie
-              part_hit_turn(j) = iturn
+! This needs fixing - FIXME
+            sigmv(j) = zero
+            part_impact(j) = 0
+            part_indiv(j) = 0
+            part_linteract(j) = 0
+
+! Log output energy + nucleons as per the FLUKA coupling
+            nnuc1       = nnuc1 + naa(j)                          ! outcoming nucleons
+            ien1        = ien1  + rcp(j) * c1e3                   ! outcoming energy
+
+! Fix hits
+! if(part_hit_pos(j) .eq.ie .and. part_hit_turn(j).eq.iturn)
+            part_hit_pos(j)  = ie
+            part_hit_turn(j) = iturn
+            part_abs_pos(j) = 0
+            part_abs_turn(j) = 0
+
+!!           If a particle hit
+!            if(part_hit_flag.ne.0) then
+!              part_hit_pos(j) = ie
+!              part_hit_turn(j) = iturn
+!            end if
+!
+!!           If a particle died (the checking if it is already dead is at the start of the loop)
+!!           Geant just has a general inelastic process that single diffraction is part of
+!!           Therefore we can not know if this interaction was SD or some other inelastic type
+!            if(part_abs_flag.ne.0) then
+!              if(dowrite_impact) then
+!!! FLUKA_impacts.dat
+!                write(FLUKA_impacts_unit,'(i4,(1x,f6.3),(1x,f8.6),4(1x,e19.10),i2,2(1x,i7))') &
+! &                    icoll,c_rotation,zero,zero,zero,zero,zero,part_abs_flag,flukaname(j),iturn
+!              end if
+!
+!              part_abs_pos(j)  = ie
+!              part_abs_turn(j) = iturn
+!              rcx(j) = 99.99e-3_fPrec
+!              rcy(j) = 99.99e-3_fPrec
+!              g4_lostc = g4_lostc + 1
+!            end if
+
+            if(g4_debug .eqv. .true.) then
+              write(lout,"(a,2(1X,I11),6(1X,E24.16))") 'g4 return particle:  ', j, pdgid(j), nucm(j), rcx(j), rcy(j), rcxp(j), &
+&                   rcyp(j), rcp(j)
             end if
 
-!           If a particle died (the checking if it is already dead is at the start of the loop)
-!           Geant just has a general inelastic process that single diffraction is part of
-!           Therefore we can not know if this interaction was SD or some other inelastic type
-            if(part_abs_flag.ne.0) then
-              if(dowrite_impact) then
-!! FLUKA_impacts.dat
-                write(FLUKA_impacts_unit,'(i4,(1x,f6.3),(1x,f8.6),4(1x,e19.10),i2,2(1x,i7))') &
- &                    icoll,c_rotation,zero,zero,zero,zero,zero,part_abs_flag,flukaname(j),iturn
-              end if
-
-              part_abs_pos(j)  = ie
-              part_abs_turn(j) = iturn
-              rcx(j) = 99.99e-3_fPrec
-              rcy(j) = 99.99e-3_fPrec
-              g4_lostc = g4_lostc + 1
-            end if
           flush(lout)
-          end if !part_abs_pos(j) .ne. 0 .and. part_abs_turn(j) .ne. 0
+!!!!          end if !part_abs_pos(j) .ne. 0 .and. part_abs_turn(j) .ne. 0
         end do   !do j = 1, napx
 !      write(lout,*) 'COLLIMATOR LOSSES ', cdb_cNameUC(icoll), g4_lostc
+
+        call g4_collimation_clear()
+
+  if((ien0-ien1).gt.one) then
+#ifdef ROOT
+    if(root_flag .and. root_Collimation .eq. 1) then
+      call root_EnergyDeposition(icoll, nnuc0-nnuc1,c1m3*(ien0-ien1))
+    end if
 #endif
-#ifndef G4COLLIMAT
+    write(unit208,*) icoll, (nnuc0-nnuc1), c1m3*(ien0-ien1)
+    flush(unit208)
+  end if
+
+#endif
+#ifndef G4COLLIMATION
 ! This is what is called in a normal collimation run
                   call collimate2(c_material, c_length, c_rotation,     &
      &                 c_aperture, c_offset, c_tilt,                    &
@@ -2996,7 +3097,7 @@ end subroutine collimate_do_collimator
 !! collimate_end_collimator()
 !! This routine is called at the exit of a collimator
 !<
-subroutine collimate_end_collimator()
+subroutine collimate_end_collimator(stracki)
 
   use crcoall
   use parpro
@@ -3022,7 +3123,7 @@ subroutine collimate_end_collimator()
   real(kind=fPrec) hdfx,hdfxp,hdfy,hdfyp,hdfdee,hdfs
 #endif
 
-  ! real(kind=fPrec) stracki ! stracki makes no sense here
+  real(kind=fPrec), intent(in) :: stracki
 
 !++  Output information:
 !++
@@ -3040,6 +3141,58 @@ subroutine collimate_end_collimator()
   sum      = zero
   sqsum    = zero
 
+#ifdef G4COLLIMATION
+  do j = 1, napx
+      if (stracki.eq.0.) then
+        if(iexact .eqv. .false.) then
+!          write(lout,*) 'iexact = 0', rcxp(j), rcyp(j)
+          rcx(j)  = rcx(j) - half*c_length*rcxp(j)
+          rcy(j)  = rcy(j) - half*c_length*rcyp(j)
+        else
+!          write(lout,*) 'iexact = 1', rcxp(j), rcyp(j)
+          zpj=sqrt(one-rcxp(j)**2-rcyp(j)**2)
+          rcx(j) = rcx(j) - half*c_length*(rcxp(j)/zpj)
+          rcy(j) = rcy(j) - half*c_length*(rcyp(j)/zpj)
+        end if
+      end if
+
+!++  Now copy data back to original verctor
+      xv1(j) = rcx(j)  * c1e3 + torbx(ie)
+      yv1(j) = rcxp(j) * c1e3 + torbxp(ie)
+      xv2(j) = rcy(j)  * c1e3 + torby(ie)
+      yv2(j) = rcyp(j) * c1e3 + torbyp(ie)
+      ejv(j) = rcp(j)  * c1e3
+
+
+! Update mtc and other arrays.
+!      ejv(j)    = rcp(j)  * c1e3
+!!!  write(lout,*) 'ejfv', ejv(j), nucm(j)
+!      ejfv  (j) = sqrt((ejv(j)-nucm(j))*(ejv(j)+nucm(j)))   ! hisix: ion mass
+      ejfv(j)=sqrt(ejv(j)**2-nucm(j)**2)
+!!!  write(lout,*) 'ejfv ok', ejfv(j)
+      rvv   (j) = (ejv(j)*e0f)/(e0*ejfv(j))                 ! hisix: remains unchanged
+      dpsv  (j) = (ejfv(j)*(nucm0/nucm(j))-e0f)/e0f         ! hisix: new delta
+      oidpsv(j) = one/(one+dpsv(j))
+      dpsv1 (j) = (dpsv(j)*c1e3)*oidpsv(j)
+      mtc     (j) = (nqq(j)*nucm0)/(qq0*nucm(j))            ! hisix: mass to charge
+      moidpsv (j) = mtc(j)*oidpsv(j)                        ! hisix
+      omoidpsv(j) = c1e3*((one-mtc(j))*oidpsv(j))           ! hisix
+
+!++  Energy update, as recommended by Frank
+!      ejfv(j)=sqrt(ejv(j)**2-nucm(j)**2)
+!      rvv(j)=(ejv(j)*e0f)/(e0*ejfv(j))
+!      dpsv(j)=(ejfv(j)*(nucm0/nucm(j))-e0f)/e0f
+!      oidpsv(j)=one/(one+dpsv(j))
+!      moidpsv(j)=mtc(j)/(one+dpsv(j))
+!      omoidpsv(j)=c1e3*((one-mtc(j))*oidpsv(j))
+!      dpsv1(j)=(dpsv(j)*c1e3)*oidpsv(j)
+      yv1(j)   = ejf0v(j)/ejfv(j)*yv1(j)
+      yv2(j)   = ejf0v(j)/ejfv(j)*yv2(j)
+!!!  write(lout,*) 'Coordinate loop end'
+end do
+#endif
+
+#ifndef G4COLLIMATION
 !++  Copy particle data back and do path length stuff; check for absorption
 !++  Add orbit offset back.
   do j = 1, napx
@@ -3049,7 +3202,7 @@ subroutine collimate_end_collimator()
     if(part_hit_pos(j) .eq.ie .and. part_hit_turn(j).eq.iturn) then
 !++  For zero length element track back half collimator length
 ! DRIFT PART
-      ! if (stracki.eq.0.) then ! stracki makes no sense here
+      if (stracki.eq.0.) then
         if(iexact) then
           zpj=sqrt(one-rcxp(j)**2-rcyp(j)**2)
           rcx(j) = rcx(j) - half*c_length*(rcxp(j)/zpj)
@@ -3058,7 +3211,7 @@ subroutine collimate_end_collimator()
           rcx(j)  = rcx(j) - half*c_length*rcxp(j)
           rcy(j)  = rcy(j) - half*c_length*rcyp(j)
         end if
-      ! end if ! stracki makes no sense here
+      end if
 
 !++  Now copy data back to original verctor
       xv1(j) = rcx(j)  * c1e3 + torbx(ie)
@@ -3072,6 +3225,7 @@ subroutine collimate_end_collimator()
       rvv(j)=(ejv(j)*e0f)/(e0*ejfv(j))
       dpsv(j)=(ejfv(j)*(nucm0/nucm(j))-e0f)/e0f
       oidpsv(j)=one/(one+dpsv(j))
+      mtc(j) = (nqq(j)*nucm0)/(qq0*nucm(j))            ! hisix: mass to charge
       moidpsv(j)=mtc(j)/(one+dpsv(j))
       omoidpsv(j)=c1e3*((one-mtc(j))*oidpsv(j))
       dpsv1(j)=(dpsv(j)*c1e3)*oidpsv(j)
@@ -3368,6 +3522,8 @@ subroutine collimate_end_collimator()
 
 !++  End of    S E L E C T E D   collimator
   end if
+#endif
+
 
 end subroutine collimate_end_collimator
 
@@ -3782,7 +3938,7 @@ subroutine collimate_exit()
   close(orbitchecking_unit)
   close(CollPositions_unit)
 
-#ifdef G4COLLIMAT
+#ifdef G4COLLIMATION
   call g4_terminate()
 #endif
 
@@ -3828,6 +3984,7 @@ subroutine collimate_start_element(i)
   integer j,jb
 
   ie=i
+#ifndef G4COLLIMATION
 !++  For absorbed particles set all coordinates to zero. Also
 !++  include very large offsets, let's say above 100mm or
 !++  100mrad.
@@ -3849,6 +4006,7 @@ subroutine collimate_start_element(i)
       nabs_type(j) = 0
     end if
   end do
+#endif
 
 !GRD SAVE COORDINATES OF PARTICLE 1 TO CHECK ORBIT
   if(firstrun) then

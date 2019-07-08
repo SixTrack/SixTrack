@@ -228,6 +228,7 @@ subroutine shuffleLostParticles
     nzz(j:tnapx)       = cshift(nzz(j:tnapx),       1)
     naa(j:tnapx)       = cshift(naa(j:tnapx),       1)
     nqq(j:tnapx)       = cshift(nqq(j:tnapx),       1)
+    pdgid(j:tnapx)     = cshift(pdgid(j:tnapx),     1)
     nucm(j:tnapx)      = cshift(nucm(j:tnapx),      1)
     mtc(j:tnapx)       = cshift(mtc(j:tnapx),       1)
     dpsv1(j:tnapx)     = cshift(dpsv1(j:tnapx),     1)
@@ -246,6 +247,8 @@ subroutine shuffleLostParticles
     dpsvLast(j:tnapx)  = cshift(dpsvLast(j:tnapx),  1)
     naaLast(j:tnapx)   = cshift(naaLast(j:tnapx),   1)
     nzzLast(j:tnapx)   = cshift(nzzLast(j:tnapx),   1)
+    nqqLast(j:tnapx)   = cshift(nqqLast(j:tnapx),   1)
+    pdgidLast(j:tnapx) = cshift(pdgidLast(j:tnapx), 1)
 
     tnapx = tnapx - 1
   end do

@@ -1339,9 +1339,9 @@ subroutine thck6d(nthinerr)
           ejf0v(j)=ejfv(j)
           if(abs(dppoff).gt.pieni) sigmv(j)=sigmv(j)-sigmoff(i)
           if(abs(kz(ix)) == 12) then
-            ejv(j)=ejv(j)+(ed(ix)*sin_mb(hsyc(ix)*sigmv(j)+phasc(ix)))*nzz(j)
+            ejv(j)=ejv(j)+(ed(ix)*sin_mb(hsyc(ix)*sigmv(j)+phasc(ix)))*nqq(j)
           else
-            ejv(j)=ejv(j)+(hsy(1)*sin_mb(hsy(3)*sigmv(j)))*nzz(j)
+            ejv(j)=ejv(j)+(hsy(1)*sin_mb(hsy(3)*sigmv(j)))*nqq(j)
           end if
           ejfv(j)=sqrt(ejv(j)**2-nucm(j)**2)                             !hr01
           rvv(j)=(ejv(j)*e0f)/(e0*ejfv(j))

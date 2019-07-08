@@ -88,7 +88,7 @@ option(BEAMGAS "Beam-gas scattering" OFF)
 option(HDF5 "Adds support for the HDF5 block which enables writing output to a single HDF5 file." OFF)
 option(FIO "Use FortranIO from Fortran2003 to correctly round ASCII input/output" OFF)
 option(MERLINSCATTER "Interaction physics for collimation from Merlin" OFF)
-option(G4COLLIMAT "Interaction physics for collimation from Geant4" OFF)
+option(G4COLLIMATION "Interaction physics for collimation from Geant4" OFF)
 option(FLUKA "Couple to FLUKA for beam collimation" OFF)
 option(PYTHIA "Link with Pythia8 for SCATTER module" OFF)
 option(LIBARCHIVE "Link with LIBARCHIVE, needed for BOINC and ZIPF block" OFF)
@@ -104,6 +104,7 @@ option(AVX2 "Enable use of the Advanced Vector Extensions 2 (AVX2) instruction s
 option(AVX512 "Enable use of the Advanced Vector Extensions 512 (AVX512) instruction set" OFF)
 option(AVX512_SKYLAKE "Enable use of the Advanced Vector Extensions 512 (AVX512) instruction set targeting Skylake" OFF)
 option(LTO "Enable link time optimisations" OFF)
+OPTION(PREFETCH "Enables the -fprefetch-loop-arrays compiler flag for gcc" OFF)
 
 # Float Precision (Default: 64BITM)
 option(32BITM "Floats are 32bit (single precision)" OFF)
@@ -197,9 +198,9 @@ endif()
 if(MERLINSCATTER)
   set(SIXTRACK_FEAT_CR "merlinscatter_${SIXTRACK_FEAT_CR}")
 endif()
-if(G4COLLIMAT)
-  set(SIXTRACK_FEAT_CR "g4collimat_${SIXTRACK_FEAT_CR}")
-endif()
+if(G4COLLIMATION)
+  SET(SIXTRACK_FEAT_CR "g4collimation_${SIXTRACK_FEAT_CR}")
+endif(G4COLLIMATION)
 if(FLUKA)
   set(SIXTRACK_FEAT_CR "FLUKA_${SIXTRACK_FEAT_CR}")
 endif(FLUKA)
@@ -280,7 +281,7 @@ set(SIXTRACK_BINARY_NAME_DA "SixDA_${NUM_VERSION}${GIT_BUILD}_${SIXTRACK_FEAT_DA
 # Setting the c pre-processor definitons
 ###################################################################################################
 
-list(APPEND PREPRO_FLAGS_TOOLS TILT FAST BOINC BEAMGAS STF MERLINSCATTER G4COLLIMAT FLUKA CR PYTHIA NAFF)
+list(APPEND PREPRO_FLAGS_TOOLS TILT FAST BOINC BEAMGAS STF MERLINSCATTER G4COLLIMATION FLUKA CR PYTHIA NAFF)
 list(APPEND PREPRO_FLAGS_LIB CRLIBM ROUND_NEAR ROUND_UP ROUND_DOWN ROUND_ZERO CERNLIB HDF5 FIO LIBARCHIVE ROOT HASHLIB ZLIB)
 list(APPEND PREPRO_FLAGS_COMPILE GFORTRAN IFORT NAGFOR WIN32 DEBUG MEMUSAGE)
 
@@ -322,6 +323,7 @@ list(APPEND FORT90_LIB
   mod_particles
   mod_time
   mod_units
+  pdgid
   plato_seq
   postprocessing
   ranecu
@@ -369,6 +371,10 @@ endif(FLUKA)
 if(ROOT)
   list(APPEND FORT90_LIB root_output)
 endif(ROOT)
+
+if(G4COLLIMATION)
+  LIST(APPEND FORT90_LIB geant4)
+endif(G4COLLIMATION)
 
 if(BOINC)
   list(APPEND FORT90_LIB mod_boinc)
@@ -418,7 +424,7 @@ endif(ZLIB)
 # Checking if some requested packages exist
 ###################################################################################################
 
-if(G4COLLIMAT)
+if(G4COLLIMATION)
   if(STATIC)
     find_package(Geant4 REQUIRED static)
   else()
@@ -430,9 +436,8 @@ if(G4COLLIMAT)
   message(STATUS "Geant4 use file: ${Geant4_USE_FILE}")
   message(STATUS "Geant4 libraries: ${Geant4_LIBRARIES}")
   message(STATUS "Geant4 definitions: ${Geant4_DEFINITIONS}")
-# include(${Geant4_USE_FILE})
-  add_subdirectory(${CMAKE_SOURCE_DIR}/source/g4collimat)
-endif(G4COLLIMAT)
+  add_subdirectory(${CMAKE_SOURCE_DIR}/source/g4collimation)
+endif(G4COLLIMATION)
 
 ##Possible check for Root
 if(ROOT)
@@ -449,14 +454,14 @@ if(ROOT)
   add_subdirectory(${CMAKE_SOURCE_DIR}/source/root_output)
 endif(ROOT)
 
-if(BUILD_TESTING OR BOINC OR LIBARCHIVE OR G4COLLIMAT OR CERNLIB)
+if(BUILD_TESTING OR BOINC OR LIBARCHIVE OR G4COLLIMATION OR CERNLIB)
 
   find_package(Threads REQUIRED)
   if(NOT Threads_FOUND)
     message(FATAL_ERROR "Could not find a thread library! This is required for your selected build configuration.")
   endif(NOT Threads_FOUND)
 
-endif(BUILD_TESTING OR BOINC OR LIBARCHIVE OR G4COLLIMAT OR CERNLIB)
+endif(BUILD_TESTING OR BOINC OR LIBARCHIVE OR G4COLLIMATION OR CERNLIB)
 
 ###################################################################################################
 # Checking if requested options are compatible
@@ -507,9 +512,9 @@ if(FLUKA)
     set(SIXDA OFF)
   endif()
 endif()
-if(G4COLLIMAT)
+if(G4COLLIMATION)
   if(SIXDA)
-    message(STATUS "Will not build SixDA when G4COLLIMAT is enabled.")
+    message(STATUS "Will not build SixDA when G4COLLIMATION is enabled.")
     set(SIXDA OFF)
   endif()
 endif()
@@ -635,8 +640,8 @@ if(Fortran_COMPILER_NAME MATCHES "gfortran.*")
     set(CMAKE_Fortran_FLAGS_RELEASE "${CMAKE_Fortran_FLAGS_RELEASE} -fno-expensive-optimizations -fno-inline-functions")
   endif()
   if(LTO)
-    set(CMAKE_Fortran_FLAGS_RELEASE "${CMAKE_Fortran_FLAGS_RELEASE} -flto")
-  endif()
+    set(CMAKE_Fortran_FLAGS_RELEASE "${CMAKE_Fortran_FLAGS_RELEASE} -flto -Wl,-flto")
+  endif(LTO)
 
   if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin" AND BOINC)
     set(CMAKE_Fortran_FLAGS "-mmacosx-version-min=${MIN_OSX_VERSION} ${CMAKE_Fortran_FLAGS}")
@@ -672,6 +677,10 @@ if(Fortran_COMPILER_NAME MATCHES "gfortran.*")
     if(NATIVE)
       set(CMAKE_Fortran_FLAGS "-march=native -mno-fma4 -mno-fma ${CMAKE_Fortran_FLAGS}")
     endif(NATIVE)
+
+    if(PREFETCH)
+      set(CMAKE_Fortran_FLAGS "-fprefetch-loop-arrays ${CMAKE_Fortran_FLAGS}")
+    endif(PREFETCH)
   endif()
 
   if(STATIC)
@@ -705,7 +714,7 @@ elseif(Fortran_COMPILER_NAME MATCHES "ifort.*")
 
   if(LTO)
     set(CMAKE_Fortran_FLAGS_RELEASE "${CMAKE_Fortran_FLAGS_RELEASE} -ffat-lto-objects -ipo")
-  endif()
+  endif(LTO)
 
   if(WARN)
     set(CMAKE_Fortran_FLAGS "-warn unused -check bounds ${CMAKE_Fortran_FLAGS}")
@@ -807,6 +816,10 @@ if(${CMAKE_C_COMPILER_ID} MATCHES "GNU")
   set (CMAKE_C_FLAGS_RELEASE "-O3")
   set (CMAKE_C_FLAGS_DEBUG   "-O0 -g3")
 
+  if(LTO)
+    set(CMAKE_Fortran_C_RELEASE "${CMAKE_C_FLAGS_RELEASE} -flto -Wl,-flto")
+  endif(LTO)
+
   if(${CMAKE_SYSTEM_PROCESSOR} MATCHES AMD64 OR ${CMAKE_SYSTEM_PROCESSOR} MATCHES x86_64 OR ${CMAKE_SYSTEM_PROCESSOR} MATCHES i686)
     if(32BIT)
       set(CMAKE_C_FLAGS "-m32 ${CMAKE_C_FLAGS}")
@@ -835,6 +848,10 @@ if(${CMAKE_C_COMPILER_ID} MATCHES "GNU")
     if(NATIVE)
       set(CMAKE_C_FLAGS "-march=native ${CMAKE_C_FLAGS}")
     endif(NATIVE)
+
+    if(PREFETCH)
+      set(CMAKE_C_FLAGS "-fprefetch-loop-arrays ${CMAKE_C_FLAGS}")
+    endif(PREFETCH)
   endif()
 
   if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin" AND BOINC)
@@ -955,6 +972,11 @@ if(${CMAKE_CXX_COMPILER_ID} MATCHES "GNU")
   set (CMAKE_CXX_FLAGS_RELEASE "-O3")
   set (CMAKE_CXX_FLAGS_DEBUG   "-O0 -g")
 
+  if(LTO)
+#	set(CMAKE_CXX_LINK_EXECUTABLE "")
+    set(CMAKE_Fortran_CXX_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -flto -Wl,-flto")
+  endif(LTO)
+
   if(${CMAKE_SYSTEM_PROCESSOR} MATCHES AMD64 OR ${CMAKE_SYSTEM_PROCESSOR} MATCHES x86_64 OR ${CMAKE_SYSTEM_PROCESSOR} MATCHES i686)
     if(32BIT)
       set(CMAKE_CXX_FLAGS "-m32 ${CMAKE_CXX_FLAGS}")
@@ -983,6 +1005,10 @@ if(${CMAKE_CXX_COMPILER_ID} MATCHES "GNU")
     if(NATIVE)
       set(CMAKE_CXX_FLAGS "-march=native ${CMAKE_CXX_FLAGS}")
     endif(NATIVE)
+
+    if(PREFETCH)
+      set(CMAKE_CXX_FLAGS "-fprefetch-loop-arrays ${CMAKE_CXX_FLAGS}")
+    endif(PREFETCH)
   endif()
 
   if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin" AND BOINC)
@@ -1472,13 +1498,13 @@ if(HDF5)
   target_link_libraries(SixTrackCore ${HDF5_LIBRARIES})
 endif(HDF5)
 
+if(G4COLLIMATION)
+  target_link_libraries(SixTrackCR g4collimation ${Geant4_LIBRARIES} Threads::Threads)
+endif(G4COLLIMATION)
+
 if(HASHLIB)
   target_link_libraries(SixTrackCore md5)
 endif(HASHLIB)
-
-if(G4COLLIMAT)
-  target_link_libraries(SixTrackCR g4collimat ${Geant4_LIBRARIES} Threads::Threads)
-endif(G4COLLIMAT)
 
 if(COVERAGE)
   target_compile_options(SixTrackCore PRIVATE -fprofile-arcs -ftest-coverage)

@@ -18,6 +18,7 @@ SET(FORTRAN_FREEFORM_TEST_SOURCE
 program ftest
 end program
 ")
+#SRC_EXT needs cmake 3.7
 check_fortran_source_compiles(${FORTRAN_FREEFORM_TEST_SOURCE} FORTRAN_FREEFORM_TEST_BUILD SRC_EXT ".f90")
 if(NOT FORTRAN_FREEFORM_TEST_BUILD)
     message(SEND_ERROR "ERROR: Your compiler failed to build a trivial executable as freeform. This is very bad!")

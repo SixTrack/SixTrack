@@ -140,7 +140,7 @@ module mod_fluka
   real(kind=fPrec), public :: fluka_brho0  ! [Tm]
   integer(kind=int16),          public :: fluka_chrg0  ! []
   integer(kind=int16),          public :: fluka_a0     ! nucelon number (hisix)
-  integer(kind=int16),          public :: fluka_z0     ! charge multiplicity (hisix)
+  integer(kind=int16),          public :: fluka_z0     ! nuclear charge
 
   save
 
@@ -333,7 +333,7 @@ contains
 
   !----------------------------------------------------------------------------
   ! send and receive particles from Fluka
-  integer function fluka_send_receive(turn, ipt, el, npart, xv1, xv2, yv1, yv2, s, etot, aa, zz, mass)
+  integer function fluka_send_receive(turn, ipt, el, npart, xv1, xv2, yv1, yv2, s, etot, aa, zz, mass, qq, pdg_id)
     implicit none
 
     ! Parameters
@@ -351,16 +351,18 @@ contains
     real(kind=fPrec), allocatable :: mass(:)
     integer(kind=int16), allocatable :: aa(:)
     integer(kind=int16), allocatable :: zz(:)
+    integer(kind=int16), allocatable :: qq(:)
+    integer(kind=int32), allocatable :: pdg_id(:)
 
-    fluka_send_receive = fluka_send(turn, ipt, el, npart, xv1, xv2, yv1, yv2, s, etot, aa, zz, mass)
+    fluka_send_receive = fluka_send(turn, ipt, el, npart, xv1, xv2, yv1, yv2, s, etot, aa, zz, mass, qq, pdg_id)
     if(fluka_send_receive.eq.-1) return
 
-    fluka_send_receive = fluka_receive(turn, ipt, el, npart, xv1, xv2, yv1, yv2, s, etot, aa, zz, mass)
+    fluka_send_receive = fluka_receive(turn, ipt, el, npart, xv1, xv2, yv1, yv2, s, etot, aa, zz, mass, qq, pdg_id)
   end function fluka_send_receive
 
   !----------------------------------------------------------------------------
   ! just send particles to Fluka
-  integer function fluka_send(turn, ipt, el, npart, xv1, xv2, yv1, yv2, s, etot, aa, zz, mass)
+  integer function fluka_send(turn, ipt, el, npart, xv1, xv2, yv1, yv2, s, etot, aa, zz, mass, qq, pdg_id)
     implicit none
 
     ! Interface variables
@@ -378,6 +380,8 @@ contains
     real(kind=fPrec), allocatable :: mass(:)
     integer(kind=int16), allocatable :: aa(:)
     integer(kind=int16), allocatable :: zz(:)
+    integer(kind=int16), allocatable :: qq(:)
+    integer(kind=int32), allocatable :: pdg_id(:)
 
     ! Fluka I/O parameters
     integer(kind=int32) :: flid, flgen
@@ -493,10 +497,11 @@ contains
   ! just receive particles from Fluka
   ! The call from fluka.s90 is:
   ! fluka_receive( nturn, fluka_geo_index(ix), eltot, napx, xv1(:), yv1(:), xv2(:), yv2(:), sigmv, ejv, naa(:), nzz(:), nucm(:))
-  ! When the above arrays are made allocatable, the below variables will need updating - see mod_common_main and mod_hions
-  integer function fluka_receive(turn, ipt, el, napx, xv1, xv2, yv1, yv2, s, etot, aa, zz, mass)
+  ! When the above arrays are made allocatable, the below variables will need updating - see mod_commonmn and mod_hions
+  integer function fluka_receive(turn, ipt, el, napx, xv1, xv2, yv1, yv2, s, etot, aa, zz, mass, qq, pdg_id)
 
     use parpro
+    use mod_pdgid
 
     implicit none
 
@@ -515,6 +520,8 @@ contains
     real(kind=fPrec), allocatable :: mass(:)
     integer(kind=int16), allocatable :: aa(:)
     integer(kind=int16), allocatable :: zz(:)
+    integer(kind=int16), allocatable :: qq(:)
+    integer(kind=int32), allocatable :: pdg_id(:)
 
     ! Fluka I/O parameters
     integer(kind=int32) :: flid, flgen
@@ -548,6 +555,8 @@ contains
       aa  (j) = 1
       zz  (j) = 1
       mass(j) = zero
+      qq  (j) = 1
+      pdg_id(j) = 0
     end do
 
     ! Wait until end of turn (Synchronize)
@@ -613,6 +622,8 @@ contains
             aa(fluka_nrecv)           = flaa          !PH for hiSix
             zz(fluka_nrecv)           = flzz          !PH for hiSix
             mass(fluka_nrecv)         = flm  * c1e3  ! from [GeV] to [MeV]         !PH for hiSix
+            qq(fluka_nrecv)           = flzz
+            call GetPDGid_fromFLUKA(-2, pdg_id(fluka_nrecv), flaa, flzz)
       end if
 
       !Finished waiting end of turn
@@ -650,12 +661,12 @@ contains
 
   !----------------------------------------------------------------------------
   ! set reference particle properties (mainly for longitudinal dynamics)
-  integer function fluka_set_synch_part( e0, pc0, mass0, a0, z0 )
+  integer function fluka_set_synch_part( e0, pc0, mass0, a0, z0, q0 )
     implicit none
 
     ! interface variables
     real(kind=fPrec) :: e0, pc0, mass0
-    integer(kind=int16)          :: a0, z0
+    integer(kind=int16) :: a0, z0, q0
 
     ! Auxiliary variables
     integer(kind=int32) :: n
@@ -665,21 +676,21 @@ contains
     fluka_e0    = e0    *c1m3 ! from  [MeV]    to [GeV]
     fluka_pc0   = pc0   *c1m3 ! from  [MeV/c]  to [GeV/c]
     fluka_mass0 = mass0 *c1m3 ! from  [MeV/c2] to [GeV/c2]
-!    fluka_chrg0 = chrg0
     fluka_a0 = a0
     fluka_z0 = z0
+    fluka_chrg0 = q0
 
     write(fluka_log_unit,*) ' updated synch part:'
     write(fluka_log_unit,*) ' - total en    [GeV]:',fluka_e0
     write(fluka_log_unit,*) ' - momentum  [GeV/c]:',fluka_pc0
     write(fluka_log_unit,*) ' - mass     [GeV/c2]:',fluka_mass0
-!    write(fluka_log_unit,*) ' - charge        [e]:',fluka_chrg0
-    write(fluka_log_unit,*) ' - mass number    []:',fluka_a0
-    write(fluka_log_unit,*) ' - charge        [e]:',fluka_z0
+    write(fluka_log_unit,*) ' - A mass number  []:',fluka_a0
+    write(fluka_log_unit,*) ' - Z number       []:',fluka_z0
+    write(fluka_log_unit,*) ' - charge state  [e]:',fluka_chrg0
     flush(fluka_log_unit)
 
     ! update magnetic rigidity, unless division by clight and 10^-9
-    fluka_brho0 = fluka_pc0 / real(fluka_z0,real64)
+    fluka_brho0 = fluka_pc0 / real(fluka_chrg0,real64)
 
     ! inform Fluka about the new magnetic rigidity
     n = ntsendbrhono(fluka_cid, fluka_brho0)
@@ -977,17 +988,17 @@ subroutine root_FLUKA_DumpInsertions
   character(len=mNameLen+1) :: this_name
 
 ! loop over each element entry
-  do k=0, nele
+  do k=1, nele
 !   extract the fluka geo index value, which usually will be 0 for non-insertions
     ii = fluka_geo_index(k)
     if(ii .eq. 0) then
       continue
     else
 
-      if(fluka_type(k) .eq. FLUKA_ENTRY) then
+      if(fluka_type(k) /= FLUKA_NONE) then
 !       this entry exists, so add it to root
         this_name = trim(adjustl(bez(k))) // C_NULL_CHAR
-        call root_FLUKA_Names(ii, this_name, len_trim(this_name))
+        call root_FLUKA_Names(ii, this_name, len_trim(this_name), fluka_type(k))
       end if
 
     end if
@@ -1054,7 +1065,7 @@ subroutine kernel_fluka_element( nturn, i, ix )
 
 
       ret = fluka_send_receive( fluka_nturn, fluka_geo_index(fluka_ix), fluka_synch_length( fluka_ix ), &
-           napx, xv1, xv2, yv1, yv2, sigmv, ejv, naa, nzz, nucm )
+           napx, xv1, xv2, yv1, yv2, sigmv, ejv, naa, nzz, nucm, nqq, pdgid )
 
       if (ret.eq.-1) then
          write(lerr,'(A)')'FLUKA> ERROR -1 in Fluka communication returned by fluka_send_receive...'
@@ -1092,7 +1103,7 @@ subroutine kernel_fluka_element( nturn, i, ix )
         write(unit208,*) fluka_geo_index(fluka_ix), nnuc0-nnuc1, c1m3*(ien0-ien1)
 #ifdef ROOT
         if(root_flag .and. root_FLUKA .eq. 1) then
-          call root_FLUKA_EnergyDeposition(fluka_geo_index(fluka_ix), nnuc0-nnuc1, c1m3*(ien0-ien1))
+          call root_EnergyDeposition(fluka_geo_index(fluka_ix), nnuc0-nnuc1, c1m3*(ien0-ien1))
         end if
 #endif
       ! hisix debugging:
@@ -1223,7 +1234,7 @@ subroutine kernel_fluka_entrance( nturn, i, ix )
       end do
 
       ret = fluka_send( fluka_nturn, fluka_geo_index(fluka_ix), zero, &
-           napx, xv1, xv2, yv1, yv2, sigmv, ejv, naa, nzz, nucm )
+           napx, xv1, xv2, yv1, yv2, sigmv, ejv, naa, nzz, nucm, nqq, pdgid )
 
       if (ret.eq.-1) then
          write(lerr,'(A)')'FLUKA> ERROR -1 in Fluka communication returned by fluka_send...'
@@ -1277,7 +1288,7 @@ subroutine kernel_fluka_exit
       end if
 
       ret = fluka_receive( fluka_nturn, fluka_geo_index(fluka_ix), fluka_synch_length( fluka_ix ), &
-           napx, xv1, xv2, yv1, yv2, sigmv, ejv, naa, nzz, nucm )
+           napx, xv1, xv2, yv1, yv2, sigmv, ejv, naa, nzz, nucm, nqq, pdgid )
 
       if (ret.eq.-1) then
          write(lerr,'(A)')'FLUKA> ERROR -1 in Fluka communication returned by fluka_receive...'
@@ -1316,7 +1327,7 @@ subroutine kernel_fluka_exit
           write(unit208,*) fluka_geo_index(fluka_ix), nnuc0-nnuc1, c1m3*(ien0-ien1)
 #ifdef ROOT
           if(root_flag .and. root_FLUKA .eq. 1) then
-            call root_FLUKA_EnergyDeposition(fluka_geo_index(fluka_ix), nnuc0-nnuc1, c1m3*(ien0-ien1))
+            call root_EnergyDeposition(fluka_geo_index(fluka_ix), nnuc0-nnuc1, c1m3*(ien0-ien1))
           end if
 #endif
 

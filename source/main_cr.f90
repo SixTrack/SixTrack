@@ -43,6 +43,9 @@ program maincr
 #ifdef FLUKA
   use mod_fluka
 #endif
+#ifdef G4COLLIMATION
+  use geant4
+#endif
 #ifdef HDF5
   use hdf5_output
 #endif
@@ -423,6 +426,9 @@ program maincr
     call SixTrackRootInit()
     call ConfigurationOutputRootSet_npart(napx)
     call ConfigurationOutputRootSet_nturns(nnuml)
+    call ConfigurationOutputRootSet_aperture_binsize(bktpre)
+    call ConfigurationOutputRootSet_reference_energy(e0)
+    call ConfigurationOutputRootSet_reference_mass(nucm0)
     call ConfigurationRootWrite()
 
     ! Dump the accelerator lattice
@@ -450,6 +456,10 @@ program maincr
       call root_FLUKA_DumpInsertions
     end if
 #endif
+
+    if(root_flag .and. root_DumpPipe.eq.1) then
+      call root_dump_aperture_model
+    end if
 
   end if
 #endif
@@ -1216,7 +1226,7 @@ program maincr
     flush(lout)
     flush(fluka_log_unit)
 
-    fluka_con = fluka_set_synch_part( e0, e0f, nucm0, aa0, zz0)
+    fluka_con = fluka_set_synch_part( e0, e0f, nucm0, aa0, zz0, qq0)
 
     if(fluka_con < 0) then
       write(lerr,"(a)") "FLUKA> ERROR Failed to update the reference particle"
