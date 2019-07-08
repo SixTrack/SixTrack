@@ -187,7 +187,7 @@ subroutine dist_parseInputLine(inLine, iLine, iErr)
 
   case("PARTICLE")
     if(dist_hasFormat .eqv. .false.) then
-      write(lerr,"(a,i0)") "DIST> ERROR PARTICLE requires a FORMAT definition to be defined first"
+      write(lerr,"(a,i0)") "DIST> ERROR PARTICLE keyword requires a FORMAT to be defined first"
       iErr = .true.
       return
     end if
