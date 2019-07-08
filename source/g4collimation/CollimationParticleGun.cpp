@@ -84,7 +84,7 @@ void CollimationParticleGun::SetParticleDetails(double x, double y, double px, d
 	const G4double mp = particle->GetPDGMass();
 	if(mp != mass)
 	{
-		std::cout.precision(15);
+		std::cout.precision(17);
 		std::cout << "Mass missmatch between Geant4 and SixTrack!" << std::endl;
 		std::cout << "PDG mass     : " << mp << std::endl;
 		std::cout << "SixTrack mass: " << mass << std::endl;
