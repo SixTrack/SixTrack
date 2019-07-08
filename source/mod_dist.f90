@@ -32,7 +32,7 @@ module mod_dist
   implicit none
 
   logical,                  public,  save :: dist_enable    = .false. ! DIST input block given
-  logical,                  private  save :: dist_echo      = .false. ! Echo the read distribution?
+  logical,                  private, save :: dist_echo      = .false. ! Echo the read distribution?
   logical,                  private, save :: dist_hasFormat = .false. ! Whether the FORMAT keyword exists in block or not
   logical,                  private, save :: dist_libRead   = .false. ! Read file with dist library instead of internal reader
   character(len=mFileName), private, save :: dist_distFile  = " "     ! File name for reading the distribution
@@ -151,6 +151,8 @@ subroutine dist_parseInputLine(inLine, iLine, iErr)
   end if
   if(nSplit == 0) return
 
+  cErr = .false.
+
   select case(lnSplit(1))
 
   case("FORMAT")
@@ -170,7 +172,7 @@ subroutine dist_parseInputLine(inLine, iLine, iErr)
     dist_hasFormat = .true.
 
   case("READ")
-    if(nSplit /= 2 .or. nSplit /= 3) then
+    if(nSplit /= 2 .and. nSplit /= 3) then
       write(lerr,"(a,i0)") "DIST> ERROR READ takes 1 or 2 arguments, got ",nSplit-1
       write(lerr,"(a)")    "DIST>       READ filename [LIBDIST]"
       iErr = .true.
