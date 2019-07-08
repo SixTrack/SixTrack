@@ -14,10 +14,10 @@ do j=1,napx
   y_t = cikve*c1m3
   !---- Vector with strengths
   do iord = 1, nordm
-    field_cos(1,iord) = (nzz(j)*(norrfamp(irrtr,iord)) * cos_mb(((norrfph(irrtr,iord)*twopi))  - (krf * sigmv(j))))
-    field_sin(1,iord) = (nzz(j)*(norrfamp(irrtr,iord)) * sin_mb(((norrfph(irrtr,iord)*twopi))  - (krf * sigmv(j))))
-    field_cos(2,iord) = (nzz(j)*(skrfamp(irrtr,iord))  * cos_mb(((skrfph(irrtr,iord)*twopi))   - (krf * sigmv(j))))
-    field_sin(2,iord) = (nzz(j)*(skrfamp(irrtr,iord))  * sin_mb(((skrfph(irrtr,iord)*twopi))   - (krf * sigmv(j))))
+    field_cos(1,iord) = (nqq(j)*(norrfamp(irrtr,iord)) * cos_mb(((norrfph(irrtr,iord)*twopi))  - (krf * sigmv(j))))
+    field_sin(1,iord) = (nqq(j)*(norrfamp(irrtr,iord)) * sin_mb(((norrfph(irrtr,iord)*twopi))  - (krf * sigmv(j))))
+    field_cos(2,iord) = (nqq(j)*(skrfamp(irrtr,iord))  * cos_mb(((skrfph(irrtr,iord)*twopi))   - (krf * sigmv(j))))
+    field_sin(2,iord) = (nqq(j)*(skrfamp(irrtr,iord))  * sin_mb(((skrfph(irrtr,iord)*twopi))   - (krf * sigmv(j))))
   end do
 
   Cp0 = zero

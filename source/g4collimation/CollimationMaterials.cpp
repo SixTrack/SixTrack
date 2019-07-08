@@ -21,7 +21,7 @@ CollimationMaterials::CollimationMaterials()
 
 	//Elements needed for composite materials
 	G4Material* B = NManager->FindOrBuildMaterial("G4_B");
-//	G4Material* Be = NManager->FindOrBuildMaterial("G4_Be");
+	G4Material* Be = NManager->FindOrBuildMaterial("G4_Be");
 	G4Material* C = NManager->FindOrBuildMaterial("G4_C");
 	G4Material* O = NManager->FindOrBuildMaterial("G4_O");
 	G4Material* Al = NManager->FindOrBuildMaterial("G4_Al");
@@ -29,9 +29,9 @@ CollimationMaterials::CollimationMaterials()
 	G4Material* Ni = NManager->FindOrBuildMaterial("G4_Ni");
 	G4Material* Mo = NManager->FindOrBuildMaterial("G4_Mo");
 	G4Material* W = NManager->FindOrBuildMaterial("G4_W");
-//	G4Material* Pb = NManager->FindOrBuildMaterial("G4_Pb");
+	G4Material* Pb = NManager->FindOrBuildMaterial("G4_Pb");
 
-/*
+
 	//Only needed for pure elemental collimators
 	AddMaterial("Be", Be);
 	AddMaterial("C", C);
@@ -42,16 +42,24 @@ CollimationMaterials::CollimationMaterials()
 	AddMaterial("Mo", Mo);
 	AddMaterial("W", W);
 	AddMaterial("Pb", Pb);
-*/
-	G4Material* AC150K = new G4Material("AC150K", 1.650*CLHEP::g/CLHEP::cm3,1);
+
+	AddMaterial("CU", Cu);
+
+// Remember:
+//  void AddMaterial(G4Material* material,                        //the material
+//                   G4double   fraction);                        //fractionOfMass
+// Mass fractions!
+//
+	G4Material* AC150K = new G4Material("AC150K", 1.670*CLHEP::g/CLHEP::cm3,1);
 	AC150K->AddMaterial(C,1.0);
 	AddMaterial("C", AC150K);
 
-	//Mo Graphite - FIXME fractions
+	//Mo Graphite - fractions from https://twiki.cern.ch/twiki/pub/LHCAtHome/SixTrackCollimatVer/material_test_2015-03-30_corretto.xlsx
 	G4Material* MoGr = new G4Material("MoGr", 2.5*CLHEP::g/CLHEP::cm3,2);
-	MoGr->AddMaterial(Mo,0.5);
-	MoGr->AddMaterial(C,0.5);
+	MoGr->AddMaterial(Mo,0.137);
+	MoGr->AddMaterial(C,0.863);
 	AddMaterial("MoGr", MoGr);
+	AddMaterial("MoGR", MoGr);
 
 	//Glidcop
 	G4Material* Glid = new G4Material("Glid", 8.930*CLHEP::g/CLHEP::cm3,3);
@@ -69,12 +77,12 @@ CollimationMaterials::CollimationMaterials()
 	Iner->AddMaterial(Cu,0.015);
 	AddMaterial("Iner", Iner);
 
-	//Copper diamond - FIXME fractions
+	//Copper diamond - fractions from https://twiki.cern.ch/twiki/pub/LHCAtHome/SixTrackCollimatVer/material_test_2015-03-30_corretto.xlsx
 	//https://cds.cern.ch/record/2112203/files/tho4ab03.pdf
 	G4Material* CuCD = new G4Material("CuCD", 5.4*CLHEP::g/CLHEP::cm3,3);
-	CuCD->AddMaterial(Cu,0.39);
-	CuCD->AddMaterial(C,0.6);
-	CuCD->AddMaterial(B,0.01);
+	CuCD->AddMaterial(Cu,0.647);
+	CuCD->AddMaterial(C,0.349);
+	CuCD->AddMaterial(B,0.004);
 	AddMaterial("CuCD", CuCD);
 }
 

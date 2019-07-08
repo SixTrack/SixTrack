@@ -86,6 +86,13 @@ module mod_dist
   integer, parameter :: dist_fmtIonZ        = 54 ! Ion atomic number
   integer, parameter :: dist_fmtPDGID       = 55 ! Particle PDG ID
 
+  ! Flags for columns we've set that we need to track
+  logical, private, save :: dist_readMass   = .false.
+  logical, private, save :: dist_readIonZ   = .false.
+  logical, private, save :: dist_readIonA   = .false.
+  logical, private, save :: dist_readCharge = .false.
+  logical, private, save :: dist_readPDGID  = .false.
+
 contains
 
 ! ================================================================================================ !
@@ -334,14 +341,19 @@ subroutine dist_setColumnFormat(fmtName, fErr)
   case("MASS","M") ! Particle mass
     call dist_unitScale(fmtName, fmtUnit, 3, uFac, fErr)
     call dist_appendFormat(dist_fmtMASS, uFac)
+    dist_readMass = .true.
   case("CHARGE","Q") ! Particle charge
     call dist_appendFormat(dist_fmtCHARGE, one)
+    dist_readCharge = .true.
   case("ION_A") ! Ion atomic mass
     call dist_appendFormat(dist_fmtIonA, one)
+    dist_readIonA = .true.
   case("ION_Z") ! Ion atomic number
     call dist_appendFormat(dist_fmtIonZ, one)
+    dist_readIonZ = .true.
   case("PDGID") ! Particle PDG ID
     call dist_appendFormat(dist_fmtPDGID, one)
+    dist_readPDGID = .true.
 
   case("DEFAULT_4D") ! 4D default coordinates
     call dist_appendFormat(dist_fmtX, one)          ! Horizontal position
@@ -393,8 +405,8 @@ subroutine dist_setColumnFormat(fmtName, fErr)
     call dist_appendFormat(dist_fmtMASS, c1e3)      ! Particle mass
     call dist_appendFormat(dist_fmtP, c1e3)         ! Particle momentum
     call dist_appendFormat(dist_fmtDT, one)         ! Time delay
-  ! call dist_appendFormat(dist_fmtCHARGE, one)     ! Particle charge
-  ! call dist_appendFormat(dist_fmtPDGID, one)      ! Particle PDG ID
+    call dist_appendFormat(dist_fmtCHARGE, one)     ! Particle charge
+    call dist_appendFormat(dist_fmtPDGID, one)      ! Particle PDG ID
 
   case default
     write(lerr,"(a)") "DIST> ERROR Unknown column format '"//trim(fmtName)//"'"
@@ -572,6 +584,8 @@ subroutine dist_readDist
   ejf0v(:) = zero
   naa(:)   = 0
   nzz(:)   = 0
+  nqq(:)   = 0
+  pdgid(:) = 0
   nucm(:)  = zero
 
   lineNo = 0
@@ -605,8 +619,8 @@ subroutine dist_readDist
   if(spErr) goto 20
   if(nSplit == 0) goto 10
   if(nSplit /= dist_nColumns) then
-    write(lerr,"(2(a,i0))") "DIST> ERROR Number of columns in file on line ",lineNo,&
-      " does not match format with ",dist_nColumns," columns"
+    write(lerr,"(3(a,i0),a)") "DIST> ERROR Number of columns in file on line ",lineNo," is ",nSplit,&
+      " and does not match format with ",dist_nColumns," columns"
     call prror
   end if
   do i=1,nSplit
@@ -705,8 +719,8 @@ subroutine dist_saveParticle(partNo, colNo, inVal, sErr)
     call chr_cast(inVal, naa(partNo), sErr)
   case(dist_fmtIonZ)
     call chr_cast(inVal, nzz(partNo), sErr)
-! case(dist_fmtPDGID)
-!   call chr_cast(inVal, pdgid(partNo), sErr)
+  case(dist_fmtPDGID)
+    call chr_cast(inVal, pdgid(partNo), sErr)
 
   end select
 
@@ -714,6 +728,7 @@ end subroutine dist_saveParticle
 
 subroutine dist_postprParticles(numCols, sErr)
 
+  use mod_pdgid
   use mod_common
   use mod_common_main
   use numerical_constants
@@ -722,7 +737,7 @@ subroutine dist_postprParticles(numCols, sErr)
   integer, intent(in)    :: numCols
   logical, intent(inout) :: sErr
 
-  integer i
+  integer i, j
 
   do i=1,numCols
     select case(dist_colFormat(i))
@@ -764,9 +779,19 @@ subroutine dist_postprParticles(numCols, sErr)
     end select
   end do
 
-  mtc(1:napx)   = (nzz(1:napx)*nucm0)/(zz0*nucm(1:napx))
+  if(dist_readIonZ .and. .not. dist_readCharge) then
+    nqq(1:napx) = nzz(1:napx)
+  end if
+
+  mtc(1:napx)   = (nqq(1:napx)*nucm0)/(qq0*nucm(1:napx))
   pstop(1:napx) = .false.
   ejf0v(1:napx) = ejfv(1:napx)
+
+  if(dist_readIonA .and. dist_readIonZ .and. .not. dist_readPDGID) then
+    do j=1,napx
+      call CalculatePDGid(pdgid(j), naa(j), nzz(j))
+    end do
+  end if
 
 end subroutine dist_postprParticles
 
@@ -807,10 +832,12 @@ subroutine dist_finaliseDist
 
       if(abs(nucm(j)/nucm0-one) < c1m15) then
         nucm(j) = nucm0
-        if(nzz(j) == zz0 .or. naa(j) == aa0) then
-          naa(j) = aa0
-          nzz(j) = zz0
-          mtc(j) = one
+        if(nzz(j) == zz0 .or. naa(j) == aa0 .or. nqq(j) == qq0 .or. pdgid(j) == pdgid0) then
+          naa(j)   = aa0
+          nzz(j)   = zz0
+          nqq(j)   = qq0
+          pdgid(j) = pdgid0
+          mtc(j)   = one
         else
           write(lerr,"(a)") "DIST> ERROR Mass and/or charge mismatch with relation to sync particle"
           call prror
@@ -821,8 +848,8 @@ subroutine dist_finaliseDist
     end if
   end do
 
-  write(lout,"(a,2(1x,i0),1x,f15.7)") "DIST> Reference particle species [A,Z,M]:", aa0, zz0, nucm0
-  write(lout,"(a,1x,f15.7)")       "DIST> Reference energy [Z TeV]:", c1m6*e0/zz0
+  write(lout,"(a,2(1x,i0),1x,f15.7,2(1x,i0))") "DIST> Reference particle species [A,Z,M,Q,ID]:", aa0, zz0, nucm0, qq0, pdgid0
+  write(lout,"(a,1x,f15.7)")       "DIST> Reference energy [Z TeV]:", c1m6*e0/qq0
 
   do j=napx+1,npart
     partID(j)   = j
@@ -834,6 +861,8 @@ subroutine dist_finaliseDist
     mtc(j)      = one
     naa(j)      = aa0
     nzz(j)      = zz0
+    nqq(j)      = qq0
+    pdgid(j)    = pdgid0
     nucm(j)     = nucm0
     moidpsv(j)  = one
     omoidpsv(j) = zero

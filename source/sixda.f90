@@ -1149,7 +1149,7 @@ subroutine runda
       endif
 
     if(kzz.eq.23) then
-!FOX  CRABAMP=ED(IX)*ZZ0 ;
+!FOX  CRABAMP=ED(IX)*QQ0 ;
 
         crabfreq=ek(ix)*c1e3
         crabpht=crabph(ix)
@@ -1176,7 +1176,7 @@ subroutine runda
       goto 440
   endif
     if(kzz.eq.-23) then
-!FOX  CRABAMP=ED(IX)*ZZ0 ;
+!FOX  CRABAMP=ED(IX)*QQ0 ;
         crabfreq=ek(ix)*c1e3
         crabpht=crabph(ix)
 !FOX  Y(2)=Y(2) - CRABAMP*C1E3/E0F*
@@ -1209,7 +1209,7 @@ subroutine runda
       xs=xsi(i) ! JBG change of variables for misal calculations
       zs=zsi(i)
 #include "include/alignf.f90"
-!FOX  CRABAMP2=ED(IX)*ZZ0 ;
+!FOX  CRABAMP2=ED(IX)*QQ0 ;
 
     crabfreq=ek(ix)*c1e3 !JBG Input in MHz changed to kHz
     crabpht2=crabph2(ix)
@@ -1241,7 +1241,7 @@ subroutine runda
       xs=xsi(i) ! JBG change of variables for misal calculations
       zs=zsi(i)
 #include "include/alignf.f90"
-!FOX  CRABAMP2=ED(IX)*ZZ0 ;
+!FOX  CRABAMP2=ED(IX)*QQ0 ;
           crabfreq=ek(ix)*c1e3
           crabpht2=crabph2(ix)
 !FOX  Y(2)=Y(2) + (CRABAMP2*CRKVE)*
@@ -1271,7 +1271,7 @@ subroutine runda
       xs=xsi(i)
       zs=zsi(i)
 #include "include/alignf.f90"
-!FOX  CRABAMP3=ED(IX)*ZZ0 ;
+!FOX  CRABAMP3=ED(IX)*QQ0 ;
           crabfreq=ek(ix)*c1e3
           crabpht3=crabph3(ix)
 !FOX  Y(1)=Y(1) + 2D0*(1D0/2D0)*CRABAMP3*((CRKVE*CRKVE)-
@@ -1302,7 +1302,7 @@ subroutine runda
       xs=xsi(i)
       zs=zsi(i)
 #include "include/alignf.f90"
-!FOX  CRABAMP3=ED(IX)*ZZ0 ;
+!FOX  CRABAMP3=ED(IX)*QQ0 ;
           crabfreq=ek(ix)*c1e3
           crabpht3=crabph3(ix)
 !FOX  Y(2)=Y(2) - CRABAMP3*((CIKVE*CIKVE)-
@@ -1332,7 +1332,7 @@ subroutine runda
       xs=xsi(i)
       zs=zsi(i)
 #include "include/alignf.f90"
-!FOX  CRABAMP4=ED(IX)*ZZ0 ;
+!FOX  CRABAMP4=ED(IX)*QQ0 ;
           crabfreq=ek(ix)*c1e3
           crabpht4=crabph4(ix)
 !FOX  Y(1)=Y(1) + (CRABAMP4)*

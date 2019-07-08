@@ -6,6 +6,8 @@
 
 #include "G4Track.hh"
 
+#include <set>
+
 class CollimationTrackingAction : public G4UserTrackingAction
 {
 public:
@@ -16,12 +18,26 @@ public:
 
 	void SetEventAction(CollimationEventAction* ev);
 
+	void SetDebug(bool flag);
+	void SetParticlesToKeep(std::set<int>*);
+	void SetKeepStableParticles(bool);
+
+	bool do_debug;
+	bool KeepOnlyStable;
+
 	CollimationEventAction* EventAction;
 	void SetReferenceEnergy(double e0);
-	void SetEnergyCut(double cut);
+	void SetRelativeEnergyCut(double cut);
+	void SetAbsoluteEnergyCut(double cut);
+	void SetRigidityCut(double cut);
 
 	double ReferenceEnergy;
-	double EnergyCut;
+	double RelativeEnergyCut;
+	double AbsoluteEnergyCut;
+	double RigidityCut;
+
+	std::set<int>* keep_ids;
+
 };
 
 #endif
