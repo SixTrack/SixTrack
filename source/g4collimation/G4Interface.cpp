@@ -124,7 +124,11 @@ extern "C" void g4_collimation_init(double* ReferenceE, int* seed, double* recut
 	}
 	tracking->SetParticlesToKeep(&keep_ids);
 
-	tracking->SetKeepStableParticles(g4_keep_stable);
+	if(*g4_debug)
+	{
+		std::cout << "GEANT4> keep stable particles: " << *g4_keep_stable << std::endl;
+	}
+	tracking->SetKeepStableParticles(*g4_keep_stable);
 	tracking->SetDebug(*g4_debug);
 
 
