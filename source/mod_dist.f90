@@ -32,17 +32,18 @@ module mod_dist
   implicit none
 
   logical,                  public,  save :: dist_enable    = .false. ! DIST input block given
-  logical,                  public,  save :: dist_echo      = .false. ! Echo the read distribution?
+  logical,                  private  save :: dist_echo      = .false. ! Echo the read distribution?
   logical,                  private, save :: dist_hasFormat = .false. ! Whether the FORMAT keyword exists in block or not
-  character(len=mFileName), public,  save :: dist_distFile  = " "     ! File name for reading the distribution
-  character(len=mFileName), public,  save :: dist_echoFile  = " "     ! File name for echoing the distribution
+  logical,                  private, save :: dist_libRead   = .false. ! Read file with dist library instead of internal reader
+  character(len=mFileName), private, save :: dist_distFile  = " "     ! File name for reading the distribution
+  character(len=mFileName), private, save :: dist_echoFile  = " "     ! File name for echoing the distribution
 
   integer,          allocatable, private, save :: dist_colFormat(:) ! The format of the file columns
   real(kind=fPrec), allocatable, private, save :: dist_colScale(:)  ! Scaling factor for the file columns
   integer,                       private, save :: dist_nColumns = 0 ! The number of columns in the file
 
   character(len=:), allocatable, private, save :: dist_partLine(:)  ! PARTICLE definitions in the block
-  integer,                       public,  save :: dist_numPart = 0  ! Number of PARTICLE keywords in block
+  integer,                       private, save :: dist_numPart = 0  ! Number of PARTICLE keywords in block
 
   !  Column formats
   ! ================
@@ -169,13 +170,18 @@ subroutine dist_parseInputLine(inLine, iLine, iErr)
     dist_hasFormat = .true.
 
   case("READ")
-    if(nSplit < 2) then
-      write(lerr,"(a,i0)") "DIST> ERROR READ takes 1 argument, got ",nSplit-1
-      write(lerr,"(a)")    "DIST>       READ filename"
+    if(nSplit /= 2 .or. nSplit /= 3) then
+      write(lerr,"(a,i0)") "DIST> ERROR READ takes 1 or 2 arguments, got ",nSplit-1
+      write(lerr,"(a)")    "DIST>       READ filename [LIBDIST]"
       iErr = .true.
       return
     end if
     dist_distFile = trim(lnSplit(2))
+    if(nSplit > 2) call chr_cast(lnSplit(3), dist_libRead, cErr)
+    if(cErr) then
+      iErr = .true.
+      return
+    end if
 
   case("PARTICLE")
     if(dist_hasFormat .eqv. .false.) then
