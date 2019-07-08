@@ -35,12 +35,14 @@ module mod_dist
   logical,                  private, save :: dist_echo      = .false. ! Echo the read distribution?
   logical,                  private, save :: dist_hasFormat = .false. ! Whether the FORMAT keyword exists in block or not
   logical,                  private, save :: dist_libRead   = .false. ! Read file with dist library instead of internal reader
+  integer,                  private, save :: dist_updtEFrom = 3       ! The parameter sent to part_updatePartEnergy after DIST
   character(len=mFileName), private, save :: dist_distFile  = " "     ! File name for reading the distribution
   character(len=mFileName), private, save :: dist_echoFile  = " "     ! File name for echoing the distribution
 
   integer,          allocatable, private, save :: dist_colFormat(:) ! The format of the file columns
   real(kind=fPrec), allocatable, private, save :: dist_colScale(:)  ! Scaling factor for the file columns
   integer,                       private, save :: dist_nColumns = 0 ! The number of columns in the file
+  integer,                       private, save :: dist_readCols = 0 ! The number of columns read from file
 
   character(len=:), allocatable, private, save :: dist_partLine(:)  ! PARTICLE definitions in the block
   integer,                       private, save :: dist_numPart = 0  ! Number of PARTICLE keywords in block
@@ -70,14 +72,8 @@ module mod_dist
   integer, parameter :: dist_fmtY_NORM      = 32 ! Normalised vertical positiom
   integer, parameter :: dist_fmtXP_NORM     = 33 ! Normalised horizontal angle
   integer, parameter :: dist_fmtYP_NORM     = 34 ! Normalised vertical angle
-  integer, parameter :: dist_fmtPX_NORM     = 35 ! Normalised horizontal momentum
-  integer, parameter :: dist_fmtPY_NORM     = 36 ! Normalised vertical momentum
-  integer, parameter :: dist_fmtSIGMA_NORM  = 37 ! Normalised longitudinal relative position
-  integer, parameter :: dist_fmtDT_NORM     = 38 ! Normalised time delay
-  integer, parameter :: dist_fmtE_NORM      = 39 ! Normalised particle energy
-  integer, parameter :: dist_fmtP_NORM      = 40 ! Normalised particle momentum
-  integer, parameter :: dist_fmtDEE0_NORM   = 41 ! Normalised relative particle energy (to reference particle)
-  integer, parameter :: dist_fmtDPP0_NORM   = 42 ! Normalised relative particle momentum (to reference particle)
+  integer, parameter :: dist_fmtSIGMA_NORM  = 35 ! Normalised longitudinal relative position
+  integer, parameter :: dist_fmtDPP0_NORM   = 36 ! Normalised relative particle momentum (to reference particle)
 
   ! Ion Columns
   integer, parameter :: dist_fmtMASS        = 51 ! Particle mass
@@ -121,6 +117,7 @@ subroutine dist_generateDist
   end if
 
   if(hasParticles) then
+    call dist_postprParticles
     call dist_finaliseDist
     call part_applyClosedOrbit
     if(dist_echo) then
@@ -321,20 +318,8 @@ subroutine dist_setColumnFormat(fmtName, fErr)
     call dist_appendFormat(dist_fmtXP_NORM, one)
   case("YP_NORM") ! Normalised vertical angle
     call dist_appendFormat(dist_fmtYP_NORM, one)
-  case("PX_NORM") ! Normalised horizontal momentum
-    call dist_appendFormat(dist_fmtPX_NORM, one)
-  case("PY_NORM") ! Normalised vertical momentum
-    call dist_appendFormat(dist_fmtPY_NORM, one)
   case("SIGMA_NORM","DS_NORM") ! Normalised longitudinal relative position
     call dist_appendFormat(dist_fmtSIGMA_NORM, one)
-  case("DT_NORM") ! Normalised time delay
-    call dist_appendFormat(dist_fmtDT_NORM, one)
-  case("E_NORM") ! Normalised particle energy
-    call dist_appendFormat(dist_fmtE_NORM, one)
-  case("P_NORM") ! Normalised particle momentum
-    call dist_appendFormat(dist_fmtP_NORM, one)
-  case("DE/E0_NORM","DEE0_NORM") ! Normalised relative particle energy (to reference particle)
-    call dist_appendFormat(dist_fmtDEE0_NORM, one)
   case("DP/P0_NORM","DPP0_NORM") ! Normalised relative particle momentum (to reference particle)
     call dist_appendFormat(dist_fmtDPP0_NORM, one)
 
@@ -350,13 +335,13 @@ subroutine dist_setColumnFormat(fmtName, fErr)
   case("PDGID") ! Particle PDG ID
     call dist_appendFormat(dist_fmtPDGID, one)
 
-  case("DEFAULT_4D") ! 4D default coordinates
+  case("4D") ! 4D default coordinates
     call dist_appendFormat(dist_fmtX, one)          ! Horizontal position
     call dist_appendFormat(dist_fmtY, one)          ! Vertical positiom
     call dist_appendFormat(dist_fmtXP, one)         ! Horizontal angle
     call dist_appendFormat(dist_fmtYP, one)         ! Vertical angle
 
-  case("DEFAULT_6D") ! 6D default coordinates
+  case("6D") ! 6D default coordinates
     call dist_appendFormat(dist_fmtX, one)          ! Horizontal position
     call dist_appendFormat(dist_fmtY, one)          ! Vertical positiom
     call dist_appendFormat(dist_fmtXP, one)         ! Horizontal angle
@@ -364,13 +349,13 @@ subroutine dist_setColumnFormat(fmtName, fErr)
     call dist_appendFormat(dist_fmtSIGMA, one)      ! Longitudinal relative position
     call dist_appendFormat(dist_fmtDPP0, one)       ! Relative particle momentum (to reference particle)
 
-  case("DEFAULT_4D_NORM") ! 4D normalised coordinates
+  case("4D_NORM") ! 4D normalised coordinates
     call dist_appendFormat(dist_fmtX_NORM, one)     ! Normalised horizontal position
     call dist_appendFormat(dist_fmtY_NORM, one)     ! Normalised vertical positiom
     call dist_appendFormat(dist_fmtXP_NORM, one)    ! Normalised horizontal angle
     call dist_appendFormat(dist_fmtYP_NORM, one)    ! Normalised vertical angle
 
-  case("DEFAULT_6D_NORM") ! 6D normalised coordinates
+  case("6D_NORM") ! 6D normalised coordinates
     call dist_appendFormat(dist_fmtX_NORM, one)     ! Normalised horizontal position
     call dist_appendFormat(dist_fmtY_NORM, one)     ! Normalised vertical positiom
     call dist_appendFormat(dist_fmtXP_NORM, one)    ! Normalised horizontal angle
@@ -387,7 +372,7 @@ subroutine dist_setColumnFormat(fmtName, fErr)
 
   case("OLD_DIST") ! The old DIST block file format
     call dist_appendFormat(dist_fmtPartID, one)     ! Particle ID
-    call dist_appendFormat(dist_fmtNONE, one)       ! Ignored
+    call dist_appendFormat(dist_fmtParentID, one)   ! Parent ID
     call dist_appendFormat(dist_fmtNONE, one)       ! Ignored
     call dist_appendFormat(dist_fmtX, c1e3)         ! Horizontal position
     call dist_appendFormat(dist_fmtY, c1e3)         ! Vertical positiom
@@ -521,6 +506,12 @@ subroutine dist_appendFormat(fmtID, colScale)
 
 end subroutine dist_appendFormat
 
+! ================================================================================================ !
+!  Parse PARTICLE Lines from DIST Block
+!  V.K. Berglyd Olsen, BE-ABP-HSS
+!  Created: 2019-07-08
+!  Updated: 2019-07-08
+! ================================================================================================ !
 subroutine dist_parseParticles
 
   use mod_common
@@ -559,19 +550,19 @@ subroutine dist_readDist
   use mod_common
   use mod_common_main
   use string_tools
-  use mod_particles
   use numerical_constants
   use mod_units
 
   character(len=:), allocatable :: lnSplit(:)
   character(len=mInputLn) inLine
-  integer i, j, nSplit, lineNo, fUnit, fmtCols
+  integer i, j, nSplit, lineNo, fUnit
   logical spErr, cErr, isFirst
 
   write(lout,"(a)") "DIST> Reading particles from '"//trim(dist_distFile)//"'"
 
+  dist_readCols = dist_nColumns
+
   isFirst = .true.
-  fmtCols = dist_nColumns
   lineNo  = 0
   cErr    = .false.
   j       = dist_numPart ! PARTICLE definitions in the block are saved first
@@ -605,17 +596,17 @@ subroutine dist_readDist
 
   if(isFirst) then
     if(nSplit < dist_nColumns) then
-      fmtCols = nSplit
+      dist_readCols = nSplit
       write(lout,"(2(a,i0))") "DIST> WARNING Distribution file has ",nSplit," columns, but format has ",dist_nColumns
     end if
     isFirst = .false.
   end if
-  if(nSplit < fmtCols) then
+  if(nSplit < dist_readCols) then
     write(lerr,"(3(a,i0),a)") "DIST> ERROR Number of columns in file on line ",lineNo," is ",nSplit,&
-      " but expected ",fmtCols," columns"
+      " but expected ",dist_readCols," columns"
     call prror
   end if
-  do i=1,fmtCols
+  do i=1,dist_readCols
     call dist_saveParticle(j, i, lnSplit(i), cErr)
   end do
   if(cErr) goto 20
@@ -642,11 +633,6 @@ subroutine dist_readDist
   call f_close(fUnit)
   write(lout,"(a,i0,a)") "DIST> Read ",j," particles from file '"//trim(dist_distFile)//"'"
 
-  call dist_postprParticles(nSplit, cErr)
-
-  ! Update longitudinal particle arrays from read momentum
-  call part_updatePartEnergy(2)
-
   if(j < napx) then
     write(lout,"(a,i0)") "DIST> WARNING Read a number of particles LOWER than requested: ",napx
     napx = j
@@ -654,6 +640,12 @@ subroutine dist_readDist
 
 end subroutine dist_readDist
 
+! ================================================================================================ !
+!  Save Particle Data to Arrays
+!  V.K. Berglyd Olsen, BE-ABP-HSS
+!  Created: 2019-07-08
+!  Updated: 2019-07-08
+! ================================================================================================ !
 subroutine dist_saveParticle(partNo, colNo, inVal, sErr)
 
   use mod_common
@@ -670,9 +662,9 @@ subroutine dist_saveParticle(partNo, colNo, inVal, sErr)
   case(dist_fmtNONE)
     return
   case(dist_fmtPartID)
-    call chr_cast(inVal,partID(partNo),sErr)
+    call chr_cast(inVal, partID(partNo), sErr)
   case(dist_fmtParentID)
-    call chr_cast(inVal,parentID(partNo),sErr)
+    call chr_cast(inVal, parentID(partNo), sErr)
 
   case(dist_fmtX, dist_fmtX_NORM)
     call chr_cast(inVal, xv1(partNo), sErr)
@@ -680,27 +672,31 @@ subroutine dist_saveParticle(partNo, colNo, inVal, sErr)
   case(dist_fmtY, dist_fmtY_NORM)
     call chr_cast(inVal, xv2(partNo), sErr)
     xv2(partNo) = xv2(partNo) * dist_colScale(colNo)
-  case(dist_fmtXP, dist_fmtPX, dist_fmtXP_NORM, dist_fmtPX_NORM)
+  case(dist_fmtXP, dist_fmtPX, dist_fmtXP_NORM)
     call chr_cast(inVal, yv1(partNo), sErr)
     yv1(partNo) = yv1(partNo) * dist_colScale(colNo)
-  case(dist_fmtYP, dist_fmtPY, dist_fmtYP_NORM, dist_fmtPY_NORM)
+  case(dist_fmtYP, dist_fmtPY, dist_fmtYP_NORM)
     call chr_cast(inVal, yv2(partNo), sErr)
     yv2(partNo) = yv2(partNo) * dist_colScale(colNo)
 
-  case(dist_fmtSIGMA, dist_fmtDT, dist_fmtSIGMA_NORM, dist_fmtDT_NORM)
+  case(dist_fmtSIGMA, dist_fmtDT, dist_fmtSIGMA_NORM)
     call chr_cast(inVal, sigmv(partNo), sErr)
     sigmv(partNo) = sigmv(partNo) * dist_colScale(colNo)
-  case(dist_fmtE, dist_fmtE_NORM)
+  case(dist_fmtE)
     call chr_cast(inVal, ejv(partNo), sErr)
-    ejv(partNo) = ejv(partNo) * dist_colScale(colNo)
-  case(dist_fmtP, dist_fmtP_NORM)
+    ejv(partNo)    = ejv(partNo) * dist_colScale(colNo)
+    dist_updtEFrom = 1
+  case(dist_fmtP)
     call chr_cast(inVal, ejfv(partNo), sErr)
-    ejfv(partNo) = ejfv(partNo) * dist_colScale(colNo)
-  case(dist_fmtDEE0, dist_fmtDEE0_NORM)
+    ejfv(partNo)   = ejfv(partNo) * dist_colScale(colNo)
+    dist_updtEFrom = 2
+  case(dist_fmtDEE0)
     call chr_cast(inVal, ejv(partNo), sErr)
-    ejv(partNo) = ejv(partNo) * dist_colScale(colNo)
+    ejv(partNo)    = ejv(partNo) * dist_colScale(colNo)
+    dist_updtEFrom = 1
   case(dist_fmtDPP0, dist_fmtDPP0_NORM)
     call chr_cast(inVal, dpsv(partNo), sErr)
+    dist_updtEFrom = 3
 
   case(dist_fmtMASS)
     call chr_cast(inVal, nucm(partNo), sErr)
@@ -723,20 +719,22 @@ subroutine dist_saveParticle(partNo, colNo, inVal, sErr)
 
 end subroutine dist_saveParticle
 
-subroutine dist_postprParticles(numCols, sErr)
+! ================================================================================================ !
+!  Post-Processing of Particle Arrays
+!  V.K. Berglyd Olsen, BE-ABP-HSS
+!  Created: 2019-07-05
+!  Updated: 2019-07-08
+! ================================================================================================ !
+subroutine dist_postprParticles
 
-  use mod_pdgid
   use mod_common
   use mod_common_main
-  use numerical_constants
   use physical_constants
-
-  integer, intent(in)    :: numCols
-  logical, intent(inout) :: sErr
+  use numerical_constants
 
   integer i, j
 
-  do i=1,numCols
+  do i=1,dist_readCols
     select case(dist_colFormat(i))
 
     case(dist_fmtPX)
@@ -756,25 +754,33 @@ subroutine dist_postprParticles(numCols, sErr)
       return
     case(dist_fmtYP_NORM)
       return
-    case(dist_fmtPX_NORM)
-      return
-    case(dist_fmtPY_NORM)
-      return
     case(dist_fmtSIGMA_NORM)
-      return
-    case(dist_fmtDT_NORM)
-      return
-    case(dist_fmtE_NORM)
-      return
-    case(dist_fmtP_NORM)
-      return
-    case(dist_fmtDEE0_NORM)
       return
     case(dist_fmtDPP0_NORM)
       return
 
     end select
   end do
+
+end subroutine dist_postprParticles
+
+! ================================================================================================ !
+!  A. Mereghetti and D. Sinuela Pastor, for the FLUKA Team
+!  V.K. Berglyd Olsen, BE-ABP-HSS
+!  Updated: 2019-07-08
+! ================================================================================================ !
+subroutine dist_finaliseDist
+
+  use parpro
+  use mod_pdgid
+  use mod_common
+  use mod_particles
+  use mod_common_main
+  use mod_common_track
+  use numerical_constants
+
+  real(kind=fPrec) chkP, chkE
+  integer j
 
   if(dist_readIonA .neqv. dist_readIonZ) then
     write(lerr,"(a)") "DIST> ERROR ION_A and ION_Z columns have to both be present if one of them is"
@@ -785,35 +791,18 @@ subroutine dist_postprParticles(numCols, sErr)
     nqq(1:napx) = nzz(1:napx)
   end if
 
-  mtc(1:napx)   = (nqq(1:napx)*nucm0)/(qq0*nucm(1:napx))
   pstop(1:napx) = .false.
   ejf0v(1:napx) = ejfv(1:napx)
+  mtc(1:napx)   = (nqq(1:napx)*nucm0)/(qq0*nucm(1:napx))
+
+  ! If we have no energy arrays, we set all energies from deltaP = 0, that is reference momentum/energy
+  call part_updatePartEnergy(dist_updtEFrom)
 
   if(dist_readIonA .and. dist_readIonZ .and. .not. dist_readPDGID) then
     do j=1,napx
       call CalculatePDGid(pdgid(j), naa(j), nzz(j))
     end do
   end if
-
-end subroutine dist_postprParticles
-
-! ================================================================================================ !
-!  A. Mereghetti and D. Sinuela Pastor, for the FLUKA Team
-!  V.K. Berglyd Olsen, BE-ABP-HSS
-!  Last modified: 2018-10-31
-! ================================================================================================ !
-subroutine dist_finaliseDist
-
-  use parpro
-  use mod_common
-  use mod_common_track
-  use mod_common_main
-  use numerical_constants
-
-  implicit none
-
-  integer          :: j
-  real(kind=fPrec) :: chkP, chkE
 
   ! Check existence of on-momentum particles in the distribution
   do j=1, napx
@@ -875,7 +864,7 @@ end subroutine dist_finaliseDist
 ! ================================================================================================ !
 !  A. Mereghetti and D. Sinuela Pastor, for the FLUKA Team
 !  V.K. Berglyd Olsen, BE-ABP-HSS
-!  Last modified: 2018-10-30
+!  Updated: 2019-07-08
 ! ================================================================================================ !
 subroutine dist_echoDist
 
@@ -905,7 +894,6 @@ subroutine dist_echoDist
 19 continue
   write(lerr,"(a)") "DIST> ERROR Opening file '"//trim(dist_echoFile)//"'"
   call prror
-  return
 
 end subroutine dist_echoDist
 
