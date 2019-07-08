@@ -7,45 +7,116 @@
 #include "distinterface.h"
 #include "outputdist.h"
 #include "file_reader.h"
+#include "distgeneration.h"
 #include "round_near.c"
 
-double getEnergyUnit(char *unit){
-  double multif;
-  if(strcmp(unit, "[ev]")==0){
-    multif = 1e-9;
+int readfile(const char*  filename){
+
+  FILE *file = fopen ( filename, "r" );
+  double** table = malloc(MAX_ROWS * sizeof(double*));    // allocate the rows
+  for (int r = 0; r < MAX_ROWS; ++r){
+     table[r] = malloc(MAX_COLUMNS * sizeof(double));    // allocate the columns
   }
-  else if(strcmp(unit, "[kev]")==0){
-    multif = 1e-6;
-  }
-  else if(strcmp(unit, "[mev]")==0){
-    multif = 1e-3;
-  }
-  else if(strcmp(unit, "[gev]")==0 || strcmp(unit, "nounit")==0){
-    multif = 1;
-  }
-  else if(strcmp(unit, "[tev]")==0){
-    multif = 1e3;
-  }
-  else{
-    issue_error("Unknow unit. Must be of the form [Mev]");
-  }
-  return multif;
+
+  int linecount = -1;
+  int numcolum, index;
+  char columns[MAX_COLUMNS][MAX_LENGTH];
+  char units[MAX_COLUMNS][MAX_LENGTH];
+  char line [ MAX_LENGTH*50 ]; /* or other suitable maximum line size */
+  char tosplit [ MAX_LENGTH*10  ];
+  char value_s[MAX_LENGTH],  shorty[MAX_LENGTH];
+  char * parameter =  (char*)malloc(MAX_LENGTH*sizeof(char)); 
+  char * parameter_tmp =  (char*)malloc(MAX_LENGTH*sizeof(char)); 
+  char * unit =(char*)malloc(MAX_LENGTH*sizeof(char));
+  char * unit_tmp =(char*)malloc(MAX_LENGTH*sizeof(char));
+  char * at =(char*)malloc(MAX_LENGTH*sizeof(char));
+  double value;
+  char *e ;
+
+  if ( file != NULL ){
+    while ( fgets ( line, sizeof line, file ) != NULL ){ /* read a line */
+      double multifactor = 1;
+      int k =0;
+      if(strncmp(line, "@", 1)==0){
+        while( line[k] ) {
+          line[k] = (tolower(line[k]));
+          k++;
+        }
+      sscanf( line, "%s %s %s",  at, parameter_tmp, value_s);
+      if(strncmp(value_s, "%", 1)!=0){
+        unit_tmp =strstr(parameter_tmp, "[");         
+
+        if(unit_tmp != NULL){
+          strcpy(unit,unit_tmp);
+          e = strchr(parameter_tmp, '[');
+          index = (int)(e - parameter_tmp);
+          strncpy(parameter, parameter_tmp, index);
+        }
+        else{
+          strcpy(unit, "nounit");
+          strcpy(parameter, parameter_tmp);
+        }       
+        
+        value = strtod_cr(value_s,NULL);
+
+        if(strcmp(parameter, "energy0")==0){
+          multifactor = getEnergyUnit(unit);
+          dist->ref->e0=value*multifactor;
+        }
+        else if(strcmp(parameter, "pc0")==0){
+          multifactor = getEnergyUnit(unit);
+          dist->ref->pc0=value*multifactor;
+        }
+        else if(strcmp(parameter, "a0")==0){
+          dist->ref->a0=round(value);
+        }
+        else if(strcmp(parameter, "z0")==0){
+          dist->ref->z0=round(value);
+        }
+        else if(strcmp(parameter, "mass0")==0){
+          multifactor = getEnergyUnit(unit);
+          dist->ref->mass0=value*multifactor;
+        }
+        else if(strcmp(parameter, "charge0")==0){
+          dist->ref->charge0=round(value);
+        }
+        else{
+          issue_error2("Not recogniced parameter!", parameter);
+        }
+      }
+    }
+    else if(strncmp(line, "!", 1)==0){
+          printf("Comment line %s is read but ignored by the dist lib. \n", line );
+        }
+        else if(strncmp(line, "!", 1)!=0 && linecount==-1){
+          
+          strcpy(tosplit, line);
+          numcolum = splitline(tosplit, columns, units);
+          linecount++; 
+        }
+        else if(linecount>=0 && strncmp(line, "$", 1)!=0){
+          add2table(table, line, linecount);
+          linecount++;   
+        }
+        else{
+          issue_error2("Something went wrong with reading line", line);
+        }
+
+      }
+      fclose ( file );
+    }
+    else
+    {
+       perror ( filename ); 
+    }
+    allocateincoord(linecount); //alocates the memory
+    fillcoordstructure(numcolum,columns, units, table); //fils the coordinate structures
+    calculaterefparam(); //Sets up the necessary ref parameters and checks for consistensy. 
+    convert2standard(); // converts to the units used internal , x, px, y, py, zeta, deltap 
+    free_readin_memory(table);
+    return 0;
 }
 
-double getMetricUnit(char *unit){
-  double multif;
-
-  if(strcmp(unit, "[mm]")==0){
-    multif = 1e-3;
-  }
-  else if(strcmp(unit, "[m]")==0 || strcmp(unit, "nounit")==0 ){
-    multif = 1;
-  }
-  else{
-    issue_warning("Unknow unit. Must be of the form [Mev]");
-  }
-  return multif;
-}
 // This checks that reference energy is only set once and sets up the mass in case it is not a column
 void calculaterefparam(){
   if(dist->ref->mass0 == 0){
@@ -126,8 +197,6 @@ void convert2standard(){
       dist->incoord[i]->physical[4] = tau2zeta(dist->incoord[i]->nonstandard[5], dist->ref->beta0);
     }
   }
-
-
   if(dist->ref->ang_like==-1){
     issue_error("No angle variable is set. \n");
   }
@@ -149,7 +218,10 @@ void allocateincoord(int linecount){
     dist->incoord[i]->normalized = (double*)malloc(dim*sizeof(double));
     dist->incoord[i]->action = (double*)malloc(dim*sizeof(double));
     dist->incoord[i]->nonstandard = (double*)malloc(9*sizeof(double));
+    
     dist->incoord[i]->mass=0;
+    dist->incoord[i]->a=0;
+    dist->incoord[i]->z=0;
 
     dist->outcoord[i] = (struct coordinates*)malloc(sizeof(struct coordinates));
     dist->outcoord[i]->physical = (double*)malloc(dim*sizeof(double));
@@ -244,122 +316,6 @@ void add2table(double ** table, char* line, int linenum){
     table[linenum][count] = atof(word);
     count ++;
   }
-}
-
-int readfile(const char*  filename){
-
-  FILE *file = fopen ( filename, "r" );
-  double** table = malloc(MAX_ROWS * sizeof(double*));    // allocate the rows
-  for (int r = 0; r < MAX_ROWS; ++r){
-     table[r] = malloc(MAX_COLUMNS * sizeof(double));    // allocate the columns
-  }
-
-  int linecount = -1;
-  int numcolum, index;
-  char columns[MAX_COLUMNS][MAX_LENGTH];
-  char units[MAX_COLUMNS][MAX_LENGTH];
-  char line [ MAX_LENGTH*50 ]; /* or other suitable maximum line size */
-  char tosplit [ MAX_LENGTH*10  ];
-  char value_s[MAX_LENGTH],  shorty[MAX_LENGTH];
-  char * parameter =  (char*)malloc(MAX_LENGTH*sizeof(char)); 
-  char * parameter_tmp =  (char*)malloc(MAX_LENGTH*sizeof(char)); 
-  char * unit =(char*)malloc(MAX_LENGTH*sizeof(char));
-  char * unit_tmp =(char*)malloc(MAX_LENGTH*sizeof(char));
-  char * at =(char*)malloc(MAX_LENGTH*sizeof(char));
-  double value;
-  char *e ;
-  
-
-  if ( file != NULL ){
-    while ( fgets ( line, sizeof line, file ) != NULL ){ /* read a line */
-      double multifactor = 1;
-      int k =0;
-      if(strncmp(line, "@", 1)==0){
-        while( line[k] ) {
-          line[k] = (tolower(line[k]));
-          k++;
-        }
-      sscanf( line, "%s %s %s",  at, parameter_tmp, value_s);
-      if(strncmp(value_s, "%", 1)!=0){
-        unit_tmp =strstr(parameter_tmp, "[");         
-
-        if(unit_tmp != NULL){
-          strcpy(unit,unit_tmp);
-          e = strchr(parameter_tmp, '[');
-          index = (int)(e - parameter_tmp);
-          strncpy(parameter, parameter_tmp, index);
-        }
-        else{
-          strcpy(unit, "nounit");
-          strcpy(parameter, parameter_tmp);
-        }       
-        
-        value = strtod_cr(value_s,NULL);
-
-        if(strcmp(parameter, "energy0")==0){
-          multifactor = getEnergyUnit(unit);
-          dist->ref->e0=value*multifactor;
-        }
-        else if(strcmp(parameter, "pc0")==0){
-          multifactor = getEnergyUnit(unit);
-          dist->ref->pc0=value*multifactor;
-        }
-        else if(strcmp(parameter, "a0")==0){
-          dist->ref->a0=round(value);
-        }
-        else if(strcmp(parameter, "z0")==0){
-          dist->ref->z0=round(value);
-        }
-        else if(strcmp(parameter, "mass0")==0){
-          multifactor = getEnergyUnit(unit);
-          dist->ref->mass0=value*multifactor;
-        }
-        else if(strcmp(parameter, "charge0")==0){
-          dist->ref->charge0=round(value);
-        }
-        else{
-          issue_error2("Not recogniced parameter!", parameter);
-        }
-      }
-    }
-    else if(strncmp(line, "!", 1)==0){
-          printf("Comment line %s is read but ignored by the dist lib. \n", line );
-        }
-        else if(strncmp(line, "!", 1)!=0 && linecount==-1){
-          
-          strcpy(tosplit, line);
-          numcolum = splitline(tosplit, columns, units);
-          linecount++; 
-        }
-        else if(linecount>=0 && strncmp(line, "$", 1)!=0){
-          add2table(table, line, linecount);
-          linecount++;   
-        }
-        else{
-          issue_error2("Something went wrong with reading line", line);
-        }
-
-      }
-      fclose ( file );
-    }
-    else
-    {
-       perror ( filename ); 
-    }
-    allocateincoord(linecount);
-    fillcoordstructure(numcolum,columns, units, table);
-    calculaterefparam();
-    convert2standard();
-    free_readin_memory(table);
-    return 0;
-}
-
-void free_readin_memory(double **table){
-
-  for (int r = 0; r < MAX_ROWS; ++r){
-    free(table[r]);    
-  }
-  free(table);    
 }
 
 void fillcoordstructure(int numcolum, char columns[MAX_COLUMNS][MAX_LENGTH], char units[MAX_COLUMNS][MAX_LENGTH], double **table){
@@ -468,4 +424,49 @@ void fillcoordstructure(int numcolum, char columns[MAX_COLUMNS][MAX_LENGTH], cha
       }
     }
   }
+}
+double getEnergyUnit(char *unit){
+  double multif;
+  if(strcmp(unit, "[ev]")==0){
+    multif = 1e-9;
+  }
+  else if(strcmp(unit, "[kev]")==0){
+    multif = 1e-6;
+  }
+  else if(strcmp(unit, "[mev]")==0){
+    multif = 1e-3;
+  }
+  else if(strcmp(unit, "[gev]")==0 || strcmp(unit, "nounit")==0){
+    multif = 1;
+  }
+  else if(strcmp(unit, "[tev]")==0){
+    multif = 1e3;
+  }
+  else{
+    issue_error("Unknow unit. Must be of the form [Mev]");
+  }
+  return multif;
+}
+
+double getMetricUnit(char *unit){
+  double multif;
+
+  if(strcmp(unit, "[mm]")==0){
+    multif = 1e-3;
+  }
+  else if(strcmp(unit, "[m]")==0 || strcmp(unit, "nounit")==0 ){
+    multif = 1;
+  }
+  else{
+    issue_warning("Unknow unit. Must be of the form [Mev]");
+  }
+  return multif;
+}
+
+void free_readin_memory(double **table){
+
+  for (int r = 0; r < MAX_ROWS; ++r){
+    free(table[r]);    
+  }
+  free(table);    
 }

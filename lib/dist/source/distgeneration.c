@@ -28,6 +28,10 @@ void gen2sixcoord(){
             for(int p=0; p<dim; p++){
                 dist->outcoord[counter]->physical[p] = tc[p];
             }
+            // Not nescessary at the moment but might be in the future.
+            dist->outcoord[i]->mass = dist->incoord[i]->mass;
+            dist->outcoord[i]->a     = dist->incoord[i]->a;
+            dist->outcoord[i]->z     = dist->incoord[i]->z;
             counter++;
         }
     }

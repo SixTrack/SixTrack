@@ -5,6 +5,7 @@
 #include <ctype.h>
 #include "helper.h"
 #include "distinterface.h"
+#include "distgeneration.h"
 #include "outputdist.h"
 
 /*This function converts from canoncial to sixtrack tracking variables*/
@@ -42,10 +43,12 @@ int strcmpnl(const char *s1, const char *s2)
   while (s1c);          /* already checked *s2 is equal */
   return 0;
 }
+
 void issue_error(const char* t1){
   printf("+=+=+= fatal: %s\n",t1);
   exit(1);
 }
+
 void issue_error2(const char* t1,const char* t2){
   printf("+=+=+= fatal: %s %s\n",t1, t2);
   exit(1);
@@ -87,9 +90,11 @@ void checkifenergyset(int entype){
 double psigma2deltap(double psigma, double beta0 ){
   return (sqrt(pow(psigma*beta0,2) +2*psigma +1)-1);
 }
+
 double sigma2zeta(double sigma, double beta0, double beta){
   return sigma*(beta/beta0);
 }
+
 double tau2zeta(double tau, double beta){
   return tau*beta;  
 }
