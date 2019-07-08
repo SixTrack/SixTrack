@@ -17,18 +17,19 @@ program demodist
       implicit none
 
 
-      integer i, npart ;
+      integer i, npart, strlen, a0, z0;
       real(kind=real64), dimension(6) :: coordinates 
       real(kind=real64), dimension(6) :: closed
       real(kind=real64), dimension(2500,6) :: distribution1
       real(kind=real64), dimension(10002) :: x,xp,y, yp, sigma, deltap
       real(kind=real64) momentum, mass, one, e1,e2, e3, dp, betx1, zero, pia2, six
       real(kind=real64), dimension(6, 6) :: identity, results, testm, tas
-      real(kind=real64) dim
-      character(len=256) filename
+      real(kind=real64) energy0, mass0
+
+      character(len=256) filename, fileout
       
       call readMatrixFromFile(tas)
-      dim = 6
+
       e1 = 1.0d0
       e2 = 2.0d0
       e3 = 0.03d0
@@ -42,17 +43,24 @@ program demodist
       closed(1)=10
       
 
-
+      filename = 'file.txt'
+      fileout  = 'out.txt'
       ! Initialize 3 distributions with dimenstion 6
 
       call dist_initializedistribution(3)
       ! Set the tas matrix 
-      call dist_readfile(filename)
+      strlen = LEN_TRIM(filename) 
+      call dist_readfile(filename,strlen)
+      call dist_getrefpara(energy0, mass0, a0, z0)
+      print *, "energy0, mass0, a0, z0 ", energy0, mass0, a0, z0
+      
       call dist_addclosedorbit(closed)
       call dist_get6trackcoord(x,xp,y,yp,sigma,deltap, npart)
       do i=1,npart
         print *, x(i),y(i),sigma(i)
       enddo
+      strlen = LEN_TRIM(fileout) 
+      call dist_writefile(fileout, strlen)
 
     !Distribution 2: a matched distribution
 

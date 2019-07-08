@@ -16,7 +16,7 @@ double getEnergyUnit(char *unit){
   }
   else if(strcmp(unit, "[kev]")==0){
     multif = 1e-6;
-  } 
+  }
   else if(strcmp(unit, "[mev]")==0){
     multif = 1e-3;
   }
@@ -71,6 +71,16 @@ void calculaterefparam(){
       dist->incoord[i]->mass = dist->ref->mass0; //Gives all the same mass. 
     }
   }
+  if(dist->incoord[0]->a ==0){ //enough to check the first 
+    for(int i=0; i< dist->totincoord; i++){
+      dist->incoord[i]->a = dist->ref->a0; //Gives all the same mass. 
+    }
+  }
+  if(abs(dist->incoord[0]->z) ==0){ //enough to check the first 
+    for(int i=0; i< dist->totincoord; i++){
+      dist->incoord[i]->z = dist->ref->z0; //Gives all the same mass. 
+    }
+  }
 }
 
 //Converts to the internal used canonical 
@@ -99,8 +109,8 @@ void convert2standard(){
       dist->incoord[i]->physical[5] = pt2deltap(dist->incoord[i]->nonstandard[3], dist->ref->beta0);
     }
   }
-  
-  if(dist->ref->time_like=-1){
+
+  if(dist->ref->time_like==-1){
     issue_info("No time variable is set. Assume 0 deviation \n");
   }
   else if(dist->ref->time_like==2){ //sigma
@@ -118,7 +128,7 @@ void convert2standard(){
   }
 
 
-  if(dist->ref->ang_like=-1){
+  if(dist->ref->ang_like==-1){
     issue_error("No angle variable is set. \n");
   }
   else if(dist->ref->ang_like==1){ //t or tau
@@ -236,18 +246,19 @@ void add2table(double ** table, char* line, int linenum){
   }
 }
 
-int readfile(const char*  filenamet){
-  static const char filename[] = "file.txt";
+int readfile(const char*  filename){
+
   FILE *file = fopen ( filename, "r" );
   double** table = malloc(MAX_ROWS * sizeof(double*));    // allocate the rows
   for (int r = 0; r < MAX_ROWS; ++r){
      table[r] = malloc(MAX_COLUMNS * sizeof(double));    // allocate the columns
   }
+
   int linecount = -1;
+  int numcolum, index;
   char columns[MAX_COLUMNS][MAX_LENGTH];
   char units[MAX_COLUMNS][MAX_LENGTH];
-  int numcolum ;
-  char line [ MAX_LENGTH*10 ]; /* or other suitable maximum line size */
+  char line [ MAX_LENGTH*50 ]; /* or other suitable maximum line size */
   char tosplit [ MAX_LENGTH*10  ];
   char value_s[MAX_LENGTH],  shorty[MAX_LENGTH];
   char * parameter =  (char*)malloc(MAX_LENGTH*sizeof(char)); 
@@ -257,7 +268,8 @@ int readfile(const char*  filenamet){
   char * at =(char*)malloc(MAX_LENGTH*sizeof(char));
   double value;
   char *e ;
-  int index;
+  
+
   if ( file != NULL ){
     while ( fgets ( line, sizeof line, file ) != NULL ){ /* read a line */
       double multifactor = 1;
@@ -332,7 +344,7 @@ int readfile(const char*  filenamet){
     }
     else
     {
-       perror ( filename ); /* why didn't the file open? */
+       perror ( filename ); 
     }
     allocateincoord(linecount);
     fillcoordstructure(numcolum,columns, units, table);
@@ -354,7 +366,6 @@ void fillcoordstructure(int numcolum, char columns[MAX_COLUMNS][MAX_LENGTH], cha
 
   double multifactor;
   for(int i=0; i< numcolum; i++){
-    
      if(strcmp(columns[i], "x")==0){
       multifactor = getMetricUnit(units[i]);
       setphysical(0, i, table, multifactor);

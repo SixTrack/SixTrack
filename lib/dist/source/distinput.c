@@ -6,7 +6,29 @@
 #include "distinput.h"
 #include "distgeneration.h"
 #include "outputdist.h"
+#include "file_reader.h"
 
+
+
+void getrefpara(double *energy0, double *mass0, int *a0, int *z0){
+    *energy0=dist->ref->e0;
+    *mass0=dist->ref->mass0;
+    *a0=dist->ref->a0;
+    *z0=dist->ref->z0;
+}
+int readfile_f(const char*  filename_in, int strlen){
+    char filename [strlen];
+    strncpy(filename, filename_in, strlen);
+    filename[strlen] = '\0';
+    readfile(filename);
+}
+
+int writefile_f(const char*  filename_in, int strlen){
+    char filename [strlen];
+    strncpy(filename, filename_in, strlen);
+    filename[strlen] = '\0';
+    print2file(filename);
+}
 /*
 This allocates the the memory for the distributions
 */
@@ -33,6 +55,8 @@ void initializedistribution(int numberOfDist){
 		(dist + i)->ref->mass0=0;
 		(dist + i)->ref->charge0=1;
 		(dist + i)->ref->en_like=-1;
+        (dist + i)->ref->time_like=-1;
+        (dist + i)->ref->ang_like=-1;
 
         for(int k=0; k<dim;k++){
             (dist + i)->tas[k] =(double*)malloc(dim*sizeof(double));
@@ -53,6 +77,7 @@ void initializedistribution(int numberOfDist){
         }
     }
     diststart=dist;
+
 }
 
 void setdistribution(int ndist){

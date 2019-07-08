@@ -4,9 +4,24 @@ implicit none
 
 ! C Interface
 interface
-subroutine dist_readfile(fileName) bind(C, name="readfile")
+
+subroutine dist_getrefpara(energy0,mass0,a0,z0) bind(C, name="getrefpara")
+  use, intrinsic :: iso_c_binding
+  real(kind=C_DOUBLE), intent(inout) :: energy0, mass0
+  integer(kind=C_INT), intent(inout) :: a0, z0
+end subroutine dist_getrefpara
+
+
+subroutine dist_writefile(fileName, strlen) bind(C, name="writefile_f")
   use, intrinsic :: iso_c_binding
   character(kind=C_CHAR,len=1), intent(in) :: fileName
+  integer(kind=C_INT), value, intent(in) :: strlen
+end subroutine dist_writefile
+
+subroutine dist_readfile(fileName, strlen) bind(C, name="readfile_f")
+  use, intrinsic :: iso_c_binding
+  character(kind=C_CHAR,len=1), intent(in) :: fileName
+  integer(kind=C_INT), value, intent(in) :: strlen
 end subroutine dist_readfile
 
 subroutine dist_initializedistribution(numdist) bind(C, name="initializedistribution")

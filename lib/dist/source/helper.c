@@ -8,8 +8,7 @@
 #include "outputdist.h"
 
 /*This function converts from canoncial to sixtrack tracking variables*/
-void 
-canonical2six(double *canonical, double beta0, double pc0, double mass0, double mass, double *coord){
+void canonical2six(double *canonical, double beta0, double pc0, double mass0, double mass, double *coord){
     double deltap = canonical[5];
     double beta = (pc0+deltap)/momentum2energy((pc0+deltap), mass);
     double rv = beta0/beta;
@@ -19,14 +18,13 @@ canonical2six(double *canonical, double beta0, double pc0, double mass0, double 
     coord[2] = canonical[2]*factor;
     coord[3] = canonical[3]*(factor/(1+deltap));
     coord[4] = canonical[4]*(factor*rv);
-    coord[5] = canonical[5];  
+    coord[5] = canonical[5];
 }
 /* Compare two strings s1 and s2, assuming either is
  * terminated by \n or a NULL, A match
  * returns 0, a non-match returns 1.
  */
-int
-strcmpnl(const char *s1, const char *s2)
+int strcmpnl(const char *s1, const char *s2)
 {
   char s1c;
   char s2c;
@@ -61,6 +59,31 @@ void issue_info(const char* t1){
   printf( "Info: %s\n",t1);
 }
 
+// This function prevents several time variables from beeing set
+void checkiftimeset(int entype){
+  if(dist->ref->time_like==-1)
+    dist->ref->time_like=entype;
+  else {
+    issue_error("Only allowed 1 type of time variable!");
+  }
+}
+
+void checkifangset(int entype){
+  if(dist->ref->ang_like==-1 || dist->ref->ang_like==entype )
+    dist->ref->ang_like=entype;
+  else {
+    issue_error("Only allowed 1 type of angle variable!");
+  }
+}
+// This function prevents several energy from beeing set
+void checkifenergyset(int entype){
+  if(dist->ref->en_like==-1)
+    dist->ref->en_like=entype;
+  else {
+    issue_error("Only allowed 1 type of energy variable!");
+  }
+}
+
 double psigma2deltap(double psigma, double beta0 ){
   return (sqrt(pow(psigma*beta0,2) +2*psigma +1)-1);
 }
@@ -73,31 +96,6 @@ double tau2zeta(double tau, double beta){
  
 double pt2deltap(double pt, double beta0 ){
   return (sqrt(pow(pt,2) +2*pt*beta0 +1)-1);
-}
-// This function prevents several energy from beeing set
-void checkifenergyset(int entype){
-  if(dist->ref->en_like==-1)
-    dist->ref->en_like=entype;
-  else {
-    issue_error("Only allowed 1 type of energy variable!");
-  }
-}
-
-// This function prevents several energy from beeing set
-void checkiftimeset(int entype){
-  if(dist->ref->time_like==-1)
-    dist->ref->time_like=entype;
-  else {
-    issue_error("Only allowed 1 type of time variable!");
-  }
-}
-
-void checkifangset(int entype){
-  if(dist->ref->time_like==-1)
-    dist->ref->time_like=entype;
-  else {
-    issue_error("Only allowed 1 type of angle variable!");
-  }
 }
 
 double momentum2energy(double momentum, double mass){
