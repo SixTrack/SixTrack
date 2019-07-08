@@ -242,6 +242,7 @@ extern "C" void g4_add_particle(double* x, double* y, double* xp, double* yp, do
 	in_particle.z = *nzz;
 	in_particle.a = *naa;
 	in_particle.q = *nqq;
+	in_particle.m = *mass;
 	in_particle.id = input_particles.size();
 
 	input_particles.push_back(in_particle);
@@ -253,7 +254,7 @@ extern "C" void g4_collimate()
 	//Update the gun with this particle's details
 	for(size_t n=0; n < input_particles.size(); n++)
 	{
-		part->SetParticleDetails(input_particles.at(n).x, input_particles.at(n).y, input_particles.at(n).px, input_particles.at(n).py, input_particles.at(n).pz, input_particles.at(n).e, input_particles.at(n).p, input_particles.at(n).pdgid, input_particles.at(n).q);
+		part->SetParticleDetails(input_particles.at(n).x, input_particles.at(n).y, input_particles.at(n).px, input_particles.at(n).py, input_particles.at(n).pz, input_particles.at(n).e, input_particles.at(n).p, input_particles.at(n).pdgid, input_particles.at(n).q, input_particles.at(n).m);
 
 		//Run!
 		runManager->BeamOn(1);

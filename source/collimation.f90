@@ -2940,6 +2940,13 @@ subroutine collimate_do_collimator(stracki)
         nnuc1 = 0
         ien1  = zero
 
+        if(g4_debug .eqv. .true.) then
+          write(lout,"(2a)") 'COLLIMATOR:', cdb_cNameUC(icoll)
+          write(lout,"(2a)") '                               id       pdgid                     mass                        ',&
+&                            'x                        y                       xp                       yp                        p'
+          flush(lout)
+        end if
+
         do j = 1, napx
 !!!!          if(part_abs_pos(j).eq.0 .and. part_abs_turn(j).eq.0) then
 !! Rotate particles in the frame of the collimator
@@ -2947,7 +2954,8 @@ subroutine collimate_do_collimator(stracki)
 !! than in the g4 geometry
 
             if(g4_debug .eqv. .true.) then
-              write(lout,*) 'g4 sending particle: ', j, pdgid(j), nucm(j), rcx(j), rcy(j), rcxp(j), rcyp(j), rcp(j)
+              write(lout,"(a,2(1X,I11),6(1X,E24.16))") 'g4 sending particle: ', j, pdgid(j), nucm(j), rcx(j), rcy(j), rcxp(j), &
+&                   rcyp(j), rcp(j)
             end if
 
             x_tmp = rcx(j)
@@ -2981,6 +2989,11 @@ subroutine collimate_do_collimator(stracki)
 
 !! Reset napx to the correct value
         napx = g4_npart
+
+        if(g4_debug .eqv. .true.) then
+          write(lout,"(2a)") '                               id       pdgid                     mass                        ',&
+&                            'x                        y                       xp                       yp                        p'
+        end if
 
         do j = 1, napx
 !! Get the particle back + information
@@ -3042,7 +3055,8 @@ subroutine collimate_do_collimator(stracki)
 !            end if
 
             if(g4_debug .eqv. .true.) then
-              write(lout,*) 'g4 return particle:  ', j, pdgid(j), nucm(j), rcx(j), rcy(j), rcxp(j), rcyp(j), rcp(j)
+              write(lout,"(a,2(1X,I11),6(1X,E24.16))") 'g4 return particle:  ', j, pdgid(j), nucm(j), rcx(j), rcy(j), rcxp(j), &
+&                   rcyp(j), rcp(j)
             end if
 
           flush(lout)

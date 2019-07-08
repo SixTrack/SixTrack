@@ -21,7 +21,7 @@ void CollimationParticleGun::GeneratePrimaries(G4Event* anEvent)
 	ParticleGun->GeneratePrimaryVertex(anEvent);
 }
 
-void CollimationParticleGun::SetParticleDetails(double x, double y, double px, double py, double pz, double e, double p, int pdgid, int q)
+void CollimationParticleGun::SetParticleDetails(double x, double y, double px, double py, double pz, double e, double p, int pdgid, int q, double mass)
 {
 //UNITS MUST BE MeV, mm, rad!
 	if(do_debug)
@@ -82,6 +82,15 @@ void CollimationParticleGun::SetParticleDetails(double x, double y, double px, d
 		ParticleGun->SetParticleCharge(q*CLHEP::eplus);
 	}
 	const G4double mp = particle->GetPDGMass();
+	if(mp != mass)
+	{
+		std::cout.precision(15);
+		std::cout << "Mass missmatch between Geant4 and SixTrack!" << std::endl;
+		std::cout << "PDG mass     : " << mp << std::endl;
+		std::cout << "SixTrack mass: " << mass << std::endl;
+		std::cout << "Please set the particle mass in SixTrack to the Geant4 (PDG) value!" << std::endl;
+		exit(EXIT_FAILURE);
+	}
 
 	//The kinetic energy (Total energy - rest mass)
 	ParticleGun->SetParticleEnergy(e - mp);
