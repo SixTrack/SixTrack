@@ -160,6 +160,12 @@ subroutine dist_parseInputLine(inLine, iLine, iErr)
 
 end subroutine dist_parseInputLine
 
+! ================================================================================================ !
+!  Parse File Column Formats
+!  V.K. Berglyd Olsen, BE-ABP-HSS
+!  Created: 2019-07-05
+!  Updated: 2019-07-08
+! ================================================================================================ !
 subroutine dist_setColumnFormat(fmtName, fErr)
 
   use crcoall
@@ -169,130 +175,168 @@ subroutine dist_setColumnFormat(fmtName, fErr)
   character(len=*), intent(in)  :: fmtName
   logical,          intent(out) :: fErr
 
+  character(len=20) fmtBase
+  character(len=10) fmtUnit
+  real(kind=fPrec)  uFac
+  integer           c, unitPos, fmtLen
+
   fErr = .false.
 
-  select case(chr_toUpper(fmtName))
+  fmtLen = len_trim(fmtName)
+  if(fmtLen < 1) then
+    write(lout,"(a)") "DIST> ERROR Unknown column format '"//trim(fmtName)//"'"
+    fErr = .true.
+  end if
 
-  case("NONE")
-    call dist_appendFormat(dist_fmtNONE, one)        ! Ignored
-  case("ID")
-    call dist_appendFormat(dist_fmtPartID, one)      ! Particle ID
-  case("PARENT")
-    call dist_appendFormat(dist_fmtParentID, one)    ! Parent ID
+  unitPos = -1
+  do c=1,fmtLen
+    if(fmtName(c:c) == "[") then
+      unitPos = c
+      exit
+    end if
+  end do
 
-  case("X")
-    call dist_appendFormat(dist_fmtX, one)           ! Horizontal position
-  case("Y")
-    call dist_appendFormat(dist_fmtY, one)           ! Vertical positiom
-  case("XP")
-    call dist_appendFormat(dist_fmtXP, one)          ! Horizontal angle
-  case("YP")
-    call dist_appendFormat(dist_fmtYP, one)          ! Vertical angle
-  case("PX")
-    call dist_appendFormat(dist_fmtPX, one)          ! Horizontal momentum
-  case("PY")
-    call dist_appendFormat(dist_fmtPY, one)          ! Vertical momentum
-  case("SIGMA","DS")
-    call dist_appendFormat(dist_fmtSIGMA, one)       ! Longitudinal relative position
-  case("DT")
-    call dist_appendFormat(dist_fmtDT, one)          ! Time delay
-  case("E")
-    call dist_appendFormat(dist_fmtE, one)           ! Particle energy
-  case("P")
-    call dist_appendFormat(dist_fmtP, one)           ! Particle momentum
-  case("DE/E0","DEE0")
-    call dist_appendFormat(dist_fmtDEE0, one)        ! Relative particle energy (to reference particle)
-  case("DP/P0","DPP0")
-    call dist_appendFormat(dist_fmtDPP0, one)        ! Relative particle momentum (to reference particle)
+  if(unitPos > 1 .and. fmtLen > unitPos+1) then
+    fmtBase = trim(fmtName(1:unitPos-1))
+    fmtUnit = trim(fmtName(unitPos:fmtLen))
+  else
+    fmtBase = trim(fmtName)
+    fmtUnit = "[none]"
+  end if
 
-  case("X_NORM")
-    call dist_appendFormat(dist_fmtX_NORM, one)      ! Normalised horizontal position
-  case("Y_NORM")
-    call dist_appendFormat(dist_fmtY_NORM, one)      ! Normalised vertical positiom
-  case("XP_NORM")
-    call dist_appendFormat(dist_fmtXP_NORM, one)     ! Normalised horizontal angle
-  case("YP_NORM")
-    call dist_appendFormat(dist_fmtYP_NORM, one)     ! Normalised vertical angle
-  case("PX_NORM")
-    call dist_appendFormat(dist_fmtPX_NORM, one)     ! Normalised horizontal momentum
-  case("PY_NORM")
-    call dist_appendFormat(dist_fmtPY_NORM, one)     ! Normalised vertical momentum
-  case("SIGMA_NORM","DS_NORM")
-    call dist_appendFormat(dist_fmtSIGMA_NORM, one)  ! Normalised longitudinal relative position
-  case("DT_NORM")
-    call dist_appendFormat(dist_fmtDT_NORM, one)     ! Normalised time delay
-  case("E_NORM")
-    call dist_appendFormat(dist_fmtE_NORM, one)      ! Normalised particle energy
-  case("P_NORM")
-    call dist_appendFormat(dist_fmtP_NORM, one)      ! Normalised particle momentum
-  case("DE/E0_NORM","DEE0_NORM")
-    call dist_appendFormat(dist_fmtDEE0_NORM, one)   ! Normalised relative particle energy (to reference particle)
-  case("DP/P0_NORM","DPP0_NORM")
-    call dist_appendFormat(dist_fmtDPP0_NORM, one)   ! Normalised relative particle momentum (to reference particle)
+  select case(chr_toUpper(fmtBase))
 
-  case("MASS","M")
-    call dist_appendFormat(dist_fmtMASS, one)        ! Particle mass
-  case("CHARGE","Q")
-    call dist_appendFormat(dist_fmtCHARGE, one)      ! Particle charge
-  case("ION_A")
-    call dist_appendFormat(dist_fmtIonA, one)        ! Ion atomic mass
-  case("ION_Z")
-    call dist_appendFormat(dist_fmtIonZ, one)        ! Ion atomic number
-  case("PDGID")
-    call dist_appendFormat(dist_fmtPDGID, one)       ! Particle PDG ID
+  case("NONE","SKIP") ! Ignored
+    call dist_appendFormat(dist_fmtNONE, one)
+  case("ID") ! Particle ID
+    call dist_appendFormat(dist_fmtPartID, one)
+  case("PARENT") ! Parent ID
+    call dist_appendFormat(dist_fmtParentID, one)
+
+  case("X") ! Horizontal position
+    call dist_unitScale(fmtName, fmtUnit, 1, uFac, fErr)
+    call dist_appendFormat(dist_fmtX, uFac)
+  case("Y") ! Vertical positiom
+    call dist_unitScale(fmtName, fmtUnit, 1, uFac, fErr)
+    call dist_appendFormat(dist_fmtY, uFac)
+  case("XP") ! Horizontal angle
+    call dist_unitScale(fmtName, fmtUnit, 2, uFac, fErr)
+    call dist_appendFormat(dist_fmtXP, uFac)
+  case("YP") ! Vertical angle
+    call dist_unitScale(fmtName, fmtUnit, 2, uFac, fErr)
+    call dist_appendFormat(dist_fmtYP, uFac)
+  case("PX") ! Horizontal momentum
+    call dist_unitScale(fmtName, fmtUnit, 3, uFac, fErr)
+    call dist_appendFormat(dist_fmtPX, uFac)
+  case("PY") ! Vertical momentum
+    call dist_unitScale(fmtName, fmtUnit, 3, uFac, fErr)
+    call dist_appendFormat(dist_fmtPY, uFac)
+  case("SIGMA","DS") ! Longitudinal relative position
+    call dist_unitScale(fmtName, fmtUnit, 1, uFac, fErr)
+    call dist_appendFormat(dist_fmtSIGMA, uFac)
+  case("DT") ! Time delay
+    call dist_unitScale(fmtName, fmtUnit, 4, uFac, fErr)
+    call dist_appendFormat(dist_fmtDT, uFac)
+  case("E") ! Particle energy
+    call dist_unitScale(fmtName, fmtUnit, 3, uFac, fErr)
+    call dist_appendFormat(dist_fmtE, uFac)
+  case("P") ! Particle momentum
+    call dist_unitScale(fmtName, fmtUnit, 3, uFac, fErr)
+    call dist_appendFormat(dist_fmtP, uFac)
+  case("DE/E0","DEE0") ! Relative particle energy (to reference particle)
+    call dist_appendFormat(dist_fmtDEE0, one)
+  case("DP/P0","DPP0") ! Relative particle momentum (to reference particle)
+    call dist_appendFormat(dist_fmtDPP0, one)
+
+  case("X_NORM") ! Normalised horizontal position
+    call dist_appendFormat(dist_fmtX_NORM, one)
+  case("Y_NORM") ! Normalised vertical positiom
+    call dist_appendFormat(dist_fmtY_NORM, one)
+  case("XP_NORM") ! Normalised horizontal angle
+    call dist_appendFormat(dist_fmtXP_NORM, one)
+  case("YP_NORM") ! Normalised vertical angle
+    call dist_appendFormat(dist_fmtYP_NORM, one)
+  case("PX_NORM") ! Normalised horizontal momentum
+    call dist_appendFormat(dist_fmtPX_NORM, one)
+  case("PY_NORM") ! Normalised vertical momentum
+    call dist_appendFormat(dist_fmtPY_NORM, one)
+  case("SIGMA_NORM","DS_NORM") ! Normalised longitudinal relative position
+    call dist_appendFormat(dist_fmtSIGMA_NORM, one)
+  case("DT_NORM") ! Normalised time delay
+    call dist_appendFormat(dist_fmtDT_NORM, one)
+  case("E_NORM") ! Normalised particle energy
+    call dist_appendFormat(dist_fmtE_NORM, one)
+  case("P_NORM") ! Normalised particle momentum
+    call dist_appendFormat(dist_fmtP_NORM, one)
+  case("DE/E0_NORM","DEE0_NORM") ! Normalised relative particle energy (to reference particle)
+    call dist_appendFormat(dist_fmtDEE0_NORM, one)
+  case("DP/P0_NORM","DPP0_NORM") ! Normalised relative particle momentum (to reference particle)
+    call dist_appendFormat(dist_fmtDPP0_NORM, one)
+
+  case("MASS","M") ! Particle mass
+    call dist_unitScale(fmtName, fmtUnit, 3, uFac, fErr)
+    call dist_appendFormat(dist_fmtMASS, uFac)
+  case("CHARGE","Q") ! Particle charge
+    call dist_appendFormat(dist_fmtCHARGE, one)
+  case("ION_A") ! Ion atomic mass
+    call dist_appendFormat(dist_fmtIonA, one)
+  case("ION_Z") ! Ion atomic number
+    call dist_appendFormat(dist_fmtIonZ, one)
+  case("PDGID") ! Particle PDG ID
+    call dist_appendFormat(dist_fmtPDGID, one)
 
   case("DEFAULT_4D") ! 4D default coordinates
-    call dist_appendFormat(dist_fmtX, one)           ! Horizontal position
-    call dist_appendFormat(dist_fmtY, one)           ! Vertical positiom
-    call dist_appendFormat(dist_fmtXP, one)          ! Horizontal angle
-    call dist_appendFormat(dist_fmtYP, one)          ! Vertical angle
+    call dist_appendFormat(dist_fmtX, one)          ! Horizontal position
+    call dist_appendFormat(dist_fmtY, one)          ! Vertical positiom
+    call dist_appendFormat(dist_fmtXP, one)         ! Horizontal angle
+    call dist_appendFormat(dist_fmtYP, one)         ! Vertical angle
 
   case("DEFAULT_6D") ! 6D default coordinates
-    call dist_appendFormat(dist_fmtX, one)           ! Horizontal position
-    call dist_appendFormat(dist_fmtY, one)           ! Vertical positiom
-    call dist_appendFormat(dist_fmtXP, one)          ! Horizontal angle
-    call dist_appendFormat(dist_fmtYP, one)          ! Vertical angle
-    call dist_appendFormat(dist_fmtSIGMA, one)       ! Longitudinal relative position
-    call dist_appendFormat(dist_fmtDPP0, one)        ! Relative particle momentum (to reference particle)
+    call dist_appendFormat(dist_fmtX, one)          ! Horizontal position
+    call dist_appendFormat(dist_fmtY, one)          ! Vertical positiom
+    call dist_appendFormat(dist_fmtXP, one)         ! Horizontal angle
+    call dist_appendFormat(dist_fmtYP, one)         ! Vertical angle
+    call dist_appendFormat(dist_fmtSIGMA, one)      ! Longitudinal relative position
+    call dist_appendFormat(dist_fmtDPP0, one)       ! Relative particle momentum (to reference particle)
 
   case("DEFAULT_4D_NORM") ! 4D normalised coordinates
-    call dist_appendFormat(dist_fmtX_NORM, one)      ! Normalised horizontal position
-    call dist_appendFormat(dist_fmtY_NORM, one)      ! Normalised vertical positiom
-    call dist_appendFormat(dist_fmtXP_NORM, one)     ! Normalised horizontal angle
-    call dist_appendFormat(dist_fmtYP_NORM, one)     ! Normalised vertical angle
+    call dist_appendFormat(dist_fmtX_NORM, one)     ! Normalised horizontal position
+    call dist_appendFormat(dist_fmtY_NORM, one)     ! Normalised vertical positiom
+    call dist_appendFormat(dist_fmtXP_NORM, one)    ! Normalised horizontal angle
+    call dist_appendFormat(dist_fmtYP_NORM, one)    ! Normalised vertical angle
 
   case("DEFAULT_6D_NORM") ! 6D normalised coordinates
-    call dist_appendFormat(dist_fmtX_NORM, one)      ! Normalised horizontal position
-    call dist_appendFormat(dist_fmtY_NORM, one)      ! Normalised vertical positiom
-    call dist_appendFormat(dist_fmtXP_NORM, one)     ! Normalised horizontal angle
-    call dist_appendFormat(dist_fmtYP_NORM, one)     ! Normalised vertical angle
-    call dist_appendFormat(dist_fmtSIGMA_NORM, one)  ! Normalised longitudinal relative position
-    call dist_appendFormat(dist_fmtDPP0_NORM, one)   ! Normalised relative particle momentum (to reference particle)
+    call dist_appendFormat(dist_fmtX_NORM, one)     ! Normalised horizontal position
+    call dist_appendFormat(dist_fmtY_NORM, one)     ! Normalised vertical positiom
+    call dist_appendFormat(dist_fmtXP_NORM, one)    ! Normalised horizontal angle
+    call dist_appendFormat(dist_fmtYP_NORM, one)    ! Normalised vertical angle
+    call dist_appendFormat(dist_fmtSIGMA_NORM, one) ! Normalised longitudinal relative position
+    call dist_appendFormat(dist_fmtDPP0_NORM, one)  ! Normalised relative particle momentum (to reference particle)
 
   case("IONS") ! The ion columns
-    call dist_appendFormat(dist_fmtMASS, c1e3)       ! Particle mass
-    call dist_appendFormat(dist_fmtCHARGE, one)      ! Particle charge
-    call dist_appendFormat(dist_fmtIonA, one)        ! Ion atomic mass
-    call dist_appendFormat(dist_fmtIonZ, one)        ! Ion atomic number
-    call dist_appendFormat(dist_fmtPDGID, one)       ! Particle PDG ID
+    call dist_appendFormat(dist_fmtMASS, c1e3)      ! Particle mass
+    call dist_appendFormat(dist_fmtCHARGE, one)     ! Particle charge
+    call dist_appendFormat(dist_fmtIonA, one)       ! Ion atomic mass
+    call dist_appendFormat(dist_fmtIonZ, one)       ! Ion atomic number
+    call dist_appendFormat(dist_fmtPDGID, one)      ! Particle PDG ID
 
   case("OLD_DIST") ! The old DIST block file format
-    call dist_appendFormat(dist_fmtPartID, one)      ! Particle ID
-    call dist_appendFormat(dist_fmtNONE, one)        ! Ignored
-    call dist_appendFormat(dist_fmtNONE, one)        ! Ignored
-    call dist_appendFormat(dist_fmtX, c1e3)          ! Horizontal position
-    call dist_appendFormat(dist_fmtY, c1e3)          ! Vertical positiom
-    call dist_appendFormat(dist_fmtNONE, one)        ! Ignored
-    call dist_appendFormat(dist_fmtXP, c1e3)         ! Horizontal angle
-    call dist_appendFormat(dist_fmtYP, c1e3)         ! Vertical angle
-    call dist_appendFormat(dist_fmtNONE, one)        ! Ignored
-    call dist_appendFormat(dist_fmtIonA, one)        ! Ion atomic mass
-    call dist_appendFormat(dist_fmtIonZ, one)        ! Ion atomic number
-    call dist_appendFormat(dist_fmtMASS, c1e3)       ! Particle mass
-    call dist_appendFormat(dist_fmtP, c1e3)          ! Particle momentum
-    call dist_appendFormat(dist_fmtDT, one)          ! Time delay
-  ! call dist_appendFormat(dist_fmtCHARGE, one)      ! Particle charge
-  ! call dist_appendFormat(dist_fmtPDGID, one)       ! Particle PDG ID
+    call dist_appendFormat(dist_fmtPartID, one)     ! Particle ID
+    call dist_appendFormat(dist_fmtNONE, one)       ! Ignored
+    call dist_appendFormat(dist_fmtNONE, one)       ! Ignored
+    call dist_appendFormat(dist_fmtX, c1e3)         ! Horizontal position
+    call dist_appendFormat(dist_fmtY, c1e3)         ! Vertical positiom
+    call dist_appendFormat(dist_fmtNONE, one)       ! Ignored
+    call dist_appendFormat(dist_fmtXP, c1e3)        ! Horizontal angle
+    call dist_appendFormat(dist_fmtYP, c1e3)        ! Vertical angle
+    call dist_appendFormat(dist_fmtNONE, one)       ! Ignored
+    call dist_appendFormat(dist_fmtIonA, one)       ! Ion atomic mass
+    call dist_appendFormat(dist_fmtIonZ, one)       ! Ion atomic number
+    call dist_appendFormat(dist_fmtMASS, c1e3)      ! Particle mass
+    call dist_appendFormat(dist_fmtP, c1e3)         ! Particle momentum
+    call dist_appendFormat(dist_fmtDT, one)         ! Time delay
+  ! call dist_appendFormat(dist_fmtCHARGE, one)     ! Particle charge
+  ! call dist_appendFormat(dist_fmtPDGID, one)      ! Particle PDG ID
 
   case default
     write(lout,"(a)") "DIST> ERROR Unknown column format '"//trim(fmtName)//"'"
@@ -302,6 +346,98 @@ subroutine dist_setColumnFormat(fmtName, fErr)
 
 end subroutine dist_setColumnFormat
 
+! ================================================================================================ !
+!  Parse File Column Units
+!  V.K. Berglyd Olsen, BE-ABP-HSS
+!  Created: 2019-07-05
+!  Updated: 2019-07-08
+! ================================================================================================ !
+subroutine dist_unitScale(fmtName, fmtUnit, unitType, unitScale, uErr)
+
+  use crcoall
+  use string_tools
+  use numerical_constants
+
+  character(len=*), intent(in)    :: fmtName
+  character(len=*), intent(in)    :: fmtUnit
+  integer,          intent(in)    :: unitType
+  real(kind=fPrec), intent(out)   :: unitScale
+  logical,          intent(inout) :: uErr
+
+  unitScale = zero
+
+  if(unitType == 1) then ! Positions
+    select case(chr_toLower(fmtUnit))
+    case("[m]")
+      unitScale = c1e3
+    case("[mm]")
+      unitScale = one
+    case("[none]")
+      unitScale = one
+    case default
+      goto 100
+    end select
+  elseif(unitType == 2) then ! Angle
+    select case(chr_toLower(fmtUnit))
+    case("[rad]")
+      unitScale = c1e3
+    case("[mrad]")
+      unitScale = one
+    case("[none]")
+      unitScale = one
+    case default
+      goto 100
+    end select
+  elseif(unitType == 3) then ! Energy
+    select case(chr_toLower(fmtUnit))
+    case("[ev]")
+      unitScale = c1m6
+    case("[kev]")
+      unitScale = c1m3
+    case("[mev]")
+      unitScale = one
+    case("[gev]")
+      unitScale = c1e3
+    case("[tev]")
+      unitScale = c1e6
+    case("[none]")
+      unitScale = one
+    case default
+      goto 100
+    end select
+  elseif(unitType == 4) then ! Time
+    select case(chr_toLower(fmtUnit))
+    case("[s]")
+      unitScale = one
+    case("[ms]")
+      unitScale = c1e3
+    case("[us]","[µs]")
+      unitScale = c1e6
+    case("[ns]")
+      unitScale = c1e9
+    case("[ps]")
+      unitScale = c1e12
+    case("[none]")
+      unitScale = one
+    case default
+      goto 100
+    end select
+  end if
+
+  return
+
+100 continue
+  write(lout,"(a)") "DIST> ERROR Unrecognised or invalid unit for format identifier '"//trim(fmtName)//"'"
+  uErr = .true.
+
+end subroutine dist_unitScale
+
+! ================================================================================================ !
+!  Save File Column Format
+!  V.K. Berglyd Olsen, BE-ABP-HSS
+!  Created: 2019-07-05
+!  Updated: 2019-07-05
+! ================================================================================================ !
 subroutine dist_appendFormat(fmtID, colScale)
 
   use mod_alloc
