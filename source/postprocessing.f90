@@ -104,7 +104,7 @@ subroutine postpr(arg1,arg2)
       dimension bet04(2),alf04(2)
       dimension pmin(30),pmax(30)
       dimension idummy(6)
-      dimension sumda(61)
+      dimension sumda(60)
       dimension x(2,6),cloau(6),di0au(4)
       dimension qwc(3),clo(3),clop(3),di0(2),dip0(2)
       dimension ta(6,6),txyz(6),txyz2(6),xyzv(6),xyzv2(6),rbeta(6)
@@ -2112,9 +2112,8 @@ subroutine postpr(arg1,arg2)
       sumda(19)=sevx
       sumda(20)=sevz
       sumda(21)=sevt
-      sumda(61)=emiii
 !     sumda(59)=dmmac
-     sumda(60)=emiii
+!     sumda(60)=dnms
       sumda(59)=dnms
 ! This place 60 now used for CPU time seconds
 ! But it is set earlier in case particles are lost very early
@@ -3428,9 +3427,6 @@ subroutine writebin(nthinerr)
       implicit none
 
       integer ia,ia2,ie,nthinerr
-#ifdef BOINC
-      integer timech
-#endif
 
       real(kind=real64) dam_tmp, xv_tmp(2,2),yv_tmp(2,2),sigmv_tmp(2),dpsv_tmp(2),e0_tmp
 
