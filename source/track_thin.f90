@@ -1334,6 +1334,7 @@ subroutine thin6d(nthinerr)
       else
         dotrack = ktrack(i)
       end if
+
       select case(dotrack)
       case (1)
         stracki=strack(i)
@@ -1372,7 +1373,7 @@ subroutine thin6d(nthinerr)
             !++ For known collimators
             if(found) then
               call collimate_do_collimator(stracki)
-              call collimate_end_collimator()
+              call collimate_end_collimator(stracki)
             end if ! end of check for 'found'
             call time_stopClock(time_clockCOLL)
             !------------------------------------------------------------------
@@ -1471,9 +1472,9 @@ subroutine thin6d(nthinerr)
             sigmv(j)=sigmv(j)-sigmoff(i)
           endif
           if(abs(kz(ix)) == 12) then
-            ejv(j)=ejv(j)+(ed(ix)*sin_mb(hsyc(ix)*sigmv(j)+phasc(ix)))*nzz(j)
+            ejv(j)=ejv(j)+(ed(ix)*sin_mb(hsyc(ix)*sigmv(j)+phasc(ix)))*nqq(j)
           else
-            ejv(j)=ejv(j)+(hsy(1)*sin_mb(hsy(3)*sigmv(j)))*nzz(j)
+            ejv(j)=ejv(j)+(hsy(1)*sin_mb(hsy(3)*sigmv(j)))*nqq(j)
           endif
           ejfv(j)=sqrt(ejv(j)**2-nucm(j)**2)                               !hr01
           rvv(j)=(ejv(j)*e0f)/(e0*ejfv(j))
@@ -1910,7 +1911,7 @@ subroutine thin6d(nthinerr)
         xory=1
         crabfreq=ek(ix)*c1e3
         do j=1,napx
-          crabamp2 = ed(ix)*nzz(j)
+          crabamp2 = ed(ix)*nqq(j)
           kcrab=(((sigmv(j)/(clight*(e0f/e0)))*crabfreq)*two)*pi + crabph2(ix)
 #include "include/alignva.f90"
           yv1(j)=yv1(j) + ((crabamp2*crkve)*moidpsv(j))*cos_mb(kcrab)
@@ -1923,7 +1924,7 @@ subroutine thin6d(nthinerr)
         xory=1
         crabfreq=ek(ix)*c1e3
         do j=1,napx
-          crabamp2 = ed(ix)*nzz(j)
+          crabamp2 = ed(ix)*nqq(j)
           kcrab=(((sigmv(j)/(clight*(e0f/e0)))*crabfreq)*two)*pi + crabph2(ix)
 #include "include/alignva.f90"
           yv2(j)=yv2(j) + ((crabamp2*crkve)*moidpsv(j))*cos_mb(kcrab)
@@ -1936,7 +1937,7 @@ subroutine thin6d(nthinerr)
         xory=1
         crabfreq=ek(ix)*c1e3
         do j=1,napx
-          crabamp3 = ed(ix)*nzz(j)
+          crabamp3 = ed(ix)*nqq(j)
           kcrab=((sigmv(j)*crabfreq)/(clight*(e0f/e0)))*(two*pi)+crabph3(ix)
 #include "include/alignva.f90"
           yv1(j)=yv1(j)+(((crabamp3*moidpsv(j))*c1m3)*(crkve**2-cikve**2))*cos_mb(kcrab)
@@ -1950,7 +1951,7 @@ subroutine thin6d(nthinerr)
         xory=1
         crabfreq=ek(ix)*c1e3
         do j=1,napx
-          crabamp3 = ed(ix)*nzz(j)
+          crabamp3 = ed(ix)*nqq(j)
           kcrab=(((sigmv(j)/(clight*(e0f/e0)))*crabfreq)*two)*pi + crabph3(ix)
 #include "include/alignva.f90"
           yv2(j)=yv2(j)-(((crabamp3*moidpsv(j))*c1m3)*((cikve**2)-(crkve**2)))*cos_mb(kcrab)
@@ -1964,7 +1965,7 @@ subroutine thin6d(nthinerr)
         xory=1
         crabfreq=ek(ix)*c1e3
         do j=1,napx
-          crabamp4 = ed(ix)*nzz(j)
+          crabamp4 = ed(ix)*nqq(j)
           kcrab=(((sigmv(j)/(clight*(e0f/e0)))*crabfreq)*two)*pi + crabph4(ix)
 #include "include/alignva.f90"
           yv1(j)=yv1(j) + (((crabamp4*moidpsv(j))*(crkve**3-(three*crkve)*cikve**2))*c1m6)*cos_mb(kcrab)
@@ -1978,7 +1979,7 @@ subroutine thin6d(nthinerr)
         xory=1
         crabfreq=ek(ix)*c1e3
         do j=1,napx
-          crabamp4 = ed(ix)*nzz(j)
+          crabamp4 = ed(ix)*nqq(j)
           kcrab=(((sigmv(j)/(clight*(e0f/e0)))*crabfreq)*two)*pi + crabph4(ix)
 #include "include/alignva.f90"
           yv1(j)=yv1(j) - (((crabamp4*moidpsv(j))*(cikve**3-(three*cikve)*crkve**2))*c1m6)*cos_mb(kcrab)

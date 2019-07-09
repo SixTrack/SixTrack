@@ -18,7 +18,7 @@ module string_tools
   public str_stripQuotes, chr_stripQuotes
   public str_sub, chr_expandBrackets
   public chr_lPad, chr_rPad, chr_lPadCut, chr_rPadCut
-  public chr_toUpper, chr_toLower
+  public chr_toUpper, chr_toLower, chr_isNumeric
   public str_inStr, chr_inStr
 
   interface str_cast

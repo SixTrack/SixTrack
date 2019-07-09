@@ -521,6 +521,7 @@ subroutine sixin_parseInputLineSIMU(inLine, iLine, iErr)
   use mod_common
   use mod_commons
   use mod_common_track
+  use mod_pdgid
   use physical_constants
 
   character(len=*), intent(in)    :: inLine
@@ -652,6 +653,9 @@ subroutine sixin_parseInputLineSIMU(inLine, iLine, iErr)
       select case(chr_toLower(lnSplit(2)))
       case("proton","pdg2212")
         pdgid0 = 2212
+        aa0    = 1
+        zz0    = 1
+        qq0    = 1
       case default
         write(lerr,"(a)") "SIMU> ERROR Unknown or unsupported named particle mass or PDG ID '"//trim(lnSplit(2))//"'"
         iErr = .true.
@@ -665,10 +669,13 @@ subroutine sixin_parseInputLineSIMU(inLine, iLine, iErr)
     if(nSplit > 3) then
       call chr_cast(lnSplit(4),aa0,iErr)
       call chr_cast(lnSplit(5),zz0,iErr)
-    else
-      zz0 = qq0
     end if
+
+!   aa0, zz0 will default to 1
+    call CalculatePDGid(pdgid0, aa0, zz0)
+
     if(st_debug) then
+      call sixin_echoVal("PDGid",        pdgid0,   "SIMU",iLine)
       call sixin_echoVal("charge",       int(qq0), "SIMU",iLine)
       call sixin_echoVal("A",            int(aa0), "SIMU",iLine)
       call sixin_echoVal("Z",            int(zz0), "SIMU",iLine)
@@ -1202,6 +1209,7 @@ subroutine sixin_parseInputLineHION(inLine, iLine, iErr)
   use crcoall
   use string_tools
   use mod_common
+  use mod_pdgid
 
   character(len=*), intent(in)    :: inLine
   integer,          intent(inout) :: iLine
@@ -1223,8 +1231,8 @@ subroutine sixin_parseInputLineHION(inLine, iLine, iErr)
     write(lout,"(a)") "HIONS> WARNING Only expected one input line."
   end if
 
-  if(nSplit /= 3) then
-    write(lerr,"(a,i0)") "HIONS> ERROR Line must have 3 values, got ",nSplit
+  if(nSplit < 3 .or. nSplit > 4) then
+    write(lerr,"(a,i0)") "HIONS> ERROR Line must have 3 values (4 with Q), got ",nSplit
     iErr = .true.
     return
   end if
@@ -1232,6 +1240,14 @@ subroutine sixin_parseInputLineHION(inLine, iLine, iErr)
   call chr_cast(lnSplit(1),aa0,  iErr)
   call chr_cast(lnSplit(2),zz0,  iErr)
   call chr_cast(lnSplit(3),nucm0,iErr)
+
+  if(nSplit == 4) then
+    call chr_cast(lnSplit(4),qq0,iErr)
+  else
+    qq0 = zz0
+  end if
+
+  call CalculatePDGid(pdgid0, aa0, zz0)
 
   nucm0 = nucm0*c1e3 ! [GeV/c^2] -> [MeV/c^2]
   sixin_hionSet = .true.

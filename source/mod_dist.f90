@@ -27,6 +27,7 @@ module mod_dist
 
   use crcoall
   use floatPrecision
+  use mod_pdgid
 
   implicit none
 
@@ -132,6 +133,8 @@ subroutine dist_readDist
   ejf0v(:) = zero
   naa(:)   = 0
   nzz(:)   = 0
+  nqq(:)   = 0
+  pdgid(:) = 0
   nucm(:)  = zero
   dt(:)    = zero
 
@@ -173,6 +176,8 @@ subroutine dist_readDist
   if(nSplit > 11) call chr_cast(lnSplit(12), nucm(j), cErr)
   if(nSplit > 12) call chr_cast(lnSplit(13), ejfv(j), cErr)
   if(nSplit > 13) call chr_cast(lnSplit(14), dt(j),   cErr)
+  if(nSplit > 14) call chr_cast(lnSplit(15), nqq(j),  cErr)
+  if(nSplit > 15) call chr_cast(lnSplit(16), pdgid(j),cErr)
   if(cErr) goto 20
 
   xv1(j)      = xv1(j)*c1e3
@@ -182,11 +187,20 @@ subroutine dist_readDist
   ejfv(j)     = ejfv(j)*c1e3
   nucm(j)     = nucm(j)*c1e3
   sigmv(j)    = -(e0f/e0)*((dt(j)*clight)*c1e3)
-  mtc(j)      = (nzz(j)*nucm0)/(zz0*nucm(j))
+
+  if(nSplit <= 14) then
+    nqq(j)=nzz(j)
+  end if
+
+  mtc(j)      = (nqq(j)*nucm0)/(qq0*nucm(j))
   partID(j)   = j
   parentID(j) = j
   pstop(j)    = .false.
   ejf0v(j)    = ejfv(j)
+
+  if(nSplit <= 15) then
+    call CalculatePDGid(pdgid(j), naa(j), nzz(j))
+  end if
 
   goto 10
 
@@ -257,10 +271,12 @@ subroutine dist_finaliseDist
 
       if(abs(nucm(j)/nucm0-one) < c1m15) then
         nucm(j) = nucm0
-        if(nzz(j) == zz0 .or. naa(j) == aa0) then
-          naa(j) = aa0
-          nzz(j) = zz0
-          mtc(j) = one
+        if(nzz(j) == zz0 .or. naa(j) == aa0 .or. nqq(j) == qq0 .or. pdgid(j) == pdgid0) then
+          naa(j)   = aa0
+          nzz(j)   = zz0
+          nqq(j)   = qq0
+          pdgid(j) = pdgid0
+          mtc(j)   = one
         else
           write(lerr,"(a)") "DIST> ERROR Mass and/or charge mismatch with relation to sync particle"
           call prror
@@ -271,8 +287,8 @@ subroutine dist_finaliseDist
     end if
   end do
 
-  write(lout,"(a,2(1x,i0),1x,f15.7)") "DIST> Reference particle species [A,Z,M]:", aa0, zz0, nucm0
-  write(lout,"(a,1x,f15.7)")       "DIST> Reference energy [Z TeV]:", c1m6*e0/zz0
+  write(lout,"(a,2(1x,i0),1x,f15.7,2(1x,i0))") "DIST> Reference particle species [A,Z,M,Q,ID]:", aa0, zz0, nucm0, qq0, pdgid0
+  write(lout,"(a,1x,f15.7)")       "DIST> Reference energy [Z TeV]:", c1m6*e0/qq0
 
   do j=napx+1,npart
     partID(j)   = j
@@ -284,6 +300,8 @@ subroutine dist_finaliseDist
     mtc(j)      = one
     naa(j)      = aa0
     nzz(j)      = zz0
+    nqq(j)      = qq0
+    pdgid(j)    = pdgid0
     nucm(j)     = nucm0
     moidpsv(j)  = one
     omoidpsv(j) = zero

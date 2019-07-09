@@ -31,7 +31,7 @@ module parpro
   integer, parameter :: nelb  = 280       ! Maximum elements per BLOC
 
   ! Maximum length of strings
-  integer, parameter :: mNameLen  = 48    ! Maximum length of element names. Keep in sync with MadX
+  integer, parameter :: mNameLen  = 48    ! Maximum length of element names. Keep in sync with MadX (and inside Geant4 code!)
   integer, parameter :: mFileName = 64    ! Maximum length of file names
   integer, parameter :: mPathName = 255   ! Maximum length of path names
   integer, parameter :: mStrLen   = 161   ! Standard string length
@@ -124,7 +124,7 @@ module mod_common
   use floatPrecision
   use numerical_constants
   use physical_constants, only : pmap
-  use, intrinsic :: iso_fortran_env, only : int16
+  use, intrinsic :: iso_fortran_env, only : int16, int32
 
   implicit none
 
@@ -356,7 +356,7 @@ module mod_common
   integer(kind=int16), save :: aa0     = 1    ! Reference nucleon number
   integer(kind=int16), save :: zz0     = 1    ! Reference charge multiplicity
   integer(kind=int16), save :: qq0     = 1    ! Reference charge
-  integer,             save :: pdgid0  = 2212 ! Reference particle PDG ID
+  integer(kind=int32), save :: pdgid0  = 2212 ! Reference particle PDG ID
   integer,             save :: pdgyear = 2002 ! Reference particle PDG year
 
   ! Tracking Particles
@@ -840,7 +840,7 @@ module mod_common_main
   use parpro
   use floatPrecision
   use numerical_constants
-  use, intrinsic :: iso_fortran_env, only : int16
+  use, intrinsic :: iso_fortran_env, only : int16, int32
 
   implicit none
 
@@ -903,6 +903,7 @@ module mod_common_main
   integer(kind=int16), allocatable, save :: nqq(:)     ! Particle charge
   integer(kind=int16), allocatable, save :: naa(:)     ! Ion atomic mass
   integer(kind=int16), allocatable, save :: nzz(:)     ! Ion atomic number
+  integer(kind=int32), allocatable, save :: pdgid(:)   ! Particle PDGid
 
   integer,          allocatable, save :: nnumxv(:)     ! Turn in which a particle was lost
   integer,          allocatable, save :: numxv(:)      ! Turn in which a particle was lost
@@ -921,7 +922,7 @@ contains
 subroutine mod_commonmn_expand_arrays(nblz_new,npart_new)
 
   use mod_alloc
-  use mod_common, only : nucm0, aa0, zz0, qq0
+  use mod_common, only : nucm0, aa0, zz0, qq0, pdgid0
   use numerical_constants, only : zero, one
 
   implicit none
@@ -966,6 +967,7 @@ subroutine mod_commonmn_expand_arrays(nblz_new,npart_new)
     call alloc(naa,      npart_new,    aa0,     "naa")
     call alloc(nzz,      npart_new,    zz0,     "nzz")
     call alloc(nqq,      npart_new,    qq0,     "nqq")
+    call alloc(pdgid,    npart_new,    pdgid0,  "pdgid")
     call alloc(ampv,     npart_new,    zero,    "ampv")
     call alloc(aperv,    npart_new, 2, zero,    "aperv")
     call alloc(iv,       npart_new,    0,       "iv")

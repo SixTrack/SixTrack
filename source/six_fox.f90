@@ -938,7 +938,7 @@ subroutine umlauda
 
 
     if(kzz.eq.23) then
-!FOX  CRABAMP=ED(IX)*ZZ0 ;
+!FOX  CRABAMP=ED(IX)*QQ0 ;
 
       crabfreq=ek(ix)*c1e3
       crabpht=crabph(ix)
@@ -969,7 +969,7 @@ subroutine umlauda
       goto 440
   endif
     if(kzz.eq.-23) then
-!FOX  CRABAMP=ED(IX)*ZZ0 ;
+!FOX  CRABAMP=ED(IX)*QQ0 ;
         crabfreq=ek(ix)*c1e3
         crabpht=crabph(ix)
 !FOX  KCRABDA=(SIGMDA/(CLIGHT*(E0F/E0))
@@ -1003,7 +1003,7 @@ subroutine umlauda
       xs=xsi(i) ! JBG change of variables for misal calculations
       zs=zsi(i)
 #include "include/alignf.f90"
-!FOX  CRABAMP2=ED(IX)*ZZ0 ;
+!FOX  CRABAMP2=ED(IX)*QQ0 ;
 
     crabfreq=ek(ix)*c1e3 !JBG Input in MHz changed to kHz
     crabpht2=crabph2(ix)
@@ -1038,7 +1038,7 @@ subroutine umlauda
       xs=xsi(i) ! JBG change of variables for misal calculations
       zs=zsi(i)
 #include "include/alignf.f90"
-!FOX  CRABAMP2=ED(IX)*ZZ0 ;
+!FOX  CRABAMP2=ED(IX)*QQ0 ;
           crabfreq=ek(ix)*c1e3
           crabpht2=crabph2(ix)
 !FOX  KCRABDA=(SIGMDA/(CLIGHT*(E0F/E0))
@@ -1071,7 +1071,7 @@ subroutine umlauda
       xs=xsi(i)
       zs=zsi(i)
 #include "include/alignf.f90"
-!FOX  CRABAMP3=ED(IX)*ZZ0 ;
+!FOX  CRABAMP3=ED(IX)*QQ0 ;
           crabfreq=ek(ix)*c1e3
           crabpht3=crabph3(ix)
 !FOX  KCRABDA=(SIGMDA/(CLIGHT*(E0F/E0))
@@ -1105,7 +1105,7 @@ subroutine umlauda
       xs=xsi(i)
       zs=zsi(i)
 #include "include/alignf.f90"
-!FOX  CRABAMP3=ED(IX)*ZZ0 ;
+!FOX  CRABAMP3=ED(IX)*QQ0 ;
           crabfreq=ek(ix)*c1e3
           crabpht3=crabph3(ix)
 !FOX  KCRABDA=(SIGMDA/(CLIGHT*(E0F/E0))
@@ -1138,7 +1138,7 @@ subroutine umlauda
       xs=xsi(i)
       zs=zsi(i)
 #include "include/alignf.f90"
-!FOX  CRABAMP4=ED(IX)*ZZ0 ;
+!FOX  CRABAMP4=ED(IX)*QQ0 ;
           crabfreq=ek(ix)*c1e3
           crabpht4=crabph4(ix)
 !FOX  KCRABDA=(SIGMDA/(CLIGHT*(E0F/E0))
@@ -1176,7 +1176,7 @@ subroutine umlauda
       xs=xsi(i)
       zs=zsi(i)
 #include "include/alignf.f90"
-!FOX  CRABAMP4=ED(IX)*ZZ0 ;
+!FOX  CRABAMP4=ED(IX)*QQ0 ;
           crabfreq=ek(ix)*c1e3
           crabpht4=crabph4(ix)
 !FOX  KCRABDA=(SIGMDA/(CLIGHT*(E0F/E0))
@@ -2136,17 +2136,17 @@ subroutine synoda
 !FOX  D V RE EXT PHASC NELE ;  D V RE INT NUCMDA ;
 !FOX  D V RE INT C1E3 ; D V RE INT ONE ; D V IN INT IKZ ;
 !FOX  D V IN EXT NELE ; D V IN INT ITION ; D V IN INT IX ;
-!FOX  E D ; D V RE INT NUCM0 ; D V RE INT MTCDA ; D V RE INT ZZ0 ;
+!FOX  E D ; D V RE INT NUCM0 ; D V RE INT MTCDA ; D V RE INT QQ0 ;
 !FOX  1 if(1.eq.1) then
 !-----------------------------------------------------------------------
   ix=ixcav
 
   if(abs(kz(ix)) == 12) then
     ikz = sign(1,kz(ix))
-!FOX  EJ1=EJ1+ED(IX)*ZZ0*SIN(HSYC(IX)*SIGMDA/C1E3*
+!FOX  EJ1=EJ1+ED(IX)*QQ0*SIN(HSYC(IX)*SIGMDA/C1E3*
 !FOX  IKZ+PHASC(IX)) ;
   else
-!FOX  EJ1=EJ1+HSY(1)*ZZ0*SIN(HSY(3)*SIGMDA/C1E3*ITION+PHAS) ;
+!FOX  EJ1=EJ1+HSY(1)*QQ0*SIN(HSY(3)*SIGMDA/C1E3*ITION+PHAS) ;
   endif
 !FOX  EJF1=SQRT(EJ1*EJ1-NUCMDA*NUCMDA) ;
 !FOX  DPDA1=(EJF1-E0F)/E0F*C1E3 ;

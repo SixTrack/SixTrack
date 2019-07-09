@@ -80,7 +80,7 @@ subroutine beamGas( myix, mysecondary, totals, myenom, ipart ,turn, el_idx )
   use mod_common
   use mod_common_track
   use mod_common_main
-  use collimation, only : numeff, numeffdpop, max_ncoll, iturn, part_abs_pos, part_abs_turn, secondary, mys
+  use collimation, only : numeff, numeffdpop, max_ncoll, iturn, part_abs_pos, part_abs_turn, secondary
 
   implicit none
 
@@ -148,7 +148,7 @@ subroutine beamGas( myix, mysecondary, totals, myenom, ipart ,turn, el_idx )
 
   if(bgid.lt.bgiddb(ibgloc)) then ! no proton for this scattering event
 !   check that this works correctly!!!!!!
-    write(bg_locLossesUnit,*) ipart(j),iturn,totals,xv1(j),yv1(j),xv2(j),yv2(j),mys(j),(0-myenom)/myenom, &
+    write(bg_locLossesUnit,*) ipart(j),iturn,totals,xv1(j),yv1(j),xv2(j),yv2(j),sigmv(j),(0-myenom)/myenom, &
       bgid+njobthis*dpmjetevents
 
 !   writing down the scattering location information
