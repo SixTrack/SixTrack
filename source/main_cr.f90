@@ -983,7 +983,7 @@ program maincr
   elseif(rdfort13) then
     ! Restart from fort.13
     call readFort13
-    call part_updatePartEnergy(1)
+    call part_updatePartEnergy(1,.false.)
   else
     ! Generated from INIT Distribution Block
     do ia=1,napx,2
