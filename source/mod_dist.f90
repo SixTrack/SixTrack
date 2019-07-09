@@ -39,9 +39,9 @@ module mod_dist
   character(len=mFileName), private, save :: dist_distFile  = " "     ! File name for reading the distribution
   character(len=mFileName), private, save :: dist_echoFile  = " "     ! File name for echoing the distribution
 
-  integer,          allocatable, private, save :: dist_colFormat(:)   ! The format of the file columns
-  real(kind=fPrec), allocatable, private, save :: dist_colScale(:)    ! Scaling factor for the file columns
-  integer,                       private, save :: dist_nColumns = 0   ! The number of columns in the file
+  integer,          allocatable, private, save :: dist_colFormat(:)   ! The column types in the FORMAT
+  real(kind=fPrec), allocatable, private, save :: dist_colScale(:)    ! Scaling factor for the columns
+  integer,                       private, save :: dist_nColumns  = 0  ! The number of columns in the FORMAT
 
   character(len=:), allocatable, private, save :: dist_partLine(:)    ! PARTICLE definitions in the block
   integer,                       private, save :: dist_nParticle = 0  ! Number of PARTICLE keywords in block
@@ -85,7 +85,7 @@ module mod_dist
   integer, parameter :: dist_fmtIonZ        = 54 ! Ion atomic number
   integer, parameter :: dist_fmtPDGID       = 55 ! Particle PDG ID
 
-  ! Flags for columns we've set that we need to track
+  ! Flags for columns we've set that we need to track for later checks
   logical, private, save :: dist_readMass   = .false.
   logical, private, save :: dist_readIonZ   = .false.
   logical, private, save :: dist_readIonA   = .false.
@@ -100,7 +100,7 @@ contains
 !  Master Module Subrotuine
 !  V.K. Berglyd Olsen, BE-ABP-HSS
 !  Created: 2019-07-08
-!  Updated: 2019-07-08
+!  Updated: 2019-07-09
 !  Called from main_cr if dist_enable is true. This should handle everything needed.
 ! ================================================================================================ !
 subroutine dist_generateDist
@@ -137,7 +137,7 @@ end subroutine dist_generateDist
 ! ================================================================================================ !
 !  A. Mereghetti and D. Sinuela Pastor, for the FLUKA Team
 !  V.K. Berglyd Olsen, BE-ABP-HSS
-!  Updated: 2018-10-30
+!  Updated: 2019-07-09
 ! ================================================================================================ !
 subroutine dist_parseInputLine(inLine, iLine, iErr)
 
@@ -233,7 +233,7 @@ end subroutine dist_parseInputLine
 !  Parse File Column Formats
 !  V.K. Berglyd Olsen, BE-ABP-HSS
 !  Created: 2019-07-05
-!  Updated: 2019-07-08
+!  Updated: 2019-07-09
 ! ================================================================================================ !
 subroutine dist_setColumnFormat(fmtName, fErr)
 
@@ -508,7 +508,7 @@ end subroutine dist_appendFormat
 !  Parse PARTICLE Lines from DIST Block
 !  V.K. Berglyd Olsen, BE-ABP-HSS
 !  Created: 2019-07-08
-!  Updated: 2019-07-08
+!  Updated: 2019-07-09
 ! ================================================================================================ !
 subroutine dist_parseParticles
 
@@ -541,7 +541,7 @@ end subroutine dist_parseParticles
 ! ================================================================================================ !
 !  A. Mereghetti and D. Sinuela Pastor, for the FLUKA Team
 !  V.K. Berglyd Olsen, BE-ABP-HSS
-!  Last modified: 2018-10-30
+!  Updated: 2019-07-09
 ! ================================================================================================ !
 subroutine dist_readDist
 
@@ -623,7 +623,7 @@ end subroutine dist_readDist
 !  Save Particle Data to Arrays
 !  V.K. Berglyd Olsen, BE-ABP-HSS
 !  Created: 2019-07-08
-!  Updated: 2019-07-08
+!  Updated: 2019-07-09
 ! ================================================================================================ !
 subroutine dist_saveParticle(partNo, colNo, inVal, sErr)
 
@@ -724,7 +724,7 @@ end subroutine dist_saveParticle
 !  Post-Processing of Particle Arrays
 !  V.K. Berglyd Olsen, BE-ABP-HSS
 !  Created: 2019-07-05
-!  Updated: 2019-07-08
+!  Updated: 2019-07-09
 ! ================================================================================================ !
 subroutine dist_postprParticles
 
@@ -773,7 +773,7 @@ end subroutine dist_postprParticles
 ! ================================================================================================ !
 !  A. Mereghetti and D. Sinuela Pastor, for the FLUKA Team
 !  V.K. Berglyd Olsen, BE-ABP-HSS
-!  Updated: 2019-07-08
+!  Updated: 2019-07-09
 ! ================================================================================================ !
 subroutine dist_finaliseDist
 
@@ -847,23 +847,6 @@ subroutine dist_finaliseDist
 
   write(lout,"(a,2(1x,i0),1x,f15.7,2(1x,i0))") "DIST> Reference particle species [A,Z,M,Q,ID]:", aa0, zz0, nucm0, qq0, pdgid0
   write(lout,"(a,1x,f15.7)")       "DIST> Reference energy [Z TeV]:", c1m6*e0/qq0
-
-  do j=napx+1,npart
-    partID(j)   = j
-    parentID(j) = j
-    pstop(j)    = .true.
-    ejv(j)      = zero
-    dpsv(j)     = zero
-    oidpsv(j)   = one
-    mtc(j)      = one
-    naa(j)      = aa0
-    nzz(j)      = zz0
-    nqq(j)      = qq0
-    pdgid(j)    = pdgid0
-    nucm(j)     = nucm0
-    moidpsv(j)  = one
-    omoidpsv(j) = zero
-  end do
 
 end subroutine dist_finaliseDist
 
