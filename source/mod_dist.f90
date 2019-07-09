@@ -39,13 +39,14 @@ module mod_dist
   character(len=mFileName), private, save :: dist_distFile  = " "     ! File name for reading the distribution
   character(len=mFileName), private, save :: dist_echoFile  = " "     ! File name for echoing the distribution
 
-  integer,          allocatable, private, save :: dist_colFormat(:) ! The format of the file columns
-  real(kind=fPrec), allocatable, private, save :: dist_colScale(:)  ! Scaling factor for the file columns
-  integer,                       private, save :: dist_nColumns = 0 ! The number of columns in the file
-  integer,                       private, save :: dist_readCols = 0 ! The number of columns read from file
+  integer,          allocatable, private, save :: dist_colFormat(:)   ! The format of the file columns
+  real(kind=fPrec), allocatable, private, save :: dist_colScale(:)    ! Scaling factor for the file columns
+  integer,                       private, save :: dist_nColumns = 0   ! The number of columns in the file
 
-  character(len=:), allocatable, private, save :: dist_partLine(:)  ! PARTICLE definitions in the block
-  integer,                       private, save :: dist_numPart = 0  ! Number of PARTICLE keywords in block
+  character(len=:), allocatable, private, save :: dist_partLine(:)    ! PARTICLE definitions in the block
+  integer,                       private, save :: dist_nParticle = 0  ! Number of PARTICLE keywords in block
+  
+  integer,                       private, save :: dist_numPart   = 0  ! Number of actual particles generated or read
 
   !  Column formats
   ! ================
@@ -104,23 +105,25 @@ contains
 ! ================================================================================================ !
 subroutine dist_generateDist
 
+  use crcoall
+  use mod_common
   use mod_particles
 
-  logical hasParticles
-
-  hasParticles = .false.
-
-  if(dist_numPart > 0) then
+  if(dist_nParticle > 0) then
     call dist_parseParticles
-    hasParticles = .true.
   end if
 
   if(dist_distFile /= " ") then
     call dist_readDist
-    hasParticles = .true.
   end if
 
-  if(hasParticles) then
+  if(dist_numPart /= napx) then
+    write(lerr,"(2(a,i0),a)") "DIST> ERROR Number of particles read or generated is ",dist_numPart,&
+      " but the simulation setup requests ",napx," particles"
+    call prror
+  end if
+
+  if(dist_numPart > 0) then
     call dist_postprParticles
     call dist_finaliseDist
     call part_applyClosedOrbit
@@ -205,9 +208,9 @@ subroutine dist_parseInputLine(inLine, iLine, iErr)
       iErr = .true.
       return
     end if
-    dist_numPart = dist_numPart + 1
-    call alloc(dist_partLine, mInputLn, dist_numPart, " ", "dist_partLine")
-    dist_partLine(dist_numPart) = trim(inLine)
+    dist_nParticle = dist_nParticle + 1
+    call alloc(dist_partLine, mInputLn, dist_nParticle, " ", "dist_partLine")
+    dist_partLine(dist_nParticle) = trim(inLine)
 
   case("ECHO")
     if(nSplit >= 2) then
@@ -382,8 +385,6 @@ subroutine dist_setColumnFormat(fmtName, fErr)
     call dist_appendFormat(dist_fmtMASS, c1e3)      ! Particle mass
     call dist_appendFormat(dist_fmtP, c1e3)         ! Particle momentum
     call dist_appendFormat(dist_fmtDT, one)         ! Time delay
-    call dist_appendFormat(dist_fmtCHARGE, one)     ! Particle charge
-    call dist_appendFormat(dist_fmtPDGID, one)      ! Particle PDG ID
 
   case default
     write(lerr,"(a)") "DIST> ERROR Unknown column format '"//trim(fmtName)//"'"
@@ -518,14 +519,15 @@ subroutine dist_parseParticles
   integer i, j, nSplit
   logical spErr, cErr
 
-  if(dist_numPart > 0) then
-    do j=1,dist_numPart
+  if(dist_nParticle > 0) then
+    do j=1,dist_nParticle
       call chr_split(dist_partLine(j), lnSplit, nSplit, spErr)
       if(spErr) goto 20
       do i=2,nSplit
         call dist_saveParticle(j, i-1, lnSplit(i), cErr)
       end do
       if(cErr) goto 20
+      dist_numPart = dist_numPart + 1
     end do
   end if
 
@@ -553,16 +555,13 @@ subroutine dist_readDist
   character(len=:), allocatable :: lnSplit(:)
   character(len=mInputLn) inLine
   integer i, j, nSplit, lineNo, fUnit
-  logical spErr, cErr, isFirst
+  logical spErr, cErr
 
   write(lout,"(a)") "DIST> Reading particles from '"//trim(dist_distFile)//"'"
 
-  dist_readCols = dist_nColumns
-
-  isFirst = .true.
-  lineNo  = 0
-  cErr    = .false.
-  j       = dist_numPart ! PARTICLE definitions in the block are saved first
+  lineNo = 0
+  cErr   = .false.
+  j      = dist_nParticle ! PARTICLE definitions in the block are saved first
 
   if(dist_hasFormat .eqv. .false.) then
     call dist_setColumnFormat("OLD_DIST",cErr)
@@ -591,22 +590,16 @@ subroutine dist_readDist
   if(spErr) goto 20
   if(nSplit == 0) goto 10
 
-  if(isFirst) then
-    if(nSplit < dist_nColumns) then
-      dist_readCols = nSplit
-      write(lout,"(2(a,i0))") "DIST> WARNING Distribution file has ",nSplit," columns, but format has ",dist_nColumns
-    end if
-    isFirst = .false.
-  end if
-  if(nSplit < dist_readCols) then
+  if(nSplit /= dist_nColumns) then
     write(lerr,"(3(a,i0),a)") "DIST> ERROR Number of columns in file on line ",lineNo," is ",nSplit,&
-      " but expected ",dist_readCols," columns"
+      " but FORMAT defines ",dist_nColumns," columns"
     call prror
   end if
-  do i=1,dist_readCols
+  do i=1,nSplit
     call dist_saveParticle(j, i, lnSplit(i), cErr)
   end do
   if(cErr) goto 20
+  dist_numPart = dist_numPart + 1
 
   goto 10
 
@@ -629,11 +622,6 @@ subroutine dist_readDist
 
   call f_close(fUnit)
   write(lout,"(a,i0,a)") "DIST> Read ",j," particles from file '"//trim(dist_distFile)//"'"
-
-  if(j < napx) then
-    write(lout,"(a,i0)") "DIST> WARNING Read a number of particles LOWER than requested: ",napx
-    napx = j
-  end if
 
 end subroutine dist_readDist
 
@@ -754,7 +742,7 @@ subroutine dist_postprParticles
 
   integer i, j
 
-  do i=1,dist_readCols
+  do i=1,dist_nColumns
     select case(dist_colFormat(i))
     case(dist_fmtPX)
       yv1(1:napx) = (yv1(1:napx)/ejfv(1:napx))*c1e3
