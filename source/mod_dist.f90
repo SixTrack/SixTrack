@@ -554,14 +554,14 @@ subroutine dist_readDist
 
   character(len=:), allocatable :: lnSplit(:)
   character(len=mInputLn) inLine
-  integer i, j, nSplit, lineNo, fUnit
+  integer i, nSplit, lineNo, fUnit, nRead
   logical spErr, cErr
 
   write(lout,"(a)") "DIST> Reading particles from '"//trim(dist_distFile)//"'"
 
+  nRead  = 0
   lineNo = 0
   cErr   = .false.
-  j      = dist_nParticle ! PARTICLE definitions in the block are saved first
 
   if(dist_hasFormat .eqv. .false.) then
     call dist_setColumnFormat("OLD_DIST",cErr)
@@ -569,25 +569,26 @@ subroutine dist_readDist
 
   call f_requestUnit(dist_distFile, fUnit)
   call f_open(unit=fUnit,file=dist_distFile,mode='r',err=cErr,formatted=.true.,status="old")
-  if(cErr) goto 19
+  if(cErr) goto 20
 
 10 continue
-  read(fUnit,"(a)",end=30,err=20) inLine
+  read(fUnit,"(a)",end=40,err=30) inLine
   lineNo = lineNo + 1
 
   if(inLine(1:1) == "*") goto 10
   if(inLine(1:1) == "#") goto 10
   if(inLine(1:1) == "!") goto 10
-  j = j + 1
 
-  if(j > napx) then
+  dist_numPart = dist_numPart + 1
+  nRead = nRead + 1
+
+  if(dist_numPart > napx) then
     write(lout,"(a,i0,a)") "DIST> Stopping reading file as ",napx," particles have been read, as requested in '"//trim(fort3)//"'"
-    j = napx
-    goto 30
+    goto 40
   end if
 
   call chr_split(inLine, lnSplit, nSplit, spErr)
-  if(spErr) goto 20
+  if(spErr) goto 30
   if(nSplit == 0) goto 10
 
   if(nSplit /= dist_nColumns) then
@@ -596,32 +597,25 @@ subroutine dist_readDist
     call prror
   end if
   do i=1,nSplit
-    call dist_saveParticle(j, i, lnSplit(i), cErr)
+    call dist_saveParticle(dist_numPart, i, lnSplit(i), cErr)
   end do
-  if(cErr) goto 20
-  dist_numPart = dist_numPart + 1
+  if(cErr) goto 30
 
   goto 10
 
-19 continue
+20 continue
   write(lerr,"(a)") "DIST> ERROR Opening file '"//trim(dist_distFile)//"'"
   call prror
   return
 
-20 continue
+30 continue
   write(lerr,"(a,i0)") "DIST> ERROR Reading particles from line ",lineNo
   call prror
   return
 
-30 continue
-  if(j == 0) then
-    write(lerr,"(a)") "DIST> ERROR Reading particles. No particles read from file."
-    call prror
-    return
-  end if
-
+40 continue
   call f_close(fUnit)
-  write(lout,"(a,i0,a)") "DIST> Read ",j," particles from file '"//trim(dist_distFile)//"'"
+  write(lout,"(a,i0,a)") "DIST> Read ",nRead," particles from file '"//trim(dist_distFile)//"'"
 
 end subroutine dist_readDist
 
