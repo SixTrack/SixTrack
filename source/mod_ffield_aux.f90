@@ -509,7 +509,7 @@ contains
           enddo
         endif
 
-        if (CoefSave.eqv..False.) then ! Create new coef
+        if (CoefSave.eqv..false.) then ! Create new coef
           tpij_Ax(1,tlinex,sline)=expx
           tpij_Ax(2,tlinex,sline)=expy
           tpTAx(tlinex,sline)=tpTAx(tlinex,sline) + ax
@@ -531,7 +531,7 @@ contains
           enddo
         endif
 
-        if (CoefSave.eqv..False.) then ! Create new coef
+        if (CoefSave.eqv..false.) then ! Create new coef
           tpij_Ay(1,tliney,sline)=expx
           tpij_Ay(2,tliney,sline)=expy
           tpTAy(tliney,sline)=tpTAy(tliney,sline) + ay
@@ -553,7 +553,7 @@ contains
           enddo
         endif
 
-        if (CoefSave.eqv..False.) then ! Create new coef
+        if (CoefSave.eqv..false.) then ! Create new coef
           tpij_Az(1,tlinez,sline)=expx
           tpij_Az(2,tlinez,sline)=expy
           tpTAz(tlinez,sline)=tpTAz(tlinez,sline) + az

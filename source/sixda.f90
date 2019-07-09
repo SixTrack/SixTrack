@@ -251,7 +251,6 @@ subroutine runcav
   use mod_commons
   use mod_common_track, only : comt_daStart,comt_daEnd
   use mod_common_da
-  use mod_hions
   use mod_lie_dab, only : idao,rscrri,iscrda
 
   implicit none
@@ -283,7 +282,7 @@ subroutine runcav
 !Eric
   rewind 26
   if(ition.ne.0) then
-  e0f=sqrt(e0**2-nucm0**2)                                             !hr08
+    e0f=sqrt(e0**2-nucm0**2)
 !FOX  DPDA=DPDA1*C1M3 ;
 !FOX  MOIDA=MTCDA/(ONE+DPDA) ;
 !FOX  EJF1=E0F*(ONE+DPDA)/(NUCM0/NUCMDA) ;
@@ -324,6 +323,7 @@ subroutine runcav
 
   write(lout,10010)
 !-----------------------------------------------------------------------
+! Do not remove or modify the comment below.
 !     DADAL AUTOMATIC INCLUSION
   time2=0.
   call time_timerCheck(time2)
@@ -440,7 +440,6 @@ subroutine runda
   use mod_common_track, only : xxtr,yytr,comt_daStart,comt_daEnd
   use mod_common_da
   use mod_commond2
-  use mod_hions
   use mod_lie_dab, only : idao,iscrri,rscrri,iscrda
   use mod_units
   use mod_time
@@ -453,7 +452,7 @@ subroutine runda
   real(kind=fPrec) beamoff1,beamoff2, beamoff3, beamoff4,beamoff5,beamoff6,benkcc,betr0,cbxb,       &
     cbzb,cik,crk,crxb,crzb,dare,dpdav,dpdav2,dummy,fake,ox,oxp,oz,ozp,r0,r000,r0a,r2b,r2bf,rb,rbf,  &
     rho2b,rkb,rkbf,scikveb,scrkveb,sigmdac,startco,tkb,xbb,xrb,xs,zbb,zfeld1,zfeld2,zrb,zs,crabfreq,&
-    crabpht,crabpht2,crabpht3,crabpht4
+    crabpht,crabpht2,crabpht3,crabpht4,sin_t,cos_t,tan_t
   logical fErr
   character(len=300) ch
   common/daele/alda,asda,aldaq,asdaq,smida,xx,yy,dpda,dpda1,sigmda,ej1,ejf1,rv
@@ -772,6 +771,7 @@ subroutine runda
           write(lout,*) ' WARNING: in the 5*6 mode no extra parameters allowed'
         endif
         rewind 19
+! Do not remove or modify the comment below.
 !     DADAL AUTOMATIC INCLUSION
         return
       endif
@@ -1149,7 +1149,7 @@ subroutine runda
       endif
 
     if(kzz.eq.23) then
-!FOX  CRABAMP=ED(IX)*ZZ0 ;
+!FOX  CRABAMP=ED(IX)*QQ0 ;
 
         crabfreq=ek(ix)*c1e3
         crabpht=crabph(ix)
@@ -1176,7 +1176,7 @@ subroutine runda
       goto 440
   endif
     if(kzz.eq.-23) then
-!FOX  CRABAMP=ED(IX)*ZZ0 ;
+!FOX  CRABAMP=ED(IX)*QQ0 ;
         crabfreq=ek(ix)*c1e3
         crabpht=crabph(ix)
 !FOX  Y(2)=Y(2) - CRABAMP*C1E3/E0F*
@@ -1209,7 +1209,7 @@ subroutine runda
       xs=xsi(i) ! JBG change of variables for misal calculations
       zs=zsi(i)
 #include "include/alignf.f90"
-!FOX  CRABAMP2=ED(IX)*ZZ0 ;
+!FOX  CRABAMP2=ED(IX)*QQ0 ;
 
     crabfreq=ek(ix)*c1e3 !JBG Input in MHz changed to kHz
     crabpht2=crabph2(ix)
@@ -1241,7 +1241,7 @@ subroutine runda
       xs=xsi(i) ! JBG change of variables for misal calculations
       zs=zsi(i)
 #include "include/alignf.f90"
-!FOX  CRABAMP2=ED(IX)*ZZ0 ;
+!FOX  CRABAMP2=ED(IX)*QQ0 ;
           crabfreq=ek(ix)*c1e3
           crabpht2=crabph2(ix)
 !FOX  Y(2)=Y(2) + (CRABAMP2*CRKVE)*
@@ -1271,7 +1271,7 @@ subroutine runda
       xs=xsi(i)
       zs=zsi(i)
 #include "include/alignf.f90"
-!FOX  CRABAMP3=ED(IX)*ZZ0 ;
+!FOX  CRABAMP3=ED(IX)*QQ0 ;
           crabfreq=ek(ix)*c1e3
           crabpht3=crabph3(ix)
 !FOX  Y(1)=Y(1) + 2D0*(1D0/2D0)*CRABAMP3*((CRKVE*CRKVE)-
@@ -1302,7 +1302,7 @@ subroutine runda
       xs=xsi(i)
       zs=zsi(i)
 #include "include/alignf.f90"
-!FOX  CRABAMP3=ED(IX)*ZZ0 ;
+!FOX  CRABAMP3=ED(IX)*QQ0 ;
           crabfreq=ek(ix)*c1e3
           crabpht3=crabph3(ix)
 !FOX  Y(2)=Y(2) - CRABAMP3*((CIKVE*CIKVE)-
@@ -1332,7 +1332,7 @@ subroutine runda
       xs=xsi(i)
       zs=zsi(i)
 #include "include/alignf.f90"
-!FOX  CRABAMP4=ED(IX)*ZZ0 ;
+!FOX  CRABAMP4=ED(IX)*QQ0 ;
           crabfreq=ek(ix)*c1e3
           crabpht4=crabph4(ix)
 !FOX  Y(1)=Y(1) + (CRABAMP4)*
@@ -1668,6 +1668,7 @@ subroutine runda
   write(lout,10010)
 
 520 continue
+! Do not remove or modify the comment below.
 !     DADAL AUTOMATIC INCLUSION
   time2=0.
   call time_timerCheck(time2)

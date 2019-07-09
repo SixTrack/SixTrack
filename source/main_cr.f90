@@ -11,13 +11,15 @@
 ! ============================================================================ !
 program maincr
 
+  use, intrinsic :: iso_fortran_env, only : output_unit, error_unit
+
   use floatPrecision
   use mod_units
   use string_tools
+  use sixtrack_input
   use mathlib_bouncer
   use physical_constants
   use numerical_constants
-  use sixtrack_input, only : sixin_commandLine
 
   use dynk,    only : dynk_izuIndex
   use fma,     only : fma_postpr, fma_flag
@@ -25,7 +27,6 @@ program maincr
   use zipf,    only : zipf_numfiles, zipf_dozip
   use scatter, only : scatter_init
 
-  use, intrinsic :: iso_fortran_env, only : output_unit, error_unit
   use mod_meta
   use mod_time
   use aperture
@@ -37,11 +38,14 @@ program maincr
   use postprocessing, only : postpr, writebin_header, writebin
   use read_write,     only : writeFort12, readFort13, readFort33
   use collimation,    only : do_coll, collimate_init, collimate_exit
+  use mod_ffield,     only : ffield_mod_init,ffield_mod_end
 
 #ifdef FLUKA
   use mod_fluka
 #endif
-  use mod_ffield,     only :ffield_mod_init,ffield_mod_end
+#ifdef G4COLLIMATION
+  use geant4
+#endif
 #ifdef HDF5
   use hdf5_output
 #endif
@@ -50,6 +54,9 @@ program maincr
 #endif
 #ifdef CR
   use checkpoint_restart
+#endif
+#ifdef BOINC
+  use mod_boinc
 #endif
 
   use crcoall
@@ -60,10 +67,9 @@ program maincr
   use mod_commons
   use mod_common_track
 
-  use mod_hions
   use mod_dist
   use matrix_inv
-  use aperture
+  
   use wire
   use mod_version
 #ifdef HASHLIB
@@ -115,8 +121,7 @@ program maincr
 #endif
 
 #ifdef BOINC
-  call boinc_init
-! call boinc_init_graphics
+  call boinc_initialise
 #endif
   call f_initUnits
   call meta_initialise ! The meta data file.
@@ -132,9 +137,6 @@ program maincr
 #ifdef TILT
   featList = featList//" TILT"
 #endif
-#ifdef FAST
-  featList = featList//" FAST"
-#endif
 #ifdef STF
   featList = featList//" STF"
 #endif
@@ -147,6 +149,9 @@ program maincr
 #endif
 #ifdef CR
   featList = featList//" CR"
+#endif
+#ifdef ZLIB
+  featList = featList//" ZLIB"
 #endif
 #ifdef ROOT
   featList = featList//" ROOT"
@@ -262,15 +267,20 @@ program maincr
   end if
 #endif
 
-  if(ithick == 1) call allocate_thickarrays
+  if(ithick == 1) then
+    write(lout,"(a)") "MAINCR> Structure input file has thick linear elements"
+    call allocate_thickarrays
+  elseif(ithick == 0) then
+    write(lout,"(a)") "MAINCR> Structure input file has thin linear elements"
+  else
+    write(lout,"(a)") "MAINCR> ERROR Unkown structure format. This is a bug."
+    call prror
+  end if
 
 #ifdef CR
-  cr_checkp = .true.
   call crcheck
   call time_timeStamp(time_afterCRCheck)
 #endif
-  if(ithick == 1) write(lout,"(a)") "MAINCR> Structure input file has -thick- linear elements"
-  if(ithick == 0) write(lout,"(a)") "MAINCR> Structure input file has -thin- linear elements"
 
   call scatter_init
   call aperture_init
@@ -373,8 +383,18 @@ program maincr
 
 #ifdef FLUKA
   if (fluka_enable) then
+    write(lout,"(A)")
+    write(lout,"(A)") "MAINCR> calling check_coupling_integrity BEFORE checking"// &
+          " aperture around Fluka insertion"
+    write(lout,"(A)")
     call check_coupling_integrity
     call check_coupling_start_point
+    call contour_FLUKA_markers
+    write(lout,"(A)")
+    write(lout,"(A)") "MAINCR> calling check_coupling_integrity AFTER checking"// &
+          " aperture around Fluka insertion"
+    write(lout,"(A)")
+    call check_coupling_integrity
   end if
 #endif
 
@@ -403,6 +423,9 @@ program maincr
     call SixTrackRootInit()
     call ConfigurationOutputRootSet_npart(napx)
     call ConfigurationOutputRootSet_nturns(nnuml)
+    call ConfigurationOutputRootSet_aperture_binsize(bktpre)
+    call ConfigurationOutputRootSet_reference_energy(e0)
+    call ConfigurationOutputRootSet_reference_mass(nucm0)
     call ConfigurationRootWrite()
 
     ! Dump the accelerator lattice
@@ -431,6 +454,10 @@ program maincr
     end if
 #endif
 
+    if(root_flag .and. root_DumpPipe.eq.1) then
+      call root_dump_aperture_model
+    end if
+
   end if
 #endif
 
@@ -448,7 +475,7 @@ program maincr
 
   if(irmod2.eq.1) call rmod(dp1)
   if(iqmod.ne.0) call qmod0
-  if(ichrom.eq.1.or.ichrom.eq.3) call chroma
+  if(ichrom == 1 .or. ichrom == 3) call chroma
   if(iskew.ne.0) call decoup
   if(ilin.eq.1.or.ilin.eq.3) then
     call linopt(dp1)
@@ -545,9 +572,9 @@ program maincr
     do ncrr=1,iu
       ix = ic(ncrr)
       if(ix > nblo) ix = ix-nblo
-      if(ix == is(1) .or. iratioe(ix) == is(1)) then
+      if(ix == crois(1) .or. iratioe(ix) == crois(1)) then
         smiv(ncrr) = smi(ncrr)
-      else if(ix == is(2) .or. iratioe(ix) == is(2)) then
+      else if(ix == crois(2) .or. iratioe(ix) == crois(2)) then
         smiv(ncrr) = smi(ncrr)
       end if
     end do
@@ -566,16 +593,26 @@ program maincr
     iclo6 = 0
   end if
   if(iclo6 == 1 .or. iclo6 == 2) then ! 6D
-    if(iclo6r == 0) then
+    if(sixin_simuInitClorb) then
+      if(sixin_simuFort33) then
+        call readFort33
+      else
+        clo6(1:3)  = sixin_simuSetClorb([1,3,5])
+        clop6(1:3) = sixin_simuSetClorb([2,4,6])
+      end if
+      call meta_write("6D_ClosedOrbitInit_x",     clo6(1))
+      call meta_write("6D_ClosedOrbitInit_xp",    clop6(1))
+      call meta_write("6D_ClosedOrbitInit_y",     clo6(2))
+      call meta_write("6D_ClosedOrbitInit_yp",    clop6(2))
+      call meta_write("6D_ClosedOrbitInit_sigma", clo6(3))
+      call meta_write("6D_ClosedOrbitInit_dp",    clop6(3))
+    else
       clo6(1)  = clo(1)
       clop6(1) = clop(1)
       clo6(2)  = clo(2)
       clop6(2) = clop(2)
       clo6(3)  = zero
       clop6(3) = zero
-    else
-      write(lout,"(a)") "MAINCR> Reading closed orbit guess from fort.33"
-      call readFort33
     end if
     call clorb(zero)
     call betalf(zero,qw)
@@ -904,11 +941,11 @@ program maincr
     else
       call meta_write("TrackingMethod", "Thin 6D")
     end if
-    if(iclo6 == 0) then
-      write(lerr,"(a,i0)") "MAINCR> ERROR Doing 6D tracking but iclo6 = ",iclo6
-      write(lerr,"(a)")    "MAINCR>       Expected iclo6 <> 0 for 6D tracking."
-      call prror
-    end if
+    ! if(iclo6 == 0) then
+    !   write(lerr,"(a,i0)") "MAINCR> ERROR Doing 6D tracking but iclo6 = ",iclo6
+    !   write(lerr,"(a)")    "MAINCR>       Expected iclo6 <> 0 for 6D tracking."
+    !   call prror
+    ! end if
   end if
 
   call time_timeStamp(time_afterClosedOrbit)
@@ -936,16 +973,19 @@ program maincr
   end do
   rat0 = rat
 
-  ! DIST Block
   if(dist_enable) then
-    e0f=sqrt(e0**2-nucm0**2)
+    ! DIST Block
     call dist_readDist
     call dist_finaliseDist
     call part_applyClosedOrbit
-    if(dist_echo) call dist_echoDist
-  end if
-
-  if(idfor /= 2 .and. .not. dist_enable) then
+    if(dist_echo) then
+      call dist_echoDist
+    end if
+  elseif(rdfort13) then
+    ! Restart from fort.13
+    call readFort13
+    call part_updatePartEnergy(1)
+  else
     ! Generated from INIT Distribution Block
     do ia=1,napx,2
       if(st_quiet == 0) write(lout,10050)
@@ -1016,13 +1056,7 @@ program maincr
       end if
     end do
     call part_applyClosedOrbit
-
-  else if(idfor == 2) then
-    ! Read from fort.13
-    call readFort13
-    call part_updatePartEnergy(1)
-    ! Note that this effectively overrides the particle delta set in fort.13
-  endif
+  end if
 
   do ia=1,napx,2
     if(.not.dist_enable .and. st_quiet == 0) then
@@ -1189,7 +1223,7 @@ program maincr
     flush(lout)
     flush(fluka_log_unit)
 
-    fluka_con = fluka_set_synch_part( e0, e0f, nucm0, aa0, zz0)
+    fluka_con = fluka_set_synch_part( e0, e0f, nucm0, aa0, zz0, qq0)
 
     if(fluka_con < 0) then
       write(lerr,"(a)") "FLUKA> ERROR Failed to update the reference particle"
@@ -1219,7 +1253,14 @@ program maincr
 ! ---------------------------------------------------------------------------- !
   write(lout,10200)
   call part_setParticleID
-  call part_writeState(0)
+
+  if(st_iStateWrite) then
+    if(st_iStateText) then
+      call part_writeState("initial_state.dat",.true.,st_iStateIons)
+    else
+      call part_writeState("initial_state.bin",.false.,st_iStateIons)
+    end if
+  end if
 
   time1=0.
   call time_timerCheck(time1)
@@ -1276,7 +1317,11 @@ program maincr
       end if
     end if
     ! do the very last checkpoint
-    call callcrp()
+#ifdef BOINC
+    call boinc_post
+#else
+    call crpoint
+#endif
   end if
 #else
   call writebin(nthinerr)
@@ -1385,7 +1430,13 @@ program maincr
 470 continue
 
   ! Dump the final state of the particle arrays
-  call part_writeState(1)
+  if(st_fStateWrite) then
+    if(st_fStateText) then
+      call part_writeState("final_state.dat",.true.,st_fStateIons)
+    else
+      call part_writeState("final_state.bin",.false.,st_fStateIons)
+    end if
+  end if
 
 #ifdef FLUKA
 
@@ -1483,7 +1534,7 @@ program maincr
   endif
 #endif
 
-call ffield_mod_end()
+  call ffield_mod_end()
 
   time3=0.
   call time_timerCheck(time3)
@@ -1497,6 +1548,11 @@ call ffield_mod_end()
   ! HASH library. Must be before ZIPF
   call hash_fileSums
   call time_timeStamp(time_afterHASH)
+#endif
+
+#ifdef BOINC
+  ! Do the final things in BOINC before ZIPF, but after HASH
+  call boinc_done
 #endif
 
   if(zipf_numfiles > 0) then

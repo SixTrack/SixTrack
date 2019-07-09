@@ -347,6 +347,12 @@ subroutine trauthin(nthinerr)
       ktrack(i) = 56
     case (41) ! RF Multipole
       ktrack(i) = 66
+    case (43) ! xrot
+      ktrack(i) = 68
+    case (44) ! yrot
+      ktrack(i) = 69
+    case (45) ! srot
+      ktrack(i) = 70
 
     !----------------
     !--Negative KZZ--
@@ -429,8 +435,6 @@ subroutine trauthin(nthinerr)
   do j=1,napx
     dpsv1(j)=(dpsv(j)*c1e3)/(one+dpsv(j))
   end do
-  nwri=nwr(3)
-  if(nwri.eq.0) nwri=(numl+numlr)+1
 
   if (dynk_enabled) call dynk_pretrack
   call time_timeStamp(time_afterPreTrack)
@@ -513,7 +517,6 @@ subroutine thin4d(nthinerr)
 #endif
 
   use mod_meta
-  use mod_hions
   use mod_settings
   use postprocessing, only : writebin
   use crcoall
@@ -532,14 +535,17 @@ subroutine thin4d(nthinerr)
 #ifdef CR
   use checkpoint_restart
 #endif
+#ifdef BOINC
+  use mod_boinc
+#endif
 
   implicit none
 
   integer i,irrtr,ix,j,k,n,nmz,nthinerr,xory,nac,nfree,nramp1,nplato,nramp2,turnrep,kxxa,nfirst
   real(kind=fPrec) pz,cccc,cikve,crkve,crkveuk,r0,stracki,xlvj,yv1j,yv2j,zlvj,acdipamp,qd,acphase,  &
     acdipamp2,acdipamp1,crabamp,crabfreq,kcrab,RTWO,NNORM,l,cur,dx,dy,tx,ty,embl,chi,xi,yi,dxi,dyi, &
-    rrelens,frrelens,xelens,yelens,onedp,fppsig,costh_temp,sinth_temp,pxf,pyf,r_temp,z_temp,sigf,   &
-    q_temp,pttemp,xlv,zlv
+    rrelens,frrelens,xelens,yelens,onedp,fppsig,tan_t,sin_t,cos_t,costh_temp,sinth_temp,pxf,pyf,    &
+    r_temp,z_temp,sigf,q_temp,pttemp,xlv,zlv,temp_angle
   logical llost
   real(kind=fPrec) crkveb(npart),cikveb(npart),rho2b(npart),tkb(npart),r2b(npart),rb(npart),        &
     rkb(npart),xrb(npart),zrb(npart),xbb(npart),zbb(npart),crxb(npart),crzb(npart),cbxb(npart),     &
@@ -583,23 +589,19 @@ subroutine thin4d(nthinerr)
       end if
     end if
     meta_nPartTurn = meta_nPartTurn + napx
-#ifdef BOINC
-    ! call boinc_sixtrack_progress(n,numl)
-    call boinc_fraction_done(dble(n)/dble(numl))
-    continue
-    ! call graphic_progress(n,numl)
-#endif
     numx=n-1
 
 #ifndef FLUKA
-    if(mod(numx,nwri).eq.0) call writebin(nthinerr)
-    if(nthinerr.ne.0) return
+    if(mod(numx,nwri) == 0) call writebin(nthinerr)
+    if(nthinerr /= 0) return
 #endif
 
 #ifdef CR
-    ! does not call CRPOINT if cr_restart=.true.
-    ! (and note that writebin does nothing if cr_restart=.true.
-    if(mod(numx,numlcp).eq.0) call callcrp()
+#ifdef BOINC
+    call boinc_turn(n)
+#else
+    if(mod(numx,numlcp) == 0) call crpoint
+#endif
     cr_restart = .false.
     if(st_killswitch) call cr_killSwitch(n)
 #endif
@@ -647,7 +649,7 @@ subroutine thin4d(nthinerr)
               goto 625
             else if(fluka_type(ix).eq.FLUKA_EXIT) then
               fluka_inside = .false.
-              call kernel_fluka_exit( n, i, ix )
+              call kernel_fluka_exit
               ! A.Mereghetti and P.Garcia Ortega, for the FLUKA Team
               ! last modified: 07-03-2018
               ! store old particle coordinates
@@ -674,12 +676,7 @@ subroutine thin4d(nthinerr)
       select case (ktrack(i))
       case (1)
         stracki=strack(i)
-        if(iexact.eq.0) then ! exact drift?
-          do j=1,napx
-            xv1(j)=xv1(j)+stracki*yv1(j)
-            xv2(j)=xv2(j)+stracki*yv2(j)
-          end do
-        else
+        if(iexact) then ! exact drift?
           do j=1,napx
             xv1(j)=xv1(j)*c1m3
             xv2(j)=xv2(j)*c1m3
@@ -693,6 +690,11 @@ subroutine thin4d(nthinerr)
             yv1(j)=yv1(j)*c1e3
             yv2(j)=yv2(j)*c1e3
           enddo
+        else
+          do j=1,napx
+            xv1(j)=xv1(j)+stracki*yv1(j)
+            xv2(j)=xv2(j)+stracki*yv2(j)
+          end do
         end if
         ! A.Mereghetti and P.Garcia Ortega, for the FLUKA Team
         ! last modified: 07-03-2018
@@ -1026,6 +1028,18 @@ subroutine thin4d(nthinerr)
       case (cheby_ktrack) ! Chebyshev lens
         call cheby_kick(i,ix,n)
         goto 620
+      case (68) ! xrot
+        temp_angle = ed(ix)
+#include "include/xrot.f90"
+        goto 620
+      case (69) ! yrot
+        temp_angle = ed(ix)
+#include "include/yrot.f90"
+        goto 620
+      case (70) ! srot
+        temp_angle = ed(ix)
+#include "include/srot.f90"
+        goto 620
 
       end select
       goto 630
@@ -1116,7 +1130,6 @@ subroutine thin6d(nthinerr)
   use dump,       only : dump_linesFirst, dump_lines, ldumpfront
   use mod_ffield, only : ffindex,ffield_genAntiQuad,ffield_enterQuad,ffield_exitQuad,ffield_enabled
   use aperture
-  use mod_hions
   use mod_settings
   use mod_meta
   use mod_time
@@ -1145,6 +1158,9 @@ subroutine thin6d(nthinerr)
 #ifdef CR
   use checkpoint_restart
 #endif
+#ifdef BOINC
+  use mod_boinc
+#endif
 
   implicit none
 
@@ -1153,7 +1169,7 @@ subroutine thin6d(nthinerr)
   real(kind=fPrec) pz,cccc,cikve,crkve,crkveuk,r0,stracki,xlvj,yv1j,yv2j,zlvj,acdipamp,qd,          &
     acphase,acdipamp2,acdipamp1,crabamp,crabfreq,crabamp2,crabamp3,crabamp4,kcrab,RTWO,NNORM,l,cur, &
     dx,dy,tx,ty,embl,chi,xi,yi,dxi,dyi,rrelens,frrelens,xelens,yelens, onedp,fppsig,costh_temp,     &
-    sinth_temp,pxf,pyf,r_temp,z_temp,sigf,q_temp,pttemp,xlv,zlv
+    sinth_temp,tan_t,sin_t,cos_t,pxf,pyf,r_temp,z_temp,sigf,q_temp,pttemp,xlv,zlv,temp_angle
   logical llost, doFField
   real(kind=fPrec) crkveb(npart),cikveb(npart),rho2b(npart),tkb(npart),r2b(npart),rb(npart),        &
     rkb(npart),xrb(npart),zrb(npart),xbb(npart),zbb(npart),crxb(npart),crzb(npart),cbxb(npart),     &
@@ -1199,12 +1215,6 @@ subroutine thin6d(nthinerr)
       end if
     end if
     meta_nPartTurn = meta_nPartTurn + napx
-#ifdef BOINC
-    ! call boinc_sixtrack_progress(n,numl)
-    call boinc_fraction_done(dble(n)/dble(numl))
-    continue
-    ! call graphic_progress(n,numl)
-#endif
 
     if (do_coll) then
       ! This subroutine sets variables iturn and totals
@@ -1214,14 +1224,16 @@ subroutine thin6d(nthinerr)
     numx=n-1
 
 #ifndef FLUKA
-    if(mod(numx,nwri).eq.0) call writebin(nthinerr)
-    if(nthinerr.ne.0) return
+    if(mod(numx,nwri) == 0) call writebin(nthinerr)
+    if(nthinerr /= 0) return
 #endif
 
 #ifdef CR
-    ! does not call CRPOINT if cr_restart=.true.
-    ! (and note that writebin does nothing if cr_restart=.true.
-    if(mod(numx,numlcp).eq.0) call callcrp()
+#ifdef BOINC
+    call boinc_turn(n)
+#else
+    if(mod(numx,numlcp) == 0) call crpoint
+#endif
     cr_restart = .false.
     if(st_killswitch) call cr_killSwitch(n)
 #endif
@@ -1291,7 +1303,7 @@ subroutine thin6d(nthinerr)
               goto 645
             else if(fluka_type(ix).eq.FLUKA_EXIT) then
               fluka_inside = .false.
-              call kernel_fluka_exit( n, i, ix )
+              call kernel_fluka_exit
               ! A.Mereghetti and P.Garcia Ortega, for the FLUKA Team
               ! last modified: 07-03-2018
               ! store old particle coordinates
@@ -1322,6 +1334,7 @@ subroutine thin6d(nthinerr)
       else
         dotrack = ktrack(i)
       end if
+
       select case(dotrack)
       case (1)
         stracki=strack(i)
@@ -1360,7 +1373,7 @@ subroutine thin6d(nthinerr)
             !++ For known collimators
             if(found) then
               call collimate_do_collimator(stracki)
-              call collimate_end_collimator()
+              call collimate_end_collimator(stracki)
             end if ! end of check for 'found'
             call time_stopClock(time_clockCOLL)
             !------------------------------------------------------------------
@@ -1372,11 +1385,7 @@ subroutine thin6d(nthinerr)
             do j=1,napx
               xv1(j)  = xv1(j) + stracki*yv1(j)
               xv2(j)  = xv2(j) + stracki*yv2(j)
-#ifdef FAST
               sigmv(j) = sigmv(j) + stracki*(c1e3-rvv(j)*(c1e3+(yv1(j)*yv1(j)+yv2(j)*yv2(j))*c5m4))
-#else
-              sigmv(j) = sigmv(j) + stracki*(c1e3-rvv(j)*sqrt(c1e6+yv1(j)*yv1(j)+yv2(j)*yv2(j)))
-#endif
               xj     = (xv1(j)-torbx(ie))/c1e3
               xpj    = (yv1(j)-torbxp(ie))/c1e3
               yj     = (xv2(j)-torby(ie))/c1e3
@@ -1412,17 +1421,7 @@ subroutine thin6d(nthinerr)
           !GRD END OF THE CHANGES FOR COLLIMATION STUDIES, BACK TO NORMAL SIXTRACK STUFF
 
         else ! Normal SixTrack drifts
-          if(iexact.eq.0) then
-            do j=1,napx
-              xv1(j)  = xv1(j) + stracki*yv1(j)
-              xv2(j)  = xv2(j) + stracki*yv2(j)
-#ifdef FAST
-              sigmv(j) = sigmv(j) + stracki*(c1e3-rvv(j)*(c1e3+(yv1(j)**2+yv2(j)**2)*c5m4))
-#else
-              sigmv(j) = sigmv(j) + stracki*(c1e3-rvv(j)*sqrt((c1e6+yv1(j)**2)+yv2(j)**2))
-#endif
-            end do
-          else
+          if(iexact) then
             ! EXACT DRIFT
             do j=1,napx
               xv1(j)=xv1(j)*c1m3
@@ -1440,6 +1439,12 @@ subroutine thin6d(nthinerr)
               yv2(j)=yv2(j)*c1e3
               sigmv(j)=sigmv(j)*c1e3
             enddo
+          else
+            do j=1,napx
+              xv1(j)  = xv1(j) + stracki*yv1(j)
+              xv2(j)  = xv2(j) + stracki*yv2(j)
+              sigmv(j) = sigmv(j) + stracki*(c1e3-rvv(j)*(c1e3+(yv1(j)**2+yv2(j)**2)*c5m4))
+            end do
           end if
         end if
         ! A.Mereghetti and P.Garcia Ortega, for the FLUKA Team
@@ -1459,9 +1464,9 @@ subroutine thin6d(nthinerr)
             sigmv(j)=sigmv(j)-sigmoff(i)
           endif
           if(abs(kz(ix)) == 12) then
-            ejv(j)=ejv(j)+(ed(ix)*sin_mb(hsyc(ix)*sigmv(j)+phasc(ix)))*nzz(j)
+            ejv(j)=ejv(j)+(ed(ix)*sin_mb(hsyc(ix)*sigmv(j)+phasc(ix)))*nqq(j)
           else
-            ejv(j)=ejv(j)+(hsy(1)*sin_mb(hsy(3)*sigmv(j)))*nzz(j)
+            ejv(j)=ejv(j)+(hsy(1)*sin_mb(hsy(3)*sigmv(j)))*nqq(j)
           endif
           ejfv(j)=sqrt(ejv(j)**2-nucm(j)**2)                               !hr01
           rvv(j)=(ejv(j)*e0f)/(e0*ejfv(j))
@@ -1898,7 +1903,7 @@ subroutine thin6d(nthinerr)
         xory=1
         crabfreq=ek(ix)*c1e3
         do j=1,napx
-          crabamp2 = ed(ix)*nzz(j)
+          crabamp2 = ed(ix)*nqq(j)
           kcrab=(((sigmv(j)/(clight*(e0f/e0)))*crabfreq)*two)*pi + crabph2(ix)
 #include "include/alignva.f90"
           yv1(j)=yv1(j) + ((crabamp2*crkve)*moidpsv(j))*cos_mb(kcrab)
@@ -1911,7 +1916,7 @@ subroutine thin6d(nthinerr)
         xory=1
         crabfreq=ek(ix)*c1e3
         do j=1,napx
-          crabamp2 = ed(ix)*nzz(j)
+          crabamp2 = ed(ix)*nqq(j)
           kcrab=(((sigmv(j)/(clight*(e0f/e0)))*crabfreq)*two)*pi + crabph2(ix)
 #include "include/alignva.f90"
           yv2(j)=yv2(j) + ((crabamp2*crkve)*moidpsv(j))*cos_mb(kcrab)
@@ -1924,7 +1929,7 @@ subroutine thin6d(nthinerr)
         xory=1
         crabfreq=ek(ix)*c1e3
         do j=1,napx
-          crabamp3 = ed(ix)*nzz(j)
+          crabamp3 = ed(ix)*nqq(j)
           kcrab=((sigmv(j)*crabfreq)/(clight*(e0f/e0)))*(two*pi)+crabph3(ix)
 #include "include/alignva.f90"
           yv1(j)=yv1(j)+(((crabamp3*moidpsv(j))*c1m3)*(crkve**2-cikve**2))*cos_mb(kcrab)
@@ -1938,7 +1943,7 @@ subroutine thin6d(nthinerr)
         xory=1
         crabfreq=ek(ix)*c1e3
         do j=1,napx
-          crabamp3 = ed(ix)*nzz(j)
+          crabamp3 = ed(ix)*nqq(j)
           kcrab=(((sigmv(j)/(clight*(e0f/e0)))*crabfreq)*two)*pi + crabph3(ix)
 #include "include/alignva.f90"
           yv2(j)=yv2(j)-(((crabamp3*moidpsv(j))*c1m3)*((cikve**2)-(crkve**2)))*cos_mb(kcrab)
@@ -1952,7 +1957,7 @@ subroutine thin6d(nthinerr)
         xory=1
         crabfreq=ek(ix)*c1e3
         do j=1,napx
-          crabamp4 = ed(ix)*nzz(j)
+          crabamp4 = ed(ix)*nqq(j)
           kcrab=(((sigmv(j)/(clight*(e0f/e0)))*crabfreq)*two)*pi + crabph4(ix)
 #include "include/alignva.f90"
           yv1(j)=yv1(j) + (((crabamp4*moidpsv(j))*(crkve**3-(three*crkve)*cikve**2))*c1m6)*cos_mb(kcrab)
@@ -1966,7 +1971,7 @@ subroutine thin6d(nthinerr)
         xory=1
         crabfreq=ek(ix)*c1e3
         do j=1,napx
-          crabamp4 = ed(ix)*nzz(j)
+          crabamp4 = ed(ix)*nqq(j)
           kcrab=(((sigmv(j)/(clight*(e0f/e0)))*crabfreq)*two)*pi + crabph4(ix)
 #include "include/alignva.f90"
           yv1(j)=yv1(j) - (((crabamp4*moidpsv(j))*(cikve**3-(three*cikve)*crkve**2))*c1m6)*cos_mb(kcrab)
@@ -1994,6 +1999,18 @@ subroutine thin6d(nthinerr)
         goto 640
       case (cheby_ktrack) ! Chebyshev lens
         call cheby_kick(i,ix,n)
+        goto 640
+      case (68) ! xrot
+        temp_angle = ed(ix)
+#include "include/xrot.f90"
+        goto 640
+      case (69) ! yrot
+        temp_angle = ed(ix)
+#include "include/yrot.f90"
+        goto 640
+      case (70) ! srot
+        temp_angle = ed(ix)
+#include "include/srot.f90"
         goto 640
       case default
         write(lout,"(3(a,i0),a)") "TRACKING> WARNING Non-handled element in thin6d()!",  &
@@ -2098,7 +2115,7 @@ subroutine trackReport(n)
   logical           :: isFirst   = .true.
 
   if(isFirst) then
-    if(ithick == 0) then
+    if(ithick == 1) then
       trackMode = "Thick"
     else
       trackMode = "Thin"
@@ -2118,48 +2135,6 @@ subroutine trackReport(n)
   flush(lout)
 
 end subroutine trackReport
-
-! ================================================================================================ !
-!  F. Schmidt
-!  Original:  1999-02-03
-!  Rewritten: 2019-04-26 (VKBO)
-! ================================================================================================ !
-#ifdef CR
-subroutine callcrp
-
-  use crcoall
-  use mod_common
-  use mod_common_main
-  use mod_common_track
-  use checkpoint_restart
-
-  implicit none
-
-#ifdef BOINC
-  integer timech
-#endif
-
-  if(cr_restart) then
-    write(lout,"(a)") "CALL_CRP> Restarted on this turn, so not checkpointing"
-    return
-  else
-    write(lout,"(a,i0)") "CALL_CRP> Checkpointing on turn ",numx+1
-  end if
-#ifdef BOINC
-  if(cr_checkp) then
-    ! If BOINC and turn > 1, ask BOINC API whether to crpoint or not
-    call boinc_time_to_checkpoint(timech)
-    if(timech /= 0 .or. numx == 0) then
-      call crpoint
-      call boinc_checkpoint_completed()
-    endif
-  endif
-#else
-  if(cr_checkp) call crpoint
-#endif
-
-end subroutine callcrp
-#endif
 
 !-----------------------------------------------------------------------
 !
@@ -2263,4 +2238,3 @@ subroutine write6(n)
 10000 format(1x/5x,'PARTICLE ',i7,' RANDOM SEED ',i8,' MOMENTUM DEVIATION ',g12.5 /5x,'REVOLUTION ',i8/)
 10010 format(10x,f47.33)
 end subroutine write6
-

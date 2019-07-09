@@ -1,6 +1,6 @@
 ! =================================================================================================
 !  END SIXTRACK
-!  Last modified: 2018-06-25
+!  Last modified: 2018-11-30
 ! =================================================================================================
 
 subroutine prror
@@ -51,6 +51,9 @@ subroutine abend(endMsg)
   use mod_units
   use mod_version
   use mod_time
+#ifdef BOINC
+  use mod_boinc
+#endif
 
   implicit none
 
@@ -134,19 +137,21 @@ subroutine abend(endMsg)
   write(crlog,"(a)") "ABEND_CR> Stop: "//trim(endMsg)
   call f_close(crlog)
 
-  if(endMsg == "ERROR") then
 #ifdef BOINC
-    call boinc_finish(1)
-#endif
+  if(endMsg == "ERROR") then
+    call boinc_finalise(1)
+  else
+    call boinc_finalise(0)
+  end if
+#else
+  if(endMsg == "ERROR") then
     ! Don't write to stderr, it breaks the error tests.
     write(output_unit,"(a)") "ABEND> Stop: "//trim(endMsg)
     stop 1
   else
-#ifdef BOINC
-    call boinc_finish(0)
-#endif
     stop
   end if
+#endif
 
 end subroutine abend
 

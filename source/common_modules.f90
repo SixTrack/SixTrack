@@ -31,7 +31,7 @@ module parpro
   integer, parameter :: nelb  = 280       ! Maximum elements per BLOC
 
   ! Maximum length of strings
-  integer, parameter :: mNameLen  = 48    ! Maximum length of element names. Keep in sync with MadX
+  integer, parameter :: mNameLen  = 48    ! Maximum length of element names. Keep in sync with MadX (and inside Geant4 code!)
   integer, parameter :: mFileName = 64    ! Maximum length of file names
   integer, parameter :: mPathName = 255   ! Maximum length of path names
   integer, parameter :: mStrLen   = 161   ! Standard string length
@@ -101,8 +101,12 @@ module mod_settings
   logical, save :: st_debug        = .false. ! Global DEBUG flag
   logical, save :: st_partsum      = .false. ! Flag to print final particle summary
   logical, save :: st_writefort12  = .false. ! Flag to write fort.12 after tracking
-  integer, save :: st_initialstate = 0       ! Dump particle initial state (mod_particles)
-  integer, save :: st_finalstate   = 0       ! Dump particle final state (mod_particles)
+  logical, save :: st_fStateWrite  = .false. ! Dump particle final state file
+  logical, save :: st_fStateText   = .false. ! Dump particle final state file as text
+  logical, save :: st_fStateIons   = .false. ! Dump particle final state file with ion columns
+  logical, save :: st_iStateWrite  = .false. ! Dump particle initial state file
+  logical, save :: st_iStateText   = .false. ! Dump particle initial state file as text
+  logical, save :: st_iStateIons   = .false. ! Dump particle initial state file with ion columns
 
   ! Checpoint/Restart Kills Switch Settings
   logical,              save :: st_killswitch = .false. ! Enables the kill on turn number debug feature
@@ -118,8 +122,9 @@ module mod_common
 
   use parpro
   use floatPrecision
-  use physical_constants
   use numerical_constants
+  use physical_constants, only : pmap
+  use, intrinsic :: iso_fortran_env, only : int16, int32
 
   implicit none
 
@@ -158,26 +163,26 @@ module mod_common
   integer,          save :: kanf       = 0    ! Structure index where the GO keyword is issued
 
   ! TRACK Block Variables
-  real(kind=fPrec), save :: amp0       = zero ! End amplitude
-  integer,          save :: numl       = 1    ! Number of turns in the forward direction
-  integer,          save :: numlr      = 0    ! Number of turns in the backward direction
-  integer,          save :: numx       = 0    ! Checkpoint turn (turn-1)
-  integer,          save :: napx       = 0    ! Number of amplitude variations
-  integer,          save :: ird        = 0    ! Ignored
-  integer,          save :: niu(2)     = 0    ! Start and stop structure element for optics calculation
-  integer,          save :: numlcp     = 1000 ! How often to write checkpointing files
-  integer,          save :: idfor      = 0    ! Add closed orbit to initia coordinates
-  integer,          save :: irew       = 0    ! Rewind fort.59-90
-  integer,          save :: iclo6      = 0    ! 6D closed orbit flags
-  integer,          save :: iclo6r     = 0    ! 6D closed orbit flags
-  integer,          save :: nde(2)     = 0    ! Number of turns at flat bottom / energy ramping
-  integer,          save :: nwr(4)     = 1    ! Writings to fort.90
-  integer,          save :: ntwin      = 1    ! How to calculate the distance in phase space
-  integer,          save :: iexact     = 0    ! Exact solution of the equation of motion
-  integer,          save :: curveff    = 0    ! Enable the curvature effect in a combined function magnet
-  integer,          save :: napxo      = 0    ! Original value of napx
-  integer,          save :: napxto     = 0    ! Particles times turns
-  integer,          save :: nnuml      = 0
+  real(kind=fPrec), save :: amp0       = zero    ! End amplitude
+  integer,          save :: numl       = 1       ! Number of turns in the forward direction
+  integer,          save :: numlr      = 0       ! Number of turns in the backward direction
+  integer,          save :: numx       = 0       ! Checkpoint turn (turn-1)
+  integer,          save :: napx       = 0       ! Number of amplitude variations
+  integer,          save :: ird        = 0       ! Ignored
+  integer,          save :: niu(2)     = 0       ! Start and stop structure element for optics calculation
+  integer,          save :: numlcp     = 1000    ! How often to write checkpointing files
+  integer,          save :: idfor      = 0       ! Add closed orbit to initial coordinates
+  integer,          save :: irew       = 0       ! Rewind fort.59-90
+  integer,          save :: iclo6      = 0       ! 6D closed orbit flags
+  integer,          save :: nde(2)     = 0       ! Number of turns at flat bottom / energy ramping
+  integer,          save :: nwr(4)     = 1       ! Writings to fort.90
+  integer,          save :: ntwin      = 1       ! How to calculate the distance in phase space
+  integer,          save :: napxo      = 0       ! Original value of napx
+  integer,          save :: napxto     = 0       ! Particles times turns
+  integer,          save :: nnuml      = 0       ! Turn number for POSTPR
+  logical,          save :: curveff    = .false. ! Enable the curvature effect in a combined function magnet
+  logical,          save :: iexact     = .false. ! Exact solution of the equation of motion
+  logical,          save :: rdfort13   = .false. ! Wheteher to read distribution from fort.13 or not
 
   ! INITIAL COORDINATES Block Variables
   real(kind=fPrec), save :: rat        = zero
@@ -344,8 +349,15 @@ module mod_common
   integer,          save :: nordm      = 0
 
   ! Reference Particle
-  real(kind=fPrec), save :: e0         = zero ! Reference energy [MeV]
-  real(kind=fPrec), save :: e0f        = zero ! Reference momentum [MeV/c]
+  real(kind=fPrec),    save :: e0      = zero ! Reference energy [MeV]
+  real(kind=fPrec),    save :: e0f     = zero ! Reference momentum [MeV/c]
+  real(kind=fPrec),    save :: nucm0   = pmap ! Reference mass [MeV/c^2]
+  real(kind=fPrec),    save :: nucmda  = pmap ! Reference mass [MeV/c^2] (DA)
+  integer(kind=int16), save :: aa0     = 1    ! Reference nucleon number
+  integer(kind=int16), save :: zz0     = 1    ! Reference charge multiplicity
+  integer(kind=int16), save :: qq0     = 1    ! Reference charge
+  integer(kind=int32), save :: pdgid0  = 2212 ! Reference particle PDG ID
+  integer,             save :: pdgyear = 2002 ! Reference particle PDG year
 
   ! Tracking Particles
   real(kind=fPrec), save :: ej(mpa)    = zero ! Particle energy
@@ -364,7 +376,7 @@ module mod_common
 
   ! Other Variables
   integer,          save :: ichromc    = 0
-  integer,          save :: ilinc      = 0
+  integer,          save :: ilinc      = 0    ! 2 = Beam-beam closed orbit calc
   integer,          save :: iqmodc     = 0
   real(kind=fPrec), save :: corr(3,3)  = zero
   real(kind=fPrec), save :: chromc(2)  = 9.999999e23_fPrec
@@ -759,12 +771,12 @@ module mod_common_track
   real(kind=fPrec), save :: alf0(2)  = zero
   real(kind=fPrec), save :: clo(2)   = zero
   real(kind=fPrec), save :: clop(2)  = zero
-  integer,          save :: nwri     = 0
+  integer,          save :: nwri     = 0     ! Flag for frequency of calls to writebin. Set by nwr(3) in TRAC
 
   ! Chromaticity
-  real(kind=fPrec), save :: cro(2)   = zero
-  integer,          save :: is(2)    = 0
-  integer,          save :: ichrom   = 0
+  real(kind=fPrec), save :: cro(2)   = zero  ! Desired values of the chromaticity
+  integer,          save :: crois(2) = 0     ! Index of the elements in the single elements list
+  integer,          save :: ichrom   = 0     ! Flag for calculation, 1: "traditional", 2: including beam-beam, 3: both
 
   ! tas
   real(kind=fPrec), save :: tasm(6,6)
@@ -781,7 +793,6 @@ module mod_common_track
   ! Substitute variables for x,y and is for DA version
   real(kind=fPrec), save :: xxtr(mpa,2)
   real(kind=fPrec), save :: yytr(mpa,2)
-  integer,          save :: issss(2)
 
 contains
 
@@ -810,14 +821,12 @@ end subroutine mod_commont_expand_arrays
 subroutine comt_daStart
   xxtr(1:mpa,1:2) = x(1:mpa,1:2)
   yytr(1:mpa,1:2) = y(1:mpa,1:2)
-  issss(1:2)      = is(1:2)
 end subroutine comt_daStart
 
 ! Copy from temp DA variables to actual variables
 subroutine comt_daEnd
   x(1:mpa,1:2) = xxtr(1:mpa,1:2)
   y(1:mpa,1:2) = yytr(1:mpa,1:2)
-  is(1:2)      = issss(1:2)
 end subroutine comt_daEnd
 
 end module mod_common_track
@@ -831,6 +840,7 @@ module mod_common_main
   use parpro
   use floatPrecision
   use numerical_constants
+  use, intrinsic :: iso_fortran_env, only : int16, int32
 
   implicit none
 
@@ -879,12 +889,21 @@ module mod_common_main
   real(kind=fPrec), allocatable, save :: ejv(:)        ! Particle energy
 
   real(kind=fPrec), allocatable, save :: oidpsv(:)     ! 1/(1+dpsv)
+  real(kind=fPrec), allocatable, save :: moidpsv(:)    ! Relative rigidity offset
+  real(kind=fPrec), allocatable, save :: omoidpsv(:)   ! Relative rigidity offset
   real(kind=fPrec), allocatable, save :: rvv(:)        ! Beta_0 / Beta(j)
   real(kind=fPrec), allocatable, save :: ejf0v(:)      ! Temporary array for momentum updates
   real(kind=fPrec), allocatable, save :: dam(:)        ! Distance in phase space
   real(kind=fPrec), allocatable, save :: dpd(:)        ! Thick tracking only: 1+dpsv
   real(kind=fPrec), allocatable, save :: dpsq(:)       ! Thick tracking only: sqrt(1+dpsv)
   real(kind=fPrec), allocatable, save :: ampv(:)       ! Amplitude variations
+  real(kind=fPrec), allocatable, save :: nucm(:)       ! Particle mass
+  real(kind=fPrec), allocatable, save :: mtc(:)        ! Mass-to-charge ratio
+
+  integer(kind=int16), allocatable, save :: nqq(:)     ! Particle charge
+  integer(kind=int16), allocatable, save :: naa(:)     ! Ion atomic mass
+  integer(kind=int16), allocatable, save :: nzz(:)     ! Ion atomic number
+  integer(kind=int32), allocatable, save :: pdgid(:)   ! Particle PDGid
 
   integer,          allocatable, save :: nnumxv(:)     ! Turn in which a particle was lost
   integer,          allocatable, save :: numxv(:)      ! Turn in which a particle was lost
@@ -903,6 +922,7 @@ contains
 subroutine mod_commonmn_expand_arrays(nblz_new,npart_new)
 
   use mod_alloc
+  use mod_common, only : nucm0, aa0, zz0, qq0, pdgid0
   use numerical_constants, only : zero, one
 
   implicit none
@@ -940,6 +960,14 @@ subroutine mod_commonmn_expand_arrays(nblz_new,npart_new)
     call alloc(dpd,      npart_new,    zero,    "dpd")
     call alloc(dpsq,     npart_new,    zero,    "dpsq")
     call alloc(oidpsv,   npart_new,    one,     "oidpsv")
+    call alloc(moidpsv,  npart_new,    one,     "moidpsv")
+    call alloc(omoidpsv, npart_new,    zero,    "omoidpsv")
+    call alloc(nucm,     npart_new,    zero,    "nucm")
+    call alloc(mtc,      npart_new,    nucm0,   "mtc")
+    call alloc(naa,      npart_new,    aa0,     "naa")
+    call alloc(nzz,      npart_new,    zz0,     "nzz")
+    call alloc(nqq,      npart_new,    qq0,     "nqq")
+    call alloc(pdgid,    npart_new,    pdgid0,  "pdgid")
     call alloc(ampv,     npart_new,    zero,    "ampv")
     call alloc(aperv,    npart_new, 2, zero,    "aperv")
     call alloc(iv,       npart_new,    0,       "iv")

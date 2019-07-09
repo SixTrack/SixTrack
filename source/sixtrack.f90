@@ -29,14 +29,13 @@ subroutine daten
   use dynk,      only : dynk_enabled,dynk_debug,dynk_dumpdata,dynk_inputsanitycheck,dynk_allocate,dynk_parseInputLine
   use fma,       only : fma_parseInputLine, fma_allocate
   use dump,      only : dump_parseInputLine,dump_parseInputDone
-  use zipf,      only : zipf_parseInputLine,zipf_parseInputDone
+  use zipf,      only : zipf_parseInputLine
   use bdex,      only : bdex_parseInputLine,bdex_parseInputDone
   use mod_fluc,  only : fluc_parseInputLine,fluc_readInputs
   use wire,      only : wire_parseInputLine,wire_parseInputDone
   use elens,     only : elens_parseInputLine,elens_parseInputDone,elens_postInput
   use cheby,     only : cheby_parseInputLine,cheby_parseInputDone,cheby_postInput
   use aperture
-  use mod_hions
 #ifdef HASHLIB
   use mod_hash
 #endif
@@ -50,6 +49,11 @@ subroutine daten
 #ifdef ROOT
   use root_output
 #endif
+
+#ifdef G4COLLIMATION
+  use geant4
+#endif
+
   use collimation
 #ifdef PYTHIA
   use mod_pythia
@@ -324,6 +328,17 @@ subroutine daten
       if(inErr) goto 9999
     end if
 
+  case("SIMU") ! Simulation Block
+    if(openBlock) then
+      sixin_hasSIMU = .true.
+    elseif(closeBlock) then
+      call sixin_parseInputDoneSIMU(inErr)
+      if(inErr) goto 9999
+    else
+      call sixin_parseInputLineSIMU(inLine,blockLine,inErr)
+      if(inErr) goto 9999
+    end if
+
   case("DISP") ! Displacement of Elements Block
     if(openBlock) then
       continue
@@ -336,7 +351,7 @@ subroutine daten
 
   case("INIT") ! Initial Coordinates
     if(openBlock) then
-      continue
+      sixin_hasINIT = .true.
     elseif(closeBlock) then
       dp1 = exz(1,6)
     else
@@ -346,7 +361,7 @@ subroutine daten
 
   case("TRAC") ! Tracking Parameters
     if(openBlock) then
-      continue
+      sixin_hasTRAC = .true.
     elseif(closeBlock) then
       continue
     else
@@ -734,9 +749,9 @@ subroutine daten
     if(openBlock) then
       continue
     elseif(closeBlock) then
-      has_hion = .true.
+      sixin_hasHION = .true.
     else
-      call hions_parseInputLine(inLine,blockLine,inErr)
+      call sixin_parseInputLineHION(inLine,blockLine,inErr)
       if(inErr) goto 9999
     end if
 
@@ -744,7 +759,7 @@ subroutine daten
     if(openBlock) then
       continue
     elseif(closeBlock) then
-      call zipf_parseInputDone
+      continue
     else
       call zipf_parseInputline(inLine,inErr)
       if(inErr) goto 9999
@@ -820,6 +835,21 @@ subroutine daten
   end if
 #endif
 
+  case("GNT4") ! Geant4 Input Block
+#ifndef G4COLLIMATION
+    write(lerr,"(a)") "INPUT> ERROR SixTrack was not compiled with the G4COLLIMATION flag."
+    goto 9999
+#else
+  if(openBlock) then
+    continue
+  elseif(closeBlock) then
+    call geant4_parseInputDone
+  else
+    call geant4_parseInputLine(inLine,inErr)
+    if(inErr) goto 9999
+  end if
+#endif
+
   case default ! Unknown Block, Time to Panic
     write(lerr,"(a)") "INPUT> ERROR Unknown block '"//currBlock//"' encountered. Check your input file."
     goto 9999
@@ -861,11 +891,34 @@ subroutine daten
       call prror
     end if
 
-    call hions_postInput
+    if(sixin_hionSet .eqv. .false.) then
+      ! If we don't have the HION block, we need to set some variables - default to the proton values
+      zz0    = 1
+      aa0    = 1
+      qq0    = 1
+      pdgid0 = 2212
+      nucm0  = pma
+      write(lout,"(a)")        "ENDE> No HION block found. Defaulting to the proton values: "
+      write(lout,"(a,i0)")     "ENDE>  * Z = ",zz0
+      write(lout,"(a,i0)")     "ENDE>  * A = ",aa0
+      write(lout,"(a,e22.15)") "ENDE>  * M = ",nucm0
+      write(lout,"(a,i0)")     "ENDE>  * Q = ",qq0
+    end if
+  
+    ! Init arrays
+    mtc(:)      = one
+    naa(:)      = aa0
+    nzz(:)      = zz0
+    nqq(:)      = qq0
+    pdgid(:)    = pdgid0
+    nucm(:)     = nucm0
+    moidpsv(:)  = one
+    omoidpsv(:) = zero
+
     gammar = nucm0/e0
     betrel = sqrt((one+gammar)*(one-gammar))
-    e0f = sqrt(e0**2-nucm0**2)
-    brho   = (e0f/(clight*c1m6))/zz0
+    e0f    = sqrt(e0**2-nucm0**2)
+    brho   = (e0f/(clight*c1m6))/qq0
 
     if(nbeam >= 1) then
       parbe14 = (((((-one*crad)*partnum)/four)/pi)/sixin_emitNX)*c1e6
@@ -876,27 +929,53 @@ subroutine daten
 
     if(do_coll) then
       call collimate_postInput(gammar)
-    endif
-
-    !Check for incompatible flags
-    if (ipos == 1) then
+    end if
+  
+    ! Check for incompatible flags
+    if(ipos == 1) then
       if (do_coll) then
-        write(lerr,'(a)') "ENDE> ERROR COLLimation block and POSTprocessing block are not compatible."
+        write(lerr,"(a)") "ENDE> ERROR COLLimation block and POSTprocessing block are not compatible."
         call prror
       endif
 
-      if (scatter_active) then
-        write(lerr,'(a)') "ENDE> ERROR SCATTER block and POSTprocessing block are not compatible."
+      if(scatter_active) then
+        write(lerr,"(a)") "ENDE> ERROR SCATTER block and POSTprocessing block are not compatible."
         call prror
       endif
 #ifdef FLUKA
       if (fluka_enable) then
-        write(lerr,'(a)') "ENDE> ERROR FLUKA block and POSTprocessing block are not compatible."
+        write(lerr,"(a)") "ENDE> ERROR FLUKA block and POSTprocessing block are not compatible."
         call prror
       endif
 #endif
     endif
 
+  end if
+
+  if(sixin_hasSIMU) then
+    call sixin_postInputSIMU(inErr)
+    if(inErr) call prror
+  end if
+
+  ! This check used to be in DIFF block parsing, but is safer to have here
+  if(iclo6 == 1 .or. iclo6 == 2) nsix = 0
+
+  ! If no write frequency set on track files, default to the number of turns + 1
+  if(nwri == 0) then
+    nwri = numl + numlr + 1
+  end if
+
+  if(sixin_hasSIMU .and. sixin_hasTRAC) then
+    write(lerr,"(a)") "ENDE> ERROR Cannot have both a TRAC block and a SIMU block at the same time"
+    call prror
+  end if
+  if(sixin_hasSIMU .and. sixin_hasINIT) then
+    write(lerr,"(a)") "ENDE> ERROR Cannot have both a INIT block and a SIMU block at the same time"
+    call prror
+  end if
+  if(sixin_hasSIMU .and. sixin_hasHION) then
+    write(lerr,"(a)") "ENDE> ERROR Cannot have both a HION block and a SIMU block at the same time"
+    call prror
   end if
 
   call elens_postInput
@@ -924,13 +1003,13 @@ subroutine daten
         write(lerr,"(3(a,i5))") "ENDE> ERROR Requested ",int(parbe(j,2))," slices for 6D beam-beam element"//&
           " #",j," named '"//trim(bez(j))//"', maximum is mbea = ",mbea
         parbe(j,2) = real(mbea,fPrec)
-        call prror ! Treat this warning as an error
+        call prror
       end if
     end do
   end if
 
   call ffield_mod_link(inErr)
-  if(inErr) goto 9999
+  if(inErr) call prror
 
   ! Done with checks. Write the report
   call sixin_blockReport
@@ -1679,7 +1758,6 @@ subroutine initialize_element(ix,lfirst)
 
   use parpro
   use parbeam
-  use mod_hions
   use mod_common
   use mod_common_main
   use mod_common_track
@@ -1786,6 +1864,11 @@ subroutine initialize_element(ix,lfirst)
 
   ! BEAM-BEAM
   elseif(kz(ix) == 20) then
+
+    if(nbeam == 0 .and. .not. lfirst) then
+      write(lerr,"(a)") "BEAMBEAM> ERROR Beam-beam element encountered, but no BEAM block in '"//trim(fort3)//"'"
+      call prror
+    end if
 
     if(lfirst) then
       ptnfac(ix)  = el(ix)
@@ -2581,6 +2664,7 @@ subroutine betalf(dpp,qw)
       use mod_common
       use mod_commons
       use mod_common_track
+      use crcoall
       implicit none
       integer i,j
       real(kind=fPrec) am,det,detb,detc,dpp,egwg1,egwg2,f0,f1,f2,fak1,  &
@@ -2600,7 +2684,10 @@ subroutine betalf(dpp,qw)
       f0=spa-spd
       f1=spa+spd
       f2=f0**2+four*det                                                  !hr06
-      if(f2 .lt. zero) goto 160
+      if(f2 .lt. zero) then 
+        write(lerr,'(a,F12.5, a, F12.5, a, F12.5)') 'ERROR in betalf() - f2 < 0: ',  f2, ' f0: ', f0, ' det: ', det
+        goto 160
+      end if
       f2=sqrt(f2)
       if(f0.lt.zero) goto 30                                              !hr06
       if(f0.ge.zero) goto 20                                              !hr06
@@ -2632,8 +2719,16 @@ subroutine betalf(dpp,qw)
       yclam1=yca1*half
       rclam2=(egwg2+rca2)*half
       yclam2=yca2*half
-      if(egwg1**2 .ge. four) goto 160                                    !hr06
-      if(egwg2**2 .ge. four) goto 160                                    !hr06
+      if(egwg1**2 .ge. four) then 
+        write(lerr,'(a,F12.5,a,F12.5,a,F12.5,a,F12.5,a,F12.5,a,F12.5)') 'ERROR in betalf() - egwg1**2 > 4: ',&
+        egwg1**2, ' f0: ', spa-spd, ' f1: ', spa+spd, ' f2: ', f0**2+four*det, ' spa: ', spa, ' spd: ', spd
+        write(lerr,'(a,F12.5)') 'ERROR in betalf() - am: ',  am
+        goto 160                                    !hr06
+      end if
+      if(egwg2**2 .ge. four) then
+        write(lerr,'(a,F12.5)') 'ERROR in betalf() - egwg2**2 > 4: ',  egwg2**2
+        goto 160                                    !hr06
+      end if
    50 continue
       detb=am(1,3)*am(2,4)-am(1,4)*am(2,3)
       detc=am(3,1)*am(4,2)-am(3,2)*am(4,1)
@@ -2700,7 +2795,10 @@ subroutine betalf(dpp,qw)
       rn1=((ta(1,1)*ta(2,2)-ta(2,1)*ta(1,2))                            &!hr06
      &+ta(3,1)*ta(4,2))-ta(4,1)*ta(3,2)                                  !hr06
       if(rn1.lt.zero) goto 70                                             !hr06
-      if(rn1.eq.zero) goto 160                                            !hr06
+      if(rn1.eq.zero) then 
+        write(lerr,'(a,F12.5)') 'ERROR in betalf() - rn1 = 0: ', rn1
+        goto 160                                            !hr06
+      end if
       if(rn1.gt.zero) goto 90                                             !hr06
    70 yclam1=-one*yclam1                                                 !hr06
 
@@ -2718,7 +2816,10 @@ subroutine betalf(dpp,qw)
       rn2=((ta(1,3)*ta(2,4)-ta(2,3)*ta(1,4))                            &!hr06
      &+ta(3,3)*ta(4,4))-ta(4,3)*ta(3,4)                                  !hr06
       if(rn2.lt.zero) goto 110                                           !hr06
-      if(rn2.eq.zero) goto 160                                           !hr06
+      if(rn2.eq.zero) then
+        write(lerr,'(a,F12.5)') 'ERROR in betalf() - rn2 = 0: ', rn2
+        goto 160                                           !hr06
+      end if
       if(rn2.gt.zero) goto 130                                           !hr06
   110 yclam2=-one*yclam2                                                 !hr06
 
@@ -2944,7 +3045,7 @@ subroutine chroma
           suxy=zero
           suzy=zero
           do 30 l=1,2
-            isl=is(l)
+            isl=crois(l)
             if(kz(isl).ne.3) then
               write(lerr,"(a)") "CHROMA> ERROR Element specified for chromaticity correction is not a sextupole."
               call prror
@@ -2971,7 +3072,7 @@ subroutine chroma
             suzy=suzy+oz*dpp
    40     continue
           do 50 l=1,2
-            isl=is(l)
+            isl=crois(l)
             ed(isl)=ed(isl)-dsm(l,ii)
             if(kp(isl).eq.5) call combel(isl)
    50     continue
@@ -2994,8 +3095,8 @@ subroutine chroma
             dm(2)=(cro0(1)*zi(1)-cro0(2)*xi(1))/det                      !hr06
 
             do l=1,2
-              sm0(l)=ed(is(l))
-              isl=is(l)
+              sm0(l)=ed(crois(l))
+              isl=crois(l)
               ed(isl)=ed(isl)+dm(l)
               if(kp(isl).eq.5) call combel(isl)
             end do
@@ -3007,8 +3108,7 @@ subroutine chroma
         write(lout,10020) sens(1,1),sens(1,4),sens(2,1),sens(2,4)
         chromc(1)=sens(1,4)*c1m3
         chromc(2)=sens(2,4)*c1m3
-        write(lout,10030) sm0(1),ed(is(1)),bez(is(1)), sm0(2),ed(is(2)),&
-     &bez(is(2))
+        write(lout,10030) sm0(1),ed(crois(1)),bez(crois(1)),sm0(2),ed(crois(2)),bez(crois(2))
         write(lout,10040) xi,zi
         write(lout,10010)
         if(abs(sens(1,4)-cro(1)).lt.dech.and.abs(sens(2,4)-cro(2))      &
@@ -3064,8 +3164,8 @@ subroutine chromda
 #include "include/beamcou.f90"
       endif
       ncorru=ncorruo
-      iq1=is(1)
-      iq2=is(2)
+      iq1=crois(1)
+      iq2=crois(2)
       edcor(1)=ed(iq1)
       edcor(2)=ed(iq2)
       edcor1=edcor(1)

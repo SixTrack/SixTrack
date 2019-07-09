@@ -427,41 +427,35 @@ subroutine trauthck(nthinerr)
   do j=1,napx
     dpsv1(j)=(dpsv(j)*c1e3)/(one+dpsv(j))                            !hr01
   end do
-  nwri=nwr(3)
-  if(nwri.eq.0) nwri=numl+numlr+1
-    ! A.Mereghetti, for the FLUKA Team
-    ! last modified: 17-07-2013
-    ! save original kicks
-    ! always in main code
-    if (dynk_enabled) call dynk_pretrack
-    call time_timeStamp(time_afterPreTrack)
 
-    if(idp.eq.0.or.ition.eq.0) then
-      write(lout,"(a)") ""
-      write(lout,"(a)") "TRACKING> Calling thck4d subroutine"
-      write(lout,"(a)") ""
-      call thck4d(nthinerr)
-    else
-      hsy(3)=(c1m3*hsy(3))*real(ition,fPrec)                                 !hr01
+  if (dynk_enabled) call dynk_pretrack
+  call time_timeStamp(time_afterPreTrack)
 
-      do jj=1,nele
-        if(abs(kz(jj)) == 12) then
-          hsyc(jj) = (c1m3*hsyc(jj)) * real(sign(1,kz(jj)),kind=fPrec)
-        end if
-      end do
+  if(idp == 0 .or. ition == 0) then
+    write(lout,"(a)") ""
+    write(lout,"(a)") "TRACKING> Calling thck4d subroutine"
+    write(lout,"(a)") ""
+    call thck4d(nthinerr)
+  else
+    hsy(3)=(c1m3*hsy(3))*real(ition,fPrec)                                 !hr01
 
-      if(abs(phas).ge.pieni) then
-        write(lerr,"(a)") "TRACKING> ERROR thck6dua no longer supported. Please use DYNK instead."
-        call prror
-      else
-        write(lout,"(a)") ""
-        write(lout,"(a)") "TRACKING> Calling thck6d subroutine"
-        write(lout,"(a)") ""
-        call thck6d(nthinerr)
+    do jj=1,nele
+      if(abs(kz(jj)) == 12) then
+        hsyc(jj) = (c1m3*hsyc(jj)) * real(sign(1,kz(jj)),kind=fPrec)
       end if
-    end if
+    end do
 
-  return
+    if(abs(phas) >= pieni) then
+      write(lerr,"(a)") "TRACKING> ERROR thck6dua no longer supported. Please use DYNK instead."
+      call prror
+    else
+      write(lout,"(a)") ""
+      write(lout,"(a)") "TRACKING> Calling thck6d subroutine"
+      write(lout,"(a)") ""
+      call thck6d(nthinerr)
+    end if
+  end if
+
 end subroutine trauthck
 
 !-----------------------------------------------------------------------
@@ -494,7 +488,6 @@ subroutine thck4d(nthinerr)
 
   use mod_settings
   use mod_meta
-  use mod_hions
   use postprocessing, only : writebin
   use crcoall
   use parpro
@@ -510,6 +503,10 @@ subroutine thck4d(nthinerr)
 #ifdef CR
   use checkpoint_restart
 #endif
+#ifdef BOINC
+  use mod_boinc
+#endif
+
   implicit none
 
   integer i,idz1,idz2,irrtr,ix,j,jb,jmel,jx,k,n,nmz,nthinerr,xory,nac,nfree,nramp1,nplato,nramp2,   &
@@ -571,23 +568,19 @@ subroutine thck4d(nthinerr)
       end if
     end if
     meta_nPartTurn = meta_nPartTurn + napx
-#ifdef BOINC
-!   call boinc_sixtrack_progress(n,numl)
-    call boinc_fraction_done(dble(n)/dble(numl))
-    continue
-!   call graphic_progress(n,numl)
-#endif
-  numx=n-1
+    numx=n-1
 
 #ifndef FLUKA
-    if(mod(numx,nwri).eq.0) call writebin(nthinerr)
-    if(nthinerr.ne.0) return
+    if(mod(numx,nwri) == 0) call writebin(nthinerr)
+    if(nthinerr /= 0) return
 #endif
 
 #ifdef CR
-    !  does not call CRPOINT if cr_restart=.true.
-    !  (and note that writebin does nothing if cr_restart=.true.
-    if(mod(numx,numlcp).eq.0) call callcrp()
+#ifdef BOINC
+    call boinc_turn(n)
+#else
+    if(mod(numx,numlcp) == 0) call crpoint
+#endif
     cr_restart = .false.
     if(st_killswitch) call cr_killSwitch(n)
 #endif
@@ -641,7 +634,7 @@ subroutine thck4d(nthinerr)
               goto 475
             else if(fluka_type(ix).eq.FLUKA_EXIT) then
               fluka_inside = .false.
-              call kernel_fluka_exit( n, i, ix )
+              call kernel_fluka_exit
               ! A.Mereghetti and P.Garcia Ortega, for the FLUKA Team
               ! last modified: 07-03-2018
               ! store old particle coordinates
@@ -1150,7 +1143,6 @@ subroutine thck6d(nthinerr)
 
   use mod_meta
   use mod_settings
-  use mod_hions
   use postprocessing, only : writebin
   use crcoall
   use parpro
@@ -1166,6 +1158,9 @@ subroutine thck6d(nthinerr)
   use wire
 #ifdef CR
   use checkpoint_restart
+#endif
+#ifdef BOINC
+  use mod_boinc
 #endif
 
   implicit none
@@ -1224,7 +1219,6 @@ subroutine thck6d(nthinerr)
   if(cr_restart) then
     call crstart
     write(crlog,"(2(a,i0))") "TRACKING> Thick 6D restarting on turn ",cr_numl," / ",numl
-! and now reset numl to do only numlmax turns
   end if
   nnuml  = numl
   nfirst = cr_numl
@@ -1238,24 +1232,19 @@ subroutine thck6d(nthinerr)
       end if
     end if
     meta_nPartTurn = meta_nPartTurn + napx
-! To do a dump and abend
-#ifdef BOINC
-!   call boinc_sixtrack_progress(n,numl)
-    call boinc_fraction_done(dble(n)/dble(numl))
-    continue
-!   call graphic_progress(n,numl)
-#endif
     numx=n-1
 
 #ifndef FLUKA
-    if(mod(numx,nwri).eq.0) call writebin(nthinerr)
-    if(nthinerr.ne.0) return
+    if(mod(numx,nwri) == 0) call writebin(nthinerr)
+    if(nthinerr /= 0) return
 #endif
 
 #ifdef CR
-!  does not call CRPOINT if cr_restart=.true.
-!  (and note that writebin does nothing if cr_restart=.true.
-    if(mod(numx,numlcp).eq.0) call callcrp()
+#ifdef BOINC
+    call boinc_turn(n)
+#else
+    if(mod(numx,numlcp) == 0) call crpoint
+#endif
     cr_restart = .false.
     if(st_killswitch) call cr_killSwitch(n)
 #endif
@@ -1306,7 +1295,7 @@ subroutine thck6d(nthinerr)
               goto 495
             else if(fluka_type(ix).eq.FLUKA_EXIT) then
               fluka_inside = .false.
-              call kernel_fluka_exit( n, i, ix )
+              call kernel_fluka_exit
               ! Re-compute transport matrices of linear elements, according to momentum of surviving/new particles
               recompute_linear_matrices = .true.
               ! A.Mereghetti and P.Garcia Ortega, for the FLUKA Team
@@ -1350,9 +1339,9 @@ subroutine thck6d(nthinerr)
           ejf0v(j)=ejfv(j)
           if(abs(dppoff).gt.pieni) sigmv(j)=sigmv(j)-sigmoff(i)
           if(abs(kz(ix)) == 12) then
-            ejv(j)=ejv(j)+(ed(ix)*sin_mb(hsyc(ix)*sigmv(j)+phasc(ix)))*nzz(j)
+            ejv(j)=ejv(j)+(ed(ix)*sin_mb(hsyc(ix)*sigmv(j)+phasc(ix)))*nqq(j)
           else
-            ejv(j)=ejv(j)+(hsy(1)*sin_mb(hsy(3)*sigmv(j)))*nzz(j)
+            ejv(j)=ejv(j)+(hsy(1)*sin_mb(hsy(3)*sigmv(j)))*nqq(j)
           end if
           ejfv(j)=sqrt(ejv(j)**2-nucm(j)**2)                             !hr01
           rvv(j)=(ejv(j)*e0f)/(e0*ejfv(j))

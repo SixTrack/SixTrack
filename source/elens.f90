@@ -343,7 +343,7 @@ subroutine elens_parseInputDone(iErr)
         end if
       end do
       ! report error
-      write(lout,"(a)") "ELENS> ERROR Type of elens not declared in "//trim(fort3)//" for element '"//trim(bez(kk))//"'"
+      write(lerr,"(a)") "ELENS> ERROR Type of elens not declared in "//trim(fort3)//" for element '"//trim(bez(kk))//"'"
       iErr = .true.
       return
     end if
@@ -365,12 +365,12 @@ subroutine elens_postInput
   do jj=1,nele
     if(kz(jj)==29) then
       if (ielens(jj).eq.0) then
-        write(lout,"(a,i0,a)") "ELENS> ERROR single element ",jj," named '"//trim(bez(jj))//"'"
-        write(lout,"(a)")      "ELENS>       does not have a corresponding line in ELEN block in "//trim(fort3)
+        write(lerr,"(a,i0,a)") "ELENS> ERROR single element ",jj," named '"//trim(bez(jj))//"'"
+        write(lerr,"(a)")      "ELENS>       does not have a corresponding line in ELEN block in "//trim(fort3)
         call prror
       elseif ( elens_type(ielens(jj))==0 ) then
-        write(lout,"(a,i0,a)") "ELENS> ERROR single element ",jj," named '"//trim(bez(jj))//"'"
-        write(lout,"(a)")      "ELENS>       had not been assigned a type"
+        write(lerr,"(a,i0,a)") "ELENS> ERROR single element ",jj," named '"//trim(bez(jj))//"'"
+        write(lerr,"(a)")      "ELENS>       had not been assigned a type"
         call prror
       else
         nlens=nlens+1
@@ -378,8 +378,8 @@ subroutine elens_postInput
     end if
   end do
   if ( nlens.ne.melens ) then
-    write(lout,"(a,i0)") "ELENS> ERROR number of elenses declared in ELEN block in "//trim(fort3)//" ",melens
-    write(lout,"(a,i0)") "ELENS>       is not the same as the total number of elenses in lattice ",nlens
+    write(lerr,"(a,i0)") "ELENS> ERROR number of elenses declared in ELEN block in "//trim(fort3)//" ",melens
+    write(lerr,"(a,i0)") "ELENS>       is not the same as the total number of elenses in lattice ",nlens
     call prror
   end if
 
@@ -452,8 +452,7 @@ subroutine eLensTheta(j)
   use mathlib_bouncer
   use numerical_constants, only : zero, one, two, pi, c1e3, c1m3, c1m6
   use physical_constants, only: clight, pmae, eps0
-  use mod_hions, only : zz0
-  use mod_common, only : e0, betrel, brho, bez, kz
+  use mod_common, only : e0, betrel, brho, bez, kz, zz0
   use mod_settings, only : st_quiet
 
   implicit none
