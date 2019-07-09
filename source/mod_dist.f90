@@ -90,6 +90,8 @@ module mod_dist
   logical, private, save :: dist_readIonA   = .false.
   logical, private, save :: dist_readCharge = .false.
   logical, private, save :: dist_readPDGID  = .false.
+  logical, private, save :: dist_norm4D     = .false.
+  logical, private, save :: dist_norm6D     = .false.
 
 contains
 
@@ -347,6 +349,7 @@ subroutine dist_setColumnFormat(fmtName, fErr)
     call dist_appendFormat(dist_fmtY_NORM, one)     ! Normalised vertical positiom
     call dist_appendFormat(dist_fmtXP_NORM, one)    ! Normalised horizontal angle
     call dist_appendFormat(dist_fmtYP_NORM, one)    ! Normalised vertical angle
+    dist_norm4D = .true.
 
   case("6D_NORM") ! 6D normalised coordinates
     call dist_appendFormat(dist_fmtX_NORM, one)     ! Normalised horizontal position
@@ -355,6 +358,7 @@ subroutine dist_setColumnFormat(fmtName, fErr)
     call dist_appendFormat(dist_fmtYP_NORM, one)    ! Normalised vertical angle
     call dist_appendFormat(dist_fmtSIGMA_NORM, one) ! Normalised longitudinal relative position
     call dist_appendFormat(dist_fmtDPP0_NORM, one)  ! Normalised relative particle momentum (to reference particle)
+    dist_norm6D = .true.
 
   case("IONS") ! The ion columns
     call dist_appendFormat(dist_fmtMASS, c1e3)      ! Particle mass
@@ -742,6 +746,7 @@ end subroutine dist_saveParticle
 ! ================================================================================================ !
 subroutine dist_postprParticles
 
+  use crcoall
   use mod_common
   use mod_common_main
   use physical_constants
@@ -751,7 +756,6 @@ subroutine dist_postprParticles
 
   do i=1,dist_readCols
     select case(dist_colFormat(i))
-
     case(dist_fmtPX)
       yv1(1:napx) = (yv1(1:napx)/ejfv(1:napx))*c1e3
     case(dist_fmtPY)
@@ -764,22 +768,23 @@ subroutine dist_postprParticles
       sigmv(1:napx) = -(e0f/e0)*(sigmv(1:napx)*clight)
     case(dist_fmtDEE0)
       ejv(1:napx) = (one + ejv(1:napx))*e0
-
-    case(dist_fmtX_NORM)
-      return
-    case(dist_fmtY_NORM)
-      return
-    case(dist_fmtXP_NORM)
-      return
-    case(dist_fmtYP_NORM)
-      return
-    case(dist_fmtSIGMA_NORM)
-      return
-    case(dist_fmtDPP0_NORM)
-      return
-
     end select
   end do
+
+  if(dist_norm4D .and. dist_norm6D) then
+    write(lerr,"(a)") "DIST> ERROR Cannot use both 4D_NORM and 6D_NORM at the same time"
+    call prror
+  end if
+
+  if(dist_norm4D) then
+    ! Normalise 4D
+    continue
+  end if
+
+  if(dist_norm6D) then
+    ! Normalise 6D
+    continue
+  end if
 
 end subroutine dist_postprParticles
 
