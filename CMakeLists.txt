@@ -72,7 +72,6 @@ message(STATUS "Project Binary:   ${PROJECT_BINARY_DIR}")
 
 # Default ON
 option(TILT "Allow elements to be tilted (by error)" ON)
-option(FAST "Which implementation of drifts to use in thin6d" ON)
 option(CRLIBM "Use correctly rounded libmath instead of system libmath" ON)
 option(SIXDA "Build differential algebra version (NOT dynamic aperture!)" ON)
 option(STF "Single Track File: Write all tracks for postprocessing to fort.90 instead of 32 separate files fort.59 to fort.90. Required for >64 particles" ON)
@@ -147,10 +146,6 @@ set(SIXTRACK_FEAT_DA "${CMAKE_SYSTEM_NAME}_${Fortran_COMPILER_NAME}")
 if(NOT TILT)
   set(SIXTRACK_FEAT_CR "notilt_${SIXTRACK_FEAT_CR}")
   set(SIXTRACK_FEAT_DA "notilt_${SIXTRACK_FEAT_DA}")
-endif()
-if(NOT FAST)
-  set(SIXTRACK_FEAT_CR "nofast_${SIXTRACK_FEAT_CR}")
-  set(SIXTRACK_FEAT_DA "nofast_${SIXTRACK_FEAT_DA}")
 endif()
 if(NOT STF)
   set(SIXTRACK_FEAT_CR "nostf_${SIXTRACK_FEAT_CR}")
@@ -281,7 +276,7 @@ set(SIXTRACK_BINARY_NAME_DA "SixDA_${NUM_VERSION}${GIT_BUILD}_${SIXTRACK_FEAT_DA
 # Setting the c pre-processor definitons
 ###################################################################################################
 
-list(APPEND PREPRO_FLAGS_TOOLS TILT FAST BOINC BEAMGAS STF MERLINSCATTER G4COLLIMATION FLUKA CR PYTHIA NAFF)
+list(APPEND PREPRO_FLAGS_TOOLS TILT BOINC BEAMGAS STF MERLINSCATTER G4COLLIMATION FLUKA CR PYTHIA NAFF)
 list(APPEND PREPRO_FLAGS_LIB CRLIBM ROUND_NEAR ROUND_UP ROUND_DOWN ROUND_ZERO CERNLIB HDF5 FIO LIBARCHIVE ROOT HASHLIB ZLIB)
 list(APPEND PREPRO_FLAGS_COMPILE GFORTRAN IFORT NAGFOR WIN32 DEBUG MEMUSAGE)
 
