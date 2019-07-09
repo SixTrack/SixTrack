@@ -1,10 +1,13 @@
 ! ================================================================================================ !
+!
+!  Read a beam distribution
+! ~~~~~~~~~~~~~~~~~~~~~~~~~~
+!
 !  A. Mereghetti and D. Sinuela Pastor, for the FLUKA Team
 !  V.K. Berglyd Olsen, BE-ABP-HSS
-!  Last modified: 2018-10-30
-!  Read a beam distribution
+!  Last modified: 2019-07-09
 !
-!  Format of the input file:
+!  Format of the original DIST input file:
 !    id:         unique identifier of the particle (integer)
 !    gen:        parent ID (integer)
 !    weight:     statistical weight of the particle (double: >0.0)
@@ -20,7 +23,6 @@
 !  NOTA BENE:
 !  - id, gen and weight are assigned by the fluka_mod_init subroutine;
 !  - z and zp are actually useless (but we never know);
-!  - in case the file contains less particle than napx, napx is re-assigned
 !
 ! ================================================================================================ !
 module mod_dist
@@ -45,7 +47,7 @@ module mod_dist
 
   character(len=:), allocatable, private, save :: dist_partLine(:)    ! PARTICLE definitions in the block
   integer,                       private, save :: dist_nParticle = 0  ! Number of PARTICLE keywords in block
-  
+
   integer,                       private, save :: dist_numPart   = 0  ! Number of actual particles generated or read
 
   !  Column formats
@@ -304,7 +306,7 @@ subroutine dist_setColumnFormat(fmtName, fErr)
     call dist_appendFormat(dist_fmtPX, one)
   case("PY/P0","PYP0") ! Relative vertical momentum
     call dist_appendFormat(dist_fmtPY, one)
-  case("SIGMA","DS") ! Longitudinal relative position
+  case("SIGMA") ! Longitudinal relative position
     call dist_unitScale(fmtName, fmtUnit, 1, uFac, fErr)
     call dist_appendFormat(dist_fmtSIGMA, uFac)
   case("DT") ! Time delay
