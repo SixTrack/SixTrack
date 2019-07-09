@@ -60,12 +60,14 @@ module mod_dist
   integer, parameter :: dist_fmtYP          = 14 ! Vertical angle
   integer, parameter :: dist_fmtPX          = 15 ! Horizontal momentum
   integer, parameter :: dist_fmtPY          = 16 ! Vertical momentum
-  integer, parameter :: dist_fmtSIGMA       = 17 ! Longitudinal relative position
-  integer, parameter :: dist_fmtDT          = 18 ! Time delay
-  integer, parameter :: dist_fmtE           = 19 ! Particle energy
-  integer, parameter :: dist_fmtP           = 20 ! Particle momentum
-  integer, parameter :: dist_fmtDEE0        = 21 ! Relative particle energy (to reference particle)
-  integer, parameter :: dist_fmtDPP0        = 22 ! Relative particle momentum (to reference particle)
+  integer, parameter :: dist_fmtPXP0        = 17 ! Relative horizontal momentum
+  integer, parameter :: dist_fmtPYP0        = 18 ! Relative vertical momentum
+  integer, parameter :: dist_fmtSIGMA       = 19 ! Longitudinal relative position
+  integer, parameter :: dist_fmtDT          = 20 ! Time delay
+  integer, parameter :: dist_fmtE           = 21 ! Particle energy
+  integer, parameter :: dist_fmtP           = 22 ! Particle momentum
+  integer, parameter :: dist_fmtDEE0        = 23 ! Relative particle energy (to reference particle)
+  integer, parameter :: dist_fmtDPP0        = 24 ! Relative particle momentum (to reference particle)
 
   ! Normalised Coordinates
   integer, parameter :: dist_fmtX_NORM      = 31 ! Normalised horizontal position
@@ -293,6 +295,10 @@ subroutine dist_setColumnFormat(fmtName, fErr)
   case("PY") ! Vertical momentum
     call dist_unitScale(fmtName, fmtUnit, 3, uFac, fErr)
     call dist_appendFormat(dist_fmtPY, uFac)
+  case("PX/P0","PXP0") ! Relative horizontal momentum
+    call dist_appendFormat(dist_fmtPX, one)
+  case("PY/P0","PYP0") ! Relative vertical momentum
+    call dist_appendFormat(dist_fmtPY, one)
   case("SIGMA","DS") ! Longitudinal relative position
     call dist_unitScale(fmtName, fmtUnit, 1, uFac, fErr)
     call dist_appendFormat(dist_fmtSIGMA, uFac)
@@ -309,19 +315,6 @@ subroutine dist_setColumnFormat(fmtName, fErr)
     call dist_appendFormat(dist_fmtDEE0, one)
   case("DP/P0","DPP0") ! Relative particle momentum (to reference particle)
     call dist_appendFormat(dist_fmtDPP0, one)
-
-  case("X_NORM") ! Normalised horizontal position
-    call dist_appendFormat(dist_fmtX_NORM, one)
-  case("Y_NORM") ! Normalised vertical positiom
-    call dist_appendFormat(dist_fmtY_NORM, one)
-  case("XP_NORM") ! Normalised horizontal angle
-    call dist_appendFormat(dist_fmtXP_NORM, one)
-  case("YP_NORM") ! Normalised vertical angle
-    call dist_appendFormat(dist_fmtYP_NORM, one)
-  case("SIGMA_NORM","DS_NORM") ! Normalised longitudinal relative position
-    call dist_appendFormat(dist_fmtSIGMA_NORM, one)
-  case("DP/P0_NORM","DPP0_NORM") ! Normalised relative particle momentum (to reference particle)
-    call dist_appendFormat(dist_fmtDPP0_NORM, one)
 
   case("MASS","M") ! Particle mass
     call dist_unitScale(fmtName, fmtUnit, 3, uFac, fErr)
@@ -661,56 +654,78 @@ subroutine dist_saveParticle(partNo, colNo, inVal, sErr)
 
   case(dist_fmtNONE)
     return
+
   case(dist_fmtPartID)
     call chr_cast(inVal, partID(partNo), sErr)
+
   case(dist_fmtParentID)
     call chr_cast(inVal, parentID(partNo), sErr)
+
+  !  Transverse Coordinates
+  ! ========================
 
   case(dist_fmtX, dist_fmtX_NORM)
     call chr_cast(inVal, xv1(partNo), sErr)
     xv1(partNo) = xv1(partNo) * dist_colScale(colNo)
+
   case(dist_fmtY, dist_fmtY_NORM)
     call chr_cast(inVal, xv2(partNo), sErr)
     xv2(partNo) = xv2(partNo) * dist_colScale(colNo)
-  case(dist_fmtXP, dist_fmtPX, dist_fmtXP_NORM)
+
+  case(dist_fmtXP, dist_fmtPX, dist_fmtPXP0, dist_fmtXP_NORM)
     call chr_cast(inVal, yv1(partNo), sErr)
     yv1(partNo) = yv1(partNo) * dist_colScale(colNo)
-  case(dist_fmtYP, dist_fmtPY, dist_fmtYP_NORM)
+
+  case(dist_fmtYP, dist_fmtPY, dist_fmtPYP0, dist_fmtYP_NORM)
     call chr_cast(inVal, yv2(partNo), sErr)
     yv2(partNo) = yv2(partNo) * dist_colScale(colNo)
+
+  !  Longitudinal Coordinates
+  ! ==========================
 
   case(dist_fmtSIGMA, dist_fmtDT, dist_fmtSIGMA_NORM)
     call chr_cast(inVal, sigmv(partNo), sErr)
     sigmv(partNo) = sigmv(partNo) * dist_colScale(colNo)
+
   case(dist_fmtE)
     call chr_cast(inVal, ejv(partNo), sErr)
     ejv(partNo)    = ejv(partNo) * dist_colScale(colNo)
     dist_updtEFrom = 1
+
   case(dist_fmtP)
     call chr_cast(inVal, ejfv(partNo), sErr)
     ejfv(partNo)   = ejfv(partNo) * dist_colScale(colNo)
     dist_updtEFrom = 2
+
   case(dist_fmtDEE0)
     call chr_cast(inVal, ejv(partNo), sErr)
     ejv(partNo)    = ejv(partNo) * dist_colScale(colNo)
     dist_updtEFrom = 1
+
   case(dist_fmtDPP0, dist_fmtDPP0_NORM)
     call chr_cast(inVal, dpsv(partNo), sErr)
     dist_updtEFrom = 3
+
+  !  Ion Columns
+  ! =============
 
   case(dist_fmtMASS)
     call chr_cast(inVal, nucm(partNo), sErr)
     nucm(partNo)  = nucm(partNo) * dist_colScale(colNo)
     dist_readMass = .true.
+
   case(dist_fmtCHARGE)
     call chr_cast(inVal, nqq(partNo), sErr)
     dist_readCharge = .true.
+
   case(dist_fmtIonA)
     call chr_cast(inVal, naa(partNo), sErr)
     dist_readIonA = .true.
+
   case(dist_fmtIonZ)
     call chr_cast(inVal, nzz(partNo), sErr)
     dist_readIonZ = .true.
+
   case(dist_fmtPDGID)
     call chr_cast(inVal, pdgid(partNo), sErr)
     dist_readPDGID = .true.
@@ -741,6 +756,10 @@ subroutine dist_postprParticles
       yv1(1:napx) = (yv1(1:napx)/ejfv(1:napx))*c1e3
     case(dist_fmtPY)
       yv2(1:napx) = (yv2(1:napx)/ejfv(1:napx))*c1e3
+    case(dist_fmtPXP0)
+      yv1(1:napx) = ((yv1(1:napx)*e0f)/ejfv(1:napx))*c1e3
+    case(dist_fmtPYP0)
+      yv2(1:napx) = ((yv2(1:napx)*e0f)/ejfv(1:napx))*c1e3
     case(dist_fmtDT)
       sigmv(1:napx) = -(e0f/e0)*(sigmv(1:napx)*clight)
     case(dist_fmtDEE0)
@@ -796,7 +815,7 @@ subroutine dist_finaliseDist
   mtc(1:napx)   = (nqq(1:napx)*nucm0)/(qq0*nucm(1:napx))
 
   ! If we have no energy arrays, we set all energies from deltaP = 0, that is reference momentum/energy
-  call part_updatePartEnergy(dist_updtEFrom)
+  call part_updatePartEnergy(dist_updtEFrom,.false.)
 
   if(dist_readIonA .and. dist_readIonZ .and. .not. dist_readPDGID) then
     do j=1,napx
