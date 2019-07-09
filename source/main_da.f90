@@ -65,9 +65,6 @@ program mainda
 #ifdef TILT
   featList = featList//" TILT"
 #endif
-#ifdef FAST
-  featList = featList//" FAST"
-#endif
 #ifdef STF
   featList = featList//" STF"
 #endif
