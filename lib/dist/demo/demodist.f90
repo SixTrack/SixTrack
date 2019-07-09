@@ -43,8 +43,8 @@ program demodist
       closed(1)=10
       
 
-      filename = 'file.txt'
-      fileout  = 'out.txt'
+      filename = '../format_example1.txt'
+      fileout  = 'format1_out.txt'
       ! Initialize 3 distributions with dimenstion 6
 
       call dist_initializedistribution(3)
@@ -59,6 +59,16 @@ program demodist
       do i=1,npart
         print *, x(i),y(i),sigma(i)
       enddo
+      strlen = LEN_TRIM(fileout) 
+      call dist_writefile(fileout, strlen)
+
+! Reads the track file (added mass 2 it)
+      call dist_initializedistribution(2)
+      filename = '../out_test-track_ap_collimator.obs0001.p0001'
+      strlen = LEN_TRIM(filename) 
+      call dist_readfile(filename,strlen)
+
+      fileout = 'fromMadx_out.txt'
       strlen = LEN_TRIM(fileout) 
       call dist_writefile(fileout, strlen)
 

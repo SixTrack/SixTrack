@@ -12,7 +12,7 @@ void print2file(const char* nameoffile){
 
    FILE * fp;
    /* open the file for writing*/
-   fp = fopen ("myoutfile.txt","w");
+   fp = fopen (nameoffile,"w");
    fprintf (fp, "@ mass0 %f \n",dist->ref->mass0);
    fprintf (fp, "@ charge0 %d \n",dist->ref->charge0);
    fprintf (fp, "@ z0 %d \n",dist->ref->z0);

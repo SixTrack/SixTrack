@@ -1,0 +1,7 @@
+!This is a comment that is not read. 
+@ energy0[Tev] 34.0
+@ mass0 2.01
+X[mm] px y py zeta deltap 
+0 1 1 2 3 0
+4 5 4 9 1 0
+4 5 100.9 9.2 10 0

@@ -85,8 +85,8 @@ int readfile(const char*  filename){
         }
       }
     }
-    else if(strncmp(line, "!", 1)==0){
-          printf("Comment line %s is read but ignored by the dist lib. \n", line );
+    else if(strncmp(line, "!", 1)==0 || strncmp(line, "$", 1)==0){
+          printf("Comment line %s \n", line );
         }
         else if(strncmp(line, "!", 1)!=0 && linecount==-1){
           
@@ -218,7 +218,7 @@ void allocateincoord(int linecount){
     dist->incoord[i]->normalized = (double*)malloc(dim*sizeof(double));
     dist->incoord[i]->action = (double*)malloc(dim*sizeof(double));
     dist->incoord[i]->nonstandard = (double*)malloc(9*sizeof(double));
-    
+
     dist->incoord[i]->mass=0;
     dist->incoord[i]->a=0;
     dist->incoord[i]->z=0;
@@ -361,7 +361,7 @@ void fillcoordstructure(int numcolum, char columns[MAX_COLUMNS][MAX_LENGTH], cha
       checkifenergyset(2);
       setnonstandard(2, i, table);
     }
-    else if(strcmp(columns[i], "ptau")==0){
+    else if(strcmp(columns[i], "ptau")==0 || strcmp(columns[i], "pt")==0 ){
       checkifenergyset(3);
       setnonstandard(3, i, table);
     }
@@ -370,7 +370,7 @@ void fillcoordstructure(int numcolum, char columns[MAX_COLUMNS][MAX_LENGTH], cha
       multifactor = getMetricUnit(units[i]);
       setnonstandard(4, i, table);
     }
-    else if(strcmp(columns[i], "tau")==0){
+    else if(strcmp(columns[i], "tau")==0 || strcmp(columns[i], "t")==0 ){
       checkiftimeset(3);
       multifactor = getMetricUnit(units[i]);
       setnonstandard(5, i, table);
