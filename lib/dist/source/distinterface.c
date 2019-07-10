@@ -9,26 +9,6 @@
 #include "file_reader.h"
 
 
-
-void getrefpara(double *energy0, double *mass0, int *a0, int *z0){
-    *energy0=dist->ref->e0;
-    *mass0=dist->ref->mass0;
-    *a0=dist->ref->a0;
-    *z0=dist->ref->z0;
-}
-int readfile_f(const char*  filename_in, int strlen){
-    char filename [strlen];
-    strncpy(filename, filename_in, strlen);
-    filename[strlen] = '\0';
-    readfile(filename);
-}
-
-int writefile_f(const char*  filename_in, int strlen){
-    char filename [strlen];
-    strncpy(filename, filename_in, strlen);
-    filename[strlen] = '\0';
-    print2file(filename);
-}
 /*
 This allocates the the memory for the distributions
 */
@@ -80,9 +60,30 @@ void initializedistribution(int numberOfDist){
 
 }
 
+void sete0andmass0(double energy0, double mass0){
+
+}
+
 void setdistribution(int ndist){
 		dist = diststart + ndist;
 }
+
+void setemitt12(double e1, double e2){
+
+}
+
+void setemitt3(double e3){
+    
+}
+
+void settasmatrix(double * tas){
+
+}
+
+void setnormalizedcoords(double *xn, double *xnp, double *yn, double *ynp, double *zn, double *znp, int *totparticles){
+
+}
+
 
 void addclosedorbit(double *clo){
 	for(int i=0; i<dim;i++){
@@ -105,7 +106,6 @@ void setnormalizedcut(int variable, double min, double max){
 	dist->cuts2apply->normalized[variable-1]->isset=1;
 
 }
-
 void get6trackcoord(double *x, double *xp, double *y, double *yp, double *sigma, double *deltap, int *totparticles){
     double tmp[6];
     if(dist->isDistrcalculated ==0){
@@ -122,5 +122,26 @@ void get6trackcoord(double *x, double *xp, double *y, double *yp, double *sigma,
         deltap[i] = tmp[5];
    }
     *totparticles=dist->totoutcoord;
-
 }
+
+void getrefpara(double *energy0, double *mass0, int *a0, int *z0){
+    *energy0=dist->ref->e0;
+    *mass0=dist->ref->mass0;
+    *a0=dist->ref->a0;
+    *z0=dist->ref->z0;
+}
+int readfile_f(const char*  filename_in, int strlen){
+    char filename [strlen];
+    strncpy(filename, filename_in, strlen);
+    filename[strlen] = '\0';
+    readfile(filename);
+}
+
+int writefile_f(const char*  filename_in, int strlen){
+    char filename [strlen];
+    strncpy(filename, filename_in, strlen);
+    filename[strlen] = '\0';
+    print2file(filename);
+}
+
+

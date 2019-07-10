@@ -57,5 +57,31 @@ subroutine dist_get6trackcoord(x,xp,y,yp,sigma,deltap,npart) bind(C, name="get6t
   integer(kind=C_INT), intent(inout) :: npart
 end subroutine dist_get6trackcoord
 
+subroutine dist_sete0andmass0(energy0, mass0) bind(C, name="sete0andmass0")
+  use, intrinsic :: iso_c_binding
+  real(kind=C_DOUBLE),value, intent(in) :: energy0, mass0
+end subroutine dist_sete0andmass0
+
+subroutine dist_setemitt12(emitt1, emitt2) bind(C, name="setemitt12")
+  use, intrinsic :: iso_c_binding
+  real(kind=C_DOUBLE),value, intent(in) :: emitt1, emitt2
+end subroutine dist_setemitt12
+
+subroutine dist_setemitt3(emitt3) bind(C, name="setemitt3")
+  use, intrinsic :: iso_c_binding
+  real(kind=C_DOUBLE),value, intent(in) :: emitt3
+end subroutine dist_setemitt3
+
+subroutine dist_settasmatrix(tas) bind(C, name="settasmatrix")
+  use, intrinsic :: iso_c_binding
+  real(kind=C_DOUBLE),dimension(36), intent(in) :: tas
+end subroutine dist_settasmatrix
+
+subroutine dist_setnormalizedcoords(xn,xnp,yn,ynp,zn,znp,npart) bind(C, name="setnormalizedcoords")
+  use, intrinsic :: iso_c_binding
+  real(kind=C_DOUBLE),dimension(*), intent(in) :: xn,xnp,yn,ynp,zn,znp
+  integer(kind=C_INT), intent(in) :: npart
+end subroutine dist_setnormalizedcoords
+
 end interface 
 end module
