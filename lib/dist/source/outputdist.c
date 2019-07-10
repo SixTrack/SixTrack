@@ -20,7 +20,7 @@ void print2file(const char* nameoffile){
    fprintf (fp, "@ pc0 %f \n",dist->ref->pc0);
 
    fprintf(fp, "x px y py zeta deltap \n");
-   gen2sixcoord();
+   gensixcanonical();
    for(int i=0; i<dist->totoutcoord; i++){
    	fprintf(fp, "%.9e %.9e %.9e %.9e %.9e %.9e \n", dist->outcoord[i]->physical[0],dist->outcoord[i]->physical[1],dist->outcoord[i]->physical[2],
    		dist->outcoord[i]->physical[3],dist->outcoord[i]->physical[4],dist->outcoord[i]->physical[5]);

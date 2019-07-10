@@ -6,7 +6,7 @@ struct distparam
 	double **tas;
 	double **invtas;
 	double *closedorbit;
-	int coordtype; // This tells which type of coordinates the input is given.  // 1-Normalized
+	int incoordtype; // This tells which type of coordinates the input is given.  // 0-action angle, 1-Normalized, 2-physical, 3-mixed action angle and physical (lat)
 	struct coordinates** incoord;
 	struct coordinates** outcoord;
 	int totincoord;
@@ -70,6 +70,10 @@ struct appliedcut{
 //void action2sixinternal_(double tc[6], double *results, double *normalized);
 //int checkdist();
 //void createrandomdist_();
-void gen2sixcoord();
+void gensixcanonical();
 int particle_within_limits_physical(double *physical);
 int particle_within_limits_normalized(double *normalized);
+void generatefromnormalized();
+void generatefrommixed();
+void generatefromaction();
+void generatefromphysical();

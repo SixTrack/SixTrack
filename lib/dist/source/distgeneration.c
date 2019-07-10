@@ -8,11 +8,36 @@
 #include "outputdist.h"
 
 
-/*At the moment this basically just copies (place holder for next version)*/
-void gen2sixcoord(){
+
+void gensixcanonical(){
+    if(dist->incoordtype==0){ // action angle
+        generatefromaction();
+    }
+    else if(dist->incoordtype==1){ //normalized coordinates
+        generatefromnormalized();
+    }
+    else if(dist->incoordtype==2){ //physical coord
+        generatefromphysical();
+    }
+    else if(dist->incoordtype==3){ // mixed coord
+        generatefrommixed();
+    }
+}
+
+void generatefromnormalized(){
+    
+
+}
+void generatefrommixed(){
+
+}
+void generatefromaction(){
+    
+}
+
+void generatefromphysical(){
     int counter = 0;
     double tc[dim];
-    double tmp[dim];
     double tmp_n[dim];
 
     for(int i =0; i< dist->totincoord; i++){
@@ -24,7 +49,7 @@ void gen2sixcoord(){
         tc[4]=dist->incoord[i]->physical[4];
         tc[5]=dist->incoord[i]->physical[5];
         
-        if(particle_within_limits_physical(tmp)==1){
+        if(particle_within_limits_physical(tc)==1){
             for(int p=0; p<dim; p++){
                 dist->outcoord[counter]->physical[p] = tc[p];
             }
@@ -37,7 +62,9 @@ void gen2sixcoord(){
     }
     dist->totoutcoord=counter;
     dist->isDistrcalculated=1;
+
 }
+
 /*Checks if the particle is within the physical limit set by the user*/
 int particle_within_limits_physical(double *physical){
     
