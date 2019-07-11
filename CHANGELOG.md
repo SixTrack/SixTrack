@@ -1,5 +1,31 @@
 # SixTrack Changelog
 
+### Version 5.3.0 [11.07.2019] - Release
+
+**Bug Fixes**
+
+* The Fortran `.eqv.` operator has a lower precedence than `.eq.`. This was not accounted for in the `SETTINGS` block when the particle summary output after tracking is requested. PR #902 (V.K. Berglyd Olsen, A. Mereghetti)
+* Fixed an issue where the wrong index value was written to the `fort.208` file used in the FLUKA coupling, making the file useless. PR #911 (A. Gorzawski, A. Mereghetti)
+
+**User Side Changes**
+
+* A new Collimation Database file format is now supported by the Collimation module. The new format is column-wise as opposed to the old single column file. The old database is converted for the user to the new format and written to a file with the same name as the old database but `.new` added to it. The new format is in preparation for adding new collimator types to the database. PR #903 (V.K. Berglyd Olsen, A. Mereghetti)
+* A Geant4 block `GNT4` has been added in order to use Geant4 with the collimation module. The features are enabled by building with the `G4COLLIMATION` flag. PR #713 (J. Molson, A. Mereghetti, K. Sjobak)
+* SixTrack can now track any particle with a charge. The charge setting that exists in the `SIMU` block, and has been added to the `HION` block, now properly separates the particle charge from the ion Z value. PR #713 (J. Molson, A. Mereghetti, K. Sjobak)
+
+**Build System**
+
+* Fixes to ARM and OSX builds. PR #901 (J. Molson)
+* Removed the .exe in the middle of the file name when building on Windows. PR #900 (V.K. Berglyd Olsen)
+* The `ZLIB` flag is now on by default, meaning the `ZIPF` block also works by default. PR #899 (V.K. Berglyd Olsen)
+* The NAFFlib submodule is updated by default during build if the user has git installed. PR #899 (V.K. Berglyd Olsen)
+* Some minor tweaks to the build system were made to support AVX-512. Seems to work best when building with Intel's Fortran compiler. PR #898 (V.K. Berglyd Olsen)
+
+**Code Improvements and Changes**
+
+* The `FAST` compiler flag and code has been removed. PR #914 (R. De Maria)
+* The collimation beam distribution generator has been moved to a separate module named `coll_dist` and undergone a significant cleanup. A number of now redundant particle arrays have been removed in the process. PR #885 (V.K. Berglyd Olsen)
+
 ### Version 5.2.10 [13.06.2019] - Release
 
 **Bug Fixes**
