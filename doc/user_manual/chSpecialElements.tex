@@ -2219,6 +2219,86 @@ NEXT----------------------------------------------------------------------------
 \end{longtable}
 \end{center}
 
+\subsection{Collimation with Geant4}
+
+It is possible to use the beam-material scattering physics engine from Geant4 with SixTrack.
+To do this, the G4COLLIMATION flag must be added at build time, with an appropriate Geant4 library exiting in your path.
+Many standard collimation features are currently not implemented.
+Particle longitudinal dynamics are also not currently implemented.
+The \texttt{GNT4} block specified below must be used in addition to the standard collimation block. \index{GNT4} \index{Geant4}
+
+\bigskip
+\begin{tabular}{@{}lp{0.8\linewidth}}
+    \textbf{Keyword}    & \texttt{GNT4}\index{GNT4} \\
+    \textbf{Data lines} & Variable, see below. \\
+    \textbf{Format}     & This module uses a keyword, value format. See below.
+\end{tabular}
+
+\bigskip
+
+\paragraph{Select Physics list} \texttt{PHYSICS phys}\\
+
+The \texttt{PHYSICS} flag selects which physics list to use in Geant4.
+Currently FTFP\_BERT and QGSP\_BERT are allowed.
+If no flag is specified, the simulation will default to FTFP\_BERT.
+
+\bigskip
+\begin{tabular}{@{}llp{0.7\linewidth}}
+    \texttt{phys} & char    & The name of the physics list to use.
+\end{tabular}
+
+\paragraph{Select particles to return to SixTrack} \texttt{RETURN type}\\
+
+The \texttt{RETURN} flag selects which types of particles to return back to SixTrack after performing collimation.
+Only charged particles are returned; neutral particles are always killed.
+Possible options are \texttt{STABLE}, which will return all stable particles, \texttt{IONS}, which takes back all ions (not including protons), and to specify by individual PDG id numbers.
+Both particles and anti-particles should be specified separately.
+Multiple copies of the \texttt{RETURN} flag can be used to precisely select which particles are of interest.
+
+If no flag is specified, all particles are returned, including ones that should decay.
+
+\bigskip
+\begin{tabular}{@{}llp{0.7\linewidth}}
+    \texttt{type} & char/int & The particles to send back to SixTrack after tracking through Geant4.
+\end{tabular}
+
+
+\paragraph{Select relative energy cut} \texttt{RELENERGYCUT cut}\\
+
+The \texttt{RELENERGYCUT} flag selects an energy cut as a fraction of the energy of the reference particle.
+For example, 0.5 will cut at half the energy of the reference particle.
+
+\bigskip
+\begin{tabular}{@{}llp{0.7\linewidth}}
+    \texttt{cut} & float    & The cut value to use.
+\end{tabular}
+
+\paragraph{Select absolute energy cut} \texttt{ABSENERGYCUT cut}\\
+
+The \texttt{ABSENERGYCUT} flag selects an absolute energy cut, and if a particle's energy goes below this value, it will be killed.
+This value is specified in GeV.
+
+\bigskip
+\begin{tabular}{@{}llp{0.7\linewidth}}
+    \texttt{cut} & float    & The cut value to use in GeV.
+\end{tabular}
+
+\paragraph{Select range cut} \texttt{RANGECUT\_MM cut}\\
+
+The \texttt{RANGECUT\_MM} flag selects a range cut for particle production in Geant4.
+This value is specified in mm.
+The unit of this cut may change in the future.
+
+\bigskip
+\begin{tabular}{@{}llp{0.7\linewidth}}
+    \texttt{cut} & float    & The cut value to use in mm.
+\end{tabular}
+
+\paragraph{Enable debugging output} \texttt{DEBUG}\\
+
+The \texttt{DEBUG} flag enables some additional debugging output in Geant4.
+Warning: the level of output can be very verbose with a large number of particles.
+
 % ================================================================================================================================ %
 
 \section{Fringe Fields} \label{sec:ffield}
