@@ -75,7 +75,8 @@ option(TILT "Allow elements to be tilted (by error)" ON)
 option(CRLIBM "Use correctly rounded libmath instead of system libmath" ON)
 option(SIXDA "Build differential algebra version (NOT dynamic aperture!)" ON)
 option(STF "Single Track File: Write all tracks for postprocessing to fort.90 instead of 32 separate files fort.59 to fort.90. Required for >64 particles" ON)
-option(NAFF "Link to external NAFFlib for FMA." ON)
+option(NAFF "Link to external NAFFlib for FMA" ON)
+option(DISTLIB "Link to external DISTlib for the beam distribution" ON)
 option(HASHLIB "Build the md5 hash library" ON)
 option(ZLIB "Build and link zlib. Needed for BOINC and ZIPF block" ON)
 
@@ -277,7 +278,7 @@ set(SIXTRACK_BINARY_NAME_DA "SixDA_${NUM_VERSION}${GIT_BUILD}_${SIXTRACK_FEAT_DA
 ###################################################################################################
 
 list(APPEND PREPRO_FLAGS_TOOLS TILT BOINC BEAMGAS STF MERLINSCATTER G4COLLIMATION FLUKA CR PYTHIA NAFF)
-list(APPEND PREPRO_FLAGS_LIB CRLIBM ROUND_NEAR ROUND_UP ROUND_DOWN ROUND_ZERO CERNLIB HDF5 FIO LIBARCHIVE ROOT HASHLIB ZLIB)
+list(APPEND PREPRO_FLAGS_LIB CRLIBM ROUND_NEAR ROUND_UP ROUND_DOWN ROUND_ZERO CERNLIB HDF5 FIO LIBARCHIVE ROOT HASHLIB ZLIB DISTLIB)
 list(APPEND PREPRO_FLAGS_COMPILE GFORTRAN IFORT NAGFOR WIN32 DEBUG MEMUSAGE)
 
 ###################################################################################################
@@ -908,8 +909,7 @@ if(${CMAKE_C_COMPILER_ID} MATCHES "Intel")
 
 endif()
 
-#AppleClang
-#Copied from GNU for now
+# AppleClang
 if(${CMAKE_C_COMPILER_ID} MATCHES "AppleClang")
 
   if(${CMAKE_SYSTEM_PROCESSOR} MATCHES aarch64 )
@@ -968,7 +968,7 @@ if(${CMAKE_CXX_COMPILER_ID} MATCHES "GNU")
   set (CMAKE_CXX_FLAGS_DEBUG   "-O0 -g")
 
   if(LTO)
-#	set(CMAKE_CXX_LINK_EXECUTABLE "")
+    # set(CMAKE_CXX_LINK_EXECUTABLE "")
     set(CMAKE_Fortran_CXX_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -flto -Wl,-flto")
   endif(LTO)
 
@@ -1231,6 +1231,44 @@ if(MERLINSCATTER)
   endif(64BIT)
 endif()
 
+# Build DISTlib
+if(DISTLIB)
+  if(NOT EXISTS ${CMAKE_SOURCE_DIR}/lib/DISTlib/source/distinterface.c)
+    if(GIT_FOUND)
+      message(STATUS "Checking out DISTlib submodule")
+      execute_process(
+        COMMAND ${GIT_EXECUTABLE} submodule update --init lib/DISTlib
+        WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
+        RESULT_VARIABLE GIT_SUBMOD_RESULT
+        ERROR_QUIET
+      )
+      if(NOT GIT_SUBMOD_RESULT EQUAL "0")
+        message(FATAL_ERROR "git submodule update --init lib/DISTlib failed with ${GIT_SUBMOD_RESULT}, please checkout submodules")
+      endif()
+    else()
+      message(FATAL_ERROR "The git submodules DISTlib is not available. Please download it into lib/DISTlib")
+    endif()
+  endif()
+
+  file(GLOB DIST_SOURCES ${CMAKE_SOURCE_DIR}/lib/DISTlib/source/*.c)
+  add_library(distlib STATIC ${DIST_SOURCES})
+  target_include_directories(distlib PRIVATE ${CMAKE_SOURCE_DIR}/lib/DISTlib/source)
+  if(CRLIBM)
+    target_include_directories(distlib PRIVATE ${CMAKE_SOURCE_DIR}/source/crlibm)
+    target_include_directories(distlib PRIVATE ${CMAKE_SOURCE_DIR}/source/roundctl)
+    target_compile_options(distlib PRIVATE -DCRLIBM)
+    target_link_libraries(distlib crlibm)
+  endif()
+
+  if(32BIT)
+    set_target_properties(distlib PROPERTIES LINK_FLAGS "-m32")
+  endif(32BIT)
+  if(64BIT)
+    set_target_properties(distlib PROPERTIES LINK_FLAGS "-m64")
+  endif(64BIT)
+
+endif(DISTLIB)
+
 # Build NAFFlib
 if(NAFF)
   if(NOT EXISTS ${CMAKE_SOURCE_DIR}/lib/NAFFlib/NAFFlib/interface/naff_sixtrack_interface.c)
@@ -1483,6 +1521,10 @@ endif(MERLINSCATTER)
 if(NAFF)
   target_link_libraries(SixTrackCore naff)
 endif(NAFF)
+
+if(DISTLIB)
+  target_link_libraries(SixTrackCore distlib)
+endif(DISTLIB)
 
 #if we are using root, link to all the root libraries
 if(ROOT)
