@@ -1257,7 +1257,7 @@ if(DISTLIB)
     target_include_directories(distlib PRIVATE ${CMAKE_SOURCE_DIR}/source/crlibm)
     target_include_directories(distlib PRIVATE ${CMAKE_SOURCE_DIR}/source/roundctl)
     target_compile_options(distlib PRIVATE -DCRLIBM)
-    target_link_libraries(distlib crlibm)
+    target_link_libraries(distlib crlibm roundctl)
   endif()
 
   if(32BIT)

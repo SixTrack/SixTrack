@@ -15,15 +15,18 @@ module mod_dist
   use crcoall
   use floatPrecision
   use parpro, only : mFileName
+  use numerical_constants, only : zero
 
   implicit none
 
-  logical,                  public,  save :: dist_enable    = .false. ! DIST input block given
-  logical,                  private, save :: dist_echo      = .false. ! Echo the read distribution?
-  logical,                  private, save :: dist_hasFormat = .false. ! Whether the FORMAT keyword exists in block or not
-  logical,                  private, save :: dist_libRead   = .false. ! Read file with dist library instead of internal reader
-  character(len=mFileName), private, save :: dist_distFile  = " "     ! File name for reading the distribution
-  character(len=mFileName), private, save :: dist_echoFile  = " "     ! File name for echoing the distribution
+  logical,                  public,  save :: dist_enable      = .false. ! DIST input block given
+  logical,                  private, save :: dist_echo        = .false. ! Echo the read distribution?
+  logical,                  private, save :: dist_hasFormat   = .false. ! Whether the FORMAT keyword exists in block or not
+  logical,                  private, save :: dist_libRead     = .false. ! Read file with dist library instead of internal reader
+  logical,                  private, save :: dist_distLib     = .false. ! DISTlib is needed to generate the distribution requested
+  character(len=mFileName), private, save :: dist_distFile    = " "     ! File name for reading the distribution
+  character(len=mFileName), private, save :: dist_echoFile    = " "     ! File name for echoing the distribution
+  real(kind=fPrec),         public,  save :: dist_beamEmit(3) = zero    ! Beam emittance for generator and normalisation
 
   integer,          allocatable, private, save :: dist_colFormat(:)   ! The column types in the FORMAT
   real(kind=fPrec), allocatable, private, save :: dist_colScale(:)    ! Scaling factor for the columns
@@ -87,7 +90,7 @@ module mod_dist
   logical, private, save :: dist_readCharge = .false.
   logical, private, save :: dist_readPDGID  = .false.
 
-  ! Arrays to send to DISTlib
+  ! Temporary particle arrays
   real(kind=fPrec), allocatable, private, save :: dist_partCol1(:) ! Ends up in array xv1
   real(kind=fPrec), allocatable, private, save :: dist_partCol2(:) ! Ends up in array yv1
   real(kind=fPrec), allocatable, private, save :: dist_partCol3(:) ! Ends up in array xv2
@@ -95,6 +98,67 @@ module mod_dist
   real(kind=fPrec), allocatable, private, save :: dist_partCol5(:) ! Ends up in array sigmv
   real(kind=fPrec), allocatable, private, save :: dist_partCol6(:) ! Ends up in array dpsv, evj, and ejfv
   integer,                       private, save :: dist_partFmt(6) = dist_fmtNONE ! The format used for each column
+
+#ifdef DISTLIB
+  interface
+
+    subroutine distlib_init(numDist) bind(C, name="initializedistribution")
+      use, intrinsic :: iso_c_binding
+      integer(kind=C_INT), value, intent(in) :: numDist
+    end subroutine distlib_init
+
+    subroutine distlib_readFile(fileName, strLen) bind(C, name="readfile_f")
+      use, intrinsic :: iso_c_binding
+      character(kind=C_CHAR,len=1), intent(in) :: fileName
+      integer(kind=C_INT),   value, intent(in) :: strLen
+    end subroutine distlib_readFile
+
+    subroutine distlib_setEnergyMass(energy0, mass0) bind(C, name="sete0andmass0")
+      use, intrinsic :: iso_c_binding
+      real(kind=C_DOUBLE), value, intent(in) :: energy0
+      real(kind=C_DOUBLE), value, intent(in) :: mass0
+    end subroutine distlib_setEnergyMass
+
+    subroutine distlib_setEmittance12(emit1, emit2) bind(C, name="setemitt12")
+      use, intrinsic :: iso_c_binding
+      real(kind=C_DOUBLE), value, intent(in) :: emit1
+      real(kind=C_DOUBLE), value, intent(in) :: emit2
+    end subroutine distlib_setEmittance12
+
+    subroutine distlib_setEmittance3(emit3) bind(C, name="setemitt3")
+      use, intrinsic :: iso_c_binding
+      real(kind=C_DOUBLE), value, intent(in) :: emit3
+    end subroutine distlib_setEmittance3
+
+    subroutine distlib_setTasMatrix(flatTas) bind(C, name="settasmatrix")
+      use, intrinsic :: iso_c_binding
+      real(kind=C_DOUBLE), dimension(36), intent(in) :: flatTas
+    end subroutine distlib_setTasMatrix
+
+    subroutine distlib_setNormalised(arr1, arr2, arr3, arr4, arr5, arr6, arrLen) bind(C, name="setnormalizedcoords")
+      use, intrinsic :: iso_c_binding
+      real(kind=C_DOUBLE), dimension(*), intent(in) :: arr1
+      real(kind=C_DOUBLE), dimension(*), intent(in) :: arr2
+      real(kind=C_DOUBLE), dimension(*), intent(in) :: arr3
+      real(kind=C_DOUBLE), dimension(*), intent(in) :: arr4
+      real(kind=C_DOUBLE), dimension(*), intent(in) :: arr5
+      real(kind=C_DOUBLE), dimension(*), intent(in) :: arr6
+      integer(kind=C_INT),               intent(in) :: arrLen
+    end subroutine distlib_setNormalised
+
+    subroutine distlib_getPartCoords(arr1, arr2, arr3, arr4, arr5, arr6, arrLen) bind(C, name="get6trackcoord")
+      use, intrinsic :: iso_c_binding
+      real(kind=C_DOUBLE), dimension(*), intent(inout) :: arr1
+      real(kind=C_DOUBLE), dimension(*), intent(inout) :: arr2
+      real(kind=C_DOUBLE), dimension(*), intent(inout) :: arr3
+      real(kind=C_DOUBLE), dimension(*), intent(inout) :: arr4
+      real(kind=C_DOUBLE), dimension(*), intent(inout) :: arr5
+      real(kind=C_DOUBLE), dimension(*), intent(inout) :: arr6
+      integer(kind=C_INT),               intent(inout) :: arrLen
+    end subroutine distlib_getPartCoords
+
+  end interface
+#endif
 
 contains
 
@@ -111,7 +175,10 @@ subroutine dist_generateDist
   use mod_alloc
   use mod_common
   use mod_particles
+  use mod_common_main
   use numerical_constants
+
+  integer distLibPart
 
   call alloc(dist_partCol1, napx, zero, "dist_partCol1")
   call alloc(dist_partCol2, napx, zero, "dist_partCol2")
@@ -120,22 +187,64 @@ subroutine dist_generateDist
   call alloc(dist_partCol5, napx, zero, "dist_partCol5")
   call alloc(dist_partCol6, napx, zero, "dist_partCol6")
 
+#ifdef DISTLIB
+  if(dist_distLib) then
+    call distlib_init(1)
+    call distlib_setEnergyMass(e0, nucm0)
+    call distlib_setEmittance12(dist_beamEmit(1), dist_beamEmit(2))
+    call distlib_setEmittance3(dist_beamEmit(3))
+    block
+      real(kind=fPrec) tmpTas(6,6), flatTas(36)
+      tmpTas(1:6,1:6) = tas(1:6,1:6)
+      tmpTas(1:5,6)   = tmpTas(1:5,6)*c1m3
+      tmpTas(6,1:5)   = tmpTas(6,1:5)*c1e3
+      flatTas = pack(transpose(tmpTas),.true.)
+      call distlib_setTasMatrix(flatTas)
+    end block
+  end if
+#endif
+
   if(dist_nParticle > 0) then
+    ! Particles are read from DIST block in fort.3
     call dist_parseParticles
+    call dist_postprParticles
+  elseif(dist_distFile /= " ") then
+    if(dist_distLib) then
+      ! Particles are read entirely in DISTlib
+#ifdef DISTLIB
+      call distlib_readFile(trim(dist_distFile), len_trim(dist_distFile))
+#endif
+    else
+      call dist_readDist
+      call dist_postprParticles
+    end if
   end if
 
-  if(dist_distFile /= " ") then
-    call dist_readDist
+#ifdef DISTLIB
+  if(dist_distLib) then
+    ! Our final coordinates are taken from DISTlib
+    distLibPart = napx
+    call distlib_getPartCoords(                    &
+      dist_partCol1, dist_partCol2, dist_partCol3, &
+      dist_partCol4, dist_partCol5, dist_partCol6, &
+      distLibPart                                  &
+    )
+    if(distLibPart == napx) then
+      xv1(1:napx)   = dist_partCol1(1:napx)
+      yv1(1:napx)   = dist_partCol2(1:napx)
+      xv2(1:napx)   = dist_partCol3(1:napx)
+      yv2(1:napx)   = dist_partCol4(1:napx)
+      sigmv(1:napx) = dist_partCol5(1:napx)
+      dpsv(1:napx)  = dist_partCol6(1:napx)
+      call part_updatePartEnergy(3,.false.)
+    else
+      write(lerr,"(2(a,i0))") "DIST> ERROR DISTlib returned ",distLibPart," particles, while SixTrack expected ",napx
+      call prror
+    end if
   end if
-
-  if(dist_numPart /= napx) then
-    write(lerr,"(2(a,i0),a)") "DIST> ERROR Number of particles read or generated is ",dist_numPart,&
-      " but the simulation setup requests ",napx," particles"
-    call prror
-  end if
+#endif
 
   if(dist_numPart > 0) then
-    call dist_postprParticles
     call dist_finaliseDist
     call part_applyClosedOrbit
     if(dist_echo) then
@@ -209,9 +318,8 @@ subroutine dist_parseInputLine(inLine, iLine, iErr)
     end if
     dist_distFile = trim(lnSplit(2))
     if(nSplit > 2) call chr_cast(lnSplit(3), dist_libRead, cErr)
-    if(cErr) then
-      iErr = .true.
-      return
+    if(dist_libRead) then
+      dist_distLib = .true.
     end if
 
   case("PARTICLE")
@@ -243,7 +351,23 @@ subroutine dist_parseInputLine(inLine, iLine, iErr)
     iErr = .true.
     return
 
+  case("EMIT","EMITTANCE")
+    if(nSplit /= 3 .and. nSplit /= 4) then
+      write(lerr,"(a,i0)") "DIST> ERROR EMITTANCE takes 2 or 3 arguments, got ",nSplit-1
+      write(lerr,"(a)")    "DIST>       EMITTANCE emit1 emit2 [emit3]"
+      iErr = .true.
+      return
+    end if
+    if(nSplit > 1) call chr_cast(lnSplit(2), dist_beamEmit(1), cErr)
+    if(nSplit > 2) call chr_cast(lnSplit(3), dist_beamEmit(2), cErr)
+    if(nSplit > 3) call chr_cast(lnSplit(4), dist_beamEmit(3), cErr)
+
   end select
+
+  if(cErr) then
+    iErr = .true.
+    return
+  end if
 
 end subroutine dist_parseInputLine
 
@@ -352,32 +476,44 @@ subroutine dist_setColumnFormat(fmtName, fErr)
 
   case("XN")
     call dist_appendFormat(dist_fmtXN,       one,  1)
+    dist_distLib = .true.
   case("YN")
     call dist_appendFormat(dist_fmtYN,       one,  3)
+    dist_distLib = .true.
   case("ZN")
     call dist_appendFormat(dist_fmtZN,       one,  5)
+    dist_distLib = .true.
   case("PXN")
     call dist_appendFormat(dist_fmtPXN,      one,  2)
+    dist_distLib = .true.
   case("PYN")
     call dist_appendFormat(dist_fmtPYN,      one,  4)
+    dist_distLib = .true.
   case("PZN")
     call dist_appendFormat(dist_fmtPZN,      one,  6)
+    dist_distLib = .true.
 
   case("JX")
     call dist_appendFormat(dist_fmtJX,       one,  1)
+    dist_distLib = .true.
   case("JY")
     call dist_appendFormat(dist_fmtJY,       one,  3)
+    dist_distLib = .true.
   case("JZ")
     call dist_appendFormat(dist_fmtJZ,       one,  5)
+    dist_distLib = .true.
   case("PHIX")
     call dist_unitScale(fmtName, fmtUnit, 2, uFac, fErr)
     call dist_appendFormat(dist_fmtPhiX,     uFac, 2)
+    dist_distLib = .true.
   case("PHIY")
     call dist_unitScale(fmtName, fmtUnit, 2, uFac, fErr)
     call dist_appendFormat(dist_fmtPhiY,     uFac, 4)
+    dist_distLib = .true.
   case("PHIZ")
     call dist_unitScale(fmtName, fmtUnit, 2, uFac, fErr)
     call dist_appendFormat(dist_fmtPhiZ,     uFac, 6)
+    dist_distLib = .true.
 
   case("MASS","M")
     call dist_unitScale(fmtName, fmtUnit, 3, uFac, fErr)
@@ -412,6 +548,7 @@ subroutine dist_setColumnFormat(fmtName, fErr)
     call dist_appendFormat(dist_fmtPYN,      one,  4)
     call dist_appendFormat(dist_fmtZN,       one,  5)
     call dist_appendFormat(dist_fmtPZN,      one,  6)
+    dist_distLib = .true.
 
   case("ACTION") ! 6D action
     call dist_appendFormat(dist_fmtJX,       one,  1)
@@ -420,6 +557,7 @@ subroutine dist_setColumnFormat(fmtName, fErr)
     call dist_appendFormat(dist_fmtPhiY,     one,  4)
     call dist_appendFormat(dist_fmtJZ,       one,  5)
     call dist_appendFormat(dist_fmtPhiZ,     one,  6)
+    dist_distLib = .true.
 
   case("IONS") ! The ion columns
     call dist_appendFormat(dist_fmtMASS,     c1e3, 0)
@@ -450,8 +588,17 @@ subroutine dist_setColumnFormat(fmtName, fErr)
   case default
     write(lerr,"(a)") "DIST> ERROR Unknown column format '"//trim(fmtName)//"'"
     fErr = .true.
+    return
 
   end select
+
+#ifndef DISTLIB
+  if(dist_distLib) then
+    write(lerr,"(a)") "DIST> ERROR Format '"//trim(fmtName)//"' requires SixTrack to be built with DISTLIB enabled"
+    fErr = .true.
+    return
+  end if
+#endif
 
 end subroutine dist_setColumnFormat
 
@@ -914,20 +1061,25 @@ subroutine dist_postprParticles
     doAction = .true.
   end select
 
+#ifdef DISTLIB
   if(doNormal .and. doAction) then
     write(lerr,"(a)") "DIST> ERROR Cannot mix normalised and action coordinates"
     call prror
   end if
 
   if(doNormal) then
-    ! Call DISTlib
-    continue
+    call distlib_setNormalised(                    &
+      dist_partCol1, dist_partCol2, dist_partCol3, &
+      dist_partCol4, dist_partCol5, dist_partCol6, &
+      napx                                         &
+    )
   end if
 
   if(doAction) then
     ! Call DISTlib
     continue
   end if
+#endif
 
 end subroutine dist_postprParticles
 
@@ -941,13 +1093,19 @@ subroutine dist_finaliseDist
   use parpro
   use mod_pdgid
   use mod_common
-  use mod_particles
   use mod_common_main
   use mod_common_track
   use numerical_constants
 
   real(kind=fPrec) chkP, chkE
   integer j
+
+  ! Finish the ION bits
+  if(dist_numPart /= napx) then
+    write(lerr,"(2(a,i0),a)") "DIST> ERROR Number of particles read or generated is ",dist_numPart,&
+      " but the simulation setup requests ",napx," particles"
+    call prror
+  end if
 
   if(dist_readIonA .neqv. dist_readIonZ) then
     write(lerr,"(a)") "DIST> ERROR ION_A and ION_Z columns have to both be present if one of them is"
@@ -957,13 +1115,7 @@ subroutine dist_finaliseDist
   if(dist_readIonZ .and. .not. dist_readCharge) then
     nqq(1:napx) = nzz(1:napx)
   end if
-
-  pstop(1:napx) = .false.
-! ejf0v(1:napx) = ejfv(1:napx)
-  mtc(1:napx)   = (nqq(1:napx)*nucm0)/(qq0*nucm(1:napx))
-
-  ! If we have no energy arrays, we set all energies from deltaP = 0, that is reference momentum/energy
-  call part_updatePartEnergy(3,.false.)
+  mtc(1:napx) = (nqq(1:napx)*nucm0)/(qq0*nucm(1:napx))
 
   if(dist_readIonA .and. dist_readIonZ .and. .not. dist_readPDGID) then
     do j=1,napx
