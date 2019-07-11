@@ -854,7 +854,7 @@ subroutine dist_postprParticles
     dpsv(1:napx) = dist_partCol6(1:napx)*c1e3
     call part_updatePartEnergy(3,.false.)
   case(dist_fmtPT)
-    ejv(1:napx)  = (one + dist_partCol6(1:napx))*e0f
+    ejv(1:napx)  = e0 + dist_partCol6(1:napx)*e0f
     call part_updatePartEnergy(1,.false.)
   case(dist_fmtPZN)
     doNormal = .true.
