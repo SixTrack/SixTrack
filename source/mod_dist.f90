@@ -1,28 +1,13 @@
 ! ================================================================================================ !
 !
-!  Read a beam distribution
-! ~~~~~~~~~~~~~~~~~~~~~~~~~~
+!  Beam Distribution Block
+! ~~~~~~~~~~~~~~~~~~~~~~~~~
 !
 !  A. Mereghetti and D. Sinuela Pastor, for the FLUKA Team
 !  V.K. Berglyd Olsen, BE-ABP-HSS
-!  Last modified: 2019-07-09
+!  Updated: 2019-07-11
 !
-!  Format of the original DIST input file:
-!    id:         unique identifier of the particle (integer)
-!    gen:        parent ID (integer)
-!    weight:     statistical weight of the particle (double: >0.0)
-!    x,  y,  s:  particle position  [m]
-!    xp, yp, zp: particle direction (tangents) []
-!    aa, zz:     mass and atomic number
-!    m:          rest mass [GeV/c2]
-!    pc:         particle momentum [GeV/c]
-!    dt:         time delay with respect to the reference particle [s]
-!
-!    aa,zz and m are now taken into account for hisix!
-!
-!  NOTA BENE:
-!  - id, gen and weight are assigned by the fluka_mod_init subroutine;
-!  - z and zp are actually useless (but we never know);
+!  This module was completely rewritten to support DISTlib in July 2019
 !
 ! ================================================================================================ !
 module mod_dist
@@ -37,7 +22,6 @@ module mod_dist
   logical,                  private, save :: dist_echo      = .false. ! Echo the read distribution?
   logical,                  private, save :: dist_hasFormat = .false. ! Whether the FORMAT keyword exists in block or not
   logical,                  private, save :: dist_libRead   = .false. ! Read file with dist library instead of internal reader
-  integer,                  private, save :: dist_updtEFrom = 3       ! The parameter sent to part_updatePartEnergy after DIST
   character(len=mFileName), private, save :: dist_distFile  = " "     ! File name for reading the distribution
   character(len=mFileName), private, save :: dist_echoFile  = " "     ! File name for echoing the distribution
 
@@ -59,12 +43,12 @@ module mod_dist
   ! Physical Coordinates
   integer, parameter :: dist_fmtX           = 11 ! Horizontal position
   integer, parameter :: dist_fmtY           = 12 ! Vertical positiom
-  integer, parameter :: dist_fmtXP          = 13 ! Horizontal momentum ratio
-  integer, parameter :: dist_fmtYP          = 14 ! Vertical momentum ratio
+  integer, parameter :: dist_fmtXP          = 13 ! Horizontal momentum ratio Px/|P|
+  integer, parameter :: dist_fmtYP          = 14 ! Vertical momentum ratio Py/|P|
   integer, parameter :: dist_fmtPX          = 15 ! Horizontal momentum
   integer, parameter :: dist_fmtPY          = 16 ! Vertical momentum
-  integer, parameter :: dist_fmtPXP0        = 17 ! Relative horizontal momentum
-  integer, parameter :: dist_fmtPYP0        = 18 ! Relative vertical momentum
+  integer, parameter :: dist_fmtPXP0        = 17 ! Horizontal momentum Px/P0
+  integer, parameter :: dist_fmtPYP0        = 18 ! Vertical momentum Py/P0
   integer, parameter :: dist_fmtZETA        = 19 ! Longitudinal relative position (canonical)
   integer, parameter :: dist_fmtSIGMA       = 20 ! Longitudinal relative position
   integer, parameter :: dist_fmtDT          = 21 ! Time delay
@@ -72,7 +56,7 @@ module mod_dist
   integer, parameter :: dist_fmtP           = 23 ! Particle momentum
   integer, parameter :: dist_fmtDEE0        = 24 ! Relative particle energy (to reference particle)
   integer, parameter :: dist_fmtDPP0        = 25 ! Relative particle momentum (to reference particle)
-  integer, parameter :: dist_fmtPT          = 26 ! Delta enery over reference momentum (Pt)
+  integer, parameter :: dist_fmtPT          = 26 ! Delta energy over reference momentum (Pt)
 
   ! Normalised Coordinates
   integer, parameter :: dist_fmtXN          = 31 ! Normalised horizontal position
@@ -102,17 +86,15 @@ module mod_dist
   logical, private, save :: dist_readIonA   = .false.
   logical, private, save :: dist_readCharge = .false.
   logical, private, save :: dist_readPDGID  = .false.
-  logical, private, save :: dist_norm4D     = .false.
-  logical, private, save :: dist_norm6D     = .false.
 
   ! Arrays to send to DISTlib
-  real(kind=fPrec), allocatable, private, save :: dist_partCol1(:)    ! Ends up in array xv1
-  real(kind=fPrec), allocatable, private, save :: dist_partCol2(:)    ! Ends up in array yv1
-  real(kind=fPrec), allocatable, private, save :: dist_partCol3(:)    ! Ends up in array xv2
-  real(kind=fPrec), allocatable, private, save :: dist_partCol4(:)    ! Ends up in array yv2
-  real(kind=fPrec), allocatable, private, save :: dist_partCol5(:)    ! Ends up in array sigmv
-  real(kind=fPrec), allocatable, private, save :: dist_partCol6(:)    ! Ends up in array dpsv, evj, and ejfv
-  integer,                       private, save :: dist_partFmt(6) = 0 ! The format used for each column
+  real(kind=fPrec), allocatable, private, save :: dist_partCol1(:) ! Ends up in array xv1
+  real(kind=fPrec), allocatable, private, save :: dist_partCol2(:) ! Ends up in array yv1
+  real(kind=fPrec), allocatable, private, save :: dist_partCol3(:) ! Ends up in array xv2
+  real(kind=fPrec), allocatable, private, save :: dist_partCol4(:) ! Ends up in array yv2
+  real(kind=fPrec), allocatable, private, save :: dist_partCol5(:) ! Ends up in array sigmv
+  real(kind=fPrec), allocatable, private, save :: dist_partCol6(:) ! Ends up in array dpsv, evj, and ejfv
+  integer,                       private, save :: dist_partFmt(6) = dist_fmtNONE ! The format used for each column
 
 contains
 
@@ -270,6 +252,9 @@ end subroutine dist_parseInputLine
 !  V.K. Berglyd Olsen, BE-ABP-HSS
 !  Created: 2019-07-05
 !  Updated: 2019-07-10
+!
+!    This routine splits the unit from the format description and adds the format and the scaling
+!  factor to the list of format columns for later file parsing.
 ! ================================================================================================ !
 subroutine dist_setColumnFormat(fmtName, fErr)
 
@@ -444,6 +429,9 @@ subroutine dist_setColumnFormat(fmtName, fErr)
     call dist_appendFormat(dist_fmtPDGID,    one,  0)
 
   case("OLD_DIST") ! The old DIST block file format
+    ! This is added for the block to be compatible with the old, fixed column DIST file format.
+    ! The scaling is hardcoded, and the file format has a few columns that are not used.
+    ! Specifically the weight (column 3), and the z and pz coordinates (columns 6 and 9).
     call dist_appendFormat(dist_fmtPartID,   one,  0)
     call dist_appendFormat(dist_fmtParentID, one,  0)
     call dist_appendFormat(dist_fmtNONE,     one,  0)
@@ -511,15 +499,15 @@ subroutine dist_unitScale(fmtName, fmtUnit, unitType, unitScale, uErr)
     end select
   elseif(unitType == 3) then ! Energy/Momentum/Mass
     select case(chr_toLower(fmtUnit))
-    case("[ev]","[ev/c]","[ev/c^2]")
+    case("[ev]", "[ev/c]", "[ev/c^2]", "[ev/c2]", "[ev/c**2]")
       unitScale = c1m6
-    case("[kev]","[kev/c]","[kev/c^2]")
+    case("[kev]","[kev/c]","[kev/c^2]","[kev/c2]","[kev/c**2]")
       unitScale = c1m3
-    case("[mev]","[mev/c]","[mev/c^2]")
+    case("[mev]","[mev/c]","[mev/c^2]","[mev/c2]","[mev/c**2]")
       unitScale = one
-    case("[gev]","[gev/c]","[gev/c^2]")
+    case("[gev]","[gev/c]","[gev/c^2]","[gev/c2]","[gev/c**2]")
       unitScale = c1e3
-    case("[tev]","[tev/c]","[tev/c^2]")
+    case("[tev]","[tev/c]","[tev/c^2]","[tev/c2]","[tev/c**2]")
       unitScale = c1e6
     case("[1]")
       unitScale = one
@@ -586,11 +574,11 @@ subroutine dist_appendFormat(fmtID, colScale, partCol)
       case(1)
         write(lerr,"(a)") "DIST>      Choose one of: X, XN, JX"
       case(2)
-        write(lerr,"(a)") "DIST>      Choose one of: PX, PX/P0, PXN. PHIX"
+        write(lerr,"(a)") "DIST>      Choose one of: XP, PX, PX/P0, PXN, PHIX"
       case(3)
         write(lerr,"(a)") "DIST>      Choose one of: Y, YN, JY"
       case(4)
-        write(lerr,"(a)") "DIST>      Choose one of: PY, PY/P0, PYN. PHIY"
+        write(lerr,"(a)") "DIST>      Choose one of: YP, PY, PY/P0, PYN, PHIY"
       case(5)
         write(lerr,"(a)") "DIST>      Choose one of: SIGMA, ZETA, DT, ZN, JZ"
       case(6)
@@ -777,17 +765,14 @@ subroutine dist_saveParticle(partNo, colNo, inVal, sErr)
   case(dist_fmtE, dist_fmtDEE0, dist_fmtPT)
     call chr_cast(inVal, dist_partCol6(partNo), sErr)
     dist_partCol6(partNo) = dist_partCol6(partNo) * dist_colScale(colNo)
-    dist_updtEFrom = 1
 
   case(dist_fmtP)
     call chr_cast(inVal, dist_partCol6(partNo), sErr)
     dist_partCol6(partNo) = dist_partCol6(partNo) * dist_colScale(colNo)
-    dist_updtEFrom = 2
 
   case(dist_fmtDPP0, dist_fmtPZN, dist_fmtPhiZ)
     call chr_cast(inVal, dist_partCol6(partNo), sErr)
     dist_partCol6(partNo) = dist_partCol6(partNo) * dist_colScale(colNo)
-    dist_updtEFrom = 3
 
   !  Ion Columns
   ! =============
@@ -974,11 +959,11 @@ subroutine dist_finaliseDist
   end if
 
   pstop(1:napx) = .false.
-  ejf0v(1:napx) = ejfv(1:napx)
+! ejf0v(1:napx) = ejfv(1:napx)
   mtc(1:napx)   = (nqq(1:napx)*nucm0)/(qq0*nucm(1:napx))
 
   ! If we have no energy arrays, we set all energies from deltaP = 0, that is reference momentum/energy
-  call part_updatePartEnergy(dist_updtEFrom,.false.)
+  call part_updatePartEnergy(3,.false.)
 
   if(dist_readIonA .and. dist_readIonZ .and. .not. dist_readPDGID) then
     do j=1,napx
