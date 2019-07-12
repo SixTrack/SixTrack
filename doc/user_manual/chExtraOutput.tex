@@ -42,24 +42,23 @@ The following table show a summary of the quantities used in describing the outp
 
 \bigskip
 \begin{longtabu}{@{}llllp{0.65\linewidth}}
-    \textbf{short name} & \textbf{variable} & \textbf{unit} &
-    \textbf{symbol} & \textbf{description} \\
-    \texttt{x} & \texttt{xv(1,j)} &[mm] & $x$& horizontal position\\
-    \texttt{y} & \texttt{xv(2,j)} &[mm] & $y$& vertical position\\
-    \texttt{xp} & \texttt{yv(1,j)} &[mrad] & $P_x/P\approx x'(s)$&  approximated horizontal angle\\
-    \texttt{yp} & \texttt{yv(2,j)} &[mrad]& $P_y/P\approx y'(s)$&  approximated vertical angle\\
-    \texttt{sigma} & \texttt{sigmv(j)} &[MeV] & $s-\beta_0 c t $& longitudinal offset (previously sometimes called \texttt{z})\\
-    \texttt{psigma} & n/a &  & $ p_\sigma=\frac{E-E_0}{\beta_0 P_0 c}$& canonical conjugate of $\sigma$ \\
-    \texttt{delta} & \texttt{dpsv(j)} &  & $ \delta=\frac{P-P_0}{P_0}$& canonical conjugate of $\sigma$ \\
-    \texttt{rvv}   & \texttt{rvv(j)} & [1]& $r_v=\beta_0/\beta$ &velocity ratio \\
-    \texttt{rpp}   & \texttt{oidpsv(j)} & [1]& $r_p=P_0/P$ &momentum ratio \\
-    \texttt{zeta} &  n/a & & $\zeta=r_v(s-\beta_0 c t) $& longitudinal offset conjugate with $\delta$\\
-    \texttt{mass}  & \texttt{nucm(j)} & [MeV/c$^2$] & $m$ &mass \\
-    \texttt{mtc}  & \texttt{mtc(j)} & [1] & $q/q_0 \cdot m_0/m $ & mass to charge ratio\\
-    \texttt{P} & \texttt{ejvf(j)} &[MeV/c] & $Pc$& momentum \\
-    \texttt{E} & \texttt{ejv(j)} &[MeV] & $E$& energy \\
-    \texttt{E0} & \texttt{e0} &[MeV] & $E_0$& reference energy \\
-    \texttt{P0} & \texttt{e0f} &[MeV/c] & $P_0$& reference momentum \\
+    \textbf{Name}   & \textbf{Variable} & \textbf{Unit} & \textbf{Symbol} & \textbf{Description} \\
+    \texttt{x}      & \texttt{xv1(j)}    & [mm]         & $x$                  & horizontal position\\
+    \texttt{y}      & \texttt{xv2(j)}    & [mm]         & $y$                  & vertical position\\
+    \texttt{xp}     & \texttt{yv1(j)}    & [mrad]       & $P_x/P\approx x'(s)$ & approximated horizontal angle\\
+    \texttt{yp}     & \texttt{yv2(j)}    & [mrad]       & $P_y/P\approx y'(s)$ & approximated vertical angle\\
+    \texttt{sigma}  & \texttt{sigmv(j)}  & [MeV]        & $s-\beta_0 c t $     & longitudinal offset (sometimes called \texttt{z})\\
+    \texttt{psigma} & n/a                &              & $ p_\sigma=\frac{E-E_0}{\beta_0 P_0 c}$ & canonical conjugate of $\sigma$ \\
+    \texttt{delta}  & \texttt{dpsv(j)}   &              & $ \delta=\frac{P-P_0}{P_0}$ & canonical conjugate of $\sigma$ \\
+    \texttt{rvv}    & \texttt{rvv(j)}    & [1]          & $r_v=\beta_0/\beta$  & velocity ratio \\
+    \texttt{rpp}    & \texttt{oidpsv(j)} & [1]          & $r_p=P_0/P$          & momentum ratio \\
+    \texttt{zeta}   & n/a                &              & $\zeta=r_v(s-\beta_0 c t)$ & longitudinal offset conjugate with $\delta$\\
+    \texttt{mass}   & \texttt{nucm(j)}   & [MeV/c$^2$]  & $m$                  & mass \\
+    \texttt{mtc}    & \texttt{mtc(j)}    & [1]          & $q/q_0 \cdot m_0/m $ & mass to charge ratio\\
+    \texttt{P}      & \texttt{ejvf(j)}   & [MeV/c]      & $Pc$                 & momentum \\
+    \texttt{E}      & \texttt{ejv(j)}    & [MeV]        & $E$                  & energy \\
+    \texttt{E0}     & \texttt{e0}        & [MeV]        & $E_0$                & reference energy \\
+    \texttt{P0}     & \texttt{e0f}       & [MeV/c]      & $P_0$                & reference momentum \\
 \end{longtabu}
 
 \begin{center}
@@ -592,6 +591,80 @@ NEXT
 \end{cverbatim}
 
 % ================================================================================================================================ %
+\section{ROOT Output} \label{ExtRoot}
+\index{ROOT}
+
+\bigskip
+\begin{tabular}{@{}lp{0.8\linewidth}}
+    \textbf{Keyword}    & \texttt{ROOT}\index{ROOT} \\
+    \textbf{Data lines} & Variable, see below. \\
+    \textbf{Format}     & This module uses a keyword, value format. See below.
+\end{tabular}
+
+\paragraph{Select output to enable} \texttt{ENABLE type}\\
+
+The \texttt{ENABLE} flag selects which output to enable for root.
+Since a large run or parameter scan usually uses multiple copies of SixTrack, a lot of information is the same between each run, e.g. the accelerator layout.
+It is suggested to only enable the full output on a single run, and reduced output on all others.
+
+
+\bigskip
+\begin{tabular}{@{}llp{0.7\linewidth}}
+    \texttt{type} & char    & The type of output to enable.
+\end{tabular}
+
+\bigskip
+\begin{tabular}{@{}lp{0.7\linewidth}}
+    \texttt{ALL}    & Writes all possible output. \\
+    \texttt{ACCEL}  & Writes a description of the accelerator layout \\
+    \texttt{COLL}   & Writes the energy and nucleons lost on each collimator. \\
+    \texttt{COLDB}  & Writes the contents of the collimation database. \\
+    \texttt{APER}   & Writes particles lost on the aperture. \\
+    \texttt{OPTICS} & Writes the linear optics of the machine. \\
+    \texttt{FLUKA}  & Writes additional information on insertion lengths required for usage with the FLUKA coupling. \\
+    \texttt{PIPE}   & Writes a description of the physical beam pipe from the aperture module.
+\end{tabular}
+
+
+\bigskip
+\paragraph{Enable writing directly to eos} \texttt{EOS}\\
+
+The \texttt{EOS} flag enables writing directly to the CERN eos filesystem directly via xrootd instead of as normal files.
+
+\bigskip
+\paragraph{Selection of the output file path} \texttt{PATH loc}\\
+
+The \texttt{PATH} flag selects the path (folder) of where the output files should be written to. 
+
+\bigskip
+\begin{tabular}{@{}llp{0.7\linewidth}}
+    \texttt{loc} & char    & The folder where output should be written to.
+\end{tabular}
+
+\bigskip
+\paragraph{Selection of the output file name} \texttt{PREFIX pre}\\
+
+The \texttt{PREFIX} flag selects the first part of the output filename.
+Added to this is the run number (defined below).
+This is then followed by the file extension ".root".
+
+\bigskip
+\begin{tabular}{@{}llp{0.7\linewidth}}
+    \texttt{pre} & char    & The first part of the output file name.
+\end{tabular}
+
+\bigskip
+\paragraph{Selection of the output run number} \texttt{RUN number}\\
+
+The \texttt{RUN} flag selects the run number to be added to the root output file name. 
+This is usually the random number seed.
+
+\bigskip
+\begin{tabular}{@{}llp{0.7\linewidth}}
+    \texttt{number} & integer    & The output run number.
+\end{tabular}
+
+% ================================================================================================================================ %
 \section{Simulation Meta Data and Timing Output} \label{sec:METATIME}
 
 SixTrack produces two text files containing meta data and timing data for the last run simulation.
@@ -607,3 +680,4 @@ The file also contains initial values and values calculated during tracking that
 The file \texttt{sim\_time.dat} contains information about the execution time of the last SixTrack run.
 There are a number of time stamp at key points during execution written to the file.
 In addition, the total tracking time is extracted, and various averages computed based on number of particles, turns or the size of the lattice.
+

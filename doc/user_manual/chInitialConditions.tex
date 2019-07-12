@@ -1,7 +1,7 @@
 
 \chapter{Initial Conditions for Tracking} \label{InitCondTrack}
 
-For the study of non-linear system, the choice of initial conditions is of crucial importance.\index{initial conditions}
+For the study of non-linear systems, the choice of initial conditions is of crucial importance.\index{initial conditions}
 The input structure for the initial conditions was therefore organised in such a way as to allow for maximum flexibility.
 SixTrack is optimised to reach the largest possible number of turns.
 In order to derive the Lyapunov exponent\index{Lyapunov exponent}, and thereby to distinguish between regular and chaotic motion, the particle has a close by companion particle.
@@ -39,10 +39,10 @@ If you need this feature, please use the old input format.
 
 \bigskip
 \begin{tabular}{@{}llp{0.7\linewidth}}
-    \texttt{TRAC} & \texttt{ntwin} & Fixed to a value of 2.\\
+    \texttt{TRAC} & \texttt{ntwin}          & Fixed to a value of 2.\\
     \texttt{TRAC} & \texttt{idy(1), idy(2)} & Fixed to a value of 1.\\
-    \texttt{TRAC} & \texttt{idfor} & Fixed to a value of 1.\\
-    \texttt{TRAC} & \texttt{amp(1), amp0} & Fixed to a value of 0.\\
+    \texttt{TRAC} & \texttt{idfor}          & Fixed to a value of 1.\\
+    \texttt{TRAC} & \texttt{amp(1), amp0}   & Fixed to a value of 0.\\
 \end{tabular}
 
 \begin{center}
@@ -496,7 +496,11 @@ The parameters needed for treating the synchrotron oscillation in a symplectic m
 
 % ================================================================================================================================ %
 \section{Tracking with Ions} \label{hions}
-The default tracking in SixTrack is for protons. In case tracking of ions is wanted the following input block should be used.
+
+The default tracking in SixTrack is for protons.
+In case tracking of ions is wanted the following input block should be used.\index{ion tracking}
+The \texttt{HION} block only specifies the reference particle.
+By default, all particles are initialised to the same values, but if multiple ion species are needed, these can be provided by an input file in the \texttt{DIST} block.
 
 \bigskip
 \begin{tabular}{@{}llp{0.7\linewidth}}
@@ -509,14 +513,15 @@ The default tracking in SixTrack is for protons. In case tracking of ions is wan
 
 \bigskip
 \begin{longtabu}{@{}llp{0.65\linewidth}}
-    \texttt{A}   & integer & Total number of nucleons (atomic mass number). \\
-    \texttt{Z}   & integer & Total number of protons. \\
-    \texttt{$m_a$}   & float   & Mass of the ion [GeV/$c^2$]. \\
-    \texttt{Q}   & integer & Electrical charge.
+    \texttt{A}     & integer & Total number of nucleons (atomic mass number). \\
+    \texttt{Z}     & integer & Total number of protons. \\
+    \texttt{$m_a$} & float   & Mass of the ion [GeV/$c^2$]. \\
+    \texttt{Q}     & integer & Electrical charge.
 \end{longtabu}
 
 % ================================================================================================================================ %
-\section{Initial Distibution from an ASCII file} \label{distBlock}
+\section{Initial Distribution from an ASCII file} \label{distBlock}
+
 In addition to \texttt{fort.13} (see \emph{Tracking Parameters} input block, Sec.~\ref{TraPar}), it is possible to read a beam distribution from a plain ASCII file via the \texttt{DIST} block.
 With respect to using \texttt{fort.13}, which basically specifies just the six particle coordinates for each pair of particles, the \texttt{DIST} block allows the user to specify further properties of the particles, like charge or mass, necessary in case of species different than the synchronous one.
 There is also the possibility to echo the parsed information into a plain ASCII file.
@@ -526,7 +531,7 @@ The echo of the distribution takes place after all the arrays for longitudinal m
 \begin{tabular}{@{}llp{0.7\linewidth}}
     \textbf{Keyword}    & \texttt{DIST}\index{DIST} \\
     \textbf{Data lines} & Variable \\
-    \textbf{Format}     & pairs of \texttt{keyword : value}
+    \textbf{Format}     & Keyword/value
 \end{tabular}
 
 \paragraph{Format Description}~
@@ -549,15 +554,12 @@ A header is dumped as well.
     \label{tab:distKeys} \\*
     \hline
     \rowcolor{blue!30}
-    keyword & argument & description \\*
+    Keyword & Value & Description \\*
     \hline
     \endfirsthead
-    \texttt{ECHO} & \multicolumn{2}{l|}{to echo the read distribution.} \\*
-                  & filename & ASCII file where the echo of the distribution should be saved \\*
+    \texttt{READ} & filename & ASCII file from where the code will read the desired distribution \\*
     \hline
-
-    \texttt{LOAD} & \multicolumn{2}{l|}{to read the desired distribution.} \\*
-                  & filename & ASCII file from where the code will read the desired distribution \\*
+    \texttt{ECHO} & filename & ASCII file where the echo of the distribution should be saved \\*
     \hline
 \end{longtable}
 \end{center}
@@ -578,10 +580,10 @@ A header is dumped as well.
       3  & statistical weight (not actually used) \\*
       4  & $x$ [m] \\*
       5  & $y$ [m] \\*
-      6  & (unused) \\*
-      7  & $x'$ [] \\*
-      8  & $y'$ [] \\*
-      9  & (unused) \\*
+      6  & $z$ (unused) \\*
+      7  & $x'$ [$P_x/|P|$] \\*
+      8  & $y'$ [$P_y/|P|$] \\*
+      9  & $z'$ (unused) \\*
       10 & mass number \\*
       11 & atomic number \\*
       12 & mass [GeV/c$^2$] \\*
@@ -604,9 +606,9 @@ A header is dumped as well.
       \hline
       \endfirsthead
       1  & \texttt{xv1} [mm]   \\*
-      2  & \texttt{xv1} [mrad] \\*
-      3  & \texttt{xv1} [mm]   \\*
-      4  & \texttt{xv1} [mrad] \\*
+      2  & \texttt{yv1} [] \\*
+      3  & \texttt{xv2} [mm]   \\*
+      4  & \texttt{yv2} [] \\*
       5  & \texttt{sigmv} [mm] \\*
       6  & \texttt{ejfv} [MeV/c] \\*
       \hline
