@@ -296,8 +296,11 @@ contains
     ! Fluka I/O parameters
     integer(kind=int32)         :: flid, flgen
     real(kind=fPrec)  :: flwgt, flx, fly, flz, flxp, flyp, flpc, flm, flt
-    integer(kind=int16)         :: flaa, flzz
+    integer(kind=int16)         :: flaa, flzz, flq
     integer(kind=int8)          :: mtype
+
+    integer(kind=int32)         :: flpdgid
+    real(kind=fPrec)            :: flsx, flsy, flsz
 
     write(lout,'(A)') 'FLUKA> call to fluka_end'
     write(fluka_log_unit,*) "# FlukaIO: sending End of Computation signal"
@@ -313,7 +316,7 @@ contains
     ! Wait end of comp
     n = ntwait(fluka_cid, mtype, &
           flid, flgen, flwgt, flx, fly, flz, flxp, flyp, flaa, flzz, &
-          flm, flpc, flt)
+          flm, flpc, flt, flpdgid, flq, flsx, flsy, flsz)
     if(n.eq.-1) then
       write(fluka_log_unit,*) "# FlukaIO error: Server timed out while waiting End of Computation"
       flush(fluka_log_unit)
@@ -333,7 +336,8 @@ contains
 
   !----------------------------------------------------------------------------
   ! send and receive particles from Fluka
-  integer function fluka_send_receive(turn, ipt, el, npart, xv1, xv2, yv1, yv2, s, etot, aa, zz, mass, qq, pdg_id)
+  integer function fluka_send_receive(turn, ipt, el, npart, xv1, xv2, yv1, yv2, s, etot, aa, zz, mass, qq, pdg_id, &
+                   spinx, spiny, spinz)
     implicit none
 
     ! Parameters
@@ -353,16 +357,22 @@ contains
     integer(kind=int16), allocatable :: zz(:)
     integer(kind=int16), allocatable :: qq(:)
     integer(kind=int32), allocatable :: pdg_id(:)
+    real(kind=fPrec), allocatable :: spinx(:)
+    real(kind=fPrec), allocatable :: spiny(:)
+    real(kind=fPrec), allocatable :: spinz(:)
 
-    fluka_send_receive = fluka_send(turn, ipt, el, npart, xv1, xv2, yv1, yv2, s, etot, aa, zz, mass, qq, pdg_id)
+    fluka_send_receive = fluka_send(turn, ipt, el, npart, xv1, xv2, yv1, yv2, s, etot, aa, zz, mass, qq, pdg_id, &
+                         spinx, spiny, spinz)
     if(fluka_send_receive.eq.-1) return
 
-    fluka_send_receive = fluka_receive(turn, ipt, el, npart, xv1, xv2, yv1, yv2, s, etot, aa, zz, mass, qq, pdg_id)
+    fluka_send_receive = fluka_receive(turn, ipt, el, npart, xv1, xv2, yv1, yv2, s, etot, aa, zz, mass, qq, pdg_id, &
+                         spinx, spiny, spinz)
   end function fluka_send_receive
 
   !----------------------------------------------------------------------------
   ! just send particles to Fluka
-  integer function fluka_send(turn, ipt, el, npart, xv1, xv2, yv1, yv2, s, etot, aa, zz, mass, qq, pdg_id)
+  integer function fluka_send(turn, ipt, el, npart, xv1, xv2, yv1, yv2, s, etot, aa, zz, mass, qq, pdg_id, &
+                   spinx, spiny, spinz)
     implicit none
 
     ! Interface variables
@@ -382,12 +392,18 @@ contains
     integer(kind=int16), allocatable :: zz(:)
     integer(kind=int16), allocatable :: qq(:)
     integer(kind=int32), allocatable :: pdg_id(:)
+    real(kind=fPrec), allocatable :: spinx(:)
+    real(kind=fPrec), allocatable :: spiny(:)
+    real(kind=fPrec), allocatable :: spinz(:)
 
     ! Fluka I/O parameters
     integer(kind=int32) :: flid, flgen
     real(kind=fPrec)    :: flwgt, flx, fly, flz, flxp, flyp, flzp, flet, flm, flt
-    integer(kind=int16) :: flaa, flzz
+    integer(kind=int16) :: flaa, flzz, flq
     integer(kind=int8)  :: mtype
+
+    integer(kind=int32) :: flpdgid
+    real(kind=fPrec)    :: flsx, flsy, flsz
 
     ! Auxiliary variables
     integer :: j
@@ -449,6 +465,12 @@ contains
       flaa  = aa(j)
       flzz  = zz(j)
 
+      flpdgid = pdg_id(j)
+      flq  = qq(j)
+      flsx = spinx(j)
+      flsy = spiny(j)
+      flsz = spinz(j)
+
       if(fluka_debug) then
         write(fluka_log_unit, '(">",2I8,7(1X,1PE25.18),2I8)') flid, flgen, &
              flx, fly, flxp, flyp, flm, flet, flt, flaa, flzz             !PH: added flaa,flzz
@@ -466,7 +488,8 @@ contains
             flid, flgen, flwgt, &
             flx, fly, flz, &
             flxp, flyp, flzp, &
-            flaa, flzz, flm, flet, flt)
+            flaa, flzz, flm, flet, flt, &
+            flpdgid, flq, flsx, flsy, flsz)
 
       if(n.eq.-1) then
         write(fluka_log_unit,*) "# FlukaIO error: Error sending Particle"
@@ -498,7 +521,7 @@ contains
   ! The call from fluka.s90 is:
   ! fluka_receive( nturn, fluka_geo_index(ix), eltot, napx, xv1(:), yv1(:), xv2(:), yv2(:), sigmv, ejv, naa(:), nzz(:), nucm(:))
   ! When the above arrays are made allocatable, the below variables will need updating - see mod_commonmn and mod_hions
-  integer function fluka_receive(turn, ipt, el, napx, xv1, xv2, yv1, yv2, s, etot, aa, zz, mass, qq, pdg_id)
+  integer function fluka_receive(turn, ipt, el, napx, xv1, xv2, yv1, yv2, s, etot, aa, zz, mass, qq, pdg_id, spinx, spiny, spinz)
 
     use parpro
     use mod_pdgid
@@ -522,12 +545,18 @@ contains
     integer(kind=int16), allocatable :: zz(:)
     integer(kind=int16), allocatable :: qq(:)
     integer(kind=int32), allocatable :: pdg_id(:)
+    real(kind=fPrec), allocatable :: spinx(:)
+    real(kind=fPrec), allocatable :: spiny(:)
+    real(kind=fPrec), allocatable :: spinz(:)
 
     ! Fluka I/O parameters
     integer(kind=int32) :: flid, flgen
     real(kind=fPrec)    :: flwgt, flx, fly, flz, flxp, flyp, flzp, flet, flm, flt
-    integer(kind=int16) :: flaa, flzz
+    integer(kind=int16) :: flaa, flzz, flq
     integer(kind=int8)  :: mtype
+
+    integer(kind=int32)         :: flpdgid
+    real(kind=fPrec)            :: flsx, flsy, flsz
 
     ! Auxiliary variables
     integer(kind=int32) :: n, j
@@ -557,6 +586,9 @@ contains
       mass(j) = zero
       qq  (j) = 1
       pdg_id(j) = 0
+      spinx = zero
+      spiny = zero
+      spinz = zero
     end do
 
     ! Wait until end of turn (Synchronize)
@@ -565,7 +597,8 @@ contains
               flid, flgen, flwgt, &
               flx, fly, flz, &
               flxp, flyp, flzp, &
-              flaa, flzz, flm, flet, flt)
+              flaa, flzz, flm, flet, flt, &
+              flpdgid, flq, flsx, flsy, flsz)
 
       if(n.eq.-1) then
         write(fluka_log_unit,*) "# FlukaIO error: Server timed out while waiting for message"
@@ -622,8 +655,14 @@ contains
             aa(fluka_nrecv)           = flaa          !PH for hiSix
             zz(fluka_nrecv)           = flzz          !PH for hiSix
             mass(fluka_nrecv)         = flm  * c1e3  ! from [GeV] to [MeV]         !PH for hiSix
-            qq(fluka_nrecv)           = flzz
-            call GetPDGid_fromFLUKA(-2, pdg_id(fluka_nrecv), flaa, flzz)
+            qq(fluka_nrecv)           = flq
+            pdg_id(fluka_nrecv)       = flpdgid
+            spinx(fluka_nrecv)        = flsx
+            spiny(fluka_nrecv)        = flsy
+            spinz(fluka_nrecv)        = flsz
+
+!            The conversion is now done inside the coupling server
+!            call GetPDGid_fromFLUKA(-2, pdg_id(fluka_nrecv), flaa, flzz)
       end if
 
       !Finished waiting end of turn
@@ -1065,7 +1104,8 @@ subroutine kernel_fluka_element( nturn, i, ix )
 
 
       ret = fluka_send_receive( fluka_nturn, fluka_geo_index(fluka_ix), fluka_synch_length( fluka_ix ), &
-           napx, xv1, xv2, yv1, yv2, sigmv, ejv, naa, nzz, nucm, nqq, pdgid )
+           napx, xv1, xv2, yv1, yv2, sigmv, ejv, naa, nzz, nucm, nqq, pdgid, &
+           spin_x, spin_y, spin_z )
 
       if (ret.eq.-1) then
          write(lerr,'(A)')'FLUKA> ERROR -1 in Fluka communication returned by fluka_send_receive...'
@@ -1146,6 +1186,11 @@ subroutine kernel_fluka_element( nturn, i, ix )
          mtc   (j) = one            ! hiSix
          naa   (j) = aa0            ! hiSix
          nzz   (j) = zz0            ! hiSix
+         nqq   (j) = qq0
+         pdgid (j) = pdgid0
+         spin_x(j) = zero
+         spin_y(j) = zero
+         spin_z(j) = zero
          nucm  (j) = nucm0          ! hiSix
          moidpsv (j) = one          ! hiSix
          omoidpsv(j) = zero         ! hiSix
@@ -1234,7 +1279,8 @@ subroutine kernel_fluka_entrance( nturn, i, ix )
       end do
 
       ret = fluka_send( fluka_nturn, fluka_geo_index(fluka_ix), zero, &
-           napx, xv1, xv2, yv1, yv2, sigmv, ejv, naa, nzz, nucm, nqq, pdgid )
+           napx, xv1, xv2, yv1, yv2, sigmv, ejv, naa, nzz, nucm, nqq, pdgid, &
+           spin_x, spin_y, spin_z )
 
       if (ret.eq.-1) then
          write(lerr,'(A)')'FLUKA> ERROR -1 in Fluka communication returned by fluka_send...'
@@ -1288,7 +1334,8 @@ subroutine kernel_fluka_exit
       end if
 
       ret = fluka_receive( fluka_nturn, fluka_geo_index(fluka_ix), fluka_synch_length( fluka_ix ), &
-           napx, xv1, xv2, yv1, yv2, sigmv, ejv, naa, nzz, nucm, nqq, pdgid )
+           napx, xv1, xv2, yv1, yv2, sigmv, ejv, naa, nzz, nucm, nqq, pdgid, &
+           spin_x, spin_y, spin_z )
 
       if (ret.eq.-1) then
          write(lerr,'(A)')'FLUKA> ERROR -1 in Fluka communication returned by fluka_receive...'
@@ -1369,6 +1416,11 @@ subroutine kernel_fluka_exit
          mtc   (j) = one            ! hiSix
          naa   (j) = aa0            ! hiSix
          nzz   (j) = zz0            ! hiSix
+         nqq   (j) = qq0
+         pdgid (j) = pdgid0
+         spin_x(j) = zero
+         spin_y(j) = zero
+         spin_z(j) = zero
          nucm  (j) = nucm0          ! hiSix
          moidpsv (j) = one          ! hiSix
          omoidpsv(j) = zero         ! hiSix
