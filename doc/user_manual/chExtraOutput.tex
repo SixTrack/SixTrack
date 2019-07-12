@@ -38,19 +38,21 @@ Please note that each single element can only be selected once; however it is po
 
 \paragraph{Conventions}~
 
-The following table show a summary of the quantities used in describing the output format. The units are declared explicitly for each dump. 
-
 \bigskip
-\begin{longtabu}{@{}llllp{0.65\linewidth}}
+\begin{center}
+\begin{longtabu}{@{}llllp{7cm}}
+    \caption{The following table show a summary of the quantities used in describing the output format. The units are declared explicitly for each dump.}
+    \label{tab:sixtrackunits} \\*
     \textbf{Name}   & \textbf{Variable} & \textbf{Unit} & \textbf{Symbol} & \textbf{Description} \\
+    \hline
     \texttt{x}      & \texttt{xv1(j)}    & [mm]         & $x$                  & horizontal position\\
     \texttt{y}      & \texttt{xv2(j)}    & [mm]         & $y$                  & vertical position\\
-    \texttt{xp}     & \texttt{yv1(j)}    & [mrad]       & $P_x/P\approx x'(s)$ & approximated horizontal angle\\
-    \texttt{yp}     & \texttt{yv2(j)}    & [mrad]       & $P_y/P\approx y'(s)$ & approximated vertical angle\\
+    \texttt{xp}     & \texttt{yv1(j)}    & [1e-3]       & $10^3 P_x/P\approx x'(s)$ & approximated horizontal angle\\
+    \texttt{yp}     & \texttt{yv2(j)}    & [1e-3]       & $10^3 P_y/P\approx y'(s)$ & approximated vertical angle\\
     \texttt{sigma}  & \texttt{sigmv(j)}  & [MeV]        & $s-\beta_0 c t $     & longitudinal offset (sometimes called \texttt{z})\\
-    \texttt{psigma} & n/a                &              & $ p_\sigma=\frac{E-E_0}{\beta_0 P_0 c}$ & canonical conjugate of $\sigma$ \\
+    \texttt{psigma} & n/a                &              & $p_\sigma=\frac{E-E_0}{\beta_0 P_0 c}$ & canonical conjugate of $\sigma$ \\
     \texttt{delta}  & \texttt{dpsv(j)}   &              & $ \delta=\frac{P-P_0}{P_0}$ & canonical conjugate of $\sigma$ \\
-    \texttt{rvv}    & \texttt{rvv(j)}    & [1]          & $r_v=\beta_0/\beta$  & velocity ratio \\
+    \texttt{rv}     & \texttt{rvv(j)}    & [1]          & $r_v=\beta_0/\beta$  & velocity ratio \\
     \texttt{rpp}    & \texttt{oidpsv(j)} & [1]          & $r_p=P_0/P$          & momentum ratio \\
     \texttt{zeta}   & n/a                &              & $\zeta=r_v(s-\beta_0 c t)$ & longitudinal offset conjugate with $\delta$\\
     \texttt{mass}   & \texttt{nucm(j)}   & [MeV/c$^2$]  & $m$                  & mass \\
@@ -60,6 +62,7 @@ The following table show a summary of the quantities used in describing the outp
     \texttt{E0}     & \texttt{e0}        & [MeV]        & $E_0$                & reference energy \\
     \texttt{P0}     & \texttt{e0f}       & [MeV/c]      & $P_0$                & reference momentum \\
 \end{longtabu}
+\end{center}
 
 \begin{center}
     \begin{longtable}{|p{1.8cm}|p{13.8cm}|}

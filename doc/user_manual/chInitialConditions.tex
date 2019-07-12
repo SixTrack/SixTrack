@@ -564,55 +564,50 @@ A header is dumped as well.
 \end{longtable}
 \end{center}
 
-\begin{minipage}[t]{0.45\textwidth}
-  \begin{center}
-    \begin{longtable}{|l|l|}%{|p{2.0cm} | p{1.2cm} | p{1.0cm} | p{9.0cm}|}
-      %Note: \\* (with the star) used to inhibit page breaks in the middle of groups of the same type
-      \caption{Format of the ASCII file containing the distribution to be read by the \texttt{DIST} block.}
-      \label{tab:distReadFileColumns} \\*
-      \hline
-      \rowcolor{blue!30}
-      \# & Description \\*
-      \hline
-      \endfirsthead
-      1  & particle id (not actually used) \\*
-      2  & parent particle id (not actually used) \\*
-      3  & statistical weight (not actually used) \\*
-      4  & $x$ [m] \\*
-      5  & $y$ [m] \\*
-      6  & $z$ (unused) \\*
-      7  & $x'$ [$P_x/|P|$] \\*
-      8  & $y'$ [$P_y/|P|$] \\*
-      9  & $z'$ (unused) \\*
-      10 & mass number \\*
-      11 & atomic number \\*
-      12 & mass [GeV/c$^2$] \\*
-      13 & linear momentum [GeV/c] \\*
-      14 & time lag [s] \\*
-      \hline
-    \end{longtable}
-  \end{center}
-\end{minipage}
-\hfill
-\begin{minipage}[t]{0.45\textwidth}
-  \begin{center}
-    \begin{longtable}{|l|l|}%{|p{2.0cm} | p{1.2cm} | p{1.0cm} | p{9.0cm}|}
-      %Note: \\* (with the star) used to inhibit page breaks in the middle of groups of the same type
-      \caption{Format of the ASCII file where the distribution read by the \texttt{DIST} block is echoed.}
-      \label{tab:distEchoFileColumns} \\*
-      \hline
-      \rowcolor{blue!30}
-      \# & Description \\*
-      \hline
-      \endfirsthead
-      1  & \texttt{xv1} [mm]   \\*
-      2  & \texttt{yv1} [] \\*
-      3  & \texttt{xv2} [mm]   \\*
-      4  & \texttt{yv2} [] \\*
-      5  & \texttt{sigmv} [mm] \\*
-      6  & \texttt{ejfv} [MeV/c] \\*
-      \hline
-    \end{longtable}
-  \end{center}
-\end{minipage}
+\begin{center}
+\begin{longtable}{|l|l|}%{|p{2.0cm} | p{1.2cm} | p{1.0cm} | p{9.0cm}|}
+    %Note: \\* (with the star) used to inhibit page breaks in the middle of groups of the same type
+    \caption{Format of the ASCII file containing the distribution to be read by the \texttt{DIST} block.}
+    \label{tab:distReadFileColumns} \\*
+    \hline
+    \rowcolor{blue!30}
+    \# & Description \\*
+    \hline
+    \endfirsthead
+    1  & particle id (not actually used) \\*
+    2  & parent particle id (not actually used) \\*
+    3  & statistical weight (not actually used) \\*
+    4  & $x$ [m] \\*
+    5  & $y$ [m] \\*
+    6  & $z$ (unused) \\*
+    7  & $x'$ [1e-3] \\*
+    8  & $y'$ [1e-3] \\*
+    9  & $z'$ (unused) \\*
+    10 & mass number \\*
+    11 & atomic number \\*
+    12 & mass [GeV/c$^2$] \\*
+    13 & linear momentum [GeV/c] \\*
+    14 & time lag [s] \\*
+    \hline
+\end{longtable}
+\end{center}
+\begin{center}
+\begin{longtable}{|l|l|l|}
+    %Note: \\* (with the star) used to inhibit page breaks in the middle of groups of the same type
+    \caption{The format of the ASCII file where the distribution read by the \texttt{DIST} block is echoed. See also Table~\ref{tab:sixtrackunits} in \texttt{DUMP} for a more detailed description of the variables.}
+    \label{tab:distEchoFileColumns} \\*
+    \hline
+    \rowcolor{blue!30}
+    \# & Variable & Unit\\*
+    \hline
+    \endfirsthead
+    1  & \texttt{xv1}   & [mm]    \\*
+    2  & \texttt{yv1}   & [1e-3]  \\*
+    3  & \texttt{xv2}   & [mm]    \\*
+    4  & \texttt{yv2}   & [1e-3]  \\*
+    5  & \texttt{sigmv} & [mm]    \\*
+    6  & \texttt{ejfv}  & [MeV/c] \\*
+    \hline
+\end{longtable}
+\end{center}
 
