@@ -201,12 +201,6 @@ if(NOT CR)
   )
 endif()
 
-if(LIBARCHIVE)
-  list(APPEND SIXTRACK_TESTS
-    elensidealthin6d_DYNK_ZIPF
-  )
-endif()
-
 if(NAFF)
   list(APPEND SIXTRACK_TESTS
     fma_naff
@@ -410,16 +404,6 @@ foreach(TST IN ITEMS ${SIXTRACK_TESTS})
     set(FORT90 0)
   endif()
 
-  if(LIBARCHIVE)
-    if(TST STREQUAL elensidealthin6d_DYNK_ZIPF)
-      set(SIXOUT_NUMFILES 2)
-    else()
-      set(SIXOUT_NUMFILES 0)
-    endif()
-  else()
-    set(SIXOUT_NUMFILES 0)
-  endif(LIBARCHIVE)
-
   set(DUMP_BIN_FILE NONE)
   if(TST STREQUAL dump_binary)
     set(DUMP_BIN_FILE dump.dat,dumpStart.dat)
@@ -443,7 +427,7 @@ foreach(TST IN ITEMS ${SIXTRACK_TESTS})
   add_test(
     NAME ${TST} WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/test/${TST}
     COMMAND SixTestWrapper $<TARGET_FILE:SixTrackCR> $<TARGET_FILE:checkf10> $<TARGET_FILE:read90>
-      ${FORT10} ${FORT90} ${STF_ENABLE} ${SIXOUT_NUMFILES} ${CR_ENABLE} ${CR_KILL_TIME}
+      ${FORT10} ${FORT90} ${STF_ENABLE} 0 ${CR_ENABLE} ${CR_KILL_TIME}
       $<TARGET_FILE:readDump3> ${DUMP_BIN_FILE} ${CR_NUMRESTARTS}
   )
 
@@ -459,7 +443,6 @@ if(SIXDA)
     set(FORT10 0)
     set(FORT90 0)
     set(STF_ENABLE 0)
-    set(SIXOUT_NUMFILES 0)
     set(CR_ENABLE 0)
     set(CR_KILL_TIME 0)
     set(DUMP_BIN_FILE NONE)
@@ -467,7 +450,7 @@ if(SIXDA)
     add_test(
       NAME ${TST} WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/test/${TST}
       COMMAND SixTestWrapper $<TARGET_FILE:SixTrackDA> $<TARGET_FILE:checkf10> $<TARGET_FILE:read90>
-        ${FORT10} ${FORT90} ${STF_ENABLE} ${SIXOUT_NUMFILES} ${CR_ENABLE} ${CR_KILL_TIME}
+        ${FORT10} ${FORT90} ${STF_ENABLE} 0 ${CR_ENABLE} ${CR_KILL_TIME}
         $<TARGET_FILE:readDump3> ${DUMP_BIN_FILE} 0
     )
 

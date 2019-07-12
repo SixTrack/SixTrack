@@ -133,9 +133,7 @@ subroutine cr_fileInit
       ! Name hardcoded in our boinc_unzip_.
       ! Either it is only the fort.* input data or it is a restart.
       call boincrf("Sixin.zip",fileName)
-#if defined(LIBARCHIVE)
-      call f_read_archive(trim(fileName),".")
-#elif defined(ZLIB)
+#ifdef ZLIB
       call minizip_unzip(trim(fileName),".",zErr,len_trim(fileName),1)
       if(zErr /= 0) then
         write(cr_errUnit,"(a)") "SIXTRACR> ERROR Could not extract 'Sixin.zip'"
