@@ -315,7 +315,7 @@ contains
 
     ! Wait end of comp
     n = ntwait(fluka_cid, mtype, &
-          flid, flgen, flwgt, flx, fly, flz, flxp, flyp, flaa, flzz, &
+          flid, flgen, flwgt, flx, fly, flz, flxp, flyp, &
           flm, flpc, flt, flpdgid, flq, flsx, flsy, flsz)
     if(n.eq.-1) then
       write(fluka_log_unit,*) "# FlukaIO error: Server timed out while waiting End of Computation"
@@ -472,8 +472,8 @@ contains
       flsz = spinz(j)
 
       if(fluka_debug) then
-        write(fluka_log_unit, '(">",2I8,7(1X,1PE25.18),2I8)') flid, flgen, &
-             flx, fly, flxp, flyp, flm, flet, flt, flaa, flzz             !PH: added flaa,flzz
+        write(fluka_log_unit, '(">",2I8,7(1X,1PE25.18),4I11)') flid, flgen, &
+             flx, fly, flxp, flyp, flm, flet, flt, flaa, flzz, flq, flpdgid
         flush(fluka_log_unit)
       end if
 
@@ -488,7 +488,7 @@ contains
             flid, flgen, flwgt, &
             flx, fly, flz, &
             flxp, flyp, flzp, &
-            flaa, flzz, flm, flet, flt, &
+            flm, flet, flt, &
             flpdgid, flq, flsx, flsy, flsz)
 
       if(n.eq.-1) then
@@ -597,7 +597,7 @@ contains
               flid, flgen, flwgt, &
               flx, fly, flz, &
               flxp, flyp, flzp, &
-              flaa, flzz, flm, flet, flt, &
+              flm, flet, flt, &
               flpdgid, flq, flsx, flsy, flsz)
 
       if(n.eq.-1) then
@@ -625,9 +625,11 @@ contains
 !            return
          end if
 
+            call CalculateAZ(flpdgid, flaa, flzz)
+
             if(fluka_debug) then
-               write(fluka_log_unit, '("<",2I8,7(1X,1PE25.18),2I8)') flid, flgen, &
-                    flx, fly, flxp, flyp, flm, flet, flt, flaa, flzz ! PH for hiSix
+               write(fluka_log_unit, '("<",2I8,7(1X,1PE25.18),4I11)') flid, flgen, &
+                    flx, fly, flxp, flyp, flm, flet, flt, flaa, flzz, flq, flpdgid
                flush(fluka_log_unit)
             end if
 
@@ -1130,7 +1132,7 @@ subroutine kernel_fluka_element( nturn, i, ix )
          dpsv  (j) = (ejfv(j)*(nucm0/nucm(j))-e0f)/e0f         ! hisix: new delta
          oidpsv(j) = one/(one+dpsv(j))
          dpsv1 (j) = (dpsv(j)*c1e3)*oidpsv(j)
-         mtc     (j) = (nzz(j)*nucm0)/(zz0*nucm(j))            ! hisix: mass to charge
+         mtc     (j) = (nqq(j)*nucm0)/(qq0*nucm(j))            ! hisix: mass to charge
          moidpsv (j) = mtc(j)*oidpsv(j)                        ! hisix
          omoidpsv(j) = c1e3*((one-mtc(j))*oidpsv(j))           ! hisix
          nnuc1       = nnuc1 + naa(j)                          ! outcoming nucleons
@@ -1361,7 +1363,7 @@ subroutine kernel_fluka_exit
          dpsv  (j) = (ejfv(j)*(nucm0/nucm(j))-e0f)/e0f         ! hisix: new delta
          oidpsv(j) = one/(one+dpsv(j))
          dpsv1 (j) = (dpsv(j)*c1e3)*oidpsv(j)
-         mtc     (j) = (nzz(j)*nucm0)/(zz0*nucm(j))            ! hisix: mass to charge
+         mtc     (j) = (nqq(j)*nucm0)/(qq0*nucm(j))            ! hisix: mass to charge
          moidpsv (j) = mtc(j)*oidpsv(j)                        ! hisix
          omoidpsv(j) = c1e3*((one-mtc(j))*oidpsv(j))           ! hisix
          nnuc1       = nnuc1 + naa(j)                          ! outcoming nucleons
