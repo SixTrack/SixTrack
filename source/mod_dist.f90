@@ -469,7 +469,7 @@ subroutine dist_setColumnFormat(fmtName, fErr)
     call dist_appendFormat(dist_fmtP,        uFac, 6)
   case("DE/E0","DEE0")
     call dist_appendFormat(dist_fmtDEE0,     one,  6)
-  case("DP/P0","DPP0")
+  case("DP/P0","DPP0","DELTA")
     call dist_appendFormat(dist_fmtDPP0,     one,  6)
   case("DE/P0","DEP0","PT")
     call dist_appendFormat(dist_fmtPT,       one,  6)
@@ -965,28 +965,32 @@ subroutine dist_postprParticles
   use numerical_constants
 
   logical doAction, doNormal
+  real(kind=fPrec) beta0
 
   doAction = .false.
   doNormal = .false.
 
+  beta0 = e0f/e0
+
+  ! Forward energy/momentum must be calculated first
   select case(dist_partFmt(6))
   case(dist_fmtNONE)
-    ejv(1:napx)  = e0
+    ejv(1:napx) = e0
     call part_updatePartEnergy(1,.false.)
   case(dist_fmtE)
-    ejv(1:napx)  = dist_partCol6(1:napx)
+    ejv(1:napx) = dist_partCol6(1:napx)
     call part_updatePartEnergy(1,.false.)
   case(dist_fmtP)
     ejfv(1:napx) = dist_partCol6(1:napx)
     call part_updatePartEnergy(2,.false.)
   case(dist_fmtDEE0)
-    ejv(1:napx)  = (one + dist_partCol6(1:napx))*e0
+    ejv(1:napx) = (one + dist_partCol6(1:napx))*e0
     call part_updatePartEnergy(1,.false.)
   case(dist_fmtDPP0)
-    dpsv(1:napx) = dist_partCol6(1:napx)*c1e3
+    dpsv(1:napx) = dist_partCol6(1:napx)
     call part_updatePartEnergy(3,.false.)
   case(dist_fmtPT)
-    ejv(1:napx)  = e0 + dist_partCol6(1:napx)*e0f
+    ejv(1:napx) = (dist_partCol6(1:napx)*e0f)*beta0 + e0
     call part_updatePartEnergy(1,.false.)
   case(dist_fmtPZN)
     doNormal = .true.
@@ -998,11 +1002,11 @@ subroutine dist_postprParticles
   case(dist_fmtNONE)
     sigmv(1:napx) = zero
   case(dist_fmtZETA)
-    sigmv(1:napx) = dist_partCol5(1:napx)*rvv(1:napx)
+    sigmv(1:napx) = dist_partCol5(1:napx)/rvv(1:napx)
   case(dist_fmtSIGMA)
     sigmv(1:napx) = dist_partCol5(1:napx)
   case(dist_fmtDT)
-    sigmv(1:napx) = -(e0f/e0)*(dist_partCol5(1:napx)*clight)
+    sigmv(1:napx) = -beta0*(dist_partCol5(1:napx)*clight)
   case(dist_fmtZN)
     doNormal = .true.
   case(dist_fmtJZ)
@@ -1028,7 +1032,7 @@ subroutine dist_postprParticles
   case(dist_fmtPX)
     yv1(1:napx) = (dist_partCol2(1:napx)/ejfv(1:napx))*c1e3
   case(dist_fmtPXP0)
-    yv1(1:napx) = (dist_partCol2(1:napx)/e0f)*c1e3
+    yv1(1:napx) = ((dist_partCol2(1:napx)*e0f)/ejfv(1:napx))*c1e3
   case(dist_fmtPXN)
     doNormal = .true.
   case(dist_fmtPhiX)
@@ -1054,7 +1058,7 @@ subroutine dist_postprParticles
   case(dist_fmtPY)
     yv2(1:napx) = (dist_partCol4(1:napx)/ejfv(1:napx))*c1e3
   case(dist_fmtPYP0)
-    yv2(1:napx) = (dist_partCol4(1:napx)/e0f)*c1e3
+    yv2(1:napx) = ((dist_partCol4(1:napx)*e0f)/ejfv(1:napx))*c1e3
   case(dist_fmtPYN)
     doNormal = .true.
   case(dist_fmtPhiY)
