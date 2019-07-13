@@ -45,22 +45,22 @@ Please note that each single element can only be selected once; however it is po
     \label{tab:sixtrackunits} \\*
     \textbf{Name}   & \textbf{Variable} & \textbf{Unit} & \textbf{Symbol} & \textbf{Description} \\
     \hline
-    \texttt{x}      & \texttt{xv1(j)}    & [mm]         & $x$                  & horizontal position\\
-    \texttt{y}      & \texttt{xv2(j)}    & [mm]         & $y$                  & vertical position\\
-    \texttt{xp}     & \texttt{yv1(j)}    & [1e-3]       & $P_x/P\approx x'(s)$ & approximated horizontal angle\\
-    \texttt{yp}     & \texttt{yv2(j)}    & [1e-3]       & $P_y/P\approx y'(s)$ & approximated vertical angle\\
-    \texttt{sigma}  & \texttt{sigmv(j)}  & [MeV]        & $s-\beta_0 c t $     & longitudinal offset (sometimes called \texttt{z})\\
+    \texttt{x}      & \texttt{xv1(j)}    & [mm]         & $x$                     & horizontal position\\
+    \texttt{y}      & \texttt{xv2(j)}    & [mm]         & $y$                     & vertical position\\
+    \texttt{xp}     & \texttt{yv1(j)}    & [1/1000]     & $\frac{P_x}{P}\approx x^\prime$ & approximated horizontal angle\\
+    \texttt{yp}     & \texttt{yv2(j)}    & [1/1000]     & $\frac{P_y}{P}\approx y^\prime$ & approximated vertical angle\\
+    \texttt{sigma}  & \texttt{sigmv(j)}  & [MeV]        & $\sigma=s-\beta_0 c t $ & longitudinal offset (sometimes called \texttt{z})\\
     \texttt{psigma} & n/a                &              & $p_\sigma=\frac{E-E_0}{\beta_0 P_0 c}$ & canonical conjugate of $\sigma$ \\
     \texttt{delta}  & \texttt{dpsv(j)}   & [1]          & $\delta=\frac{P-P_0}{P_0}$ & canonical conjugate of $\sigma$ \\
-    \texttt{rv}     & \texttt{rvv(j)}    & [1]          & $r_v=\beta_0/\beta$  & velocity ratio \\
-    \texttt{rpp}    & \texttt{oidpsv(j)} & [1]          & $r_p=P_0/P$          & momentum ratio \\
-    \texttt{zeta}   & n/a                &              & $\zeta=r_v(s-\beta_0 c t)$ & longitudinal offset conjugate with $\delta$\\
-    \texttt{mass}   & \texttt{nucm(j)}   & [MeV/c$^2$]  & $m$                  & mass \\
-    \texttt{mtc}    & \texttt{mtc(j)}    & [1]          & $q/q_0 \cdot m_0/m $ & mass to charge ratio\\
-    \texttt{P}      & \texttt{ejfv(j)}   & [MeV/c]      & $Pc$                 & momentum \\
-    \texttt{E}      & \texttt{ejv(j)}    & [MeV]        & $E$                  & energy \\
-    \texttt{E0}     & \texttt{e0}        & [MeV]        & $E_0$                & reference energy \\
-    \texttt{P0}     & \texttt{e0f}       & [MeV/c]      & $P_0$                & reference momentum \\
+    \texttt{rv}     & \texttt{rvv(j)}    & [1]          & $r_v=\frac{\beta_0}{\beta}$ & velocity ratio \\
+    \texttt{rpp}    & \texttt{oidpsv(j)} & [1]          & $r_p=\frac{P_0}{P}$     & momentum ratio \\
+    \texttt{zeta}   & n/a                &              & $\zeta=r_v\sigma$       & longitudinal offset conjugate with $\delta$\\
+    \texttt{mass}   & \texttt{nucm(j)}   & [MeV/c$^2$]  & $m$                     & mass \\
+    \texttt{mtc}    & \texttt{mtc(j)}    & [1]          & $\frac{q}{q_0} \frac{m_0}{m} $ & mass to charge ratio\\
+    \texttt{P}      & \texttt{ejfv(j)}   & [MeV/c]      & $Pc$                    & momentum \\
+    \texttt{E}      & \texttt{ejv(j)}    & [MeV]        & $E$                     & energy \\
+    \texttt{E0}     & \texttt{e0}        & [MeV]        & $E_0$                   & reference energy \\
+    \texttt{P0}     & \texttt{e0f}       & [MeV/c]      & $P_0$                   & reference momentum \\
 \end{longtabu}
 \end{center}
 
