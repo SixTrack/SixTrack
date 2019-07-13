@@ -5,7 +5,7 @@
 !
 !  A. Mereghetti and D. Sinuela Pastor, for the FLUKA Team
 !  V.K. Berglyd Olsen, BE-ABP-HSS
-!  Updated: 2019-07-11
+!  Updated: 2019-07-12
 !
 !  This module was completely rewritten to support DISTlib in July 2019
 !
@@ -62,26 +62,31 @@ module mod_dist
   integer, parameter :: dist_fmtPT          = 26 ! Delta energy over reference momentum (Pt)
 
   ! Normalised Coordinates
-  integer, parameter :: dist_fmtXN          = 31 ! Normalised horizontal position
-  integer, parameter :: dist_fmtYN          = 32 ! Normalised vertical position
-  integer, parameter :: dist_fmtZN          = 33 ! Normalised longitudinal position
-  integer, parameter :: dist_fmtPXN         = 34 ! Normalised horizontal momentum
-  integer, parameter :: dist_fmtPYN         = 35 ! Normalised vertical momentum
-  integer, parameter :: dist_fmtPZN         = 36 ! Normalised longitudinal momentum
+  integer, parameter :: dist_fmtXN          = 41 ! Normalised horizontal position
+  integer, parameter :: dist_fmtYN          = 42 ! Normalised vertical position
+  integer, parameter :: dist_fmtZN          = 43 ! Normalised longitudinal position
+  integer, parameter :: dist_fmtPXN         = 44 ! Normalised horizontal momentum
+  integer, parameter :: dist_fmtPYN         = 45 ! Normalised vertical momentum
+  integer, parameter :: dist_fmtPZN         = 46 ! Normalised longitudinal momentum
 
-  integer, parameter :: dist_fmtJX          = 41 ! Horizontal action
-  integer, parameter :: dist_fmtJY          = 42 ! Vertical action
-  integer, parameter :: dist_fmtJZ          = 43 ! Longitudinal action
-  integer, parameter :: dist_fmtPhiX        = 44 ! Horizontal action angle
-  integer, parameter :: dist_fmtPhiY        = 45 ! Vertical action angle
-  integer, parameter :: dist_fmtPhiZ        = 46 ! Longitudinal action angle
+  integer, parameter :: dist_fmtJX          = 51 ! Horizontal action
+  integer, parameter :: dist_fmtJY          = 52 ! Vertical action
+  integer, parameter :: dist_fmtJZ          = 53 ! Longitudinal action
+  integer, parameter :: dist_fmtPhiX        = 54 ! Horizontal action angle
+  integer, parameter :: dist_fmtPhiY        = 55 ! Vertical action angle
+  integer, parameter :: dist_fmtPhiZ        = 56 ! Longitudinal action angle
 
   ! Ion Columns
-  integer, parameter :: dist_fmtMASS        = 51 ! Particle mass
-  integer, parameter :: dist_fmtCHARGE      = 52 ! Particle Charge
-  integer, parameter :: dist_fmtIonA        = 53 ! Ion atomic mass
-  integer, parameter :: dist_fmtIonZ        = 54 ! Ion atomic number
-  integer, parameter :: dist_fmtPDGID       = 55 ! Particle PDG ID
+  integer, parameter :: dist_fmtMASS        = 61 ! Particle mass
+  integer, parameter :: dist_fmtCHARGE      = 62 ! Particle Charge
+  integer, parameter :: dist_fmtIonA        = 63 ! Ion atomic mass
+  integer, parameter :: dist_fmtIonZ        = 64 ! Ion atomic number
+  integer, parameter :: dist_fmtPDGID       = 65 ! Particle PDG ID
+
+  ! Spin
+  integer, parameter :: dist_fmtSPINX       = 71 ! Spin vector x component
+  integer, parameter :: dist_fmtSPINY       = 72 ! Spin vector y component
+  integer, parameter :: dist_fmtSPINZ       = 73 ! Spin vector z component
 
   ! Flags for columns we've set that we need to track for later checks
   logical, private, save :: dist_readMass   = .false.
@@ -527,6 +532,13 @@ subroutine dist_setColumnFormat(fmtName, fErr)
   case("PDGID")
     call dist_appendFormat(dist_fmtPDGID,    one,  0)
 
+  case("SX")
+    call dist_appendFormat(dist_fmtSPINX,    one,  0)
+  case("SY")
+    call dist_appendFormat(dist_fmtSPINY,    one,  0)
+  case("SZ")
+    call dist_appendFormat(dist_fmtSPINZ,    one,  0)
+
   case("4D") ! 4D default coordinates
     call dist_appendFormat(dist_fmtX,        one,  1)
     call dist_appendFormat(dist_fmtPX,       one,  2)
@@ -565,6 +577,11 @@ subroutine dist_setColumnFormat(fmtName, fErr)
     call dist_appendFormat(dist_fmtIonA,     one,  0)
     call dist_appendFormat(dist_fmtIonZ,     one,  0)
     call dist_appendFormat(dist_fmtPDGID,    one,  0)
+
+  case("SPIN") ! The spin columns
+    call dist_appendFormat(dist_fmtSPINX,    one,  0)
+    call dist_appendFormat(dist_fmtSPINY,    one,  0)
+    call dist_appendFormat(dist_fmtSPINZ,    one,  0)
 
   case("OLD_DIST") ! The old DIST block file format
     ! This is added for the block to be compatible with the old, fixed column DIST file format.
@@ -856,7 +873,7 @@ end subroutine dist_readDist
 !  Save Particle Data to Arrays
 !  V.K. Berglyd Olsen, BE-ABP-HSS
 !  Created: 2019-07-08
-!  Updated: 2019-07-09
+!  Updated: 2019-07-13
 ! ================================================================================================ !
 subroutine dist_saveParticle(partNo, colNo, inVal, sErr)
 
@@ -945,6 +962,18 @@ subroutine dist_saveParticle(partNo, colNo, inVal, sErr)
     call chr_cast(inVal, pdgid(partNo), sErr)
     dist_readPDGID = .true.
 
+  !  Spin Columns
+  ! ==============
+
+  case(dist_fmtSPINX)
+    call chr_cast(inVal, spin_x(partNo), sErr)
+
+  case(dist_fmtSPINY)
+    call chr_cast(inVal, spin_y(partNo), sErr)
+
+  case(dist_fmtSPINZ)
+    call chr_cast(inVal, spin_z(partNo), sErr)
+
   end select
 
 end subroutine dist_saveParticle
@@ -953,7 +982,7 @@ end subroutine dist_saveParticle
 !  Post-Processing of Particle Arrays
 !  V.K. Berglyd Olsen, BE-ABP-HSS
 !  Created: 2019-07-05
-!  Updated: 2019-07-09
+!  Updated: 2019-07-13
 ! ================================================================================================ !
 subroutine dist_postprParticles
 
