@@ -113,6 +113,11 @@ void CollimationTrackingAction::PostUserTrackingAction(const G4Track* Track)
 			exit_particle.a = Track->GetParticleDefinition()->GetAtomicMass();
 			exit_particle.m = Track->GetParticleDefinition()->GetPDGMass();
 
+			//Extract the spin vector
+			exit_particle.sx = Track->GetPolarization().x();
+			exit_particle.sy = Track->GetPolarization().y();
+			exit_particle.sz = Track->GetPolarization().z();
+
 			exit_particle.q = Track->GetDynamicParticle()->GetCharge();
 			EventAction->AddOutputParticle(exit_particle);
 

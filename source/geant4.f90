@@ -68,7 +68,7 @@ module geant4
 
 !void g4_add_particle_(double* x, double* y, double* xp, double* yp, double* e, int32_t* pdgid, int16_t* nzz, int16_t* naa,
 ! int16_t* nqq, double* mass)
-  subroutine g4_add_particle(x, y, xp, yp, e, pdgid, nzz, naa, nqq, mass) &
+  subroutine g4_add_particle(x, y, xp, yp, e, pdgid, nzz, naa, nqq, mass, spin_x, spin_y, spin_z) &
 & bind(C,name="g4_add_particle")
     use, intrinsic :: iso_c_binding
     implicit none
@@ -82,6 +82,9 @@ module geant4
     integer(kind=C_INT16_T),      intent(in) :: naa
     integer(kind=C_INT16_T),      intent(in) :: nqq
     real(kind=C_DOUBLE),          intent(in) :: mass
+    real(kind=C_DOUBLE),          intent(in) :: spin_x
+    real(kind=C_DOUBLE),          intent(in) :: spin_y
+    real(kind=C_DOUBLE),          intent(in) :: spin_z
   end subroutine g4_add_particle
 
 !void g4_collimate_()
@@ -94,7 +97,7 @@ module geant4
 !void g4_collimate_return_(int* j, double* x, double* y, double* xp, double* yp, double* e, int32_t* pdgid, double* m,
 ! int16_t* z, int16_t* a, int16_t* q, int *part_hit, int *part_abs, double *part_impact, double *part_indiv, double *part_linteract)
   subroutine g4_collimate_return(j, x, y, xp, yp, e, pdgid, m, z, a, q, part_hit, part_abs, part_impact, part_indiv, &
-& part_linteract) &
+& part_linteract, spin_x, spin_y, spin_z) &
 & bind(C,name="g4_collimate_return")
     use, intrinsic :: iso_c_binding
     implicit none
@@ -114,6 +117,9 @@ module geant4
     real(kind=C_DOUBLE),          intent(out) :: part_impact
     real(kind=C_DOUBLE),          intent(out) :: part_indiv
     real(kind=C_DOUBLE),          intent(out) :: part_linteract
+    real(kind=C_DOUBLE),          intent(out) :: spin_x
+    real(kind=C_DOUBLE),          intent(out) :: spin_y
+    real(kind=C_DOUBLE),          intent(out) :: spin_z
   end subroutine g4_collimate_return
 
 !void g4_get_particle_count_(int* g4_npart)

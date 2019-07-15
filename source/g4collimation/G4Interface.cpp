@@ -208,7 +208,7 @@ extern "C" void g4_set_collimator(char* name)
 	runManager->ReinitializeGeometry();
 }
 
-extern "C" void g4_add_particle(double* x, double* y, double* xp, double* yp, double* e, int32_t* pdgid, int16_t* nzz, int16_t* naa, int16_t* nqq, double* mass)
+extern "C" void g4_add_particle(double* x, double* y, double* xp, double* yp, double* e, int32_t* pdgid, int16_t* nzz, int16_t* naa, int16_t* nqq, double* mass, double* sx, double* sy, double* sz)
 {
 //WARNING: at this stage in SixTrack the units have been converted to GeV, m, and rad!
 //The particle energy input is the TOTAL energy
@@ -249,6 +249,10 @@ extern "C" void g4_add_particle(double* x, double* y, double* xp, double* yp, do
 	in_particle.m = *mass;
 	in_particle.id = input_particles.size();
 
+	in_particle.sx = *sx;
+	in_particle.sy = *sy;
+	in_particle.sz = *sz;
+
 	input_particles.push_back(in_particle);
 }
 
@@ -258,7 +262,7 @@ extern "C" void g4_collimate()
 	//Update the gun with this particle's details
 	for(size_t n=0; n < input_particles.size(); n++)
 	{
-		part->SetParticleDetails(input_particles.at(n).x, input_particles.at(n).y, input_particles.at(n).px, input_particles.at(n).py, input_particles.at(n).pz, input_particles.at(n).e, input_particles.at(n).p, input_particles.at(n).pdgid, input_particles.at(n).q, input_particles.at(n).m);
+		part->SetParticleDetails(input_particles.at(n).x, input_particles.at(n).y, input_particles.at(n).px, input_particles.at(n).py, input_particles.at(n).pz, input_particles.at(n).e, input_particles.at(n).p, input_particles.at(n).pdgid, input_particles.at(n).q, input_particles.at(n).m, input_particles.at(n).sx, input_particles.at(n).sy, input_particles.at(n).sz);
 
 		//Run!
 		runManager->BeamOn(1);
@@ -269,7 +273,7 @@ extern "C" void g4_collimate()
 /**
 * Here we put the particles back into sixtrack and set any flags if needed
 */
-extern "C" void g4_collimate_return(int* j, double* x, double* y, double* xp, double* yp, double* e, int32_t* pdgid, double* m, int16_t* z, int16_t* a, int16_t* q, int *part_hit, int *part_abs, double *part_impact, double *part_indiv, double *part_linteract)
+extern "C" void g4_collimate_return(int* j, double* x, double* y, double* xp, double* yp, double* e, int32_t* pdgid, double* m, int16_t* z, int16_t* a, int16_t* q, int *part_hit, int *part_abs, double *part_impact, double *part_indiv, double *part_linteract, double* sx, double* sy, double* sz)
 {
 /*
 part_hit(j), part_abs(j), part_impact(j), part_indiv(j),
@@ -300,6 +304,12 @@ double py = output_particles.at(*j).py;
 
 //nucm is in MeV on both sides
 *m  = output_particles.at(*j).m;
+
+//Spin
+*sx = output_particles.at(*j).sx;
+*sy = output_particles.at(*j).sy;
+*sz = output_particles.at(*j).sz;
+
 }
 
 std::string CleanFortranString(char* str, size_t count)

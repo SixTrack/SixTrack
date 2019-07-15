@@ -2969,7 +2969,8 @@ subroutine collimate_do_collimator(stracki)
 
 !! Add all particles
 
-            call g4_add_particle(rcx(j), rcy(j), rcxp(j), rcyp(j), rcp(j), pdgid(j), nzz(j), naa(j), nqq(j), nucm(j))
+            call g4_add_particle(rcx(j), rcy(j), rcxp(j), rcyp(j), rcp(j), pdgid(j), nzz(j), naa(j), nqq(j), nucm(j), &
+&                                spin_x(j), spin_y(j), spin_z(j))
 !!!!          end if
 
 ! Log input energy + nucleons as per the FLUKA coupling
@@ -2999,7 +3000,7 @@ subroutine collimate_do_collimator(stracki)
 !! Get the particle back + information
 !! Remember C arrays start at 0, fortran at 1 here.
             call g4_collimate_return(j-1, rcx(j), rcy(j), rcxp(j), rcyp(j), rcp(j), pdgid(j), nucm(j), nzz(j), naa(j), nqq(j), &
- & part_hit_flag, part_abs_flag, part_impact(j), part_indiv(j), part_linteract(j))
+ & part_hit_flag, part_abs_flag, part_impact(j), part_indiv(j), part_linteract(j), spin_x(j), spin_y(j), spin_z(j))
 
             partID(j) = j
             pstop (j) = .false.
