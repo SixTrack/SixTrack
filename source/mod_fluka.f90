@@ -472,16 +472,10 @@ contains
       flsz = spinz(j)
 
       if(fluka_debug) then
-        write(fluka_log_unit, '(">",2I8,7(1X,1PE25.18),4I11)') flid, flgen, &
-             flx, fly, flxp, flyp, flm, flet, flt, flaa, flzz, flq, flpdgid
+        write(fluka_log_unit, '(">",2I8,12(1X,1PE25.18),4I11)') flid, flgen, &
+             flx, fly, flz, flxp, flyp, flzp, flm, flet, flt, flsx, flsy, flsz, flaa, flzz, flq, flpdgid
         flush(fluka_log_unit)
       end if
-
-! Hack for lithium-7
-!      flm     = MLI
-!      flpc    = flpc * RLI
-!      flaa    = 7
-!      flzz    = 3
 
       ! Send particle
       n = ntsendp(fluka_cid, &
@@ -628,8 +622,8 @@ contains
             call CalculateAZ(flpdgid, flaa, flzz)
 
             if(fluka_debug) then
-               write(fluka_log_unit, '("<",2I8,7(1X,1PE25.18),4I11)') flid, flgen, &
-                    flx, fly, flxp, flyp, flm, flet, flt, flaa, flzz, flq, flpdgid
+               write(fluka_log_unit, '("<",2I8,12(1X,1PE25.18),4I11)') flid, flgen, &
+                    flx, fly, flz, flxp, flyp, flzp, flm, flet, flt, flsx, flsy, flsz, flaa, flzz, flq, flpdgid
                flush(fluka_log_unit)
             end if
 
