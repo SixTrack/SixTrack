@@ -200,7 +200,7 @@ For the convention on signs for the last three (optional) aperture specifiers, p
 \end{figure}
 
 \bigskip
-\subsection{Other input options}\label{ApeLim:inpOptions}
+\subsection{Other Input Options}\label{ApeLim:inpOptions}
 The user can customize the behavior of the \texttt{LIMI} block concerning the back-tracking algorithm. The syntax is via keywords, followed by positional arguments.
 Tab.~\ref{tab:apeInpOptions} lists all available options, their syntax and meaning.
 
@@ -778,7 +778,7 @@ Similarly, the \texttt{funname} is the name referencing the currently active \te
 
 \subsection{Examples}
 
-\paragraph{Replacement of \texttt{RIPP} block}~\\
+\paragraph{Replacement of \texttt{RIPP} Block}~\\
 One use of the \texttt{DYNK} block is to replace the functionality of the \texttt{RIPP}\index{RIPP} block (Section~\ref{PowRip}).
 The \texttt{FUN} type \texttt{COSF\_RIPP} is provided for exactly this purpose, and provides an exact replacement.
 As an example, the \texttt{RIPP} block in the SixTest test-case prob1 looks like (slightly reduced in size):
@@ -921,8 +921,8 @@ This is done using an exponential decaying function $V(t) = V_0 \exp\left(-0.05 
 \bigskip
 For the \texttt{SET}, the time $t$ is then shifted by $-70$ turns, so that the functions are evaluated starting at $t=0$.
 
-\paragraph{Detuning a cavity (accelerating or crab)}~\\
-\todo[inline]{Write}
+% \paragraph{Detuning a cavity (accelerating or crab)}~\\
+% Needs writing!
 
 \paragraph{Using the PIPE function}~\\
 %Note: This example is referenced from the FUN table.
@@ -1287,12 +1287,8 @@ After reading in the expected number of particles, the string ``\texttt{BDEX TRA
 TCPIP is not yet implemented, as it would require an external library.
 The FLUKA version implements this, we should make sure that we are compatible with their requirements and ideally their protocol.
 
-\paragraph{Example}~\\
-
-\todo[inline]{Example BDEX block, example manual usage, example minimal Python program (location or listing).}
-
 % ================================================================================================================================ %
-\section{Electron lens} \label{sec:elen}
+\section{Electron Lens} \label{sec:elen}
 
 The electron lens module serves for reading in the input parameters of electron lenses.\index{electron lens}\index{ELENS}
 Each e-lens also needs to be added as single element in the list of single elements.
@@ -2236,7 +2232,7 @@ The \texttt{GNT4} block specified below must be used in addition to the standard
 
 \bigskip
 
-\paragraph{Select Physics list} \texttt{PHYSICS phys}\\
+\paragraph{Select Physics List} \texttt{PHYSICS phys}\\
 
 The \texttt{PHYSICS} flag selects which physics list to use in Geant4.
 Currently FTFP\_BERT and QGSP\_BERT are allowed.
@@ -2247,7 +2243,7 @@ If no flag is specified, the simulation will default to FTFP\_BERT.
     \texttt{phys} & char    & The name of the physics list to use.
 \end{tabular}
 
-\paragraph{Select particles to return to SixTrack} \texttt{RETURN type}\\
+\paragraph{Select Particles to Return to SixTrack} \texttt{RETURN type}\\
 
 The \texttt{RETURN} flag selects which types of particles to return back to SixTrack after performing collimation.
 Only charged particles are returned; neutral particles are always killed.
@@ -2263,7 +2259,7 @@ If no flag is specified, all particles are returned, including ones that should 
 \end{tabular}
 
 
-\paragraph{Select relative energy cut} \texttt{RELENERGYCUT cut}\\
+\paragraph{Select Relative Energy Cut} \texttt{RELENERGYCUT cut}\\
 
 The \texttt{RELENERGYCUT} flag selects an energy cut as a fraction of the energy of the reference particle.
 For example, 0.5 will cut at half the energy of the reference particle.
@@ -2273,7 +2269,7 @@ For example, 0.5 will cut at half the energy of the reference particle.
     \texttt{cut} & float    & The cut value to use.
 \end{tabular}
 
-\paragraph{Select absolute energy cut} \texttt{ABSENERGYCUT cut}\\
+\paragraph{Select Absolute Energy Cut} \texttt{ABSENERGYCUT cut}\\
 
 The \texttt{ABSENERGYCUT} flag selects an absolute energy cut, and if a particle's energy goes below this value, it will be killed.
 This value is specified in GeV.
@@ -2283,7 +2279,7 @@ This value is specified in GeV.
     \texttt{cut} & float    & The cut value to use in GeV.
 \end{tabular}
 
-\paragraph{Select range cut} \texttt{RANGECUT\_MM cut}\\
+\paragraph{Select Range Cut} \texttt{RANGECUT\_MM cut}\\
 
 The \texttt{RANGECUT\_MM} flag selects a range cut for particle production in Geant4.
 This value is specified in mm.
@@ -2294,7 +2290,7 @@ The unit of this cut may change in the future.
     \texttt{cut} & float    & The cut value to use in mm.
 \end{tabular}
 
-\paragraph{Enable debugging output} \texttt{DEBUG}\\
+\paragraph{Enable Debugging Output} \texttt{DEBUG}\\
 
 The \texttt{DEBUG} flag enables some additional debugging output in Geant4.
 Warning: the level of output can be very verbose with a large number of particles.
