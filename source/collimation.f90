@@ -2279,6 +2279,7 @@ subroutine collimate_do_collimator(stracki)
   use coll_dist
   use mod_units
   use mathlib_bouncer
+  use string_tools, only : chr_rpad, chr_lpad
 
 #ifdef ROOT
   use root_output
@@ -2942,8 +2943,9 @@ subroutine collimate_do_collimator(stracki)
 
         if(g4_debug .eqv. .true.) then
           write(lout,"(2a)") 'COLLIMATOR:', cdb_cNameUC(icoll)
-          write(lout,"(2a)") '                               id       pdgid                     mass                        ',&
-&                            'x                        y                       xp                       yp                        p'
+          write(lout,"(12a)") chr_lpad('id',33), chr_lpad('pdgid',12), chr_lpad('mass',25), chr_lpad('x',25), chr_lpad('y',25), &
+&                             chr_lpad('xp',25), chr_lpad('yp',25), chr_lpad('p',25), chr_lpad('spin_x',25), chr_lpad('spin_y',25),&
+&                             chr_lpad('spin_z',25)
           flush(lout)
         end if
 
@@ -2954,8 +2956,8 @@ subroutine collimate_do_collimator(stracki)
 !! than in the g4 geometry
 
             if(g4_debug .eqv. .true.) then
-              write(lout,"(a,2(1X,I11),6(1X,E24.16))") 'g4 sending particle: ', j, pdgid(j), nucm(j), rcx(j), rcy(j), rcxp(j), &
-&                   rcyp(j), rcp(j)
+              write(lout,"(a,2(1X,I11),9(1X,E24.16))") 'g4 sending particle: ', j, pdgid(j), nucm(j), rcx(j), rcy(j), rcxp(j), &
+&                   rcyp(j), rcp(j), spin_x(j), spin_y(j), spin_z(j)
             end if
 
             x_tmp = rcx(j)
@@ -2992,8 +2994,10 @@ subroutine collimate_do_collimator(stracki)
         napx = g4_npart
 
         if(g4_debug .eqv. .true.) then
-          write(lout,"(2a)") '                               id       pdgid                     mass                        ',&
-&                            'x                        y                       xp                       yp                        p'
+          write(lout,"(12a)") chr_lpad('id',33), chr_lpad('pdgid',12), chr_lpad('mass',25), chr_lpad('x',25), chr_lpad('y',25), &
+&                             chr_lpad('xp',25), chr_lpad('yp',25), chr_lpad('p',25), chr_lpad('spin_x',25), chr_lpad('spin_y',25),&
+&                             chr_lpad('spin_z',25)
+          flush(lout)
         end if
 
         do j = 1, napx
@@ -3056,8 +3060,8 @@ subroutine collimate_do_collimator(stracki)
 !            end if
 
             if(g4_debug .eqv. .true.) then
-              write(lout,"(a,2(1X,I11),6(1X,E24.16))") 'g4 return particle:  ', j, pdgid(j), nucm(j), rcx(j), rcy(j), rcxp(j), &
-&                   rcyp(j), rcp(j)
+              write(lout,"(a,2(1X,I11),9(1X,E24.16))") 'g4 return particle:  ', j, pdgid(j), nucm(j), rcx(j), rcy(j), rcxp(j), &
+&                   rcyp(j), rcp(j), spin_x(j), spin_y(j), spin_z(j)
             end if
 
           flush(lout)

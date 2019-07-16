@@ -158,7 +158,7 @@ end subroutine aperture_expand_arrays
 subroutine aperture_init
 
   use mod_units, only: f_open, f_requestUnit
-
+  use string_tools, only : chr_lpad, chr_rpad
   implicit none
 
 #ifdef HDF5
@@ -224,13 +224,15 @@ subroutine aperture_init
       apefilepos=0
 #endif
 
-      write(losses_unit,"(a)") "# turn block bezid bez slos "// &
+      write(losses_unit,"(a)") chr_lpad('turn',9) // chr_lpad('block',9) // chr_lpad('bezid',9) // chr_rpad(' bez',49) //&
+&                              chr_lpad('slos',13) // &
 #ifdef FLUKA
-        "fluka_uid fluka_gen fluka_weight "// &
+&        chr_lpad('fluka_uid',9) // chr_lpad('fluka_gen',9) // chr_lpad('fluka_weight',15) //  &
 #else
-        "partid "// &
+&        chr_lpad('partid',9) // &
 #endif
-        "x xp y yp etot dE dT A_atom Z_atom Q PDGid"
+&        chr_lpad('x',15) // chr_lpad('xp',15) // chr_lpad('y',15) // chr_lpad('yp',15) // chr_lpad('etot (GeV)',15) // &
+&        chr_lpad('dE',15) // chr_lpad('dT',15) // chr_lpad('A',9) // chr_lpad('Z',9) // chr_lpad('Q',9) // chr_lpad('PDGid',13)
       ! Flush file
       flush(losses_unit)
 #ifdef CR
