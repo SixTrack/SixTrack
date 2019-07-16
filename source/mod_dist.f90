@@ -105,6 +105,15 @@ module mod_dist
   integer,                       private, save :: dist_partFmt(6) = dist_fmtNONE ! The format used for each column
 
 #ifdef DISTLIB
+
+  ! Coordiante Types
+  ! Keep in sync with lib/DISTlib/distinterface.c
+  integer, parameter :: dist_coordTypeAction   = 0
+  integer, parameter :: dist_coordTypeNormal   = 1
+  integer, parameter :: dist_coordTypePhysical = 2
+  integer, parameter :: dist_coordTypeMixed    = 3
+
+  ! C interface
   interface
 
     subroutine distlib_init(numDist) bind(C, name="initializedistribution")
@@ -140,7 +149,7 @@ module mod_dist
       real(kind=C_DOUBLE), dimension(36), intent(in) :: flatTas
     end subroutine distlib_setTasMatrix
 
-    subroutine distlib_setNormalised(arr1, arr2, arr3, arr4, arr5, arr6, arrLen) bind(C, name="setnormalizedcoords")
+    subroutine distlib_setCoords(arr1, arr2, arr3, arr4, arr5, arr6, arrLen, cType) bind(C, name="setcoords")
       use, intrinsic :: iso_c_binding
       real(kind=C_DOUBLE), dimension(*), intent(in) :: arr1
       real(kind=C_DOUBLE), dimension(*), intent(in) :: arr2
@@ -149,9 +158,10 @@ module mod_dist
       real(kind=C_DOUBLE), dimension(*), intent(in) :: arr5
       real(kind=C_DOUBLE), dimension(*), intent(in) :: arr6
       integer(kind=C_INT),               intent(in) :: arrLen
-    end subroutine distlib_setNormalised
+      integer(kind=C_INT),               intent(in) :: cType
+    end subroutine distlib_setCoords
 
-    subroutine distlib_getPartCoords(arr1, arr2, arr3, arr4, arr5, arr6, arrLen) bind(C, name="get6trackcoord")
+    subroutine distlib_getCoords(arr1, arr2, arr3, arr4, arr5, arr6, arrLen) bind(C, name="get6trackcoord")
       use, intrinsic :: iso_c_binding
       real(kind=C_DOUBLE), dimension(*), intent(inout) :: arr1
       real(kind=C_DOUBLE), dimension(*), intent(inout) :: arr2
@@ -160,7 +170,7 @@ module mod_dist
       real(kind=C_DOUBLE), dimension(*), intent(inout) :: arr5
       real(kind=C_DOUBLE), dimension(*), intent(inout) :: arr6
       integer(kind=C_INT),               intent(inout) :: arrLen
-    end subroutine distlib_getPartCoords
+    end subroutine distlib_getCoords
 
   end interface
 #endif
@@ -229,7 +239,7 @@ subroutine dist_generateDist
   if(dist_distLib) then
     ! Our final coordinates are taken from DISTlib
     distLibPart = napx
-    call distlib_getPartCoords(                    &
+    call distlib_getCoords(                    &
       dist_partCol1, dist_partCol2, dist_partCol3, &
       dist_partCol4, dist_partCol5, dist_partCol6, &
       distLibPart                                  &
@@ -1101,16 +1111,19 @@ subroutine dist_postprParticles
   end if
 
   if(doNormal) then
-    call distlib_setNormalised(                    &
+    call distlib_setCoords(                    &
       dist_partCol1, dist_partCol2, dist_partCol3, &
       dist_partCol4, dist_partCol5, dist_partCol6, &
-      napx                                         &
+      napx, dist_coordTypeNormal                   &
     )
   end if
 
   if(doAction) then
-    ! Call DISTlib
-    continue
+    call distlib_setCoords(                    &
+      dist_partCol1, dist_partCol2, dist_partCol3, &
+      dist_partCol4, dist_partCol5, dist_partCol6, &
+      napx, dist_coordTypeAction                   &
+    )
   end if
 #endif
 
