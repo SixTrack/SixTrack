@@ -50,14 +50,14 @@ module scatter
 
   ! Generator Parameters
   integer, parameter :: scatter_genAbsorber      = 1
-  integer, parameter :: scatter_genPPBeamElastic = 10
-  integer, parameter :: scatter_genPythiaSimple  = 20
-  integer, parameter :: scatter_genPythiaFull    = 21
+  integer, parameter :: scatter_genPPBeamElastic = 2
+  integer, parameter :: scatter_genPythiaSimple  = 3
+  integer, parameter :: scatter_genPythiaFull    = 4
 
   ! Profile Parameters
   integer, parameter :: scatter_proFlat          = 1
   integer, parameter :: scatter_proFixed         = 2
-  integer, parameter :: scatter_proGauss1        = 10
+  integer, parameter :: scatter_proGauss1        = 3
 
   ! Storage Structs
   type, private :: scatter_elemStore
@@ -759,7 +759,7 @@ subroutine scatter_parseGenerator(lnSplit, nSplit, iErr)
   case("PYTHIASIMPLE")
 
 #ifndef PYTHIA
-    write(lerr,"(a)") "SCATTER> ERROR GEN PYTHIA requested, but PYTHIA not compiled into SixTrack"
+    write(lerr,"(a)") "SCATTER> ERROR GEN PYTHIASIMPLE requested, but PYTHIA not compiled into SixTrack"
     iErr = .true.
     return
 #endif
@@ -772,6 +772,26 @@ subroutine scatter_parseGenerator(lnSplit, nSplit, iErr)
     end if
 
     genType = scatter_genPythiaSimple
+
+    call str_cast(lnSplit(4),fParams(1),iErr) ! crossSection
+    crossSection = fParams(1) * c1m27         ! Set crossSection explicitly in mb
+
+  case("PYTHIA","PYTHIAFULL")
+
+#ifndef PYTHIA
+    write(lerr,"(a)") "SCATTER> ERROR GEN PYTHIA requested, but PYTHIA not compiled into SixTrack"
+    iErr = .true.
+    return
+#endif
+    if(nSplit /= 4) then
+      write(lerr,"(a)") "SCATTER> ERROR GEN PYTHIA expected 4 arguments:"
+      write(lerr,"(a)") "SCATTER>       GEN name PYTHIA crossSection"
+      call prror
+      iErr = .true.
+      return
+    end if
+
+    genType = scatter_genPythiaFull
 
     call str_cast(lnSplit(4),fParams(1),iErr) ! crossSection
     crossSection = fParams(1) * c1m27         ! Set crossSection explicitly in mb
