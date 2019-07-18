@@ -48,6 +48,17 @@ module scatter
     "DoubD_XX","CentDiff","Unknown ","Error   "                         &
   /)
 
+  ! Generator Parameters
+  integer, parameter :: scatter_genAbsorber      = 1
+  integer, parameter :: scatter_genPPBeamElastic = 10
+  integer, parameter :: scatter_genPythiaSimple  = 20
+  integer, parameter :: scatter_genPythiaFull    = 21
+
+  ! Profile Parameters
+  integer, parameter :: scatter_proFlat          = 1
+  integer, parameter :: scatter_proFixed         = 2
+  integer, parameter :: scatter_proGauss1        = 10
+
   ! Storage Structs
   type, private :: scatter_elemStore
     character(len=mNameLen)       :: bezName
@@ -588,7 +599,7 @@ subroutine scatter_parseProfile(lnSplit, nSplit, iErr)
   ! Profile type dependent code
   select case (lnSplit(3)%get())
   case("FLAT")
-    proType = 1 ! Integer code for FLAT
+    proType = scatter_proFlat
     if(nSplit /= 6) then
       write(lerr,"(a)") "SCATTER> ERROR PROfile type FLAT expected 6 arguments:"
       write(lerr,"(a)") "SCATTER>       PRO name FLAT density[targets/cm^2] mass[MeV/c^2] momentum[MeV/c]"
@@ -601,7 +612,7 @@ subroutine scatter_parseProfile(lnSplit, nSplit, iErr)
     call str_cast(lnSplit(6),fParams(3),iErr) ! Momentum
 
   case("FIXED")
-    proType = 2 ! Integer code for FIXED
+    proType = scatter_proFixed
     if(nSplit /= 4) then
       write(lerr,"(a)") "SCATTER> ERROR PROfile type FIXED expected 4 arguments:"
       write(lerr,"(a)") "SCATTER>       PRO name FIXED density[targets/m^2]"
@@ -612,7 +623,7 @@ subroutine scatter_parseProfile(lnSplit, nSplit, iErr)
     call str_cast(lnSplit(4),fParams(1),iErr) ! Density
 
   case("GAUSS1")
-    proType = 10  ! Integer code for BEAM_GAUSS1
+    proType = scatter_proGauss1
     if(nSplit /= 8) then
       write(lerr,"(a)") "SCATTER> ERROR PROfile type GAUSS1 expected 8 arguments:"
       write(lerr,"(a)") "SCATTER        PRO name GAUSS1 beamtot[particles] sigma_x[mm] sigma_y[mm] offset_x[mm] offset_y[mm]"
@@ -712,11 +723,11 @@ subroutine scatter_parseGenerator(lnSplit, nSplit, iErr)
   select case (lnSplit(3)%get())
   case("ABSORBER")
 
-    genType = 1
+    genType = scatter_genAbsorber
 
   case("PPBEAMELASTIC")
 
-    genType = 10
+    genType = scatter_genPPBeamElastic
     if(nSplit /= 9) then
       write(lerr,"(a)") "SCATTER> ERROR GEN PPBEAMELASTIC expected 9 arguments:"
       write(lerr,"(a)") "SCATTER>       GEN name PPBEAMELASTIC a b1 b2 phi tmin crossSection"
@@ -760,7 +771,7 @@ subroutine scatter_parseGenerator(lnSplit, nSplit, iErr)
       return
     end if
 
-    genType = 20
+    genType = scatter_genPythiaSimple
 
     call str_cast(lnSplit(4),fParams(1),iErr) ! crossSection
     crossSection = fParams(1) * c1m27         ! Set crossSection explicitly in mb
@@ -1127,13 +1138,13 @@ function scatter_profile_getDensity(idPro, x, y) result(retval)
   integer tmpIdx
 
   select case(scatter_proList(idPro)%proType)
-  case (1)  ! FLAT
+  case(scatter_proFlat)
     retval  = scatter_proList(idPro)%fParams(1)
 
-  case (2)  ! FIXED
+  case(scatter_proFixed)
     retval  = scatter_proList(idPro)%fParams(1)
 
-  case (10) ! GAUSS1
+  case(scatter_proGauss1)
     beamtot = scatter_proList(idPro)%fParams(1)
     sigmaX  = scatter_proList(idPro)%fParams(2)
     sigmaY  = scatter_proList(idPro)%fParams(3)
@@ -1198,13 +1209,13 @@ function scatter_generator_getCrossSection(idPro, idGen, x, y, xp, yp, E) result
   ! Calculate the cross section as function of S
   ! This is currently a fixed value
   select case(scatter_genList(idGen)%genType)
-  case(1)  ! ABSORBER
+  case(scatter_genAbsorber)
     retVal = scatter_genList(idGen)%crossSection
 
-  case(10) ! PPBEAMELASTIC
+  case(scatter_genPPBeamElastic)
     retVal = scatter_genList(idGen)%crossSection
 
-  case(20) ! PYTHIASIMPLE
+  case(scatter_genPythiaSimple)
     retVal = scatter_genList(idGen)%crossSection
 
   case default
@@ -1254,11 +1265,11 @@ subroutine scatter_generator_getEvent(genID, pID, t, theta, dEE, dPP, procID, iL
   isDiff = .false.
 
   select case(scatter_genList(genID)%genType)
-  case(1)  ! ABSORBER
+  case(scatter_genAbsorber)
 
     procID = scatter_idAbsorb
 
-  case(10) ! PPBEAMELASTIC
+  case(scatter_genPPBeamElastic)
 
     a      = scatter_genList(genID)%fParams(1)
     b1     = scatter_genList(genID)%fParams(2)
@@ -1271,7 +1282,7 @@ subroutine scatter_generator_getEvent(genID, pID, t, theta, dEE, dPP, procID, iL
     theta  = acos_mb(one - (t/(2*ejfv(pID)**2)))*c1e3 ! Get angle from t
     procID = scatter_idElastic
 
-  case(20) ! PYTHIA
+  case(scatter_genPythiaSimple)
 
 #ifdef PYTHIA
 10  continue
