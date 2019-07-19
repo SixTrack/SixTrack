@@ -16,29 +16,17 @@ HASH--------------------------------------------------------------------
     MD5SUM ip5.dat             text
 NEXT
 
-TRACKING PARAMETERS-----------------------------------------------------
-    50 0 500 0.0 0.0 0 1 0 0 10
-    1 1 2 1 2
-    0 0 1 1 1 50000 2
-NEXT
-
-INITIAL COORDINATES-----------------------------------------------------
-    2 0.0 0.0 0.0 0
-    0.0
-    0.0
-    0.0
-    0.0
-    0.0
-    0.0
-    0.0
-    0.0
-    0.0
-    0.0
-    0.0
-    0.0
-    7000000.0
-    7000000.0
-    7000000.0
+SIMULATION--------------------------------------------------------------
+    PARTICLES    1000
+    TURNS        50
+    CRPOINT      10
+    LATTICE      Thin 6D
+    6D_CLORB     on
+    READ_FORT13  on
+    WRITE_TRACKS 100 on
+    REF_PARTICLE proton
+    REF_ENERGY   7.0e6
+    PDG_YEAR     2018
 NEXT
 
 ITERATION-ACCURACY------------------------------------------------------
@@ -74,6 +62,7 @@ NEXT
 PYTHIA------------------------------------------------------------------
     SPECIES PROTON PROTON
     ENERGY 7000000 7000000
+    REALBEAM off
     SEED 41
     PROCESS ELASTIC
     PROCESS SINGLEDIFFRACTIVE
@@ -82,7 +71,7 @@ NEXT
 SCATTER-----------------------------------------------------------------
     SEED 42
     GEN  sc_thin     PPBEAMELASTIC 0.046  18.52  4.601  2.647  0.2  8.0
-    GEN  sc_pythia   PYTHIASIMPLE  27.0
+    GEN  sc_pythia   PYTHIA 27.0
     PRO  ipFLAT      FLAT   3e25  938.0  7000000
     PRO  ipGAUSS     GAUSS1 2.2e11 8.66e-3 8.66e-3 0.75e-3 -0.75e-3
     ELEM ip1_scatter ipFLAT auto 1.0 sc_thin sc_pythia
