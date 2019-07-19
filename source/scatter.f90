@@ -1238,6 +1238,9 @@ function scatter_generator_getCrossSection(idPro, idGen, x, y, xp, yp, E) result
   case(scatter_genPythiaSimple)
     retVal = scatter_genList(idGen)%crossSection
 
+  case(scatter_genPythiaFull)
+    retVal = scatter_genList(idGen)%crossSection
+
   case default
     write(lerr,"(a,i0,a)") "SCATTER> ERROR Type ",scatter_genList(idGen)%genType," for generator '"//&
       trim(scatter_genList(idGen)%genName)//"' not understood."
@@ -1252,17 +1255,17 @@ end function scatter_generator_getCrossSection
 !  Created: 2017-11-02
 !  Updated: 2019-04-24
 ! =================================================================================================
-subroutine scatter_generator_getEvent(genID, pID, t, theta, dEE, dPP, procID, iLost, isDiff)
+subroutine scatter_generator_getEvent(genID, j, t, theta, dEE, dPP, procID, iLost, isDiff)
 
   use crcoall
   use mod_common_main
-  use mod_common, only : fort3
+  use mod_common, only : fort3, e0f
   use, intrinsic :: iso_c_binding
 
   implicit none
 
   integer,          intent(in)  :: genID
-  integer,          intent(in)  :: pID
+  integer,          intent(in)  :: j
   real(kind=fPrec), intent(out) :: t
   real(kind=fPrec), intent(out) :: theta
   real(kind=fPrec), intent(out) :: dEE
@@ -1275,6 +1278,8 @@ subroutine scatter_generator_getEvent(genID, pID, t, theta, dEE, dPP, procID, iL
   logical(kind=C_BOOL) evStat
   integer              tmpIdx, evType, nRetry
   real(kind=fPrec)     a, b1, b2, phi, tmin
+  real(kind=fPrec)     pIn(6), pOut(6)
+  logical              isFull
 
   dEE    = zero
   dPP    = zero
@@ -1298,15 +1303,53 @@ subroutine scatter_generator_getEvent(genID, pID, t, theta, dEE, dPP, procID, iL
     tmin   = scatter_genList(genID)%fParams(5)
 
     t      = scatter_generator_getPPElastic(a, b1, b2, phi, tmin)
-    t      = t*c1e6                                      ! Scale return variable to MeV^2
-    theta  = acos_mb(one - (t/(2*ejfv(pID)**2)))*c1e3 ! Get angle from t
+    t      = t*c1e6                                 ! Scale return variable to MeV^2
+    theta  = acos_mb(one - (t/(2*ejfv(j)**2)))*c1e3 ! Get angle from t
     procID = scatter_idElastic
 
-  case(scatter_genPythiaSimple)
+  case(scatter_genPythiaSimple, scatter_genPythiaFull)
+
+    if(scatter_genList(genID)%genType == scatter_genPythiaFull) then
+      isFull = .true.
+    else
+      isFull = .false.
+    end if
 
 #ifdef PYTHIA
 10  continue
-    call pythia_getEvent(evStat, evType, t, theta, dEE, dPP)
+    if(isFull) then
+
+      pIn(1) = yv1(j)*ejfv(j)*c1m6
+      pIn(2) = yv2(j)*ejfv(j)*c1m6
+      pIn(3) = sqrt(ejfv(j)**2 - pIn(1)**2 - pIn(2)**2)*c1m3
+      pIn(4) = zero
+      pIn(5) = zero
+      pIn(6) = -e0f*c1m3
+  
+      pOut(:) = zero
+
+      write(lout,"(a,i0)")          "SCATTER> Sending particle ",j
+      write(lout,"(a,3(1x,f16.9))") "SCATTER> -> Pythia A :",pIn(1:3)
+      write(lout,"(a,3(1x,f16.9))") "SCATTER> -> Pythia B :",pIn(4:6)
+
+      call pythia_getEventFull(evStat, evType, t, theta, dEE, dPP, pIn, pOut)
+
+      write(lout,"(a,3(1x,f16.9))") "SCATTER> -> Pythia A :",pIn(1:3)
+      write(lout,"(a,3(1x,f16.9))") "SCATTER> -> Pythia B :",pIn(4:6)
+      write(lout,"(a,3(1x,f16.9))") "SCATTER> <- Pythia A :",pOut(1:3)
+      write(lout,"(a,3(1x,f16.9))") "SCATTER> <- Pythia B :",pOut(4:6)
+      write(lout,"(a,3(1x,i0))")    "SCATTER>        code :",evType
+      write(lout,"(a,3(1x,f16.9))") "SCATTER>           t :",t
+      write(lout,"(a,3(1x,f16.9))") "SCATTER>       theta :",theta
+      write(lout,"(a,3(1x,f16.9))") "SCATTER>         dEE :",dEE
+      write(lout,"(a,3(1x,f16.9))") "SCATTER>         dPP :",dPP
+
+    else
+
+      call pythia_getEvent(evStat, evType, t, theta, dEE, dPP)
+
+    end if
+
     nRetry = nRetry + 1
     if(nRetry > 100) then
       write(lout,"(a)") "SCATTER> WARNING Pythia failed to generate event. Skipping Particle."
@@ -1314,11 +1357,11 @@ subroutine scatter_generator_getEvent(genID, pID, t, theta, dEE, dPP, procID, iL
       iLost  = 0
       return
     end if
+
     if(evStat) then
       t     = abs(t)*c1e6 ! Scale t to MeV^2
       theta = theta*c1e3  ! Scale angle to mrad
-    ! theta = acos_mb(one - (t/((2*ejfv(j)**2)*(one+dPP))))*c1e3 ! Calculated from t
-    select case(evType)
+      select case(evType)
       case(pythia_idNonDiff)
         if(scatter_allowLosses) then
           procID = scatter_idNonDiff
@@ -1363,11 +1406,11 @@ subroutine scatter_generator_getEvent(genID, pID, t, theta, dEE, dPP, procID, iL
         isDiff = .false.
       end select
     else
-      write(lout,"(a)") "SCATTER> WARNING Pythia failed to generate event. Pythia error."
+      write(lout,"(a)") "SCATTER> WARNING Pythia error: failed to generate event"
       goto 10
     end if
 #else
-    write(lerr,"(a,i0,a)") "SCATTER> ERROR This version of SixTrack was built without PYTHIA support,"
+    write(lerr,"(a,i0,a)") "SCATTER> ERROR This version of SixTrack was built without PYTHIA support"
     call prror
 #endif
 

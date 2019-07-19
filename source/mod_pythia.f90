@@ -55,7 +55,7 @@ module mod_pythia
   real(kind=fPrec),   private, save :: pythia_csNDiffractive  = -1.0_fPrec
 
   ! Beam Configuration
-  integer,            private, save :: pythia_frameType       = 2
+  integer,            private, save :: pythia_frameType       = 0
   integer,            private, save :: pythia_beamSpecies(2)  = pythia_partProton
   real(kind=fPrec),   private, save :: pythia_beamEnergy(2)   = zero
 
@@ -115,6 +115,14 @@ module mod_pythia
       real(kind=C_DOUBLE),  intent(inout) :: t,theta,dEE,dPP
     end subroutine pythia_getEvent
 
+    subroutine pythia_getEventFull(status,code,t,theta,dEE,dPP,vecPin,vecPout) bind(C, name="pythiaWrapper_getEventPVector")
+      use, intrinsic :: iso_c_binding
+      logical(kind=C_BOOL), intent(inout) :: status
+      integer(kind=C_INT),  intent(inout) :: code
+      real(kind=C_DOUBLE),  intent(inout) :: t,theta,dEE,dPP
+      real(kind=C_DOUBLE),  intent(inout) :: vecPin(6), vecPout(6)
+    end subroutine pythia_getEventFull
+
   end interface
 
 contains
@@ -123,6 +131,7 @@ subroutine pythia_parseInputLine(inLine, iLine, iErr)
 
   use crcoall
   use string_tools
+  use mod_common,     only : e0
   use mod_settings,   only : st_debug
   use sixtrack_input, only : sixin_echoVal
 
@@ -246,8 +255,6 @@ subroutine pythia_parseInputLine(inLine, iLine, iErr)
         pythia_beamSpecies(iBeam) = pythia_partPionZero
       case("PHOTON","GAMMA")
         pythia_beamSpecies(iBeam) = pythia_partGamma
-      case("POM","POMERON")
-        pythia_beamSpecies(iBeam) = pythia_partPomeron
       case("E","E-","ELECTRON")
         pythia_beamSpecies(iBeam) = pythia_partElectron
       case("E+","POSITRON")
@@ -269,18 +276,34 @@ subroutine pythia_parseInputLine(inLine, iLine, iErr)
     end if
 
   case("ENERGY")
-    if(nSplit /= 3) then
-      write(lerr,"(a,i0)") "PYTHIA> ERROR Keyword ENERGY expected 2 arguments, got ",(nSplit-1)
+    if(nSplit /= 2 .and. nSplit /= 3) then
+      write(lerr,"(a,i0)") "PYTHIA> ERROR Keyword ENERGY expected 1 or 2 arguments, got ",(nSplit-1)
       iErr = .true.
       return
     end if
 
-    call chr_cast(lnSplit(2),pythia_beamEnergy(1),iErr)
-    call chr_cast(lnSplit(3),pythia_beamEnergy(2),iErr)
+    if(chr_toUpper(lnSplit(2)) == "VARIABLE") then
+      pythia_beamEnergy(1) = e0
+      pythia_beamEnergy(2) = e0
+      pythia_frameType     = 3
+    else
+      call chr_cast(lnSplit(2),pythia_beamEnergy(1),iErr)
+      if(nSplit == 3) then
+        call chr_cast(lnSplit(3),pythia_beamEnergy(2),iErr)
+      else
+        pythia_beamEnergy(2) = pythia_beamEnergy(1)
+      end if
+      if(pythia_beamEnergy(1) == pythia_beamEnergy(2)) then
+        pythia_frameType = 1
+      else
+        pythia_frameType = 2
+      end if
+    end if
 
     if(st_debug) then
-      call sixin_echoVal("E(1)",pythia_beamEnergy(1),"PYTHIA",iLine)
-      call sixin_echoVal("E(2)",pythia_beamEnergy(2),"PYTHIA",iLine)
+      call sixin_echoVal("frameType",pythia_frameType,    "PYTHIA",iLine)
+      call sixin_echoVal("E(1)",     pythia_beamEnergy(1),"PYTHIA",iLine)
+      call sixin_echoVal("E(2)",     pythia_beamEnergy(2),"PYTHIA",iLine)
     end if
 
     pythia_beamEnergy = pythia_beamEnergy*c1m3 ! Pythia expects GeV
