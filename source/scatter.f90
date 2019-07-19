@@ -1,7 +1,8 @@
 ! ================================================================================================ !
 !  SixTrack SCATTER Module
 !  V.K. Berglyd Olsen, K.N. Sjobak, H. Burkhardt, BE-ABP-HSS
-!  Last modified: 2018-11-12
+!  Created: 2017-08
+!  Updated: 2018-11-12
 !
 !  References:
 !  "Elastic pp scattering estimates and simulation relevant for burn-off"
@@ -11,19 +12,8 @@
 ! ================================================================================================ !
 module scatter
 
-  use floatPrecision
-  use mathlib_bouncer
-  use numerical_constants
   use parpro
-  use mod_ranecu
-  use strings
-  use string_tools
-#ifdef HDF5
-  use hdf5_output
-#endif
-#ifdef PYTHIA
-  use mod_pythia
-#endif
+  use floatPrecision
 
   implicit none
 
@@ -58,6 +48,8 @@ module scatter
   integer, parameter :: scatter_proFlat          = 1
   integer, parameter :: scatter_proFixed         = 2
   integer, parameter :: scatter_proGauss1        = 3
+  integer, parameter :: scatter_proBeamRef       = 4
+  integer, parameter :: scatter_proBeamUnCorr    = 5
 
   ! Storage Structs
   type, private :: scatter_elemStore
@@ -127,27 +119,35 @@ contains
 
 ! =================================================================================================
 !  K. Sjobak, V.K. Berglyd Olsen, BE-ABP-HSS
-!  Last modified: 2018-11-12
+!  Created: 2017-08
+!  Updated: 2018-11-12
 ! =================================================================================================
 subroutine scatter_expand_arrays(nele_new, npart_new)
+
   use mod_alloc
-  implicit none
+  use numerical_constants
+
   integer, intent(in) :: nele_new, npart_new
+
   call alloc(scatter_elemPointer, nele_new,  0,   "scatter_elemPointer")
   call alloc(scatter_statScale,   npart_new, one, "scatter_statScale")
+
 end subroutine scatter_expand_arrays
 
 ! =================================================================================================
 !  K. Sjobak, V.K. Berglyd Olsen, BE-ABP-HSS
-!  Last Modified: 2018-11-12
+!  Created: 2017-08
+!  Updated: 2018-11-12
 ! =================================================================================================
 subroutine scatter_init
 
   use crcoall
   use parpro
   use mod_units
-
-  implicit none
+  use string_tools
+#ifdef HDF5
+  use hdf5_output
+#endif
 
   integer iError
   logical fErr
@@ -284,24 +284,27 @@ end subroutine scatter_init
 
 ! =================================================================================================
 !  V.K. Berglyd Olsen, BE-ABP-HSS
-!  Last modified: 2018-04-20
+!  Created: 2017-08
+!  Updated: 2019-07-19
 ! =================================================================================================
 subroutine scatter_parseInputLine(inLine, iErr)
 
   use crcoall
+  use mod_ranecu
+  use string_tools
+#ifdef PYTHIA
+  use mod_pythia
+#endif
 
-  implicit none
+  character(len=*), intent(in)    :: inLine
+  logical,          intent(inout) :: iErr
 
-  type(string), intent(in)    :: inLine
-  logical,      intent(inout) :: iErr
-
-  type(string), allocatable   :: lnSplit(:)
-  type(string) keyWord
-  integer      nSplit, i
-  logical      spErr
+  character(len=:), allocatable :: lnSplit(:)
+  integer nSplit, i
+  logical spErr
 
   ! Split the input line
-  call str_split(inLine,lnSplit,nSplit,spErr)
+  call chr_split(inLine,lnSplit,nSplit,spErr)
   if(spErr) then
     write(lerr,"(a)") "SCATTER> ERROR Failed to parse input line."
     iErr = .true.
@@ -316,9 +319,7 @@ subroutine scatter_parseInputLine(inLine, iErr)
     return
   end if
 
-  keyWord = lnSplit(1)%upper()
-
-  select case(keyWord%get())
+  select case(lnSplit(1))
   case("DEBUG")
     scatter_debug = .true.
     write(lout,"(a)") "SCATTER> Scatter block debugging is ON."
@@ -338,7 +339,7 @@ subroutine scatter_parseInputLine(inLine, iErr)
       iErr = .true.
       return
     end if
-    call str_cast(lnSplit(2), scatter_seed1, iErr)
+    call chr_cast(lnSplit(2), scatter_seed1, iErr)
     call recuinit(scatter_seed1)
     call recuut(scatter_seed1, scatter_seed2)
 
@@ -352,7 +353,7 @@ subroutine scatter_parseInputLine(inLine, iErr)
     call scatter_parseGenerator(lnSplit, nSplit, iErr)
 
   case default
-    write(lerr,"(a)") "SCATTER> ERROR Keyword not recognised: '"//keyWord//"'"
+    write(lerr,"(a)") "SCATTER> ERROR Keyword not recognised: '"//trim(lnSplit(1))//"'"
     iErr = .true.
     return
 
@@ -362,7 +363,8 @@ end subroutine scatter_parseInputLine
 
 ! =================================================================================================
 !  K. Sjobak, V.K. Berglyd Olsen, BE-ABP-HSS
-!  Last modified: 2018-11-10
+!  Created: 2017-08
+!  Updated: 2019-07-19
 ! =================================================================================================
 subroutine scatter_parseElem(lnSplit, nSplit, iErr)
 
@@ -370,13 +372,13 @@ subroutine scatter_parseElem(lnSplit, nSplit, iErr)
   use mod_alloc
   use mod_common
   use mod_settings
+  use string_tools
   use mod_common_main
+  use numerical_constants
 
-  implicit none
-
-  type(string), allocatable, intent(in)    :: lnSplit(:)
-  integer,                   intent(in)    :: nSplit
-  logical,                   intent(inout) :: iErr
+  character(len=:), allocatable, intent(in)    :: lnSplit(:)
+  integer,                       intent(in)    :: nSplit
+  logical,                       intent(inout) :: iErr
 
   ! Temporary Variables
   type(scatter_elemStore), allocatable :: tmpElem(:)
@@ -467,15 +469,15 @@ subroutine scatter_parseElem(lnSplit, nSplit, iErr)
   end if
 
   ! Store the ratio
-  if(lnSplit(4)%lower() == "auto") then
+  if(chr_toLower(lnSplit(4)) == "auto") then
     autoRatio = .true.
   else
     autoRatio = .false.
-    call str_cast(lnSplit(4),ratioTot,iErr)
+    call chr_cast(lnSplit(4),ratioTot,iErr)
   end if
 
   ! Store the scaling
-  call str_cast(lnSplit(5),elemScale,iErr)
+  call chr_cast(lnSplit(5),elemScale,iErr)
 
   do i=6,nSplit
     ! Search for the generator with the right name
@@ -543,19 +545,20 @@ end subroutine scatter_parseElem
 
 ! =================================================================================================
 !  K. Sjobak, V.K. Berglyd Olsen, BE-ABP-HSS
-!  Last modified: 2018-11-10
+!  Created: 2017-08
+!  Updated: 2019-07-19
 ! =================================================================================================
 subroutine scatter_parseProfile(lnSplit, nSplit, iErr)
 
   use crcoall
   use mod_alloc
   use mod_settings
+  use string_tools
+  use numerical_constants
 
-  implicit none
-
-  type(string), allocatable, intent(in)    :: lnSplit(:)
-  integer,                   intent(in)    :: nSplit
-  logical,                   intent(inout) :: iErr
+  character(len=:), allocatable, intent(in)    :: lnSplit(:)
+  integer,                       intent(in)    :: nSplit
+  logical,                       intent(inout) :: iErr
 
   ! Temporary Variables
   type(scatter_proStore), allocatable :: tmpPro(:)
@@ -597,7 +600,7 @@ subroutine scatter_parseProfile(lnSplit, nSplit, iErr)
   end do
 
   ! Profile type dependent code
-  select case (lnSplit(3)%get())
+  select case(lnSplit(3))
   case("FLAT")
     proType = scatter_proFlat
     if(nSplit /= 6) then
@@ -607,9 +610,9 @@ subroutine scatter_parseProfile(lnSplit, nSplit, iErr)
       return
     end if
 
-    call str_cast(lnSplit(4),fParams(1),iErr) ! Density
-    call str_cast(lnSplit(5),fParams(2),iErr) ! Mass
-    call str_cast(lnSplit(6),fParams(3),iErr) ! Momentum
+    call chr_cast(lnSplit(4),fParams(1),iErr) ! Density
+    call chr_cast(lnSplit(5),fParams(2),iErr) ! Mass
+    call chr_cast(lnSplit(6),fParams(3),iErr) ! Momentum
 
   case("FIXED")
     proType = scatter_proFixed
@@ -620,7 +623,7 @@ subroutine scatter_parseProfile(lnSplit, nSplit, iErr)
       return
     end if
 
-    call str_cast(lnSplit(4),fParams(1),iErr) ! Density
+    call chr_cast(lnSplit(4),fParams(1),iErr) ! Density
 
   case("GAUSS1")
     proType = scatter_proGauss1
@@ -631,11 +634,11 @@ subroutine scatter_parseProfile(lnSplit, nSplit, iErr)
       return
     end if
 
-    call str_cast(lnSplit(4),fParams(1),iErr) ! Beam Charge
-    call str_cast(lnSplit(5),fParams(2),iErr) ! Sigma X
-    call str_cast(lnSplit(6),fParams(3),iErr) ! Sigma Y
-    call str_cast(lnSplit(7),fParams(4),iErr) ! Offset X
-    call str_cast(lnSplit(8),fParams(5),iErr) ! Offset Y
+    call chr_cast(lnSplit(4),fParams(1),iErr) ! Beam Charge
+    call chr_cast(lnSplit(5),fParams(2),iErr) ! Sigma X
+    call chr_cast(lnSplit(6),fParams(3),iErr) ! Sigma Y
+    call chr_cast(lnSplit(7),fParams(4),iErr) ! Offset X
+    call chr_cast(lnSplit(8),fParams(5),iErr) ! Offset Y
 
   case default
     write(lerr,"(a)") "SCATTER> ERROR PRO name '"//trim(lnSplit(3))//"' not recognized."
@@ -661,7 +664,8 @@ end subroutine scatter_parseProfile
 
 ! =================================================================================================
 !  K. Sjobak, V.K. Berglyd Olsen, BE-ABP-HSS
-!  Last modified: 2018-11-12
+!  Created: 2017-08
+!  Updated: 2019-07-19
 ! =================================================================================================
 subroutine scatter_parseGenerator(lnSplit, nSplit, iErr)
 
@@ -670,12 +674,11 @@ subroutine scatter_parseGenerator(lnSplit, nSplit, iErr)
   use strings
   use string_tools
   use mod_settings
+  use numerical_constants
 
-  implicit none
-
-  type(string), allocatable, intent(in)    :: lnSplit(:)
-  integer,                   intent(in)    :: nSplit
-  logical,                   intent(inout) :: iErr
+  character(len=:), allocatable, intent(in)    :: lnSplit(:)
+  integer,                       intent(in)    :: nSplit
+  logical,                       intent(inout) :: iErr
 
   ! Temporary Variables
   type(scatter_genStore), allocatable :: tmpGen(:)
@@ -720,7 +723,7 @@ subroutine scatter_parseGenerator(lnSplit, nSplit, iErr)
   end do
 
   ! Generator type-dependent code
-  select case (lnSplit(3)%get())
+  select case(lnSplit(3))
   case("ABSORBER")
 
     genType = scatter_genAbsorber
@@ -736,12 +739,12 @@ subroutine scatter_parseGenerator(lnSplit, nSplit, iErr)
       return
     end if
 
-    call str_cast(lnSplit(4),fParams(1),iErr) ! a
-    call str_cast(lnSplit(5),fParams(2),iErr) ! b1
-    call str_cast(lnSplit(6),fParams(3),iErr) ! b2
-    call str_cast(lnSplit(7),fParams(4),iErr) ! phi
-    call str_cast(lnSplit(8),fParams(5),iErr) ! tmin
-    call str_cast(lnSplit(9),fParams(6),iErr) ! crossSection
+    call chr_cast(lnSplit(4),fParams(1),iErr) ! a
+    call chr_cast(lnSplit(5),fParams(2),iErr) ! b1
+    call chr_cast(lnSplit(6),fParams(3),iErr) ! b2
+    call chr_cast(lnSplit(7),fParams(4),iErr) ! phi
+    call chr_cast(lnSplit(8),fParams(5),iErr) ! tmin
+    call chr_cast(lnSplit(9),fParams(6),iErr) ! crossSection
     crossSection = fParams(6) * c1m27         ! Set crossSection explicitly in mb
 
     ! Check sanity of input values
@@ -773,7 +776,7 @@ subroutine scatter_parseGenerator(lnSplit, nSplit, iErr)
 
     genType = scatter_genPythiaSimple
 
-    call str_cast(lnSplit(4),fParams(1),iErr) ! crossSection
+    call chr_cast(lnSplit(4),fParams(1),iErr) ! crossSection
     crossSection = fParams(1) * c1m27         ! Set crossSection explicitly in mb
 
   case("PYTHIA","PYTHIAFULL")
@@ -793,7 +796,7 @@ subroutine scatter_parseGenerator(lnSplit, nSplit, iErr)
 
     genType = scatter_genPythiaFull
 
-    call str_cast(lnSplit(4),fParams(1),iErr) ! crossSection
+    call chr_cast(lnSplit(4),fParams(1),iErr) ! crossSection
     crossSection = fParams(1) * c1m27         ! Set crossSection explicitly in mb
 
   case default
@@ -827,7 +830,8 @@ end subroutine scatter_parseGenerator
 
 ! =================================================================================================
 !  V.K. Berglyd Olsen, BE-ABP-HSS
-!  Last modified: 2018-11-12
+!  Created: 2017-08
+!  Updated: 2018-11-12
 ! =================================================================================================
 subroutine scatter_setScaling(iElem, scaleVal)
   integer,          intent(in) :: iElem
@@ -837,7 +841,8 @@ end subroutine scatter_setScaling
 
 ! =================================================================================================
 !  V.K. Berglyd Olsen, BE-ABP-HSS
-!  Last modified: 2018-11-12
+!  Created: 2017-08
+!  Updated: 2018-11-12
 ! =================================================================================================
 pure function scatter_getScaling(iElem) result(scaleVal)
   integer, intent(in) :: iElem
@@ -847,24 +852,25 @@ end function scatter_getScaling
 
 ! =================================================================================================
 !  K. Sjobak, V.K. Berglyd Olsen, BE-ABP-HSS
-!  Last modified: 02-11-2017
+!  Created: 2017-08
+!  Updated: 2019-07-19
 ! =================================================================================================
 subroutine scatter_thin(iElem, ix, turn)
 
-  use string_tools
   use crcoall
   use mod_time
   use mod_alloc
+  use mod_ranecu
   use mod_common
+  use string_tools
   use mod_particles
   use mod_common_main
-  use numerical_constants, only : pi
+  use mathlib_bouncer
+  use numerical_constants
 #ifdef HDF5
   use hdf5_output
 #endif
   use collimation, only : do_coll, scatterhit, part_hit_pos, part_hit_turn
-
-  implicit none
 
   integer, intent(in) :: iElem, ix, turn
 
@@ -1140,16 +1146,16 @@ end subroutine scatter_thin
 
 ! =================================================================================================
 !  K. Sjobak, V.K. Berglyd Olsen, BE-ABP-HSS
-!  Last modified: 02-11-2017
+!  Created: 2017-08
+!  Updated: 2017-11-02
 ! =================================================================================================
 function scatter_profile_getDensity(idPro, x, y) result(retval)
 
-  use string_tools
   use crcoall
   use mod_common
-  use numerical_constants, only : pi, zero
-
-  implicit none
+  use string_tools
+  use mathlib_bouncer
+  use numerical_constants
 
   integer,          intent(in) :: idPro
   real(kind=fPrec), intent(in) :: x, y
@@ -1184,11 +1190,12 @@ end function scatter_profile_getDensity
 
 ! =================================================================================================
 !  K. Sjobak, V.K. Berglyd Olsen, BE-ABP-HSS
-!  Last modified: 09-2017
+!  Created: 2017-08
+!  Updated: 2017-09
 ! =================================================================================================
 subroutine scatter_profile_getParticle(idPro, x, y, xp, yp, E)
 
-  implicit none
+  use numerical_constants
 
   integer,          intent(in)  :: idPro
   real(kind=fPrec), intent(in)  :: x, y
@@ -1204,15 +1211,14 @@ end subroutine scatter_profile_getParticle
 
 ! =================================================================================================
 !  K. Sjobak, V.K. Berglyd Olsen, BE-ABP-HSS
-!  Last modified: 09-2017
+!  Created: 2017-08
+!  Updated: 2017-09
 ! =================================================================================================
 function scatter_generator_getCrossSection(idPro, idGen, x, y, xp, yp, E) result(retVal)
 
-  use string_tools
   use crcoall
-  use numerical_constants, only : zero
-
-  implicit none
+  use string_tools
+  use numerical_constants
 
   integer,          intent(in) :: idPro, idGen
   real(kind=fPrec), intent(in) :: x, y, xp, yp, E
@@ -1251,18 +1257,22 @@ function scatter_generator_getCrossSection(idPro, idGen, x, y, xp, yp, E) result
 end function scatter_generator_getCrossSection
 
 ! =================================================================================================
-!  K. Sjobak, V.K. Berglyd Olsen, BE-ABP-HSS
+!  V.K. Berglyd Olsen, K. Sjobak, BE-ABP-HSS
 !  Created: 2017-11-02
-!  Updated: 2019-04-24
+!  Updated: 2019-07-19
 ! =================================================================================================
 subroutine scatter_generator_getEvent(genID, j, t, theta, dEE, dPP, procID, iLost, isDiff)
 
-  use crcoall
-  use mod_common_main
-  use mod_common, only : fort3, e0f
   use, intrinsic :: iso_c_binding
 
-  implicit none
+  use crcoall
+  use mod_common, only : fort3, e0f
+  use mod_common_main
+  use mathlib_bouncer
+  use numerical_constants
+#ifdef PYTHIA
+  use mod_pythia
+#endif
 
   integer,          intent(in)  :: genID
   integer,          intent(in)  :: j
@@ -1325,7 +1335,7 @@ subroutine scatter_generator_getEvent(genID, j, t, theta, dEE, dPP, procID, iLos
       pIn(4) = zero
       pIn(5) = zero
       pIn(6) = -e0f*c1m3
-  
+
       pOut(:) = zero
 
       write(lout,"(a,i0)")          "SCATTER> Sending particle ",j
@@ -1423,8 +1433,9 @@ subroutine scatter_generator_getEvent(genID, j, t, theta, dEE, dPP, procID, iLos
 end subroutine scatter_generator_getEvent
 
 ! =================================================================================================
-!  H. Burkhardt, K. Sjobak, V.K. Berglyd Olsen, BE-ABP-HSS
-!  Last modified: 2017-11-02
+!  H. Burkhardt, V.K. Berglyd Olsen, K. Sjobak, BE-ABP-HSS
+!  Created: 2017-08
+!  Updated: 2017-11-02
 !  Converted from C++ code from:
 !  "Elastic pp scattering estimates and simulation relevant for burn-off"
 !  https://indico.cern.ch/event/625576/
@@ -1432,8 +1443,9 @@ end subroutine scatter_generator_getEvent
 function scatter_generator_getPPElastic(a, b1, b2, phi, tmin) result(t)
 
   use crcoall
-
-  implicit none
+  use mod_ranecu
+  use mathlib_bouncer
+  use numerical_constants
 
   real(kind=fPrec), intent(in) :: a, b1, b2, phi, tmin
 
@@ -1485,14 +1497,14 @@ end function scatter_generator_getPPElastic
 
 ! =================================================================================================
 !  V.K. Berglyd Olsen, BE-ABP-HSS
-!  Last modified: 2018-11-12
+!  Created: 2017-08
+!  Updated: 2018-11-12
 !  Write a report of all the calculated cross sections and branching ratios
 ! =================================================================================================
 subroutine scatter_writeReport
 
   use crcoall
-
-  implicit none
+  use numerical_constants
 
   integer i, iElem, iGen, nLine
 
@@ -1548,7 +1560,8 @@ end subroutine scatter_writeReport
 
 ! =================================================================================================
 !  K. Sjobak, V.K. Berglyd Olsen, BE-ABP-HSS
-!  Last modified: 2019-05-23
+!  Created: 2017-11
+!  Updated: 2019-05-23
 !  Called from CRCHECK; reads the _CR arrays for scatter from file
 !  Sets readErr to true if something goes wrong while reading.
 ! =================================================================================================
@@ -1559,8 +1572,6 @@ subroutine scatter_crcheck_readdata(fileUnit, readErr)
   use crcoall
   use mod_alloc
   use numerical_constants
-
-  implicit none
 
   integer, intent(in)  :: fileUnit
   logical, intent(out) :: readErr
@@ -1586,7 +1597,8 @@ end subroutine scatter_crcheck_readdata
 
 ! =================================================================================================
 !  K. Sjobak, V.K. Berglyd Olsen, BE-ABP-HSS
-!  Last modified: 2018-11-10
+!  Created: 2017-11
+!  Updated: 2018-11-10
 !  Called from CRCHECK; resets the position of scatter_log.dat
 ! =================================================================================================
 subroutine scatter_crcheck_positionFiles
@@ -1680,7 +1692,8 @@ end subroutine scatter_crcheck_positionFiles
 
 ! =================================================================================================
 !  K. Sjobak, V.K. Berglyd Olsen, BE-ABP-HSS
-!  Last modified: 2019-05-23
+!  Created: 2017-11
+!  Updated: 2019-05-23
 !  Called from CRPOINT; write checkpoint data to fort.95/96
 ! =================================================================================================
 subroutine scatter_crpoint(fileUnit, writeErr)
@@ -1709,7 +1722,8 @@ end subroutine scatter_crpoint
 
 ! =================================================================================================
 !  K. Sjobak, V.K. Berglyd Olsen, BE-ABP-HSS
-!  Last modified: 2019-05-23
+!  Created: 2017-11
+!  Updated: 2019-05-23
 !  Called from CRSTART
 ! =================================================================================================
 subroutine scatter_crstart
