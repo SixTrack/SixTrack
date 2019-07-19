@@ -58,6 +58,7 @@ module mod_pythia
   integer,            private, save :: pythia_frameType       = 0
   integer,            private, save :: pythia_beamSpecies(2)  = pythia_partProton
   real(kind=fPrec),   private, save :: pythia_beamEnergy(2)   = zero
+  logical,            public,  save :: pythia_useRealBeam     = .false.
 
   ! Other Settings
   character(len=256), private, save :: pythia_settingsFile    = " "
@@ -135,8 +136,6 @@ subroutine pythia_parseInputLine(inLine, iLine, iErr)
   use mod_settings,   only : st_debug
   use sixtrack_input, only : sixin_echoVal
 
-  implicit none
-
   character(len=*), intent(in)    :: inLine
   integer,          intent(in)    :: iLine
   logical,          intent(inout) :: iErr
@@ -158,7 +157,8 @@ subroutine pythia_parseInputLine(inLine, iLine, iErr)
 
   case("FILE")
     if(nSplit /= 2) then
-      write(lerr,"(a,i0)") "PYTHIA> ERROR Keyword FILE expected 1 argument, got ",(nSplit-1)
+      write(lerr,"(a,i0)") "PYTHIA> ERROR Keyword FILE expected 1 argument, got ",nSplit-1
+      write(lerr,"(a)")    "PYTHIA>       FILE filename"
       iErr = .true.
       return
     end if
@@ -168,7 +168,8 @@ subroutine pythia_parseInputLine(inLine, iLine, iErr)
 
   case("PROCESS")
     if(nSplit /= 2 .and. nSplit /= 3) then
-      write(lerr,"(a,i0)") "PYTHIA> ERROR Keyword PROCESS expected 1 or 2 arguments, got ",(nSplit-1)
+      write(lerr,"(a,i0)") "PYTHIA> ERROR Keyword PROCESS expected 1 or 2 arguments, got ",nSplit-1
+      write(lerr,"(a)")    "PYTHIA>       PROCESS type [crossSection]"
       iErr = .true.
       return
     end if
@@ -216,7 +217,8 @@ subroutine pythia_parseInputLine(inLine, iLine, iErr)
 
   case("COULOMB")
     if(nSplit /= 2 .and. nSplit /= 3) then
-      write(lerr,"(a,i0)") "PYTHIA> ERROR Keyword COULOMB expected 1 or 2 arguments, got ",(nSplit-1)
+      write(lerr,"(a,i0)") "PYTHIA> ERROR Keyword COULOMB expected 1 or 2 arguments, got ",nSplit-1
+      write(lerr,"(a)")    "PYTHIA>       COULOMB on|off [tmin]"
       iErr = .true.
       return
     end if
@@ -233,7 +235,8 @@ subroutine pythia_parseInputLine(inLine, iLine, iErr)
 
   case("SPECIES")
     if(nSplit /= 3) then
-      write(lerr,"(a,i0)") "PYTHIA> ERROR Keyword SPECIES expected 2 arguments, got ",(nSplit-1)
+      write(lerr,"(a,i0)") "PYTHIA> ERROR Keyword SPECIES expected 2 arguments, got ",nSplit-1
+      write(lerr,"(a)")    "PYTHIA>       SPECIES beam1 [beam2]"
       iErr = .true.
       return
     end if
@@ -277,36 +280,27 @@ subroutine pythia_parseInputLine(inLine, iLine, iErr)
 
   case("ENERGY")
     if(nSplit /= 2 .and. nSplit /= 3) then
-      write(lerr,"(a,i0)") "PYTHIA> ERROR Keyword ENERGY expected 1 or 2 arguments, got ",(nSplit-1)
+      write(lerr,"(a,i0)") "PYTHIA> ERROR Keyword ENERGY expected 1 or 2 arguments, got ",nSplit-1
+      write(lerr,"(a)")    "PYTHIA>       ENERGY E_beam1 [E_beam2]"
       iErr = .true.
       return
     end if
 
-    if(chr_toUpper(lnSplit(2)) == "VARIABLE") then
-      pythia_beamEnergy(1) = e0
-      pythia_beamEnergy(2) = e0
-      pythia_frameType     = 3
-    else
-      call chr_cast(lnSplit(2),pythia_beamEnergy(1),iErr)
-      if(nSplit == 3) then
-        call chr_cast(lnSplit(3),pythia_beamEnergy(2),iErr)
-      else
-        pythia_beamEnergy(2) = pythia_beamEnergy(1)
-      end if
-      if(pythia_beamEnergy(1) == pythia_beamEnergy(2)) then
-        pythia_frameType = 1
-      else
-        pythia_frameType = 2
-      end if
-    end if
-
     if(st_debug) then
-      call sixin_echoVal("frameType",pythia_frameType,    "PYTHIA",iLine)
-      call sixin_echoVal("E(1)",     pythia_beamEnergy(1),"PYTHIA",iLine)
-      call sixin_echoVal("E(2)",     pythia_beamEnergy(2),"PYTHIA",iLine)
+      call sixin_echoVal("E(1)", pythia_beamEnergy(1),"PYTHIA",iLine)
+      call sixin_echoVal("E(2)", pythia_beamEnergy(2),"PYTHIA",iLine)
     end if
 
     pythia_beamEnergy = pythia_beamEnergy*c1m3 ! Pythia expects GeV
+
+  case("REALBEAM")
+    if(nSplit /= 2) then
+      write(lerr,"(a,i0)") "PYTHIA> ERROR Keyword REALBEAM expected 1 argument, got ",nSplit-1
+      write(lerr,"(a)")    "PYTHIA>       REALBEAM on|off"
+      iErr = .true.
+      return
+    end if
+    call chr_cast(lnSplit(2),pythia_useRealBeam,iErr)
 
   case("SEED")
     if(nSplit /= 2) then
@@ -341,22 +335,6 @@ subroutine pythia_postInput
   real(kind=C_DOUBLE)  beamEnergy1, beamEnergy2, elasticTMin
   real(kind=C_DOUBLE)  sigmaTot, sigmaEl
 
-  rndSeed      = int(pythia_rndSeed,         kind=C_INT)
-  frameType    = int(pythia_frameType,       kind=C_INT)
-  beamSpecies1 = int(pythia_beamSpecies(1),  kind=C_INT)
-  beamSpecies2 = int(pythia_beamSpecies(2),  kind=C_INT)
-
-  beamEnergy1  = real(pythia_beamEnergy(1),      kind=C_DOUBLE)
-  beamEnergy2  = real(pythia_beamEnergy(2),      kind=C_DOUBLE)
-  elasticTMin  = real(pythia_elasticTMin,        kind=C_DOUBLE)
-
-  sCMB         = logical(pythia_useCoulomb,      kind=C_BOOL)
-  sEL          = logical(pythia_useElastic,      kind=C_BOOL)
-  sSD          = logical(pythia_useSDiffractive, kind=C_BOOL)
-  sDD          = logical(pythia_useDDiffractive, kind=C_BOOL)
-  sCD          = logical(pythia_useCDiffractive, kind=C_BOOL)
-  sND          = logical(pythia_useNDiffractive, kind=C_BOOL)
-
   if(pythia_isActive .eqv. .false.) then
     ! No PYTHIA block, so nothing to do.
     return
@@ -389,6 +367,32 @@ subroutine pythia_postInput
     write(lerr,"(a)") "PYTHIA> ERROR Non-diffractive scattering requires allowing losses to be enabled."
     call prror
   end if
+
+  if(pythia_useRealBeam) then
+    pythia_frameType = 3
+  else
+    if(pythia_beamEnergy(1) == pythia_beamEnergy(2)) then
+      pythia_frameType = 1
+    else
+      pythia_frameType = 2
+    end if
+  end if
+
+  rndSeed      = int(pythia_rndSeed,         kind=C_INT)
+  frameType    = int(pythia_frameType,       kind=C_INT)
+  beamSpecies1 = int(pythia_beamSpecies(1),  kind=C_INT)
+  beamSpecies2 = int(pythia_beamSpecies(2),  kind=C_INT)
+
+  beamEnergy1  = real(pythia_beamEnergy(1),      kind=C_DOUBLE)
+  beamEnergy2  = real(pythia_beamEnergy(2),      kind=C_DOUBLE)
+  elasticTMin  = real(pythia_elasticTMin,        kind=C_DOUBLE)
+
+  sCMB         = logical(pythia_useCoulomb,      kind=C_BOOL)
+  sEL          = logical(pythia_useElastic,      kind=C_BOOL)
+  sSD          = logical(pythia_useSDiffractive, kind=C_BOOL)
+  sDD          = logical(pythia_useDDiffractive, kind=C_BOOL)
+  sCD          = logical(pythia_useCDiffractive, kind=C_BOOL)
+  sND          = logical(pythia_useNDiffractive, kind=C_BOOL)
 
   if(pythia_useSettingsFile) then
     call pythia_readFile(pythia_settingsFile//char(0))

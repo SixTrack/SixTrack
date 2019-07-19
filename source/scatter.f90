@@ -604,8 +604,8 @@ subroutine scatter_parseProfile(lnSplit, nSplit, iErr)
   case("FLAT")
     proType = scatter_proFlat
     if(nSplit /= 6) then
-      write(lerr,"(a)") "SCATTER> ERROR PROfile type FLAT expected 6 arguments:"
-      write(lerr,"(a)") "SCATTER>       PRO name FLAT density[targets/cm^2] mass[MeV/c^2] momentum[MeV/c]"
+      write(lerr,"(a,i0)") "SCATTER> ERROR PROfile type FLAT expected 3 arguments, got ",nSplit-3
+      write(lerr,"(a)")    "SCATTER>       PRO name FLAT density[targets/cm^2] mass[MeV/c^2] momentum[MeV/c]"
       iErr = .true.
       return
     end if
@@ -616,9 +616,9 @@ subroutine scatter_parseProfile(lnSplit, nSplit, iErr)
 
   case("FIXED")
     proType = scatter_proFixed
-    if(nSplit /= 4) then
-      write(lerr,"(a)") "SCATTER> ERROR PROfile type FIXED expected 4 arguments:"
-      write(lerr,"(a)") "SCATTER>       PRO name FIXED density[targets/m^2]"
+    if(nSplit /= 3) then
+      write(lerr,"(a,i0)") "SCATTER> ERROR PROfile type FIXED expected 1 argument, got ",nSplit-3
+      write(lerr,"(a)")    "SCATTER>       PRO name FIXED density[targets/m^2]"
       iErr = .true.
       return
     end if
@@ -628,8 +628,8 @@ subroutine scatter_parseProfile(lnSplit, nSplit, iErr)
   case("GAUSS1")
     proType = scatter_proGauss1
     if(nSplit /= 8) then
-      write(lerr,"(a)") "SCATTER> ERROR PROfile type GAUSS1 expected 8 arguments:"
-      write(lerr,"(a)") "SCATTER        PRO name GAUSS1 beamtot[particles] sigma_x[mm] sigma_y[mm] offset_x[mm] offset_y[mm]"
+      write(lerr,"(a,i0)") "SCATTER> ERROR PROfile type GAUSS1 expected 5 arguments, got ",nSplit-3
+      write(lerr,"(a)")    "SCATTER        PRO name GAUSS1 beamtot[particles] sigma_x[mm] sigma_y[mm] offset_x[mm] offset_y[mm]"
       iErr = .true.
       return
     end if
@@ -639,6 +639,15 @@ subroutine scatter_parseProfile(lnSplit, nSplit, iErr)
     call chr_cast(lnSplit(6),fParams(3),iErr) ! Sigma Y
     call chr_cast(lnSplit(7),fParams(4),iErr) ! Offset X
     call chr_cast(lnSplit(8),fParams(5),iErr) ! Offset Y
+
+  case("REFBEAM")
+    proType = scatter_proBeamRef
+    if(nSplit /= 3) then
+      write(lerr,"(a,i0)") "SCATTER> ERROR PROfile type REFBEAM expected no arguments, got ",nSplit-3
+      write(lerr,"(a)")    "SCATTER        PRO name REFBEAM"
+      iErr = .true.
+      return
+    end if
 
   case default
     write(lerr,"(a)") "SCATTER> ERROR PRO name '"//trim(lnSplit(3))//"' not recognized."
@@ -732,8 +741,8 @@ subroutine scatter_parseGenerator(lnSplit, nSplit, iErr)
 
     genType = scatter_genPPBeamElastic
     if(nSplit /= 9) then
-      write(lerr,"(a)") "SCATTER> ERROR GEN PPBEAMELASTIC expected 9 arguments:"
-      write(lerr,"(a)") "SCATTER>       GEN name PPBEAMELASTIC a b1 b2 phi tmin crossSection"
+      write(lerr,"(a,i0)") "SCATTER> ERROR GEN PPBEAMELASTIC expected 6 arguments, got ",nSplit-3
+      write(lerr,"(a)")    "SCATTER>       GEN name PPBEAMELASTIC a b1 b2 phi tmin crossSection"
       call prror
       iErr = .true.
       return
@@ -759,27 +768,7 @@ subroutine scatter_parseGenerator(lnSplit, nSplit, iErr)
       return
     end if
 
-  case("PYTHIASIMPLE")
-
-#ifndef PYTHIA
-    write(lerr,"(a)") "SCATTER> ERROR GEN PYTHIASIMPLE requested, but PYTHIA not compiled into SixTrack"
-    iErr = .true.
-    return
-#endif
-    if(nSplit /= 4) then
-      write(lerr,"(a)") "SCATTER> ERROR GEN PYTHIASIMPLE expected 4 arguments:"
-      write(lerr,"(a)") "SCATTER>       GEN name PYTHIASIMPLE crossSection"
-      call prror
-      iErr = .true.
-      return
-    end if
-
-    genType = scatter_genPythiaSimple
-
-    call chr_cast(lnSplit(4),fParams(1),iErr) ! crossSection
-    crossSection = fParams(1) * c1m27         ! Set crossSection explicitly in mb
-
-  case("PYTHIA","PYTHIAFULL")
+  case("PYTHIA")
 
 #ifndef PYTHIA
     write(lerr,"(a)") "SCATTER> ERROR GEN PYTHIA requested, but PYTHIA not compiled into SixTrack"
@@ -787,14 +776,14 @@ subroutine scatter_parseGenerator(lnSplit, nSplit, iErr)
     return
 #endif
     if(nSplit /= 4) then
-      write(lerr,"(a)") "SCATTER> ERROR GEN PYTHIA expected 4 arguments:"
-      write(lerr,"(a)") "SCATTER>       GEN name PYTHIA crossSection"
+      write(lerr,"(a,i0)") "SCATTER> ERROR GEN PYTHIA expected 1 argument, got ",nSplit-3
+      write(lerr,"(a)")    "SCATTER>       GEN name PYTHIA crossSection"
       call prror
       iErr = .true.
       return
     end if
 
-    genType = scatter_genPythiaFull
+    genType = scatter_genPythiaSimple
 
     call chr_cast(lnSplit(4),fParams(1),iErr) ! crossSection
     crossSection = fParams(1) * c1m27         ! Set crossSection explicitly in mb
@@ -877,9 +866,9 @@ subroutine scatter_thin(iElem, ix, turn)
   integer          idElem, idPro, iGen, nGen, idGen, iError
   integer          i, j, k
   integer          tmpSeed1, tmpSeed2
-  logical          updateE, autoRatio, isDiff
+  logical          updateE, autoRatio, isDiff, isExact
   integer          iLost, procID
-  real(kind=fPrec) t, dEE, dPP, theta, phi
+  real(kind=fPrec) t, dEE, dPP, theta, phi, pVec(3)
   real(kind=fPrec) elemScale, sigmaTot, ratioTot, crossSection, scatterProb, targetDensity, scRatio, brRatio
 
   real(kind=fPrec), allocatable :: brThreshold(:)
@@ -990,7 +979,7 @@ subroutine scatter_thin(iElem, ix, turn)
     scatter_statScale(partID(j)) = scatter_statScale(partID(j)) / elemScale
 
     ! Get event
-    call scatter_generator_getEvent(idGen,j,t,theta,dEE,dPP,procID,iLost,isDiff)
+    call scatter_generator_getEvent(idGen,j,t,theta,dEE,dPP,procID,iLost,isDiff,isExact,pVec)
     hasProc(iGen,procID)    = .true.
     nScattered(iGen,procID) = nScattered(iGen,procID) + 1
 
@@ -1261,7 +1250,7 @@ end function scatter_generator_getCrossSection
 !  Created: 2017-11-02
 !  Updated: 2019-07-19
 ! =================================================================================================
-subroutine scatter_generator_getEvent(genID, j, t, theta, dEE, dPP, procID, iLost, isDiff)
+subroutine scatter_generator_getEvent(genID, j, t, theta, dEE, dPP, procID, iLost, isDiff, isExact, pVec)
 
   use, intrinsic :: iso_c_binding
 
@@ -1274,30 +1263,32 @@ subroutine scatter_generator_getEvent(genID, j, t, theta, dEE, dPP, procID, iLos
   use mod_pythia
 #endif
 
-  integer,          intent(in)  :: genID
-  integer,          intent(in)  :: j
-  real(kind=fPrec), intent(out) :: t
-  real(kind=fPrec), intent(out) :: theta
-  real(kind=fPrec), intent(out) :: dEE
-  real(kind=fPrec), intent(out) :: dPP
-  integer,          intent(out) :: procID
-  integer,          intent(out) :: iLost
-  logical,          intent(out) :: isDiff
+  integer,          intent(in)  :: genID   ! Generator ID
+  integer,          intent(in)  :: j       ! Particle index
+  real(kind=fPrec), intent(out) :: t       ! Mandelstam t
+  real(kind=fPrec), intent(out) :: theta   ! Scattering angle
+  real(kind=fPrec), intent(out) :: dEE     ! Energy loss
+  real(kind=fPrec), intent(out) :: dPP     ! Momentum loss
+  integer,          intent(out) :: procID  ! Scattering process
+  integer,          intent(out) :: iLost   ! Particle lost flag
+  logical,          intent(out) :: isDiff  ! Diffractive event flag
+  logical,          intent(out) :: isExact ! Returns momentum vector flag
+  real(kind=fPrec), intent(out) :: pVec(3) ! Momentum vector of surviving particle
 
   ! Temporary variables
   logical(kind=C_BOOL) evStat
   integer              tmpIdx, evType, nRetry
   real(kind=fPrec)     a, b1, b2, phi, tmin
   real(kind=fPrec)     pIn(6), pOut(6)
-  logical              isFull
 
-  dEE    = zero
-  dPP    = zero
-  t      = zero
-  theta  = zero
-  iLost  = 0
-  nRetry = 0
-  isDiff = .false.
+  dEE     = zero
+  dPP     = zero
+  t       = zero
+  theta   = zero
+  iLost   = 0
+  nRetry  = 0
+  isDiff  = .false.
+  isExact = .false.
 
   select case(scatter_genList(genID)%genType)
   case(scatter_genAbsorber)
@@ -1318,16 +1309,9 @@ subroutine scatter_generator_getEvent(genID, j, t, theta, dEE, dPP, procID, iLos
     procID = scatter_idElastic
 
   case(scatter_genPythiaSimple, scatter_genPythiaFull)
-
-    if(scatter_genList(genID)%genType == scatter_genPythiaFull) then
-      isFull = .true.
-    else
-      isFull = .false.
-    end if
-
 #ifdef PYTHIA
 10  continue
-    if(isFull) then
+    if(pythia_useRealBeam) then
 
       pIn(1) = yv1(j)*ejfv(j)*c1m6
       pIn(2) = yv2(j)*ejfv(j)*c1m6
@@ -1353,6 +1337,8 @@ subroutine scatter_generator_getEvent(genID, j, t, theta, dEE, dPP, procID, iLos
       write(lout,"(a,3(1x,f16.9))") "SCATTER>       theta :",theta
       write(lout,"(a,3(1x,f16.9))") "SCATTER>         dEE :",dEE
       write(lout,"(a,3(1x,f16.9))") "SCATTER>         dPP :",dPP
+
+      isExact = .true.
 
     else
 
