@@ -1930,7 +1930,7 @@ subroutine thin6d(nthinerr)
         crabfreq=ek(ix)*c1e3
         do j=1,napx
           crabamp3 = ed(ix)*nqq(j)
-          kcrab=((sigmv(j)*crabfreq)/(clight*(e0f/e0)))*(two*pi)+crabph3(ix)
+          kcrab=((sigmv(j)*crabfreq)/(clight*(e0f/e0)))*twopi+crabph3(ix)
 #include "include/alignva.f90"
           yv1(j)=yv1(j)+(((crabamp3*moidpsv(j))*c1m3)*(crkve**2-cikve**2))*cos_mb(kcrab)
           yv2(j)=yv2(j)-((two*(((crabamp3*crkve)*cikve)*moidpsv(j)))*c1m3)*cos_mb(kcrab)

@@ -2256,7 +2256,7 @@ subroutine dump_aperture_xsec( iunit, itmpape, tmpape, nAzim, sLoc )
   select case(itmpape)
   case(-1) ! transition
      do i=1,nAzim
-        thetaRay=(i/real(nAzim))*(two*pi) ! radians
+        thetaRay=(i/real(nAzim))*(twopi) ! radians
         ! call (angle to aperture ref sys)
         call intersectTR(xRay,yRay,thetaRay-tmpape(9),tmpape(1),tmpape(2),tmpape(3),tmpape(4),tmpape(5),tmpape(6), &
              tmpape(7),tmpape(8),xChk,yChk,nChk)
@@ -2267,7 +2267,7 @@ subroutine dump_aperture_xsec( iunit, itmpape, tmpape, nAzim, sLoc )
      end do
   case(1) ! circle
      do i=1,nAzim
-        thetaRay=(i/real(nAzim))*(two*pi) ! radians
+        thetaRay=(i/real(nAzim))*(twopi) ! radians
         ! call (angle to aperture ref sys)
         call intersectCR(xRay,yRay,thetaRay-tmpape(9),tmpape(3),zero,zero,xChk,yChk,nChk)
         ! go back to machine reference system
@@ -2277,7 +2277,7 @@ subroutine dump_aperture_xsec( iunit, itmpape, tmpape, nAzim, sLoc )
      end do
   case(2) ! rectangle
      do i=1,nAzim
-        thetaRay=(i/real(nAzim))*(two*pi) ! radians
+        thetaRay=(i/real(nAzim))*(twopi) ! radians
         ! call (angle to aperture ref sys)
         call intersectRE(xRay,yRay,thetaRay-tmpape(9),tmpape(1),tmpape(2),xChk,yChk,nChk)
         ! go back to machine reference system
@@ -2287,7 +2287,7 @@ subroutine dump_aperture_xsec( iunit, itmpape, tmpape, nAzim, sLoc )
      end do
   case(3) ! ellipse
      do i=1,nAzim
-        thetaRay=(i/real(nAzim))*(two*pi) ! radians
+        thetaRay=(i/real(nAzim))*(twopi) ! radians
         ! call (angle to aperture ref sys)
         call intersectEL(xRay,yRay,thetaRay-tmpape(9),tmpape(3),tmpape(4),zero,zero,xChk,yChk,nChk)
         ! go back to machine reference system
@@ -2297,7 +2297,7 @@ subroutine dump_aperture_xsec( iunit, itmpape, tmpape, nAzim, sLoc )
      end do
   case(4) ! rectellipse
      do i=1,nAzim
-        thetaRay=(i/real(nAzim))*(two*pi) ! radians
+        thetaRay=(i/real(nAzim))*(twopi) ! radians
         ! call (angle to aperture ref sys)
         call intersectRL(xRay,yRay,thetaRay-tmpape(9),tmpape(1),tmpape(2),tmpape(3),tmpape(4),xChk,yChk,nChk)
         ! go back to machine reference system
@@ -2307,7 +2307,7 @@ subroutine dump_aperture_xsec( iunit, itmpape, tmpape, nAzim, sLoc )
      end do
   case(5) ! octagon
      do i=1,nAzim
-        thetaRay=(i/real(nAzim))*(two*pi) ! radians
+        thetaRay=(i/real(nAzim))*(twopi) ! radians
         ! call (angle to aperture ref sys)
         call intersectOC(xRay,yRay,thetaRay-tmpape(9),tmpape(1),tmpape(2),tmpape(7),tmpape(8),xChk,yChk,nChk)
         ! go back to machine reference system
@@ -2317,7 +2317,7 @@ subroutine dump_aperture_xsec( iunit, itmpape, tmpape, nAzim, sLoc )
      end do
   case(6) ! racetrack
      do i=1,nAzim
-        thetaRay=(i/real(nAzim))*(two*pi) ! radians
+        thetaRay=(i/real(nAzim))*(twopi) ! radians
         ! call (angle to aperture ref sys)
         call intersectRT(xRay,yRay,thetaRay-tmpape(9),tmpape(5),tmpape(6),tmpape(3),tmpape(4),xChk,yChk,nChk)
         ! go back to machine reference system
@@ -2348,7 +2348,7 @@ subroutine intersectCR( xRay, yRay, thetaRay, radius, x0, y0, xChk, yChk, nChk )
   nChk=c1e3
   mRay=zero
   qRay=zero
-  if(abs(thetaRay).lt.c1m6.or.abs(thetaRay/(two*pi)-one).lt.c1m6) then ! thetaRay=0.0 or thetaRay=2pi
+  if(abs(thetaRay).lt.c1m6.or.abs(thetaRay/(twopi)-one).lt.c1m6) then ! thetaRay=0.0 or thetaRay=2pi
      yChk=zero
      xChk=radius
   else if(abs(thetaRay/(pi/two)-one).lt.c1m6) then ! thetaRay=0.5pi
@@ -2379,7 +2379,7 @@ subroutine intersectCR( xRay, yRay, thetaRay, radius, x0, y0, xChk, yChk, nChk )
      delta=-((mRay*tmpX0-tmpY0)+qRay)**2+radius**2*(one+mRay**2)
      if(delta.lt.zero) return
      if((zero.lt.thetaRay.and.thetaRay.lt.pi/two) .or. & ! first quadrant
- &       (pi*(three/two).lt.thetaRay.and.thetaRay.lt.two*pi)) then ! fourth quadrant
+ &       (pi*(three/two).lt.thetaRay.and.thetaRay.lt.twopi)) then ! fourth quadrant
         xChk=((tmpX0+mRay*(tmpY0-qRay))+sqrt(delta))/(one+mRay**2)
      else
         xChk=((tmpX0+mRay*(tmpY0-qRay))-sqrt(delta))/(one+mRay**2)
@@ -2404,7 +2404,7 @@ subroutine intersectRE( xRay, yRay, thetaRay, xRe, yRe, xChk, yChk, nChk )
   nChk=zero
   mRay=zero
   qRay=zero
-  if(abs(thetaRay).lt.c1m6.or.abs(thetaRay/(two*pi)-one).lt.c1m6) then ! thetaRay=0.0 or thetaRay=2pi
+  if(abs(thetaRay).lt.c1m6.or.abs(thetaRay/(twopi)-one).lt.c1m6) then ! thetaRay=0.0 or thetaRay=2pi
      yChk=zero
      xChk=xRe
      nChk=xRe
@@ -2466,7 +2466,7 @@ subroutine intersectEL( xRay, yRay, thetaRay, aa, bb, x0, y0, xChk, yChk, nChk )
   nChk=c1e3
   mRay=zero
   qRay=zero
-  if(abs(thetaRay).lt.c1m6.or.abs(thetaRay/(two*pi)-one).lt.c1m6) then ! thetaRay=0.0 or thetaRay=2pi
+  if(abs(thetaRay).lt.c1m6.or.abs(thetaRay/(twopi)-one).lt.c1m6) then ! thetaRay=0.0 or thetaRay=2pi
      yChk=zero
      xChk=aa
      nChk=aa
@@ -2501,7 +2501,7 @@ subroutine intersectEL( xRay, yRay, thetaRay, aa, bb, x0, y0, xChk, yChk, nChk )
      delta=-((mRay*tmpX0-tmpY0)+qRay)**2+(bb**2+aa**2*mRay**2)
      if(delta.lt.zero) return
      if((zero.lt.thetaRay.and.thetaRay.lt.pi/two).or. & ! first quadrant
- &       (pi*(three/two).lt.thetaRay.and.thetaRay.lt.two*pi)) then ! fourth quadrant
+ &       (pi*(three/two).lt.thetaRay.and.thetaRay.lt.twopi)) then ! fourth quadrant
         xChk=((aa**2*(mRay*(tmpY0-qRay))+bb**2*tmpX0)+(aa*bb)*sqrt(delta))/(bb**2+aa**2*mRay**2)
      else
         xChk=((aa**2*(mRay*(tmpY0-qRay))+bb**2*tmpX0)+(-(aa*bb))*sqrt(delta))/(bb**2+aa**2*mRay**2)
@@ -2549,7 +2549,7 @@ subroutine intersectLN( xRay, yRay, thetaRay, mLine, qLine, xChk, yChk, nChk )
   qRay=zero
   mTmp=zero
   qTmp=zero
-  if(abs(thetaRay).lt.c1m6.or.abs(thetaRay/(two*pi)-one).lt.c1m6) then ! thetaRay=0.0 or thetaRay=2pi
+  if(abs(thetaRay).lt.c1m6.or.abs(thetaRay/twopi-one).lt.c1m6) then ! thetaRay=0.0 or thetaRay=2pi
      yChk=zero
      xChk=-qLine/mLine
      nChk=abs(qLine/mLine)

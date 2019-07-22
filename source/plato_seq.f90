@@ -91,11 +91,12 @@ module platoFMA
 !C
 
       REAL(KIND=fPrec) FUNCTION TUNENEWT1(X,XP,MAXN)
+      use numerical_constants, only : twopi
       use crcoall
       IMPLICIT NONE
       INTEGER MAXITER
       PARAMETER(MAXITER=100000)
-      REAL(KIND=fPrec) X,XP, DUEPI, STEP, SUM, FTMAX, TUNEFOU, DELTAT, TUNE1, TUNE
+      REAL(KIND=fPrec) X,XP, STEP, SUM, FTMAX, TUNEFOU, DELTAT, TUNE1, TUNE
       INTEGER MAXN, MFT, NPOINT, MAXN2, MF, NPMIN, NPMAX, NFTMAX, NFT
       COMPLEX(kind=fPrec) Z
       COMPLEX(kind=fPrec), DIMENSION(MAXITER) :: ZSING ! Temp Z for CFFT, used to be SINGLE precision
@@ -111,11 +112,10 @@ module platoFMA
 !C.............................................................
 !C    ESTIMATION OF TUNE WITH FFT
 !C.............................................................
-      DUEPI=ATAN_MB(one)*eight
       MFT=INT(LOG_MB(REAL(MAXN,fPrec))/LOG_MB(two))
       NPOINT=2**MFT
       MAXN2=MAXN/2
-      STEP=DUEPI/MAXN
+      STEP=twopi/MAXN
 !.............................................................
       SUM=zero
       DO MF=1,MAXN
@@ -162,11 +162,12 @@ module platoFMA
 
       REAL(KIND=fPrec) FUNCTION TUNEFIT(X,XP,MAX)
       use crcoall
+      use numerical_constants, only : twopi
       IMPLICIT NONE
       INTEGER MAXITER
       PARAMETER(MAXITER=100000)
       INTEGER MAX,MAX1,MAX2,N
-      REAL(KIND=fPrec) X,XP,DUEPI,C,SUMAPM,PA,R1,R2,CTHETA,STHETA,THETA,TUNEAPA,U,ATUNE,TUNEF,TUNE
+      REAL(KIND=fPrec) X,XP,C,SUMAPM,PA,R1,R2,CTHETA,STHETA,THETA,TUNEAPA,U,ATUNE,TUNEF,TUNE
       DIMENSION X(*),XP(*),TUNE(MAXITER),U(MAXITER)
 
 !C............................................................
@@ -175,7 +176,6 @@ module platoFMA
         call prror
       ENDIF
 !C............................................................
-      DUEPI=eight*ATAN_MB(one)
 !C.............................................................
       C=REAL(MAX,fPrec)/TWO-REAL(INT(MAX/TWO),fPrec)
       MAX1=MAX
@@ -194,10 +194,10 @@ module platoFMA
         IF (STHETA.GE.0) THEN
           THETA=ACOS_MB(CTHETA)
           ELSE
-          THETA=DUEPI-ACOS_MB(CTHETA)
+          THETA=twopi-ACOS_MB(CTHETA)
         END IF
         PA=PA+THETA
-        TUNEAPA=PA/DUEPI
+        TUNEAPA=PA/twopi
         SUMAPM=SUMAPM+TUNEAPA
         IF (N.GE.MAX2) THEN
           TUNE(N-MAX2+1)=((SUMAPM/REAL(N,fPrec))/REAL(N+1,fPrec))*TWO
@@ -269,21 +269,20 @@ module platoFMA
 !C
 
       REAL(KIND=fPrec) FUNCTION TUNEABT(X,XP,MAXN)
-      use numerical_constants, only : pi
+      use numerical_constants, only : pi, twopi
       IMPLICIT NONE
       INTEGER MAXITER
       PARAMETER(MAXITER=100000)
       INTEGER MAXN,NPOINT,MF,NPMIN,NPMAX,NFTMAX,NFT
-      REAL(KIND=fPrec) X,XP,DUEPI,MFT,STEP,SUM,FTMAX,CF1,CF2,CF3,ASSK
+      REAL(KIND=fPrec) X,XP,MFT,STEP,SUM,FTMAX,CF1,CF2,CF3,ASSK
       COMPLEX(kind=fPrec) Z,ZSING
       DIMENSION X(MAXITER),XP(MAXITER)
       DIMENSION Z(MAXITER),ZSING(MAXITER)
 
 !C..................................ESTIMATION OF TUNE WITH FFT
       MFT=INT(LOG_MB(REAL(MAXN,fPrec))/LOG_MB(two))
-      DUEPI=two*PI
       NPOINT=2**MFT
-      STEP=DUEPI/NPOINT/two
+      STEP=pi/NPOINT
 !C.............................................................
       SUM=zero            !..CHECKS FOR COMPLEX OR REAL DATA
       DO MF=1,NPOINT
@@ -333,12 +332,12 @@ module platoFMA
 !C
 
       REAL(KIND=fPrec) FUNCTION TUNEABT2(X,XP,MAXN)
-      use numerical_constants, only : pi
+      use numerical_constants, only : pi, twopi
       IMPLICIT NONE
       INTEGER MAXITER
       PARAMETER(MAXITER=100000)
       INTEGER MAXN,NPOINT,MFT,MF,NPMIN,NPMAX,NFTMAX,NN,NFT
-      REAL(KIND=fPrec) X,XP,DUEPI,STEP,SUM,FTMAX,CF1,CF2,CF3,P1,P2,CO,SI,SCRA1,SCRA2,SCRA3,SCRA4,ASSK
+      REAL(KIND=fPrec) X,XP,STEP,SUM,FTMAX,CF1,CF2,CF3,P1,P2,CO,SI,SCRA1,SCRA2,SCRA3,SCRA4,ASSK
       COMPLEX(kind=fPrec) Z
       COMPLEX(kind=fPrec) ZSING(MAXITER)
       DIMENSION X(MAXITER),XP(MAXITER)
@@ -346,9 +345,8 @@ module platoFMA
 
 !C..................................ESTIMATION OF TUNE WITH FFT
       MFT=INT(LOG_MB(REAL(MAXN,fPrec))/LOG_MB(two))
-      DUEPI=2*PI
       NPOINT=2**MFT
-      STEP=(DUEPI/NPOINT)/two
+      STEP=(twopi/NPOINT)/two
 !C.............................................................
       SUM=zero            !..CHECKS FOR COMPLEX OR REAL DATA
       DO MF=1,NPOINT
@@ -566,11 +564,12 @@ module platoFMA
 
       REAL(KIND=fPrec) FUNCTION TUNENEWT(X,XP,MAXN)
       use crcoall
+      use numerical_constants, only : twopi
       IMPLICIT NONE
       INTEGER MAXITER
       PARAMETER(MAXITER=100000)
       INTEGER MAXN,MFT,NPOINT,MAXN2,MF,NPMAX,NPMIN,NFTMAX,NFT
-      REAL(KIND=fPrec) X,XP,DUEPI,STEP,SUM,FTMAX,TUNEFOU,DELTAT,TUNE1,TUNE
+      REAL(KIND=fPrec) X,XP,STEP,SUM,FTMAX,TUNEFOU,DELTAT,TUNE1,TUNE
       COMPLEX(kind=fPrec) Z
       COMPLEX(kind=fPrec), DIMENSION(MAXITER) :: ZSING  ! Temp Z for CFFT, used to be SINGle precission
       DIMENSION X(MAXITER),XP(MAXITER)
@@ -584,11 +583,10 @@ module platoFMA
 !C.............................................................
 !C    ESTIMATION OF TUNE WITH FFT
 !C.............................................................
-      DUEPI=ATAN_MB(ONE)*EIGHT
       MFT=INT(LOG_MB(REAL(MAXN,fPrec))/LOG_MB(TWO))
       NPOINT=2**MFT
       MAXN2=MAXN/2
-      STEP=DUEPI/MAXN
+      STEP=twopi/MAXN
 !C.............................................................
       SUM=zero
       DO MF=1,MAXN
@@ -630,17 +628,17 @@ module platoFMA
 !C
 
       SUBROUTINE ZFUN(TUNE,Z,MAXN,TUNEA1,DELTAT)
+      use numerical_constants, only : twopi
       IMPLICIT NONE
       INTEGER MAXITER
       PARAMETER(MAXITER=100000)
       INTEGER ND,MAXN,NUM,NTEST,NCONT,NFT,NC
-      REAL(KIND=fPrec) DUEPI,ERR,DELTAT,TUNEA1,TUNEA2,DTUNEA1,DTUNEA2, &
+      REAL(KIND=fPrec) ERR,DELTAT,TUNEA1,TUNEA2,DTUNEA1,DTUNEA2, &
      &TUNE1,TUNE2,DTUNE1,DTUNE2,RATIO,TUNE3,DTUNE3,TUNETEST,TUNEVAL,TUNEVMAX,TUNE
       COMPLEX(kind=fPrec) ZU,ZD,ZF,Z,ZTUNE1,ZTUNE2,ZTUNE3,ZFD
       DIMENSION Z(*),ZD(MAXITER),TUNETEST(10),TUNEVAL(10)
 
 !C............................................................
-      DUEPI=ATAN_MB(one)*eight
       ERR=c1m10
       ZU=CMPLX(zero,one,fPrec)
 !C............................................................
@@ -654,9 +652,9 @@ module platoFMA
 !C............................................................
 #ifdef CRLIBM
       ! EXP_MB expects a REAL(KIND=fPrec), not COMPLEX -> rewrite expression for crlibm.
-      ZTUNE1=cos_mb(DUEPI*TUNEA1) + ZU*sin_mb(DUEPI*TUNEA1)
+      ZTUNE1=cos_mb(twopi*TUNEA1) + ZU*sin_mb(twopi*TUNEA1)
 #else
-      ZTUNE1=EXP((-ZU*DUEPI)*TUNEA1)
+      ZTUNE1=EXP((-ZU*twopi)*TUNEA1)
 #endif
       CALL CALC(ZTUNE1,ZF,Z,MAXN)
       CALL CALC(ZTUNE1,ZFD,ZD,MAXN)
@@ -664,7 +662,7 @@ module platoFMA
       NUM=1
       DO NTEST=1, 10
         TUNEA2=TUNEA1+DELTAT
-        ZTUNE2=EXP((-ZU*DUEPI)*TUNEA2)
+        ZTUNE2=EXP((-ZU*twopi)*TUNEA2)
         CALL CALC(ZTUNE2,ZF,Z,MAXN)
         CALL CALC(ZTUNE2,ZFD,ZD,MAXN)
         DTUNEA2=REAL(ZF)*REAL(ZFD)+AIMAG(ZF)*AIMAG(ZFD)
@@ -676,7 +674,7 @@ module platoFMA
            DO NCONT=1,100
               RATIO=-DTUNE1/DTUNE2
               TUNE3=(TUNE1+RATIO*TUNE2)/(ONE+RATIO)
-              ZTUNE3=EXP((-ZU*DUEPI)*TUNE3)
+              ZTUNE3=EXP((-ZU*twopi)*TUNE3)
               CALL CALC(ZTUNE3,ZF,Z,MAXN)
               CALL CALC(ZTUNE3,ZFD,ZD,MAXN)
               DTUNE3=REAL(ZF)*REAL(ZFD)+AIMAG(ZF)*AIMAG(ZFD)
@@ -995,17 +993,16 @@ module platoFMA
       REAL(KIND=fPrec) FUNCTION TUNELASK(X,PX,MAX)
 !C............................................................
       use crcoall
-      use numerical_constants, only : zero
+      use numerical_constants, only : zero, twopi, pi
       IMPLICIT NONE
       INTEGER MAXITER
       PARAMETER(MAXITER=100000)
       INTEGER MAX,NPOINT,MF,NFTMAX,NPMIN,NPMAX,NFT,JITER,JMAX,MAX1,JIT,I,K,JOM,J,N,MBODE,MFT
-      REAL(KIND=fPrec) DUEPI,SUM,FTMAX,TUNEFOU,FSIGMA,OMEMIN,STEP,OMEMAX,FOMEGA,OME,ABSFOM,TMPR,TMPI
+      REAL(KIND=fPrec) SUM,FTMAX,TUNEFOU,FSIGMA,OMEMIN,STEP,OMEMAX,FOMEGA,OME,ABSFOM,TMPR,TMPI
       REAL(KIND=fPrec) X(*),PX(*)
       COMPLEX(kind=fPrec) ZSING(MAXITER) ! Temp Z for CFFT, used to be SINGle precission
       COMPLEX(kind=fPrec) Z(MAXITER),FOME,ZC,SD,SP
 
-      DUEPI=EIGHT*ATAN_MB(ONE)
       TUNELASK = zero
       JOM = 0
 !C...............................CHECK OF THE ITERATION NUMBER
@@ -1051,14 +1048,14 @@ module platoFMA
 !C..............DIVIDED IN JMAX-1 SUBINTERVAL AND THIS
 !C..............SUBDIVISION IS ITERATED JITER TIMES
       FSIGMA=ONE
-      OMEMIN=TUNEFOU*DUEPI-(FSIGMA*DUEPI)/NPOINT
-      OMEMAX=TUNEFOU*DUEPI+(FSIGMA*DUEPI)/NPOINT
+      OMEMIN=TUNEFOU*twopi-(FSIGMA*twopi)/NPOINT
+      OMEMAX=TUNEFOU*twopi+(FSIGMA*twopi)/NPOINT
 !C.....JITER=8 PROVIDES A PRECISION WHICH IS 1.5E-4 * 1/2**MFT
       JITER=8
 !C................JMAX=7 IS THE VALUE WHICH MINIMIZES CPU TIME
       JMAX=7
       MAX1=MAX-1
-      STEP=(DUEPI*HALF)/MAX1
+      STEP=pi/MAX1
 !C.........................................BISECTION PROCEDURE
       DO JIT=1,JITER
         FOMEGA=ZERO
@@ -1090,7 +1087,7 @@ module platoFMA
           ABSFOM=ABS(FOME)
           IF (ABSFOM.GT.FOMEGA) THEN
             FOMEGA=ABSFOM
-            TUNELASK=-OME/DUEPI
+            TUNELASK=-OME/twopi
             JOM=J
           ENDIF
         ENDDO

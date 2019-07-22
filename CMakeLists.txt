@@ -305,6 +305,7 @@ list(APPEND FORT90_LIB
   end_sixtrack
   fma
   lielib
+  linear_optics
   mainarrays
   matrix_inv
   mod_alloc

@@ -6,6 +6,6 @@ do l=1,2
   else
     dphi=pi2-phibf(l)
   end if
-  phi(l)=phi(l)+dphi/pie
+  phi(l)=phi(l)+dphi/twopi
 end do
 ! end include/phas3so1.f90

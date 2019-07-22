@@ -73,7 +73,7 @@ subroutine ranecu(rvec,len,mcut)
 
   if (mcut >= 0) then ! mcut = -1 => Generate uniform numbers!
     ! Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sigmas):
-    rvec0 = sqrt(((-one*two)*log_mb(r(1))))*cos_mb((two*pi)*r(2))
+    rvec0 = sqrt(((-one*two)*log_mb(r(1))))*cos_mb(twopi*r(2))
   else if (mcut == -1) then
     rvec0 = r(1)
   end if

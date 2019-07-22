@@ -2008,11 +2008,11 @@ subroutine sixin_parseInputLineSYNC(inLine, iLine, iErr)
       end if
       halc   = sixin_harm*sixin_alc
       halc2  = sixin_harm/tlen
-      hsy(3) = (two*pi)*halc2
+      hsy(3) = twopi*halc2
       cosy   = cos_mb(phas)
       qigam  = (pma**2/e0)/e0
       qbet   = one-qigam
-      halc3  = ((((((-one*(qigam-sixin_alc))*real(ition,fPrec))*sixin_harm)*sixin_u0)/e0)*cosy)/((two*pi)*qbet)
+      halc3  = ((((((-one*(qigam-sixin_alc))*real(ition,fPrec))*sixin_harm)*sixin_u0)/e0)*cosy)/(twopi*qbet)
       qs     = sqrt(halc3)
       if(halc3 < zero) then
         write(lerr,"(a)") "SYNC> ERROR Either your frequency is shifted by 180 degrees,"
@@ -2033,7 +2033,7 @@ subroutine sixin_parseInputLineSYNC(inLine, iLine, iErr)
       end do
       do i=1,il
         if(abs(kz(i)) == 12) then
-          hsyc(i) = ((two*pi)*ek(i))/tlen
+          hsyc(i) = (twopi*ek(i))/tlen
           if(nvar == 5) then
             ition = 1
             ed(i) = zero

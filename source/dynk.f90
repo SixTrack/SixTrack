@@ -2219,7 +2219,7 @@ recursive real(kind=fPrec) function dynk_computeFUN(funNum, turn) result(retval)
 
   case(62) ! COSF_RIPP
     retval = dynk_fData(dynk_funcs(funNum,3)) &
-            * cos_mb( (two*pi)*real(turn-1,fPrec)/dynk_fData(dynk_funcs(funNum,3)+1) &
+            * cos_mb( twopi*real(turn-1,fPrec)/dynk_fData(dynk_funcs(funNum,3)+1) &
                     + dynk_fData(dynk_funcs(funNum,3)+2) )
 
   case(80) ! PELP

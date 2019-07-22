@@ -452,7 +452,7 @@ subroutine stsld(star,cphi2,sphi2,sigzs,nsli,calpha,salpha)
 
     if(i.eq.1) bord1=-one*border                                     !hr06
 
-    star(3,i)=(((exp_mb((-one*bord**2)*half)-exp_mb((-one*bord1**2)*half))/sqrt(two*pi))*real(nsli,fPrec))*sigz !hr06
+    star(3,i)=(((exp_mb((-one*bord**2)*half)-exp_mb((-one*bord1**2)*half))/sqrt(twopi))*real(nsli,fPrec))*sigz !hr06
     bord=bord1
     !JBG When doing slicing phi=0 for crab crossing
     ! star(1,i)=0.

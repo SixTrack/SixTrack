@@ -14,6 +14,7 @@ module scatter
 
   use parpro
   use floatPrecision
+  use numerical_constants, only : zero
 
   implicit none
 
@@ -52,6 +53,21 @@ module scatter
   integer, parameter :: scatter_proBeamUnCorr    = 5
 
   ! Storage Structs
+  type, private :: scatter_linOpt
+    real(kind=fPrec) :: alphaX  = zero
+    real(kind=fPrec) :: alphaY  = zero
+    real(kind=fPrec) :: betaX   = zero
+    real(kind=fPrec) :: betaY   = zero
+    real(kind=fPrec) :: dispX   = zero
+    real(kind=fPrec) :: dispY   = zero
+    real(kind=fPrec) :: dispXP  = zero
+    real(kind=fPrec) :: dispYP  = zero
+    real(kind=fPrec) :: orbitX  = zero
+    real(kind=fPrec) :: orbitY  = zero
+    real(kind=fPrec) :: orbitXP = zero
+    real(kind=fPrec) :: orbitYP = zero
+  end type scatter_linOpt
+
   type, private :: scatter_elemStore
     character(len=mNameLen)       :: bezName
     integer                       :: bezID
@@ -62,6 +78,7 @@ module scatter
     integer                       :: profileID
     integer,          allocatable :: generatorID(:)
     real(kind=fPrec), allocatable :: brRatio(:)
+    type(scatter_linOpt)          :: linOpt
   end type scatter_elemStore
 
   type, private :: scatter_proStore
@@ -844,15 +861,54 @@ end function scatter_getScaling
 !  Created: 2019-07-22
 !  Updated: 2019-07-22
 ! =================================================================================================
-subroutine scatter_setLinOpt(iElem, bAlpha, bBeta, bClorb, bClorbP, bDisp, bDispP)
+subroutine scatter_setLinOpt(iElem, bAlpha, bBeta, bOrbit, bOrbitP, bDisp, bDispP)
+
+  use crcoall
+  use parpro, only : nele
+  use mod_common, only : bez
 
   integer, intent(in) :: iElem
   real(kind=fPrec)    :: bAlpha(2)
   real(kind=fPrec)    :: bBeta(2)
-  real(kind=fPrec)    :: bClorb(2)
-  real(kind=fPrec)    :: bClorbP(2)
+  real(kind=fPrec)    :: bOrbit(2)
+  real(kind=fPrec)    :: bOrbitP(2)
   real(kind=fPrec)    :: bDisp(2)
   real(kind=fPrec)    :: bDispP(2)
+
+  type(scatter_linOpt) linOpt
+
+  if(iElem < 1 .or. iElem > nele) then
+    return
+  end if
+
+  if(scatter_elemPointer(iElem) > 0) then
+
+    linOpt%alphaX  = bAlpha(1)
+    linOpt%alphaY  = bAlpha(2)
+    linOpt%betaX   = bBeta(1)
+    linOpt%betaY   = bBeta(2)
+    linOpt%dispX   = bDisp(1)
+    linOpt%dispY   = bDisp(2)
+    linOpt%dispXP  = bDispP(1)
+    linOpt%dispYP  = bDispP(2)
+    linOpt%orbitX  = bOrbit(1)
+    linOpt%orbitY  = bOrbit(2)
+    linOpt%orbitXP = bOrbitP(1)
+    linOpt%orbitYP = bOrbitP(2)
+
+    scatter_elemList(scatter_elemPointer(iElem))%linOpt = linOpt
+
+    if(scatter_debug) then
+      write(lout,"(a)")             "SCATTER> DEBUG LinOpt for element: '"//trim(bez(iElem))//"'"
+      write(lout,"(a,2(1x,f16.6))") "SCATTER> DEBUG  * Alpha X/Y:        ",bAlpha
+      write(lout,"(a,2(1x,f16.6))") "SCATTER> DEBUG  * Beta X/Y:         ",bBeta
+      write(lout,"(a,2(1x,f16.6))") "SCATTER> DEBUG  * Dispersion X/Y:   ",bDisp
+      write(lout,"(a,2(1x,f16.6))") "SCATTER> DEBUG  * Dispersion XP/YP: ",bDispP
+      write(lout,"(a,2(1x,f16.6))") "SCATTER> DEBUG  * Orbit X/Y:        ",bOrbit
+      write(lout,"(a,2(1x,f16.6))") "SCATTER> DEBUG  * Orbit XP/YP:      ",bOrbitP
+    end if
+
+  end if
 
 end subroutine scatter_setLinOpt
 
