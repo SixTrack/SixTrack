@@ -945,7 +945,7 @@ subroutine scatter_thin(iElem, ix, turn)
     k = 3*j-2 ! Indices in the random number array
 
     ! Compute Scattering Probability
-    targetDensity = scatter_profile_getDensity(idPro,xv1(j),xv2(j))
+    targetDensity = scatter_getDensity(idPro,xv1(j),xv2(j))
     if(autoRatio) then
       scatterProb = (targetDensity*sigmaTot)*elemScale
     else
@@ -968,7 +968,7 @@ subroutine scatter_thin(iElem, ix, turn)
       end if
     end do
     if(idGen == 0) then
-      write(lout,"(a,i0,a)") "SCATTER> WARNING Scattering for particle #",j," occured, but no generator was selected."
+      write(lout,"(a,i0,a)") "SCATTER> WARNING Scattering for particle ID ",partID(j)," occured, but no generator was selected."
       pScattered(j) = .false.
       cycle
     end if
@@ -979,7 +979,7 @@ subroutine scatter_thin(iElem, ix, turn)
     scatter_statScale(partID(j)) = scatter_statScale(partID(j)) / elemScale
 
     ! Get event
-    call scatter_generator_getEvent(idGen,j,t,theta,dEE,dPP,procID,iLost,isDiff,isExact,pVec)
+    call scatter_generateEvent(idGen,idPro,j,t,theta,dEE,dPP,procID,iLost,isDiff,isExact,pVec)
     hasProc(iGen,procID)    = .true.
     nScattered(iGen,procID) = nScattered(iGen,procID) + 1
 
@@ -1138,7 +1138,7 @@ end subroutine scatter_thin
 !  Created: 2017-08
 !  Updated: 2017-11-02
 ! =================================================================================================
-function scatter_profile_getDensity(idPro, x, y) result(retval)
+function scatter_getDensity(idPro, x, y) result(retval)
 
   use crcoall
   use mod_common
@@ -1175,82 +1175,14 @@ function scatter_profile_getDensity(idPro, x, y) result(retval)
     call prror
   end select
 
-end function scatter_profile_getDensity
-
-! =================================================================================================
-!  K. Sjobak, V.K. Berglyd Olsen, BE-ABP-HSS
-!  Created: 2017-08
-!  Updated: 2017-09
-! =================================================================================================
-subroutine scatter_profile_getParticle(idPro, x, y, xp, yp, E)
-
-  use numerical_constants
-
-  integer,          intent(in)  :: idPro
-  real(kind=fPrec), intent(in)  :: x, y
-  real(kind=fPrec), intent(out) :: xp, yp, E
-
-  ! Return a particle to collide with
-  ! Add dummy variables for now, which stops ifort from complaining
-  xp = zero
-  yp = zero
-  E  = zero
-
-end subroutine scatter_profile_getParticle
-
-! =================================================================================================
-!  K. Sjobak, V.K. Berglyd Olsen, BE-ABP-HSS
-!  Created: 2017-08
-!  Updated: 2017-09
-! =================================================================================================
-function scatter_generator_getCrossSection(idPro, idGen, x, y, xp, yp, E) result(retVal)
-
-  use crcoall
-  use string_tools
-  use numerical_constants
-
-  integer,          intent(in) :: idPro, idGen
-  real(kind=fPrec), intent(in) :: x, y, xp, yp, E
-
-  ! Temporary variables
-  integer          tmpIdx
-  real(kind=fPrec) xpTarget, ypTarget, ETarget, retVal
-
-  ! Calculate S
-  call scatter_profile_getParticle(idPro, x, y, xpTarget, ypTarget, ETarget)
-
-  retVal = zero
-
-  ! Calculate the cross section as function of S
-  ! This is currently a fixed value
-  select case(scatter_genList(idGen)%genType)
-  case(scatter_genAbsorber)
-    retVal = scatter_genList(idGen)%crossSection
-
-  case(scatter_genPPBeamElastic)
-    retVal = scatter_genList(idGen)%crossSection
-
-  case(scatter_genPythiaSimple)
-    retVal = scatter_genList(idGen)%crossSection
-
-  case(scatter_genPythiaFull)
-    retVal = scatter_genList(idGen)%crossSection
-
-  case default
-    write(lerr,"(a,i0,a)") "SCATTER> ERROR Type ",scatter_genList(idGen)%genType," for generator '"//&
-      trim(scatter_genList(idGen)%genName)//"' not understood."
-    call prror
-
-  end select
-
-end function scatter_generator_getCrossSection
+end function scatter_getDensity
 
 ! =================================================================================================
 !  V.K. Berglyd Olsen, K. Sjobak, BE-ABP-HSS
 !  Created: 2017-11-02
 !  Updated: 2019-07-19
 ! =================================================================================================
-subroutine scatter_generator_getEvent(genID, j, t, theta, dEE, dPP, procID, iLost, isDiff, isExact, pVec)
+subroutine scatter_generateEvent(idGen, idPro, j, t, theta, dEE, dPP, procID, iLost, isDiff, isExact, pVec)
 
   use, intrinsic :: iso_c_binding
 
@@ -1263,7 +1195,8 @@ subroutine scatter_generator_getEvent(genID, j, t, theta, dEE, dPP, procID, iLos
   use mod_pythia
 #endif
 
-  integer,          intent(in)  :: genID   ! Generator ID
+  integer,          intent(in)  :: idGen   ! Generator ID
+  integer,          intent(in)  :: idPro   ! Profile ID
   integer,          intent(in)  :: j       ! Particle index
   real(kind=fPrec), intent(out) :: t       ! Mandelstam t
   real(kind=fPrec), intent(out) :: theta   ! Scattering angle
@@ -1290,20 +1223,20 @@ subroutine scatter_generator_getEvent(genID, j, t, theta, dEE, dPP, procID, iLos
   isDiff  = .false.
   isExact = .false.
 
-  select case(scatter_genList(genID)%genType)
+  select case(scatter_genList(idGen)%genType)
   case(scatter_genAbsorber)
 
     procID = scatter_idAbsorb
 
   case(scatter_genPPBeamElastic)
 
-    a      = scatter_genList(genID)%fParams(1)
-    b1     = scatter_genList(genID)%fParams(2)
-    b2     = scatter_genList(genID)%fParams(3)
-    phi    = scatter_genList(genID)%fParams(4)
-    tmin   = scatter_genList(genID)%fParams(5)
+    a      = scatter_genList(idGen)%fParams(1)
+    b1     = scatter_genList(idGen)%fParams(2)
+    b2     = scatter_genList(idGen)%fParams(3)
+    phi    = scatter_genList(idGen)%fParams(4)
+    tmin   = scatter_genList(idGen)%fParams(5)
 
-    t      = scatter_generator_getPPElastic(a, b1, b2, phi, tmin)
+    t      = scatter_generatePPElastic(a, b1, b2, phi, tmin)
     t      = t*c1e6                                 ! Scale return variable to MeV^2
     theta  = acos_mb(one - (t/(2*ejfv(j)**2)))*c1e3 ! Get angle from t
     procID = scatter_idElastic
@@ -1411,12 +1344,12 @@ subroutine scatter_generator_getEvent(genID, j, t, theta, dEE, dPP, procID, iLos
 #endif
 
   case default
-    write(lerr,"(a,i0,a)") "SCATTER> ERROR Generator type ",scatter_genList(genID)%genType," not understood"
+    write(lerr,"(a,i0,a)") "SCATTER> ERROR Generator type ",scatter_genList(idGen)%genType," not understood"
     call prror
 
   end select
 
-end subroutine scatter_generator_getEvent
+end subroutine scatter_generateEvent
 
 ! =================================================================================================
 !  H. Burkhardt, V.K. Berglyd Olsen, K. Sjobak, BE-ABP-HSS
@@ -1426,7 +1359,7 @@ end subroutine scatter_generator_getEvent
 !  "Elastic pp scattering estimates and simulation relevant for burn-off"
 !  https://indico.cern.ch/event/625576/
 ! =================================================================================================
-function scatter_generator_getPPElastic(a, b1, b2, phi, tmin) result(t)
+function scatter_generatePPElastic(a, b1, b2, phi, tmin) result(t)
 
   use crcoall
   use mod_ranecu
@@ -1479,7 +1412,7 @@ function scatter_generator_getPPElastic(a, b1, b2, phi, tmin) result(t)
     call prror
   end if
 
-end function scatter_generator_getPPElastic
+end function scatter_generatePPElastic
 
 ! =================================================================================================
 !  V.K. Berglyd Olsen, BE-ABP-HSS
