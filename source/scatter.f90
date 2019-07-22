@@ -840,6 +840,23 @@ pure function scatter_getScaling(iElem) result(scaleVal)
 end function scatter_getScaling
 
 ! =================================================================================================
+!  V.K. Berglyd Olsen, BE-ABP-HSS
+!  Created: 2019-07-22
+!  Updated: 2019-07-22
+! =================================================================================================
+subroutine scatter_setLinOpt(iElem, bAlpha, bBeta, bClorb, bClorbP, bDisp, bDispP)
+
+  integer, intent(in) :: iElem
+  real(kind=fPrec)    :: bAlpha(2)
+  real(kind=fPrec)    :: bBeta(2)
+  real(kind=fPrec)    :: bClorb(2)
+  real(kind=fPrec)    :: bClorbP(2)
+  real(kind=fPrec)    :: bDisp(2)
+  real(kind=fPrec)    :: bDispP(2)
+
+end subroutine scatter_setLinOpt
+
+! =================================================================================================
 !  K. Sjobak, V.K. Berglyd Olsen, BE-ABP-HSS
 !  Created: 2017-08
 !  Updated: 2019-07-19

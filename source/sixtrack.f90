@@ -904,7 +904,7 @@ subroutine daten
       write(lout,"(a,e22.15)") "ENDE>  * M = ",nucm0
       write(lout,"(a,i0)")     "ENDE>  * Q = ",qq0
     end if
-  
+
     ! Init arrays
     mtc(:)      = one
     naa(:)      = aa0
@@ -930,7 +930,7 @@ subroutine daten
     if(do_coll) then
       call collimate_postInput(gammar)
     end if
-  
+
     ! Check for incompatible flags
     if(ipos == 1) then
       if (do_coll) then
@@ -2684,7 +2684,7 @@ subroutine betalf(dpp,qw)
       f0=spa-spd
       f1=spa+spd
       f2=f0**2+four*det                                                  !hr06
-      if(f2 .lt. zero) then 
+      if(f2 .lt. zero) then
         write(lerr,'(a,F12.5, a, F12.5, a, F12.5)') 'ERROR in betalf() - f2 < 0: ',  f2, ' f0: ', f0, ' det: ', det
         goto 160
       end if
@@ -2719,7 +2719,7 @@ subroutine betalf(dpp,qw)
       yclam1=yca1*half
       rclam2=(egwg2+rca2)*half
       yclam2=yca2*half
-      if(egwg1**2 .ge. four) then 
+      if(egwg1**2 .ge. four) then
         write(lerr,'(a,F12.5,a,F12.5,a,F12.5,a,F12.5,a,F12.5,a,F12.5)') 'ERROR in betalf() - egwg1**2 > 4: ',&
         egwg1**2, ' f0: ', spa-spd, ' f1: ', spa+spd, ' f2: ', f0**2+four*det, ' spa: ', spa, ' spd: ', spd
         write(lerr,'(a,F12.5)') 'ERROR in betalf() - am: ',  am
@@ -2795,7 +2795,7 @@ subroutine betalf(dpp,qw)
       rn1=((ta(1,1)*ta(2,2)-ta(2,1)*ta(1,2))                            &!hr06
      &+ta(3,1)*ta(4,2))-ta(4,1)*ta(3,2)                                  !hr06
       if(rn1.lt.zero) goto 70                                             !hr06
-      if(rn1.eq.zero) then 
+      if(rn1.eq.zero) then
         write(lerr,'(a,F12.5)') 'ERROR in betalf() - rn1 = 0: ', rn1
         goto 160                                            !hr06
       end if
@@ -4865,19 +4865,23 @@ subroutine linopt(dpp)
 10070 format(1x,1pg21.14,1x,a,1x,i4,5(1x,1pg21.14))
 end subroutine linopt
 
-!-----------------------------------------------------------------------
-!  WRITE OUT LINEAR OPTICS PARAMETERS AND IF COLLIMATION, SAVE STUFF.
-!-----------------------------------------------------------------------
+! ============================================================================ !
+!  Write out linear optics parameters and send to modules that needs it
+!  Updated: 2019-07-22
+! ============================================================================ !
 subroutine writelin(nr,typ,tl,p1,t,ixwl,isBLOC,ielem)
-  use floatPrecision
-  use numerical_constants
-  use mathlib_bouncer
-  use crcoall
+
   use parpro
+  use crcoall
+  use scatter
   use mod_settings
   use mod_common
   use mod_commons
   use mod_common_track
+  use collimation
+  use floatPrecision
+  use mathlib_bouncer
+  use numerical_constants
 
 #ifdef ROOT
   use iso_c_binding, only: C_NULL_CHAR
@@ -4889,46 +4893,40 @@ subroutine writelin(nr,typ,tl,p1,t,ixwl,isBLOC,ielem)
   use hdf5_linopt
 #endif
 
-  use collimation
-
   implicit none
 
   integer i,iwrite,ixwl,l,ll,nr
-  real(kind=fPrec) al1,al2,b1,b2,c,cp,d,dp,g1,g2,p1,t,tl
+  real(kind=fPrec) al1(2),al2(2),b1(2),b2(2),c(2),cp(2),d(2),dp(2),g1(2),g2(2),p1(2),t(6,4),tl
   character(len=mNameLen) typ
   ! isBLOC.eq.TRUE if ixwl currently refers to a BLOC index, FALSE if it is a SINGLE ELEMENT index
   logical isBLOC
-  dimension p1(2),t(6,4),b1(2),b2(2),al1(2),al2(2),g1(2),g2(2)
-  dimension d(2),dp(2),c(2),cp(2)
   integer ielem
 
 #ifdef HDF5
-    real(kind=fPrec) hdf5Data(17)
+  real(kind=fPrec) hdf5Data(17)
 #endif
 
-  save
-!-----------------------------------------------------------------------
-  iwrite=0
-  if(nlin.eq.0) then
-    iwrite=1
+  iwrite = 0
+  if(nlin == 0) then
+    iwrite = 1
   else
     do i=1,nlin
-      if(typ.eq.bezl(i)) iwrite=1
+      if(typ == bezl(i)) iwrite = 1
     end do
   end if
-  if(iwrite.eq.1) then
+  if(iwrite == 1) then
     do l=1,2
-      ll=2*l
-      b1(l)=t(ll,ll-1)**2+t(ll+1,ll-1)**2                            !hr06
-      b2(l)=t(6-ll,ll-1)**2+t(7-ll,ll-1)**2                          !hr06
-      al1(l)=-one*(t(ll,ll-1)*t(ll,ll)+t(ll+1,ll-1)*t(ll+1,ll))      !hr06
-      al2(l)=-one*(t(6-ll,ll-1)*t(6-ll,ll)+t(7-ll,ll-1)*t(7-ll,ll))  !hr06
-      g1(l)=t(ll,ll)**2+t(ll+1,ll)**2                                !hr06
-      g2(l)=t(6-ll,ll)**2+t(7-ll,ll)**2                              !hr06
-      d(l)=t(6,ll-1)*c1m3
-      dp(l)=t(6,ll)*c1m3
-      c(l)=t(1,ll-1)
-      cp(l)=t(1,ll)
+      ll     = 2*l
+      b1(l)  = t(ll,ll-1)**2+t(ll+1,ll-1)**2
+      b2(l)  = t(6-ll,ll-1)**2+t(7-ll,ll-1)**2
+      al1(l) = -one*(t(ll,ll-1)*t(ll,ll)+t(ll+1,ll-1)*t(ll+1,ll))
+      al2(l) = -one*(t(6-ll,ll-1)*t(6-ll,ll)+t(7-ll,ll-1)*t(7-ll,ll))
+      g1(l)  = t(ll,ll)**2+t(ll+1,ll)**2
+      g2(l)  = t(6-ll,ll)**2+t(7-ll,ll)**2
+      d(l)   = t(6,ll-1)*c1m3
+      dp(l)  = t(6,ll)*c1m3
+      c(l)   = t(1,ll-1)
+      cp(l)  = t(1,ll)
     end do
 
 #ifdef ROOT
@@ -4938,7 +4936,7 @@ subroutine writelin(nr,typ,tl,p1,t,ixwl,isBLOC,ielem)
     end if
 #endif
 #ifdef HDF5
-  if(h5_writeOptics) then
+    if(h5_writeOptics) then
       hdf5Data(:) = (/tl,&
         p1(1),b1(1),al1(1),g1(1),d(1),dp(1),c(1),cp(1),&
         p1(2),b1(2),al1(2),g1(2),d(2),dp(2),c(2),cp(2)/)
@@ -4946,7 +4944,7 @@ subroutine writelin(nr,typ,tl,p1,t,ixwl,isBLOC,ielem)
     end if
 #endif
 
-    if (do_coll) then
+    if(do_coll) then
       tbetax(max(ielem,1))  = b1(1)
       tbetay(max(ielem,1))  = b1(2)
       talphax(max(ielem,1)) = al1(1)
@@ -4957,7 +4955,11 @@ subroutine writelin(nr,typ,tl,p1,t,ixwl,isBLOC,ielem)
       torbyp(max(ielem,1))  = cp(2)
       tdispx(max(ielem,1))  = d(1)
       tdispy(max(ielem,1))  = d(2)
-    endif
+    end if
+
+    if(scatter_active) then
+      call scatter_setLinOpt(iElem, al1, b1, c, cp, d, dp)
+    end if
 
     if(ncorru == 0) then
       if(st_quiet == 0) then
@@ -4970,35 +4972,35 @@ subroutine writelin(nr,typ,tl,p1,t,ixwl,isBLOC,ielem)
       end if
     else
       if(.not.isBLOC) then
-        if(kp(ixwl).eq.3) then
-          nhmoni=nhmoni+1
-          betam(nhmoni,1)=b1(1)
-          pam(nhmoni,1)=(p1(1)*two)*pi
-          bclorb(nhmoni,1)=c(1)
-        else if(kp(ixwl).eq.4) then
-          nhcorr=nhcorr+1
-          betac(nhcorr,1)=b1(1)
-          pac(nhcorr,1)=(p1(1)*two)*pi
-        else if(kp(ixwl).eq.-3) then
-          nvmoni=nvmoni+1
-          betam(nvmoni,2)=b1(2)
-          pam(nvmoni,2)=(p1(2)*two)*pi
-          bclorb(nvmoni,2)=c(2)
-        else if(kp(ixwl).eq.-4) then
-          nvcorr=nvcorr+1
-          betac(nvcorr,2)=b1(2)
-          pac(nvcorr,2)=(p1(2)*two)*pi
+        if(kp(ixwl) == 3) then
+          nhmoni = nhmoni + 1
+          betam(nhmoni,1)  = b1(1)
+          pam(nhmoni,1)    = p1(1)*twopi
+          bclorb(nhmoni,1) = c(1)
+        else if(kp(ixwl) == 4) then
+          nhcorr = nhcorr + 1
+          betac(nhcorr,1) = b1(1)
+          pac(nhcorr,1)   = p1(1)*twopi
+        else if(kp(ixwl) == -3) then
+          nvmoni = nvmoni + 1
+          betam(nvmoni,2)  = b1(2)
+          pam(nvmoni,2)    = p1(2)*twopi
+          bclorb(nvmoni,2) = c(2)
+        else if(kp(ixwl) == -4) then
+          nvcorr = nvcorr + 1
+          betac(nvcorr,2) = b1(2)
+          pac(nvcorr,2)   = p1(2)*twopi
         end if
       end if
     end if
   end if
-!-----------------------------------------------------------------------
+
   return
+10000 format('|',i6,'|',a8,'|',f12.5,'|','X','|',f12.7,'|',f12.6,'|',f13.7,'|',f11.6,'|',f11.7,'|',f11.7,'|',f11.7,'|',f11.7,'|')
 10010 format('|',6x,'|',8x,'|',12x,'|',1x,'|',12x,'|',f12.6,'|', f13.7,'|',f11.6,'|',11x,'|',11x,'|',11x,'|',11x,'|')
 10020 format('|',6x,'|',8x,'|',12x,'|','Y','|',f12.7,'|',f12.6,'|', f13.7,'|',f11.6,'|',f11.7,'|',f11.7,'|',f11.7,'|',f11.7,'|')
-10040 format(132('-'))
-10000 format('|',i6,'|',a8,'|',f12.5,'|','X','|',f12.7,'|',f12.6,'|',f13.7,'|',f11.6,'|',f11.7,'|',f11.7,'|',f11.7,'|',f11.7,'|')
 10030 format('|',6x,'|',a8,'|',12x,'|',102('-'))
+10040 format(132('-'))
 end subroutine writelin
 
 subroutine cpltwis(typ,t,etl,phi)
