@@ -678,7 +678,7 @@ subroutine scatter_parseProfile(lnSplit, nSplit, iErr)
     proType = scatter_proGauss1
     if(nSplit /= 8) then
       write(lerr,"(a,i0)") "SCATTER> ERROR PROfile type GAUSS1 expected 5 arguments, got ",nSplit-3
-      write(lerr,"(a)")    "SCATTER        PRO name GAUSS1 beamtot[particles] sigma_x[mm] sigma_y[mm] offset_x[mm] offset_y[mm]"
+      write(lerr,"(a)")    "SCATTER        PRO name GAUSS1 nbeam sigmaX sigmaY offsetX offsetY"
       iErr = .true.
       return
     end if
@@ -693,9 +693,9 @@ subroutine scatter_parseProfile(lnSplit, nSplit, iErr)
     proType = scatter_proBeamRef
     if(nSplit < 4 .or. nSplit > 6) then
       write(lerr,"(a,i0)") "SCATTER> ERROR PROfile type REFBEAM expected 1, 2 or 3 arguments, got ",nSplit-3
-      write(lerr,"(a)")    "SCATTER        PRO name REFBEAM beamtot[particles]"
-      write(lerr,"(a)")    "SCATTER        PRO name REFBEAM beamtot[particles] MIRROR"
-      write(lerr,"(a)")    "SCATTER        PRO name REFBEAM beamtot[particles] crossing_x[mrad] crossing_y[mrad]"
+      write(lerr,"(a)")    "SCATTER        PRO name REFBEAM nbeam"
+      write(lerr,"(a)")    "SCATTER        PRO name REFBEAM nbeam MIRROR"
+      write(lerr,"(a)")    "SCATTER        PRO name REFBEAM nbeam crossX crossY"
       iErr = .true.
       return
     end if
@@ -708,6 +708,36 @@ subroutine scatter_parseProfile(lnSplit, nSplit, iErr)
         if(nSplit == 6) then
           call chr_cast(lnSplit(5),fParams(2),iErr) ! X Crossing Angle
           call chr_cast(lnSplit(6),fParams(3),iErr) ! Y Crossing Angle
+        end if
+      end if
+    end if
+
+  case("UNCORRBEAM")
+    proType = scatter_proBeamUnCorr
+    if(nSplit /= 5 .and. nSplit /= 10 .and. nSplit /= 13) then
+      write(lerr,"(a,i0)") "SCATTER> ERROR PROfile type UNCORRBEAM expected 2, 7 or 9 arguments, got ",nSplit-3
+      write(lerr,"(a)")    "SCATTER        PRO name UNCORRBEAM nbeam MIRROR"
+      write(lerr,"(a)")    "SCATTER        PRO name UNCORRBEAM nbeam betaX betaY alphaX alphaY crossX crossY [offsetX offsetY]"
+      iErr = .true.
+      return
+    end if
+
+    call chr_cast(lnSplit(4),fParams(1),iErr) ! Beam Charge
+    if(nSplit > 4) then
+      if(chr_toUpper(lnSplit(5)) == "MIRROR") then
+        isMirror = .true.
+      else
+        if(nSplit >= 10) then
+          call chr_cast(lnSplit(5), fParams(2),iErr) ! Beta X
+          call chr_cast(lnSplit(6), fParams(3),iErr) ! Beta Y
+          call chr_cast(lnSplit(7), fParams(4),iErr) ! Alpha X
+          call chr_cast(lnSplit(8), fParams(5),iErr) ! Alpha Y
+          call chr_cast(lnSplit(9), fParams(6),iErr) ! Crossing Angle X
+          call chr_cast(lnSplit(10),fParams(7),iErr) ! Crossing Angle Y
+        end if
+        if(nSplit == 12) then
+          call chr_cast(lnSplit(11),fParams(8),iErr) ! Offset X
+          call chr_cast(lnSplit(12),fParams(9),iErr) ! Offset Y
         end if
       end if
     end if
@@ -1313,7 +1343,9 @@ end function scatter_getDensity
 subroutine scatter_generateParticle(idPro, iElem, j, pVec)
 
   use crcoall
+  use mod_ranecu
   use mod_common, only : e0f
+  use mod_common_main, only : xv1, xv2, ejfv, oidpsv
   use numerical_constants
 
   integer,          intent(in)  :: idPro
@@ -1321,7 +1353,8 @@ subroutine scatter_generateParticle(idPro, iElem, j, pVec)
   integer,          intent(in)  :: j
   real(kind=fPrec), intent(out) :: pVec(3)
 
-  real(kind=fPrec) orbXP, orbYP
+  real(kind=fPrec) orbX, orbY, orbXP, orbYP, rndVals(2), betaX, betaY, alphaX, alphaY
+  integer          tmpSeed1, tmpSeed2
 
   pVec(:) = zero
 
@@ -1332,6 +1365,14 @@ subroutine scatter_generateParticle(idPro, iElem, j, pVec)
     pVec(1) = zero
     pVec(2) = zero
     pVec(3) = -e0f
+
+  case(scatter_proFixed)
+    write(lerr,"(a)") "SCATTER> ERROR The PYTHIA module REALBEAM flag is incompatible with the SCATTER profile FIXED"
+    call prror
+
+  case(scatter_proGauss1)
+    write(lerr,"(a)") "SCATTER> ERROR The PYTHIA module REALBEAM flag is incompatible with the SCATTER profile GAUSS1"
+    call prror
 
   case(scatter_proBeamRef)
     ! Return a copy of the reference particle with correct crossing angle
@@ -1353,6 +1394,47 @@ subroutine scatter_generateParticle(idPro, iElem, j, pVec)
     pVec(1) = (orbXP*e0f)*c1m3
     pVec(2) = (orbYP*e0f)*c1m3
     pVec(3) = -sqrt(e0f**2 - pVec(1)**2 - pVec(2)**2)
+
+  case(scatter_proBeamUnCorr)
+
+    if(scatter_proList(idPro)%isMirror) then
+      if(scatter_elemList(scatter_elemPointer(iElem))%linOpt%isSet) then
+        ! Use the crossing angle of beam 1
+        betaX  = scatter_elemList(scatter_elemPointer(iElem))%linOpt%betaX
+        betaY  = scatter_elemList(scatter_elemPointer(iElem))%linOpt%betaY
+        alphaX = scatter_elemList(scatter_elemPointer(iElem))%linOpt%alphaX
+        alphaY = scatter_elemList(scatter_elemPointer(iElem))%linOpt%alphaY
+        orbXP  = scatter_elemList(scatter_elemPointer(iElem))%linOpt%orbitXP
+        orbYP  = scatter_elemList(scatter_elemPointer(iElem))%linOpt%orbitYP
+        orbX   = scatter_elemList(scatter_elemPointer(iElem))%linOpt%orbitX
+        orbY   = scatter_elemList(scatter_elemPointer(iElem))%linOpt%orbitY
+      else
+        write(lerr,"(a)") "SCATTER> ERROR Requested beam 2 to mirror beam 1, but optics values have not been generated"
+        call prror
+      end if
+    else
+      ! Else, given by input
+      betaX  = scatter_proList(idPro)%fParams(2)
+      betaY  = scatter_proList(idPro)%fParams(3)
+      alphaX = scatter_proList(idPro)%fParams(4)
+      alphaY = scatter_proList(idPro)%fParams(5)
+      orbXP  = scatter_proList(idPro)%fParams(6)
+      orbYP  = scatter_proList(idPro)%fParams(7)
+      orbX   = scatter_proList(idPro)%fParams(8)
+      orbY   = scatter_proList(idPro)%fParams(9)
+    end if
+
+    call recuut(tmpSeed1,tmpSeed2)
+    call recuin(scatter_seed1,scatter_seed2)
+
+    call ranecu(rndVals, 2, 0)
+
+    pVec(1) = (rndVals(1)/sqrt(betaX) - (betaX*alphaX)*(xv1(j)-orbX) + (orbXP*oidpsv(j))*c1e3)*ejfv(j)
+    pVec(2) = (rndVals(2)/sqrt(betaY) - (betaY*alphaY)*(xv2(j)-orbY) + (orbXP*oidpsv(j))*c1e3)*ejfv(j)
+    pVec(3) = -sqrt(ejfv(j)**2 - pVec(1)**2 - pVec(2)**2)
+
+    call recuut(scatter_seed1,scatter_seed2)
+    call recuin(tmpSeed1,tmpSeed1)
 
   end select
 
