@@ -48,7 +48,6 @@ void pythiaWrapper_setSeed(int rndSeed) {
 
 void pythiaWrapper_setBeam(int frameType, int idA, int idB, double eA, double eB) {
   std::cout << "PYTHIA> Setting beam parameters" << std::endl;
-  printf("Hi there! %d\n", frameType);
   pythia.settings.mode("Beams:frameType", frameType);
   pythia.settings.mode("Beams:idA", idA);
   pythia.settings.mode("Beams:idB", idB);

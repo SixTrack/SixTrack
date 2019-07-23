@@ -3,15 +3,16 @@
 !-----------------------------------------------------------------------
 subroutine linopt(dpp)
 
-  use floatPrecision
-  use numerical_constants
-  use mathlib_bouncer
-  use crcoall
   use parpro
+  use crcoall
   use mod_units
   use mod_common
   use mod_commons
   use mod_common_track
+  use mod_settings
+  use floatPrecision
+  use mathlib_bouncer
+  use numerical_constants
 
 #ifdef ROOT
   use root_output
@@ -130,7 +131,7 @@ subroutine linopt(dpp)
     end do
   end do
 
-  if(ncorru == 0 .and. iprint == 1) then
+  if(ncorru == 0 .and. st_quiet == 0) then
     write(lout,10010)
     write(lout,10030)
     write(lout,10020)
@@ -182,8 +183,8 @@ subroutine linopt(dpp)
 
 !-- Loop over elements inside the block
     do 150 j=1,jm
-      jj=jj+dj       ! Subelement index of current sub=element
-      jk=mtyp(ix,jj) ! Single-element index of the current sub-element
+      jj = jj+dj       ! Subelement index of current sub=element
+      jk = mtyp(ix,jj) ! Single-element index of the current sub-element
       if(ithick == 1 .and. kz(jk) /= 0) goto 120
       if(ithick == 0 .and. kz(jk) /= 0) then
         etl=etl+el(jk)
@@ -421,7 +422,7 @@ subroutine linopt(dpp)
 
       cycle STRUCTLOOP
 
-!--NOT A BLOCK / Nonlinear insertion
+      ! NOT A BLOCK / Nonlinear insertion
 220   ix   = ix-nblo
       qu   = zero
       qv   = zero
@@ -430,7 +431,7 @@ subroutine linopt(dpp)
       kpz  = kp(ix)
       kzz  = kz(ix)
 
- ! Cavity
+      ! Cavity
       if(kpz == 6 .or. abs(kzz) == 12) then
         nr = nr+1
         call writelin(nr,bez(ix),etl,phi,t,ix,.false.,k)
@@ -448,7 +449,7 @@ subroutine linopt(dpp)
         cycle STRUCTLOOP
       end if
 
-      !Beam Beam element .and. fort.3 has BB block
+      ! Beam Beam element .and. fort.3 has BB block
       if(kzz == 20 .and. nbeam >= 1) then
         nbeam = k
         nr    = nr+1
@@ -621,9 +622,9 @@ subroutine linopt(dpp)
           if(abs(dki(ix,3)) > pieni) then
 #include "include/multl01.f90"
 #include "include/multl08.f90"
-            do 340 i=2,ium
+            do i=2,ium
 #include "include/multl02.f90"
-  340       continue
+            end do
           else
 #include "include/multl03.f90"
 #include "include/multl09.f90"
@@ -633,9 +634,9 @@ subroutine linopt(dpp)
           if(abs(dki(ix,3)) > pieni) then
 #include "include/multl04.f90"
 #include "include/multl10.f90"
-            do 350 i=2,ium
+            do i=2,ium
 #include "include/multl05.f90"
-  350       continue
+            end do
           else
 #include "include/multl06.f90"
 #include "include/multl11.f90"
@@ -1020,8 +1021,8 @@ subroutine writelin(nr,typ,tl,p1,t,ixwl,isBLOC,ielem)
       tdispy(max(ielem,1))  = d(2)
     end if
 
-    if(scatter_active) then
-      call scatter_setLinOpt(iElem, al1, b1, c, cp, d, dp)
+    if(scatter_active .and. .not. isBLOC) then
+      call scatter_setLinOpt(ixwl, al1, b1, c, cp, d, dp)
     end if
 
     if(ncorru == 0) then
@@ -1079,14 +1080,14 @@ end subroutine writelin
 !-----------------------------------------------------------------------
 subroutine cpltwis(typ,t,etl,phi)
 
-  use floatPrecision
-  use numerical_constants
-  use mathlib_bouncer
   use parpro
+  use mod_units
   use mod_common
   use mod_commons
   use mod_common_track
-  use mod_units
+  use floatPrecision
+  use mathlib_bouncer
+  use numerical_constants
 #ifdef ROOT
   use root_output
 #endif
