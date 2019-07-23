@@ -8,17 +8,16 @@ SETTINGS----------------------------------------------------------------
 NEXT
 
 HASH--------------------------------------------------------------------
-    MD5SUM initial_state.dat   text
-    MD5SUM final_state.dat     text
-    MD5SUM scatter_log.dat     text
-    MD5SUM scatter_summary.dat text
-    MD5SUM ip1.dat             text
-    MD5SUM ip5.dat             text
+    MD5SUM initial_state.dat    text
+    MD5SUM final_state.dat      text
+    MD5SUM scatter_log.dat      text
+    MD5SUM scatter_summary.dat  text
+    MD5SUM scatter_momentum.dat text
 NEXT
 
 SIMULATION--------------------------------------------------------------
-    PARTICLES    1000
-    TURNS        50
+    PARTICLES    50
+    TURNS        5
     CRPOINT      10
     LATTICE      Thin 6D
     6D_CLORB     on
@@ -62,7 +61,7 @@ NEXT
 PYTHIA------------------------------------------------------------------
     SPECIES PROTON PROTON
     ENERGY 7000000 7000000
-    REALBEAM off
+    REALBEAM on
     SEED 41
     PROCESS ELASTIC
     PROCESS SINGLEDIFFRACTIVE
@@ -70,18 +69,15 @@ NEXT
 
 SCATTER-----------------------------------------------------------------
     DEBUG
+    WRITE_PLOG
+    LOSSES
     SEED 42
-    GEN  sc_thin     PPBEAMELASTIC 0.046  18.52  4.601  2.647  0.2  8.0
-    GEN  sc_pythia   PYTHIA 27.0
-    PRO  ipFLAT      FLAT   3e25  938.0  7000000
-    PRO  ipGAUSS     GAUSS1 2.2e11 8.66e-3 8.66e-3 0.75e-3 -0.75e-3
-    ELEM ip1_scatter ipFLAT auto 1.0 sc_thin sc_pythia
-    ELEM ip5_scatter ipFLAT auto 1.0 sc_thin sc_pythia
-NEXT
-
-DUMP--------------------------------------------------------------------
-    ip1 1 -1 2 ip1.dat 1 -1
-    ip5 1 -1 2 ip5.dat 1 -1
+    GEN  sc_pythia   PYTHIA  42.0
+    PRO  ipFLAT      FLAT    3e25  938.0  7000000
+    PRO  ipGAUSS     GAUSS1  2.2e11 8.66e-3 8.66e-3 0.75e-3 -0.75e-3
+    PRO  ipREF       REFBEAM 3e25 MIRROR
+    ELEM ip1_scatter ipREF auto 1.0 sc_pythia
+    ELEM ip5_scatter ipREF auto 1.0 sc_pythia
 NEXT
 
 LINEAR OPTICS-----------------------------------------------------------

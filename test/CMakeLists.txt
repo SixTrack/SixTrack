@@ -216,6 +216,7 @@ endif()
 if(PYTHIA)
   list(APPEND SIXTRACK_TESTS
     scatter_pythia
+    scatter_pythia_realbeam_ref
   )
 endif()
 
@@ -298,6 +299,7 @@ set(TESTS_NOFORT10
   scatter_bbelastic
   scatter_collimation
   scatter_pythia
+  scatter_pythia_realbeam_ref
   thick6d_below_transit
   thick6dblocks
   thick6ddynk
@@ -351,6 +353,7 @@ set(TESTS_NO_STF_FORT90
   scatter_bbelastic
   scatter_collimation
   scatter_pythia
+  scatter_pythia_realbeam_ref
   thick6d_below_transit
   thick6ddynk
   thin4d_ions
@@ -656,6 +659,7 @@ set(FAST_TESTS
   scatter_bbelastic
   scatter_collimation
   scatter_pythia
+  scatter_pythia_realbeam_ref
   thick4
   thick4_da
   thick6d_below_transit
