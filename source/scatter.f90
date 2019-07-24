@@ -53,6 +53,12 @@ module scatter
   integer, parameter :: scatter_proBeamRef       = 4
   integer, parameter :: scatter_proBeamUnCorr    = 5
 
+  ! Input Variables
+  real(kind=fPrec), private, save :: scatter_beam2EmitX  = zero
+  real(kind=fPrec), private, save :: scatter_beam2EmitY  = zero
+  real(kind=fPrec), private, save :: scatter_beam2Length = zero
+  real(kind=fPrec), private, save :: scatter_beam2Spread = zero
+
   ! Storage Structs
   type, private :: scatter_linOpt
     logical          :: isSet   = .false.
@@ -391,6 +397,25 @@ subroutine scatter_parseInputLine(inLine, iErr)
     call chr_cast(lnSplit(2), scatter_seed1, iErr)
     call recuinit(scatter_seed1)
     call recuut(scatter_seed1, scatter_seed2)
+
+  case("BEAM2_EMIT")
+    if(nSplit /= 3) then
+      write(lerr,"(a,i0)") "SCATTER> ERROR BEAM2_EMIT expected 2 arguments, got ",nSplit-1
+      write(lerr,"(a)")    "SCATTER>       BEAM2_EMIT emitX emitY"
+      iErr = .true.
+      return
+    end if
+    call chr_cast(lnSplit(2), scatter_beam2EmitX, iErr)
+    call chr_cast(lnSplit(3), scatter_beam2EmitY, iErr)
+
+  case("BEAM2_LEN")
+    if(nSplit /= 2) then
+      write(lerr,"(a,i0)") "SCATTER> ERROR BEAM2_LEN expected 1 argument, got ",nSplit-1
+      write(lerr,"(a)")    "SCATTER>       BEAM2_LEN sigmaZ"
+      iErr = .true.
+      return
+    end if
+    call chr_cast(lnSplit(2), scatter_beam2Length, iErr)
 
   case("ELEM")
     call scatter_parseElem(lnSplit, nSplit, iErr)
