@@ -358,8 +358,8 @@ subroutine scatter_parseInputLine(inLine, iErr)
 
   if(nSplit == 0) then
     if(scatter_debug) then
-      write (lout,"(a,i3,a)") "SCATTER> DEBUG Input line len=",len(inLine),": '"//trim(inLine)//"'"
-      write (lout,"(a)")      "SCATTER> DEBUG  * No fields found"
+      write(lout,"(a,i3,a)") "SCATTER> DEBUG Input line len=",len(inLine),": '"//trim(inLine)//"'"
+      write(lout,"(a)")      "SCATTER> DEBUG  * No fields found"
     end if
     return
   end if
@@ -481,8 +481,8 @@ subroutine scatter_parseElem(lnSplit, nSplit, iErr)
       end if
 
       if(kz(i) /= 40) then
-        write(lerr,"(a)")    "SCATTER> ERROR SCATTER can only work on SINGLE ELEMENTs of type 40."
-        write(lerr,"(a,i0)") "SCATTER>       The referenced element '"//trim(lnSplit(2))//"'is of type ", kz(i)
+        write(lerr,"(a)")    "SCATTER> ERROR SCATTER can only work on SINGLE ELEMENTs of type 40"
+        write(lerr,"(a,i0)") "SCATTER>       The referenced element '"//trim(lnSplit(2))//"' is of type ", kz(i)
         iErr = .true.
         return
       end if
@@ -541,7 +541,7 @@ subroutine scatter_parseElem(lnSplit, nSplit, iErr)
 
     ! If it is still -1, it wasn't found
     if(generatorID(i-5) == -1) then
-      write(lerr,"(a)") "SCATTER> ERROR Parsing ELEM, generator '"//trim(lnSplit(i))//"' not found."
+      write(lerr,"(a)") "SCATTER> ERROR Parsing ELEM, generator '"//trim(lnSplit(i))//"' not found"
       iErr = .true.
       return
     end if
@@ -550,7 +550,7 @@ subroutine scatter_parseElem(lnSplit, nSplit, iErr)
     ! to check for duplicates
     do j=1,i-6
       if(generatorID(i-5) == generatorID(j)) then
-        write(lerr,"(a)") "SCATTER> ERROR Parsing ELEM, generator '"//trim(lnSplit(i))//"' used twice."
+        write(lerr,"(a)") "SCATTER> ERROR Parsing ELEM, generator '"//trim(lnSplit(i))//"' used twice"
         iErr = .true.
         return
       end if
@@ -642,7 +642,7 @@ subroutine scatter_parseProfile(lnSplit, nSplit, iErr)
   ! Check that the profile name is unique
   do i=1,scatter_nPro-1
     if(scatter_proList(i)%proName == lnSplit(2)) then
-      write(lerr,"(a)") "SCATTER> ERROR Profile name '"//trim(lnSplit(2))//"' is not unique."
+      write(lerr,"(a)") "SCATTER> ERROR Profile name '"//trim(lnSplit(2))//"' is not unique"
       iErr = .true.
       return
     end if
@@ -743,7 +743,7 @@ subroutine scatter_parseProfile(lnSplit, nSplit, iErr)
     end if
 
   case default
-    write(lerr,"(a)") "SCATTER> ERROR PRO name '"//trim(lnSplit(3))//"' not recognized."
+    write(lerr,"(a)") "SCATTER> ERROR PRO name '"//trim(lnSplit(3))//"' not recognised"
     iErr = .true.
     return
 
@@ -820,7 +820,7 @@ subroutine scatter_parseGenerator(lnSplit, nSplit, iErr)
   ! Check that the generator name is unique
   do i=1,scatter_nGen-1
     if(scatter_genList(i)%genName == genName) then
-      write(lerr,"(a)") "SCATTER> ERROR Generator name '"//trim(genName)//"' is not unique."
+      write(lerr,"(a)") "SCATTER> ERROR Generator name '"//trim(genName)//"' is not unique"
       iErr = .true.
       return
     end if
@@ -885,7 +885,7 @@ subroutine scatter_parseGenerator(lnSplit, nSplit, iErr)
 
   case default
 
-    write(lerr,"(a)") "SCATTER> ERROR GEN name '"//trim(lnSplit(3))//"' not recognised."
+    write(lerr,"(a)") "SCATTER> ERROR GEN name '"//trim(lnSplit(3))//"' not recognised"
     iErr = .true.
     return
 
@@ -1122,7 +1122,7 @@ subroutine scatter_thin(iStru, iElem, nTurn)
       end if
     end do
     if(idGen == 0) then
-      write(lout,"(a,i0,a)") "SCATTER> WARNING Scattering for particle ID ",partID(j)," occured, but no generator was selected."
+      write(lout,"(a,i0,a)") "SCATTER> WARNING Scattering for particle ID ",partID(j)," occured, but no generator was selected"
       pScattered(j) = .false.
       cycle
     end if
@@ -1327,9 +1327,12 @@ function scatter_getDensity(idPro, x, y) result(retval)
   case(scatter_proBeamRef)
     retval  = scatter_proList(idPro)%fParams(1)
 
+  case(scatter_proBeamUnCorr)
+    retval  = scatter_proList(idPro)%fParams(1)
+
   case default
     write(lerr,"(a,i0,a)") "SCATTER> ERROR Type ",scatter_proList(idPro)%proType," for profile '"//&
-      trim(scatter_proList(idPro)%proName)//"' not understood."
+      trim(scatter_proList(idPro)%proName)//"' not understood"
     call prror
   end select
 
@@ -1429,8 +1432,15 @@ subroutine scatter_generateParticle(idPro, iElem, j, pVec)
 
     call ranecu(rndVals, 2, 0)
 
-    pVec(1) = (rndVals(1)/sqrt(betaX) - (betaX*alphaX)*(xv1(j)-orbX) + (orbXP*oidpsv(j))*c1e3)*ejfv(j)
-    pVec(2) = (rndVals(2)/sqrt(betaY) - (betaY*alphaY)*(xv2(j)-orbY) + (orbXP*oidpsv(j))*c1e3)*ejfv(j)
+    write(lout,*) rndVals
+    write(lout,*) betaX, betaY
+    write(lout,*) alphaX, alphaY
+    write(lout,*) orbX, orbY, orbXP, orbYP
+    write(lout,*) xv1(j), xv2(j)
+    write(lout,*) oidpsv(j), ejfv(j)
+
+    pVec(1) = ((rndVals(1)/sqrt(betaX))*c1m3 - (alphaX/betaX)*(xv1(j)-orbX) + orbXP*oidpsv(j)) * ejfv(j)*c1m3
+    pVec(2) = ((rndVals(2)/sqrt(betaY))*c1m3 - (alphaY/betaY)*(xv2(j)-orbY) + orbYP*oidpsv(j)) * ejfv(j)*c1m3
     pVec(3) = -sqrt(ejfv(j)**2 - pVec(1)**2 - pVec(2)**2)
 
     call recuut(scatter_seed1,scatter_seed2)
@@ -1524,14 +1534,19 @@ subroutine scatter_generateEvent(idGen, idPro, iElem, j, nTurn, t, theta, dEE, d
 
       pOut(:) = zero
 
+      if(st_debug) then
+        write(lout,"(a,i0)")          "SCATTER> Scattering particle ",j
+        write(lout,"(a,3(1x,f16.9))") "SCATTER> -> Pythia 1 :",pIn(1:3)
+        write(lout,"(a,3(1x,f16.9))") "SCATTER> -> Pythia 2 :",pIn(4:6)
+      end if
+
       call pythia_getEventFull(evStat, evType, t, theta, dEE, dPP, pIn, pOut)
 
       if(st_debug) then
-        write(lout,"(a,i0)")          "SCATTER> Scattering particle ",j
-        write(lout,"(a,3(1x,f16.9))") "SCATTER> -> Pythia A :",pIn(1:3)
-        write(lout,"(a,3(1x,f16.9))") "SCATTER> -> Pythia B :",pIn(4:6)
-        write(lout,"(a,3(1x,f16.9))") "SCATTER> <- Pythia A :",pOut(1:3)
-        write(lout,"(a,3(1x,f16.9))") "SCATTER> <- Pythia B :",pOut(4:6)
+        write(lout,"(a,3(1x,f16.9))") "SCATTER> <- Pythia 1 :",pIn(1:3)
+        write(lout,"(a,3(1x,f16.9))") "SCATTER> <- Pythia 2 :",pIn(4:6)
+        write(lout,"(a,3(1x,f16.9))") "SCATTER> <- Pythia 3 :",pOut(1:3)
+        write(lout,"(a,3(1x,f16.9))") "SCATTER> <- Pythia 4 :",pOut(4:6)
         write(lout,"(a,3(1x,i0))")    "SCATTER>        code :",evType
         write(lout,"(a,3(1x,f16.9))") "SCATTER>           t :",t
         write(lout,"(a,3(1x,f16.9))") "SCATTER>       theta :",theta
@@ -1620,8 +1635,8 @@ subroutine scatter_generateEvent(idGen, idPro, iElem, j, nTurn, t, theta, dEE, d
     call prror
 
   end select
-  
-  if(pythia_useRealBeam .and. scatter_writePLog .and. iLost == 0) then
+
+  if(isExact .and. scatter_writePLog .and. iLost == 0) then
     write(scatter_pVecFile,"(i10,1x,i8,1x,a20,1x,a8,12(1x,1pe16.9))") &
       partID(j), nTurn, bez(iElem)(1:20), scatter_procNames(procID), pIn*c1e3, pOut*c1e3
 #ifdef CR
