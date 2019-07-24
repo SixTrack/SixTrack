@@ -282,7 +282,6 @@ program maincr
   call time_timeStamp(time_afterCRCheck)
 #endif
 
-  call scatter_init
   call aperture_init
 
 #ifndef FLUKA
@@ -473,13 +472,17 @@ program maincr
   end do
   call corrorb
 
-  if(irmod2.eq.1) call rmod(dp1)
-  if(iqmod.ne.0) call qmod0
-  if(ichrom == 1 .or. ichrom == 3) call chroma
-  if(iskew.ne.0) call decoup
-  if(ilin.eq.1.or.ilin.eq.3) then
+  if(irmod2 == 1) call rmod(dp1)
+  if(iqmod /= 0) call qmod0
+  if(ichrom == 1 .or. ichrom == 3) then
+    call chroma
+  end if
+  if(iskew /= 0) call decoup
+  if(ilin == 1 .or. ilin == 3) then
     call linopt(dp1)
   end if
+
+  call scatter_init ! Must be after linopt
 
   ! beam-beam element
   nlino = nlin

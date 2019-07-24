@@ -61,19 +61,14 @@ module scatter
 
   ! Storage Structs
   type, private :: scatter_linOpt
-    logical          :: isSet   = .false.
-    real(kind=fPrec) :: alphaX  = zero
-    real(kind=fPrec) :: alphaY  = zero
-    real(kind=fPrec) :: betaX   = zero
-    real(kind=fPrec) :: betaY   = zero
-    real(kind=fPrec) :: dispX   = zero
-    real(kind=fPrec) :: dispY   = zero
-    real(kind=fPrec) :: dispXP  = zero
-    real(kind=fPrec) :: dispYP  = zero
-    real(kind=fPrec) :: orbitX  = zero
-    real(kind=fPrec) :: orbitY  = zero
-    real(kind=fPrec) :: orbitXP = zero
-    real(kind=fPrec) :: orbitYP = zero
+    logical          :: isSet      = .false.
+    real(kind=fPrec) :: alpha(2)   = zero
+    real(kind=fPrec) :: beta(2)    = zero
+    real(kind=fPrec) :: disp(4)    = zero
+    real(kind=fPrec) :: orbit(4)   = zero
+    real(kind=fPrec) :: sigma(2)   = zero
+    real(kind=fPrec) :: r_sin(2)   = zero ! Sine of crossing angle
+    real(kind=fPrec) :: r_sigma(2) = zero ! sigma_xz and sigma_yz
   end type scatter_linOpt
 
   type, private :: scatter_elemStore
@@ -118,9 +113,13 @@ module scatter
   integer, public,  save :: scatter_seed2      = -1
 
   ! Variable for file output
-  integer, private, save :: scatter_logFile    = -1
-  integer, private, save :: scatter_sumFile    = -1
-  integer, private, save :: scatter_pVecFile   = -1
+  character(len=15), parameter :: scatter_logFile  = "scatter_log.dat"
+  character(len=19), parameter :: scatter_sumFile  = "scatter_summary.dat"
+  character(len=20), parameter :: scatter_pVecFile = "scatter_momentum.dat"
+
+  integer, private, save :: scatter_logUnit    = -1
+  integer, private, save :: scatter_sumUnit    = -1
+  integer, private, save :: scatter_pVecUnit   = -1
 #ifdef HDF5
   integer, private, save :: scatter_logDataSet = 0
   integer, private, save :: scatter_logFormat  = 0
@@ -170,19 +169,8 @@ end subroutine scatter_expand_arrays
 ! =================================================================================================
 subroutine scatter_init
 
-  use crcoall
-  use parpro
-  use mod_units
-  use string_tools
 #ifdef HDF5
   use hdf5_output
-#endif
-
-  integer iError
-  logical fErr
-  real(kind=fPrec) sigmaTot
-#ifdef HDF5
-  type(h5_dataField), allocatable :: setFields(:)
 #endif
 
   if(scatter_active .eqv. .false.) return
@@ -190,141 +178,16 @@ subroutine scatter_init
   ! Initialise data output
 #ifdef HDF5
   if(h5_useForSCAT) then
-
-    call h5_initForScatter
-
-    ! Scatter Log
-    allocate(setFields(14))
-
-    setFields(1)  = h5_dataField(name="ID",      type=h5_typeInt)
-    setFields(2)  = h5_dataField(name="TURN",    type=h5_typeInt)
-    setFields(3)  = h5_dataField(name="BEZ",     type=h5_typeChar, size=mNameLen)
-    setFields(4)  = h5_dataField(name="GEN",     type=h5_typeChar, size=mNameLen)
-    setFields(5)  = h5_dataField(name="PROCESS", type=h5_typeChar, size=8)
-    setFields(6)  = h5_dataField(name="LOST",    type=h5_typeInt)
-    setFields(7)  = h5_dataField(name="T",       type=h5_typeReal)
-    setFields(8)  = h5_dataField(name="THETA",   type=h5_typeReal)
-    setFields(9)  = h5_dataField(name="PHI",     type=h5_typeReal)
-    setFields(10) = h5_dataField(name="dE/E",    type=h5_typeReal)
-    setFields(11) = h5_dataField(name="dP/P",    type=h5_typeReal)
-    setFields(12) = h5_dataField(name="DENSITY", type=h5_typeReal)
-    setFields(13) = h5_dataField(name="PROB",    type=h5_typeReal)
-    setFields(14) = h5_dataField(name="STATCORR",type=h5_typeReal)
-
-    call h5_createFormat("scatter_log_fmt", setFields, scatter_logFormat)
-    call h5_createDataSet("scatter_log", h5_scatID, scatter_logFormat, scatter_logDataSet)
-    block
-      character(len=:), allocatable :: colNames(:)
-      character(len=:), allocatable :: colUnits(:)
-      logical spErr
-      integer nSplit
-      call chr_split("ID turn bez generator process lost t dE/E dP/P theta phi density prob stat_corr",colNames,nSplit,spErr)
-      call chr_split("1 1 text text text 1 MeV^2 1 1 mrad rad mb^-1 1 1",colUnits,nSplit,spErr)
-      call h5_writeDataSetAttr(scatter_logDataSet,"colNames",colNames)
-      call h5_writeDataSetAttr(scatter_logDataSet,"colUnits",colUnits)
-    end block
-
-    deallocate(setFields)
-
-    ! Scatter Summary
-    allocate(setFields(10))
-
-    setFields(1)  = h5_dataField(name="TURN",      type=h5_typeInt)
-    setFields(2)  = h5_dataField(name="NAPX",      type=h5_typeInt)
-    setFields(3)  = h5_dataField(name="BEZ",       type=h5_typeChar, size=mNameLen)
-    setFields(4)  = h5_dataField(name="GEN",       type=h5_typeChar, size=mNameLen)
-    setFields(5)  = h5_dataField(name="PROCESS",   type=h5_typeChar, size=8)
-    setFields(6)  = h5_dataField(name="NSCAT",     type=h5_typeInt)
-    setFields(7)  = h5_dataField(name="NLOST",     type=h5_typeInt)
-    setFields(8)  = h5_dataField(name="SCATRATIO", type=h5_typeReal)
-    setFields(9)  = h5_dataField(name="CROSSSEC",  type=h5_typeReal)
-    setFields(10) = h5_dataField(name="SCALING",   type=h5_typeReal)
-
-    call h5_createFormat("scatter_summary_fmt", setFields, scatter_sumFormat)
-    call h5_createDataSet("summary", h5_scatID, scatter_sumFormat, scatter_sumDataSet)
-    block
-      character(len=:), allocatable :: colNames(:)
-      character(len=:), allocatable :: colUnits(:)
-      logical spErr
-      integer nSplit
-      call chr_split("turn napx bez generator process nScat nLost scatRat scaling",colNames,nSplit,spErr)
-      call chr_split("1 1 text text text 1 1 1 1",colUnits,nSplit,spErr)
-      call h5_writeDataSetAttr(scatter_sumDataSet,"colNames",colNames)
-      call h5_writeDataSetAttr(scatter_sumDataSet,"colUnits",colUnits)
-    end block
-
-    deallocate(setFields)
-
-    ! Write Attributes
-    call h5_writeAttr(h5_scatID,"SEED",scatter_seed1)
+    call scatter_initHDF5
   else
-#endif
-
-  ! Open scatter_log.dat
-  call f_requestUnit("scatter_log.dat", scatter_logFile)
-#ifdef CR
-  if(scatter_logFilePos == -1) then
-    write(crlog,"(a)") "CR_CHECK> SCATTER INIT opening new file 'scatter_log.dat'"
-#endif
-    call f_open(unit=scatter_logFile,file="scatter_log.dat",formatted=.true.,mode="w",err=fErr,status="replace")
-    write(scatter_logFile,"(a)") "# scatter_log"
-    write(scatter_logFile,"(a1,a8,1x,a8,2(1x,a20),1x,a8,1x,a4,2(1x,a12),1x,a9,5(1x,a16))") &
-      "#","ID","turn",chr_rPad("bez",20),chr_rPad("generator",20),chr_rPad("process",8),&
-      "lost","t[MeV^2]","theta[mrad]","phi[rad]","dE/E","dP/P","density","prob","stat_corr"
-    flush(scatter_logFile)
-#ifdef CR
-    scatter_logFilePos = 2
-    flush(scatter_logFile)
-  else
-    write(crlog,"(a)") "CR_CHECK> SCATTER kept already opened file 'scatter_log.dat'"
+    call scatter_initLogFile
   end if
+#else
+  call scatter_initLogFile
 #endif
-#ifdef HDF5
-  end if
-#endif
-
-  ! Open scatter_summary.dat
-  call f_requestUnit("scatter_summary.dat",scatter_sumFile)
-#ifdef CR
-  if(scatter_sumFilePos == -1) then
-    write(crlog,"(a)") "CR_CHECK> SCATTER INIT opening new file 'scatter_summary.dat'"
-#endif
-    call f_open(unit=scatter_sumFile,file="scatter_summary.dat",formatted=.true.,mode="w",err=fErr,status="replace")
-    call scatter_writeReport
-    write(scatter_sumFile,"(a)") "#  Summary Log"
-    write(scatter_sumFile,"(a)") "# ============="
-    write(scatter_sumFile,"(a1,a8,1x,a8,2(1x,a20),3(1x,a8),1x,a9,2(1x,a13))") &
-      "#","turn","napx",chr_rPad("bez",20),chr_rPad("generator",20),chr_rPad("process",8), &
-      "nScat","nLost","scatRat","crossSec[mb]","scaling"
-    flush(scatter_sumFile)
-#ifdef CR
-    scatter_sumFilePos = scatter_sumFilePos + 3
-    flush(scatter_sumFile)
-  else
-    write(crlog,"(a)") "CR_CHECK> SCATTER kept already opened file 'scatter_summary.dat'"
-  end if
-#endif
-
+  call scatter_initSummaryFile
   if(scatter_writePLog) then
-    ! Open scatter_momentum.dat
-    call f_requestUnit("scatter_momentum.dat",scatter_pVecFile)
-#ifdef CR
-    if(scatter_pVecFilePos == -1) then
-      write(crlog,"(a)") "CR_CHECK> SCATTER INIT opening new file 'scatter_momentum.dat'"
-#endif
-      call f_open(unit=scatter_pVecFile,file="scatter_momentum.dat",formatted=.true.,mode="w",err=fErr,status="replace")
-      call scatter_writeReport
-      write(scatter_pVecFile,"(a1,2(1x,a8),1x,a20,1x,a8,12(1x,a16))")   &
-        "#","ID","turn",chr_rPad("bez",20),chr_rPad("process",8),       &
-        "Px1","Py1","Pz1","Px2","Py2","Pz2","Px3","Py3","Pz3","Px4","Py4","Pz4"
-      flush(scatter_pVecFile)
-#ifdef CR
-      scatter_pVecFilePos = scatter_pVecFilePos + 1
-      flush(scatter_pVecFile)
-    else
-      write(crlog,"(a)") "CR_CHECK> SCATTER kept already opened file 'scatter_momentum.dat'"
-    end if
-#endif
+    call scatter_initPVecFile
   end if
 
 end subroutine scatter_init
@@ -967,8 +830,10 @@ end function scatter_getScaling
 subroutine scatter_setLinOpt(iElem, bAlpha, bBeta, bOrbit, bOrbitP, bDisp, bDispP)
 
   use crcoall
+  use mathlib_bouncer
   use parpro, only : nele
   use mod_common, only : bez
+  use numerical_constants
 
   integer, intent(in) :: iElem
   real(kind=fPrec)    :: bAlpha(2)
@@ -986,19 +851,29 @@ subroutine scatter_setLinOpt(iElem, bAlpha, bBeta, bOrbit, bOrbitP, bDisp, bDisp
 
   if(scatter_elemPointer(iElem) > 0) then
 
-    elemOpt%isSet   = .true.
-    elemOpt%alphaX  = bAlpha(1)
-    elemOpt%alphaY  = bAlpha(2)
-    elemOpt%betaX   = bBeta(1)
-    elemOpt%betaY   = bBeta(2)
-    elemOpt%dispX   = bDisp(1)
-    elemOpt%dispY   = bDisp(2)
-    elemOpt%dispXP  = bDispP(1)
-    elemOpt%dispYP  = bDispP(2)
-    elemOpt%orbitX  = bOrbit(1)
-    elemOpt%orbitY  = bOrbit(2)
-    elemOpt%orbitXP = bOrbitP(1)
-    elemOpt%orbitYP = bOrbitP(2)
+    elemOpt%isSet      = .true.
+    elemOpt%alpha      = bAlpha
+    elemOpt%beta       = bBeta
+    elemOpt%disp(1:2)  = bDisp
+    elemOpt%disp(3:4)  = bDispP
+    elemOpt%orbit(1:2) = bOrbit
+    elemOpt%orbit(3:4) = bOrbitP
+
+    ! Compute the sigmas
+    elemOpt%sigma(1)   = sqrt(scatter_beam2EmitX * bBeta(1))
+    elemOpt%sigma(2)   = sqrt(scatter_beam2EmitY * bBeta(2))
+
+    ! Compute the rotated sigma and offset from crossing angle
+    elemOpt%r_sin(1)   = sin_mb(two*atan_mb(bOrbitP(1)))           ! Sine of full horisontal crossing angle
+    elemOpt%r_sin(2)   = sin_mb(two*atan_mb(bOrbitP(2)))           ! Sine of full vertical crossing angle
+    elemOpt%r_sigma(1) = sqrt(                                   & ! Rotate sigma_x of beam 2 by crossing angle as seen by beam 1
+      (scatter_beam2Length*cos_mb(two*atan_mb(bOrbitP(1))))**2 + &
+      (   elemOpt%sigma(1)*sin_mb(two*atan_mb(bOrbitP(1))))**2   &
+    )
+    elemOpt%r_sigma(2) = sqrt(                                   & ! Rotate sigma_y of beam 2 by crossing angle as seen by beam 1
+      (scatter_beam2Length*cos_mb(two*atan_mb(bOrbitP(2))))**2 + &
+      (   elemOpt%sigma(2)*sin_mb(two*atan_mb(bOrbitP(2))))**2   &
+    )
 
     scatter_elemList(scatter_elemPointer(iElem))%linOpt = elemOpt
 
@@ -1199,7 +1074,7 @@ subroutine scatter_thin(iStru, iElem, nTurn)
       rRecords(8,nRecords) = scatter_statScale(partID(j))
     else
 #endif
-      write(scatter_logFile,"(2(1x,i8),2(1x,a20),1x,a8,1x,i4,1x,f12.3,1x,f12.6,1x,f9.6,5(1x,1pe16.9))") &
+      write(scatter_logUnit,"(2(1x,i8),2(1x,a20),1x,a8,1x,i4,1x,f12.3,1x,f12.6,1x,f9.6,5(1x,1pe16.9))") &
         partID(j), nTurn, chr_rPadCut(bez(iElem),20), chr_rPadCut(scatter_genList(idGen)%genName,20),   &
         scatter_procNames(procID), iLost, t, theta, phi, dEE, dPP, targetDensity, scatterProb,          &
         scatter_statScale(partID(j))
@@ -1262,7 +1137,7 @@ subroutine scatter_thin(iStru, iElem, nTurn)
     end do
   end if
 #else
-  flush(scatter_logFile)
+  flush(scatter_logUnit)
 #endif
 
   do i=1,nGen
@@ -1273,7 +1148,7 @@ subroutine scatter_thin(iStru, iElem, nTurn)
         scRatio      = real(nScattered(i,k),fPrec)/napx
         crossSection = scatter_genList(idGen)%crossSection
         crossSection = crossSection*(scRatio/brRatio)
-        write(scatter_sumFile,"(2(1x,i8),2(1x,a20),1x,a8,2(1x,i8),1x,f9.6,1x,f13.6,1x,1pe13.6)")    &
+        write(scatter_sumUnit,"(2(1x,i8),2(1x,a20),1x,a8,2(1x,i8),1x,f9.6,1x,f13.6,1x,1pe13.6)")    &
           nTurn, napx, bez(iElem)(1:20), chr_rPad(trim(scatter_genList(idGen)%genName),20),         &
           scatter_procNames(k), nScattered(i,k), nLost(i,k), real(nScattered(i,k),fPrec)/napx,      &
           crossSection*c1e27, elemScale
@@ -1283,7 +1158,7 @@ subroutine scatter_thin(iStru, iElem, nTurn)
       end if
     end do
   end do
-  flush(scatter_sumFile)
+  flush(scatter_sumUnit)
 
   if(scatter_allowLosses) then
     call shuffleLostParticles
@@ -1353,6 +1228,14 @@ function scatter_getDensity(idPro, x, y) result(retval)
     retval  = scatter_proList(idPro)%fParams(1)
 
   case(scatter_proBeamUnCorr)
+    ! beamtot = scatter_proList(idPro)%fParams(1)
+    ! sigmaX  = scatter_proList(idPro)%fParams(2)
+    ! sigmaY  = scatter_proList(idPro)%fParams(3)
+    ! offsetX = scatter_proList(idPro)%fParams(4)
+    ! offsetY = scatter_proList(idPro)%fParams(5)
+    ! retval  = ((beamtot/(twopi*(sigmaX*sigmaY))) &
+    !   * exp_mb(-half*((x-offsetX)/sigmaX)**2))   &
+    !   * exp_mb(-half*((y-offsetY)/sigmaY)**2)
     retval  = scatter_proList(idPro)%fParams(1)
 
   case default
@@ -1407,8 +1290,8 @@ subroutine scatter_generateParticle(idPro, iElem, j, pVec)
     if(scatter_proList(idPro)%isMirror) then
       if(scatter_elemList(scatter_elemPointer(iElem))%linOpt%isSet) then
         ! Use the crossing angle of beam 1
-        orbXP = scatter_elemList(scatter_elemPointer(iElem))%linOpt%orbitXP
-        orbYP = scatter_elemList(scatter_elemPointer(iElem))%linOpt%orbitYP
+        orbXP = scatter_elemList(scatter_elemPointer(iElem))%linOpt%orbit(3)
+        orbYP = scatter_elemList(scatter_elemPointer(iElem))%linOpt%orbit(4)
       else
         ! If not, use zero
         orbXP = zero
@@ -1428,14 +1311,14 @@ subroutine scatter_generateParticle(idPro, iElem, j, pVec)
     if(scatter_proList(idPro)%isMirror) then
       if(scatter_elemList(scatter_elemPointer(iElem))%linOpt%isSet) then
         ! Use the crossing angle of beam 1
-        betaX  = scatter_elemList(scatter_elemPointer(iElem))%linOpt%betaX
-        betaY  = scatter_elemList(scatter_elemPointer(iElem))%linOpt%betaY
-        alphaX = scatter_elemList(scatter_elemPointer(iElem))%linOpt%alphaX
-        alphaY = scatter_elemList(scatter_elemPointer(iElem))%linOpt%alphaY
-        orbXP  = scatter_elemList(scatter_elemPointer(iElem))%linOpt%orbitXP
-        orbYP  = scatter_elemList(scatter_elemPointer(iElem))%linOpt%orbitYP
-        orbX   = scatter_elemList(scatter_elemPointer(iElem))%linOpt%orbitX
-        orbY   = scatter_elemList(scatter_elemPointer(iElem))%linOpt%orbitY
+        betaX  = scatter_elemList(scatter_elemPointer(iElem))%linOpt%beta(1)
+        betaY  = scatter_elemList(scatter_elemPointer(iElem))%linOpt%beta(2)
+        alphaX = scatter_elemList(scatter_elemPointer(iElem))%linOpt%alpha(1)
+        alphaY = scatter_elemList(scatter_elemPointer(iElem))%linOpt%alpha(2)
+        orbX   = scatter_elemList(scatter_elemPointer(iElem))%linOpt%orbit(1)
+        orbY   = scatter_elemList(scatter_elemPointer(iElem))%linOpt%orbit(2)
+        orbXP  = scatter_elemList(scatter_elemPointer(iElem))%linOpt%orbit(3)
+        orbYP  = scatter_elemList(scatter_elemPointer(iElem))%linOpt%orbit(4)
       else
         write(lerr,"(a)") "SCATTER> ERROR Requested beam 2 to mirror beam 1, but optics values have not been generated"
         call prror
@@ -1662,7 +1545,7 @@ subroutine scatter_generateEvent(idGen, idPro, iElem, j, nTurn, t, theta, dEE, d
   end select
 
   if(isExact .and. scatter_writePLog .and. iLost == 0) then
-    write(scatter_pVecFile,"(i10,1x,i8,1x,a20,1x,a8,12(1x,1pe16.9))") &
+    write(scatter_pVecUnit,"(i10,1x,i8,1x,a20,1x,a8,12(1x,1pe16.9))") &
       partID(j), nTurn, bez(iElem)(1:20), scatter_procNames(procID), pIn*c1e3, pOut*c1e3
 #ifdef CR
     scatter_pVecFilePos = scatter_pVecFilePos + 1
@@ -1736,66 +1619,242 @@ end function scatter_generatePPElastic
 
 ! =================================================================================================
 !  V.K. Berglyd Olsen, BE-ABP-HSS
-!  Created: 2017-08
-!  Updated: 2018-11-12
-!  Write a report of all the calculated cross sections and branching ratios
+!  Created: 2019-07-24
+!  Updated: 2019-07-24
 ! =================================================================================================
-subroutine scatter_writeReport
+subroutine scatter_initLogFile
 
   use crcoall
+  use mod_units
+  use string_tools
+
+  logical fErr
+
+#ifdef CR
+  if(scatter_logFilePos == -1) then
+    write(crlog,"(a)") "CR_CHECK> SCATTER Opening new file '"//scatter_logFile//"'"
+  else
+    write(crlog,"(a)") "CR_CHECK> SCATTER Kept already opened file '"//scatter_logFile//"'"
+    return
+  end if
+#endif
+
+  call f_requestUnit(scatter_logFile, scatter_logUnit)
+  call f_open(unit=scatter_logUnit,file=scatter_logFile,formatted=.true.,mode="w",err=fErr,status="replace")
+  write(scatter_logUnit,"(a)") "# scatter_log"
+  write(scatter_logUnit,"(a1,a8,1x,a8,2(1x,a20),1x,a8,1x,a4,2(1x,a12),1x,a9,5(1x,a16))") &
+    "#","ID","turn",chr_rPad("bez",20),chr_rPad("generator",20),chr_rPad("process",8),&
+    "lost","t[MeV^2]","theta[mrad]","phi[rad]","dE/E","dP/P","density","prob","stat_corr"
+  flush(scatter_logUnit)
+#ifdef CR
+  scatter_logFilePos = 2
+#endif
+
+end subroutine scatter_initLogFile
+
+! =================================================================================================
+!  V.K. Berglyd Olsen, BE-ABP-HSS
+!  Created: 2017-08
+!  Updated: 2019-07-24
+!  Write a report of all the calculated cross sections and branching ratios
+! =================================================================================================
+subroutine scatter_initSummaryFile
+
+  use crcoall
+  use mod_units
+  use string_tools
   use numerical_constants
 
   integer i, iElem, iGen, nLine
+  logical fErr
 
   nLine = 0
 
+#ifdef CR
+  if(scatter_sumFilePos == -1) then
+    write(crlog,"(a)") "CR_CHECK> SCATTER Opening new file '"//scatter_sumFile//"'"
+  else
+    write(crlog,"(a)") "CR_CHECK> SCATTER Kept already opened file '"//scatter_sumFile//"'"
+    return
+  end if
+#endif
+
+  call f_requestUnit(scatter_sumFile,scatter_sumUnit)
+  call f_open(unit=scatter_sumUnit,file=scatter_sumFile,formatted=.true.,mode="w",err=fErr,status="replace")
+
   ! Calculate branching ratios and write summary
-  write(scatter_sumFile,"(a)")      "#"
-  write(scatter_sumFile,"(a)")      "#  SCATTER SUMMARY"
-  write(scatter_sumFile,"(a)")      "# ================="
-  write(scatter_sumFile,"(a)")      "#"
-  write(scatter_sumFile,"(a,i0,a)") "#  Read ",scatter_nElem," element(s)"
-  write(scatter_sumFile,"(a,i0,a)") "#  Read ",scatter_nPro," profile(s)"
-  write(scatter_sumFile,"(a,i0,a)") "#  Read ",scatter_nGen," generator(s)"
-  write(scatter_sumFile,"(a)")      "# "
+  write(scatter_sumUnit,"(a)")      "#"
+  write(scatter_sumUnit,"(a)")      "#  SCATTER SUMMARY"
+  write(scatter_sumUnit,"(a)")      "# ================="
+  write(scatter_sumUnit,"(a)")      "#"
+  write(scatter_sumUnit,"(a,i0,a)") "#  Read ",scatter_nElem," element(s)"
+  write(scatter_sumUnit,"(a,i0,a)") "#  Read ",scatter_nPro," profile(s)"
+  write(scatter_sumUnit,"(a,i0,a)") "#  Read ",scatter_nGen," generator(s)"
+  write(scatter_sumUnit,"(a)")      "# "
   nLine = nLine + 8
 
-  write(scatter_sumFile,"(a)")      "#  Generators"
-  write(scatter_sumFile,"(a)")      "# ============="
+  write(scatter_sumUnit,"(a)") "#  Generators"
+  write(scatter_sumUnit,"(a)") "# ============="
   do iGen=1,scatter_nGen
-    write(scatter_sumFile,"(a,i0,a)") "#  Generator(",iGen,"): '"//trim(scatter_genList(iGen)%genName)//"'"
+    write(scatter_sumUnit,"(a,i0,a)") "#  Generator(",iGen,"): '"//trim(scatter_genList(iGen)%genName)//"'"
     nLine = nLine + 1
   end do
-  write(scatter_sumFile,"(a)")      "#"
+  write(scatter_sumUnit,"(a)") "#"
   nLine = nLine + 3
 
-  write(scatter_sumFile,"(a)")      "#  Cross Sections"
-  write(scatter_sumFile,"(a)")      "# ================"
+  write(scatter_sumUnit,"(a)") "#  Cross Sections"
+  write(scatter_sumUnit,"(a)") "# ================"
   do iElem=1,scatter_nElem
     if(scatter_elemList(iElem)%autoRatio) then
-      write(scatter_sumFile,"(a,i0,a)") "#  Element(",iElem,"): '"//trim(scatter_elemList(iElem)%bezName)//"' "//&
+      write(scatter_sumUnit,"(a,i0,a)") "#  Element(",iElem,"): '"//trim(scatter_elemList(iElem)%bezName)//"' "//&
         "[Probability: Auto]"
     else
-      write(scatter_sumFile,"(a,i0,a,f8.6,a)") "#  Element(",iElem,"): '"//trim(scatter_elemList(iElem)%bezName)//"' "//&
+      write(scatter_sumUnit,"(a,i0,a,f8.6,a)") "#  Element(",iElem,"): '"//trim(scatter_elemList(iElem)%bezName)//"' "//&
         "[Probability: ",scatter_elemList(iElem)%ratioTot,"]"
     end if
     do i=1,size(scatter_elemList(iElem)%generatorID)
       iGen = scatter_elemList(iElem)%generatorID(i)
-      write(scatter_sumFile,"(a,i0,a,f15.6,a,f8.6,a)") "#   + Generator(",iGen,"): ",&
+      write(scatter_sumUnit,"(a,i0,a,f15.6,a,f8.6,a)") "#   + Generator(",iGen,"): ",&
         (scatter_genList(iGen)%crossSection*c1e27)," mb [BR: ",scatter_elemList(iElem)%brRatio(i),"]"
       nLine = nLine + 1
     end do
-    write(scatter_sumFile,"(a,f15.6,a,f8.6,a)") "#   = Sigma Total:  ",(scatter_elemList(iElem)%sigmaTot*c1e27)," mb [BR: ",one,"]"
+    write(scatter_sumUnit,"(a,f15.6,a,f8.6,a)") "#   = Sigma Total:  ",(scatter_elemList(iElem)%sigmaTot*c1e27)," mb [BR: ",one,"]"
     nLine = nLine + 2
   end do
-  write(scatter_sumFile,"(a)")      "#"
+  write(scatter_sumUnit,"(a)") "#"
   nLine = nLine + 3
+
+  write(scatter_sumUnit,"(a)") "#  Summary Log"
+  write(scatter_sumUnit,"(a)") "# ============="
+  write(scatter_sumUnit,"(a1,a8,1x,a8,2(1x,a20),3(1x,a8),1x,a9,2(1x,a13))") &
+    "#","turn","napx",chr_rPad("bez",20),chr_rPad("generator",20),chr_rPad("process",8), &
+    "nScat","nLost","scatRat","crossSec[mb]","scaling"
+  nLine = nLine + 3
+
+  flush(scatter_sumUnit)
 
 #ifdef CR
   scatter_sumFilePos = nLine
 #endif
 
-end subroutine scatter_writeReport
+end subroutine scatter_initSummaryFile
+
+! =================================================================================================
+!  V.K. Berglyd Olsen, BE-ABP-HSS
+!  Created: 2019-07-24
+!  Updated: 2019-07-24
+! =================================================================================================
+subroutine scatter_initPVecFile
+
+  use crcoall
+  use mod_units
+  use string_tools
+
+  logical fErr
+
+#ifdef CR
+  if(scatter_logFilePos == -1) then
+    write(crlog,"(a)") "CR_CHECK> SCATTER Opening new file '"//scatter_pVecFile//"'"
+  else
+    write(crlog,"(a)") "CR_CHECK> SCATTER Kept already opened file '"//scatter_pVecFile//"'"
+    return
+  end if
+#endif
+
+  call f_requestUnit(scatter_pVecFile,scatter_pVecUnit)
+  call f_open(unit=scatter_pVecUnit,file=scatter_pVecFile,formatted=.true.,mode="w",err=fErr,status="replace")
+  write(scatter_pVecUnit,"(a1,2(1x,a8),1x,a20,1x,a8,12(1x,a16))")   &
+    "#","ID","turn",chr_rPad("bez",20),chr_rPad("process",8),       &
+    "Px1","Py1","Pz1","Px2","Py2","Pz2","Px3","Py3","Pz3","Px4","Py4","Pz4"
+  flush(scatter_logUnit)
+#ifdef CR
+  scatter_pVecFilePos = 2
+#endif
+
+end subroutine scatter_initPVecFile
+
+#ifdef HDF5
+! =================================================================================================
+!  V.K. Berglyd Olsen, BE-ABP-HSS
+!  Created: 2019-07-24
+!  Updated: 2019-07-24
+! =================================================================================================
+subroutine scatter_initHDF5
+
+  use hdf5_output
+  use string_tools
+
+  type(h5_dataField), allocatable :: setFields(:)
+
+  call h5_initForScatter
+
+  ! Scatter Log
+  allocate(setFields(14))
+
+  setFields(1)  = h5_dataField(name="ID",      type=h5_typeInt)
+  setFields(2)  = h5_dataField(name="TURN",    type=h5_typeInt)
+  setFields(3)  = h5_dataField(name="BEZ",     type=h5_typeChar, size=mNameLen)
+  setFields(4)  = h5_dataField(name="GEN",     type=h5_typeChar, size=mNameLen)
+  setFields(5)  = h5_dataField(name="PROCESS", type=h5_typeChar, size=8)
+  setFields(6)  = h5_dataField(name="LOST",    type=h5_typeInt)
+  setFields(7)  = h5_dataField(name="T",       type=h5_typeReal)
+  setFields(8)  = h5_dataField(name="THETA",   type=h5_typeReal)
+  setFields(9)  = h5_dataField(name="PHI",     type=h5_typeReal)
+  setFields(10) = h5_dataField(name="dE/E",    type=h5_typeReal)
+  setFields(11) = h5_dataField(name="dP/P",    type=h5_typeReal)
+  setFields(12) = h5_dataField(name="DENSITY", type=h5_typeReal)
+  setFields(13) = h5_dataField(name="PROB",    type=h5_typeReal)
+  setFields(14) = h5_dataField(name="STATCORR",type=h5_typeReal)
+
+  call h5_createFormat("scatter_log_fmt", setFields, scatter_logFormat)
+  call h5_createDataSet("scatter_log", h5_scatID, scatter_logFormat, scatter_logDataSet)
+  block
+    character(len=:), allocatable :: colNames(:)
+    character(len=:), allocatable :: colUnits(:)
+    logical spErr
+    integer nSplit
+    call chr_split("ID turn bez generator process lost t dE/E dP/P theta phi density prob stat_corr",colNames,nSplit,spErr)
+    call chr_split("1 1 text text text 1 MeV^2 1 1 mrad rad mb^-1 1 1",colUnits,nSplit,spErr)
+    call h5_writeDataSetAttr(scatter_logDataSet,"colNames",colNames)
+    call h5_writeDataSetAttr(scatter_logDataSet,"colUnits",colUnits)
+  end block
+
+  deallocate(setFields)
+
+  ! Scatter Summary
+  allocate(setFields(10))
+
+  setFields(1)  = h5_dataField(name="TURN",      type=h5_typeInt)
+  setFields(2)  = h5_dataField(name="NAPX",      type=h5_typeInt)
+  setFields(3)  = h5_dataField(name="BEZ",       type=h5_typeChar, size=mNameLen)
+  setFields(4)  = h5_dataField(name="GEN",       type=h5_typeChar, size=mNameLen)
+  setFields(5)  = h5_dataField(name="PROCESS",   type=h5_typeChar, size=8)
+  setFields(6)  = h5_dataField(name="NSCAT",     type=h5_typeInt)
+  setFields(7)  = h5_dataField(name="NLOST",     type=h5_typeInt)
+  setFields(8)  = h5_dataField(name="SCATRATIO", type=h5_typeReal)
+  setFields(9)  = h5_dataField(name="CROSSSEC",  type=h5_typeReal)
+  setFields(10) = h5_dataField(name="SCALING",   type=h5_typeReal)
+
+  call h5_createFormat("scatter_summary_fmt", setFields, scatter_sumFormat)
+  call h5_createDataSet("summary", h5_scatID, scatter_sumFormat, scatter_sumDataSet)
+  block
+    character(len=:), allocatable :: colNames(:)
+    character(len=:), allocatable :: colUnits(:)
+    logical spErr
+    integer nSplit
+    call chr_split("turn napx bez generator process nScat nLost scatRat scaling",colNames,nSplit,spErr)
+    call chr_split("1 1 text text text 1 1 1 1",colUnits,nSplit,spErr)
+    call h5_writeDataSetAttr(scatter_sumDataSet,"colNames",colNames)
+    call h5_writeDataSetAttr(scatter_sumDataSet,"colUnits",colUnits)
+  end block
+
+  deallocate(setFields)
+
+  ! Write Attributes
+  call h5_writeAttr(h5_scatID,"SEED",scatter_seed1)
+
+end subroutine scatter_initHDF5
+#endif
 
 ! =================================================================================================
 !  K. Sjobak, V.K. Berglyd Olsen, BE-ABP-HSS
@@ -1851,133 +1910,76 @@ subroutine scatter_crcheck_positionFiles
   integer j
   character(len=mInputLn) aRecord
 
-  call f_requestUnit("scatter_log.dat",scatter_logFile)
-  inquire(unit=scatter_logFile, opened=isOpen)
-  if(isOpen) then
-    write(crlog,"(a)")      "CR_CHECK> ERROR Failed while repsositioning 'scatter_log.dat'"
-    write(crlog,"(a,i0,a)") "CR_CHECK>       unit ",scatter_logFile," already in use!"
-    flush(crlog)
-    write(lerr,"(a)") "CR_CHECK> ERROR Failed positioning 'scatter_log.dat'"
-    call prror
-  end if
-
-  if(scatter_logFilePos_CR /= -1) then
-    call f_open(unit=scatter_logFile,file="scatter_log.dat",formatted=.true.,mode="rw",err=fErr,status="old")
-    if(fErr) goto 10
-    scatter_logFilePos = 0
-    do j=1, scatter_logFilePos_CR
-      read(scatter_logFile,"(a1024)",end=10,err=10,iostat=iError) aRecord
-      scatter_logFilePos = scatter_logFilePos + 1
-    end do
-    endfile(scatter_logFile,iostat=iError)
-    call f_close(scatter_logFile)
-
-    call f_open(unit=scatter_logFile,file="scatter_log.dat",formatted=.true.,mode="w+",err=fErr,status="old")
-    if(fErr) goto 10
-    write(97,"(2(a,i0))") "CR_CHECK> Sucessfully repositioned 'scatter_log.dat': "//&
-      "Position: ",scatter_logFilePos,", Position C/R: ",scatter_logFilePos_CR
-    flush(crlog)
-
-  else
-    write(crlog,"(a,i0)") "CR_CHECK> Did not attempt repositioning 'scatter_log.dat' at line ",scatter_logFilePos_CR
-    write(crlog,"(a)")    "CR_CHECK> If anything has been written to the file, it will be correctly truncated in Scatter INIT."
-    flush(crlog)
-  end if
-
-  call f_requestUnit("scatter_summary.dat",scatter_sumFile)
-  inquire(unit=scatter_sumFile, opened=isOpen)
-  if(isOpen) then
-    write(crlog,"(a)")      "CR_CHECK> ERROR Failed while repsositioning 'scatter_summary.dat'"
-    write(crlog,"(a,i0,a)") "CR_CHECK>       Unit ",scatter_sumFile," already in use!"
-    flush(crlog)
-    write(lerr,"(a)") "CR_CHECK> ERROR Failed positioning 'scatter_summary.dat'"
-    call prror
-  end if
-
-  if(scatter_sumFilePos_CR /= -1) then
-    call f_open(unit=scatter_sumFile,file="scatter_summary.dat",formatted=.true.,mode="rw",err=fErr,status="old")
-    if(fErr) goto 20
-    scatter_sumFilePos = 0
-    do j=1, scatter_sumFilePos_CR
-      read(scatter_sumFile,"(a1024)",end=20,err=20,iostat=iError) aRecord
-      scatter_sumFilePos = scatter_sumFilePos + 1
-    end do
-    endfile(scatter_sumFile,iostat=iError)
-    close(scatter_sumFile)
-
-    call f_open(unit=scatter_sumFile,file="scatter_summary.dat",formatted=.true.,mode="w+",err=fErr,status="old")
-    if(fErr) goto 20
-    write(97,"(2(a,i0))") "CR_CHECK> Sucessfully repositioned 'scatter_summary.dat': "//&
-      "Position: ",scatter_sumFilePos,", Position C/R: ",scatter_sumFilePos_CR
-    flush(crlog)
-
-  else
-    write(crlog,"(a,i0)") "CR_CHECK> Did not attempt repositioning 'scatter_summary.dat' at line ",scatter_sumFilePos_CR
-    write(crlog,"(a)")    "CR_CHECK> If anything has been written to the file, it will be correctly truncated in Scatter INIT."
-    flush(crlog)
-  end if
-
-  call f_requestUnit("scatter_momentum.dat",scatter_pVecFile)
-  inquire(unit=scatter_pVecFile, opened=isOpen)
-  if(isOpen) then
-    write(crlog,"(a)")      "CR_CHECK> ERROR Failed while repsositioning 'scatter_momentum.dat'"
-    write(crlog,"(a,i0,a)") "CR_CHECK>       Unit ",scatter_pVecFile," already in use!"
-    flush(crlog)
-    write(lerr,"(a)") "CR_CHECK> ERROR Failed positioning 'scatter_momentum.dat'"
-    call prror
-  end if
-
+  call scatter_positionFile(scatter_logFile, scatter_logUnit, scatter_logFilePos, scatter_logFilePos_CR)
+  call scatter_positionFile(scatter_sumFile, scatter_sumUnit, scatter_sumFilePos, scatter_sumFilePos_CR)
   if(scatter_writePLog) then
-    if(scatter_pVecFilePos_CR /= -1) then
-      call f_open(unit=scatter_pVecFile,file="scatter_momentum.dat",formatted=.true.,mode="rw",err=fErr,status="old")
-      if(fErr) goto 30
-      scatter_pVecFilePos = 0
-      do j=1, scatter_pVecFilePos_CR
-        read(scatter_pVecFile,"(a1024)",end=30,err=30,iostat=iError) aRecord
-        scatter_pVecFilePos = scatter_pVecFilePos + 1
-      end do
-      endfile(scatter_pVecFile,iostat=iError)
-      close(scatter_pVecFile)
+    call scatter_positionFile(scatter_pVecFile, scatter_pVecUnit, scatter_pVecFilePos, scatter_pVecFilePos_CR)
+  end if
 
-      call f_open(unit=scatter_pVecFile,file="scatter_momentum.dat",formatted=.true.,mode="w+",err=fErr,status="old")
-      if(fErr) goto 30
-      write(97,"(2(a,i0))") "CR_CHECK> Sucessfully repositioned 'scatter_momentum.dat': "//&
-        "Position: ",scatter_pVecFilePos,", Position C/R: ",scatter_pVecFilePos_CR
-      flush(crlog)
+end subroutine scatter_crcheck_positionFiles
 
-    else
-      write(crlog,"(a,i0)") "CR_CHECK> Did not attempt repositioning 'scatter_momentum.dat' at line ",scatter_pVecFilePos_CR
-      write(crlog,"(a)")    "CR_CHECK> If anything has been written to the file, it will be correctly truncated in Scatter INIT."
-      flush(crlog)
-    end if
+! =================================================================================================
+!  V.K. Berglyd Olsen, BE-ABP-HSS
+!  Created: 2019-07-24
+!  Updated: 2019-07-24
+! =================================================================================================
+subroutine scatter_positionFile(fileName, fileUnit, filePos, filePos_CR)
+
+  use parpro
+  use crcoall
+  use mod_units
+
+  character(len=*), intent(in)    :: fileName
+  integer,          intent(inout) :: fileUnit
+  integer,          intent(inout) :: filePos
+  integer,          intent(inout) :: filePos_CR
+
+  logical isOpen, fErr
+  integer iError
+  integer j
+  character(len=mInputLn) aRecord
+
+  call f_requestUnit(fileName,fileUnit)
+  inquire(unit=fileUnit, opened=isOpen)
+  if(isOpen) then
+    write(crlog,"(a,i0,a)") "CR_CHECK> ERROR Failed while repsositioning '"//fileName//"', unit ",fileUnit," already in use"
+    flush(crlog)
+    write(lerr,"(a)") "CR_CHECK> ERROR Failed positioning '"//fileName//"'"
+    call prror
+  end if
+
+  if(filePos_CR /= -1) then
+    call f_open(unit=fileUnit,file=fileName,formatted=.true.,mode="rw",err=fErr,status="old")
+    if(fErr) goto 10
+    filePos = 0
+    do j=1, filePos_CR
+      read(fileUnit,"(a)",end=10,err=10,iostat=iError) aRecord
+      filePos = filePos + 1
+    end do
+    endfile(fileUnit,iostat=iError)
+    call f_close(fileUnit)
+
+    call f_open(unit=fileUnit,file=fileName,formatted=.true.,mode="w+",err=fErr,status="old")
+    if(fErr) goto 10
+    write(97,"(2(a,i0))") "CR_CHECK> Sucessfully repositioned '"//fileName//"': "//&
+      "Position: ",filePos,", Position C/R: ",filePos_CR
+    flush(crlog)
+  else
+    write(crlog,"(a,i0)") "CR_CHECK> Did not attempt repositioning '"//fileName//"' at line ",filePos_CR
+    write(crlog,"(a)")    "CR_CHECK> If anything has been written to the file, it will be correctly truncated"
+    flush(crlog)
   end if
 
   return
 
 10 continue
-  write(crlog,"(a,i0)")    "CR_CHECK> ERROR While reading 'scatter_log.dat', iostat = ",iError
-  write(crlog,"(2(a,i0))") "CR_CHECK>       Position: ",scatter_logFilePos,", Position C/R: ",scatter_logFilePos_CR
+  write(crlog,"(a,i0)")    "CR_CHECK> ERROR While reading '"//fileName//"', iostat = ",iError
+  write(crlog,"(2(a,i0))") "CR_CHECK>       Position: ",filePos,", Position C/R: ",filePos_CR
   flush(crlog)
-  write(lerr,"(a)")"CR_CHECK> ERROR CRCHECK failure positioning 'scatter_log.dat'"
-  call prror
-  return
-
-20 continue
-  write(crlog,"(a,i0)")    "CR_CHECK> ERROR While reading 'scatter_summary.dat', iostat = ",iError
-  write(crlog,"(2(a,i0))") "CR_CHECK>       Position: ",scatter_sumFilePos,", Position C/R: ",scatter_sumFilePos_CR
-  flush(crlog)
-  write(lerr,"(a)")"CR_CHECK> ERROR CRCHECK failure positioning 'scatter_summary.dat'"
-  call prror
-  return
-
-30 continue
-  write(crlog,"(a,i0)")    "CR_CHECK> ERROR While reading 'scatter_momentum.dat', iostat = ",iError
-  write(crlog,"(2(a,i0))") "CR_CHECK>       Position: ",scatter_pVecFilePos,", Position C/R: ",scatter_pVecFilePos_CR
-  flush(crlog)
-  write(lerr,"(a)")"CR_CHECK> ERROR CRCHECK failure positioning 'scatter_momentum.dat'"
+  write(lerr,"(a)")"CR_CHECK> ERROR CRCHECK failure positioning '"//fileName//"'"
   call prror
 
-end subroutine scatter_crcheck_positionFiles
+end subroutine scatter_positionFile
 
 ! =================================================================================================
 !  K. Sjobak, V.K. Berglyd Olsen, BE-ABP-HSS
