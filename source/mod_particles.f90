@@ -88,7 +88,7 @@ subroutine part_updateRefEnergy(refEnergy)
   e0     = refEnergy
   e0f    = sqrt(e0**2 - nucm0**2)
   gammar = nucm0/e0
-  betrel = sqrt((one+gammar)*(one-gammar))
+  betarel = sqrt((one+gammar)*(one-gammar))
   brho   = (e0f/(clight*c1m6))/qq0
 
   ! Also update sigmv with the new beta0 = e0f/e0
