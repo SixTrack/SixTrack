@@ -61,14 +61,11 @@ module scatter
 
   ! Storage Structs
   type, private :: scatter_linOpt
-    logical          :: isSet      = .false.
-    real(kind=fPrec) :: alpha(2)   = zero
-    real(kind=fPrec) :: beta(2)    = zero
-    real(kind=fPrec) :: disp(4)    = zero
-    real(kind=fPrec) :: orbit(4)   = zero
-    real(kind=fPrec) :: sigma(2)   = zero
-    real(kind=fPrec) :: r_sin(2)   = zero ! Sine of crossing angle
-    real(kind=fPrec) :: r_sigma(2) = zero ! sigma_xz and sigma_yz
+    logical          :: isSet    = .false.
+    real(kind=fPrec) :: alpha(2) = zero
+    real(kind=fPrec) :: beta(2)  = zero
+    real(kind=fPrec) :: disp(4)  = zero
+    real(kind=fPrec) :: orbit(4) = zero
   end type scatter_linOpt
 
   type, private :: scatter_elemStore
@@ -169,11 +166,79 @@ end subroutine scatter_expand_arrays
 ! =================================================================================================
 subroutine scatter_init
 
+  use crcoall
+  use mod_common, only : gammar, betarel
+  use mathlib_bouncer
+  use numerical_constants
 #ifdef HDF5
   use hdf5_output
 #endif
 
+  real(kind=fPrec) betaX, betaY, alphaX, alphaY, orbX, orbY, orbXP, orbYP
+  real(kind=fPrec) nBeam, rhoScale, kFac, sigmaX, sigmaY, sigmaXeff, sigmaYeff
+  integer idElem, idPro, proType
+  logical isMirror, isSet
+
   if(scatter_active .eqv. .false.) return
+
+  ! Linear Optics
+  do idElem=1,scatter_nElem
+
+    idPro    = scatter_elemList(idElem)%profileID
+    proType  = scatter_proList(idPro)%proType
+    isMirror = scatter_proList(idPro)%isMirror
+    isSet    = scatter_elemList(idElem)%linOpt%isSet
+
+    if(isMirror .and. .not. isSet) then
+      write(lerr,"(a)") "SCATTER> ERROR Requested beam 2 profile '"//trim(scatter_proList(idPro)%proName)//&
+        "' mirror beam 1, but the twiss parameters could not be extracted from the LINEAR OPTICS block"
+      call prror
+    end if
+
+    select case(proType)
+    case(scatter_proBeamUnCorr)
+      if(isMirror) then
+        ! If we're mirroring beam 1, set the parameters from the data collected from writelin
+        scatter_proList(idPro)%fParams(2) = scatter_elemList(idElem)%linOpt%beta(1)
+        scatter_proList(idPro)%fParams(3) = scatter_elemList(idElem)%linOpt%beta(2)
+        scatter_proList(idPro)%fParams(4) = scatter_elemList(idElem)%linOpt%alpha(1)
+        scatter_proList(idPro)%fParams(5) = scatter_elemList(idElem)%linOpt%alpha(2)
+        scatter_proList(idPro)%fParams(6) = scatter_elemList(idElem)%linOpt%orbit(1)
+        scatter_proList(idPro)%fParams(7) = scatter_elemList(idElem)%linOpt%orbit(2)
+        scatter_proList(idPro)%fParams(8) = scatter_elemList(idElem)%linOpt%orbit(3)
+        scatter_proList(idPro)%fParams(9) = scatter_elemList(idElem)%linOpt%orbit(4)
+      end if
+
+      nBeam  = scatter_proList(idPro)%fParams(2)
+      betaX  = scatter_proList(idPro)%fParams(2)
+      betaY  = scatter_proList(idPro)%fParams(3)
+    ! alphaX = scatter_proList(idPro)%fParams(4)
+    ! alphaY = scatter_proList(idPro)%fParams(5)
+      orbXP  = scatter_proList(idPro)%fParams(6)
+      orbYP  = scatter_proList(idPro)%fParams(7)
+    ! orbX   = scatter_proList(idPro)%fParams(8)
+    ! orbY   = scatter_proList(idPro)%fParams(9)
+
+      ! Compute the sigmas from beam 2 emittance
+      sigmaX    = sqrt(((scatter_beam2EmitX * betaX) * gammar) / betarel) * c1m3
+      sigmaY    = sqrt(((scatter_beam2EmitY * betaY) * gammar) / betarel) * c1m3
+
+      ! Compute approximate effective sigmas from crossing angle, assuming sigma_z >> sigma_x,y
+      sigmaXeff = sigmaX * sqrt(1 + ((scatter_beam2Length / sigmaX) * (orbXP * c1m3))**2)
+      sigmaYeff = sigmaY * sqrt(1 + ((scatter_beam2Length / sigmaY) * (orbYP * c1m3))**2)
+
+      kFac     = 2.0_fPrec * (cos_mb(orbXP*c1m3) * cos_mb(orbYP*c1m3)) ! Approximate kinematic factor
+      rhoScale = (kFac * nBeam) / ((4.0_fPrec * pi**2.5_fPrec) * (sigmaXeff * sigmaYeff))
+
+      scatter_proList(idPro)%fParams(10) = sigmaX
+      scatter_proList(idPro)%fParams(11) = sigmaY
+      scatter_proList(idPro)%fParams(12) = sigmaXeff
+      scatter_proList(idPro)%fParams(13) = sigmaYeff
+      scatter_proList(idPro)%fParams(14) = rhoScale
+
+    end select
+
+  end do
 
   ! Initialise data output
 #ifdef HDF5
@@ -206,6 +271,7 @@ subroutine scatter_parseInputLine(inLine, iErr)
   use crcoall
   use mod_ranecu
   use string_tools
+  use numerical_constants
 #ifdef PYTHIA
   use mod_pythia
 #endif
@@ -270,6 +336,8 @@ subroutine scatter_parseInputLine(inLine, iErr)
     end if
     call chr_cast(lnSplit(2), scatter_beam2EmitX, iErr)
     call chr_cast(lnSplit(3), scatter_beam2EmitY, iErr)
+    scatter_beam2EmitX = scatter_beam2EmitX * c1e6
+    scatter_beam2EmitY = scatter_beam2EmitY * c1e6
 
   case("BEAM2_LEN")
     if(nSplit /= 2) then
@@ -521,11 +589,9 @@ subroutine scatter_parseProfile(lnSplit, nSplit, iErr)
     scatter_nPro = 1
   end if
 
-  allocate(fParams(nSplit-3))
-  proName    = trim(lnSplit(2))
-  proType    = -1
-  isMirror   = .false.
-  fParams(:) = zero
+  proName  = trim(lnSplit(2))
+  proType  = -1
+  isMirror = .false.
 
   ! Check that the profile name is unique
   do i=1,scatter_nPro-1
@@ -547,6 +613,7 @@ subroutine scatter_parseProfile(lnSplit, nSplit, iErr)
       return
     end if
 
+    allocate(fParams(3))
     call chr_cast(lnSplit(4),fParams(1),iErr) ! Density
     call chr_cast(lnSplit(5),fParams(2),iErr) ! Mass
     call chr_cast(lnSplit(6),fParams(3),iErr) ! Momentum
@@ -560,6 +627,7 @@ subroutine scatter_parseProfile(lnSplit, nSplit, iErr)
       return
     end if
 
+    allocate(fParams(1))
     call chr_cast(lnSplit(4),fParams(1),iErr) ! Density
 
   case("GAUSS1")
@@ -571,6 +639,7 @@ subroutine scatter_parseProfile(lnSplit, nSplit, iErr)
       return
     end if
 
+    allocate(fParams(5))
     call chr_cast(lnSplit(4),fParams(1),iErr) ! Beam Charge
     call chr_cast(lnSplit(5),fParams(2),iErr) ! Sigma X
     call chr_cast(lnSplit(6),fParams(3),iErr) ! Sigma Y
@@ -588,6 +657,7 @@ subroutine scatter_parseProfile(lnSplit, nSplit, iErr)
       return
     end if
 
+    allocate(fParams(3))
     call chr_cast(lnSplit(4),fParams(1),iErr) ! Beam Charge
     if(nSplit > 4) then
       if(chr_toUpper(lnSplit(5)) == "MIRROR") then
@@ -596,13 +666,16 @@ subroutine scatter_parseProfile(lnSplit, nSplit, iErr)
         if(nSplit == 6) then
           call chr_cast(lnSplit(5),fParams(2),iErr) ! X Crossing Angle
           call chr_cast(lnSplit(6),fParams(3),iErr) ! Y Crossing Angle
+        else
+          fParams(2) = zero
+          fParams(3) = zero
         end if
       end if
     end if
 
   case("UNCORRBEAM")
     proType = scatter_proBeamUnCorr
-    if(nSplit /= 5 .and. nSplit /= 10 .and. nSplit /= 13) then
+    if(nSplit /= 5 .and. nSplit /= 10 .and. nSplit /= 12) then
       write(lerr,"(a,i0)") "SCATTER> ERROR PROfile type UNCORRBEAM expected 2, 7 or 9 arguments, got ",nSplit-3
       write(lerr,"(a)")    "SCATTER        PRO name UNCORRBEAM nbeam MIRROR"
       write(lerr,"(a)")    "SCATTER        PRO name UNCORRBEAM nbeam betaX betaY alphaX alphaY crossX crossY [offsetX offsetY]"
@@ -610,6 +683,9 @@ subroutine scatter_parseProfile(lnSplit, nSplit, iErr)
       return
     end if
 
+    allocate(fParams(14))
+    fParams(2:3)  = one
+    fParams(4:14) = zero
     call chr_cast(lnSplit(4),fParams(1),iErr) ! Beam Charge
     if(nSplit > 4) then
       if(chr_toUpper(lnSplit(5)) == "MIRROR") then
@@ -836,13 +912,13 @@ subroutine scatter_setLinOpt(iElem, bAlpha, bBeta, bOrbit, bOrbitP, bDisp, bDisp
   use numerical_constants
 
   integer, intent(in) :: iElem
-  real(kind=fPrec)    :: bAlpha(2)
-  real(kind=fPrec)    :: bBeta(2)
-  real(kind=fPrec)    :: bOrbit(2)
-  real(kind=fPrec)    :: bOrbitP(2)
-  real(kind=fPrec)    :: bDisp(2)
-  real(kind=fPrec)    :: bDispP(2)
 
+  real(kind=fPrec)     bAlpha(2)
+  real(kind=fPrec)     bBeta(2)
+  real(kind=fPrec)     bOrbit(2)
+  real(kind=fPrec)     bOrbitP(2)
+  real(kind=fPrec)     bDisp(2)
+  real(kind=fPrec)     bDispP(2)
   type(scatter_linOpt) elemOpt
 
   if(iElem < 1 .or. iElem > nele) then
@@ -858,22 +934,6 @@ subroutine scatter_setLinOpt(iElem, bAlpha, bBeta, bOrbit, bOrbitP, bDisp, bDisp
     elemOpt%disp(3:4)  = bDispP
     elemOpt%orbit(1:2) = bOrbit
     elemOpt%orbit(3:4) = bOrbitP
-
-    ! Compute the sigmas
-    elemOpt%sigma(1)   = sqrt(scatter_beam2EmitX * bBeta(1))
-    elemOpt%sigma(2)   = sqrt(scatter_beam2EmitY * bBeta(2))
-
-    ! Compute the rotated sigma and offset from crossing angle
-    elemOpt%r_sin(1)   = sin_mb(two*atan_mb(bOrbitP(1)))           ! Sine of full horisontal crossing angle
-    elemOpt%r_sin(2)   = sin_mb(two*atan_mb(bOrbitP(2)))           ! Sine of full vertical crossing angle
-    elemOpt%r_sigma(1) = sqrt(                                   & ! Rotate sigma_x of beam 2 by crossing angle as seen by beam 1
-      (scatter_beam2Length*cos_mb(two*atan_mb(bOrbitP(1))))**2 + &
-      (   elemOpt%sigma(1)*sin_mb(two*atan_mb(bOrbitP(1))))**2   &
-    )
-    elemOpt%r_sigma(2) = sqrt(                                   & ! Rotate sigma_y of beam 2 by crossing angle as seen by beam 1
-      (scatter_beam2Length*cos_mb(two*atan_mb(bOrbitP(2))))**2 + &
-      (   elemOpt%sigma(2)*sin_mb(two*atan_mb(bOrbitP(2))))**2   &
-    )
 
     scatter_elemList(scatter_elemPointer(iElem))%linOpt = elemOpt
 
@@ -999,7 +1059,7 @@ subroutine scatter_thin(iStru, iElem, nTurn)
     k = 3*j-2 ! Indices in the random number array
 
     ! Compute Scattering Probability
-    targetDensity = scatter_getDensity(idPro,xv1(j),xv2(j))
+    targetDensity = scatter_getDensity(idPro, j)
     if(autoRatio) then
       scatterProb = (targetDensity*sigmaTot)*elemScale
     else
@@ -1194,18 +1254,18 @@ end subroutine scatter_thin
 !  Created: 2017-08
 !  Updated: 2017-11-02
 ! =================================================================================================
-function scatter_getDensity(idPro, x, y) result(retval)
+function scatter_getDensity(idPro, j) result(retval)
 
   use crcoall
-  use mod_common
   use string_tools
   use mathlib_bouncer
   use numerical_constants
+  use mod_common_main, only : xv1, xv2, sigmv
 
-  integer,          intent(in) :: idPro
-  real(kind=fPrec), intent(in) :: x, y
+  integer, intent(in) :: idPro
+  integer, intent(in) :: j
 
-  real(kind=fPrec) beamtot, sigmaX, sigmaY, offsetX, offsetY, retVal
+  real(kind=fPrec) nBeam, rhoScale, sigmaX, sigmaY, offsetX, offsetY, retVal
 
   select case(scatter_proList(idPro)%proType)
   case(scatter_proFlat)
@@ -1215,28 +1275,28 @@ function scatter_getDensity(idPro, x, y) result(retval)
     retval  = scatter_proList(idPro)%fParams(1)
 
   case(scatter_proGauss1)
-    beamtot = scatter_proList(idPro)%fParams(1)
+    nBeam   = scatter_proList(idPro)%fParams(1)
     sigmaX  = scatter_proList(idPro)%fParams(2)
     sigmaY  = scatter_proList(idPro)%fParams(3)
     offsetX = scatter_proList(idPro)%fParams(4)
     offsetY = scatter_proList(idPro)%fParams(5)
-    retval  = ((beamtot/(twopi*(sigmaX*sigmaY))) &
-      * exp_mb(-half*((x-offsetX)/sigmaX)**2))   &
-      * exp_mb(-half*((y-offsetY)/sigmaY)**2)
+    retval  = ((nBeam/(twopi*(sigmaX*sigmaY)))      &
+      * exp_mb(-half*((xv1(j)-offsetX)/sigmaX)**2)) &
+      * exp_mb(-half*((xv2(j)-offsetY)/sigmaY)**2)
 
   case(scatter_proBeamRef)
     retval  = scatter_proList(idPro)%fParams(1)
 
   case(scatter_proBeamUnCorr)
-    ! beamtot = scatter_proList(idPro)%fParams(1)
-    ! sigmaX  = scatter_proList(idPro)%fParams(2)
-    ! sigmaY  = scatter_proList(idPro)%fParams(3)
-    ! offsetX = scatter_proList(idPro)%fParams(4)
-    ! offsetY = scatter_proList(idPro)%fParams(5)
-    ! retval  = ((beamtot/(twopi*(sigmaX*sigmaY))) &
-    !   * exp_mb(-half*((x-offsetX)/sigmaX)**2))   &
-    !   * exp_mb(-half*((y-offsetY)/sigmaY)**2)
-    retval  = scatter_proList(idPro)%fParams(1)
+    offsetX  = scatter_proList(idPro)%fParams(8)
+    offsetY  = scatter_proList(idPro)%fParams(9)
+    sigmaX   = scatter_proList(idPro)%fParams(12)
+    sigmaY   = scatter_proList(idPro)%fParams(13)
+    rhoScale = scatter_proList(idPro)%fParams(14)
+    retval   = rhoScale * exp_mb((        &
+      -half*((xv1(j)-offsetX)/sigmaX)**2  &
+      -half*((xv2(j)-offsetY)/sigmaY)**2) &
+      -(sigmv(j)/scatter_beam2Length)**2)
 
   case default
     write(lerr,"(a,i0,a)") "SCATTER> ERROR Type ",scatter_proList(idPro)%proType," for profile '"//&
@@ -1665,7 +1725,7 @@ subroutine scatter_initSummaryFile
   use string_tools
   use numerical_constants
 
-  integer i, iElem, iGen, nLine
+  integer i, iElem, iGen, iPro, nLine
   logical fErr
 
   nLine = 0
@@ -1690,13 +1750,32 @@ subroutine scatter_initSummaryFile
   write(scatter_sumUnit,"(a,i0,a)") "#  Read ",scatter_nElem," element(s)"
   write(scatter_sumUnit,"(a,i0,a)") "#  Read ",scatter_nPro," profile(s)"
   write(scatter_sumUnit,"(a,i0,a)") "#  Read ",scatter_nGen," generator(s)"
-  write(scatter_sumUnit,"(a)")      "# "
+  write(scatter_sumUnit,"(a)")      "#"
   nLine = nLine + 8
 
   write(scatter_sumUnit,"(a)") "#  Generators"
   write(scatter_sumUnit,"(a)") "# ============="
   do iGen=1,scatter_nGen
     write(scatter_sumUnit,"(a,i0,a)") "#  Generator(",iGen,"): '"//trim(scatter_genList(iGen)%genName)//"'"
+    nLine = nLine + 1
+  end do
+  write(scatter_sumUnit,"(a)") "#"
+  nLine = nLine + 3
+
+  write(scatter_sumUnit,"(a)") "#  Profiles"
+  write(scatter_sumUnit,"(a)") "# =========="
+  do iPro=1,scatter_nPro
+    write(scatter_sumUnit,"(a,i0,a)") "#  Profile(",iPro,"): '"//trim(scatter_proList(iPro)%proName)//"'"
+    select case(scatter_proList(iPro)%proType)
+    case(scatter_proBeamUnCorr)
+      write(scatter_sumUnit,"(a,2(1x,f13.6))") "#   * betaX,     betaY     [m]    =",scatter_proList(iPro)%fParams(2:3)
+      write(scatter_sumUnit,"(a,2(1x,f13.6))") "#   * alphaX,    alphaY    [1]    =",scatter_proList(iPro)%fParams(4:5)
+      write(scatter_sumUnit,"(a,2(1x,f13.6))") "#   * orbitX,    orbitY    [mm]   =",scatter_proList(iPro)%fParams(8:9)
+      write(scatter_sumUnit,"(a,2(1x,f13.6))") "#   * orbitXP,   orbitYP   [mrad] =",scatter_proList(iPro)%fParams(6:7)
+      write(scatter_sumUnit,"(a,2(1x,f13.6))") "#   * sigmaX,    sigmaY    [mm]   =",scatter_proList(iPro)%fParams(10:11)
+      write(scatter_sumUnit,"(a,2(1x,f13.6))") "#   * sigmaXeff, sigmaYeff [mm]   =",scatter_proList(iPro)%fParams(12:13)
+    case(scatter_proFlat)
+    end select
     nLine = nLine + 1
   end do
   write(scatter_sumUnit,"(a)") "#"

@@ -325,9 +325,9 @@ module mod_common
   real(kind=fPrec), save :: emitx      = zero ! Horisontal emittance
   real(kind=fPrec), save :: emity      = zero ! Vertical emittance
   real(kind=fPrec), save :: emitz      = zero ! Longitudinal emittance
-  real(kind=fPrec), save :: gammar     = one  ! Gamma factor
+  real(kind=fPrec), save :: gammar     = one  ! Inverse Lorentz factor
   real(kind=fPrec), save :: betarel    = zero ! Relativistic beta of beam
-  real(kind=fPrec), save :: brho       = zero ! magnetic rigitidy of beam [Tm]
+  real(kind=fPrec), save :: brho       = zero ! Magnetic rigitidy of beam [Tm]
   integer,          save :: ibb6d      = 0    ! 6D beam-beam switch
   integer,          save :: nbeam      = 0    ! Beam-beam elements flag
   integer,          save :: ibbc       = 0    ! Switch for linear coupling considered in 4D and 6D
