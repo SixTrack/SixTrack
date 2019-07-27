@@ -1,0 +1,46 @@
+#
+#  SCATTER SUMMARY
+# =================
+#
+#  Read 2 element(s)
+#  Read 2 profile(s)
+#  Read 1 generator(s)
+#
+#  Generators
+# =============
+#  Generator(1): 'sc_pythia'
+#
+#  Profiles
+# ==========
+#  Profile(1): 'ip1_UNCORR'
+#   * betaX,     betaY     [m]    =     30.006780     29.979162
+#   * alphaX,    alphaY    [1]    =      0.000604     -0.000442
+#   * orbitX,    orbitY    [mm]   =     -0.749947      0.000457
+#   * orbitXP,   orbitYP   [mrad] =     -0.000003      0.294999
+#   * sigmaX,    sigmaY    [mm]   =      0.100276      0.100229
+#   * sigmaXeff, sigmaYeff [mm]   =      0.244238      0.100276
+#   * beam2 rotation x,y   [deg]  =    -90.000000
+#  Profile(2): 'ip5_UNCORR'
+#   * betaX,     betaY     [m]    =     30.000000     30.000000
+#   * alphaX,    alphaY    [1]    =      0.000000      0.000000
+#   * orbitX,    orbitY    [mm]   =     -0.750000      0.750000
+#   * orbitXP,   orbitYP   [mrad] =      0.295000      0.295000
+#   * sigmaX,    sigmaY    [mm]   =      0.100264      0.100264
+#   * sigmaXeff, sigmaYeff [mm]   =      0.345425      0.000000
+#   * beam2 rotation x,y   [deg]  =    -45.000000
+#
+#  Cross Sections
+# ================
+#  Element(1): 'ip1_scatter' [Probability: Auto]
+#   + Generator(1):       42.000000 mb [BR: 1.000000]
+#   = Sigma Total:        42.000000 mb [BR: 1.000000]
+#  Element(2): 'ip5_scatter' [Probability: Auto]
+#   + Generator(1):       42.000000 mb [BR: 1.000000]
+#   = Sigma Total:        42.000000 mb [BR: 1.000000]
+#
+#  Summary Log
+# =============
+#    turn     napx bez                  generator            process     nScat    nLost   scatRat  crossSec[mb]       scaling
+        3       50 ip1_scatter          sc_pythia            Elastic        12        0  0.240000     10.080000  5.000000E+14
+        3       50 ip1_scatter          sc_pythia            SingD_XB        4        4  0.080000      3.360000  5.000000E+14
+        3       50 ip1_scatter          sc_pythia            SingD_AX        3        0  0.060000      2.520000  5.000000E+14

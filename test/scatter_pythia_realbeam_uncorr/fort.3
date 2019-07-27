@@ -1,0 +1,87 @@
+GEOM
+
+SETTINGS----------------------------------------------------------------
+    DEBUG
+    QUIET 2
+    INITIALSTATE text
+    FINALSTATE   text
+NEXT
+
+HASH--------------------------------------------------------------------
+    MD5SUM initial_state.dat    text
+    MD5SUM final_state.dat      text
+    MD5SUM scatter_log.dat      text
+    MD5SUM scatter_summary.dat  text
+    MD5SUM scatter_momentum.dat text
+NEXT
+
+SIMULATION--------------------------------------------------------------
+    PARTICLES    50
+    TURNS        5
+    CRPOINT      10
+    LATTICE      Thin 6D
+    6D_CLORB     on
+    READ_FORT13  on
+    WRITE_TRACKS 100 on
+    REF_PARTICLE proton
+    REF_ENERGY   7.0e6
+    PDG_YEAR     2018
+NEXT
+
+ITERATION-ACCURACY------------------------------------------------------
+    50 1d-12 1d-15
+    10 1d-10 1d-10
+    10 1d-6  1d-6
+       1d-6  1d-9  1d-9
+NEXT
+
+FLUCTUATION-------------------------------------------------------------
+    100000  1  7  3
+NEXT
+
+SYNC--------------------------------------------------------------------
+    35640  0.000344  0.0  0.0  26658.8832  938.272081  1
+    1.0  1.0
+NEXT
+
+BEAM--------------------------------------------------------------------
+    2.2000e+11  2.5  2.5  1.0  1.0e-3  1  0
+NEXT
+
+DYNK--------------------------------------------------------------------
+    FUN scat_off CONST  0.0
+    FUN scat_on  CONST  5.0e14
+    SET ip1_scatter scaling scat_off  1   2  0
+    SET ip1_scatter scaling scat_on   3  -1  0
+    SET ip5_scatter scaling scat_off  1   2  0
+    SET ip5_scatter scaling scat_on   3  -1  0
+NEXT
+
+PYTHIA------------------------------------------------------------------
+    SPECIES PROTON PROTON
+    ENERGY 7000000 7000000
+    REALBEAM on
+    SEED 41
+    PROCESS ELASTIC
+    PROCESS SINGLEDIFFRACTIVE
+NEXT
+
+SCATTER-----------------------------------------------------------------
+    DEBUG
+    LOSSES
+    SEED 42
+    WRITE_PLOG
+    BEAM2_EMIT 2.5 2.5
+    BEAM2_LEN  755.0
+    GEN  sc_pythia   PYTHIA  42.0
+    PRO  ip1_UNCORR  UNCORRBEAM 2.2e11 MIRROR
+    PRO  ip5_UNCORR  UNCORRBEAM 2.2e11 30.0 30.0 0.0 0.0 0.295 0.295 -0.75 0.75
+    ELEM ip1_scatter ip1_UNCORR auto 1.0 sc_pythia
+    ELEM ip5_scatter ip5_UNCORR auto 1.0 sc_pythia
+NEXT
+
+LINEAR OPTICS-----------------------------------------------------------
+    ELEMENT  0  1  1  2.5  2.5
+NEXT
+
+ENDE

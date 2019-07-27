@@ -22,27 +22,6 @@
 #  Summary Log
 # =============
 #    turn     napx bez                  generator            process     nScat    nLost   scatRat  crossSec[mb]       scaling
-#
-#  SCATTER SUMMARY
-# =================
-#
-#  Read 2 element(s)
-#  Read 3 profile(s)
-#  Read 1 generator(s)
-# 
-#  Generators
-# =============
-#  Generator(1): 'sc_pythia'
-#
-#  Cross Sections
-# ================
-#  Element(1): 'ip1_scatter' [Probability: Auto]
-#   + Generator(1):       42.000000 mb [BR: 1.000000]
-#   = Sigma Total:        42.000000 mb [BR: 1.000000]
-#  Element(2): 'ip5_scatter' [Probability: Auto]
-#   + Generator(1):       42.000000 mb [BR: 1.000000]
-#   = Sigma Total:        42.000000 mb [BR: 1.000000]
-#
         3       50 ip5_scatter          sc_pythia            Elastic        31        0  0.620000     26.040000  1.000000E+00
         3       50 ip5_scatter          sc_pythia            SingD_XB       10       10  0.200000      8.400000  1.000000E+00
         3       50 ip5_scatter          sc_pythia            SingD_AX        9        0  0.180000      7.560000  1.000000E+00
