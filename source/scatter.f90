@@ -175,7 +175,8 @@ subroutine scatter_init
 #endif
 
   real(kind=fPrec) betaX, betaY, alphaX, alphaY, orbX, orbY, orbXP, orbYP
-  real(kind=fPrec) nBeam, rhoScale, kFac, sigmaX, sigmaY, sigmaXeff, sigmaYeff
+  real(kind=fPrec) nBeam, normFac, kFac, sigmaX, sigmaY, sigmaXeff, sigmaYeff
+  real(kind=fPrec) xFac, yFac, elRot, sRot, cRot, orbEff
   integer idElem, idPro, proType
   logical isMirror, isSet
 
@@ -203,13 +204,13 @@ subroutine scatter_init
         scatter_proList(idPro)%fParams(3) = scatter_elemList(idElem)%linOpt%beta(2)
         scatter_proList(idPro)%fParams(4) = scatter_elemList(idElem)%linOpt%alpha(1)
         scatter_proList(idPro)%fParams(5) = scatter_elemList(idElem)%linOpt%alpha(2)
-        scatter_proList(idPro)%fParams(6) = scatter_elemList(idElem)%linOpt%orbit(1)
-        scatter_proList(idPro)%fParams(7) = scatter_elemList(idElem)%linOpt%orbit(2)
-        scatter_proList(idPro)%fParams(8) = scatter_elemList(idElem)%linOpt%orbit(3)
-        scatter_proList(idPro)%fParams(9) = scatter_elemList(idElem)%linOpt%orbit(4)
+        scatter_proList(idPro)%fParams(6) = scatter_elemList(idElem)%linOpt%orbit(3)
+        scatter_proList(idPro)%fParams(7) = scatter_elemList(idElem)%linOpt%orbit(4)
+        scatter_proList(idPro)%fParams(8) = scatter_elemList(idElem)%linOpt%orbit(1)
+        scatter_proList(idPro)%fParams(9) = scatter_elemList(idElem)%linOpt%orbit(2)
       end if
 
-      nBeam  = scatter_proList(idPro)%fParams(2)
+    ! nBeam  = scatter_proList(idPro)%fParams(2)
       betaX  = scatter_proList(idPro)%fParams(2)
       betaY  = scatter_proList(idPro)%fParams(3)
     ! alphaX = scatter_proList(idPro)%fParams(4)
@@ -220,21 +221,33 @@ subroutine scatter_init
     ! orbY   = scatter_proList(idPro)%fParams(9)
 
       ! Compute the sigmas from beam 2 emittance
-      sigmaX    = sqrt(((scatter_beam2EmitX * betaX) * gammar) / betarel) * c1m3
-      sigmaY    = sqrt(((scatter_beam2EmitY * betaY) * gammar) / betarel) * c1m3
+      sigmaX = sqrt(((scatter_beam2EmitX * betaX) * gammar) / betarel) * c1m3
+      sigmaY = sqrt(((scatter_beam2EmitY * betaY) * gammar) / betarel) * c1m3
 
       ! Compute approximate effective sigmas from crossing angle, assuming sigma_z >> sigma_x,y
-      sigmaXeff = sigmaX * sqrt(1 + ((scatter_beam2Length / sigmaX) * (orbXP * c1m3))**2)
-      sigmaYeff = sigmaY * sqrt(1 + ((scatter_beam2Length / sigmaY) * (orbYP * c1m3))**2)
+      xFac  = sqrt(1 + ((scatter_beam2Length / sigmaX) * (orbXP * c1m3))**2)
+      yFac  = sqrt(1 + ((scatter_beam2Length / sigmaY) * (orbYP * c1m3))**2)
 
-      kFac     = 2.0_fPrec * (cos_mb(orbXP*c1m3) * cos_mb(orbYP*c1m3)) ! Approximate kinematic factor
-      rhoScale = (kFac * nBeam) / ((4.0_fPrec * pi**2.5_fPrec) * (sigmaXeff * sigmaYeff))
+      ! Rotate beam 2 in x,y plane so the crossing angle is only in x
+      elRot = -atan2_mb(yFac-one,xFac-one)
+      sRot  = sin_mb(elRot)
+      cRot  = cos_mb(elRot)
+
+      sigmaXeff = abs((sigmaX*xFac)*cRot - (sigmaY*yFac)*sRot)
+      sigmaYeff = abs((sigmaX*xFac)*sRot + (sigmaY*yFac)*cRot)
+
+      ! Compute approximate kinematic factor and the normalisation of the PDF
+      kFac    = 2.0_fPrec * cos_mb(2*sigmaXeff/scatter_beam2Length)**2
+      normFac = kFac / ((4.0_fPrec * pi**2.5_fPrec) * (sigmaXeff * sigmaYeff))
 
       scatter_proList(idPro)%fParams(10) = sigmaX
       scatter_proList(idPro)%fParams(11) = sigmaY
       scatter_proList(idPro)%fParams(12) = sigmaXeff
       scatter_proList(idPro)%fParams(13) = sigmaYeff
-      scatter_proList(idPro)%fParams(14) = rhoScale
+      scatter_proList(idPro)%fParams(14) = normFac
+      scatter_proList(idPro)%fParams(15) = sRot
+      scatter_proList(idPro)%fParams(16) = cRot
+      scatter_proList(idPro)%fParams(17) = elRot
 
     end select
 
@@ -683,9 +696,8 @@ subroutine scatter_parseProfile(lnSplit, nSplit, iErr)
       return
     end if
 
-    allocate(fParams(14))
-    fParams(2:3)  = one
-    fParams(4:14) = zero
+    allocate(fParams(17))
+    fParams(:) = zero
     call chr_cast(lnSplit(4),fParams(1),iErr) ! Beam Charge
     if(nSplit > 4) then
       if(chr_toUpper(lnSplit(5)) == "MIRROR") then
@@ -1265,7 +1277,7 @@ function scatter_getDensity(idPro, j) result(retval)
   integer, intent(in) :: idPro
   integer, intent(in) :: j
 
-  real(kind=fPrec) nBeam, rhoScale, sigmaX, sigmaY, offsetX, offsetY, retVal
+  real(kind=fPrec) nBeam, normFac, sigmaX, sigmaY, orbX, orbY, retVal, cRot, sRot, xRot, yRot
 
   select case(scatter_proList(idPro)%proType)
   case(scatter_proFlat)
@@ -1275,27 +1287,33 @@ function scatter_getDensity(idPro, j) result(retval)
     retval  = scatter_proList(idPro)%fParams(1)
 
   case(scatter_proGauss1)
-    nBeam   = scatter_proList(idPro)%fParams(1)
-    sigmaX  = scatter_proList(idPro)%fParams(2)
-    sigmaY  = scatter_proList(idPro)%fParams(3)
-    offsetX = scatter_proList(idPro)%fParams(4)
-    offsetY = scatter_proList(idPro)%fParams(5)
-    retval  = ((nBeam/(twopi*(sigmaX*sigmaY)))      &
-      * exp_mb(-half*((xv1(j)-offsetX)/sigmaX)**2)) &
-      * exp_mb(-half*((xv2(j)-offsetY)/sigmaY)**2)
+    nBeam  = scatter_proList(idPro)%fParams(1)
+    sigmaX = scatter_proList(idPro)%fParams(2)
+    sigmaY = scatter_proList(idPro)%fParams(3)
+    orbX   = scatter_proList(idPro)%fParams(4)
+    orbY   = scatter_proList(idPro)%fParams(5)
+    retval = ((nBeam/(twopi*(sigmaX*sigmaY)))    &
+      * exp_mb(-half*((xv1(j)-orbX)/sigmaX)**2)) &
+      * exp_mb(-half*((xv2(j)-orbY)/sigmaY)**2)
 
   case(scatter_proBeamRef)
     retval  = scatter_proList(idPro)%fParams(1)
 
   case(scatter_proBeamUnCorr)
-    offsetX  = scatter_proList(idPro)%fParams(8)
-    offsetY  = scatter_proList(idPro)%fParams(9)
-    sigmaX   = scatter_proList(idPro)%fParams(12)
-    sigmaY   = scatter_proList(idPro)%fParams(13)
-    rhoScale = scatter_proList(idPro)%fParams(14)
-    retval   = rhoScale * exp_mb((        &
-      -half*((xv1(j)-offsetX)/sigmaX)**2  &
-      -half*((xv2(j)-offsetY)/sigmaY)**2) &
+    nBeam   = scatter_proList(idPro)%fParams(1)
+    orbX    = scatter_proList(idPro)%fParams(8)
+    orbY    = scatter_proList(idPro)%fParams(9)
+    sigmaX  = scatter_proList(idPro)%fParams(12)
+    sigmaY  = scatter_proList(idPro)%fParams(13)
+    normFac = scatter_proList(idPro)%fParams(14)
+    sRot    = scatter_proList(idPro)%fParams(15)
+    cRot    = scatter_proList(idPro)%fParams(16)
+
+    xRot    = (xv1(j)-orbX)*cRot - (xv2(j)-orbY)*sRot
+    yRot    = (xv1(j)-orbX)*sRot + (xv2(j)-orbY)*cRot
+    retval  = (nBeam*normFac) * exp_mb(( &
+      -half*(xRot/sigmaX)**2             &
+      -half*(yRot/sigmaY)**2)            &
       -(sigmv(j)/scatter_beam2Length)**2)
 
   case default
@@ -1774,6 +1792,7 @@ subroutine scatter_initSummaryFile
       write(scatter_sumUnit,"(a,2(1x,f13.6))") "#   * orbitXP,   orbitYP   [mrad] =",scatter_proList(iPro)%fParams(6:7)
       write(scatter_sumUnit,"(a,2(1x,f13.6))") "#   * sigmaX,    sigmaY    [mm]   =",scatter_proList(iPro)%fParams(10:11)
       write(scatter_sumUnit,"(a,2(1x,f13.6))") "#   * sigmaXeff, sigmaYeff [mm]   =",scatter_proList(iPro)%fParams(12:13)
+      write(scatter_sumUnit,"(a,1x,f13.6)")    "#   * beam2 rotation x,y   [deg]  =",scatter_proList(iPro)%fParams(17)/rad
     case(scatter_proFlat)
     end select
     nLine = nLine + 1
