@@ -5,10 +5,17 @@
 #  Read 1 element(s)
 #  Read 2 profile(s)
 #  Read 1 generator(s)
-# 
+#
 #  Generators
 # =============
 #  Generator(1): 'sc_thin'
+#
+#  Profiles
+# ==========
+#  Profile(1): 'ipFLAT'
+#  Profile(2): 'ipGAUSS'
+#   * orbitX,    orbitY    [mm]   =      0.000750     -0.000750
+#   * sigmaX,    sigmaY    [mm]   =      0.008660      0.008660
 #
 #  Cross Sections
 # ================

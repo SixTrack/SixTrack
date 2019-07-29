@@ -4,6 +4,7 @@ SETTINGS
     DEBUG
     QUIET 2
     CRKILLSWITCH 7 13 23
+    FINALSTATE text
 NEXT
 
 TRACKING PARAMETERS-----------------------------------------------------
@@ -70,10 +71,6 @@ SCATTER-----------------------------------------------------------------
     GEN  sc_thin     PPBEAMELASTIC 0.046  18.52  4.601  2.647  0.0  30
     PRO  ipFLAT      FLAT   1.0  938.0  7000000
     ELEM ip5_scatter ipFLAT 0.09 1.0 sc_thin
-NEXT
-
-DUMP--------------------------------------------------------------------
-    ip5 1 -1 2 ip5 1 -1
 NEXT
 
 LINEAR OPTICS-----------------------------------------------------------

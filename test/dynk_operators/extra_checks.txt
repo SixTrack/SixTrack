@@ -1,2 +1,3 @@
 scatter_summary.dat
+final_state.dat
 dynksets.dat

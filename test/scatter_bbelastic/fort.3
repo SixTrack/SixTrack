@@ -8,7 +8,10 @@ SETTINGS----------------------------------------------------------------
 NEXT
 
 HASH
-  MD5SUM dump_ip1.dat text
+  MD5SUM scatter_log.dat text
+  MD5SUM scatter_summary.dat text
+  MD5SUM dynksets.dat text
+  MD5SUM final_state.dat text
 NEXT
 
 SIMULATION--------------------------------------------------------------
@@ -48,7 +51,7 @@ BEAM--------------------------------------------------------------------
 NEXT
 
 DYNK--------------------------------------------------------------------
-  DEBUG
+  ! DEBUG
   FUN zero CONST 0.0
   FUN one  CONST 1.0
   FUN 0.1  CONST 0.1
@@ -65,10 +68,6 @@ SCATTER-----------------------------------------------------------------
   GEN  sc_thin     PPBEAMELASTIC 0.046 18.52 4.601 2.647 0.0 30
   PRO  ipPRO       FLAT 1e25 938.0 6500000
   ELEM ip1_scatter ipPRO auto 1.0 sc_thin
-NEXT
-
-DUMP--------------------------------------------------------------------
-  ip1 1 -1 2 dump_ip1.dat 1 -1
 NEXT
 
 ENDE
