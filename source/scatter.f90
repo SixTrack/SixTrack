@@ -1147,7 +1147,7 @@ subroutine scatter_thin(iStru, iElem, nTurn)
       cRecords(3,nRecords) = scatter_procNames(procID)
       iRecords(3,nRecords) = iLost
       rRecords(1,nRecords) = t
-      rRecords(2,nRecords) = sin_mb(theta)*c1e3
+      rRecords(2,nRecords) = theta*c1e3
       rRecords(3,nRecords) = phi
       rRecords(4,nRecords) = dEE
       rRecords(5,nRecords) = dPP
@@ -1158,8 +1158,8 @@ subroutine scatter_thin(iStru, iElem, nTurn)
 #endif
       write(scatter_logUnit,"(2(1x,i8),2(1x,a20),1x,a8,1x,i4,1x,f12.3,1x,f12.6,1x,f9.6,5(1x,1pe16.9))") &
         partID(j), nTurn, chr_rPadCut(bez(iElem),20), chr_rPadCut(scatter_genList(idGen)%genName,20),   &
-        scatter_procNames(procID), iLost, t, sin_mb(theta)*c1e3, phi, dEE, dPP, targetDensity,          &
-        scatterProb, scatter_statScale(partID(j))
+        scatter_procNames(procID), iLost, t, theta*c1e3, phi, dEE, dPP, targetDensity, scatterProb,     &
+        scatter_statScale(partID(j))
 #ifdef CR
       scatter_logFilePos = scatter_logFilePos + 1
 #endif
