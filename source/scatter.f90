@@ -923,14 +923,14 @@ subroutine scatter_setLinOpt(iElem, bAlpha, bBeta, bOrbit, bOrbitP, bDisp, bDisp
   use mod_common, only : bez
   use numerical_constants
 
-  integer, intent(in) :: iElem
+  integer,          intent(in) :: iElem
+  real(kind=fPrec), intent(in) :: bAlpha(2)
+  real(kind=fPrec), intent(in) :: bBeta(2)
+  real(kind=fPrec), intent(in) :: bOrbit(2)
+  real(kind=fPrec), intent(in) :: bOrbitP(2)
+  real(kind=fPrec), intent(in) :: bDisp(2)
+  real(kind=fPrec), intent(in) :: bDispP(2)
 
-  real(kind=fPrec)     bAlpha(2)
-  real(kind=fPrec)     bBeta(2)
-  real(kind=fPrec)     bOrbit(2)
-  real(kind=fPrec)     bOrbitP(2)
-  real(kind=fPrec)     bDisp(2)
-  real(kind=fPrec)     bDispP(2)
   type(scatter_linOpt) elemOpt
 
   if(iElem < 1 .or. iElem > nele) then
