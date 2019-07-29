@@ -994,7 +994,7 @@ subroutine scatter_thin(iStru, iElem, nTurn)
   integer          tmpSeed1, tmpSeed2
   logical          updateE, autoRatio, isDiff, isExact
   integer          iLost, procID
-  real(kind=fPrec) t, dEE, dPP, theta, phi, pVec(3)
+  real(kind=fPrec) t, dEE, dPP, theta, phi, pVec(3), pNew
   real(kind=fPrec) elemScale, sigmaTot, ratioTot, crossSection, scatterProb, targetDensity, scRatio, brRatio
 
   real(kind=fPrec), allocatable :: brThreshold(:)
@@ -1115,15 +1115,25 @@ subroutine scatter_thin(iStru, iElem, nTurn)
       llostp(j) = .true.
       phi       = zero
     else
-      ! Calculate new energy, and scattering angle
-      if(abs(dPP) >= pieni) then ! Update the energy
-        ejv(j)  = sqrt(((one+dPP)*ejfv(j))**2 + nucm(j)**2)
+      ! Update particle trajectory
+      if(isExact) then
+        ! Compute from new p-vector
+        pNew   = sqrt((pVec(1)**2 + pVec(2)**2) + pVec(3)**2)
+        yv1(j) = (pVec(1)/pNew) * c1e3
+        yv2(j) = (pVec(2)/pNew) * c1e3
+      else
+        ! Compute from scattering angle and sampled rotation
+        ! Since the angles are sometimes large, we cannot use small angle approximations
+        pNew   = ((one+dPP)*ejfv(j))
+        yv1(j) = sin_mb(asin_mb(yv1(j)*c1m3) + theta*cos_mb(phi))*c1e3
+        yv2(j) = sin_mb(asin_mb(yv2(j)*c1m3) + theta*sin_mb(phi))*c1e3
+      end if
+      if(abs(dPP) >= pieni) then
+        ! We do not update the particle momentum directlty. Instead we update the
+        ! energy and let the mod_particles routine handle the rest.
+        ejv(j)  = sqrt(pNew**2 + nucm(j)**2)
         updateE = .true.
       end if
-
-      ! Update particle trajectory
-      yv1(j) = theta*cos_mb(phi) + yv1(j)
-      yv2(j) = theta*sin_mb(phi) + yv2(j)
     end if
 
     ! Output to file
@@ -1137,7 +1147,7 @@ subroutine scatter_thin(iStru, iElem, nTurn)
       cRecords(3,nRecords) = scatter_procNames(procID)
       iRecords(3,nRecords) = iLost
       rRecords(1,nRecords) = t
-      rRecords(2,nRecords) = theta
+      rRecords(2,nRecords) = sin_mb(theta)*c1e3
       rRecords(3,nRecords) = phi
       rRecords(4,nRecords) = dEE
       rRecords(5,nRecords) = dPP
@@ -1148,8 +1158,8 @@ subroutine scatter_thin(iStru, iElem, nTurn)
 #endif
       write(scatter_logUnit,"(2(1x,i8),2(1x,a20),1x,a8,1x,i4,1x,f12.3,1x,f12.6,1x,f9.6,5(1x,1pe16.9))") &
         partID(j), nTurn, chr_rPadCut(bez(iElem),20), chr_rPadCut(scatter_genList(idGen)%genName,20),   &
-        scatter_procNames(procID), iLost, t, theta, phi, dEE, dPP, targetDensity, scatterProb,          &
-        scatter_statScale(partID(j))
+        scatter_procNames(procID), iLost, t, sin_mb(theta)*c1e3, phi, dEE, dPP, targetDensity,          &
+        scatterProb, scatter_statScale(partID(j))
 #ifdef CR
       scatter_logFilePos = scatter_logFilePos + 1
 #endif
@@ -1500,7 +1510,7 @@ subroutine scatter_generateEvent(idGen, idPro, iElem, j, nTurn, t, theta, dEE, d
 
     t      = scatter_generatePPElastic(a, b1, b2, phi, tmin)
     t      = t*c1e6                                 ! Scale return variable to MeV^2
-    theta  = acos_mb(one - (t/(2*ejfv(j)**2)))*c1e3 ! Get angle from t
+    theta  = acos_mb(one - (t/(2*ejfv(j)**2)))      ! Get angle from t
     procID = scatter_idElastic
 
   case(scatter_genPythiaSimple, scatter_genPythiaFull)
@@ -1561,8 +1571,7 @@ subroutine scatter_generateEvent(idGen, idPro, iElem, j, nTurn, t, theta, dEE, d
     end if
 
     if(evStat) then
-      t     = abs(t)*c1e6 ! Scale t to MeV^2
-      theta = theta*c1e3  ! Scale angle to mrad
+      t = abs(t)*c1e6 ! Scale t to MeV^2
       select case(evType)
       case(pythia_idNonDiff)
         if(scatter_allowLosses) then
@@ -1785,6 +1794,11 @@ subroutine scatter_initSummaryFile
   do iPro=1,scatter_nPro
     write(scatter_sumUnit,"(a,i0,a)") "#  Profile(",iPro,"): '"//trim(scatter_proList(iPro)%proName)//"'"
     select case(scatter_proList(iPro)%proType)
+    case(scatter_proGauss1)
+      write(scatter_sumUnit,"(a,2(1x,f13.6))") "#   * orbitX,    orbitY    [mm]   =",scatter_proList(iPro)%fParams(4:5)
+      write(scatter_sumUnit,"(a,2(1x,f13.6))") "#   * sigmaX,    sigmaY    [mm]   =",scatter_proList(iPro)%fParams(2:3)
+    case(scatter_proBeamRef)
+      write(scatter_sumUnit,"(a,2(1x,f13.6))") "#   * orbitX,    orbitY    [mm]   =",scatter_proList(iPro)%fParams(4:5)
     case(scatter_proBeamUnCorr)
       write(scatter_sumUnit,"(a,2(1x,f13.6))") "#   * betaX,     betaY     [m]    =",scatter_proList(iPro)%fParams(2:3)
       write(scatter_sumUnit,"(a,2(1x,f13.6))") "#   * alphaX,    alphaY    [1]    =",scatter_proList(iPro)%fParams(4:5)
