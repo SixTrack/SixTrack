@@ -24,9 +24,13 @@ module mod_dist
   logical,                  private, save :: dist_hasFormat   = .false. ! Whether the FORMAT keyword exists in block or not
   logical,                  private, save :: dist_libRead     = .false. ! Read file with dist library instead of internal reader
   logical,                  private, save :: dist_distLib     = .false. ! DISTlib is needed to generate the distribution requested
+  logical,                  private, save :: dist_distLibNorm = .false. ! DISTlib is used to convert normalised coordinates
   character(len=mFileName), private, save :: dist_distFile    = " "     ! File name for reading the distribution
   character(len=mFileName), private, save :: dist_echoFile    = " "     ! File name for echoing the distribution
-  real(kind=fPrec),         public,  save :: dist_beamEmit(3) = zero    ! Beam emittance for generator and normalisation
+  real(kind=fPrec),         public,  save :: dist_beamEmit(2) = zero    ! Beam emittance for generator and normalisation
+  real(kind=fPrec),         public,  save :: dist_beamLen     = zero    ! RMS bunch length
+  real(kind=fPrec),         public,  save :: dist_beamSpread  = zero    ! Bunch energy spread
+  real(kind=fPrec),         public,  save :: dist_tMat(6,6)   = zero    ! Cpy of the T matrix, properly scaled
 
   integer,          allocatable, private, save :: dist_colFormat(:)   ! The column types in the FORMAT
   real(kind=fPrec), allocatable, private, save :: dist_colScale(:)    ! Scaling factor for the columns
@@ -90,11 +94,13 @@ module mod_dist
   integer, parameter :: dist_fmtSPINZ       = 73 ! Spin vector z component
 
   ! Flags for columns we've set that we need to track for later checks
-  logical, private, save :: dist_readMass   = .false.
-  logical, private, save :: dist_readIonZ   = .false.
-  logical, private, save :: dist_readIonA   = .false.
-  logical, private, save :: dist_readCharge = .false.
-  logical, private, save :: dist_readPDGID  = .false.
+  logical, private, save :: dist_readMass     = .false.
+  logical, private, save :: dist_readIonZ     = .false.
+  logical, private, save :: dist_readIonA     = .false.
+  logical, private, save :: dist_readCharge   = .false.
+  logical, private, save :: dist_readPDGID    = .false.
+  logical, private, save :: dist_readPartID   = .false.
+  logical, private, save :: dist_readParentID = .false.
 
   ! Temporary particle arrays
   real(kind=fPrec), allocatable, private, save :: dist_partCol1(:) ! Ends up in array xv1
@@ -195,6 +201,7 @@ subroutine dist_generateDist
   use numerical_constants
 
   integer distLibPart
+  real(kind=fPrec) flatTas(36)
 
   call alloc(dist_partCol1, napx, zero, "dist_partCol1")
   call alloc(dist_partCol2, napx, zero, "dist_partCol2")
@@ -203,20 +210,18 @@ subroutine dist_generateDist
   call alloc(dist_partCol5, napx, zero, "dist_partCol5")
   call alloc(dist_partCol6, napx, zero, "dist_partCol6")
 
+  dist_tMat(1:6,1:6) = tas(1:6,1:6)*c1m3
+  dist_tMat(1:5,6)   = dist_tMat(1:5,6)*c1m3
+  dist_tMat(6,1:5)   = dist_tMat(6,1:5)*c1e3
+
 #ifdef DISTLIB
   if(dist_distLib) then
     call distlib_init(1)
     call distlib_setEnergyMass(e0, nucm0)
     call distlib_setEmittance12(dist_beamEmit(1), dist_beamEmit(2))
-    call distlib_setEmittance3(dist_beamEmit(3))
-    block
-      real(kind=fPrec) tmpTas(6,6), flatTas(36)
-      tmpTas(1:6,1:6) = tas(1:6,1:6)
-      tmpTas(1:5,6)   = tmpTas(1:5,6)*c1m3
-      tmpTas(6,1:5)   = tmpTas(6,1:5)*c1e3
-      flatTas = pack(transpose(tmpTas),.true.)
-      call distlib_setTasMatrix(flatTas)
-    end block
+  ! call distlib_setEmittance3(dist_beamEmit(3))
+    flatTas = pack(transpose(dist_tMat),.true.)
+    call distlib_setTasMatrix(flatTas)
   end if
 #endif
 
@@ -225,7 +230,7 @@ subroutine dist_generateDist
     call dist_parseParticles
     call dist_postprParticles
   elseif(dist_distFile /= " ") then
-    if(dist_distLib) then
+    if(dist_libRead) then
       ! Particles are read entirely in DISTlib
 #ifdef DISTLIB
       call distlib_readFile(trim(dist_distFile), len_trim(dist_distFile))
@@ -240,7 +245,7 @@ subroutine dist_generateDist
   if(dist_distLib) then
     ! Our final coordinates are taken from DISTlib
     distLibPart = napx
-    call distlib_getCoords(                    &
+    call distlib_getCoords(                        &
       dist_partCol1, dist_partCol2, dist_partCol3, &
       dist_partCol4, dist_partCol5, dist_partCol6, &
       distLibPart                                  &
@@ -288,6 +293,7 @@ subroutine dist_parseInputLine(inLine, iLine, iErr)
   use mod_alloc
   use mod_units
   use string_tools
+  use numerical_constants
 
   character(len=*), intent(in)    :: inLine
   integer,          intent(inout) :: iLine
@@ -368,15 +374,35 @@ subroutine dist_parseInputLine(inLine, iLine, iErr)
     return
 
   case("EMIT","EMITTANCE")
-    if(nSplit /= 3 .and. nSplit /= 4) then
-      write(lerr,"(a,i0)") "DIST> ERROR EMITTANCE takes 2 or 3 arguments, got ",nSplit-1
-      write(lerr,"(a)")    "DIST>       EMITTANCE emit1 emit2 [emit3]"
+    if(nSplit /= 3) then
+      write(lerr,"(a,i0)") "DIST> ERROR EMITTANCE takes 2 arguments, got ",nSplit-1
+      write(lerr,"(a)")    "DIST>       EMITTANCE emit1[mm mrad] emit2[mm mrad]"
       iErr = .true.
       return
     end if
-    if(nSplit > 1) call chr_cast(lnSplit(2), dist_beamEmit(1), cErr)
-    if(nSplit > 2) call chr_cast(lnSplit(3), dist_beamEmit(2), cErr)
-    if(nSplit > 3) call chr_cast(lnSplit(4), dist_beamEmit(3), cErr)
+    call chr_cast(lnSplit(2), dist_beamEmit(1), cErr)
+    call chr_cast(lnSplit(3), dist_beamEmit(2), cErr)
+    dist_beamEmit(1) = dist_beamEmit(1) * c1m6
+    dist_beamEmit(2) = dist_beamEmit(2) * c1m6
+
+  case("BUNCHLEN")
+    if(nSplit /= 2) then
+      write(lerr,"(a,i0)") "DIST> ERROR BUNCHLEN takes 1 argument, got ",nSplit-1
+      write(lerr,"(a)")    "DIST>       BUNCHLEN rms_len[mm]"
+      iErr = .true.
+      return
+    end if
+    call chr_cast(lnSplit(2), dist_beamLen, cErr)
+    dist_beamLen = dist_beamLen * c1m3
+
+  case("ESPREAD")
+    if(nSplit /= 2) then
+      write(lerr,"(a,i0)") "DIST> ERROR ESPREAD takes 1 argument, got ",nSplit-1
+      write(lerr,"(a)")    "DIST>       ESPREAD rms_energy_spread"
+      iErr = .true.
+      return
+    end if
+    call chr_cast(lnSplit(2), dist_beamSpread, cErr)
 
   end select
 
@@ -494,22 +520,22 @@ subroutine dist_setColumnFormat(fmtName, fErr)
 
   case("XN")
     call dist_appendFormat(dist_fmtXN,       one,  1)
-    dist_distLib = .true.
+    dist_distLib = dist_distLibNorm
   case("YN")
     call dist_appendFormat(dist_fmtYN,       one,  3)
-    dist_distLib = .true.
+    dist_distLib = dist_distLibNorm
   case("ZN")
     call dist_appendFormat(dist_fmtZN,       one,  5)
-    dist_distLib = .true.
+    dist_distLib = dist_distLibNorm
   case("PXN")
     call dist_appendFormat(dist_fmtPXN,      one,  2)
-    dist_distLib = .true.
+    dist_distLib = dist_distLibNorm
   case("PYN")
     call dist_appendFormat(dist_fmtPYN,      one,  4)
-    dist_distLib = .true.
+    dist_distLib = dist_distLibNorm
   case("PZN")
     call dist_appendFormat(dist_fmtPZN,      one,  6)
-    dist_distLib = .true.
+    dist_distLib = dist_distLibNorm
 
   case("JX")
     call dist_appendFormat(dist_fmtJX,       one,  1)
@@ -573,7 +599,7 @@ subroutine dist_setColumnFormat(fmtName, fErr)
     call dist_appendFormat(dist_fmtPYN,      one,  4)
     call dist_appendFormat(dist_fmtZN,       one,  5)
     call dist_appendFormat(dist_fmtPZN,      one,  6)
-    dist_distLib = .true.
+    dist_distLib = dist_distLibNorm
 
   case("ACTION") ! 6D action
     call dist_appendFormat(dist_fmtJX,       one,  1)
@@ -782,22 +808,26 @@ subroutine dist_parseParticles
   integer i, j, nSplit
   logical spErr, cErr
 
+  spErr = .false.
+  cErr  = .false.
+
   if(dist_nParticle > 0) then
     do j=1,dist_nParticle
       call chr_split(dist_partLine(j), lnSplit, nSplit, spErr)
-      if(spErr) goto 20
+      if(spErr) then
+        write(lerr,"(a,i0,a)") "DIST> ERROR Could not split PARTICLE definition number ",j," from "//trim(fort3)
+        call prror
+      end if
       do i=2,nSplit
         call dist_saveParticle(j, i-1, lnSplit(i), cErr)
+        if(cErr) then
+          write(lerr,"(a,2(i0,a))") "DIST> ERROR Could not parse PARTICLE definition number ",j,", column ",i," from "//trim(fort3)
+          call prror
+        end if
       end do
-      if(cErr) goto 20
       dist_numPart = dist_numPart + 1
     end do
   end if
-
-  return
-
-20 continue
-  write(lout,"(a,i0,a)") "DIST> ERROR Could not parse PARTICLE definition number ",j," from "//trim(fort3)
 
 end subroutine dist_parseParticles
 
@@ -906,9 +936,11 @@ subroutine dist_saveParticle(partNo, colNo, inVal, sErr)
 
   case(dist_fmtPartID)
     call chr_cast(inVal, partID(partNo), sErr)
+    dist_readPartID = .true.
 
   case(dist_fmtParentID)
     call chr_cast(inVal, parentID(partNo), sErr)
+    dist_readParentID = .true.
 
   !  Horizontal Coordinates
   ! ========================
@@ -1099,13 +1131,13 @@ subroutine dist_postprParticles
     doAction = .true.
   end select
 
-#ifdef DISTLIB
   if(doNormal .and. doAction) then
     write(lerr,"(a)") "DIST> ERROR Cannot mix normalised and action coordinates"
     call prror
   end if
 
-  if(doNormal) then
+#ifdef DISTLIB
+  if(doNormal .and. dist_distLibNorm) then
     call distlib_setCoords(                        &
       dist_partCol1, dist_partCol2, dist_partCol3, &
       dist_partCol4, dist_partCol5, dist_partCol6, &
@@ -1113,7 +1145,7 @@ subroutine dist_postprParticles
     )
   end if
 
-  if(doAction) then
+  if(doAction .and. dist_distLibNorm) then
     call distlib_setCoords(                        &
       dist_partCol1, dist_partCol2, dist_partCol3, &
       dist_partCol4, dist_partCol5, dist_partCol6, &
@@ -1122,7 +1154,76 @@ subroutine dist_postprParticles
   end if
 #endif
 
+  if(doNormal .and. .not. dist_distLibNorm) then
+    call dist_normToPhysical
+  end if
+
 end subroutine dist_postprParticles
+
+subroutine dist_normToPhysical
+
+  use mod_common
+  use mod_particles
+  use mod_common_main
+  use numerical_constants
+
+  real(kind=fPrec) sqEmitX, sqEmitY, sqEmitZ
+
+  sqEmitX = sqrt(dist_beamEmit(1))
+  sqEmitY = sqrt(dist_beamEmit(2))
+  sqEmitZ = sqrt(dist_beamLen * dist_beamSpread)
+
+  xv1(1:napx) = ( &
+    dist_partCol1(1:napx) * (sqEmitX * dist_tMat(1,1))  + &
+    dist_partCol2(1:napx) * (sqEmitX * dist_tMat(1,2))  + &
+    dist_partCol3(1:napx) * (sqEmitY * dist_tMat(1,3))  + &
+    dist_partCol4(1:napx) * (sqEmitY * dist_tMat(1,4))  + &
+    dist_partCol5(1:napx) * (sqEmitZ * dist_tMat(1,5))  + &
+    dist_partCol6(1:napx) * (sqEmitZ * dist_tMat(1,6))) * c1e3
+
+  yv1(1:napx) = ( &
+    dist_partCol1(1:napx) * (sqEmitX * dist_tMat(2,1))  + &
+    dist_partCol2(1:napx) * (sqEmitX * dist_tMat(2,2))  + &
+    dist_partCol3(1:napx) * (sqEmitY * dist_tMat(2,3))  + &
+    dist_partCol4(1:napx) * (sqEmitY * dist_tMat(2,4))  + &
+    dist_partCol5(1:napx) * (sqEmitZ * dist_tMat(2,5))  + &
+    dist_partCol6(1:napx) * (sqEmitZ * dist_tMat(2,6))) * (c1e3*(one+dpsv(1:napx)))
+
+  xv2(1:napx) = ( &
+    dist_partCol1(1:napx) * (sqEmitX * dist_tMat(3,1))  + &
+    dist_partCol2(1:napx) * (sqEmitX * dist_tMat(3,2))  + &
+    dist_partCol3(1:napx) * (sqEmitY * dist_tMat(3,3))  + &
+    dist_partCol4(1:napx) * (sqEmitY * dist_tMat(3,4))  + &
+    dist_partCol5(1:napx) * (sqEmitZ * dist_tMat(3,5))  + &
+    dist_partCol6(1:napx) * (sqEmitZ * dist_tMat(3,6))) * c1e3
+
+  yv2(1:napx) = ( &
+    dist_partCol1(1:napx) * (sqEmitX * dist_tMat(4,1))  + &
+    dist_partCol2(1:napx) * (sqEmitX * dist_tMat(4,2))  + &
+    dist_partCol3(1:napx) * (sqEmitY * dist_tMat(4,3))  + &
+    dist_partCol4(1:napx) * (sqEmitY * dist_tMat(4,4))  + &
+    dist_partCol5(1:napx) * (sqEmitZ * dist_tMat(4,5))  + &
+    dist_partCol6(1:napx) * (sqEmitZ * dist_tMat(4,6))) * (c1e3*(one+dpsv(1:napx)))
+
+  sigmv(1:napx) = ( &
+    dist_partCol1(1:napx) * (sqEmitX * dist_tMat(5,1))  + &
+    dist_partCol2(1:napx) * (sqEmitX * dist_tMat(5,2))  + &
+    dist_partCol3(1:napx) * (sqEmitY * dist_tMat(5,3))  + &
+    dist_partCol4(1:napx) * (sqEmitY * dist_tMat(5,4))  + &
+    dist_partCol5(1:napx) * (sqEmitZ * dist_tMat(5,5))  + &
+    dist_partCol6(1:napx) * (sqEmitZ * dist_tMat(5,6))) / rvv(1:napx)
+
+  dpsv(1:napx) = ( &
+    dist_partCol1(1:napx) * (sqEmitX * dist_tMat(6,1))  + &
+    dist_partCol2(1:napx) * (sqEmitX * dist_tMat(6,2))  + &
+    dist_partCol3(1:napx) * (sqEmitY * dist_tMat(6,3))  + &
+    dist_partCol4(1:napx) * (sqEmitY * dist_tMat(6,4))  + &
+    dist_partCol5(1:napx) * (sqEmitZ * dist_tMat(6,5))  + &
+    dist_partCol6(1:napx) * (sqEmitZ * dist_tMat(6,6)))
+
+  call part_updatePartEnergy(3,.true.)
+
+end subroutine dist_normToPhysical
 
 ! ================================================================================================ !
 !  A. Mereghetti and D. Sinuela Pastor, for the FLUKA Team
@@ -1151,6 +1252,15 @@ subroutine dist_finaliseDist
   if(dist_readIonA .neqv. dist_readIonZ) then
     write(lerr,"(a)") "DIST> ERROR ION_A and ION_Z columns have to both be present if one of them is"
     call prror
+  end if
+
+  if(dist_readParentID .and. .not. dist_readPartID) then
+    write(lerr,"(a)") "DIST> ERROR If you set particle parent ID you must also set particle ID"
+    call prror
+  end if
+
+  if(dist_readPartID .and. .not. dist_readParentID) then
+    parentID(1:napx) = partID(1:napx)
   end if
 
   if(dist_readIonZ .and. .not. dist_readCharge) then

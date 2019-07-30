@@ -93,6 +93,9 @@ list(APPEND SIXTRACK_TESTS
   chebythin6d_ramp_DYNK
   crabs
   dipedge
+  dist_file_6d
+  dist_file_6d_direct
+  dist_file_normalised
   distance
   dump_2_all_ele_highprec
   dump_all_highprec
@@ -260,6 +263,9 @@ set(TESTS_NOFORT10
   collimation_new-db_new-block
   collimation_old-db_new-block
   collimation_old-db_old-block
+  dist_file_6d
+  dist_file_6d_direct
+  dist_file_normalised
   dump_2_all_ele_highprec
   dump_all_highprec
   dump_binary
@@ -328,6 +334,9 @@ set(TESTS_NO_STF_FORT90
   crabs
   orbit6d-element-rotations
   dipedge
+  dist_file_6d
+  dist_file_6d_direct
+  dist_file_normalised
   dump_all_highprec
   dump4
   dump5
@@ -601,6 +610,9 @@ set(FAST_TESTS
   collimation_old-db_old-block
   collimation_old-db_old-block
   crabs
+  dist_file_6d
+  dist_file_6d_direct
+  dist_file_normalised
   dump_2_all_ele_highprec
   dump_all_highprec
   dump_binary
