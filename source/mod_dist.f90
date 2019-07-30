@@ -41,7 +41,23 @@ module mod_dist
 
   integer,                       private, save :: dist_numPart   = 0  ! Number of actual particles generated or read
 
-  !  Column formats
+  type, private :: dist_fillType
+    integer                       :: fillTarget = 0
+    integer                       :: fillMethod = 0
+    integer                       :: firstPart  = 0
+    integer                       :: lastPart   = 0
+    integer,          allocatable :: iParams(:)
+    real(kind=fPrec), allocatable :: fParams(:)
+  end type dist_fillType
+
+  !  Fill Methods
+  integer, parameter :: dist_fillNONE       = 0  ! No fill
+  integer, parameter :: dist_fillFIXED      = 1  ! Fixed value
+  integer, parameter :: dist_fillGAUSS      = 2  ! Gaussian distribution
+  integer, parameter :: dist_fillNORMAL     = 3  ! Normal distribution
+  integer, parameter :: dist_fillLINEAR     = 4  ! Linear fill
+
+  !  Column Formats
   ! ================
   integer, parameter :: dist_fmtNONE        = 0  ! Column ignored
   integer, parameter :: dist_fmtPartID      = 1  ! Paricle ID
@@ -300,8 +316,9 @@ subroutine dist_parseInputLine(inLine, iLine, iErr)
   logical,          intent(inout) :: iErr
 
   character(len=:), allocatable   :: lnSplit(:)
-  integer nSplit, i
-  logical spErr, cErr
+  real(kind=fPrec) fmtFac
+  integer nSplit, i, fmtID, fmtCol
+  logical spErr, cErr, isValid
 
   call chr_split(inLine, lnSplit, nSplit, spErr)
   if(spErr) then
@@ -323,10 +340,20 @@ subroutine dist_parseInputLine(inLine, iLine, iErr)
       return
     end if
     do i=2,nSplit
-      call dist_setColumnFormat(lnSplit(i),cErr)
-      if(cErr) then
-        iErr = .true.
-        return
+      call dist_parseColumn(lnSplit(i),cErr,fmtID,fmtFac,fmtCol,isValid)
+      if(isValid) then
+        call dist_appendFormat(fmtID,fmtFac,fmtCol)
+        if(cErr) then
+          iErr = .true.
+          return
+        end if
+      else
+        call dist_setMultiColFormat(lnSplit(i), isValid)
+        if(isValid .eqv. .false.) then
+          write(lerr,"(a)") "DIST> ERROR Unknown column format '"//trim(lnSplit(i))//"'"
+          iErr = .true.
+          return
+        end if
       end if
     end do
     dist_hasFormat = .true.
@@ -368,11 +395,6 @@ subroutine dist_parseInputLine(inLine, iLine, iErr)
     end if
     dist_echo = .true.
 
-  case default
-    write(lerr,"(a)") "DIST> ERROR Unknown keyword '"//trim(lnSplit(1))//"'."
-    iErr = .true.
-    return
-
   case("EMIT","EMITTANCE")
     if(nSplit /= 3) then
       write(lerr,"(a,i0)") "DIST> ERROR EMITTANCE takes 2 arguments, got ",nSplit-1
@@ -404,6 +426,19 @@ subroutine dist_parseInputLine(inLine, iLine, iErr)
     end if
     call chr_cast(lnSplit(2), dist_beamSpread, cErr)
 
+  case("FILL")
+    if(nSplit < 3) then
+      write(lerr,"(a,i0)") "DIST> ERROR FILL takes at least 3 argument, got ",nSplit-1
+      iErr = .true.
+      return
+    end if
+    call dist_parseFill(lnSplit, nSplit, iErr)
+
+  case default
+    write(lerr,"(a)") "DIST> ERROR Unknown keyword '"//trim(lnSplit(1))//"'."
+    iErr = .true.
+    return
+
   end select
 
   if(cErr) then
@@ -414,6 +449,24 @@ subroutine dist_parseInputLine(inLine, iLine, iErr)
 end subroutine dist_parseInputLine
 
 ! ================================================================================================ !
+!  V.K. Berglyd Olsen, BE-ABP-HSS
+!  Created: 2019-07-30
+!  Updated: 2019-07-30
+! ================================================================================================ !
+subroutine dist_parseFill(lnSplit, nSplit, iErr)
+
+  use crcoall
+  use mod_alloc
+  use mod_settings
+
+  character(len=:), allocatable, intent(in)    :: lnSplit(:)
+  integer,                       intent(in)    :: nSplit
+  logical,                       intent(inout) :: iErr
+
+
+end subroutine dist_parseFill
+
+! ================================================================================================ !
 !  Parse File Column Formats
 !  V.K. Berglyd Olsen, BE-ABP-HSS
 !  Created: 2019-07-05
@@ -422,7 +475,7 @@ end subroutine dist_parseInputLine
 !    This routine splits the unit from the format description and adds the format and the scaling
 !  factor to the list of format columns for later file parsing.
 ! ================================================================================================ !
-subroutine dist_setColumnFormat(fmtName, fErr)
+subroutine dist_parseColumn(fmtName, fErr, fmtID, fmtFac, fmtCol, isValid)
 
   use crcoall
   use string_tools
@@ -430,13 +483,21 @@ subroutine dist_setColumnFormat(fmtName, fErr)
 
   character(len=*), intent(in)  :: fmtName
   logical,          intent(out) :: fErr
+  integer,          intent(out) :: fmtID
+  real(kind=fPrec), intent(out) :: fmtFac
+  integer,          intent(out) :: fmtCol
+  logical,          intent(out) :: isValid
 
   character(len=20) fmtBase
   character(len=10) fmtUnit
   real(kind=fPrec)  uFac
   integer           c, unitPos, fmtLen
 
-  fErr = .false.
+  fErr    = .false.
+  fmtID   = dist_fmtNONE
+  fmtFac  = one
+  fmtCol  = 0
+  isValid = .true.
 
   fmtLen = len_trim(fmtName)
   if(fmtLen < 1) then
@@ -463,126 +524,190 @@ subroutine dist_setColumnFormat(fmtName, fErr)
   select case(chr_toUpper(fmtBase))
 
   case("OFF","SKIP")
-    call dist_appendFormat(dist_fmtNONE,     one,  0)
+    fmtID = dist_fmtNONE
   case("ID")
-    call dist_appendFormat(dist_fmtPartID,   one,  0)
+    fmtID = dist_fmtPartID
   case("PARENT")
-    call dist_appendFormat(dist_fmtParentID, one,  0)
+    fmtID  = dist_fmtParentID
 
   case("X")
-    call dist_unitScale(fmtName, fmtUnit, 1, uFac, fErr)
-    call dist_appendFormat(dist_fmtX,        uFac, 1)
+    call dist_unitScale(fmtName, fmtUnit, 1, fmtFac, fErr)
+    fmtID  = dist_fmtX
+    fmtCol = 1
   case("Y")
-    call dist_unitScale(fmtName, fmtUnit, 1, uFac, fErr)
-    call dist_appendFormat(dist_fmtY,        uFac, 3)
+    call dist_unitScale(fmtName, fmtUnit, 1, fmtFac, fErr)
+    fmtID  = dist_fmtY
+    fmtCol = 3
 
   case("XP")
-    call dist_appendFormat(dist_fmtXP,       uFac, 2)
+    fmtID  = dist_fmtXP
+    fmtCol = 2
   case("YP")
-    call dist_appendFormat(dist_fmtYP,       uFac, 4)
+    fmtID  = dist_fmtYP
+    fmtCol = 4
 
   case("PX")
-    call dist_unitScale(fmtName, fmtUnit, 3, uFac, fErr)
-    call dist_appendFormat(dist_fmtPX,       uFac, 2)
+    call dist_unitScale(fmtName, fmtUnit, 3, fmtFac, fErr)
+    fmtID  = dist_fmtPX
+    fmtCol = 2
   case("PY")
-    call dist_unitScale(fmtName, fmtUnit, 3, uFac, fErr)
-    call dist_appendFormat(dist_fmtPY,       uFac, 4)
+    call dist_unitScale(fmtName, fmtUnit, 3, fmtFac, fErr)
+    fmtID  = dist_fmtPY
+    fmtCol = 4
 
   case("PX/P0","PXP0")
-    call dist_appendFormat(dist_fmtPX,       one,  2)
+    fmtID  = dist_fmtPX
+    fmtCol = 2
   case("PY/P0","PYP0")
-    call dist_appendFormat(dist_fmtPY,       one,  4)
+    fmtID  = dist_fmtPY
+    fmtCol = 4
 
   case("SIGMA")
-    call dist_unitScale(fmtName, fmtUnit, 1, uFac, fErr)
-    call dist_appendFormat(dist_fmtSIGMA,    uFac, 5)
+    call dist_unitScale(fmtName, fmtUnit, 1, fmtFac, fErr)
+    fmtID  = dist_fmtSIGMA
+    fmtCol = 5
   case("ZETA")
-    call dist_unitScale(fmtName, fmtUnit, 1, uFac, fErr)
-    call dist_appendFormat(dist_fmtZETA,     uFac, 5)
+    call dist_unitScale(fmtName, fmtUnit, 1, fmtFac, fErr)
+    fmtID  = dist_fmtZETA
+    fmtCol = 5
   case("DT")
-    call dist_unitScale(fmtName, fmtUnit, 4, uFac, fErr)
-    call dist_appendFormat(dist_fmtDT,       uFac, 5)
+    call dist_unitScale(fmtName, fmtUnit, 4, fmtFac, fErr)
+    fmtID  = dist_fmtDT
+    fmtCol = 5
 
   case("E")
-    call dist_unitScale(fmtName, fmtUnit, 3, uFac, fErr)
-    call dist_appendFormat(dist_fmtE,        uFac, 6)
+    call dist_unitScale(fmtName, fmtUnit, 3, fmtFac, fErr)
+    fmtID  = dist_fmtE
+    fmtCol = 6
   case("P")
-    call dist_unitScale(fmtName, fmtUnit, 3, uFac, fErr)
-    call dist_appendFormat(dist_fmtP,        uFac, 6)
+    call dist_unitScale(fmtName, fmtUnit, 3, fmtFac, fErr)
+    fmtID  = dist_fmtP
+    fmtCol = 6
   case("DE/E0","DEE0")
-    call dist_appendFormat(dist_fmtDEE0,     one,  6)
+    fmtID  = dist_fmtDEE0
+    fmtCol = 6
   case("DP/P0","DPP0","DELTA")
-    call dist_appendFormat(dist_fmtDPP0,     one,  6)
+    fmtID  = dist_fmtDPP0
+    fmtCol = 6
   case("DE/P0","DEP0","PT")
-    call dist_appendFormat(dist_fmtPT,       one,  6)
+    fmtID  = dist_fmtPT
+    fmtCol = 6
   case("PSIGMA")
-    call dist_appendFormat(dist_fmtPSIGMA,   one,  6)
+    fmtID  = dist_fmtPSIGMA
+    fmtCol = 6
 
   case("XN")
-    call dist_appendFormat(dist_fmtXN,       one,  1)
+    fmtID  = dist_fmtXN
+    fmtCol = 1
     dist_distLib = dist_distLibNorm
   case("YN")
-    call dist_appendFormat(dist_fmtYN,       one,  3)
+    fmtID  = dist_fmtYN
+    fmtCol = 3
     dist_distLib = dist_distLibNorm
   case("ZN")
-    call dist_appendFormat(dist_fmtZN,       one,  5)
+    fmtID  = dist_fmtZN
+    fmtCol = 5
     dist_distLib = dist_distLibNorm
   case("PXN")
-    call dist_appendFormat(dist_fmtPXN,      one,  2)
+    fmtID  = dist_fmtPXN
+    fmtCol = 2
     dist_distLib = dist_distLibNorm
   case("PYN")
-    call dist_appendFormat(dist_fmtPYN,      one,  4)
+    fmtID  = dist_fmtPYN
+    fmtCol = 4
     dist_distLib = dist_distLibNorm
   case("PZN")
-    call dist_appendFormat(dist_fmtPZN,      one,  6)
+    fmtID  = dist_fmtPZN
+    fmtCol = 6
     dist_distLib = dist_distLibNorm
 
   case("JX")
-    call dist_appendFormat(dist_fmtJX,       one,  1)
+    fmtID  = dist_fmtJX
+    fmtCol = 1
     dist_distLib = .true.
   case("JY")
-    call dist_appendFormat(dist_fmtJY,       one,  3)
+    fmtID  = dist_fmtJY
+    fmtCol = 3
     dist_distLib = .true.
   case("JZ")
-    call dist_appendFormat(dist_fmtJZ,       one,  5)
+    fmtID  = dist_fmtJZ
+    fmtCol = 5
     dist_distLib = .true.
   case("PHIX")
-    call dist_unitScale(fmtName, fmtUnit, 2, uFac, fErr)
-    call dist_appendFormat(dist_fmtPhiX,     uFac, 2)
+    call dist_unitScale(fmtName, fmtUnit, 2, fmtFac, fErr)
+    fmtID  = dist_fmtPhiX
+    fmtCol = 2
     dist_distLib = .true.
   case("PHIY")
-    call dist_unitScale(fmtName, fmtUnit, 2, uFac, fErr)
-    call dist_appendFormat(dist_fmtPhiY,     uFac, 4)
+    call dist_unitScale(fmtName, fmtUnit, 2, fmtFac, fErr)
+    fmtID  = dist_fmtPhiY
+    fmtCol = 4
     dist_distLib = .true.
   case("PHIZ")
-    call dist_unitScale(fmtName, fmtUnit, 2, uFac, fErr)
-    call dist_appendFormat(dist_fmtPhiZ,     uFac, 6)
+    call dist_unitScale(fmtName, fmtUnit, 2, fmtFac, fErr)
+    fmtID  = dist_fmtPhiZ
+    fmtCol = 6
     dist_distLib = .true.
 
   case("MASS","M")
-    call dist_unitScale(fmtName, fmtUnit, 3, uFac, fErr)
-    call dist_appendFormat(dist_fmtMASS,     uFac, 0)
+    call dist_unitScale(fmtName, fmtUnit, 3, fmtFac, fErr)
+    fmtID  = dist_fmtMASS
   case("CHARGE","Q")
-    call dist_appendFormat(dist_fmtCHARGE,   one,  0)
+    fmtID  = dist_fmtCHARGE
   case("ION_A")
-    call dist_appendFormat(dist_fmtIonA,     one,  0)
+    fmtID  = dist_fmtIonA
   case("ION_Z")
-    call dist_appendFormat(dist_fmtIonZ,     one,  0)
+    fmtID  = dist_fmtIonZ
   case("PDGID")
-    call dist_appendFormat(dist_fmtPDGID,    one,  0)
+    fmtID  = dist_fmtPDGID
 
   case("SX")
-    call dist_appendFormat(dist_fmtSPINX,    one,  0)
+    fmtID  = dist_fmtSPINX
   case("SY")
-    call dist_appendFormat(dist_fmtSPINY,    one,  0)
+    fmtID  = dist_fmtSPINY
   case("SZ")
-    call dist_appendFormat(dist_fmtSPINZ,    one,  0)
+    fmtID  = dist_fmtSPINZ
+
+  case default
+    isValid = .false.
+    return
+
+  end select
+
+#ifndef DISTLIB
+  if(dist_distLib) then
+    write(lerr,"(a)") "DIST> ERROR Format '"//trim(fmtName)//"' requires SixTrack to be built with DISTLIB enabled"
+    fErr = .true.
+    return
+  end if
+#endif
+
+end subroutine dist_parseColumn
+
+! ================================================================================================ !
+!  Parse Multi-Column Formats
+!  V.K. Berglyd Olsen, BE-ABP-HSS
+!  Created: 2019-07-05
+!  Updated: 2019-07-10
+! ================================================================================================ !
+subroutine dist_setMultiColFormat(fmtName, isValid)
+
+  use string_tools
+  use numerical_constants
+
+  character(len=*), intent(in)  :: fmtName
+  logical,          intent(out) :: isValid
+
+  isValid = .false.
+
+  select case(chr_toUpper(fmtName))
 
   case("4D") ! 4D default coordinates
     call dist_appendFormat(dist_fmtX,        one,  1)
     call dist_appendFormat(dist_fmtPX,       one,  2)
     call dist_appendFormat(dist_fmtY,        one,  3)
     call dist_appendFormat(dist_fmtPY,       one,  4)
+    isValid = .true.
 
   case("6D") ! 6D default coordinates
     call dist_appendFormat(dist_fmtX,        one,  1)
@@ -591,6 +716,7 @@ subroutine dist_setColumnFormat(fmtName, fErr)
     call dist_appendFormat(dist_fmtPY,       one,  4)
     call dist_appendFormat(dist_fmtZETA,     one,  5)
     call dist_appendFormat(dist_fmtDPP0,     one,  6)
+    isValid = .true.
 
   case("NORM") ! 6D normalised coordinates
     call dist_appendFormat(dist_fmtXN,       one,  1)
@@ -600,6 +726,7 @@ subroutine dist_setColumnFormat(fmtName, fErr)
     call dist_appendFormat(dist_fmtZN,       one,  5)
     call dist_appendFormat(dist_fmtPZN,      one,  6)
     dist_distLib = dist_distLibNorm
+    isValid = .true.
 
   case("ACTION") ! 6D action
     call dist_appendFormat(dist_fmtJX,       one,  1)
@@ -609,6 +736,7 @@ subroutine dist_setColumnFormat(fmtName, fErr)
     call dist_appendFormat(dist_fmtJZ,       one,  5)
     call dist_appendFormat(dist_fmtPhiZ,     one,  6)
     dist_distLib = .true.
+    isValid = .true.
 
   case("IONS") ! The ion columns
     call dist_appendFormat(dist_fmtMASS,     c1e3, 0)
@@ -616,11 +744,13 @@ subroutine dist_setColumnFormat(fmtName, fErr)
     call dist_appendFormat(dist_fmtIonA,     one,  0)
     call dist_appendFormat(dist_fmtIonZ,     one,  0)
     call dist_appendFormat(dist_fmtPDGID,    one,  0)
+    isValid = .true.
 
   case("SPIN") ! The spin columns
     call dist_appendFormat(dist_fmtSPINX,    one,  0)
     call dist_appendFormat(dist_fmtSPINY,    one,  0)
     call dist_appendFormat(dist_fmtSPINZ,    one,  0)
+    isValid = .true.
 
   case("OLD_DIST") ! The old DIST block file format
     ! This is added for the block to be compatible with the old, fixed column DIST file format.
@@ -640,23 +770,10 @@ subroutine dist_setColumnFormat(fmtName, fErr)
     call dist_appendFormat(dist_fmtMASS,     c1e3, 0)
     call dist_appendFormat(dist_fmtP,        c1e3, 6)
     call dist_appendFormat(dist_fmtDT,       one,  5)
-
-  case default
-    write(lerr,"(a)") "DIST> ERROR Unknown column format '"//trim(fmtName)//"'"
-    fErr = .true.
-    return
-
+    isValid = .true.
   end select
 
-#ifndef DISTLIB
-  if(dist_distLib) then
-    write(lerr,"(a)") "DIST> ERROR Format '"//trim(fmtName)//"' requires SixTrack to be built with DISTLIB enabled"
-    fErr = .true.
-    return
-  end if
-#endif
-
-end subroutine dist_setColumnFormat
+end subroutine dist_setMultiColFormat
 
 ! ================================================================================================ !
 !  Parse File Column Units
@@ -847,8 +964,9 @@ subroutine dist_readDist
 
   character(len=:), allocatable :: lnSplit(:)
   character(len=mInputLn) inLine
-  integer i, nSplit, lineNo, fUnit, nRead
-  logical spErr, cErr
+  real(kind=fPrec) fmtFac
+  integer i, nSplit, lineNo, fUnit, nRead, fmtID, fmtCol
+  logical spErr, cErr, isValid
 
   write(lout,"(a)") "DIST> Reading particles from '"//trim(dist_distFile)//"'"
 
@@ -857,7 +975,7 @@ subroutine dist_readDist
   cErr   = .false.
 
   if(dist_hasFormat .eqv. .false.) then
-    call dist_setColumnFormat("OLD_DIST",cErr)
+    call dist_setMultiColFormat("OLD_DIST",isValid)
   end if
 
   call f_requestUnit(dist_distFile, fUnit)
