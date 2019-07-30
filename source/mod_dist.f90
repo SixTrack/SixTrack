@@ -40,8 +40,11 @@ module mod_dist
   integer,                       private, save :: dist_nParticle = 0  ! Number of PARTICLE keywords in block
 
   integer,                       private, save :: dist_numPart   = 0  ! Number of actual particles generated or read
+  integer,                       private, save :: dist_seedOne   = 0  ! Random seeds
+  integer,                       private, save :: dist_seedTwo   = 0  ! Random seeds
 
   type, private :: dist_fillType
+    character(len=:), allocatable :: fillName
     integer                       :: fillTarget = 0
     integer                       :: fillMethod = 0
     integer,          allocatable :: iParams(:)
@@ -58,6 +61,7 @@ module mod_dist
   integer, parameter :: dist_fillGAUSS      = 3  ! Gaussian distribution
   integer, parameter :: dist_fillUNIFORM    = 4  ! Uniform distribution
   integer, parameter :: dist_fillLINEAR     = 5  ! Linear fill
+  integer, parameter :: dist_fillCOUNT      = 6  ! Integer range
 
   !  Column Formats
   ! ================
@@ -533,10 +537,10 @@ subroutine dist_parseFill(lnSplit, nSplit, iErr)
       iErr = .true.
       return
     end if
-    
+
     allocate(fParams(1))
     allocate(iParams(2))
-    
+
     fillMethod = dist_fillFLOAT
     fParams(1) = zero
     iParams(1) =  1
@@ -547,46 +551,20 @@ subroutine dist_parseFill(lnSplit, nSplit, iErr)
     if(nSplit > 5) call chr_cast(lnSplit(6), iParams(2), cErr)
 
   case("GAUSS")
-    if(nSplit /= 6 .and. nSplit /= 7 .and. nSplit /= 9) then
-      write(lerr,"(a,i0)") "DIST> ERROR FILL format GAUSS expected 3, 4 or 6 arguments, got ",nSplit-3
-      write(lerr,"(a)")    "DIST>       FILL column GAUSS scale sigma mu [cut] [first last]"
+    if(nSplit /= 5 .and. nSplit /= 6 .and. nSplit /= 8) then
+      write(lerr,"(a,i0)") "DIST> ERROR FILL format GAUSS expected 2, 3 or 5 arguments, got ",nSplit-3
+      write(lerr,"(a)")    "DIST>       FILL column GAUSS sigma mu [cut] [first last]"
       iErr = .true.
       return
     end if
-    
-    allocate(fParams(4))
+
+    allocate(fParams(3))
     allocate(iParams(2))
-    
+
     fillMethod = dist_fillGAUSS
     fParams(1) = one
-    fParams(2) = one
-    fParams(3) = zero
-    fParams(4) = zero
-    iParams(1) =  1
-    iParams(2) = -1
-
-    if(nSplit > 3) call chr_cast(lnSplit(4), fParams(1), cErr)
-    if(nSplit > 4) call chr_cast(lnSplit(5), fParams(2), cErr)
-    if(nSplit > 5) call chr_cast(lnSplit(6), fParams(3), cErr)
-    if(nSplit > 6) call chr_cast(lnSplit(7), fParams(4), cErr)
-    if(nSplit > 7) call chr_cast(lnSplit(8), iParams(1), cErr)
-    if(nSplit > 8) call chr_cast(lnSplit(9), iParams(2), cErr)
-
-  case("UNIFORM")
-    if(nSplit /= 6 .and. nSplit /= 8) then
-      write(lerr,"(a,i0)") "DIST> ERROR FILL format UNIFORM expected 3 or 5 arguments, got ",nSplit-3
-      write(lerr,"(a)")    "DIST>       FILL column UNIFORM scale lower upper [first last]"
-      iErr = .true.
-      return
-    end if
-
-    allocate(fParams(4))
-    allocate(iParams(2))
-
-    fillMethod = dist_fillUNIFORM
-    fParams(1) = one
     fParams(2) = zero
-    fParams(3) = one
+    fParams(3) = zero
     iParams(1) =  1
     iParams(2) = -1
 
@@ -596,6 +574,28 @@ subroutine dist_parseFill(lnSplit, nSplit, iErr)
     if(nSplit > 6) call chr_cast(lnSplit(7), iParams(1), cErr)
     if(nSplit > 7) call chr_cast(lnSplit(8), iParams(2), cErr)
 
+  case("UNIFORM")
+    if(nSplit /= 5 .and. nSplit /= 7) then
+      write(lerr,"(a,i0)") "DIST> ERROR FILL format UNIFORM expected 2 or 4 arguments, got ",nSplit-3
+      write(lerr,"(a)")    "DIST>       FILL column UNIFORM lower upper [first last]"
+      iErr = .true.
+      return
+    end if
+
+    allocate(fParams(2))
+    allocate(iParams(2))
+
+    fillMethod = dist_fillUNIFORM
+    fParams(1) = zero
+    fParams(2) = one
+    iParams(1) =  1
+    iParams(2) = -1
+
+    if(nSplit > 3) call chr_cast(lnSplit(4), fParams(1), cErr)
+    if(nSplit > 4) call chr_cast(lnSplit(5), fParams(2), cErr)
+    if(nSplit > 5) call chr_cast(lnSplit(6), iParams(1), cErr)
+    if(nSplit > 6) call chr_cast(lnSplit(7), iParams(2), cErr)
+
   case("LINEAR")
     if(nSplit /= 5 .and. nSplit /= 7) then
       write(lerr,"(a,i0)") "DIST> ERROR FILL format LINEAR expected 2 or 4 arguments, got ",nSplit-3
@@ -604,7 +604,7 @@ subroutine dist_parseFill(lnSplit, nSplit, iErr)
       return
     end if
 
-    allocate(fParams(4))
+    allocate(fParams(2))
     allocate(iParams(2))
 
     fillMethod = dist_fillLINEAR
@@ -618,12 +618,46 @@ subroutine dist_parseFill(lnSplit, nSplit, iErr)
     if(nSplit > 5) call chr_cast(lnSplit(6), iParams(1), cErr)
     if(nSplit > 6) call chr_cast(lnSplit(7), iParams(2), cErr)
 
+  case("COUNT")
+    if(nSplit /= 5 .and. nSplit /= 7) then
+      write(lerr,"(a,i0)") "DIST> ERROR FILL format COUNT expected 2 or 4 arguments, got ",nSplit-3
+      write(lerr,"(a)")    "DIST>       FILL column COUNT start step [first last]"
+      iErr = .true.
+      return
+    end if
+
+    allocate(iParams(4))
+
+    fillMethod = dist_fillCOUNT
+    iParams(1) =  1
+    iParams(2) = -1
+    iParams(3) =  1
+    iParams(4) =  1
+
+    if(nSplit > 3) call chr_cast(lnSplit(4), iParams(3), cErr)
+    if(nSplit > 4) call chr_cast(lnSplit(5), iParams(4), cErr)
+    if(nSplit > 5) call chr_cast(lnSplit(6), iParams(1), cErr)
+    if(nSplit > 6) call chr_cast(lnSplit(7), iParams(2), cErr)
+
   case default
     write(lerr,"(a)") "DIST> ERROR Unknown FILL method '"//trim(lnSplit(3))//"'"
     iErr = .true.
     return
+
   end select
 
+  if(iParams(1) < 1) then
+    write(lerr,"(a)") "DIST> ERROR First particle cannot be smaller than 1"
+    iErr = .true.
+    return
+  end if
+  if(iParams(2) /= -1 .and. iParams(1) > iParams(2)) then
+    write(lerr,"(a)") "DIST> ERROR First particle to fill cannot be after last particle"
+    iErr = .true.
+    return
+  end if
+
+  dist_fillList(dist_nFill)%fillName   = trim(lnSplit(2))
   dist_fillList(dist_nFill)%fillTarget = fillTarget
   dist_fillList(dist_nFill)%fillMethod = fillMethod
   dist_fillList(dist_nFill)%iParams    = iParams
@@ -1312,6 +1346,235 @@ subroutine dist_saveParticle(partNo, colNo, inVal, sErr)
   end select
 
 end subroutine dist_saveParticle
+
+! ================================================================================================ !
+!  Run the FILLs
+!  V.K. Berglyd Olsen, BE-ABP-HSS
+!  Created: 2019-07-30
+!  Updated: 2019-07-30
+! ================================================================================================ !
+subroutine dist_doFilles
+
+  use crcoall
+  use mod_common
+  use mod_common_main
+  use, intrinsic :: iso_fortran_env, only : int16
+
+  integer iFill, j, iA, iB, iVal, fM, fT, intVal
+
+  if(dist_nFill == 0) then
+    return
+  end if
+
+  do iFill=1,dist_nFill
+
+    iA = dist_fillList(iFill)%iParams(1)
+    iB = dist_fillList(iFill)%iParams(2)
+    if(iB == -1) then
+      iB = napx
+    end if
+
+    fM = dist_fillList(iFill)%fillMethod
+    fT = dist_fillList(iFill)%fillTarget
+
+    select case(fT)
+
+    case(dist_fmtNONE)
+      return
+
+    case(dist_fmtPartID)
+      dist_readPartID = .true.
+      if(fM == dist_fillCOUNT) then
+        iVal = dist_fillList(iFill)%iParams(3)
+        do j=iA,iB
+          partID(j) = iVal
+          iVal = iVal + dist_fillList(iFill)%iParams(4)
+        end do
+      else
+        write(lerr,"(a)") "DiST> ERROR FILL "//trim(dist_fillList(iFill)%fillName)//" must be COUNT"
+        call prror
+      end if
+
+    case(dist_fmtParentID)
+      write(lerr,"(a)") "DiST> ERROR Variable "//trim(dist_fillList(iFill)%fillName)//" cannot be filled automatically"
+      call prror
+
+    !  Horizontal Coordinates
+    ! ========================
+
+    case(dist_fmtX, dist_fmtXN, dist_fmtJX)
+      if(fM == dist_fillFLOAT .or. fM == dist_fillGAUSS .or. fM == dist_fillUNIFORM .or. fM == dist_fillLINEAR) then
+        call dist_fillThis(dist_partCol1, iA, iB, fM, dist_fillList(iFill)%fParams)
+      else
+        write(lerr,"(a)") "DiST> ERROR FILL "//trim(dist_fillList(iFill)%fillName)//" must be FLOAT, GAUSS, UNIFORM or LINEAR"
+        call prror
+      end if
+
+    case(dist_fmtPX, dist_fmtXP, dist_fmtPXP0, dist_fmtPXN, dist_fmtPhiX)
+      if(fM == dist_fillFLOAT .or. fM == dist_fillGAUSS .or. fM == dist_fillUNIFORM .or. fM == dist_fillLINEAR) then
+        call dist_fillThis(dist_partCol2, iA, iB, fM, dist_fillList(iFill)%fParams)
+      else
+        write(lerr,"(a)") "DiST> ERROR FILL "//trim(dist_fillList(iFill)%fillName)//" must be FLOAT, GAUSS, UNIFORM or LINEAR"
+        call prror
+      end if
+
+    !  Vertical Coordinates
+    ! ========================
+
+    case(dist_fmtY, dist_fmtYN, dist_fmtJY)
+      if(fM == dist_fillFLOAT .or. fM == dist_fillGAUSS .or. fM == dist_fillUNIFORM .or. fM == dist_fillLINEAR) then
+        call dist_fillThis(dist_partCol3, iA, iB, fM, dist_fillList(iFill)%fParams)
+      else
+        write(lerr,"(a)") "DiST> ERROR FILL "//trim(dist_fillList(iFill)%fillName)//" must be FLOAT, GAUSS, UNIFORM or LINEAR"
+        call prror
+      end if
+
+    case(dist_fmtPY, dist_fmtYP, dist_fmtPYP0, dist_fmtPYN, dist_fmtPhiY)
+      if(fM == dist_fillFLOAT .or. fM == dist_fillGAUSS .or. fM == dist_fillUNIFORM .or. fM == dist_fillLINEAR) then
+        call dist_fillThis(dist_partCol4, iA, iB, fM, dist_fillList(iFill)%fParams)
+      else
+        write(lerr,"(a)") "DiST> ERROR FILL "//trim(dist_fillList(iFill)%fillName)//" must be FLOAT, GAUSS, UNIFORM or LINEAR"
+        call prror
+      end if
+
+    !  Longitudinal Coordinates
+    ! ==========================
+
+    case(dist_fmtSIGMA, dist_fmtZETA, dist_fmtDT, dist_fmtZN, dist_fmtJZ)
+      if(fM == dist_fillFLOAT .or. fM == dist_fillGAUSS .or. fM == dist_fillUNIFORM .or. fM == dist_fillLINEAR) then
+        call dist_fillThis(dist_partCol5, iA, iB, fM, dist_fillList(iFill)%fParams)
+      else
+        write(lerr,"(a)") "DiST> ERROR FILL "//trim(dist_fillList(iFill)%fillName)//" must be FLOAT, GAUSS, UNIFORM or LINEAR"
+        call prror
+      end if
+
+    case(dist_fmtE, dist_fmtDEE0, dist_fmtPT, dist_fmtPSIGMA, dist_fmtP, dist_fmtDPP0, dist_fmtPZN, dist_fmtPhiZ)
+      if(fM == dist_fillFLOAT .or. fM == dist_fillGAUSS .or. fM == dist_fillUNIFORM .or. fM == dist_fillLINEAR) then
+        call dist_fillThis(dist_partCol6, iA, iB, fM, dist_fillList(iFill)%fParams)
+      else
+        write(lerr,"(a)") "DiST> ERROR FILL "//trim(dist_fillList(iFill)%fillName)//" must be FLOAT, GAUSS, UNIFORM or LINEAR"
+        call prror
+      end if
+
+    !  Ion Columns
+    ! =============
+
+    case(dist_fmtMASS)
+      if(fM == dist_fillFLOAT) then
+        call dist_fillThis(nucm, iA, iB, fM, dist_fillList(iFill)%fParams)
+      else
+        write(lerr,"(a)") "DiST> ERROR FILL "//trim(dist_fillList(iFill)%fillName)//" must be FLOAT"
+        call prror
+      end if
+      dist_readMass = .true.
+
+    case(dist_fmtCHARGE)
+      if(fM == dist_fillINT) then
+        nqq(iA:iB) = int(dist_fillList(iFill)%iParams(3), kind=int16)
+      else
+        write(lerr,"(a)") "DiST> ERROR FILL "//trim(dist_fillList(iFill)%fillName)//" must be INT"
+        call prror
+      end if
+      dist_readCharge = .true.
+
+    case(dist_fmtIonA)
+      if(fM == dist_fillINT) then
+        naa(iA:iB) = int(dist_fillList(iFill)%iParams(3), kind=int16)
+      else
+        write(lerr,"(a)") "DiST> ERROR FILL "//trim(dist_fillList(iFill)%fillName)//" must be INT"
+        call prror
+      end if
+      dist_readIonA = .true.
+
+    case(dist_fmtIonZ)
+      if(fM == dist_fillINT) then
+        nzz(iA:iB) = int(dist_fillList(iFill)%iParams(3), kind=int16)
+      else
+        write(lerr,"(a)") "DiST> ERROR FILL "//trim(dist_fillList(iFill)%fillName)//" must be INT"
+        call prror
+      end if
+      dist_readIonZ = .true.
+
+    case(dist_fmtPDGID)
+      if(fM == dist_fillINT) then
+        pdgid(iA:iB) = dist_fillList(iFill)%iParams(3)
+      else
+        write(lerr,"(a)") "DiST> ERROR FILL "//trim(dist_fillList(iFill)%fillName)//" must be INT"
+        call prror
+      end if
+      dist_readPDGID = .true.
+
+    !  Spin Columns
+    ! ==============
+
+    ! case(dist_fmtSPINX)
+    !   call chr_cast(inVal, spin_x(partNo), sErr)
+
+    ! case(dist_fmtSPINY)
+    !   call chr_cast(inVal, spin_y(partNo), sErr)
+
+    ! case(dist_fmtSPINZ)
+    !   call chr_cast(inVal, spin_z(partNo), sErr)
+
+    end select
+  end do
+
+end subroutine dist_doFilles
+
+! ================================================================================================ !
+!  Fill Arrays
+!  V.K. Berglyd Olsen, BE-ABP-HSS
+!  Created: 2019-07-30
+!  Updated: 2019-07-30
+! ================================================================================================ !
+subroutine dist_fillThis(fillArray, iA, iB, fillMethod, fParams)
+
+  use mod_ranecu
+
+  real(kind=fPrec), intent(inout) :: fillArray(*)
+  integer,          intent(in)    :: iA, iB
+  integer,          intent(in)    :: fillMethod
+  real(kind=fPrec), intent(in)    :: fParams(*)
+
+  integer tmpOne, tmpTwo, nRnd, j
+  real(kind=fPrec) rndVals(iB-iA+1), dStep
+
+  nRnd = iB-iA+1
+
+  select case(fillMethod)
+
+  case(dist_fillFLOAT)
+    fillArray(iA:iB) = fParams(1)
+
+  case(dist_fillGAUSS)
+    call recuut(tmpOne, tmpTwo)
+    call recuin(dist_seedOne, dist_seedTwo)
+
+    call ranecu(rndVals, nRnd, 5)
+    fillArray(iA:iB) = rndVals*fParams(1) + fParams(2)
+
+    call recuut(dist_seedOne, dist_seedTwo)
+    call recuin(tmpOne, tmpTwo)
+
+  case(dist_fillUNIFORM)
+    call recuut(tmpOne, tmpTwo)
+    call recuin(dist_seedOne, dist_seedTwo)
+
+    call ranecu(rndVals, nRnd, -1)
+    fillArray(iA:iB) = rndVals*(fParams(2)-fParams(1)) + fParams(1)
+
+    call recuut(dist_seedOne, dist_seedTwo)
+    call recuin(tmpOne, tmpTwo)
+
+  case(dist_fillLINEAR)
+    dStep = (fParams(2)-fParams(1))/real(iB-iA,kind=fPrec)
+    do j=iA,iB
+      fillArray(j) = fParams(1) + dStep*real(j-iA,kind=fPrec)
+    end do
+
+  end select
+
+end subroutine dist_fillThis
 
 ! ================================================================================================ !
 !  Post-Processing of Particle Arrays
