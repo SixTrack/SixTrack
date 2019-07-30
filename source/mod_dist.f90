@@ -60,6 +60,7 @@ module mod_dist
   integer, parameter :: dist_fmtDEE0        = 24 ! Relative particle energy (to reference particle)
   integer, parameter :: dist_fmtDPP0        = 25 ! Relative particle momentum (to reference particle)
   integer, parameter :: dist_fmtPT          = 26 ! Delta energy over reference momentum (Pt)
+  integer, parameter :: dist_fmtPSIGMA      = 27 ! Delta energy over reference momentum, but without beta0
 
   ! Normalised Coordinates
   integer, parameter :: dist_fmtXN          = 41 ! Normalised horizontal position
@@ -488,6 +489,8 @@ subroutine dist_setColumnFormat(fmtName, fErr)
     call dist_appendFormat(dist_fmtDPP0,     one,  6)
   case("DE/P0","DEP0","PT")
     call dist_appendFormat(dist_fmtPT,       one,  6)
+  case("PSIGMA")
+    call dist_appendFormat(dist_fmtPSIGMA,   one,  6)
 
   case("XN")
     call dist_appendFormat(dist_fmtXN,       one,  1)
@@ -746,17 +749,17 @@ subroutine dist_appendFormat(fmtID, colScale, partCol)
       write(lerr,"(a,i0)") "DIST> ERROR Multiple formats selected for particle coordinate ",partCol
       select case(partCol)
       case(1)
-        write(lerr,"(a)") "DIST>      Choose one of: X, XN, JX"
+        write(lerr,"(a)") "DIST>      Choose only one of: X, XN, JX"
       case(2)
-        write(lerr,"(a)") "DIST>      Choose one of: XP, PX, PX/P0, PXN, PHIX"
+        write(lerr,"(a)") "DIST>      Choose only one of: XP, PX, PX/P0, PXN, PHIX"
       case(3)
-        write(lerr,"(a)") "DIST>      Choose one of: Y, YN, JY"
+        write(lerr,"(a)") "DIST>      Choose only one of: Y, YN, JY"
       case(4)
-        write(lerr,"(a)") "DIST>      Choose one of: YP, PY, PY/P0, PYN, PHIY"
+        write(lerr,"(a)") "DIST>      Choose only one of: YP, PY, PY/P0, PYN, PHIY"
       case(5)
-        write(lerr,"(a)") "DIST>      Choose one of: SIGMA, ZETA, DT, ZN, JZ"
+        write(lerr,"(a)") "DIST>      Choose only one of: SIGMA, ZETA, DT, ZN, JZ"
       case(6)
-        write(lerr,"(a)") "DIST>      Choose one of: E, P, DE/E0, DP/P0, PT, PZN, PHIZ"
+        write(lerr,"(a)") "DIST>      Choose only one of: E, P, DE/E0, DP/P0, PT, PZN, PHIZ, PSIGMA"
       end select
       call prror
     end if
@@ -936,15 +939,7 @@ subroutine dist_saveParticle(partNo, colNo, inVal, sErr)
     call chr_cast(inVal, dist_partCol5(partNo), sErr)
     dist_partCol5(partNo) = dist_partCol5(partNo) * dist_colScale(colNo)
 
-  case(dist_fmtE, dist_fmtDEE0, dist_fmtPT)
-    call chr_cast(inVal, dist_partCol6(partNo), sErr)
-    dist_partCol6(partNo) = dist_partCol6(partNo) * dist_colScale(colNo)
-
-  case(dist_fmtP)
-    call chr_cast(inVal, dist_partCol6(partNo), sErr)
-    dist_partCol6(partNo) = dist_partCol6(partNo) * dist_colScale(colNo)
-
-  case(dist_fmtDPP0, dist_fmtPZN, dist_fmtPhiZ)
+  case(dist_fmtE, dist_fmtDEE0, dist_fmtPT, dist_fmtPSIGMA, dist_fmtP, dist_fmtDPP0, dist_fmtPZN, dist_fmtPhiZ)
     call chr_cast(inVal, dist_partCol6(partNo), sErr)
     dist_partCol6(partNo) = dist_partCol6(partNo) * dist_colScale(colNo)
 
@@ -1004,12 +999,9 @@ subroutine dist_postprParticles
   use numerical_constants
 
   logical doAction, doNormal
-  real(kind=fPrec) beta0
 
   doAction = .false.
   doNormal = .false.
-
-  beta0 = e0f/e0
 
   ! Forward energy/momentum must be calculated first
   select case(dist_partFmt(6))
@@ -1029,6 +1021,9 @@ subroutine dist_postprParticles
     dpsv(1:napx) = dist_partCol6(1:napx)
     call part_updatePartEnergy(3,.false.)
   case(dist_fmtPT)
+    ejv(1:napx) = dist_partCol6(1:napx)*e0f + e0
+    call part_updatePartEnergy(1,.false.)
+  case(dist_fmtPSIGMA)
     ejv(1:napx) = (dist_partCol6(1:napx)*e0f)*beta0 + e0
     call part_updatePartEnergy(1,.false.)
   case(dist_fmtPZN)
@@ -1111,7 +1106,7 @@ subroutine dist_postprParticles
   end if
 
   if(doNormal) then
-    call distlib_setCoords(                    &
+    call distlib_setCoords(                        &
       dist_partCol1, dist_partCol2, dist_partCol3, &
       dist_partCol4, dist_partCol5, dist_partCol6, &
       napx, dist_coordTypeNormal                   &
@@ -1119,7 +1114,7 @@ subroutine dist_postprParticles
   end if
 
   if(doAction) then
-    call distlib_setCoords(                    &
+    call distlib_setCoords(                        &
       dist_partCol1, dist_partCol2, dist_partCol3, &
       dist_partCol4, dist_partCol5, dist_partCol6, &
       napx, dist_coordTypeAction                   &
