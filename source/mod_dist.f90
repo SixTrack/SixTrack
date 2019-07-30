@@ -44,18 +44,20 @@ module mod_dist
   type, private :: dist_fillType
     integer                       :: fillTarget = 0
     integer                       :: fillMethod = 0
-    integer                       :: firstPart  = 0
-    integer                       :: lastPart   = 0
     integer,          allocatable :: iParams(:)
     real(kind=fPrec), allocatable :: fParams(:)
   end type dist_fillType
 
+  type(dist_fillType), allocatable, private, save :: dist_fillList(:)
+  integer,                          private, save :: dist_nFill = 0
+
   !  Fill Methods
   integer, parameter :: dist_fillNONE       = 0  ! No fill
-  integer, parameter :: dist_fillFIXED      = 1  ! Fixed value
-  integer, parameter :: dist_fillGAUSS      = 2  ! Gaussian distribution
-  integer, parameter :: dist_fillNORMAL     = 3  ! Normal distribution
-  integer, parameter :: dist_fillLINEAR     = 4  ! Linear fill
+  integer, parameter :: dist_fillINT        = 1  ! Fixed integer value
+  integer, parameter :: dist_fillFLOAT      = 2  ! Fixed float value
+  integer, parameter :: dist_fillGAUSS      = 3  ! Gaussian distribution
+  integer, parameter :: dist_fillUNIFORM    = 4  ! Uniform distribution
+  integer, parameter :: dist_fillLINEAR     = 5  ! Linear fill
 
   !  Column Formats
   ! ================
@@ -457,12 +459,175 @@ subroutine dist_parseFill(lnSplit, nSplit, iErr)
 
   use crcoall
   use mod_alloc
-  use mod_settings
+  use string_tools
+  use numerical_constants
 
   character(len=:), allocatable, intent(in)    :: lnSplit(:)
   integer,                       intent(in)    :: nSplit
   logical,                       intent(inout) :: iErr
 
+  type(dist_fillType), allocatable :: tmpFill(:)
+  real(kind=fPrec),    allocatable :: fParams(:)
+  integer,             allocatable :: iParams(:)
+
+  real(kind=fPrec) fmtFac
+  integer fmtCol, fillMethod, fillTarget, firstPart, lastPart
+  logical fErr, cErr, isValid
+
+  fErr = .false.
+  cErr = .false.
+
+  if(allocated(dist_fillList)) then
+    allocate(tmpFill(dist_nFill+1))
+    tmpFill(1:dist_nFill) = dist_fillList(1:dist_nFill)
+    call move_alloc(tmpFill, dist_fillList)
+    dist_nFill = dist_nFill + 1
+  else
+    allocate(dist_fillList(1))
+    dist_nFill = 1
+  end if
+
+  call dist_parseColumn(lnSplit(2), fErr, fillTarget, fmtFac, fmtCol, isValid)
+  if(fmtCol > 0) then
+    if(dist_partFmt(fmtCol) == 0) then
+      dist_partFmt(fmtCol) = fillTarget
+    end if
+    if(dist_partFmt(fmtCol) /= fillTarget) then
+      call dist_multFormatError(fmtCol)
+      iErr = .true.
+      return
+    end if
+  end if
+
+  select case(chr_toUpper(lnSplit(3)))
+
+  case("NONE")
+    fillMethod = dist_fillNONE
+    allocate(iParams(2))
+    iParams(1) =  1
+    iParams(2) = -1
+
+  case("INT")
+    if(nSplit /= 4 .and. nSplit /= 6) then
+      write(lerr,"(a,i0)") "DIST> ERROR FILL format INT expected 1 or 3 arguments, got ",nSplit-3
+      write(lerr,"(a)")    "DIST>       FILL column INT value [first last]"
+      iErr = .true.
+      return
+    end if
+
+    allocate(iParams(3))
+
+    fillMethod = dist_fillINT
+    iParams(1) =  1
+    iParams(2) = -1
+    iParams(3) =  0
+
+    if(nSplit > 3) call chr_cast(lnSplit(4), iParams(3), cErr)
+    if(nSplit > 4) call chr_cast(lnSplit(5), iParams(1), cErr)
+    if(nSplit > 5) call chr_cast(lnSplit(6), iParams(2), cErr)
+
+  case("FLOAT")
+    if(nSplit /= 4 .and. nSplit /= 6) then
+      write(lerr,"(a,i0)") "DIST> ERROR FILL format FLOAT expected 1 or 3 arguments, got ",nSplit-3
+      write(lerr,"(a)")    "DIST>       FILL column FLOAT value [first last]"
+      iErr = .true.
+      return
+    end if
+    
+    allocate(fParams(1))
+    allocate(iParams(2))
+    
+    fillMethod = dist_fillFLOAT
+    fParams(1) = zero
+    iParams(1) =  1
+    iParams(2) = -1
+
+    if(nSplit > 3) call chr_cast(lnSplit(4), fParams(1), cErr)
+    if(nSplit > 4) call chr_cast(lnSplit(5), iParams(1), cErr)
+    if(nSplit > 5) call chr_cast(lnSplit(6), iParams(2), cErr)
+
+  case("GAUSS")
+    if(nSplit /= 6 .and. nSplit /= 7 .and. nSplit /= 9) then
+      write(lerr,"(a,i0)") "DIST> ERROR FILL format GAUSS expected 3, 4 or 6 arguments, got ",nSplit-3
+      write(lerr,"(a)")    "DIST>       FILL column GAUSS scale sigma mu [cut] [first last]"
+      iErr = .true.
+      return
+    end if
+    
+    allocate(fParams(4))
+    allocate(iParams(2))
+    
+    fillMethod = dist_fillGAUSS
+    fParams(1) = one
+    fParams(2) = one
+    fParams(3) = zero
+    fParams(4) = zero
+    iParams(1) =  1
+    iParams(2) = -1
+
+    if(nSplit > 3) call chr_cast(lnSplit(4), fParams(1), cErr)
+    if(nSplit > 4) call chr_cast(lnSplit(5), fParams(2), cErr)
+    if(nSplit > 5) call chr_cast(lnSplit(6), fParams(3), cErr)
+    if(nSplit > 6) call chr_cast(lnSplit(7), fParams(4), cErr)
+    if(nSplit > 7) call chr_cast(lnSplit(8), iParams(1), cErr)
+    if(nSplit > 8) call chr_cast(lnSplit(9), iParams(2), cErr)
+
+  case("UNIFORM")
+    if(nSplit /= 6 .and. nSplit /= 8) then
+      write(lerr,"(a,i0)") "DIST> ERROR FILL format UNIFORM expected 3 or 5 arguments, got ",nSplit-3
+      write(lerr,"(a)")    "DIST>       FILL column UNIFORM scale lower upper [first last]"
+      iErr = .true.
+      return
+    end if
+
+    allocate(fParams(4))
+    allocate(iParams(2))
+
+    fillMethod = dist_fillUNIFORM
+    fParams(1) = one
+    fParams(2) = zero
+    fParams(3) = one
+    iParams(1) =  1
+    iParams(2) = -1
+
+    if(nSplit > 3) call chr_cast(lnSplit(4), fParams(1), cErr)
+    if(nSplit > 4) call chr_cast(lnSplit(5), fParams(2), cErr)
+    if(nSplit > 5) call chr_cast(lnSplit(6), fParams(3), cErr)
+    if(nSplit > 6) call chr_cast(lnSplit(7), iParams(1), cErr)
+    if(nSplit > 7) call chr_cast(lnSplit(8), iParams(2), cErr)
+
+  case("LINEAR")
+    if(nSplit /= 5 .and. nSplit /= 7) then
+      write(lerr,"(a,i0)") "DIST> ERROR FILL format LINEAR expected 2 or 4 arguments, got ",nSplit-3
+      write(lerr,"(a)")    "DIST>       FILL column LINEAR lower upper [first last]"
+      iErr = .true.
+      return
+    end if
+
+    allocate(fParams(4))
+    allocate(iParams(2))
+
+    fillMethod = dist_fillLINEAR
+    fParams(1) = zero
+    fParams(2) = one
+    iParams(1) =  1
+    iParams(2) = -1
+
+    if(nSplit > 3) call chr_cast(lnSplit(4), fParams(1), cErr)
+    if(nSplit > 4) call chr_cast(lnSplit(5), fParams(2), cErr)
+    if(nSplit > 5) call chr_cast(lnSplit(6), iParams(1), cErr)
+    if(nSplit > 6) call chr_cast(lnSplit(7), iParams(2), cErr)
+
+  case default
+    write(lerr,"(a)") "DIST> ERROR Unknown FILL method '"//trim(lnSplit(3))//"'"
+    iErr = .true.
+    return
+  end select
+
+  dist_fillList(dist_nFill)%fillTarget = fillTarget
+  dist_fillList(dist_nFill)%fillMethod = fillMethod
+  dist_fillList(dist_nFill)%iParams    = iParams
+  dist_fillList(dist_nFill)%fParams    = fParams
 
 end subroutine dist_parseFill
 
@@ -889,26 +1054,41 @@ subroutine dist_appendFormat(fmtID, colScale, partCol)
     if(dist_partFmt(partCol) == 0) then
       dist_partFmt(partCol) = fmtID
     else
-      write(lerr,"(a,i0)") "DIST> ERROR Multiple formats selected for particle coordinate ",partCol
-      select case(partCol)
-      case(1)
-        write(lerr,"(a)") "DIST>      Choose only one of: X, XN, JX"
-      case(2)
-        write(lerr,"(a)") "DIST>      Choose only one of: XP, PX, PX/P0, PXN, PHIX"
-      case(3)
-        write(lerr,"(a)") "DIST>      Choose only one of: Y, YN, JY"
-      case(4)
-        write(lerr,"(a)") "DIST>      Choose only one of: YP, PY, PY/P0, PYN, PHIY"
-      case(5)
-        write(lerr,"(a)") "DIST>      Choose only one of: SIGMA, ZETA, DT, ZN, JZ"
-      case(6)
-        write(lerr,"(a)") "DIST>      Choose only one of: E, P, DE/E0, DP/P0, PT, PZN, PHIZ, PSIGMA"
-      end select
+      call dist_multFormatError(partCol)
       call prror
     end if
   end if
 
 end subroutine dist_appendFormat
+
+! ================================================================================================ !
+!  V.K. Berglyd Olsen, BE-ABP-HSS
+!  Created: 2019-07-05
+!  Updated: 2019-07-05
+! ================================================================================================ !
+subroutine dist_multFormatError(partCol)
+
+  use crcoall
+
+  integer, intent(in) :: partCol
+
+  write(lerr,"(a,i0)") "DIST> ERROR Multiple formats selected for particle coordinate ",partCol
+  select case(partCol)
+  case(1)
+    write(lerr,"(a)") "DIST>      Choose only one of: X, XN, JX"
+  case(2)
+    write(lerr,"(a)") "DIST>      Choose only one of: XP, PX, PX/P0, PXN, PHIX"
+  case(3)
+    write(lerr,"(a)") "DIST>      Choose only one of: Y, YN, JY"
+  case(4)
+    write(lerr,"(a)") "DIST>      Choose only one of: YP, PY, PY/P0, PYN, PHIY"
+  case(5)
+    write(lerr,"(a)") "DIST>      Choose only one of: SIGMA, ZETA, DT, ZN, JZ"
+  case(6)
+    write(lerr,"(a)") "DIST>      Choose only one of: E, P, DE/E0, DP/P0, PT, PZN, PHIZ, PSIGMA"
+  end select
+
+end subroutine dist_multFormatError
 
 ! ================================================================================================ !
 !  Parse PARTICLE Lines from DIST Block
