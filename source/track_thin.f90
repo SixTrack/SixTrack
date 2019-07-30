@@ -1385,11 +1385,7 @@ subroutine thin6d(nthinerr)
             do j=1,napx
               xv1(j)  = xv1(j) + stracki*yv1(j)
               xv2(j)  = xv2(j) + stracki*yv2(j)
-#ifdef FAST
               sigmv(j) = sigmv(j) + stracki*(c1e3-rvv(j)*(c1e3+(yv1(j)*yv1(j)+yv2(j)*yv2(j))*c5m4))
-#else
-              sigmv(j) = sigmv(j) + stracki*(c1e3-rvv(j)*sqrt(c1e6+yv1(j)*yv1(j)+yv2(j)*yv2(j)))
-#endif
               xj     = (xv1(j)-torbx(ie))/c1e3
               xpj    = (yv1(j)-torbxp(ie))/c1e3
               yj     = (xv2(j)-torby(ie))/c1e3
@@ -1447,11 +1443,7 @@ subroutine thin6d(nthinerr)
             do j=1,napx
               xv1(j)  = xv1(j) + stracki*yv1(j)
               xv2(j)  = xv2(j) + stracki*yv2(j)
-#ifdef FAST
               sigmv(j) = sigmv(j) + stracki*(c1e3-rvv(j)*(c1e3+(yv1(j)**2+yv2(j)**2)*c5m4))
-#else
-              sigmv(j) = sigmv(j) + stracki*(c1e3-rvv(j)*sqrt((c1e6+yv1(j)**2)+yv2(j)**2))
-#endif
             end do
           end if
         end if
@@ -2109,6 +2101,8 @@ end subroutine thin6d
 subroutine trackReport(n)
 
   use crcoall
+  use floatPrecision
+  use mathlib_bouncer
   use parpro,     only : npart
   use mod_common, only : ithick, iclo6, numl, napx, napxo
 
@@ -2133,8 +2127,8 @@ subroutine trackReport(n)
     else
       trackMode = trim(trackMode)//" 4D"
     end if
-    oPart   = int(log10(real(npart)))+1
-    oTurn   = int(log10(real(numl)))+1
+    oPart   = int(log10_mb(real(napxo, kind=fPrec))) + 1
+    oTurn   = int(log10_mb(real(numl,  kind=fPrec))) + 1
     isFirst = .false.
     write(trackFmt,"(2(a,i0),a)") "(2(a,i",oTurn,"),2(a,i",oPart,"))"
   end if

@@ -235,6 +235,9 @@ subroutine shuffleLostParticles
     oidpsv(j:tnapx)    = cshift(oidpsv(j:tnapx),    1)
     moidpsv(j:tnapx)   = cshift(moidpsv(j:tnapx),   1)
     omoidpsv(j:tnapx)  = cshift(omoidpsv(j:tnapx),  1)
+    spin_x(j:tnapx)    = cshift(spin_x(j:tnapx),    1)
+    spin_y(j:tnapx)    = cshift(spin_y(j:tnapx),    1)
+    spin_z(j:tnapx)    = cshift(spin_z(j:tnapx),    1)
 
     ! Backtracking + Aperture
     plost(j:tnapx)     = cshift(plost(j:tnapx),     1)

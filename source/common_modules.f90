@@ -900,6 +900,10 @@ module mod_common_main
   real(kind=fPrec), allocatable, save :: nucm(:)       ! Particle mass
   real(kind=fPrec), allocatable, save :: mtc(:)        ! Mass-to-charge ratio
 
+  real(kind=fPrec), allocatable, save :: spin_x(:)     ! x component of the particle spin
+  real(kind=fPrec), allocatable, save :: spin_y(:)     ! y component of the particle spin
+  real(kind=fPrec), allocatable, save :: spin_z(:)     ! z component of the particle spin
+
   integer(kind=int16), allocatable, save :: nqq(:)     ! Particle charge
   integer(kind=int16), allocatable, save :: naa(:)     ! Ion atomic mass
   integer(kind=int16), allocatable, save :: nzz(:)     ! Ion atomic number
@@ -964,6 +968,9 @@ subroutine mod_commonmn_expand_arrays(nblz_new,npart_new)
     call alloc(omoidpsv, npart_new,    zero,    "omoidpsv")
     call alloc(nucm,     npart_new,    zero,    "nucm")
     call alloc(mtc,      npart_new,    nucm0,   "mtc")
+    call alloc(spin_x,   npart_new,    zero,    "spin_x")
+    call alloc(spin_y,   npart_new,    zero,    "spin_y")
+    call alloc(spin_z,   npart_new,    zero,    "spin_z")
     call alloc(naa,      npart_new,    aa0,     "naa")
     call alloc(nzz,      npart_new,    zz0,     "nzz")
     call alloc(nqq,      npart_new,    qq0,     "nqq")
