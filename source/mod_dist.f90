@@ -15,7 +15,7 @@ module mod_dist
   use crcoall
   use floatPrecision
   use parpro, only : mFileName
-  use numerical_constants, only : zero
+  use numerical_constants, only : zero, one
 
   implicit none
 
@@ -27,10 +27,6 @@ module mod_dist
   logical,                  private, save :: dist_distLibNorm = .true.  ! DISTlib is used to convert normalised coordinates
   character(len=mFileName), private, save :: dist_distFile    = " "     ! File name for reading the distribution
   character(len=mFileName), private, save :: dist_echoFile    = " "     ! File name for echoing the distribution
-  real(kind=fPrec),         public,  save :: dist_beamEmit(2) = zero    ! Beam emittance for generator and normalisation
-  real(kind=fPrec),         public,  save :: dist_beamLen     = zero    ! RMS bunch length
-  real(kind=fPrec),         public,  save :: dist_beamSpread  = zero    ! Bunch energy spread
-  real(kind=fPrec),         public,  save :: dist_tMat(6,6)   = zero    ! Cpy of the T matrix, properly scaled
 
   integer,          allocatable, private, save :: dist_colFormat(:)   ! The column types in the FORMAT
   real(kind=fPrec), allocatable, private, save :: dist_colScale(:)    ! Scaling factor for the columns
@@ -55,6 +51,7 @@ module mod_dist
   integer,                          private, save :: dist_nFill = 0
 
   !  Fill Methods
+  ! ===============
   integer, parameter :: dist_fillNONE       = 0  ! No fill
   integer, parameter :: dist_fillINT        = 1  ! Fixed integer value
   integer, parameter :: dist_fillFLOAT      = 2  ! Fixed float value
@@ -62,6 +59,22 @@ module mod_dist
   integer, parameter :: dist_fillUNIFORM    = 4  ! Uniform distribution
   integer, parameter :: dist_fillLINEAR     = 5  ! Linear fill
   integer, parameter :: dist_fillCOUNT      = 6  ! Integer range
+
+  !  Normalisation Methods
+  ! =======================
+  integer, parameter :: dist_normNONE       = 0  ! No normalisation
+  integer, parameter :: dist_normSIXTRACK   = 1  ! Use SixTrack tas matrix
+  integer, parameter :: dist_normINPUT      = 2  ! Use matrix in DIST block
+  integer, parameter :: dist_normTWISS      = 3  ! Use twiss in DIST block
+
+  integer,          private, save :: dist_normMethod  = dist_normSIXTRACK ! Flag for source of normalisation matrix
+  integer,          private, save :: dist_tMatRow     = 0                 ! How many T-matrix rows we've read
+  real(kind=fPrec), private, save :: dist_tMat(6,6)   = zero              ! T-matrix to use for normalisation
+  real(kind=fPrec), private, save :: dist_twBeta(2)   = one               ! Twiss beta
+  real(kind=fPrec), private, save :: dist_twAlpha(2)  = zero              ! Twiss alpha
+  real(kind=fPrec), private, save :: dist_bDisp(4)    = zero              ! Dispersion
+  real(kind=fPrec), private, save :: dist_beamEmit(3) = zero              ! Beam emittance
+  integer,          private, save :: dist_emit3Unit   = 0                 ! Flag for converting longitudinal emittance
 
   !  Column Formats
   ! ================
@@ -173,6 +186,22 @@ module mod_dist
       real(kind=C_DOUBLE), value, intent(in) :: emit3
     end subroutine distlib_setEmittance3
 
+    subroutine distlib_setTwiss(betaX, alphaX, betaY, alphaY) bind(C, name="settwisstas")
+      use, intrinsic :: iso_c_binding
+      real(kind=C_DOUBLE), value, intent(in) :: betaX
+      real(kind=C_DOUBLE), value, intent(in) :: alphaX
+      real(kind=C_DOUBLE), value, intent(in) :: betaY
+      real(kind=C_DOUBLE), value, intent(in) :: alphaY
+    end subroutine distlib_setTwiss
+
+    subroutine distlib_setDispersion(dX, dPx, dY, dPy) bind(C, name="setdisptas")
+      use, intrinsic :: iso_c_binding
+      real(kind=C_DOUBLE), value, intent(in) :: dX
+      real(kind=C_DOUBLE), value, intent(in) :: dPx
+      real(kind=C_DOUBLE), value, intent(in) :: dY
+      real(kind=C_DOUBLE), value, intent(in) :: dPy
+    end subroutine distlib_setDispersion
+
     subroutine distlib_setTasMatrix(flatTas) bind(C, name="settasmatrix")
       use, intrinsic :: iso_c_binding
       real(kind=C_DOUBLE), intent(in) :: flatTas(36)
@@ -220,9 +249,10 @@ subroutine dist_generateDist
   use mod_common
   use mod_particles
   use mod_common_main
+  use physical_constants
   use numerical_constants
 
-  integer distLibPart
+  integer i, distLibPart
   real(kind=fPrec) flatTas(36)
 
   call alloc(dist_partCol1, napx, zero, "dist_partCol1")
@@ -232,18 +262,47 @@ subroutine dist_generateDist
   call alloc(dist_partCol5, napx, zero, "dist_partCol5")
   call alloc(dist_partCol6, napx, zero, "dist_partCol6")
 
-  dist_tMat(1:6,1:6) = tas(1:6,1:6)
-  dist_tMat(1:5,6)   = dist_tMat(1:5,6)*c1m3
-  dist_tMat(6,1:5)   = dist_tMat(6,1:5)*c1e3
+  ! If the T matrix hasn't been set from input, we set it here
+  if(dist_normMethod == dist_normSIXTRACK) then
+    dist_tMat(1:6,1:6) = tas(1:6,1:6)
+    dist_tMat(1:5,6)   = dist_tMat(1:5,6)*c1m3
+    dist_tMat(6,1:5)   = dist_tMat(6,1:5)*c1e3
+  end if
+  if(dist_normMethod == dist_normINPUT .and. dist_tMatRow /= 6) then
+    write(lerr,"(a,i0,a)") "DIST> ERROR The T-matrix must be 6 rows, but only ",dist_tMatRow," rows were given"
+    call prror
+  end if
+
+  ! Scale longitudinal emittance
+  select case(dist_emit3Unit)
+  case(1) ! Micrometre
+    dist_beamEmit(3) = dist_beamEmit(3)*c1m6
+  case(2) ! eV s
+    dist_beamEmit(3) = dist_beamEmit(3)*((clight*beta0)/((four*pi)*e0))
+  end select
+  write(lout,"(a,1pe13.6,a)") "DIST> EMITTANCE X = ",dist_beamEmit(1)," m"
+  write(lout,"(a,1pe13.6,a)") "DIST> EMITTANCE Y = ",dist_beamEmit(2)," m"
+  write(lout,"(a,1pe13.6,a)") "DIST> EMITTANCE Z = ",dist_beamEmit(3)," m"
 
 #ifdef DISTLIB
   if(dist_distLib) then
     call distlib_init(1)
     call distlib_setEnergyMass(e0, nucm0)
     call distlib_setEmittance12(dist_beamEmit(1), dist_beamEmit(2))
-  ! call distlib_setEmittance3(dist_beamEmit(3))
-    flatTas = pack(transpose(dist_tMat),.true.)
-    call distlib_setTasMatrix(flatTas)
+    call distlib_setEmittance3(dist_beamEmit(3))
+    select case(dist_normMethod)
+    case(dist_normSIXTRACK, dist_normINPUT)
+      do i=1,6
+        write(lout,"(a,i0,a,6(1x,1pe13.6))") "DIST> TMATRIX(",i,",1:6) =",dist_tMat(i,1:6)
+      end do
+      flatTas = pack(transpose(dist_tMat),.true.)
+      call distlib_setTasMatrix(flatTas)
+    case(dist_normTWISS)
+      call distlib_setTwiss(dist_twBeta(1), dist_twAlpha(1), dist_twBeta(2), dist_twAlpha(2))
+      call distlib_setDispersion(dist_bDisp(1), dist_bDisp(2), dist_bDisp(3), dist_bDisp(4))
+      write(lout,"(a,2(1x,1pe13.6))") "DIST> BETA  X/Y =",dist_twBeta
+      write(lout,"(a,2(1x,1pe13.6))") "DIST> ALPHA X/Y =",dist_twAlpha
+    end select
   end if
 #endif
 
@@ -415,24 +474,49 @@ subroutine dist_parseInputLine(inLine, iLine, iErr)
     dist_beamEmit(1) = dist_beamEmit(1) * c1m6
     dist_beamEmit(2) = dist_beamEmit(2) * c1m6
 
-  case("BUNCHLEN")
-    if(nSplit /= 2) then
-      write(lerr,"(a,i0)") "DIST> ERROR BUNCHLEN takes 1 argument, got ",nSplit-1
-      write(lerr,"(a)")    "DIST>       BUNCHLEN rms_len[mm]"
+  case("LONGEMIT")
+    if(nSplit /= 3) then
+      write(lerr,"(a,i0)") "DIST> ERROR LONGEMIT takes 2 arguments, got ",nSplit-1
+      write(lerr,"(a)")    "DIST>       LONGEMIT emit3 unit[eVs|um]"
       iErr = .true.
       return
     end if
-    call chr_cast(lnSplit(2), dist_beamLen, cErr)
-    dist_beamLen = dist_beamLen * c1m3
+    call chr_cast(lnSplit(2), dist_beamEmit(3), cErr)
+    select case(chr_toLower(lnSplit(3)))
+    case("um","µm")
+      dist_emit3Unit = 1
+    case("evs")
+      dist_emit3Unit = 2
+    case default
+      write(lerr,"(a)") "DIST> ERROR Unknown or unsupported unit '"//trim(lnSplit(3))//"' for LONGEMIT"
+      iErr = .true.
+      return
+    end select
 
-  case("ESPREAD")
-    if(nSplit /= 2) then
-      write(lerr,"(a,i0)") "DIST> ERROR ESPREAD takes 1 argument, got ",nSplit-1
-      write(lerr,"(a)")    "DIST>       ESPREAD rms_energy_spread"
+  case("TWISS")
+    if(nSplit /= 5) then
+      write(lerr,"(a,i0)") "DIST> ERROR TWISS takes 4 arguments, got ",nSplit-1
+      write(lerr,"(a)")    "DIST>       TWISS betaX[m] alphaX[1] betaY[m] alphaY[1]"
       iErr = .true.
       return
     end if
-    call chr_cast(lnSplit(2), dist_beamSpread, cErr)
+    call chr_cast(lnSplit(2), dist_twBeta(1),  cErr)
+    call chr_cast(lnSplit(3), dist_twAlpha(1), cErr)
+    call chr_cast(lnSplit(4), dist_twBeta(2),  cErr)
+    call chr_cast(lnSplit(5), dist_twAlpha(2), cErr)
+    dist_normMethod = dist_normTWISS
+
+  case("DISPERSION")
+    if(nSplit /= 5) then
+      write(lerr,"(a,i0)") "DIST> ERROR DISPERSION takes 4 arguments, got ",nSplit-1
+      write(lerr,"(a)")    "DIST>       DISPERSION dx dpx dy dpy"
+      iErr = .true.
+      return
+    end if
+    call chr_cast(lnSplit(2), dist_bDisp(1), cErr)
+    call chr_cast(lnSplit(3), dist_bDisp(2), cErr)
+    call chr_cast(lnSplit(4), dist_bDisp(3), cErr)
+    call chr_cast(lnSplit(5), dist_bDisp(4), cErr)
 
   case("FILL")
     if(nSplit < 3) then
@@ -453,6 +537,23 @@ subroutine dist_parseInputLine(inLine, iLine, iErr)
     call recuinit(dist_seedOne)
     call recuut(dist_seedOne, dist_seedTwo)
     call recuin(tmpOne, tmpTwo)
+
+  case("TMATRIX")
+    if(nSplit /= 7) then
+      write(lerr,"(a,i0)") "DIST> ERROR TMATRIX takes 6 arguments, got ",nSplit-1
+      iErr = .true.
+      return
+    end if
+    dist_tMatRow = dist_tMatRow + 1
+    if(dist_tMatRow > 6) then
+      write(lerr,"(a)") "DIST> ERROR Only 6 rows for the TMATRIX can be given"
+      iErr = .true.
+      return
+    end if
+    do i=1,6
+      call chr_cast(lnSplit(i+1), dist_tMat(dist_tMatRow,i), cErr)
+    end do
+    dist_normMethod = dist_normINPUT
 
   case default
     write(lerr,"(a)") "DIST> ERROR Unknown keyword '"//trim(lnSplit(1))//"'."
@@ -1763,7 +1864,7 @@ subroutine dist_normToPhysical
 
   sqEmitX = sqrt(dist_beamEmit(1))
   sqEmitY = sqrt(dist_beamEmit(2))
-  sqEmitZ = sqrt(dist_beamLen * dist_beamSpread)
+  sqEmitZ = sqrt(dist_beamEmit(3))
 
   xv1(1:napx) = ( &
     dist_partCol1(1:napx) * (sqEmitX * dist_tMat(1,1))  + &
