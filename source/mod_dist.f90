@@ -1550,7 +1550,7 @@ subroutine dist_fillThis(fillArray, iA, iB, fillMethod, fParams)
     call recuut(tmpOne, tmpTwo)
     call recuin(dist_seedOne, dist_seedTwo)
 
-    call ranecu(rndVals, nRnd, 5)
+    call ranecu(rndVals, nRnd, 1)
     fillArray(iA:iB) = rndVals*fParams(1) + fParams(2)
 
     call recuut(dist_seedOne, dist_seedTwo)
@@ -1560,7 +1560,7 @@ subroutine dist_fillThis(fillArray, iA, iB, fillMethod, fParams)
     call recuut(tmpOne, tmpTwo)
     call recuin(dist_seedOne, dist_seedTwo)
 
-    call ranecu(rndVals, nRnd, -1)
+    call ranecu(rndVals, nRnd, 0)
     fillArray(iA:iB) = rndVals*(fParams(2)-fParams(1)) + fParams(1)
 
     call recuut(dist_seedOne, dist_seedTwo)

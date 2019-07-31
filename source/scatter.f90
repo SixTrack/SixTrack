@@ -911,7 +911,7 @@ subroutine scatter_thin(iElem, ix, turn)
   end do
 
   ! Generate random numbers for probability, branching ratio and phi angle
-  call ranecu(rndVals, napx*3, -1)
+  call ranecu(rndVals, napx*3, 0)
 
   ! Loop over particles
   do j=1,napx
@@ -1380,7 +1380,7 @@ function scatter_generator_getPPElastic(a, b1, b2, phi, tmin) result(t)
   maxItt = 1000000
   do
     nItt = nItt + 1
-    call ranecu(rndArr, 3, -1)
+    call ranecu(rndArr, 3, 0)
 
     ! Randomly switch between g1 and g3 according to probability
     if(rndArr(1) > prob3) then
