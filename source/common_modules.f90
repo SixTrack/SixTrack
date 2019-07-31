@@ -326,8 +326,7 @@ module mod_common
   real(kind=fPrec), save :: emity      = zero ! Vertical emittance
   real(kind=fPrec), save :: emitz      = zero ! Longitudinal emittance
   real(kind=fPrec), save :: gammar     = one  ! Inverse Lorentz factor
-  real(kind=fPrec), save :: betarel    = zero ! Relativistic beta of beam
-  real(kind=fPrec), save :: brho       = zero ! Magnetic rigitidy of beam [Tm]
+  real(kind=fPrec), save :: brho       = zero ! magnetic rigitidy of beam [Tm]
   integer,          save :: ibb6d      = 0    ! 6D beam-beam switch
   integer,          save :: nbeam      = 0    ! Beam-beam elements flag
   integer,          save :: ibbc       = 0    ! Switch for linear coupling considered in 4D and 6D
@@ -353,6 +352,8 @@ module mod_common
   real(kind=fPrec),    save :: e0f     = zero ! Reference momentum [MeV/c]
   real(kind=fPrec),    save :: nucm0   = pmap ! Reference mass [MeV/c^2]
   real(kind=fPrec),    save :: nucmda  = pmap ! Reference mass [MeV/c^2] (DA)
+  real(kind=fPrec),    save :: gamma0  = one  ! Reference beam Lorentz factor
+  real(kind=fPrec),    save :: beta0   = zero ! Reference beam relativistic beta
   integer(kind=int16), save :: aa0     = 1    ! Reference nucleon number
   integer(kind=int16), save :: zz0     = 1    ! Reference charge multiplicity
   integer(kind=int16), save :: qq0     = 1    ! Reference charge

@@ -602,7 +602,7 @@ subroutine cheby_kick(i,ix,n)
   ! last modified: 01-03-2019
   ! apply kick of Chebyshev lenses
 
-  use mod_common, only : betarel, napx, brho
+  use mod_common, only : beta0, napx, brho
   use mod_common_main
   use mathlib_bouncer
   use numerical_constants, only : zero, c180e0, pi
@@ -650,8 +650,8 @@ subroutine cheby_kick(i,ix,n)
      
       ! take into account scaling factor, Brho of beam and its relativistic beta,
       !    and magnetic rigidity and relativistic beta of particle being tracked
-      dxp=(((dxp*cheby_scalingFact(icheby(ix)))/(brho*(clight*betarel)))*moidpsv(jj))*rvv(jj)
-      dyp=(((dyp*cheby_scalingFact(icheby(ix)))/(brho*(clight*betarel)))*moidpsv(jj))*rvv(jj)
+      dxp=(((dxp*cheby_scalingFact(icheby(ix)))/(brho*(clight*beta0)))*moidpsv(jj))*rvv(jj)
+      dyp=(((dyp*cheby_scalingFact(icheby(ix)))/(brho*(clight*beta0)))*moidpsv(jj))*rvv(jj)
       
       ! apply kicks
       yv1(jj)=yv1(jj)+dxp

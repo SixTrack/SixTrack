@@ -915,10 +915,11 @@ subroutine daten
     moidpsv(:)  = one
     omoidpsv(:) = zero
 
-    gammar  = nucm0/e0
-    betarel = sqrt((one+gammar)*(one-gammar))
-    e0f     = sqrt(e0**2-nucm0**2)
-    brho    = (e0f/(clight*c1m6))/qq0
+    gammar = nucm0/e0
+    gamma0 = e0/nucm0
+    beta0  = sqrt((one+gammar)*(one-gammar))
+    e0f    = sqrt(e0**2-nucm0**2)
+    brho   = (e0f/(clight*c1m6))/qq0
 
     if(nbeam >= 1) then
       parbe14 = (((((-one*crad)*partnum)/four)/pi)/sixin_emitNX)*c1e6

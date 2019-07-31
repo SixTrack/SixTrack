@@ -144,7 +144,7 @@ subroutine fluc_moreRandomness
   real(kind=fPrec)   :: tmpRnd(newRnd)
 
   call recuin(fluc_iSeed1, fluc_iSeed2)
-  call ranecu(tmpRnd, newRnd, mcut)
+  call ranecu(tmpRnd, newRnd, 1, real(mcut,kind=fPrec))
   call recuut(fluc_iSeed1, fluc_iSeed2)
 
   if(nzfz == -1) nzfz = 0

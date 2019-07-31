@@ -167,7 +167,7 @@ end subroutine scatter_expand_arrays
 subroutine scatter_init
 
   use crcoall
-  use mod_common, only : gammar, betarel
+  use mod_common, only : gamma0, beta0
   use mathlib_bouncer
   use numerical_constants
 #ifdef HDF5
@@ -221,8 +221,8 @@ subroutine scatter_init
     ! orbY   = scatter_proList(idPro)%fParams(9)
 
       ! Compute the sigmas from beam 2 emittance
-      sigmaX = sqrt(((scatter_beam2EmitX * betaX) * gammar) / betarel) * c1m3
-      sigmaY = sqrt(((scatter_beam2EmitY * betaY) * gammar) / betarel) * c1m3
+      sigmaX = sqrt((scatter_beam2EmitX * betaX) / (gamma0 / beta0)) * c1m3
+      sigmaY = sqrt((scatter_beam2EmitY * betaY) / (gamma0 / beta0)) * c1m3
 
       ! Compute approximate effective sigmas from crossing angle, assuming sigma_z >> sigma_x,y
       xFac  = sqrt(1 + ((scatter_beam2Length / sigmaX) * (orbXP * c1m3))**2)
@@ -1063,7 +1063,7 @@ subroutine scatter_thin(iStru, iElem, nTurn)
   end do
 
   ! Generate random numbers for probability, branching ratio and phi angle
-  call ranecu(rndVals, napx*3, -1)
+  call ranecu(rndVals, napx*3, 0)
 
   ! Loop over particles
   do j=1,napx
@@ -1675,7 +1675,7 @@ function scatter_generatePPElastic(a, b1, b2, phi, tmin) result(t)
   maxItt = 1000000
   do
     nItt = nItt + 1
-    call ranecu(rndArr, 3, -1)
+    call ranecu(rndArr, 3, 0)
 
     ! Randomly switch between g1 and g3 according to probability
     if(rndArr(1) > prob3) then

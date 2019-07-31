@@ -3445,6 +3445,8 @@ subroutine writebin(nthinerr)
 !     partID(ia)=particle ID that is not changing
 !     (the particle arrays are compressed to remove lost particles)
 !     In the case of no lost particles, all partID(i)=i for 1..npart
+      ! FIXME: This logic assumes partID(ia)+1 exists, which it may very well not!
+      !        This only works if the largest particle ID is in the last position.
             if(.not.pstop(partID(ia)).and..not.pstop(partID(ia)+1).and. &
      &           (mod(partID(ia),2).ne.0)) then !Skip odd particle IDs
 

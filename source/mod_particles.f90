@@ -5,7 +5,6 @@
 ! ================================================================================================ !
 module mod_particles
 
-  use crcoall
   use floatPrecision
 
   implicit none
@@ -56,7 +55,7 @@ subroutine part_applyClosedOrbit
     xv2(1:napx)   = xv2(1:napx)   +   clo(2)*real(idz(2),fPrec)
     yv2(1:napx)   = yv2(1:napx)   +  clop(2)*real(idz(2),fPrec)
   end if
-  call part_updatePartEnergy(3)
+  call part_updatePartEnergy(3,.false.)
 
 end subroutine part_applyClosedOrbit
 
@@ -67,6 +66,7 @@ end subroutine part_applyClosedOrbit
 ! ================================================================================================ !
 subroutine part_updateRefEnergy(refEnergy)
 
+  use crcoall
   use mod_common
   use mod_common_main
   use numerical_constants, only : one, c1m6
@@ -88,7 +88,8 @@ subroutine part_updateRefEnergy(refEnergy)
   e0     = refEnergy
   e0f    = sqrt(e0**2 - nucm0**2)
   gammar = nucm0/e0
-  betarel = sqrt((one+gammar)*(one-gammar))
+  gamma0 = e0/nucm0
+  beta0  = sqrt((one+gammar)*(one-gammar))
   brho   = (e0f/(clight*c1m6))/qq0
 
   ! Also update sigmv with the new beta0 = e0f/e0
@@ -99,7 +100,7 @@ subroutine part_updateRefEnergy(refEnergy)
     call prror
   end if
 
-  call part_updatePartEnergy(1)
+  call part_updatePartEnergy(1,.false.)
 
 end subroutine part_updateRefEnergy
 
@@ -108,8 +109,9 @@ end subroutine part_updateRefEnergy
 !  Last modified: 2019-01-10
 !  Updates the relevant particle arrays after the particle's energy, momentum or delta has changed.
 ! ================================================================================================ !
-subroutine part_updatePartEnergy(refArray,updateAngle)
+subroutine part_updatePartEnergy(refArray, updateAngle)
 
+  use crcoall
   use mod_common
   use mod_common_track
   use mod_common_main
@@ -117,21 +119,15 @@ subroutine part_updatePartEnergy(refArray,updateAngle)
 
   implicit none
 
-  integer,           intent(in) :: refArray
-  logical, optional, intent(in) :: updateAngle
-
-  logical :: doUpdateAngle = .false.
+  integer, intent(in) :: refArray
+  logical, intent(in) :: updateAngle
 
   !if(part_isTracking .and. refArray /= 1) then
   !  write(lerr,"(a)") "PART> ERROR During tracking, only energy updates are allowed in part_updatePartEnergy."
   !  call prror
   !end if
 
-  if(present(updateAngle)) then
-    doUpdateAngle = updateAngle
-  end if
-
-  if(doUpdateAngle .and. refArray /= 2) then
+  if(updateAngle .and. refArray /= 2) then
     ! If momentum is updated before the call, then ejf0v must be too
     ejf0v(1:napx) = ejfv(1:napx)
   end if
@@ -161,7 +157,7 @@ subroutine part_updatePartEnergy(refArray,updateAngle)
   omoidpsv(1:napx) = ((one-mtc(1:napx))*oidpsv(1:napx))*c1e3
   rvv(1:napx)      = (ejv(1:napx)*e0f)/(e0*ejfv(1:napx))     ! Beta_0 / beta(j)
 
-  if(doUpdateAngle) then ! Update particle angles
+  if(updateAngle) then ! Update particle angles
     yv1(1:napx)    = (ejf0v(1:napx)/ejfv(1:napx))*yv1(1:napx)
     yv2(1:napx)    = (ejf0v(1:napx)/ejfv(1:napx))*yv2(1:napx)
   end if
@@ -182,8 +178,8 @@ end subroutine part_updatePartEnergy
 ! ================================================================================================ !
 subroutine part_writeState(fileName, isText, withIons)
 
-  use mod_units
   use parpro
+  use mod_units
   use mod_common
   use mod_common_main
   use mod_common_track

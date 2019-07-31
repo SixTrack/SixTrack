@@ -2072,7 +2072,7 @@ recursive real(kind=fPrec) function dynk_computeFUN(funNum, turn) result(retval)
     call recuut(tmpseed1,tmpseed2)
     call recuin(dynk_iData(dynk_funcs(funNum,3)+3),dynk_iData(dynk_funcs(funNum,3)+4))
     ! Run generator for 1 value with current mcut
-    call ranecu(ranecu_rvec,1,dynk_iData(dynk_funcs(funNum,3)+2))
+    call ranecu(ranecu_rvec, 1, 1, real(dynk_iData(dynk_funcs(funNum,3)+2),kind=fPrec))
     ! Save our current seeds and load old seeds
     call recuut(dynk_iData(dynk_funcs(funNum,3)+3),dynk_iData(dynk_funcs(funNum,3)+4))
     call recuin(tmpseed1,tmpseed2)
@@ -2083,8 +2083,8 @@ recursive real(kind=fPrec) function dynk_computeFUN(funNum, turn) result(retval)
     ! Save old seeds and load our current seeds
     call recuut(tmpseed1,tmpseed2)
     call recuin(dynk_iData(dynk_funcs(funNum,3)+2),dynk_iData(dynk_funcs(funNum,3)+3))
-    ! Run generator for 1 value with mcut=-1
-    call ranecu( ranecu_rvec, 1, -1 )
+    ! Run generator for 1 value in uniform mode
+    call ranecu(ranecu_rvec, 1, 0)
     ! Save our current seeds and load old seeds
     call recuut(dynk_iData(dynk_funcs(funNum,3)+2),dynk_iData(dynk_funcs(funNum,3)+3))
     call recuin(tmpseed1,tmpseed2)
@@ -2094,14 +2094,14 @@ recursive real(kind=fPrec) function dynk_computeFUN(funNum, turn) result(retval)
     ! Save old seeds and load our current seeds
     call recuut(tmpseed1,tmpseed2)
     call recuin(dynk_iData(dynk_funcs(funNum,3)+2),dynk_iData(dynk_funcs(funNum,3)+3))
-    ! Run generator for 1 value with mcut=-1
-    call ranecu( ranecu_rvec, 1, -1 )
+    ! Run generator for 1 value in uniform mode
+    call ranecu(ranecu_rvec, 1, 0)
     ! Save our current seeds and load old seeds
     call recuut(dynk_iData(dynk_funcs(funNum,3)+2),dynk_iData(dynk_funcs(funNum,3)+3))
     call recuin(tmpseed1,tmpseed2)
     ! routine for switching element (orginially the electron lens) ON or OFF
     ! when random value is less than P, set ON, else OFF
-    if (ranecu_rvec(1) .lt. dynk_fData(dynk_funcs(funNum,4))) then
+    if(ranecu_rvec(1) .lt. dynk_fData(dynk_funcs(funNum,4))) then
       retval = 1.0
     else
       retval = 0.0

@@ -452,7 +452,7 @@ subroutine eLensTheta(j)
   use mathlib_bouncer
   use numerical_constants, only : zero, one, twopi, c1e3, c1m3, c1m6
   use physical_constants, only: clight, pmae, eps0
-  use mod_common, only : e0, betarel, brho, bez, kz, zz0
+  use mod_common, only : e0, beta0, brho, bez, kz, zz0
   use mod_settings, only : st_quiet
 
   implicit none
@@ -471,9 +471,9 @@ subroutine eLensTheta(j)
     elens_theta_r2(j) = ((elens_len(j)*abs(elens_I(j)))/ &
          (((twopi*((eps0*clight)*clight))*brho)*(elens_r2(j)*c1m3)))*c1e3
     if(elens_I(j) < zero) then
-      elens_theta_r2(j) = elens_theta_r2(j)*(one/(elens_beta_e(j)*betarel)+one)
+      elens_theta_r2(j) = elens_theta_r2(j)*(one/(elens_beta_e(j)*beta0)+one)
     else
-      elens_theta_r2(j) = elens_theta_r2(j)*(one/(elens_beta_e(j)*betarel)-one)
+      elens_theta_r2(j) = elens_theta_r2(j)*(one/(elens_beta_e(j)*beta0)-one)
     end if
     
     if ( elens_type(j)>=2 ) elens_theta_r2(j) = elens_theta_r2(j) * elens_geo_norm(j)

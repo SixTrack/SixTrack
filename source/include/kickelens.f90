@@ -46,9 +46,9 @@ if (rrelens.gt.elens_r1(ielens(ix))) then ! rrelens <= r1 -> no kick from elens
   frrelens = (((elens_theta_r2(ielens(ix))*elens_r2(ielens(ix)))/rrelens)*frrelens)*moidpsv(j)
   if(elens_lThetaR2(ielens(ix))) then
     if(elens_I(ielens(ix)) < zero) then
-      frrelens = frrelens*((rvv(j)+elens_beta_e(ielens(ix))*betarel)/(one+elens_beta_e(ielens(ix))*betarel))
+      frrelens = frrelens*((rvv(j)+elens_beta_e(ielens(ix))*beta0)/(one+elens_beta_e(ielens(ix))*beta0))
     else
-      frrelens = frrelens*((rvv(j)-elens_beta_e(ielens(ix))*betarel)/(one-elens_beta_e(ielens(ix))*betarel))
+      frrelens = frrelens*((rvv(j)-elens_beta_e(ielens(ix))*beta0)/(one-elens_beta_e(ielens(ix))*beta0))
     end if
   endif
   yv1(j)=yv1(j)-(frrelens*xelens)/rrelens
