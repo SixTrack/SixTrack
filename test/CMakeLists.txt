@@ -224,6 +224,8 @@ endif()
 if(DISTLIB)
   list(APPEND SIXTRACK_TESTS
     distlib_normalised
+    distlib_tmatrix
+    distlib_twiss
   )
 endif()
 
@@ -271,6 +273,8 @@ set(TESTS_NOFORT10
   dist_file_6d
   dist_file_6d_direct
   distlib_normalised
+  distlib_tmatrix
+  distlib_twiss
   dump_2_all_ele_highprec
   dump_all_highprec
   dump_binary
@@ -342,6 +346,8 @@ set(TESTS_NO_STF_FORT90
   dist_file_6d
   dist_file_6d_direct
   distlib_normalised
+  distlib_tmatrix
+  distlib_twiss
   dump_all_highprec
   dump4
   dump5
@@ -618,6 +624,8 @@ set(FAST_TESTS
   dist_file_6d
   dist_file_6d_direct
   distlib_normalised
+  distlib_tmatrix
+  distlib_twiss
   dump_2_all_ele_highprec
   dump_all_highprec
   dump_binary
