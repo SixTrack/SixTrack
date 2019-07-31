@@ -24,7 +24,7 @@ module mod_dist
   logical,                  private, save :: dist_hasFormat   = .false. ! Whether the FORMAT keyword exists in block or not
   logical,                  private, save :: dist_libRead     = .false. ! Read file with dist library instead of internal reader
   logical,                  private, save :: dist_distLib     = .false. ! DISTlib is needed to generate the distribution requested
-  logical,                  private, save :: dist_distLibNorm = .false. ! DISTlib is used to convert normalised coordinates
+  logical,                  private, save :: dist_distLibNorm = .true.  ! DISTlib is used to convert normalised coordinates
   character(len=mFileName), private, save :: dist_distFile    = " "     ! File name for reading the distribution
   character(len=mFileName), private, save :: dist_echoFile    = " "     ! File name for echoing the distribution
   real(kind=fPrec),         public,  save :: dist_beamEmit(2) = zero    ! Beam emittance for generator and normalisation
@@ -40,8 +40,8 @@ module mod_dist
   integer,                       private, save :: dist_nParticle = 0  ! Number of PARTICLE keywords in block
 
   integer,                       private, save :: dist_numPart   = 0  ! Number of actual particles generated or read
-  integer,                       private, save :: dist_seedOne   = 0  ! Random seeds
-  integer,                       private, save :: dist_seedTwo   = 0  ! Random seeds
+  integer,                       private, save :: dist_seedOne   = -1 ! Random seeds
+  integer,                       private, save :: dist_seedTwo   = -1 ! Random seeds
 
   type, private :: dist_fillType
     character(len=:), allocatable :: fillName
@@ -175,30 +175,30 @@ module mod_dist
 
     subroutine distlib_setTasMatrix(flatTas) bind(C, name="settasmatrix")
       use, intrinsic :: iso_c_binding
-      real(kind=C_DOUBLE), dimension(36), intent(in) :: flatTas
+      real(kind=C_DOUBLE), intent(in) :: flatTas(36)
     end subroutine distlib_setTasMatrix
 
     subroutine distlib_setCoords(arr1, arr2, arr3, arr4, arr5, arr6, arrLen, cType) bind(C, name="setcoords")
       use, intrinsic :: iso_c_binding
-      real(kind=C_DOUBLE), dimension(*), intent(in) :: arr1
-      real(kind=C_DOUBLE), dimension(*), intent(in) :: arr2
-      real(kind=C_DOUBLE), dimension(*), intent(in) :: arr3
-      real(kind=C_DOUBLE), dimension(*), intent(in) :: arr4
-      real(kind=C_DOUBLE), dimension(*), intent(in) :: arr5
-      real(kind=C_DOUBLE), dimension(*), intent(in) :: arr6
-      integer(kind=C_INT),               intent(in) :: arrLen
-      integer(kind=C_INT),               intent(in) :: cType
+      real(kind=C_DOUBLE),        intent(in) :: arr1(*)
+      real(kind=C_DOUBLE),        intent(in) :: arr2(*)
+      real(kind=C_DOUBLE),        intent(in) :: arr3(*)
+      real(kind=C_DOUBLE),        intent(in) :: arr4(*)
+      real(kind=C_DOUBLE),        intent(in) :: arr5(*)
+      real(kind=C_DOUBLE),        intent(in) :: arr6(*)
+      integer(kind=C_INT), value, intent(in) :: arrLen
+      integer(kind=C_INT), value, intent(in) :: cType
     end subroutine distlib_setCoords
 
     subroutine distlib_getCoords(arr1, arr2, arr3, arr4, arr5, arr6, arrLen) bind(C, name="get6trackcoord")
       use, intrinsic :: iso_c_binding
-      real(kind=C_DOUBLE), dimension(*), intent(inout) :: arr1
-      real(kind=C_DOUBLE), dimension(*), intent(inout) :: arr2
-      real(kind=C_DOUBLE), dimension(*), intent(inout) :: arr3
-      real(kind=C_DOUBLE), dimension(*), intent(inout) :: arr4
-      real(kind=C_DOUBLE), dimension(*), intent(inout) :: arr5
-      real(kind=C_DOUBLE), dimension(*), intent(inout) :: arr6
-      integer(kind=C_INT),               intent(inout) :: arrLen
+      real(kind=C_DOUBLE), intent(inout) :: arr1(*)
+      real(kind=C_DOUBLE), intent(inout) :: arr2(*)
+      real(kind=C_DOUBLE), intent(inout) :: arr3(*)
+      real(kind=C_DOUBLE), intent(inout) :: arr4(*)
+      real(kind=C_DOUBLE), intent(inout) :: arr5(*)
+      real(kind=C_DOUBLE), intent(inout) :: arr6(*)
+      integer(kind=C_INT), intent(inout) :: arrLen
     end subroutine distlib_getCoords
 
   end interface
@@ -232,7 +232,7 @@ subroutine dist_generateDist
   call alloc(dist_partCol5, napx, zero, "dist_partCol5")
   call alloc(dist_partCol6, napx, zero, "dist_partCol6")
 
-  dist_tMat(1:6,1:6) = tas(1:6,1:6)*c1m3
+  dist_tMat(1:6,1:6) = tas(1:6,1:6)
   dist_tMat(1:5,6)   = dist_tMat(1:5,6)*c1m3
   dist_tMat(6,1:5)   = dist_tMat(6,1:5)*c1e3
 
@@ -250,7 +250,6 @@ subroutine dist_generateDist
   if(dist_nParticle > 0) then
     ! Particles are read from DIST block in fort.3
     call dist_parseParticles
-    call dist_postprParticles
   elseif(dist_distFile /= " ") then
     if(dist_libRead) then
       ! Particles are read entirely in DISTlib
@@ -259,13 +258,15 @@ subroutine dist_generateDist
 #endif
     else
       call dist_readDist
-      call dist_postprParticles
     end if
   end if
+  call dist_doFills         ! Do fills, and if requested, overwrite what is read from file
+  call dist_postprParticles ! Copy 6D temp arrays to their correct ones, or send to DISTlib
 
 #ifdef DISTLIB
   if(dist_distLib) then
     ! Our final coordinates are taken from DISTlib
+    ! The 6D temp arrays were sent to DISTlib in dist_postprParticles
     distLibPart = napx
     call distlib_getCoords(                        &
       dist_partCol1, dist_partCol2, dist_partCol3, &
@@ -314,6 +315,7 @@ subroutine dist_parseInputLine(inLine, iLine, iErr)
   use parpro
   use mod_alloc
   use mod_units
+  use mod_ranecu
   use string_tools
   use numerical_constants
 
@@ -323,7 +325,7 @@ subroutine dist_parseInputLine(inLine, iLine, iErr)
 
   character(len=:), allocatable   :: lnSplit(:)
   real(kind=fPrec) fmtFac
-  integer nSplit, i, fmtID, fmtCol
+  integer nSplit, i, fmtID, fmtCol, tmpOne, tmpTwo
   logical spErr, cErr, isValid
 
   call chr_split(inLine, lnSplit, nSplit, spErr)
@@ -438,7 +440,19 @@ subroutine dist_parseInputLine(inLine, iLine, iErr)
       iErr = .true.
       return
     end if
-    call dist_parseFill(lnSplit, nSplit, iErr)
+    call dist_parseFill(lnSplit, nSplit, cErr)
+
+  case("SEED")
+    if(nSplit /= 2) then
+      write(lerr,"(a,i0)") "DIST> ERROR SEED takes 1 argument, got ",nSplit-1
+      iErr = .true.
+      return
+    end if
+    call chr_cast(lnSplit(2), dist_seedOne, cErr)
+    call recuut(tmpOne, tmpTwo)
+    call recuinit(dist_seedOne)
+    call recuut(dist_seedOne, dist_seedTwo)
+    call recuin(tmpOne, tmpTwo)
 
   case default
     write(lerr,"(a)") "DIST> ERROR Unknown keyword '"//trim(lnSplit(1))//"'."
@@ -506,8 +520,12 @@ subroutine dist_parseFill(lnSplit, nSplit, iErr)
   select case(chr_toUpper(lnSplit(3)))
 
   case("NONE")
-    fillMethod = dist_fillNONE
+
+    allocate(fParams(1))
     allocate(iParams(2))
+
+    fillMethod = dist_fillNONE
+    fParams(1) =  zero
     iParams(1) =  1
     iParams(2) = -1
 
@@ -519,9 +537,11 @@ subroutine dist_parseFill(lnSplit, nSplit, iErr)
       return
     end if
 
+    allocate(fParams(1))
     allocate(iParams(3))
 
     fillMethod = dist_fillINT
+    fParams(1) =  zero
     iParams(1) =  1
     iParams(2) = -1
     iParams(3) =  0
@@ -626,9 +646,11 @@ subroutine dist_parseFill(lnSplit, nSplit, iErr)
       return
     end if
 
+    allocate(fParams(1))
     allocate(iParams(4))
 
     fillMethod = dist_fillCOUNT
+    fParams(1) =  zero
     iParams(1) =  1
     iParams(2) = -1
     iParams(3) =  1
@@ -1353,7 +1375,7 @@ end subroutine dist_saveParticle
 !  Created: 2019-07-30
 !  Updated: 2019-07-30
 ! ================================================================================================ !
-subroutine dist_doFilles
+subroutine dist_doFills
 
   use crcoall
   use mod_common
@@ -1366,6 +1388,9 @@ subroutine dist_doFilles
     return
   end if
 
+  ! If we have fills, we consider all particles generated
+  dist_numPart = napx
+
   do iFill=1,dist_nFill
 
     iA = dist_fillList(iFill)%iParams(1)
@@ -1376,6 +1401,11 @@ subroutine dist_doFilles
 
     fM = dist_fillList(iFill)%fillMethod
     fT = dist_fillList(iFill)%fillTarget
+
+    if((fM == dist_fillGAUSS .or. fM == dist_fillUNIFORM) .and. dist_seedOne < 1) then
+      write(lerr,"(a)") "DIST> ERROR Random number fill requested, but no SEED provided in DIST block"
+      call prror
+    end if
 
     select case(fT)
 
@@ -1391,12 +1421,12 @@ subroutine dist_doFilles
           iVal = iVal + dist_fillList(iFill)%iParams(4)
         end do
       else
-        write(lerr,"(a)") "DiST> ERROR FILL "//trim(dist_fillList(iFill)%fillName)//" must be COUNT"
+        write(lerr,"(a)") "DIST> ERROR FILL "//trim(dist_fillList(iFill)%fillName)//" must be COUNT"
         call prror
       end if
 
     case(dist_fmtParentID)
-      write(lerr,"(a)") "DiST> ERROR Variable "//trim(dist_fillList(iFill)%fillName)//" cannot be filled automatically"
+      write(lerr,"(a)") "DIST> ERROR Variable "//trim(dist_fillList(iFill)%fillName)//" cannot be filled automatically"
       call prror
 
     !  Horizontal Coordinates
@@ -1406,7 +1436,7 @@ subroutine dist_doFilles
       if(fM == dist_fillFLOAT .or. fM == dist_fillGAUSS .or. fM == dist_fillUNIFORM .or. fM == dist_fillLINEAR) then
         call dist_fillThis(dist_partCol1, iA, iB, fM, dist_fillList(iFill)%fParams)
       else
-        write(lerr,"(a)") "DiST> ERROR FILL "//trim(dist_fillList(iFill)%fillName)//" must be FLOAT, GAUSS, UNIFORM or LINEAR"
+        write(lerr,"(a)") "DIST> ERROR FILL "//trim(dist_fillList(iFill)%fillName)//" must be FLOAT, GAUSS, UNIFORM or LINEAR"
         call prror
       end if
 
@@ -1414,7 +1444,7 @@ subroutine dist_doFilles
       if(fM == dist_fillFLOAT .or. fM == dist_fillGAUSS .or. fM == dist_fillUNIFORM .or. fM == dist_fillLINEAR) then
         call dist_fillThis(dist_partCol2, iA, iB, fM, dist_fillList(iFill)%fParams)
       else
-        write(lerr,"(a)") "DiST> ERROR FILL "//trim(dist_fillList(iFill)%fillName)//" must be FLOAT, GAUSS, UNIFORM or LINEAR"
+        write(lerr,"(a)") "DIST> ERROR FILL "//trim(dist_fillList(iFill)%fillName)//" must be FLOAT, GAUSS, UNIFORM or LINEAR"
         call prror
       end if
 
@@ -1425,7 +1455,7 @@ subroutine dist_doFilles
       if(fM == dist_fillFLOAT .or. fM == dist_fillGAUSS .or. fM == dist_fillUNIFORM .or. fM == dist_fillLINEAR) then
         call dist_fillThis(dist_partCol3, iA, iB, fM, dist_fillList(iFill)%fParams)
       else
-        write(lerr,"(a)") "DiST> ERROR FILL "//trim(dist_fillList(iFill)%fillName)//" must be FLOAT, GAUSS, UNIFORM or LINEAR"
+        write(lerr,"(a)") "DIST> ERROR FILL "//trim(dist_fillList(iFill)%fillName)//" must be FLOAT, GAUSS, UNIFORM or LINEAR"
         call prror
       end if
 
@@ -1433,7 +1463,7 @@ subroutine dist_doFilles
       if(fM == dist_fillFLOAT .or. fM == dist_fillGAUSS .or. fM == dist_fillUNIFORM .or. fM == dist_fillLINEAR) then
         call dist_fillThis(dist_partCol4, iA, iB, fM, dist_fillList(iFill)%fParams)
       else
-        write(lerr,"(a)") "DiST> ERROR FILL "//trim(dist_fillList(iFill)%fillName)//" must be FLOAT, GAUSS, UNIFORM or LINEAR"
+        write(lerr,"(a)") "DIST> ERROR FILL "//trim(dist_fillList(iFill)%fillName)//" must be FLOAT, GAUSS, UNIFORM or LINEAR"
         call prror
       end if
 
@@ -1444,7 +1474,7 @@ subroutine dist_doFilles
       if(fM == dist_fillFLOAT .or. fM == dist_fillGAUSS .or. fM == dist_fillUNIFORM .or. fM == dist_fillLINEAR) then
         call dist_fillThis(dist_partCol5, iA, iB, fM, dist_fillList(iFill)%fParams)
       else
-        write(lerr,"(a)") "DiST> ERROR FILL "//trim(dist_fillList(iFill)%fillName)//" must be FLOAT, GAUSS, UNIFORM or LINEAR"
+        write(lerr,"(a)") "DIST> ERROR FILL "//trim(dist_fillList(iFill)%fillName)//" must be FLOAT, GAUSS, UNIFORM or LINEAR"
         call prror
       end if
 
@@ -1452,7 +1482,7 @@ subroutine dist_doFilles
       if(fM == dist_fillFLOAT .or. fM == dist_fillGAUSS .or. fM == dist_fillUNIFORM .or. fM == dist_fillLINEAR) then
         call dist_fillThis(dist_partCol6, iA, iB, fM, dist_fillList(iFill)%fParams)
       else
-        write(lerr,"(a)") "DiST> ERROR FILL "//trim(dist_fillList(iFill)%fillName)//" must be FLOAT, GAUSS, UNIFORM or LINEAR"
+        write(lerr,"(a)") "DIST> ERROR FILL "//trim(dist_fillList(iFill)%fillName)//" must be FLOAT, GAUSS, UNIFORM or LINEAR"
         call prror
       end if
 
@@ -1463,7 +1493,7 @@ subroutine dist_doFilles
       if(fM == dist_fillFLOAT) then
         call dist_fillThis(nucm, iA, iB, fM, dist_fillList(iFill)%fParams)
       else
-        write(lerr,"(a)") "DiST> ERROR FILL "//trim(dist_fillList(iFill)%fillName)//" must be FLOAT"
+        write(lerr,"(a)") "DIST> ERROR FILL "//trim(dist_fillList(iFill)%fillName)//" must be FLOAT"
         call prror
       end if
       dist_readMass = .true.
@@ -1472,7 +1502,7 @@ subroutine dist_doFilles
       if(fM == dist_fillINT) then
         nqq(iA:iB) = int(dist_fillList(iFill)%iParams(3), kind=int16)
       else
-        write(lerr,"(a)") "DiST> ERROR FILL "//trim(dist_fillList(iFill)%fillName)//" must be INT"
+        write(lerr,"(a)") "DIST> ERROR FILL "//trim(dist_fillList(iFill)%fillName)//" must be INT"
         call prror
       end if
       dist_readCharge = .true.
@@ -1481,7 +1511,7 @@ subroutine dist_doFilles
       if(fM == dist_fillINT) then
         naa(iA:iB) = int(dist_fillList(iFill)%iParams(3), kind=int16)
       else
-        write(lerr,"(a)") "DiST> ERROR FILL "//trim(dist_fillList(iFill)%fillName)//" must be INT"
+        write(lerr,"(a)") "DIST> ERROR FILL "//trim(dist_fillList(iFill)%fillName)//" must be INT"
         call prror
       end if
       dist_readIonA = .true.
@@ -1490,7 +1520,7 @@ subroutine dist_doFilles
       if(fM == dist_fillINT) then
         nzz(iA:iB) = int(dist_fillList(iFill)%iParams(3), kind=int16)
       else
-        write(lerr,"(a)") "DiST> ERROR FILL "//trim(dist_fillList(iFill)%fillName)//" must be INT"
+        write(lerr,"(a)") "DIST> ERROR FILL "//trim(dist_fillList(iFill)%fillName)//" must be INT"
         call prror
       end if
       dist_readIonZ = .true.
@@ -1499,7 +1529,7 @@ subroutine dist_doFilles
       if(fM == dist_fillINT) then
         pdgid(iA:iB) = dist_fillList(iFill)%iParams(3)
       else
-        write(lerr,"(a)") "DiST> ERROR FILL "//trim(dist_fillList(iFill)%fillName)//" must be INT"
+        write(lerr,"(a)") "DIST> ERROR FILL "//trim(dist_fillList(iFill)%fillName)//" must be INT"
         call prror
       end if
       dist_readPDGID = .true.
@@ -1507,19 +1537,14 @@ subroutine dist_doFilles
     !  Spin Columns
     ! ==============
 
-    ! case(dist_fmtSPINX)
-    !   call chr_cast(inVal, spin_x(partNo), sErr)
-
-    ! case(dist_fmtSPINY)
-    !   call chr_cast(inVal, spin_y(partNo), sErr)
-
-    ! case(dist_fmtSPINZ)
-    !   call chr_cast(inVal, spin_z(partNo), sErr)
+    case(dist_fmtSPINX, dist_fmtSPINY, dist_fmtSPINZ)
+      write(lerr,"(a)") "DIST> ERROR Variable "//trim(dist_fillList(iFill)%fillName)//" cannot be filled automatically"
+      call prror
 
     end select
   end do
 
-end subroutine dist_doFilles
+end subroutine dist_doFills
 
 ! ================================================================================================ !
 !  Fill Arrays
@@ -1550,7 +1575,7 @@ subroutine dist_fillThis(fillArray, iA, iB, fillMethod, fParams)
     call recuut(tmpOne, tmpTwo)
     call recuin(dist_seedOne, dist_seedTwo)
 
-    call ranecu(rndVals, nRnd, 1)
+    call ranecu(rndVals, nRnd, 1, fParams(3))
     fillArray(iA:iB) = rndVals*fParams(1) + fParams(2)
 
     call recuut(dist_seedOne, dist_seedTwo)
@@ -1721,6 +1746,12 @@ subroutine dist_postprParticles
 
 end subroutine dist_postprParticles
 
+! ================================================================================================ !
+!  Apply normalisation matrix
+!  V.K. Berglyd Olsen, BE-ABP-HSS
+!  Created: 2019-07-30
+!  Updated: 2019-07-30
+! ================================================================================================ !
 subroutine dist_normToPhysical
 
   use mod_common

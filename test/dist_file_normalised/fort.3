@@ -2,25 +2,33 @@ GEOMETRY
 
 SETTINGS------------------------------------------------------------------------
   DEBUG
-  INITIALSTATE text
+  INITIALSTATE text ions
 NEXT
 
 SIMULATION----------------------------------------------------------------------
-  PARTICLES    64
-  TURNS        1
+  PARTICLES    100
+  TURNS        10
   LATTICE      Thin 6D
-  6D_CLORB     off
-  WRITE_TRACKS 100 off
+  6D_CLORB     on
+  WRITE_TRACKS 100000 off
   REF_PARTICLE 938.272046
   REF_ENERGY   1500.0
 NEXT
 
 DIST----------------------------------------------------------------------------
-  FORMAT XN PXN YN PYN ZN PZN
-  READ   partDist.dat
   EMITTANCE 2.5 2.5
-  ! PARTICLE 0.0 0.0 0.0 0.0 0.0 0.0
-  ! PARTICLE 0.0 0.0 0.0 0.0 0.0 0.0
+  SEED 12
+  FILL ID     COUNT  1   1
+  FILL XN     GAUSS  1.0 0.0 5.0
+  FILL PXN    GAUSS  1.0 0.0 5.0
+  FILL YN     GAUSS  1.0 0.0 5.0
+  FILL PYN    GAUSS  1.0 0.0 5.0
+  FILL ZN     GAUSS  0.8 0.0 5.0
+  FILL PZN    GAUSS  0.5 0.0 5.0
+  FILL ION_A  INT    1
+  FILL ION_Z  INT    1
+  FILL CHARGE INT    1
+  FILL MASS   FLOAT  938.272046
 NEXT
 
 ITERATION ERRORS----------------------------------------------------------------
