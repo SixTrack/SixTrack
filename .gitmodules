@@ -7,3 +7,6 @@
 [submodule "lib/NAFFlib"]
 	path = lib/NAFFlib
 	url = https://github.com/SixTrack/NAFFlib
+[submodule "lib/DISTlib"]
+	path = lib/DISTlib
+	url = https://github.com/SixTrack/DISTlib.git

@@ -93,6 +93,8 @@ list(APPEND SIXTRACK_TESTS
   chebythin6d_ramp_DYNK
   crabs
   dipedge
+  dist_file_6d
+  dist_file_6d_direct
   distance
   dump_2_all_ele_highprec
   dump_all_highprec
@@ -219,6 +221,14 @@ if(PYTHIA)
   )
 endif()
 
+if(DISTLIB)
+  list(APPEND SIXTRACK_TESTS
+    distlib_normalised
+    distlib_tmatrix
+    distlib_twiss
+  )
+endif()
+
 if(SIXDA)
   list(APPEND SIXTRACK_DA_TESTS
     frs_da
@@ -260,6 +270,11 @@ set(TESTS_NOFORT10
   collimation_new-db_new-block
   collimation_old-db_new-block
   collimation_old-db_old-block
+  dist_file_6d
+  dist_file_6d_direct
+  distlib_normalised
+  distlib_tmatrix
+  distlib_twiss
   dump_2_all_ele_highprec
   dump_all_highprec
   dump_binary
@@ -328,6 +343,11 @@ set(TESTS_NO_STF_FORT90
   crabs
   orbit6d-element-rotations
   dipedge
+  dist_file_6d
+  dist_file_6d_direct
+  distlib_normalised
+  distlib_tmatrix
+  distlib_twiss
   dump_all_highprec
   dump4
   dump5
@@ -601,6 +621,11 @@ set(FAST_TESTS
   collimation_old-db_old-block
   collimation_old-db_old-block
   crabs
+  dist_file_6d
+  dist_file_6d_direct
+  distlib_normalised
+  distlib_tmatrix
+  distlib_twiss
   dump_2_all_ele_highprec
   dump_all_highprec
   dump_binary
