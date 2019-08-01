@@ -2274,6 +2274,7 @@ subroutine collimate_do_collimator(stracki)
   use mod_common_da
   use numerical_constants, only : c5m4
   use coll_db
+  use coll_jaw
   use coll_dist
   use mod_units
   use mathlib_bouncer
@@ -2705,15 +2706,6 @@ subroutine collimate_do_collimator(stracki)
           write(lout,*) 'INFO> slice - Collimator ', cdb_cNameUC(icoll), ' sliced in ',n_slices, ' pieces !'
         end if
 
-!!     In this preliminary try, all secondary collimators are sliced.
-!!     Slice only collimators with finite length!!
-!               if (cdb_cNameUC(icoll)(1:4).eq.'TCSG' .and.
-!     &              c_length.gt.0d0 ) then
-!!     Slice the primaries, to have more statistics faster!
-!!               if (cdb_cNameUC(icoll)(1:3).eq.'TCP' .and.
-!!     +              c_length.gt.0d0 ) then
-!!
-!!
 !!     Calculate longitudinal positions of slices and corresponding heights
 !!     and angles from the fit parameters.
 !!     -> MY NOTATION: y1_sl: jaw at x > 0; y2_sl: jaw at x < 0;
@@ -2749,13 +2741,6 @@ subroutine collimate_do_collimator(stracki)
           angle2(jjj) = (( y2_sl(jjj+1) - y2_sl(jjj) ) / ( x2_sl(jjj+1)-x2_sl(jjj) ))
         end do
 
-!       Sign of the angle defined differently for the two jaws!
-!                    do jjj=1,n_slices
-!                       angle1(jjj) = ( y1_sl(jjj+1) - y1_sl(jjj) ) /     &
-!       &                    (c_length / dble(n_slices) )
-!                       angle2(jjj) = ( y2_sl(jjj+1) - y2_sl(jjj) ) /     &
-!       &                    (c_length / dble(n_slices) )
-!                    enddo
 !       For both jaws, look for the 'deepest' point (closest point to beam)
 !       Then, shift the vectors such that this closest point defines
 !       the nominal aperture
@@ -2795,26 +2780,7 @@ subroutine collimate_do_collimator(stracki)
              write(lout,*) x_sl(jjj), y1_sl(jjj), y2_sl(jjj), angle1(jjj), angle2(jjj), cdb_cTilt(icoll,1), cdb_cTilt(icoll,2)
            end do
         end if
-!
-!!     Check the calculation of slice gap and centre
-!                  if (firstrun) then
-!                     write(*,*) 'Verify centre and gap!'
-!                     do jjj=1,n_slices
-!                        if ( angle1(jjj).gt.0d0 ) then
-!                           a_tmp1 = y1_sl(jjj)
-!                        else
-!                           a_tmp1 = y1_sl(jjj+1)
-!                        endif
-!                        if ( angle2(jjj).lt.0d0 ) then
-!                           a_tmp2 = y2_sl(jjj)
-!                        else
-!                           a_tmp2 = y2_sl(jjj+1)
-!                        endif
-!                        write(*,*) a_tmp1 - a_tmp2,
-!     +                       0.5 * ( a_tmp1 + a_tmp2 )
-!                     enddo
-!                  endif
-!
+
 !       Now, loop over the number of slices and call collimate2 each time!
 !       For each slice, the corresponding offset and angle are to be used.
         do jjj=1,n_slices
@@ -2886,7 +2852,18 @@ subroutine collimate_do_collimator(stracki)
      &                    part_linteract, onesided, flukaname,          &
      &                    secondary,                                    &
      &                    jjj, nabs_type)
+          ! block
+          !   real(kind=fPrec) cLength, cAperture, cOffset, cTilt(2)
+          !   cLength   = c_length
+          !   cAperture = c_aperture
+          !   cOffset   = c_offset
+          !   cTilt     = c_tilt
+          !   call jaw_getFitData(cdb_cSliced(icoll), jjj, cLength, cAperture, cOffset, cTilt)
+          !   ! write(*,*) c_length / real(n_slices,fPrec), cLength
+          !   write(*,*) cTilt, c_tilt
+          ! end block
         end do !do jjj=1,n_slices
+        ! stop
       else !if(n_slices.gt.one .and. totals.gt.smin_slices .and. totals.lt.smax_slices .and.
 !     Treatment of non-sliced collimators
 

@@ -40,7 +40,8 @@ module coll_db
 
   ! Additional computed values
   real(kind=fPrec), allocatable, public, save :: cdb_cTilt(:,:)    ! Collimator jaw tilt
-  integer,          allocatable, public, save :: cdb_cJawFitID(:)  ! Collimator jaw fit index
+  integer,          allocatable, public, save :: cdb_cJawFit(:,:)  ! Collimator jaw fit index
+  integer,          allocatable, public, save :: cdb_cSliced(:)    ! Collimator jaw fit sliced data index
 
   ! Family Arrays
   character(len=:), allocatable, public, save :: cdb_famName(:)     ! Family name
@@ -72,7 +73,8 @@ subroutine cdb_allocDB
   call alloc(cdb_cFound,              cdb_nColl,    .false.,       "cdb_cFound")
 
   call alloc(cdb_cTilt,               cdb_nColl, 2, zero,          "cdb_cTilt")
-  call alloc(cdb_cJawFitID,           cdb_nColl,    0,             "cdb_cJawFitID")
+  call alloc(cdb_cJawFit,   2,        cdb_nColl,    0,             "cdb_cJawFit")
+  call alloc(cdb_cSliced,             cdb_nColl,    0,             "cdb_cSliced")
 
 end subroutine cdb_allocDB
 
@@ -668,7 +670,7 @@ subroutine cdb_setMasterJawFit(nSlices, sMin, sMax, rc1, rc2, jawFit, fitScale)
   real(kind=fPrec), intent(in) :: jawFit(2,6)
   real(kind=fPrec), intent(in) :: fitScale(2)
 
-  integer i, ix, k, jawID
+  integer i, ix, k, fitID(2), sliceID
   logical reCentre(2)
 
   if(nSlices < 1) then
@@ -678,6 +680,8 @@ subroutine cdb_setMasterJawFit(nSlices, sMin, sMax, rc1, rc2, jawFit, fitScale)
   reCentre(:) = .false.
   if(rc1 /= zero) reCentre(1) = .true.
   if(rc2 /= zero) reCentre(2) = .true.
+  call jaw_addJawFit("FIT_1", jawFit(1,:), fitScale(1), reCentre(1), fitID(1))
+  call jaw_addJawFit("FIT_2", jawFit(2,:), fitScale(2), reCentre(2), fitID(2))
 
   do i=1,iu
     ix = ic(i)
@@ -689,9 +693,10 @@ subroutine cdb_setMasterJawFit(nSlices, sMin, sMax, rc1, rc2, jawFit, fitScale)
            cdb_cNameUC(k)(1:4) == "TCLA" .or. cdb_cNameUC(k)(1:3) == "TCT"  .or. &
            cdb_cNameUC(k)(1:4) == "TCLI" .or. cdb_cNameUC(k)(1:4) == "TCL." .or. &
            cdb_cNameUC(k)(1:5) == "TCRYO") then
-          write(lout,"(a,f13.6)")  "COLLDB> Will apply jaw fit to collimator '"//trim(bez(ix))//"' at position ",dcum(i)
-          call jaw_addJawFit(nSlices, jawFit, fitScale, reCentre, jawID)
-          cdb_cJawFitID(k) = jawID
+          write(lout,"(a,f13.6)") "COLLDB> Will apply jaw fit to collimator '"//trim(bez(ix))//"' at position ",dcum(i)
+          cdb_cJawFit(:,k) = fitID
+          call jaw_computeFit(trim(bez(ix)), fitID, nSlices, cdb_cLength(k), cdb_cTilt(:,k), cdb_cOffset(k), sliceID)
+          cdb_cSliced(k) = sliceID
         end if
       end if
     end if
