@@ -546,6 +546,9 @@ if(32BITM)
   if(CRLIBM)
     message(FATAL_ERROR "Cannot use CRLIBM with single precision math.")
   endif(CRLIBM)
+  if(DISTLIB)
+    message(FATAL_ERROR "Cannot use DISTLIB with single precision math.")
+  endif(DISTLIB)
 endif(32BITM)
 
 if(64BITM)
@@ -570,13 +573,16 @@ if(128BITM)
   if(CRLIBM)
     message(FATAL_ERROR "Cannot use CRLIBM with quad precision math.")
   endif(CRLIBM)
+  if(DISTLIB)
+    message(FATAL_ERROR "Cannot use DISTLIB with quad precision math.")
+  endif(DISTLIB)
 endif(128BITM)
 
 if(NOT SIXDA)
   message(STATUS "Not building SixDA version.")
 endif(NOT SIXDA)
 
-# Since each AVX option includes the others, just turn the lower ones off
+# Since each AVX option includes the lower obes, just turn the lower flags off to avoid duplication
 if(AVX512_SKYLAKE)
   set(AVX OFF)
   set(AVX2 OFF)
