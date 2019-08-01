@@ -2639,19 +2639,19 @@ subroutine collimate_do_collimator(stracki)
     rcp0(j)  = rcp(j)
     ejf0v(j) = ejfv(j)
 
-!++  For zero length element track back half collimator length
-!  DRIFT PART
-    if (stracki.eq.0.) then
+    ! For zero length element track back half collimator length
+    ! DRIFT PART
+    if(stracki == 0) then
       if(iexact) then
         zpj=sqrt(one-rcxp(j)**2-rcyp(j)**2)
-        rcx(j) = rcx(j) - half*c_length*(rcxp(j)/zpj)
-        rcy(j) = rcy(j) - half*c_length*(rcyp(j)/zpj)
+        rcx(j) = rcx(j) - (half*c_length)*(rcxp(j)/zpj)
+        rcy(j) = rcy(j) - (half*c_length)*(rcyp(j)/zpj)
       else
-        rcx(j)  = rcx(j) - half*c_length*rcxp(j)
-        rcy(j)  = rcy(j) - half*c_length*rcyp(j)
+        rcx(j) = rcx(j) - (half*c_length)*rcxp(j)
+        rcy(j) = rcy(j) - (half*c_length)*rcyp(j)
       end if
     else
-      write(lerr,"(a,f13.6)") "COLL> ERROR Non-zero length collimator: '"//trim(cdb_cNameUC(icoll))//"' length = ",stracki
+      write(lerr,"(a,f13.6)") "COLL> ERROR Non-zero length collimator '"//trim(cdb_cName(icoll))//"' with length = ",stracki
       call prror
     end if
 
@@ -2668,32 +2668,13 @@ subroutine collimate_do_collimator(stracki)
     onesided = .false.
   end if
 
-!GRD HERE IS THE MAJOR CHANGE TO THE CODE: IN ORDER TO TRACK PROPERLY THE
-!GRD SPECIAL RHIC PRIMARY COLLIMATOR, IMPLEMENTATION OF A DEDICATED ROUTINE
-  if(found) then
-    if(cdb_cNameUC(icoll)(1:4).eq.'COLM') then
-      call collimaterhic(c_material,                                    &
-     &              c_length, c_rotation,                               &
-     &              c_aperture, nom_aperture,                           &
-     &              c_offset, c_tilt,                                   &
-     &              rcx, rcxp, rcy, rcyp,                               &
-     &              rcp, rcs, napx, enom_gev,                           &
-     &              part_hit_pos,part_hit_turn,                         &
-     &              part_abs_pos,part_abs_turn,                         &
-     &              part_impact, part_indiv, part_linteract,            &
-     &              onesided,                                           &
-!GRD let's also add the FLUKA possibility
-     &              flukaname)
-    else
-
-!GRD-SR, 09-02-2006
-!Force the treatment of the TCDQ equipment as a onsided collimator.
-!Both for Beam 1 and Beam 2, the TCDQ is at positive x side.
-!              if(cdb_cNameUC(icoll)(1:4).eq.'TCDQ' ) onesided = .true.
-! to treat all collimators onesided
-! -> only for worst case TCDQ studies
-      if(cdb_cNameUC(icoll)(1:4).eq.'TCDQ') onesided = .true.
-      if(cdb_cNameUC(icoll)(1:5).eq.'TCXRP') onesided = .true.
+  !GRD-SR, 09-02-2006
+  !Force the treatment of the TCDQ equipment as a onsided collimator.
+  !Both for Beam 1 and Beam 2, the TCDQ is at positive x side.
+  ! to treat all collimators onesided
+  ! -> only for worst case TCDQ studies
+  if(cdb_cNameUC(icoll)(1:4) == 'TCDQ')  onesided = .true.
+  if(cdb_cNameUC(icoll)(1:5) == 'TCXRP') onesided = .true.
 
 !==> SLICE here is possible
 !
@@ -2863,17 +2844,6 @@ subroutine collimate_do_collimator(stracki)
             a_tmp2 = y2_sl(jjj+1)
           end if
 
-!!     Write down the information on slice centre and offset
-!                     if (firstrun) then
-!                        write(*,*) 'Processing slice number ',jjj,
-!     &                       ' of ',n_slices,' for the collimator ',
-!     &                       cdb_cNameUC(icoll)
-!                        write(*,*) 'Aperture [m]= ',
-!     &                       a_tmp1 - a_tmp2
-!                        write(*,*) 'Offset [m]  = ',
-!     &                       0.5 * ( a_tmp1 + a_tmp2 )
-!                     endif
-!!
 !     Be careful! the initial tilt must be added!
 !     We leave it like this for the moment (no initial tilt)
 !         c_tilt(1) = c_tilt(1) + angle1(jjj)
@@ -3089,8 +3059,7 @@ subroutine collimate_do_collimator(stracki)
      &                 onesided, flukaname, secondary, 1, nabs_type)
 #endif
       end if !if (n_slices.gt.one .and.
-    end if !if(cdb_cNameUC(icoll)(1:4).eq.'COLM') then
-  end if !if (found) then
+
 end subroutine collimate_do_collimator
 
 !>
@@ -4642,12 +4611,7 @@ subroutine collimate2(c_material, c_length, c_rotation,           &
   use hdf5_output
 #endif
 
-implicit none
-
-! BLOCK DBCOLLIM
-! This block is common to collimaterhic and collimate2
-! It is NOT compatible with block DBCOMMON, as some variable names overlap...
-
+  implicit none
 
   logical onesided,hit
 ! integer nprim,filel,mat,nev,j,nabs,nhit,np,icoll,nabs_tmp
@@ -5298,92 +5262,6 @@ implicit none
 !      WRITE(*,*) 'Fraction of absorped particles: ', 100.*fracab/Nhit
 !
 end subroutine collimate2
-
-!>
-!! collimaterhic()
-!! Collimation for RHIC
-!<
-subroutine collimaterhic(c_material, c_length, c_rotation,        &
-     &     c_aperture, n_aperture,                                      &
-     &     c_offset, c_tilt,                                            &
-     &     x_in, xp_in, y_in,                                           &
-     &     yp_in, p_in, s_in, np, enom,                                 &
-     &     lhit_pos,lhit_turn,                                          &
-     &     part_abs_pos_local, part_abs_turn_local,                     &
-     &     impact, indiv, lint, onesided,                               &
-     &     name)
-!
-!++  Based on routines by JBJ. Changed by RA 2001.
-!
-!++  - Deleted all HBOOK stuff.
-!++  - Deleted optics routine and all parser routines.
-!++  - Replaced RANMAR call by RANLUX call
-!++  - Included RANLUX code from CERNLIB into source
-!++  - Changed dimensions from CGen(100,nmat) to CGen(200,nmat)
-!++  - Replaced FUNPRE with FUNLXP
-!++  - Replaced FUNRAN with FUNLUX
-!++  - Included all CERNLIB code into source: RANLUX, FUNLXP, FUNLUX,
-!++                                         FUNPCT, FUNLZ, RADAPT,
-!++                                           RGS56P
-!++    with additional entries:             RLUXIN, RLUXUT, RLUXAT,
-!++                                           RLUXGO
-!++
-!++  - Changed program so that Nev is total number of particles
-!++    (scattered and not-scattered)
-!++  - Added debug comments
-!++  - Put real dp/dx
-!
-
-  use crcoall
-  use parpro
-  use mod_ranlux
-
-  implicit none
-
-!
-! BLOCK DBCOLLIM
-! This block is common to collimaterhic and collimate2
-! It is NOT compatible with block DBCOMMON, as some variable names overlap...
-
-
-  logical onesided
-! integer nprim,filel,mat,nev,j,nabs,nhit,np,icoll,nabs_tmp
-  integer np
-
-  integer, allocatable :: lhit_pos(:) !(npart)
-  integer, allocatable :: lhit_turn(:) !(npart)
-  integer, allocatable :: part_abs_pos_local(:) !(npart)
-  integer, allocatable :: part_abs_turn_local(:) !(npart)
-  integer, allocatable :: name(:) !(npart)
-!MAY2005
-
-  real(kind=fPrec), allocatable :: x_in(:) !(npart)
-  real(kind=fPrec), allocatable :: xp_in(:) !(npart)
-  real(kind=fPrec), allocatable :: y_in(:) !(npart)
-  real(kind=fPrec), allocatable :: yp_in(:) !(npart)
-  real(kind=fPrec), allocatable :: p_in(:) !(npart)
-  real(kind=fPrec), allocatable :: s_in(:) !(npart)
-  real(kind=fPrec), allocatable :: indiv(:) !(npart)
-  real(kind=fPrec), allocatable :: lint(:) !(npart)
-  real(kind=fPrec), allocatable :: impact(:) !(npart)
-
-  real(kind=fPrec) c_length    !length in m
-  real(kind=fPrec) c_rotation  !rotation angle vs vertical in radian
-  real(kind=fPrec) c_aperture  !aperture in m
-  real(kind=fPrec) c_offset    !offset in m
-  real(kind=fPrec) c_tilt(2)   !tilt in radian
-  character(len=4) c_material  !material
-
-  real(kind=fPrec) enom
-  real(kind=fPrec) n_aperture  !aperture in m for the vertical plane
-  save
-!=======================================================================
-  write(lerr,"(a)") "COLL> ERROR collimateRHIC is no longer supported!"
-  call prror
-end subroutine collimaterhic
-!
-!-----GRD-----GRD-----GRD-----GRD-----GRD-----GRD-----GRD-----GRD-----GRD-----
-!! END collimaterhic()
 
 !>
 !! ichoix(ma)
