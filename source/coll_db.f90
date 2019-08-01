@@ -38,6 +38,9 @@ module coll_db
   real(kind=fPrec), allocatable, public, save :: cdb_cBy(:)         ! Collimator beta y
   logical,          allocatable, public, save :: cdb_cFound(:)      ! Found in lattice
 
+  ! Additional computed values
+  real(kind=fPrec), allocatable, public, save :: cdb_cTilt(:,:)    ! Collimator jaw tilt
+
   ! Family Arrays
   character(len=:), allocatable, public, save :: cdb_famName(:)     ! Family name
   real(kind=fPrec), allocatable, public, save :: cdb_famNSig(:)     ! Family sigma
@@ -54,18 +57,20 @@ subroutine cdb_allocDB
   use mod_alloc
   use numerical_constants
 
-  call alloc(cdb_cName,     mNameLen, cdb_nColl, " ",           "cdb_cName")
-  call alloc(cdb_cNameUC,   mNameLen, cdb_nColl, " ",           "cdb_cNameUC")
-  call alloc(cdb_cMaterial, 4,        cdb_nColl, " ",           "cdb_cMaterial")
-  call alloc(cdb_cFamily,             cdb_nColl, 0,             "cdb_cFamily")
-  call alloc(cdb_cNSig,               cdb_nColl, cdb_defColGap, "cdb_cNSig")
-  call alloc(cdb_cNSigOrig,           cdb_nColl, cdb_defColGap, "cdb_cNSigOrig")
-  call alloc(cdb_cLength,             cdb_nColl, zero,          "cdb_cLength")
-  call alloc(cdb_cOffset,             cdb_nColl, zero,          "cdb_cOffset")
-  call alloc(cdb_cRotation,           cdb_nColl, zero,          "cdb_cRotation")
-  call alloc(cdb_cBx,                 cdb_nColl, zero,          "cdb_cBx")
-  call alloc(cdb_cBy,                 cdb_nColl, zero,          "cdb_cBy")
-  call alloc(cdb_cFound,              cdb_nColl, .false.,       "cdb_cFound")
+  call alloc(cdb_cName,     mNameLen, cdb_nColl,    " ",           "cdb_cName")
+  call alloc(cdb_cNameUC,   mNameLen, cdb_nColl,    " ",           "cdb_cNameUC")
+  call alloc(cdb_cMaterial, 4,        cdb_nColl,    " ",           "cdb_cMaterial")
+  call alloc(cdb_cFamily,             cdb_nColl,    0,             "cdb_cFamily")
+  call alloc(cdb_cNSig,               cdb_nColl,    cdb_defColGap, "cdb_cNSig")
+  call alloc(cdb_cNSigOrig,           cdb_nColl,    cdb_defColGap, "cdb_cNSigOrig")
+  call alloc(cdb_cLength,             cdb_nColl,    zero,          "cdb_cLength")
+  call alloc(cdb_cOffset,             cdb_nColl,    zero,          "cdb_cOffset")
+  call alloc(cdb_cRotation,           cdb_nColl,    zero,          "cdb_cRotation")
+  call alloc(cdb_cBx,                 cdb_nColl,    zero,          "cdb_cBx")
+  call alloc(cdb_cBy,                 cdb_nColl,    zero,          "cdb_cBy")
+  call alloc(cdb_cFound,              cdb_nColl,    .false.,       "cdb_cFound")
+
+  call alloc(cdb_cTilt,               cdb_nColl, 2, zero,          "cdb_cTilt")
 
 end subroutine cdb_allocDB
 

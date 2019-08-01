@@ -183,8 +183,6 @@ module collimation
 
   integer, save :: nsurvive, nsurvive_end, num_selhit, n_impact
 
-  real(kind=fPrec), allocatable, save :: db_tilt(:,:) !(max_ncoll,2)
-
   integer, allocatable, save :: cn_impact(:)  !(max_ncoll)
   integer, allocatable, save :: cn_absorbed(:) !(max_ncoll)
   real(kind=fPrec), allocatable, save :: caverage(:) !(max_ncoll)
@@ -492,7 +490,6 @@ subroutine collimation_allocate_arrays
 
   call alloc(neffx, numeff, zero, "neffx") !(numeff)
   call alloc(neffy, numeff, zero, "neffy") !(numeff)
-  call alloc(db_tilt, max_ncoll, 2, zero, "db_tilt") !(max_ncoll,2)
 
   call alloc(cn_impact, max_ncoll, 0, "cn_impact")  !(max_ncoll)
   call alloc(cn_absorbed, max_ncoll, 0, "cn_absorbed") !(max_ncoll)
@@ -1966,16 +1963,16 @@ subroutine collimate_start
         c_systilt = c_systilt_sec
       end if
 
-      db_tilt(icoll,1) = c_systilt+c_rmstilt*ran_gauss2(three)
+      cdb_cTilt(icoll,1) = c_systilt+c_rmstilt*ran_gauss2(three)
 
       if(systilt_antisymm) then
-        db_tilt(icoll,2) = -one*c_systilt+c_rmstilt*ran_gauss2(three)
+        cdb_cTilt(icoll,2) = -one*c_systilt+c_rmstilt*ran_gauss2(three)
       else
-        db_tilt(icoll,2) =      c_systilt+c_rmstilt*ran_gauss2(three)
+        cdb_cTilt(icoll,2) =      c_systilt+c_rmstilt*ran_gauss2(three)
       end if
 
-      write(outlun,*) 'INFO>  Collimator ', cdb_cNameUC(icoll), ' jaw 1 has tilt [rad]: ', db_tilt(icoll,1)
-      write(outlun,*) 'INFO>  Collimator ', cdb_cNameUC(icoll), ' jaw 2 has tilt [rad]: ', db_tilt(icoll,2)
+      write(outlun,*) 'INFO>  Collimator ', cdb_cNameUC(icoll), ' jaw 1 has tilt [rad]: ', cdb_cTilt(icoll,1)
+      write(outlun,*) 'INFO>  Collimator ', cdb_cNameUC(icoll), ' jaw 2 has tilt [rad]: ', cdb_cTilt(icoll,2)
     end do
   end if
 
@@ -2041,13 +2038,13 @@ subroutine collimate_start
           nsig_err = nsig + gap_rms_error(i)
 
 ! jaw 1 on positive side x-axis
-          gap_h1 = nsig_err - sin_mb(db_tilt(i,1))*cdb_cLength(i)/2
-          gap_h2 = nsig_err + sin_mb(db_tilt(i,1))*cdb_cLength(i)/2
+          gap_h1 = nsig_err - sin_mb(cdb_cTilt(i,1))*cdb_cLength(i)/2
+          gap_h2 = nsig_err + sin_mb(cdb_cTilt(i,1))*cdb_cLength(i)/2
 
 ! jaw 2 on negative side of x-axis (see change of sign comapred
 ! to above code lines, alos have a look to setting of tilt angle)
-          gap_h3 = nsig_err + sin_mb(db_tilt(i,2))*cdb_cLength(i)/2
-          gap_h4 = nsig_err - sin_mb(db_tilt(i,2))*cdb_cLength(i)/2
+          gap_h3 = nsig_err + sin_mb(cdb_cTilt(i,2))*cdb_cLength(i)/2
+          gap_h4 = nsig_err - sin_mb(cdb_cTilt(i,2))*cdb_cLength(i)/2
 
 ! find minumum halfgap
 ! --- searching for smallest halfgap
@@ -2379,8 +2376,8 @@ subroutine collimate_do_collimator(stracki)
     c_length   = cdb_cLength(icoll)
     c_material = cdb_cMaterial(icoll)
     c_offset   = cdb_cOffset(icoll)
-    c_tilt(1)  = db_tilt(icoll,1)
-    c_tilt(2)  = db_tilt(icoll,2)
+    c_tilt(1)  = cdb_cTilt(icoll,1)
+    c_tilt(2)  = cdb_cTilt(icoll,2)
 
     calc_aperture   = sqrt( xmax**2 * cos_mb(c_rotation)**2 + ymax**2 * sin_mb(c_rotation)**2 )
     nom_aperture    = sqrt( xmax_nom**2 * cos_mb(c_rotation)**2 + ymax_nom**2 * sin_mb(c_rotation)**2 )
@@ -2435,8 +2432,8 @@ subroutine collimate_do_collimator(stracki)
     c_length   = cdb_cLength(icoll)
     c_material = cdb_cMaterial(icoll)
     c_offset   = cdb_cOffset(icoll)
-    c_tilt(1)  = db_tilt(icoll,1)
-    c_tilt(2)  = db_tilt(icoll,2)
+    c_tilt(1)  = cdb_cTilt(icoll,1)
+    c_tilt(2)  = cdb_cTilt(icoll,2)
     calc_aperture = xmax
     nom_aperture = ymax
   end if
@@ -2460,7 +2457,7 @@ subroutine collimate_do_collimator(stracki)
       write(collgaps_unit,"(i4,1x,a16,4(1x,e19.10),1x,a4,5(1x,e13.5),1x,f13.6)") &
         icoll,cdb_cName(icoll)(1:16),cdb_cRotation(icoll),tbetax(ie),tbetay(ie),calc_aperture, &
         cdb_cMaterial(icoll),cdb_cLength(icoll),sqrt(tbetax(ie)*myemitx0_collgap), &
-        sqrt(tbetay(ie)*myemity0_collgap),db_tilt(icoll,1),db_tilt(icoll,2),nsig
+        sqrt(tbetay(ie)*myemity0_collgap),cdb_cTilt(icoll,1),cdb_cTilt(icoll,2),nsig
 
 ! coll settings file
       if(n_slices.le.1) then
@@ -2468,8 +2465,8 @@ subroutine collimate_do_collimator(stracki)
      &cdb_cNameUC(icoll)(1:12),                                            &
      &n_slices,calc_aperture,                                           &
      &cdb_cOffset(icoll),                                                 &
-     &db_tilt(icoll,1),                                                 &
-     &db_tilt(icoll,2),                                                 &
+     &cdb_cTilt(icoll,1),                                                 &
+     &cdb_cTilt(icoll,2),                                                 &
      &cdb_cLength(icoll),                                                 &
      &cdb_cMaterial(icoll)
       end if !if(n_slices.le.1) then
@@ -2739,10 +2736,10 @@ subroutine collimate_do_collimator(stracki)
           y1_sl(jjj) = jaw_ssf(1) * y1_sl(jjj)
           y2_sl(jjj) = jaw_ssf(2) * y2_sl(jjj)
 ! CB code
-          x1_sl(jjj) = x_sl(jjj) *cos_mb(db_tilt(icoll,1))-y1_sl(jjj)*sin_mb(db_tilt(icoll,1))
-          x2_sl(jjj) = x_sl(jjj) *cos_mb(db_tilt(icoll,2))-y2_sl(jjj)*sin_mb(db_tilt(icoll,2))
-          y1_sl(jjj) = y1_sl(jjj)*cos_mb(db_tilt(icoll,1))+x_sl(jjj) *sin_mb(db_tilt(icoll,1))
-          y2_sl(jjj) = y2_sl(jjj)*cos_mb(db_tilt(icoll,2))+x_sl(jjj) *sin_mb(db_tilt(icoll,2))
+          x1_sl(jjj) = x_sl(jjj) *cos_mb(cdb_cTilt(icoll,1))-y1_sl(jjj)*sin_mb(cdb_cTilt(icoll,1))
+          x2_sl(jjj) = x_sl(jjj) *cos_mb(cdb_cTilt(icoll,2))-y2_sl(jjj)*sin_mb(cdb_cTilt(icoll,2))
+          y1_sl(jjj) = y1_sl(jjj)*cos_mb(cdb_cTilt(icoll,1))+x_sl(jjj) *sin_mb(cdb_cTilt(icoll,1))
+          y2_sl(jjj) = y2_sl(jjj)*cos_mb(cdb_cTilt(icoll,2))+x_sl(jjj) *sin_mb(cdb_cTilt(icoll,2))
         end do
 
 !       Sign of the angle defined differently for the two jaws!
@@ -2794,7 +2791,7 @@ subroutine collimate_do_collimator(stracki)
         if(firstrun) then
           write(lout,*) 'Slicing collimator ',cdb_cNameUC(icoll)
            do jjj=1,n_slices
-             write(lout,*) x_sl(jjj), y1_sl(jjj), y2_sl(jjj), angle1(jjj), angle2(jjj), db_tilt(icoll,1), db_tilt(icoll,2)
+             write(lout,*) x_sl(jjj), y1_sl(jjj), y2_sl(jjj), angle1(jjj), angle2(jjj), cdb_cTilt(icoll,1), cdb_cTilt(icoll,2)
            end do
         end if
 !
