@@ -221,7 +221,7 @@ if(PYTHIA)
   )
 endif()
 
-if(DISTLIB)
+if(DISTLIB AND STF)
   list(APPEND SIXTRACK_TESTS
     distlib_normalised
     distlib_tmatrix
