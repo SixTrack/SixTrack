@@ -582,7 +582,7 @@ if(NOT SIXDA)
   message(STATUS "Not building SixDA version.")
 endif(NOT SIXDA)
 
-# Since each AVX option includes the lower obes, just turn the lower flags off to avoid duplication
+# Since each AVX option includes the lower ones, just turn the lower flags off to avoid duplication
 if(AVX512_SKYLAKE)
   set(AVX OFF)
   set(AVX2 OFF)
