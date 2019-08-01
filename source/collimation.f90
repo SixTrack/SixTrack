@@ -885,6 +885,7 @@ subroutine collimate_init()
 
   ! Read collimator database
   call cdb_readCollDB
+  call cdb_setMasterJawFit(n_slices, smin_slices, smax_slices, recenter1, recenter2, jaw_fit, jaw_ssf)
 
   ! Then do any implementation specific initial loading
 #ifdef COLLIMATE_K2

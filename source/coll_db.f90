@@ -40,6 +40,7 @@ module coll_db
 
   ! Additional computed values
   real(kind=fPrec), allocatable, public, save :: cdb_cTilt(:,:)    ! Collimator jaw tilt
+  integer,          allocatable, public, save :: cdb_cJawFitID(:)  ! Collimator jaw fit index
 
   ! Family Arrays
   character(len=:), allocatable, public, save :: cdb_famName(:)     ! Family name
@@ -71,6 +72,7 @@ subroutine cdb_allocDB
   call alloc(cdb_cFound,              cdb_nColl,    .false.,       "cdb_cFound")
 
   call alloc(cdb_cTilt,               cdb_nColl, 2, zero,          "cdb_cTilt")
+  call alloc(cdb_cJawFitID,           cdb_nColl,    0,             "cdb_cJawFitID")
 
 end subroutine cdb_allocDB
 
@@ -644,6 +646,58 @@ subroutine cdb_writeDB
   call f_close(dbUnit)
 
 end subroutine cdb_writeDB
+
+! ================================================================================================ !
+!  V.K. Berglyd Olsen, BE-ABP-HSS
+!  Created: 2019-08-01
+!  Updated: 2019-08-01
+!  Set jaw fit from fort.3
+! ================================================================================================ !
+subroutine cdb_setMasterJawFit(nSlices, sMin, sMax, rc1, rc2, jawFit, fitScale)
+
+  use parpro
+  use crcoall
+  use coll_jaw
+  use mod_common
+  use mod_common_track
+  use numerical_constants
+
+  integer,          intent(in) :: nSlices
+  real(kind=fPrec), intent(in) :: sMin, sMax
+  real(kind=fPrec), intent(in) :: rc1, rc2
+  real(kind=fPrec), intent(in) :: jawFit(2,6)
+  real(kind=fPrec), intent(in) :: fitScale(2)
+
+  integer i, ix, k, jawID
+  logical reCentre(2)
+
+  if(nSlices < 1) then
+    return
+  end if
+
+  reCentre(:) = .false.
+  if(rc1 /= zero) reCentre(1) = .true.
+  if(rc2 /= zero) reCentre(2) = .true.
+
+  do i=1,iu
+    ix = ic(i)
+    if(ix > nblo) then
+      ix = ix-nblo
+      k  = cdb_elemMap(ix)
+      if(k > 0 .and. dcum(i) > sMin .and. dcum(i) < sMax) then
+        if(cdb_cNameUC(k)(1:4) == "TCSG" .or. cdb_cNameUC(k)(1:3) == "TCP"  .or. &
+           cdb_cNameUC(k)(1:4) == "TCLA" .or. cdb_cNameUC(k)(1:3) == "TCT"  .or. &
+           cdb_cNameUC(k)(1:4) == "TCLI" .or. cdb_cNameUC(k)(1:4) == "TCL." .or. &
+           cdb_cNameUC(k)(1:5) == "TCRYO") then
+          write(lout,"(a,f13.6)")  "COLLDB> Will apply jaw fit to collimator '"//trim(bez(ix))//"' at position ",dcum(i)
+          call jaw_addJawFit(nSlices, jawFit, fitScale, reCentre, jawID)
+          cdb_cJawFitID(k) = jawID
+        end if
+      end if
+    end if
+  end do
+
+end subroutine cdb_setMasterJawFit
 
 ! ================================================================================================ !
 !  V.K. Berglyd Olsen, BE-ABP-HSS
