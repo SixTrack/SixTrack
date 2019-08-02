@@ -112,9 +112,17 @@ subroutine jaw_computeFit(collName, fitID, nSlices, cLength, cTilt, cOffset, sli
   scale1 = jaw_fitData(fitID(1))%fitScale
   scale2 = jaw_fitData(fitID(2))%fitScale
 
+  sX(:)  = zero
+  sX1(:) = zero
+  sX2(:) = zero
+  sY1(:) = zero
+  sY2(:) = zero
+
   ! Calculate longitudinal positions of slices and corresponding heights and angles from the fit parameters.
   ! Note: here, take (nSlices+1) points in order to calculate the tilt angle of the last slice!
 
+  write(1111,"(a)") collName
+  write(1111,"(2(1x,1pe24.17))") cTilt
   do i=1,nSlices+1
     ! Deformation of the jaws scaled with length
     sX(i)  = (real(i-1,fPrec)*cLength)/real(nSlices,fPrec)
@@ -130,6 +138,7 @@ subroutine jaw_computeFit(collName, fitID, nSlices, cLength, cTilt, cOffset, sli
     sX2(i) =  sX(i)*cos_mb(cTilt(2)) - sY2(i)*sin_mb(cTilt(2))
     sY1(i) = sY1(i)*cos_mb(cTilt(1)) +  sX(i)*sin_mb(cTilt(1))
     sY2(i) = sY2(i)*cos_mb(cTilt(2)) +  sX(i)*sin_mb(cTilt(2))
+    write(1111,"(5(1x,1pe24.17))") sX(i), sX1(i), sX2(i), sY1(i), sY2(i)
   end do
 
   do i=1,nSlices
@@ -172,12 +181,12 @@ end subroutine jaw_computeFit
 !  Updated: 2019-08-02
 !  Return the adjusted length, aperture and offset for a specific collimator
 ! ================================================================================================ !
-subroutine jaw_getFitData(sliceID, nSlice, cLength, cAperture, cOffset, cTilt)
+subroutine jaw_getFitData(sliceID, iSlice, cLength, cAperture, cOffset, cTilt)
 
   use numerical_constants
 
   integer,          intent(in)    :: sliceID
-  integer,          intent(in)    :: nSlice
+  integer,          intent(in)    :: iSlice
   real(kind=fPrec), intent(out)   :: cLength
   real(kind=fPrec), intent(inout) :: cAperture
   real(kind=fPrec), intent(inout) :: cOffset
@@ -186,18 +195,18 @@ subroutine jaw_getFitData(sliceID, nSlice, cLength, cAperture, cOffset, cTilt)
   real(kind=fPrec) val1, val2
 
   cLength  = jaw_collData(sliceID)%fitLength
-  cTilt(:) = jaw_collData(sliceID)%fitTilt(:,nSlice)
+  cTilt(:) = jaw_collData(sliceID)%fitTilt(:,iSlice)
 
   if(cTilt(1) > zero) then
-    val1 = jaw_collData(sliceID)%fitData(1,nSlice)
+    val1 = jaw_collData(sliceID)%fitData(1,iSlice)
   else
-    val1 = jaw_collData(sliceID)%fitData(1,nSlice+1)
+    val1 = jaw_collData(sliceID)%fitData(1,iSlice+1)
   end if
 
   if(cTilt(2) < zero) then
-    val2 = jaw_collData(sliceID)%fitData(2,nSlice)
+    val2 = jaw_collData(sliceID)%fitData(2,iSlice)
   else
-    val2 = jaw_collData(sliceID)%fitData(2,nSlice+1)
+    val2 = jaw_collData(sliceID)%fitData(2,iSlice+1)
   end if
 
   val1 = val1 + half*cAperture

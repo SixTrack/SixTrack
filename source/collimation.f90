@@ -916,7 +916,6 @@ subroutine collimate_init()
 
   ! Read collimator database
   call cdb_readCollDB
-  call cdb_setMasterJawFit(n_slices, smin_slices, smax_slices, recenter1, recenter2, jaw_fit, jaw_ssf)
 
   ! Then do any implementation specific initial loading
 #ifdef COLLIMATE_K2
@@ -1976,18 +1975,21 @@ subroutine collimate_start
         c_systilt = c_systilt_sec
       end if
 
-      cdb_cTilt(icoll,1) = c_systilt+c_rmstilt*ran_gauss2(three)
+      cdb_cTilt(1,icoll) = c_systilt+c_rmstilt*ran_gauss2(three)
 
       if(systilt_antisymm) then
-        cdb_cTilt(icoll,2) = -one*c_systilt+c_rmstilt*ran_gauss2(three)
+        cdb_cTilt(2,icoll) = -one*c_systilt+c_rmstilt*ran_gauss2(three)
       else
-        cdb_cTilt(icoll,2) =      c_systilt+c_rmstilt*ran_gauss2(three)
+        cdb_cTilt(2,icoll) =      c_systilt+c_rmstilt*ran_gauss2(three)
       end if
 
-      write(outlun,*) 'INFO>  Collimator ', cdb_cNameUC(icoll), ' jaw 1 has tilt [rad]: ', cdb_cTilt(icoll,1)
-      write(outlun,*) 'INFO>  Collimator ', cdb_cNameUC(icoll), ' jaw 2 has tilt [rad]: ', cdb_cTilt(icoll,2)
+      write(outlun,*) 'INFO>  Collimator ', cdb_cNameUC(icoll), ' jaw 1 has tilt [rad]: ', cdb_cTilt(1,icoll)
+      write(outlun,*) 'INFO>  Collimator ', cdb_cNameUC(icoll), ' jaw 2 has tilt [rad]: ', cdb_cTilt(2,icoll)
     end do
   end if
+
+  ! In case we're using old type jaw fit, this is where we genertae the parameters for the new method
+  call cdb_setMasterJawFit(n_slices, smin_slices, smax_slices, recenter1, recenter2, jaw_fit, jaw_ssf)
 
 !++  Generate random offsets (Gaussian distribution plus systematic)
 !++  Do this only for the first call of this routine (first sample)
@@ -2047,13 +2049,13 @@ subroutine collimate_start
           nsig_err = nsig + gap_rms_error(i)
 
 ! jaw 1 on positive side x-axis
-          gap_h1 = nsig_err - sin_mb(cdb_cTilt(i,1))*cdb_cLength(i)/2
-          gap_h2 = nsig_err + sin_mb(cdb_cTilt(i,1))*cdb_cLength(i)/2
+          gap_h1 = nsig_err - sin_mb(cdb_cTilt(1,i))*cdb_cLength(i)/2
+          gap_h2 = nsig_err + sin_mb(cdb_cTilt(1,i))*cdb_cLength(i)/2
 
 ! jaw 2 on negative side of x-axis (see change of sign comapred
 ! to above code lines, alos have a look to setting of tilt angle)
-          gap_h3 = nsig_err + sin_mb(cdb_cTilt(i,2))*cdb_cLength(i)/2
-          gap_h4 = nsig_err - sin_mb(cdb_cTilt(i,2))*cdb_cLength(i)/2
+          gap_h3 = nsig_err + sin_mb(cdb_cTilt(2,i))*cdb_cLength(i)/2
+          gap_h4 = nsig_err - sin_mb(cdb_cTilt(2,i))*cdb_cLength(i)/2
 
 ! find minumum halfgap
 ! --- searching for smallest halfgap
@@ -2387,8 +2389,8 @@ subroutine collimate_do_collimator(stracki)
     c_length   = cdb_cLength(icoll)
     c_material = cdb_cMaterial(icoll)
     c_offset   = cdb_cOffset(icoll)
-    c_tilt(1)  = cdb_cTilt(icoll,1)
-    c_tilt(2)  = cdb_cTilt(icoll,2)
+    c_tilt(1)  = cdb_cTilt(1,icoll)
+    c_tilt(2)  = cdb_cTilt(2,icoll)
 
     calc_aperture   = sqrt( xmax**2 * cos_mb(c_rotation)**2 + ymax**2 * sin_mb(c_rotation)**2 )
     nom_aperture    = sqrt( xmax_nom**2 * cos_mb(c_rotation)**2 + ymax_nom**2 * sin_mb(c_rotation)**2 )
@@ -2443,8 +2445,8 @@ subroutine collimate_do_collimator(stracki)
     c_length   = cdb_cLength(icoll)
     c_material = cdb_cMaterial(icoll)
     c_offset   = cdb_cOffset(icoll)
-    c_tilt(1)  = cdb_cTilt(icoll,1)
-    c_tilt(2)  = cdb_cTilt(icoll,2)
+    c_tilt(1)  = cdb_cTilt(1,icoll)
+    c_tilt(2)  = cdb_cTilt(2,icoll)
     calc_aperture = xmax
     nom_aperture = ymax
   end if
@@ -2468,18 +2470,18 @@ subroutine collimate_do_collimator(stracki)
       write(coll_gapsUnit,"(i4,1x,a16,4(1x,e19.10),1x,a4,5(1x,e13.5),1x,f13.6)") &
         icoll,cdb_cName(icoll)(1:16),cdb_cRotation(icoll),tbetax(ie),tbetay(ie),calc_aperture, &
         cdb_cMaterial(icoll),cdb_cLength(icoll),sqrt(tbetax(ie)*myemitx0_collgap), &
-        sqrt(tbetay(ie)*myemity0_collgap),cdb_cTilt(icoll,1),cdb_cTilt(icoll,2),nsig
+        sqrt(tbetay(ie)*myemity0_collgap),cdb_cTilt(1,icoll),cdb_cTilt(2,icoll),nsig
 
 ! coll settings file
       if(n_slices.le.1) then
-        write(coll_settingsUnit,'(a,1x,i10,5(1x,e13.5),1x,a)')          &
-     &cdb_cNameUC(icoll)(1:12),                                            &
-     &n_slices,calc_aperture,                                           &
-     &cdb_cOffset(icoll),                                                 &
-     &cdb_cTilt(icoll,1),                                                 &
-     &cdb_cTilt(icoll,2),                                                 &
-     &cdb_cLength(icoll),                                                 &
-     &cdb_cMaterial(icoll)
+        write(coll_settingsUnit,'(a20,1x,i10,5(1x,e13.5),1x,a)') &
+          cdb_cNameUC(icoll)(1:20),                              &
+          n_slices,calc_aperture,                                &
+          cdb_cOffset(icoll),                                    &
+          cdb_cTilt(1,icoll),                                    &
+          cdb_cTilt(2,icoll),                                    &
+          cdb_cLength(icoll),                                    &
+          cdb_cMaterial(icoll)
       end if !if(n_slices.le.1) then
     end if !if(iturn.eq.1) then
   end if !if(firstrun) then

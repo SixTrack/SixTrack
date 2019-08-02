@@ -59,22 +59,22 @@ subroutine cdb_allocDB
   use mod_alloc
   use numerical_constants
 
-  call alloc(cdb_cName,     mNameLen, cdb_nColl,    " ",           "cdb_cName")
-  call alloc(cdb_cNameUC,   mNameLen, cdb_nColl,    " ",           "cdb_cNameUC")
-  call alloc(cdb_cMaterial, 4,        cdb_nColl,    " ",           "cdb_cMaterial")
-  call alloc(cdb_cFamily,             cdb_nColl,    0,             "cdb_cFamily")
-  call alloc(cdb_cNSig,               cdb_nColl,    cdb_defColGap, "cdb_cNSig")
-  call alloc(cdb_cNSigOrig,           cdb_nColl,    cdb_defColGap, "cdb_cNSigOrig")
-  call alloc(cdb_cLength,             cdb_nColl,    zero,          "cdb_cLength")
-  call alloc(cdb_cOffset,             cdb_nColl,    zero,          "cdb_cOffset")
-  call alloc(cdb_cRotation,           cdb_nColl,    zero,          "cdb_cRotation")
-  call alloc(cdb_cBx,                 cdb_nColl,    zero,          "cdb_cBx")
-  call alloc(cdb_cBy,                 cdb_nColl,    zero,          "cdb_cBy")
-  call alloc(cdb_cFound,              cdb_nColl,    .false.,       "cdb_cFound")
+  call alloc(cdb_cName,     mNameLen, cdb_nColl, " ",           "cdb_cName")
+  call alloc(cdb_cNameUC,   mNameLen, cdb_nColl, " ",           "cdb_cNameUC")
+  call alloc(cdb_cMaterial, 4,        cdb_nColl, " ",           "cdb_cMaterial")
+  call alloc(cdb_cFamily,             cdb_nColl, 0,             "cdb_cFamily")
+  call alloc(cdb_cNSig,               cdb_nColl, cdb_defColGap, "cdb_cNSig")
+  call alloc(cdb_cNSigOrig,           cdb_nColl, cdb_defColGap, "cdb_cNSigOrig")
+  call alloc(cdb_cLength,             cdb_nColl, zero,          "cdb_cLength")
+  call alloc(cdb_cOffset,             cdb_nColl, zero,          "cdb_cOffset")
+  call alloc(cdb_cRotation,           cdb_nColl, zero,          "cdb_cRotation")
+  call alloc(cdb_cBx,                 cdb_nColl, zero,          "cdb_cBx")
+  call alloc(cdb_cBy,                 cdb_nColl, zero,          "cdb_cBy")
+  call alloc(cdb_cFound,              cdb_nColl, .false.,       "cdb_cFound")
 
-  call alloc(cdb_cTilt,               cdb_nColl, 2, zero,          "cdb_cTilt")
-  call alloc(cdb_cJawFit,   2,        cdb_nColl,    0,             "cdb_cJawFit")
-  call alloc(cdb_cSliced,             cdb_nColl,    0,             "cdb_cSliced")
+  call alloc(cdb_cTilt,     2,        cdb_nColl, zero,          "cdb_cTilt")
+  call alloc(cdb_cJawFit,   2,        cdb_nColl, 0,             "cdb_cJawFit")
+  call alloc(cdb_cSliced,             cdb_nColl, 0,             "cdb_cSliced")
 
 end subroutine cdb_allocDB
 
