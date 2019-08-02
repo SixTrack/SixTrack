@@ -318,7 +318,7 @@ module collimation
   real(kind=fPrec), save :: max_tmp, a_tmp1, a_tmp2, ldrift, mynex2, myney2, Nap1pos,Nap2pos,Nap1neg,Nap2neg
   real(kind=fPrec), save :: tiltOffsPos1,tiltOffsPos2,tiltOffsNeg1,tiltOffsNeg2
   real(kind=fPrec), save :: beamsize1, beamsize2,betax1,betax2,betay1,betay2, alphax1, alphax2,alphay1,alphay2,minAmpl
-  
+
   integer,          private, save :: nev
   integer,          private, save :: mat
   real(kind=fPrec), private, save :: length
@@ -424,14 +424,47 @@ module collimation
   data cprob(0,1:nmat)/nmat*zero/
   data cprob(5,1:nmat)/nmat*one/
 
-  ! file units
-  integer, private, save :: survival_unit, collgaps_unit, collimator_temp_db_unit
-  integer, private, save :: impact_unit, tracks2_unit, pencilbeam_distr_unit, coll_ellipse_unit, all_impacts_unit
-  integer, private, save :: FLUKA_impacts_unit, FLUKA_impacts_all_unit, coll_scatter_unit, FirstImpacts_unit, RHIClosses_unit
-  integer, private, save :: twisslike_unit, sigmasettings_unit, distsec_unit, efficiency_unit, efficiency_dpop_unit
+  ! Output Files
+  character(len=12), parameter :: coll_survivalFile   = "survival.dat"
+  character(len=12), parameter :: coll_gapsFile       = "collgaps.dat"
+  character(len=18), parameter :: coll_tempDbFile     = "collimator-temp.db"
+  character(len=10), parameter :: coll_impactFile     = "impact.dat"
+  character(len=11), parameter :: coll_tracksFile     = "tracks2.dat"
+  character(len=17), parameter :: coll_positionsFile  = "CollPositions.dat"
+  character(len=20), parameter :: coll_pencilFile     = "pencilbeam_distr.dat"
+  character(len=16), parameter :: coll_ellipseFile    = "coll_ellipse.dat"
+  character(len=15), parameter :: coll_allImpactFile  = "all_impacts.dat"
+  character(len=19), parameter :: coll_allAbsorbFile  = "all_absorptions.dat"
+  character(len=16), parameter :: coll_scatterFile    = "Coll_Scatter.dat"
+  character(len=16), parameter :: coll_fstImpactFile  = "FirstImpacts.dat"
+  character(len=17), parameter :: coll_flukImpFile    = "FLUKA_impacts.dat"
+  character(len=21), parameter :: coll_flukImpAllFile = "FLUKA_impacts_all.dat"
+  character(len=13), parameter :: coll_twissLikeFile  = "twisslike.out"
+  character(len=17), parameter :: coll_sigmaSetFile   = "sigmasettings.out"
+  character(len=16), parameter :: coll_settingsFile   = "collsettings.dat"
+
+  integer, private, save :: coll_survivalUnit   = -1
+  integer, private, save :: coll_gapsUnit       = -1
+  integer, private, save :: coll_tempDbUnit     = -1
+  integer, private, save :: coll_impactUnit     = -1
+  integer, private, save :: coll_tracksUnit     = -1
+  integer, private, save :: coll_positionsUnit  = -1
+  integer, private, save :: coll_pencilUnit     = -1
+  integer, private, save :: coll_ellipseUnit    = -1
+  integer, private, save :: coll_allImpactUnit  = -1
+  integer, private, save :: coll_allAbsorbUnit  = -1
+  integer, private, save :: coll_scatterUnit    = -1
+  integer, private, save :: coll_fstImpactUnit  = -1
+  integer, private, save :: coll_flukImpUnit    = -1
+  integer, private, save :: coll_flukImpAllUnit = -1
+  integer, private, save :: coll_twissLikeUnit  = -1
+  integer, private, save :: coll_sigmaSetUnit   = -1
+  integer, private, save :: coll_settingsUnit   = -1
+
+  integer, private, save :: distsec_unit, efficiency_unit, efficiency_dpop_unit
   integer, private, save :: coll_summary_unit, amplitude_unit, amplitude2_unit, betafunctions_unit, orbitchecking_unit
-  integer, private, save :: CollPositions_unit, all_absorptions_unit, efficiency_2d_unit
-  integer, private, save :: collsettings_unit, outlun
+  integer, private, save :: efficiency_2d_unit
+  integer, private, save :: outlun
 
 #ifdef G4COLLIMATION
   integer, public :: unit208 ! Holds the actual units of fort.208
@@ -604,6 +637,7 @@ subroutine collimate_init()
   use coll_dist
   use mod_units
   use mod_ranlux
+  use mod_particles
 #ifdef HDF5
   use hdf5_output
 #endif
@@ -880,9 +914,6 @@ subroutine collimate_init()
   ie    = 1
   n_tot_absorbed = 0
 
-  call f_requestUnit('CollPositions.dat', CollPositions_unit)
-  open(unit=CollPositions_unit, file='CollPositions.dat')
-
   ! Read collimator database
   call cdb_readCollDB
   call cdb_setMasterJawFit(n_slices, smin_slices, smax_slices, recenter1, recenter2, jaw_fit, jaw_ssf)
@@ -918,6 +949,17 @@ subroutine collimate_init()
   write (lout,"(a)") "COLL> Finished collimate initialisation"
   write (lout,"(a)") ""
 
+  ! Adding the orbit offset at start of ring
+  if(do_thisdis /= 0 .or. radial) then
+    xv1(1:napx) = c1e3 * xv1(1:napx) + torbx(1)
+    yv1(1:napx) = c1e3 * yv1(1:napx) + torbxp(1)
+    xv2(1:napx) = c1e3 * xv2(1:napx) + torby(1)
+    yv2(1:napx) = c1e3 * yv2(1:napx) + torbyp(1)
+  end if
+
+  call part_updatePartEnergy(1,.false.)
+
+  call collimate_openFiles
   call collimate_start
 
 end subroutine collimate_init
@@ -1649,6 +1691,169 @@ subroutine collimate_postInput(gammar)
 
 end subroutine collimate_postInput
 
+subroutine collimate_openFiles
+
+  use mod_units
+  use string_tools
+#ifdef HDF5
+  use hdf5_output
+  use hdf5_tracks2
+#endif
+
+#ifdef HDF5
+  type(h5_dataField), allocatable :: setFields(:)
+  integer fmtHdf
+#endif
+
+  ! Survival File
+  call f_requestUnit(coll_survivalFile,coll_survivalUnit)
+  call f_open(unit=coll_survivalUnit,file=coll_survivalFile,formatted=.true.,mode="w")
+  write(coll_survivalUnit,"(a7,1x,a9)") "# turn","n_particle"
+
+  ! Collimator Gaps File
+  call f_requestUnit(coll_gapsFile,coll_gapsUnit)
+  call f_open(unit=coll_gapsUnit,file=coll_gapsFile,formatted=.true.,mode="w")
+  write(coll_gapsUnit,"(a1,1x,a2,1x,a16,4(1x,a19),1x,a4,5(1x,a13),1x,a13)")     &
+    "#","ID","name            ","angle[rad]","betax[m]","betay[m]","halfgap[m]",&
+    "mat.","length[m]","sigx[m]","sigy[m]","tilt1[rad]","tilt2[rad]","nsig"
+
+  ! Temporary Datanase
+  call f_requestUnit(coll_tempDbFile,coll_tempDbUnit)
+  call f_open(unit=coll_tempDbUnit,file=coll_tempDbFile,formatted=.true.,mode="w")
+
+  ! Collimator Settings (Jaw Slices)
+  call f_requestUnit(coll_settingsFile,coll_settingsUnit)
+  call f_open(unit=coll_settingsUnit,file=coll_settingsFile,formatted=.true.,mode="w")
+  write(coll_settingsUnit,"(a20,1x,a10,5(1x,a13),1x,a4)") chr_rPad("# name",20),"slice","halfgap[m]","gapoffset[m]",&
+    "tiltjaw1[rad]","tiltjaw2[rad]","length[m]","mat."
+
+  ! Positions
+  call f_requestUnit(coll_positionsFile,coll_positionsUnit)
+  call f_open(unit=coll_positionsUnit,file=coll_positionsFile,formatted=.true.,mode="w")
+  write(coll_positionsUnit,"(a)") "# Ind           Name   Pos[m]"
+
+  ! Twiss-Like File
+  call f_requestUnit(coll_twissLikeFile,coll_twissLikeUnit)
+  call f_open(unit=coll_twissLikeUnit,file=coll_twissLikeFile,formatted=.true.,mode="w")
+
+  ! Sigma Settings File
+  call f_requestUnit(coll_sigmaSetFile,coll_sigmaSetUnit)
+  call f_open(unit=coll_sigmaSetUnit,file=coll_sigmaSetFile,formatted=.true.,mode="w")
+
+  ! Tracks Files
+  if(dowritetracks) then
+    call f_requestUnit(coll_tracksFile,coll_tracksUnit)
+    call f_open(unit=coll_tracksUnit,file=coll_tracksFile,formatted=.true.,mode="w")
+    write(coll_tracksUnit,"(a)") "# name turn s x xp y yp DE/E type"
+
+    call f_requestUnit(coll_pencilFile,coll_pencilUnit)
+    call f_open(unit=coll_pencilUnit, file=coll_pencilFile,formatted=.true.,mode="w")
+    write(coll_pencilUnit,"(a)") "# x xp y yp"
+  end if
+
+  if(do_select) then
+    call f_requestUnit(coll_ellipseFile,coll_ellipseUnit)
+    call f_open(unit=coll_ellipseUnit,file=coll_ellipseFile,formatted=.true.,mode="w")
+    write(coll_ellipseUnit,"(a)") "# name x y xp yp E s turn halo nabs_type"
+  end if
+
+  if(dowrite_impact) then
+    call f_requestUnit(coll_allImpactFile, coll_allImpactUnit)
+    call f_requestUnit(coll_allAbsorbFile, coll_allAbsorbUnit)
+    call f_requestUnit(coll_scatterFile,   coll_scatterUnit)
+    call f_requestUnit(coll_fstImpactFile, coll_fstImpactUnit)
+    call f_requestUnit(coll_impactFile,    coll_impactUnit)
+    call f_requestUnit(coll_flukImpFile,   coll_flukImpUnit)
+    call f_requestUnit(coll_flukImpAllFile,coll_flukImpAllUnit)
+
+    call f_open(unit=coll_allImpactUnit, file=coll_allImpactFile, formatted=.true.,mode="w")
+    call f_open(unit=coll_allAbsorbUnit, file=coll_allAbsorbFile, formatted=.true.,mode="w")
+    call f_open(unit=coll_scatterUnit,   file=coll_scatterFile,   formatted=.true.,mode="w")
+    call f_open(unit=coll_fstImpactUnit, file=coll_fstImpactFile, formatted=.true.,mode="w")
+    call f_open(unit=coll_impactUnit,    file=coll_impactFile,    formatted=.true.,mode="w")
+    call f_open(unit=coll_flukImpUnit,   file=coll_flukImpFile,   formatted=.true.,mode="w")
+    call f_open(unit=coll_flukImpAllUnit,file=coll_flukImpAllFile,formatted=.true.,mode="w")
+
+    write(coll_allImpactUnit,"(a)") "# 1=name 2=turn 3=s"
+    write(coll_allAbsorbUnit,"(a)") "# 1=name 2=turn 3=s"
+    write(coll_fstImpactUnit,"(a)") "# 1=name, 2=iturn, 3=icoll, 4=nabs, 5=s_imp[m], 6=s_out[m], "//&
+      "7=x_in(b!)[m], 8=xp_in, 9=y_in, 10=yp_in, 11=x_out [m], 12=xp_out, 13=y_out, 14=yp_out"
+    write(coll_scatterUnit,"(a)") "# 1=icoll, 2=iturn, 3=np, 4=nabs (1:Nuclear-Inelastic,2:Nuclear-Elastic,3:pp-Elastic, "//&
+      "4:Single-Diffractive,5:Coulomb), 5=dp, 6=dx', 7=dy'"
+    write(coll_impactUnit,"(a)") "# impact divergence"
+    write(coll_flukImpUnit,"(a)") "# 1=icoll 2=c_rotation 3=s 4=x 5=xp 6=y 7=yp 8=nabs 9=np 10=turn"
+    write(coll_flukImpAllUnit,"(a)") "# 1=icoll 2=c_rotation 3=s 4=x 5=xp 6=y 7=yp 8=nabs 9=np 10=turn"
+  end if
+
+#ifdef HDF5
+
+  !  HDF5 Initialisation for Collimation
+  ! =====================================
+
+  if(h5_useForCOLL .eqv. .false.) return
+
+  allocate(setFields(2))
+  setFields(1) = h5_dataField(name="TURN",  type=h5_typeInt)
+  setFields(2) = h5_dataField(name="NSURV", type=h5_typeInt)
+  call h5_createFormat("collSurvival", setFields, fmtHdf)
+  call h5_createDataSet("survival", h5_collID, fmtHdf, coll_hdf5_survival, numl)
+  deallocate(setFields)
+
+  if(dowritetracks) then
+    if(h5_writeTracks2) call h5tr2_init
+  end if
+
+  if(dowrite_impact) then
+
+    ! All Impacts and All Absorbtions
+    allocate(setFields(3))
+    setFields(1) = h5_dataField(name="ID",   type=h5_typeInt)
+    setFields(2) = h5_dataField(name="TURN", type=h5_typeInt)
+    setFields(3) = h5_dataField(name="S",    type=h5_typeReal)
+    call h5_createFormat("collAllImpactAbsorb", setFields, fmtHdf)
+    call h5_createDataSet("all_impacts",     h5_collID, fmtHdf, coll_hdf5_allImpacts)
+    call h5_createDataSet("all_absorptions", h5_collID, fmtHdf, coll_hdf5_allAbsorb)
+    deallocate(setFields)
+
+    ! First Impacts
+    allocate(setFields(14))
+    setFields(1)  = h5_dataField(name="ID",     type=h5_typeInt)
+    setFields(2)  = h5_dataField(name="TURN",   type=h5_typeInt)
+    setFields(3)  = h5_dataField(name="ICOLL",  type=h5_typeInt)
+    setFields(4)  = h5_dataField(name="NABS",   type=h5_typeInt)
+    setFields(5)  = h5_dataField(name="S_IMP",  type=h5_typeReal)
+    setFields(6)  = h5_dataField(name="S_OUT",  type=h5_typeReal)
+    setFields(7)  = h5_dataField(name="X_IN",   type=h5_typeReal)
+    setFields(8)  = h5_dataField(name="XP_IN",  type=h5_typeReal)
+    setFields(9)  = h5_dataField(name="Y_IN",   type=h5_typeReal)
+    setFields(10) = h5_dataField(name="YP_IN",  type=h5_typeReal)
+    setFields(11) = h5_dataField(name="X_OUT",  type=h5_typeReal)
+    setFields(12) = h5_dataField(name="XP_OUT", type=h5_typeReal)
+    setFields(13) = h5_dataField(name="Y_OUT",  type=h5_typeReal)
+    setFields(14) = h5_dataField(name="YP_OUT", type=h5_typeReal)
+    call h5_createFormat("collFirstImpacts", setFields, fmtHdf)
+    call h5_createDataSet("first_impacts", h5_collID, fmtHdf, coll_hdf5_fstImpacts)
+    deallocate(setFields)
+
+    ! Coll Scatter
+    allocate(setFields(7))
+    setFields(1) = h5_dataField(name="ID",    type=h5_typeInt)
+    setFields(2) = h5_dataField(name="TURN",  type=h5_typeInt)
+    setFields(3) = h5_dataField(name="ICOLL", type=h5_typeInt)
+    setFields(4) = h5_dataField(name="NABS",  type=h5_typeInt)
+    setFields(5) = h5_dataField(name="DP",    type=h5_typeReal)
+    setFields(6) = h5_dataField(name="DX",    type=h5_typeReal)
+    setFields(7) = h5_dataField(name="DY",    type=h5_typeReal)
+    call h5_createFormat("collScatter", setFields, fmtHdf)
+    call h5_createDataSet("coll_scatter", h5_collID, fmtHdf, coll_hdf5_collScatter)
+    deallocate(setFields)
+
+  end if
+
+#endif
+
+end subroutine collimate_openFiles
+
 !>
 !! collimate_start_sample()
 !! This routine is called from trauthin before each sample
@@ -1656,208 +1861,17 @@ end subroutine collimate_postInput
 !<
 subroutine collimate_start
 
-  use crcoall
   use parpro
+  use crcoall
   use mod_common
   use mod_common_main
-  use mod_commons
-  use mod_common_track
-  use mod_common_da
-  use mod_particles
   use coll_db
-  use mod_units
   use mod_ranlux
-  use string_tools
   use mathlib_bouncer
-#ifdef HDF5
-  use hdf5_output
-  use hdf5_tracks2
-#endif
+  use mod_units
 
-  implicit none
-
-#ifdef HDF5
-  type(h5_dataField), allocatable :: setFields(:)
-  integer fmtHdf
-#endif
   integer i,j,k,jb
   real(kind=fPrec) dummy
-
-! HERE WE OPEN ALL THE NEEDED OUTPUT FILES
-
-! Survival Output
-#ifdef HDF5
-  if(h5_useForCOLL) then
-    allocate(setFields(2))
-    setFields(1) = h5_dataField(name="TURN",  type=h5_typeInt)
-    setFields(2) = h5_dataField(name="NSURV", type=h5_typeInt)
-    call h5_createFormat("collSurvival", setFields, fmtHdf)
-    call h5_createDataSet("survival", h5_collID, fmtHdf, coll_hdf5_survival, numl)
-    deallocate(setFields)
-  else
-#endif
-    call f_requestUnit('survival.dat', survival_unit)
-    open(unit=survival_unit, file='survival.dat') ! RB, DM: 2014 bug fix !was 44
-    write(survival_unit,*) '# 1=turn 2=n_particle'
-#ifdef HDF5
-  end if
-#endif
-
-  call f_requestUnit("collgaps.dat", collgaps_unit)
-  open(unit=collgaps_unit, file="collgaps.dat")
-  if(firstrun) write(collgaps_unit,"(a1,1x,a2,1x,a16,4(1x,a19),1x,a4,5(1x,a13),1x,a13)") &
-    "#","ID","name            ","angle[rad]","betax[m]","betay[m]","halfgap[m]","mat.",  &
-    "length[m]","sigx[m]","sigy[m]","tilt1[rad]","tilt2[rad]","nsig"
-
-  call f_requestUnit('collimator-temp.db', collimator_temp_db_unit)
-  open(unit=collimator_temp_db_unit, file='collimator-temp.db') !was 40
-
-  call f_requestUnit("collsettings.dat", collsettings_unit)
-  open(unit=collsettings_unit, file="collsettings.dat")
-  write(collsettings_unit,"(a20,1x,a10,5(1x,a13),1x,a4)") chr_rPad("# name",20),"slice","halfgap[m]","gapoffset[m]",&
-    "tiltjaw1[rad]","tiltjaw2[rad]","length[m]","mat."
-
-  write(CollPositions_unit,*) '%Ind           Name   Pos[m]'
-
-  if(dowrite_impact) then
-    call f_requestUnit('impact.db', impact_unit)
-    open(unit=impact_unit,file='impact.dat') !was 49
-    write(impact_unit,*) '# 1=impact 2=divergence'
-  endif
-
-
-  if (dowritetracks) then
-!GRD SPECIAL FILE FOR SECONDARY HALO
-    if(cern) then
-      smpl = '1'
-
-      pfile(1:8) = 'tracks2.'
-      pfile(9:9) = smpl
-      pfile(10:13) = '.dat'
-
-      call f_requestUnit(pfile(1:13), tracks2_unit)
-      open(unit=tracks2_unit,file=pfile(1:13))
-
-    else
-      call f_requestUnit('tracks2.dat', tracks2_unit)
-      open(unit=tracks2_unit,file='tracks2.dat') !was 38
-    end if !end if (cern)
-
-    if(firstrun) write(tracks2_unit,*) '# 1=name 2=turn 3=s 4=x 5=xp 6=y 7=yp 8=DE/E 9=type'
-
-!AUGUST2006:write pencul sheet beam coordiantes to file ---- TW
-    call f_requestUnit('pencilbeam_distr.dat', pencilbeam_distr_unit)
-    open(unit=pencilbeam_distr_unit, file='pencilbeam_distr.dat') !was 9997
-    if(firstrun) write(pencilbeam_distr_unit,*) 'x    xp    y      yp'
-#ifdef HDF5
-    if(h5_writeTracks2) call h5tr2_init
-#endif
-  end if !end if (dowritetracks) then
-
-!GRD-SR,09-02-2006 => new series of output controlled by the 'dowrite_impact flag
-  if(do_select) then
-    call f_requestUnit('coll_ellipse.dat', coll_ellipse_unit)
-    open(unit=coll_ellipse_unit, file='coll_ellipse.dat') !was 45
-    if(firstrun) then
-      write(coll_ellipse_unit,*) '#  1=name 2=x 3=y 4=xp 5=yp 6=E 7=s 8=turn 9=halo 10=nabs_type'
-    end if
-  end if
-
-  if(dowrite_impact) then
-#ifdef HDF5
-    if(h5_useForCOLL .and. firstrun) then
-
-      ! All Impacts and All Absorbtions
-      allocate(setFields(3))
-      setFields(1) = h5_dataField(name="ID",   type=h5_typeInt)
-      setFields(2) = h5_dataField(name="TURN", type=h5_typeInt)
-      setFields(3) = h5_dataField(name="S",    type=h5_typeReal)
-      call h5_createFormat("collAllImpactAbsorb", setFields, fmtHdf)
-      call h5_createDataSet("all_impacts",     h5_collID, fmtHdf, coll_hdf5_allImpacts)
-      call h5_createDataSet("all_absorptions", h5_collID, fmtHdf, coll_hdf5_allAbsorb)
-      deallocate(setFields)
-
-      ! First Impacts
-      allocate(setFields(14))
-      setFields(1)  = h5_dataField(name="ID",     type=h5_typeInt)
-      setFields(2)  = h5_dataField(name="TURN",   type=h5_typeInt)
-      setFields(3)  = h5_dataField(name="ICOLL",  type=h5_typeInt)
-      setFields(4)  = h5_dataField(name="NABS",   type=h5_typeInt)
-      setFields(5)  = h5_dataField(name="S_IMP",  type=h5_typeReal)
-      setFields(6)  = h5_dataField(name="S_OUT",  type=h5_typeReal)
-      setFields(7)  = h5_dataField(name="X_IN",   type=h5_typeReal)
-      setFields(8)  = h5_dataField(name="XP_IN",  type=h5_typeReal)
-      setFields(9)  = h5_dataField(name="Y_IN",   type=h5_typeReal)
-      setFields(10) = h5_dataField(name="YP_IN",  type=h5_typeReal)
-      setFields(11) = h5_dataField(name="X_OUT",  type=h5_typeReal)
-      setFields(12) = h5_dataField(name="XP_OUT", type=h5_typeReal)
-      setFields(13) = h5_dataField(name="Y_OUT",  type=h5_typeReal)
-      setFields(14) = h5_dataField(name="YP_OUT", type=h5_typeReal)
-      call h5_createFormat("collFirstImpacts", setFields, fmtHdf)
-      call h5_createDataSet("first_impacts", h5_collID, fmtHdf, coll_hdf5_fstImpacts)
-      deallocate(setFields)
-
-      ! Coll Scatter
-      allocate(setFields(7))
-      setFields(1) = h5_dataField(name="ID",    type=h5_typeInt)
-      setFields(2) = h5_dataField(name="TURN",  type=h5_typeInt)
-      setFields(3) = h5_dataField(name="ICOLL", type=h5_typeInt)
-      setFields(4) = h5_dataField(name="NABS",  type=h5_typeInt)
-      setFields(5) = h5_dataField(name="DP",    type=h5_typeReal)
-      setFields(6) = h5_dataField(name="DX",    type=h5_typeReal)
-      setFields(7) = h5_dataField(name="DY",    type=h5_typeReal)
-      call h5_createFormat("collScatter", setFields, fmtHdf)
-      call h5_createDataSet("coll_scatter", h5_collID, fmtHdf, coll_hdf5_collScatter)
-      deallocate(setFields)
-
-    else
-#endif
-      call f_requestUnit('all_impacts.dat', all_impacts_unit)
-      call f_requestUnit('all_absorptions.dat', all_absorptions_unit)
-      call f_requestUnit('Coll_Scatter.dat', coll_scatter_unit)
-      call f_requestUnit('FirstImpacts.dat', FirstImpacts_unit)
-
-      open(unit=all_impacts_unit, file='all_impacts.dat') !was 46
-      open(unit=all_absorptions_unit, file='all_absorptions.dat') !was 47
-      open(unit=coll_scatter_unit, file='Coll_Scatter.dat') !was 3998
-      open(unit=FirstImpacts_unit, file='FirstImpacts.dat') !was 39
-
-      if (firstrun) then
-        write(all_impacts_unit,'(a)') '# 1=name 2=turn 3=s'
-        write(all_absorptions_unit,'(a)') '# 1=name 2=turn 3=s'
-        write(FirstImpacts_unit,"(a)") "# 1=name, 2=iturn, 3=icoll, 4=nabs, 5=s_imp[m], 6=s_out[m], "//&
-          "7=x_in(b!)[m], 8=xp_in, 9=y_in, 10=yp_in, 11=x_out [m], 12=xp_out, 13=y_out, 14=yp_out"
-        write(coll_scatter_unit,"(a)") "# 1=icoll, 2=iturn, 3=np, 4=nabs (1:Nuclear-Inelastic,2:Nuclear-Elastic,3:pp-Elastic, "//&
-          "4:Single-Diffractive,5:Coulomb), 5=dp, 6=dx', 7=dy'"
-      end if ! if (firstrun) then
-#ifdef HDF5
-    end if
-#endif
-    call f_requestUnit('FLUKA_impacts.dat', FLUKA_impacts_unit)
-    call f_requestUnit('FLUKA_impacts_all.dat', FLUKA_impacts_all_unit)
-    open(unit=FLUKA_impacts_unit, file='FLUKA_impacts.dat') !was 48
-    open(unit=FLUKA_impacts_all_unit, file='FLUKA_impacts_all.dat') !was 4801
-    if (firstrun) then
-      write(FLUKA_impacts_unit,'(a)') '# 1=icoll 2=c_rotation 3=s 4=x 5=xp 6=y 7=yp 8=nabs 9=np 10=turn'
-      write(FLUKA_impacts_all_unit,'(a)') '# 1=icoll 2=c_rotation 3=s 4=x 5=xp 6=y 7=yp 8=nabs 9=np 10=turn'
-    end if ! if (firstrun) then
-  end if ! if(dowrite_impact) then
-
-  if(name_sel(1:3).eq.'COL') then
-    call f_requestUnit('RHIClosses.dat', RHIClosses_unit)
-    open(unit=RHIClosses_unit, file='RHIClosses.dat') !was 555
-    if(firstrun) write(RHIClosses_unit,'(a)') '# 1=name 2=turn 3=s 4=x 5=xp 6=y 7=yp 8=dp/p 9=type'
-  end if
-
-  ! Adding the orbit offset at start of ring
-  if(do_thisdis /= 0 .or. radial) then
-    xv1(1:napx) = c1e3 * xv1(1:napx) + torbx(1)
-    yv1(1:napx) = c1e3 * yv1(1:napx) + torbxp(1)
-    xv2(1:napx) = c1e3 * xv2(1:napx) + torby(1)
-    yv2(1:napx) = c1e3 * yv2(1:napx) + torbyp(1)
-  end if
-
-  call part_updatePartEnergy(1,.false.)
 
   do i=1,napx
     do ieff=1,numeff
@@ -2006,10 +2020,6 @@ subroutine collimate_start
   end do
 
 !---- creating a file with beta-functions at TCP/TCS
-  call f_requestUnit('twisslike.out', twisslike_unit)
-  open(unit=twisslike_unit, file='twisslike.out') !was 10000
-  call f_requestUnit('sigmasettings.out', sigmasettings_unit)
-  open(unit=sigmasettings_unit, file='sigmasettings.out') !was 10001
   mingap = 20
 
   do j=1,iu
@@ -2064,8 +2074,8 @@ subroutine collimate_start
           end if
 
           sig_offset = cdb_cOffset(i)/(sqrt(bx_dist**2 * cos_mb(cdb_cRotation(i))**2 + by_dist**2 * sin_mb(cdb_cRotation(i))**2 ))
-          write(twisslike_unit,*) bez(myix),tbetax(j),tbetay(j), torbx(j),torby(j), nsig, gap_rms_error(i)
-      write(sigmasettings_unit,*) bez(myix), gap_h1, gap_h2, gap_h3, gap_h4, sig_offset, cdb_cOffset(i), nsig, gap_rms_error(i)
+          write(coll_twissLikeUnit,*) bez(myix),tbetax(j),tbetay(j), torbx(j),torby(j), nsig, gap_rms_error(i)
+          write(coll_sigmaSetUnit,*) bez(myix), gap_h1, gap_h2, gap_h3, gap_h4, sig_offset, cdb_cOffset(i), nsig, gap_rms_error(i)
 
           if((gap_h1 + sig_offset) .le. mingap) then
             mingap = gap_h1 + sig_offset
@@ -2094,8 +2104,8 @@ subroutine collimate_start
 
   end do !do j=1,iu
 
-  write(twisslike_unit,*) coll_mingap_id, coll_mingap1, coll_mingap2,  mingap
-  write(twisslike_unit,*) 'INFO> IPENCIL initial ', ipencil
+  write(coll_twissLikeUnit,*) coll_mingap_id, coll_mingap1, coll_mingap2,  mingap
+  write(coll_twissLikeUnit,*) 'INFO> IPENCIL initial ', ipencil
 
 ! if pencil beam is used and on collimator with smallest gap the
 ! distribution should be generated, set ipencil to coll_mingap_id
@@ -2103,16 +2113,16 @@ subroutine collimate_start
     ipencil = coll_mingap_id
   end if
 
-  write(twisslike_unit,*) 'INFO> IPENCIL new (if do_mingap) ', ipencil
-  write(sigmasettings_unit,*) coll_mingap_id, coll_mingap1, coll_mingap2,  mingap
+  write(coll_twissLikeUnit,*) 'INFO> IPENCIL new (if do_mingap) ', ipencil
+  write(coll_sigmaSetUnit,*) coll_mingap_id, coll_mingap1, coll_mingap2,  mingap
 
 ! if pencil beam is used and on collimator with smallest gap the
 ! distribution should be generated, set ipencil to coll_mingap_id
-  write(sigmasettings_unit,*) 'INFO> IPENCIL new (if do_mingap) ',ipencil
-  write(sigmasettings_unit,*) 'INFO> rnd_seed is (before reinit)',rnd_seed
+  write(coll_sigmaSetUnit,*) 'INFO> IPENCIL new (if do_mingap) ',ipencil
+  write(coll_sigmaSetUnit,*) 'INFO> rnd_seed is (before reinit)',rnd_seed
 
-  close(twisslike_unit)
-  close(sigmasettings_unit)
+  call f_close(coll_twissLikeUnit)
+  call f_close(coll_sigmaSetUnit)
 
 !****** re-intialize random generator with rnd_seed
 !       reinit with initial value used in first call
@@ -2146,9 +2156,9 @@ subroutine collimate_start
     neffx(k) = zero
     neffy(k) = zero
 
-   do j = 1, numeffdpop
-     neff2d(k,j) = zero
-   end do
+    do j = 1, numeffdpop
+      neff2d(k,j) = zero
+    end do
   end do
 
   do k = 1, numeffdpop
@@ -2330,7 +2340,7 @@ subroutine collimate_do_collimator(stracki)
 !++  Write beam ellipse at selected collimator
   if (((cdb_cNameUC(icoll).eq.name_sel(1:mNameLen)) .or. (cdb_cName(icoll).eq.name_sel(1:mNameLen))) .and. do_select) then
     do j = 1, napx
-      write(coll_ellipse_unit,'(1X,I8,6(1X,E15.7),3(1X,I4,1X,I4))') ipart(j),xv1(j), xv2(j), yv1(j), yv2(j), &
+      write(coll_ellipseUnit,'(1X,I8,6(1X,E15.7),3(1X,I4,1X,I4))') ipart(j),xv1(j), xv2(j), yv1(j), yv2(j), &
      &        ejv(j), sigmv(j),iturn,secondary(j)+tertiary(j)+other(j)+scatterhit(j),nabs_type(j)
     end do
   end if
@@ -2338,14 +2348,14 @@ subroutine collimate_do_collimator(stracki)
 !-------------------------------------------------------------------
 !++  Output to temporary database and screen
   if(iturn.eq.1.and.firstrun) then
-    write(collimator_temp_db_unit,*) '# '
-    write(collimator_temp_db_unit,*) cdb_cNameUC(icoll)!(1:11)
-    write(collimator_temp_db_unit,*) cdb_cMaterial(icoll)
-    write(collimator_temp_db_unit,*) cdb_cLength(icoll)
-    write(collimator_temp_db_unit,*) cdb_cRotation(icoll)
-    write(collimator_temp_db_unit,*) cdb_cOffset(icoll)
-    write(collimator_temp_db_unit,*) tbetax(ie)
-    write(collimator_temp_db_unit,*) tbetay(ie)
+    write(coll_tempDbUnit,*) '# '
+    write(coll_tempDbUnit,*) cdb_cNameUC(icoll)!(1:11)
+    write(coll_tempDbUnit,*) cdb_cMaterial(icoll)
+    write(coll_tempDbUnit,*) cdb_cLength(icoll)
+    write(coll_tempDbUnit,*) cdb_cRotation(icoll)
+    write(coll_tempDbUnit,*) cdb_cOffset(icoll)
+    write(coll_tempDbUnit,*) tbetax(ie)
+    write(coll_tempDbUnit,*) tbetay(ie)
 
     write(outlun,*) ' '
     write(outlun,*)   'Collimator information: '
@@ -2455,14 +2465,14 @@ subroutine collimate_do_collimator(stracki)
       write(outlun,*) 'RMS error on halfgap [sigma]:  ', gap_rms_error(icoll)
       write(outlun,*) ' '
 
-      write(collgaps_unit,"(i4,1x,a16,4(1x,e19.10),1x,a4,5(1x,e13.5),1x,f13.6)") &
+      write(coll_gapsUnit,"(i4,1x,a16,4(1x,e19.10),1x,a4,5(1x,e13.5),1x,f13.6)") &
         icoll,cdb_cName(icoll)(1:16),cdb_cRotation(icoll),tbetax(ie),tbetay(ie),calc_aperture, &
         cdb_cMaterial(icoll),cdb_cLength(icoll),sqrt(tbetax(ie)*myemitx0_collgap), &
         sqrt(tbetay(ie)*myemity0_collgap),cdb_cTilt(icoll,1),cdb_cTilt(icoll,2),nsig
 
 ! coll settings file
       if(n_slices.le.1) then
-        write(collsettings_unit,'(a,1x,i10,5(1x,e13.5),1x,a)')          &
+        write(coll_settingsUnit,'(a,1x,i10,5(1x,e13.5),1x,a)')          &
      &cdb_cNameUC(icoll)(1:12),                                            &
      &n_slices,calc_aperture,                                           &
      &cdb_cOffset(icoll),                                                 &
@@ -2684,7 +2694,7 @@ subroutine collimate_do_collimator(stracki)
       jawTilt     = c_tilt
       call jaw_getFitData(cdb_cSliced(icoll), iSlice, jawLength, jawAperture, jawOffset, jawTilt)
       if(firstrun) then
-        write(collsettings_unit,"(a20,1x,i10,5(1x,1pe13.6),1x,a)") &
+        write(coll_settingsUnit,"(a20,1x,i10,5(1x,1pe13.6),1x,a)") &
           cdb_cName(icoll)(1:20), iSlice, jawAperture/two, jawOffset, jawTilt(1), jawTilt(2), jawLength, cdb_cMaterial(icoll)
       end if
       call collimate2(c_material, jawLength, c_rotation, jawAperture, jawOffset, jawTilt, &
@@ -2716,7 +2726,7 @@ subroutine collimate_do_collimator(stracki)
         if(g4_debug .eqv. .true.) then
           write(lout,"(2a)") 'COLLIMATOR:', cdb_cNameUC(icoll)
           write(lout,"(2a)") '                               id       pdgid                     mass                        ',&
-&                            'x                        y                       xp                       yp                        p'
+                             'x                        y                       xp                       yp                        p'
           flush(lout)
         end if
 
@@ -2816,7 +2826,7 @@ subroutine collimate_do_collimator(stracki)
 !            if(part_abs_flag.ne.0) then
 !              if(dowrite_impact) then
 !!! FLUKA_impacts.dat
-!                write(FLUKA_impacts_unit,'(i4,(1x,f6.3),(1x,f8.6),4(1x,e19.10),i2,2(1x,i7))') &
+!                write(coll_flukImpUnit,'(i4,(1x,f6.3),(1x,f8.6),4(1x,e19.10),i2,2(1x,i7))') &
 ! &                    icoll,c_rotation,zero,zero,zero,zero,zero,part_abs_flag,flukaname(j),iturn
 !              end if
 !
@@ -2880,6 +2890,7 @@ subroutine collimate_end_collimator(stracki)
   use mod_common_da
   use numerical_constants, only : c5m4
   use coll_db
+  use mod_units
 #ifdef HDF5
   use hdf5_output
   use hdf5_tracks2
@@ -3047,7 +3058,7 @@ end do
           call h5_finaliseWrite(coll_hdf5_allImpacts)
         else
 #endif
-          write(all_impacts_unit,'(i8,1x,i4,1x,f8.2)') ipart(j),iturn,sampl(ie)
+          write(coll_allImpactUnit,'(i8,1x,i4,1x,f8.2)') ipart(j),iturn,sampl(ie)
 #ifdef HDF5
         end if
 #endif
@@ -3065,7 +3076,7 @@ end do
             call h5_finaliseWrite(coll_hdf5_allAbsorb)
           else
 #endif
-            write(all_absorptions_unit,'(i8,1x,i4,1x,f8.2)') ipart(j),iturn,sampl(ie)
+            write(coll_allAbsorbUnit,'(i8,1x,i4,1x,f8.2)') ipart(j),iturn,sampl(ie)
 #ifdef HDF5
           end if
 #endif
@@ -3142,7 +3153,7 @@ end do
               call h5tr2_writeLine(hdfpid,hdfturn,hdfs,hdfx,hdfxp,hdfy,hdfyp,hdfdee,hdftyp)
             else
 #endif
-              write(tracks2_unit,'(1x,i8,1x,i4,1x,f10.2,4(1x,e12.5),1x,e11.3,1x,i4)') &
+              write(coll_tracksUnit,'(1x,i8,1x,i4,1x,f10.2,4(1x,e12.5),1x,e11.3,1x,i4)') &
                 ipart(j),iturn,sampl(ie)-half*c_length,           &
                 (rcx0(j)*c1e3+torbx(ie))-half*c_length*(rcxp0(j)*c1e3+torbxp(ie)), &
                 rcxp0(j)*c1e3+torbxp(ie),                                          &
@@ -3150,7 +3161,7 @@ end do
                 rcyp0(j)*c1e3+torbyp(ie),                                          &
                 (ejv(j)-myenom)/myenom,secondary(j)+tertiary(j)+other(j)+scatterhit(j)
 
-              write(tracks2_unit,'(1x,i8,1x,i4,1x,f10.2,4(1x,e12.5),1x,e11.3,1x,i4)') &
+              write(coll_tracksUnit,'(1x,i8,1x,i4,1x,f10.2,4(1x,e12.5),1x,e11.3,1x,i4)') &
                 ipart(j),iturn,sampl(ie)+half*c_length,           &
                 xv1(j)+half*c_length*yv1(j),yv1(j),                             &
                 xv2(j)+half*c_length*yv2(j),yv2(j),(ejv(j)-myenom)/myenom,      &
@@ -3267,7 +3278,7 @@ end do
         sum = sum + part_impact(j)
         sqsum = sqsum + part_impact(j)**2
         if(part_hit_pos (j).ne.0 .and. part_hit_turn(j).ne.0 .and.dowrite_impact ) then
-          write(impact_unit,*) part_impact(j), part_indiv(j)
+          write(coll_impactUnit,*) part_impact(j), part_indiv(j)
         end if
       end if
     end do
@@ -3288,8 +3299,8 @@ end do
     write(lout,"(a,e15.8)") 'COLL> Average impact parameter [m]     : ', average
     write(lout,"(a,e15.8)") 'COLL> Sigma impact parameter [m]       : ', sigma
 
-    if (dowrite_impact) then
-      close(impact_unit)
+    if(dowrite_impact) then
+      call f_close(coll_impactUnit)
     end if
 
 !++  End of    S E L E C T E D   collimator
@@ -3334,15 +3345,16 @@ subroutine collimate_end_sample(j)
   integer i,k
 
 !++  Save particle offsets to a file
-  ! close(beta_beat_unit)
-  close(survival_unit)
+  call f_close(coll_survivalUnit)
 
-  if(dowrite_impact) close(impact_unit)
+  if(dowrite_impact) then
+    call f_close(coll_impactUnit)
+  end if
 
   if(dowritetracks) then
-    if(cern) close(tracks2_unit)
+    call f_close(coll_tracksUnit)
 #ifdef HDF5
-    if(cern .and. h5_writeTracks2) call h5tr2_finalise
+    if(h5_writeTracks2) call h5tr2_finalise
 #endif
   end if
 
@@ -3591,27 +3603,26 @@ subroutine collimate_exit()
   call collimate_end_sample(1)
 
   call f_close(outlun)
-  close(collgaps_unit)
+  call f_close(coll_gapsUnit)
 
   if(dowritetracks) then
-    if(.not. cern) close(tracks2_unit)
+    call f_close(coll_tracksUnit)
 #ifdef HDF5
-    if(.not. cern .and. h5_writeTracks2) call h5tr2_finalise
+    if(h5_writeTracks2) call h5tr2_finalise
 #endif
-    if(name_sel(1:3).eq.'COL') close(RHIClosses_unit)
   endif
 
   if(do_select) then
-    close(coll_ellipse_unit)
+    call f_close(coll_ellipseUnit)
   endif
 
   if(dowrite_impact) then
-    close(all_impacts_unit)
-    close(all_absorptions_unit)
-    close(FLUKA_impacts_unit)
-    close(FLUKA_impacts_all_unit)
-    close(coll_scatter_unit)
-    close(FirstImpacts_unit)
+    call f_close(coll_allImpactUnit)
+    call f_close(coll_allAbsorbUnit)
+    call f_close(coll_flukImpUnit)
+    call f_close(coll_flukImpAllUnit)
+    call f_close(coll_scatterUnit)
+    call f_close(coll_fstImpactUnit)
   endif
 
   call f_requestUnit('amplitude.dat', amplitude_unit)
@@ -3708,7 +3719,7 @@ subroutine collimate_exit()
   end do
 
   close(orbitchecking_unit)
-  close(CollPositions_unit)
+  close(coll_positionsUnit)
 
 #ifdef G4COLLIMATION
   call g4_terminate()
@@ -3951,7 +3962,7 @@ subroutine collimate_end_element
             call h5tr2_writeLine(hdfpid,hdfturn,hdfs,hdfx,hdfxp,hdfy,hdfyp,hdfdee,hdftyp)
           else
 #endif
-            write(tracks2_unit,'(1x,i8,1x,i4,1x,f10.2,4(1x,e12.5),1x,e11.3,1x,i4)') ipart(j), iturn, sampl(ie), &
+            write(coll_tracksUnit,'(1x,i8,1x,i4,1x,f10.2,4(1x,e12.5),1x,e11.3,1x,i4)') ipart(j), iturn, sampl(ie), &
               xv1(j), yv1(j), xv2(j), yv2(j), (ejv(j)-myenom)/myenom, secondary(j)+tertiary(j)+other(j)+scatterhit(j)
 #ifdef HDF5
           end if
@@ -4042,7 +4053,7 @@ subroutine collimate_end_turn
       call h5_finaliseWrite(coll_hdf5_survival)
     else
 #endif
-      write(survival_unit,"(2i7)") iturn, nsurvive
+      write(coll_survivalUnit,"(i7,1x,i9)") iturn, nsurvive
 #ifdef HDF5
     end if
 #endif
@@ -4327,7 +4338,7 @@ subroutine collimate_end_turn
             call h5tr2_writeLine(hdfpid,hdfturn,hdfs,hdfx,hdfxp,hdfy,hdfyp,hdfdee,hdftyp)
           else
 #endif
-            write(tracks2_unit,'(1x,i8,1x,i4,1x,f10.2,4(1x,e12.5),1x,e11.3,1x,i4)') ipart(j),iturn,sampl(ie), &
+            write(coll_tracksUnit,'(1x,i8,1x,i4,1x,f10.2,4(1x,e12.5),1x,e11.3,1x,i4)') ipart(j),iturn,sampl(ie), &
               xv1(j),yv1(j),xv2(j),yv2(j),(ejv(j)-myenom)/myenom,secondary(j)+tertiary(j)+other(j)+scatterhit(j)
 #ifdef HDF5
           end if
@@ -4716,7 +4727,7 @@ subroutine collimate2(c_material, c_length, c_rotation,           &
 !               xp = xp - tiltangle
 !             endif
 !
-      write(pencilbeam_distr_unit,'(f10.8,(2x,f10.8),(2x,f10.8),(2x,f10.8),(2x,f10.8))') x, xp, z, zp, tiltangle
+      write(coll_pencilUnit,'(f10.8,(2x,f10.8),(2x,f10.8),(2x,f10.8),(2x,f10.8))') x, xp, z, zp, tiltangle
 
     end if !if(( (icoll.eq.ipencil .and. iturn.eq.1) .or. (itu
 
@@ -4832,7 +4843,7 @@ subroutine collimate2(c_material, c_length, c_rotation,           &
             call h5_finaliseWrite(coll_hdf5_fstImpacts)
           else
 #endif
-            write(FirstImpacts_unit,'(i5,1x,i7,1x,i2,1x,i1,2(1x,f5.3),8(1x,e17.9))') &
+            write(coll_fstImpactUnit,'(i5,1x,i7,1x,i2,1x,i1,2(1x,f5.3),8(1x,e17.9))') &
                 name(j),iturn,icoll,nabs,                               &
                 s_impact + (real(j_slices,fPrec)-one) * c_length,       &
                 s+sp + (real(j_slices,fPrec)-one) * c_length,           &
@@ -4933,7 +4944,7 @@ subroutine collimate2(c_material, c_length, c_rotation,           &
 
 ! write out all impacts to all_impacts.dat
       if(dowrite_impact) then
-        write(FLUKA_impacts_all_unit,'(i4,(1x,f6.3),(1x,f8.6),4(1x,e19.10),i2,2(1x,i7))') &
+        write(coll_flukImpAllUnit,'(i4,(1x,f6.3),(1x,f8.6),4(1x,e19.10),i2,2(1x,i7))') &
      &              icoll,c_rotation,                                   &
      &              sInt + sp + (real(j_slices,fPrec)-one) * c_length,  &
      &              x_flk*c1e3, xp_flk*c1e3, y_flk*c1e3, yp_flk*c1e3,   &
@@ -4945,7 +4956,7 @@ subroutine collimate2(c_material, c_length, c_rotation,           &
 
 !     SR, 29-08-2005: Include the slice numer!
         if(dowrite_impact) then
-          write(FLUKA_impacts_unit,'(i4,(1x,f6.3),(1x,f8.6),4(1x,e19.10),i2,2(1x,i7))') &
+          write(coll_flukImpUnit,'(i4,(1x,f6.3),(1x,f8.6),4(1x,e19.10),i2,2(1x,i7))') &
      &icoll,c_rotation,                                                 &
      &sInt + sp + (real(j_slices,fPrec)-one) * c_length,                &!hr09
      &x_flk*c1e3, xp_flk*c1e3, y_flk*c1e3, yp_flk*c1e3,                 &
@@ -5357,7 +5368,7 @@ subroutine jaw(s,nabs,icoll,iturn,ipart,dowrite_impact)
         call coll_hdf5_writeCollScatter(icoll, iturn, ipart, nabs_tmp, -one, zero, zero)
       else
 #endif
-      write(coll_scatter_unit,'(1x,i2,2x,i4,2x,i5,2x,i1,3(2x,e14.6))') icoll, iturn, ipart, nabs_tmp, -one, zero, zero
+      write(coll_scatterUnit,'(1x,i2,2x,i4,2x,i5,2x,i1,3(2x,e14.6))') icoll, iturn, ipart, nabs_tmp, -one, zero, zero
 #ifdef HDF5
       endif
 #endif
@@ -5376,7 +5387,7 @@ subroutine jaw(s,nabs,icoll,iturn,ipart,dowrite_impact)
         call coll_hdf5_writeCollScatter(icoll, iturn, ipart, nabs_tmp, -one, zero, zero)
       else
 #endif
-      write(coll_scatter_unit,'(1x,i2,2x,i4,2x,i5,2x,i1,3(2x,e14.6))') icoll, iturn, ipart, nabs_tmp, -one, zero, zero
+      write(coll_scatterUnit,'(1x,i2,2x,i4,2x,i5,2x,i1,3(2x,e14.6))') icoll, iturn, ipart, nabs_tmp, -one, zero, zero
 #ifdef HDF5
       endif
 #endif
@@ -5425,7 +5436,7 @@ subroutine jaw(s,nabs,icoll,iturn,ipart,dowrite_impact)
         call coll_hdf5_writeCollScatter(icoll,iturn,ipart,nabs_tmp,(p-pBef)/pBef,xp-xpBef,zp-zpBef)
       else
 #endif
-      write(coll_scatter_unit,'(1x,i2,2x,i4,2x,i5,2x,i1,3(2x,e18.10))') icoll,iturn,ipart,nabs_tmp,(p-pBef)/pBef,xp-xpBef,zp-zpBef
+      write(coll_scatterUnit,'(1x,i2,2x,i4,2x,i5,2x,i1,3(2x,e18.10))') icoll,iturn,ipart,nabs_tmp,(p-pBef)/pBef,xp-xpBef,zp-zpBef
 #ifdef HDF5
       endif
 #endif
@@ -5461,7 +5472,7 @@ subroutine jaw(s,nabs,icoll,iturn,ipart,dowrite_impact)
         call coll_hdf5_writeCollScatter(icoll,iturn,ipart,nabs_tmp,(p-pBef)/pBef,xp-xpBef,zp-zpBef)
       else
 #endif
-      write(coll_scatter_unit,'(1x,i2,2x,i4,2x,i5,2x,i1,3(2x,e18.10))') icoll,iturn,ipart,nabs_tmp,(p-pBef)/pBef,xp-xpBef,zp-zpBef
+      write(coll_scatterUnit,'(1x,i2,2x,i4,2x,i5,2x,i1,3(2x,e18.10))') icoll,iturn,ipart,nabs_tmp,(p-pBef)/pBef,xp-xpBef,zp-zpBef
 #ifdef HDF5
       endif
 #endif
@@ -5506,7 +5517,7 @@ subroutine jaw(s,nabs,icoll,iturn,ipart,dowrite_impact)
       call coll_hdf5_writeCollScatter(icoll,iturn,ipart,nabs_tmp,-one,zero,zero)
     else
 #endif
-    write(coll_scatter_unit,'(1x,i2,2x,i4,2x,i5,2x,i1,3(2x,e14.6))') icoll,iturn,ipart,nabs_tmp,-one,zero,zero
+    write(coll_scatterUnit,'(1x,i2,2x,i4,2x,i5,2x,i1,3(2x,e14.6))') icoll,iturn,ipart,nabs_tmp,-one,zero,zero
 #ifdef HDF5
     endif
 #endif
@@ -5559,7 +5570,7 @@ subroutine jaw(s,nabs,icoll,iturn,ipart,dowrite_impact)
       call coll_hdf5_writeCollScatter(icoll,iturn,ipart,nabs_tmp,(p-pBef)/pBef,xp-xpBef,zp-zpBef)
     else
 #endif
-    write(coll_scatter_unit,'(1x,i2,2x,i4,2x,i5,2x,i1,3(2x,e18.10))') icoll,iturn,ipart,nabs_tmp,(p-pBef)/pBef,xp-xpBef,zp-zpBef
+    write(coll_scatterUnit,'(1x,i2,2x,i4,2x,i5,2x,i1,3(2x,e18.10))') icoll,iturn,ipart,nabs_tmp,(p-pBef)/pBef,xp-xpBef,zp-zpBef
 #ifdef HDF5
     endif
 #endif
