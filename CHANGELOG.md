@@ -1,5 +1,22 @@
 # SixTrack Changelog
 
+### Version 5.3.1 [02.08.2019] - Release
+
+**Bug Fixes**
+
+* Fixed and issue when using the collimation module with a thin 4D simulation. In this setup, the module would not be properly initialised due to an erroneous if-condition for the initialisation call. PR #931 (V.K. Berglyd Olsen)
+* Fixed a minor issue with the formatting of the tracking progress printout. PR #925 (V.K. Berglyd Olsen)
+* Fixed and issue with missing labels in aperture losses file. PR #928, issue #926 (A. Gorzawski, A. Mereghetti)
+
+**Documentation**
+
+* Some inconsistencies and out-of-date information has been corrected in the user manual. PRs #921, #922 and #927 (V.K. Berglyd Olsen, R. De Maria)
+
+**Code Improvements and Changes**
+
+* The `DIST` block has been rewritten and a number of new parsing options added for integrating with a new external library for generating beam distributions. The library is not yet completed, so the new block format is not finalised or documented. However, the `DIST` block is backwards compatible with the old options, and should be working as before. PRs #905 and #930 (V.K. Berglyd Olsen, T. Persson)
+* Particle spin arrays have been added to SixTrack intended for future code, but not yet in use. The arrays have been added nonetheless so they can be included in the new `DIST` block. PR #916 (J. Molson)
+
 ### Version 5.3.0 [11.07.2019] - Release
 
 **Bug Fixes**
