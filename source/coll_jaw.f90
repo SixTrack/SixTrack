@@ -121,8 +121,6 @@ subroutine jaw_computeFit(collName, fitID, nSlices, cLength, cTilt, cOffset, sli
   ! Calculate longitudinal positions of slices and corresponding heights and angles from the fit parameters.
   ! Note: here, take (nSlices+1) points in order to calculate the tilt angle of the last slice!
 
-  write(1111,"(a)") collName
-  write(1111,"(2(1x,1pe24.17))") cTilt
   do i=1,nSlices+1
     ! Deformation of the jaws scaled with length
     sX(i)  = (real(i-1,fPrec)*cLength)/real(nSlices,fPrec)
@@ -138,7 +136,6 @@ subroutine jaw_computeFit(collName, fitID, nSlices, cLength, cTilt, cOffset, sli
     sX2(i) =  sX(i)*cos_mb(cTilt(2)) - sY2(i)*sin_mb(cTilt(2))
     sY1(i) = sY1(i)*cos_mb(cTilt(1)) +  sX(i)*sin_mb(cTilt(1))
     sY2(i) = sY2(i)*cos_mb(cTilt(2)) +  sX(i)*sin_mb(cTilt(2))
-    write(1111,"(5(1x,1pe24.17))") sX(i), sX1(i), sX2(i), sY1(i), sY2(i)
   end do
 
   do i=1,nSlices
