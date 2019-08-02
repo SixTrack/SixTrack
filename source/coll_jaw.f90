@@ -26,6 +26,11 @@ module coll_jaw
 
 contains
 
+integer function jaw_getSliceCount(sliceID)
+  integer, intent(in) :: sliceID
+  jaw_getSliceCount = jaw_collData(sliceID)%nSlices
+end function jaw_getSliceCount
+
 subroutine jaw_addJawFit(fitName, fitParams, fitScale, reCentre, fitID)
 
   character(len=*), intent(in)  :: fitName
@@ -161,6 +166,8 @@ subroutine jaw_computeFit(collName, fitID, nSlices, cLength, cTilt, cOffset, sli
   jaw_collData(jaw_nColls)%fitTilt   = fitTilt
 
   sliceID = jaw_nColls
+
+  write(lout,"(a,i0,a)") "COLLJAW> Collimator "//trim(collName)//" sliced in ",nSlices," slices"
 
 end subroutine jaw_computeFit
 

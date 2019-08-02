@@ -1667,6 +1667,7 @@ subroutine collimate_start
   use coll_db
   use mod_units
   use mod_ranlux
+  use string_tools
   use mathlib_bouncer
 #ifdef HDF5
   use hdf5_output
@@ -1710,16 +1711,13 @@ subroutine collimate_start
 
   call f_requestUnit('collimator-temp.db', collimator_temp_db_unit)
   open(unit=collimator_temp_db_unit, file='collimator-temp.db') !was 40
-!
 
-! TW06/08 added ouputfile for real collimator settings (incluing slicing, ...)
-  call f_requestUnit('collsettings.dat', collsettings_unit)
-  open(unit=collsettings_unit, file='collsettings.dat') !was 55
+  call f_requestUnit("collsettings.dat", collsettings_unit)
+  open(unit=collsettings_unit, file="collsettings.dat")
+  write(collsettings_unit,"(a20,1x,a10,5(1x,a13),1x,a4)") chr_rPad("# name",20),"slice","halfgap[m]","gapoffset[m]",&
+    "tiltjaw1[rad]","tiltjaw2[rad]","length[m]","mat."
 
-  if(firstrun) then
-    write(collsettings_unit,*) '# name  slicenumber  halfgap[m]  gap_offset[m] tilt jaw1[rad]  tilt jaw2[rad] length[m] material'
-    write(CollPositions_unit,*) '%Ind           Name   Pos[m]'
-  end if
+  write(CollPositions_unit,*) '%Ind           Name   Pos[m]'
 
   if(dowrite_impact) then
     call f_requestUnit('impact.db', impact_unit)
@@ -2287,7 +2285,8 @@ subroutine collimate_do_collimator(stracki)
 
   real(kind=fPrec), intent(in) :: stracki
 
-  integer j,jjj
+  integer j, iSlice
+  real(kind=fPrec) jawLength, jawAperture, jawOffset, jawTilt(2)
 
 #ifdef G4COLLIMATION
   integer :: g4_lostc
@@ -2675,197 +2674,26 @@ subroutine collimate_do_collimator(stracki)
   if(cdb_cNameUC(icoll)(1:4) == 'TCDQ')  onesided = .true.
   if(cdb_cNameUC(icoll)(1:5) == 'TCXRP') onesided = .true.
 
-!==> SLICE here is possible
-!
-!     SR, 29-08-2005: Slice the collimator jaws in 'n_slices' pieces
-!     using two 4th-order polynomial fits. For each slices, the new
-!     gaps and centre are calculates
-!     It is assumed that the jaw point closer to the beam defines the
-!     nominal aperture.
-!
-!     SR, 01-09-2005: new official version - input assigned through
-!     the 'fort.3' file.
-!               if (n_slices.gt.1d0 .and.                                &
-!     &              totals.gt.smin_slices .and.                         &
-!     &              totals.lt.smax_slices .and.                         &
-!     &              cdb_cNameUC(icoll)(1:4).eq.'TCSG' ) then
-!                  if (firstrun) then
-!                  write(*,*) 'INFOslice - Collimator ',
-!     &              cdb_cNameUC(icoll), ' sliced in ',n_slices,
-!     &              ' pieces!'
-!                  endif
-!CB
+  if(cdb_cSliced(icoll) > 0) then
+    ! Now, loop over the number of slices and call collimate2 each time!
+    ! For each slice, the corresponding offset and angle are to be used.
+    do iSlice=1,jaw_getSliceCount(cdb_cSliced(icoll))
+      jawLength   = c_length
+      jawAperture = c_aperture
+      jawOffset   = c_offset
+      jawTilt     = c_tilt
+      call jaw_getFitData(cdb_cSliced(icoll), iSlice, jawLength, jawAperture, jawOffset, jawTilt)
+      if(firstrun) then
+        write(collsettings_unit,"(a20,1x,i10,5(1x,1pe13.6),1x,a)") &
+          cdb_cName(icoll)(1:20), iSlice, jawAperture/two, jawOffset, jawTilt(1), jawTilt(2), jawLength, cdb_cMaterial(icoll)
+      end if
+      call collimate2(c_material, jawLength, c_rotation, jawAperture, jawOffset, jawTilt, &
+        rcx, rcxp, rcy, rcyp, rcp, rcs, napx, enom_gev, part_hit_pos, part_hit_turn,      &
+        part_abs_pos, part_abs_turn, part_impact, part_indiv, part_linteract, onesided,   &
+        flukaname, secondary, iSlice, nabs_type)
+    end do
 
-      if(n_slices.gt.1 .and. totals.gt.smin_slices .and. totals.lt.smax_slices .and. &
- &      (cdb_cNameUC(icoll)(1:4).eq.'TCSG' .or. cdb_cNameUC(icoll)(1:3).eq.'TCP' .or. cdb_cNameUC(icoll)(1:4).eq.'TCLA'.or. &
- &       cdb_cNameUC(icoll)(1:3).eq.'TCT' .or. cdb_cNameUC(icoll)(1:4).eq.'TCLI'.or. cdb_cNameUC(icoll)(1:4).eq.'TCL.'.or.  &
-!     RB: added slicing of TCRYO as well
- &       cdb_cNameUC(icoll)(1:5).eq.'TCRYO')) then
-
-        if(firstrun) then
-          write(lout,*) 'INFO> slice - Collimator ', cdb_cNameUC(icoll), ' sliced in ',n_slices, ' pieces !'
-        end if
-
-!!     Calculate longitudinal positions of slices and corresponding heights
-!!     and angles from the fit parameters.
-!!     -> MY NOTATION: y1_sl: jaw at x > 0; y2_sl: jaw at x < 0;
-!!     Note: here, take (n_slices+1) points in order to calculate the
-!!           tilt angle of the last slice!!
-
-!     CB:10-2007 deformation of the jaws scaled with length
-        do jjj=1,n_slices+1
-          x_sl(jjj) = (jjj-1) * c_length / real(n_slices,fPrec)
-
-          y1_sl(jjj) = jaw_fit(1,1) + jaw_fit(1,2)*x_sl(jjj) + jaw_fit(1,3)/c_length*(x_sl(jjj)**2) +           &
- &                           jaw_fit(1,4)*(x_sl(jjj)**3) + jaw_fit(1,5)*(x_sl(jjj)**4) + jaw_fit(1,6)*(x_sl(jjj)**5)
-
-          y2_sl(jjj) = -one * (jaw_fit(2,1) + jaw_fit(2,2)*x_sl(jjj) + jaw_fit(2,3)/c_length*(x_sl(jjj)**2) +   &
- &                           jaw_fit(2,4)*(x_sl(jjj)**3) + jaw_fit(2,5)*(x_sl(jjj)**4) + jaw_fit(2,6)*(x_sl(jjj)**5))
-        end do
-
-!       Apply the slicing scaling factors (ssf's):
-!       CB:10-2007 coordinates rotated of the tilt
-        do jjj=1,n_slices+1
-          y1_sl(jjj) = jaw_ssf(1) * y1_sl(jjj)
-          y2_sl(jjj) = jaw_ssf(2) * y2_sl(jjj)
-! CB code
-          x1_sl(jjj) = x_sl(jjj) *cos_mb(cdb_cTilt(icoll,1))-y1_sl(jjj)*sin_mb(cdb_cTilt(icoll,1))
-          x2_sl(jjj) = x_sl(jjj) *cos_mb(cdb_cTilt(icoll,2))-y2_sl(jjj)*sin_mb(cdb_cTilt(icoll,2))
-          y1_sl(jjj) = y1_sl(jjj)*cos_mb(cdb_cTilt(icoll,1))+x_sl(jjj) *sin_mb(cdb_cTilt(icoll,1))
-          y2_sl(jjj) = y2_sl(jjj)*cos_mb(cdb_cTilt(icoll,2))+x_sl(jjj) *sin_mb(cdb_cTilt(icoll,2))
-        end do
-
-!       Sign of the angle defined differently for the two jaws!
-        do jjj=1,n_slices
-          angle1(jjj) = (( y1_sl(jjj+1) - y1_sl(jjj) ) / ( x1_sl(jjj+1)-x1_sl(jjj) ))
-          angle2(jjj) = (( y2_sl(jjj+1) - y2_sl(jjj) ) / ( x2_sl(jjj+1)-x2_sl(jjj) ))
-        end do
-
-!       For both jaws, look for the 'deepest' point (closest point to beam)
-!       Then, shift the vectors such that this closest point defines
-!       the nominal aperture
-!       Index here must go up to (n_slices+1) in case the last point is the
-!       closest (and also for the later calculation of 'a_tmp1' and 'a_tmp2')
-
-!       SR, 01-09-2005: add the recentring flag, as given in 'fort.3' to
-!       choose whether recentre the deepest point or not
-        max_tmp = c1e6
-        do jjj=1, n_slices+1
-          if( y1_sl(jjj).lt.max_tmp ) then
-            max_tmp = y1_sl(jjj)
-          end if
-        end do
-
-        do jjj=1, n_slices+1
-          y1_sl(jjj) = y1_sl(jjj) - (max_tmp * recenter1) + (half*c_aperture)
-        end do
-
-        max_tmp = -c1e6
-
-        do jjj=1, n_slices+1
-          if( y2_sl(jjj).gt.max_tmp ) then
-            max_tmp = y2_sl(jjj)
-          end if
-        end do
-
-        do jjj=1, n_slices+1
-          y2_sl(jjj) = y2_sl(jjj) - (max_tmp * recenter2) - (half*c_aperture)
-        end do
-
-!!      Check the collimator jaw surfaces (beam frame, before taking into
-!!      account the azimuthal angle of the collimator)
-        if(firstrun) then
-          write(lout,*) 'Slicing collimator ',cdb_cNameUC(icoll)
-           do jjj=1,n_slices
-             write(lout,*) x_sl(jjj), y1_sl(jjj), y2_sl(jjj), angle1(jjj), angle2(jjj), cdb_cTilt(icoll,1), cdb_cTilt(icoll,2)
-           end do
-        end if
-
-!       Now, loop over the number of slices and call collimate2 each time!
-!       For each slice, the corresponding offset and angle are to be used.
-        do jjj=1,n_slices
-
-!         First calculate aperture and centre of the slice
-!         Note that:
-!         (1)due to our notation for the angle sign,
-!         the rotation point of the slice (index j or j+1)
-!         DEPENDS on the angle value!!
-!         (2) New version of 'collimate2' is required: one must pass
-!         the slice number in order the calculate correctly the 's'
-!         coordinate in the impact files.
-
-!         Here, 'a_tmp1' and 'a_tmp2' are, for each slice, the closest
-!         corners to the beam
-          if( angle1(jjj).gt.zero ) then
-            a_tmp1 = y1_sl(jjj)
-          else
-            a_tmp1 = y1_sl(jjj+1)
-          end if
-
-          if( angle2(jjj).lt.zero ) then
-            a_tmp2 = y2_sl(jjj)
-          else
-            a_tmp2 = y2_sl(jjj+1)
-          end if
-
-!     Be careful! the initial tilt must be added!
-!     We leave it like this for the moment (no initial tilt)
-!         c_tilt(1) = c_tilt(1) + angle1(jjj)
-!         c_tilt(2) = c_tilt(2) + angle2(jjj)
-          c_tilt(1) = angle1(jjj)
-          c_tilt(2) = angle2(jjj)
-!     New version of 'collimate2' is required: one must pass the
-!     slice number in order the calculate correctly the 's'
-!     coordinate in the impact files.
-!     +                    a_tmp1 - a_tmp2,
-!     +                    0.5 * ( a_tmp1 + a_tmp2 ),
-! -- TW SEP07 added compatility for tilt, gap and ofset errors to slicing
-! -- TW gaprms error is already included in the c_aperture used above
-! -- TW tilt error is added to y1_sl and y2_sl therfore included in
-! -- TW angle1 and angle2 no additinal changes needed
-! -- TW offset error directly added to call of collimate2
-
-! --- TW JUNE08
-          if (firstrun) then
-            write(collsettings_unit,'(a,1x,i10,5(1x,e13.5),1x,a)')      &
-     &                       cdb_cNameUC(icoll)(1:12),                     &
-     &                       jjj,                                       &
-     &                       (a_tmp1 - a_tmp2)/two,                     &
-     &                       half * (a_tmp1 + a_tmp2) + c_offset,       &
-     &                       c_tilt(1),                                 &
-     &                       c_tilt(2),                                 &
-     &                       c_length / real(n_slices,fPrec),           &
-     &                       cdb_cMaterial(icoll)
-          end if
-! --- TW JUNE08
-                     call collimate2(c_material,                        &
-     &                    c_length / real(n_slices,fPrec),              &
-     &                    c_rotation,                                   &
-     &                    a_tmp1 - a_tmp2,                              &
-     &                    half * ( a_tmp1 + a_tmp2 ) + c_offset,        &
-     &                    c_tilt,                                       &
-     &                    rcx, rcxp, rcy, rcyp,                         &
-     &                    rcp, rcs, napx, enom_gev,                     &
-     &                    part_hit_pos, part_hit_turn,                  &
-     &                    part_abs_pos, part_abs_turn,                  &
-     &                    part_impact, part_indiv,                      &
-     &                    part_linteract, onesided, flukaname,          &
-     &                    secondary,                                    &
-     &                    jjj, nabs_type)
-          ! block
-          !   real(kind=fPrec) cLength, cAperture, cOffset, cTilt(2)
-          !   cLength   = c_length
-          !   cAperture = c_aperture
-          !   cOffset   = c_offset
-          !   cTilt     = c_tilt
-          !   call jaw_getFitData(cdb_cSliced(icoll), jjj, cLength, cAperture, cOffset, cTilt)
-          !   ! write(*,*) c_length / real(n_slices,fPrec), cLength
-          !   write(*,*) cTilt, c_tilt
-          ! end block
-        end do !do jjj=1,n_slices
-        ! stop
-      else !if(n_slices.gt.one .and. totals.gt.smin_slices .and. totals.lt.smax_slices .and.
-!     Treatment of non-sliced collimators
+  else ! Treatment of non-sliced collimators
 
 #ifdef G4COLLIMATION
 !! Add the geant4 geometry
