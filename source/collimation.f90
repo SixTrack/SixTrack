@@ -2684,11 +2684,10 @@ subroutine collimate_do_collimator(stracki)
   if(cdb_cNameUC(icoll)(1:4) == 'TCDQ')  onesided = .true.
   if(cdb_cNameUC(icoll)(1:5) == 'TCXRP') onesided = .true.
 
-  if(cdb_cSliced(icoll) > 0) then
+  if(cdb_cSliced(icoll) > 0) then ! Treatment of sliced collimators
     ! Now, loop over the number of slices and call collimate2 each time!
     ! For each slice, the corresponding offset and angle are to be used.
     do iSlice=1,jaw_getSliceCount(cdb_cSliced(icoll))
-      jawLength   = c_length
       jawAperture = c_aperture
       jawOffset   = c_offset
       jawTilt     = c_tilt
@@ -2705,6 +2704,13 @@ subroutine collimate_do_collimator(stracki)
 
   else ! Treatment of non-sliced collimators
 
+#ifndef G4COLLIMATION
+    call collimate2(c_material, c_length, c_rotation, c_aperture, c_offset, c_tilt, &
+      rcx, rcxp, rcy, rcyp, rcp, rcs, napx, enom_gev, part_hit_pos,part_hit_turn,   &
+      part_abs_pos, part_abs_turn, part_impact, part_indiv, part_linteract,         &
+      onesided, flukaname, secondary, 1, nabs_type)
+#endif
+    
 #ifdef G4COLLIMATION
 !! Add the geant4 geometry
         if(firstrun.and.iturn.eq.1) then
@@ -2860,18 +2866,7 @@ subroutine collimate_do_collimator(stracki)
   end if
 
 #endif
-#ifndef G4COLLIMATION
-! This is what is called in a normal collimation run
-                  call collimate2(c_material, c_length, c_rotation,     &
-     &                 c_aperture, c_offset, c_tilt,                    &
-     &                 rcx, rcxp, rcy, rcyp,                            &
-     &                 rcp, rcs, napx, enom_gev,                        &
-     &                 part_hit_pos,part_hit_turn,                      &
-     &                 part_abs_pos, part_abs_turn,                     &
-     &                 part_impact, part_indiv, part_linteract,         &
-     &                 onesided, flukaname, secondary, 1, nabs_type)
-#endif
-      end if !if (n_slices.gt.one .and.
+  end if
 
 end subroutine collimate_do_collimator
 

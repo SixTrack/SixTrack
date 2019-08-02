@@ -1,3 +1,10 @@
+! ================================================================================================ !
+!  Collimation Jaw Fit Module
+! ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+!  V.K. Berglyd Olsen, BE-ABP-HSS
+!  Created: 2019-08-01
+!  Updated: 2019-08-02
+! ================================================================================================ !
 module coll_jaw
 
   use floatPrecision
@@ -26,11 +33,12 @@ module coll_jaw
 
 contains
 
-integer function jaw_getSliceCount(sliceID)
-  integer, intent(in) :: sliceID
-  jaw_getSliceCount = jaw_collData(sliceID)%nSlices
-end function jaw_getSliceCount
-
+! ================================================================================================ !
+!  V.K. Berglyd Olsen, BE-ABP-HSS
+!  Created: 2019-08-01
+!  Updated: 2019-08-01
+!  Add a jaw fit model to the storage
+! ================================================================================================ !
 subroutine jaw_addJawFit(fitName, fitParams, fitScale, reCentre, fitID)
 
   character(len=*), intent(in)  :: fitName
@@ -60,6 +68,14 @@ subroutine jaw_addJawFit(fitName, fitParams, fitScale, reCentre, fitID)
 
 end subroutine jaw_addJawFit
 
+! ================================================================================================ !
+!  V.K. Berglyd Olsen, BE-ABP-HSS
+!  Created: 2019-08-01
+!  Updated: 2019-08-02
+!  Compute the fit parameters for a given collimator using a stored fit model
+!  Most of the fit code was extracted from the main collimation module.
+!  Original comments from original authors have been preserved.
+! ================================================================================================ !
 subroutine jaw_computeFit(collName, fitID, nSlices, cLength, cTilt, cOffset, sliceID)
 
   use crcoall
@@ -128,32 +144,11 @@ subroutine jaw_computeFit(collName, fitID, nSlices, cLength, cTilt, cOffset, sli
   ! closest (and also for the later calculation of 'a_tmp1' and 'a_tmp2')
   ! The recentring flag, as given in 'fort.3' chooses whether we recentre the deepest point or not
   if(jaw_fitData(fitID(1))%reCentre) then
-    maxY = c1e6
-    do i=1,nSlices+1
-      if(sY1(i) < maxY) then
-        maxY = sY1(i)
-      end if
-    end do
-  else
-    maxY = zero
+    sY1 = sY1 - minval(sY1)
   end if
-  do i=1,nSlices+1
-    sY1(i) = sY1(i) - maxY ! + (half*c_aperture)
-  end do
-
   if(jaw_fitData(fitID(2))%reCentre) then
-    maxY = -c1e6
-    do i=1,nSlices+1
-      if(sY2(i) > maxY) then
-        maxY = sY2(i)
-      end if
-    end do
-  else
-    maxY = zero
+    sY2 = sY2 - maxval(sY2)
   end if
-  do i=1,nSlices+1
-    sY2(i) = sY2(i) - maxY ! - (half*c_aperture)
-  end do
 
   fitData(1,:) = sY1(:)
   fitData(2,:) = sY2(:)
@@ -171,6 +166,12 @@ subroutine jaw_computeFit(collName, fitID, nSlices, cLength, cTilt, cOffset, sli
 
 end subroutine jaw_computeFit
 
+! ================================================================================================ !
+!  V.K. Berglyd Olsen, BE-ABP-HSS
+!  Created: 2019-08-01
+!  Updated: 2019-08-02
+!  Return the adjusted length, aperture and offset for a specific collimator
+! ================================================================================================ !
 subroutine jaw_getFitData(sliceID, nSlice, cLength, cAperture, cOffset, cTilt)
 
   use numerical_constants
@@ -206,5 +207,13 @@ subroutine jaw_getFitData(sliceID, nSlice, cLength, cAperture, cOffset, cTilt)
   cOffset   = half*(val1 + val2) + cOffset
 
 end subroutine jaw_getFitData
+
+! ================================================================================================ !
+!  Return the number of slices for a given jaw fit
+! ================================================================================================ !
+integer function jaw_getSliceCount(sliceID)
+  integer, intent(in) :: sliceID
+  jaw_getSliceCount = jaw_collData(sliceID)%nSlices
+end function jaw_getSliceCount
 
 end module coll_jaw
