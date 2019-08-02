@@ -94,7 +94,7 @@ subroutine jaw_computeFit(collName, fitID, nSlices, cLength, cTilt, cOffset, sli
   real(kind=fPrec) sX(nSlices+1), sX1(nSlices+1), sX2(nSlices+1), sY1(nSlices+1), sY2(nSlices+1)
   real(kind=fPrec) angle1(nSlices), angle2(nSlices)
   real(kind=fPrec) fac1(6), fac2(6), scale1, scale2, maxY
-  real(kind=fPrec) fitData(2,nSlices+1), fitTilt(2,nSlices+1)
+  real(kind=fPrec) fitData(2,nSlices+1), fitTilt(2,nSlices)
   integer i
 
   if(allocated(jaw_collData)) then
@@ -118,10 +118,10 @@ subroutine jaw_computeFit(collName, fitID, nSlices, cLength, cTilt, cOffset, sli
   do i=1,nSlices+1
     ! Deformation of the jaws scaled with length
     sX(i)  = (real(i-1,fPrec)*cLength)/real(nSlices,fPrec)
-    sY1(i) = fac1(1) + fac1(2)*sX(i) + (fac1(3)/cLength)*sX(i)**2 + fac1(4)*sX(i)**3 + fac1(5)*sX(i)**4 + fac1(6)*sX(i)**5
-    sY2(i) = fac2(1) + fac2(2)*sX(i) + (fac2(3)/cLength)*sX(i)**2 + fac2(4)*sX(i)**3 + fac2(5)*sX(i)**4 + fac2(6)*sX(i)**5
+    sY1(i) = ((((fac1(1) + fac1(2)*sX(i)) + (fac1(3)/cLength)*sX(i)**2) + fac1(4)*sX(i)**3) + fac1(5)*sX(i)**4) + fac1(6)*sX(i)**5
+    sY2(i) = ((((fac2(1) + fac2(2)*sX(i)) + (fac2(3)/cLength)*sX(i)**2) + fac2(4)*sX(i)**3) + fac2(5)*sX(i)**4) + fac2(6)*sX(i)**5
 
-    ! Apply the slicing scaling factors (ssf's):
+    ! Apply the slicing scaling factors
     sY1(i) =       scale1 * sY1(i)
     sY2(i) = -one*(scale2 * sY2(i))
 
