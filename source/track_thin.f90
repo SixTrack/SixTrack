@@ -2101,6 +2101,8 @@ end subroutine thin6d
 subroutine trackReport(n)
 
   use crcoall
+  use floatPrecision
+  use mathlib_bouncer
   use parpro,     only : npart
   use mod_common, only : ithick, iclo6, numl, napx, napxo
 
@@ -2125,8 +2127,8 @@ subroutine trackReport(n)
     else
       trackMode = trim(trackMode)//" 4D"
     end if
-    oPart   = int(log10(real(npart)))+1
-    oTurn   = int(log10(real(numl)))+1
+    oPart   = int(log10_mb(real(napxo, kind=fPrec))) + 1
+    oTurn   = int(log10_mb(real(numl,  kind=fPrec))) + 1
     isFirst = .false.
     write(trackFmt,"(2(a,i0),a)") "(2(a,i",oTurn,"),2(a,i",oPart,"))"
   end if

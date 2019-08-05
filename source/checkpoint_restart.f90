@@ -44,7 +44,7 @@ module checkpoint_restart
 
   ! C/R Temp Variables and Arrays
   real(kind=fPrec),  private, save :: cre0
-  real(kind=fPrec),  private, save :: crbetrel
+  real(kind=fPrec),  private, save :: crbeta0
   real(kind=fPrec),  private, save :: crbrho
   real(kind=fPrec),  private, save :: crnucmda
 
@@ -390,7 +390,7 @@ subroutine crcheck
     write(crlog,"(a)") "CR_CHECK>  * Tracking variables"
     flush(crlog)
     read(cr_pntUnit(nPoint),iostat=ioStat) crnumlcr,crnuml,crsixrecs,crbinrec,cril,cr_time,crnapxo, &
-      crnapx,cre0,crbetrel,crbrho,crnucmda
+      crnapx,cre0,crbeta0,crbrho,crnucmda
     if(ioStat /= 0) cycle
 
     write(crlog,"(a)") "CR_CHECK>  * Particle arrays"
@@ -632,7 +632,7 @@ subroutine crpoint
       write(crlog,"(a)") "CR_POINT>  * Tracking variables"
       flush(crlog)
     end if
-    write(cr_pntUnit(nPoint),err=100) crnumlcr,numl,sixrecs,binrec,il,time3,napxo,napx,e0,betrel,brho,nucmda
+    write(cr_pntUnit(nPoint),err=100) crnumlcr,numl,sixrecs,binrec,il,time3,napxo,napx,e0,beta0,brho,nucmda
 
     if(st_debug) then
       write(crlog,"(a)") "CR_POINT>  * Particle arrays"
@@ -779,7 +779,7 @@ subroutine crstart
   napx   = crnapx
   e0     = cre0
   e0f    = sqrt(e0**2-nucm0**2)
-  betrel = crbetrel
+  beta0 = crbeta0
   brho   = crbrho
   nucmda = crnucmda
 

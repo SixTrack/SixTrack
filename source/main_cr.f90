@@ -970,18 +970,14 @@ program maincr
   end do
   rat0 = rat
 
+  call part_setParticleID ! Must be set before reading DIST
   if(dist_enable) then
     ! DIST Block
-    call dist_readDist
-    call dist_finaliseDist
-    call part_applyClosedOrbit
-    if(dist_echo) then
-      call dist_echoDist
-    end if
+    call dist_generateDist
   elseif(rdfort13) then
     ! Restart from fort.13
     call readFort13
-    call part_updatePartEnergy(1)
+    call part_updatePartEnergy(1,.false.)
   else
     ! Generated from INIT Distribution Block
     do ia=1,napx,2
@@ -1238,8 +1234,8 @@ program maincr
 
   ! Initialise Modules
   call dump_initialise
-  if(iclo6 > 0 .and. ithick == 0 .and. do_coll) then
-    ! Only if thin 6D and collimation enabled
+  if(ithick == 0 .and. do_coll) then
+    ! Only if thin and collimation enabled
     call collimate_init
   end if
 
@@ -1249,7 +1245,6 @@ program maincr
 !  START OF TRACKING
 ! ---------------------------------------------------------------------------- !
   write(lout,10200)
-  call part_setParticleID
 
   if(st_iStateWrite) then
     if(st_iStateText) then
