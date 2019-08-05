@@ -107,9 +107,9 @@ subroutine dump_setTasMatrix(elemID, tasData, cloData)
   use mod_common, only : bez
   use mod_settings
 
-  integer,          intent(in) :: elemID
-  real(kind=fPrec), intent(in) :: tasData(6,6)
-  real(kind=fPrec), intent(in) :: cloData(6)
+  integer,          intent(in) :: elemID       ! Single element index
+  real(kind=fPrec), intent(in) :: tasData(6,6) ! Tas matrix with consistent units (no mm scaling)
+  real(kind=fPrec), intent(in) :: cloData(6)   ! Closed orbit
 
   type(dump_normType), allocatable :: tmpNorm(:)
   real(kind=fPrec) invData(6,6)
@@ -131,7 +131,7 @@ subroutine dump_setTasMatrix(elemID, tasData, cloData)
       if(elemID > 0) then
         write(lout,"(a,i0,a)") "DUMP> Saving normalisation matrix for element ",elemID," '"//trim(bez(elemID))//"'"
       else if(elemID == -1) then
-        write(lout,"(a)") "DUMP> Saving normalisation matrix for element 'StartDUMP'"
+        write(lout,"(a)") "DUMP> Saving normalisation matrix for element -1 'StartDUMP'"
       end if
     end if
   else
@@ -140,7 +140,7 @@ subroutine dump_setTasMatrix(elemID, tasData, cloData)
       if(elemID > 0) then
         write(lout,"(a,i0,a)") "DUMP> Updating normalisation matrix for element ",elemID," '"//trim(bez(elemID))//"'"
       else if(elemID == -1) then
-        write(lout,"(a)") "DUMP> Updating normalisation matrix for element 'StartDUMP'"
+        write(lout,"(a)") "DUMP> Updating normalisation matrix for element -1 'StartDUMP'"
       end if
     end if
   end if

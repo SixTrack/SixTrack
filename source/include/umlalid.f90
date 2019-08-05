@@ -94,9 +94,7 @@ do j=1,ndimf
   call dapek(damap(ii),jj,au(i3,i3))
   jj(i3)=0
 
-  ! Store tas matrix (normalisation of phase space) and closed orbit for FMA and DUMP normalization.
-  ! Variable added to DUMP block module variables;
-  ! Units tasData: mm,mrad,mm,mrad,mm,1.e-3 -> convert later to 1.e3
+  ! Store tas matrix (normalisation of phase space) and closed orbit for FMA and DUMP normalisation.
   if(ic(i)-nblo > 0) then ! Check if structure element is a block
     if(ldump(ic(i)-nblo)) then ! Check if particles are dumped at this element
       tasData(ii-1,ii-1) = angp(1,ii-1)
@@ -111,9 +109,10 @@ do j=1,ndimf
       tasData(ii  ,i3-1) = au(i3  ,i3-1)
       tasData(ii-1,i3  ) = au(i3-1,i3  )
       tasData(ii  ,i3  ) = au(i3  ,i3  )
-      ! closed orbit in canonical variables x,px,y,py,sig,delta [mm,mrad,mm,mrad,mm,1.e-3]
+      ! Closed orbit in canonical variables x,px,y,py,sig,delta [mm,mrad,mm,mrad,mm,1.e-3]
       ! convert to x,xp,y,yp,sig,delta [mm,mrad,mm,mrad,mm,1]
       !  -> check units used in dumpclo (is x' or px used?)
+      ! Note: this needs to be checked again. sigm is not canonical
       cloData(2*j-1) = c(j)
       if(j == 3) then ! dp/p
         cloData(2*j) = cp(j)*c1m3
@@ -123,43 +122,42 @@ do j=1,ndimf
     end if
   end if
 
-  b1(j)=angp(1,ii-1)**2+angp(1,ii)**2                          !hr08
-  b2(j)=au(i2-1,i2-1)**2+au(i2-1,i2)**2                        !hr08
-  b3(j)=au(i3-1,i3-1)**2+au(i3-1,i3)**2                        !hr08
-  al1(j)=-one*(angp(1,ii-1)*au(ii,ii-1)+angp(1,ii)*au(ii,ii))  !hr03
-  al2(j)=-one*(au(i2-1,i2-1)*au(i2,i2-1)+au(i2-1,i2)*au(i2,i2)) !hr03
-  al3(j)=-one*(au(i3-1,i3-1)*au(i3,i3-1)+au(i3-1,i3)*au(i3,i3)) !hr03
-  g1(j)=au(ii,ii-1)**2+au(ii,ii)**2                            !hr04
-  g2(j)=au(i2,i2-1)**2+au(i2,i2)**2                            !hr04
-  g3(j)=au(i3,i3-1)**2+au(i3,i3)**2                            !hr04
-  if(ndimf.eq.3) then
+  b1(j)  = angp(1,ii-1)**2+angp(1,ii)**2
+  b2(j)  = au(i2-1,i2-1)**2+au(i2-1,i2)**2
+  b3(j)  = au(i3-1,i3-1)**2+au(i3-1,i3)**2
+  al1(j) = -one*(angp(1,ii-1)*au(ii,ii-1)+angp(1,ii)*au(ii,ii))
+  al2(j) = -one*(au(i2-1,i2-1)*au(i2,i2-1)+au(i2-1,i2)*au(i2,i2))
+  al3(j) = -one*(au(i3-1,i3-1)*au(i3,i3-1)+au(i3-1,i3)*au(i3,i3))
+  g1(j)  = au(ii,ii-1)**2+au(ii,ii)**2
+  g2(j)  = au(i2,i2-1)**2+au(i2,i2)**2
+  g3(j)  = au(i3,i3-1)**2+au(i3,i3)**2
+  if(ndimf == 3) then
     call dainv(damap,nvar,damapi,nvar)
-    jj(6)=1
+    jj(6) = 1
     call dapek(damapi(5),jj,aui(1))
     call dapek(damapi(6),jj,aui(2))
-    jj(6)=0
-    if(j.lt.3) then
-      d(j)=au(i3-1,i3-1)*aui(1)+au(i3-1,i3)*aui(2)
-      dp(j)=au(i3,i3-1)*aui(1)+au(i3,i3)*aui(2)
+    jj(6) = 0
+    if(j < 3) then
+      d(j)  = au(i3-1,i3-1)*aui(1)+au(i3-1,i3)*aui(2)
+      dp(j) = au(i3,i3-1)*aui(1)+au(i3,i3)*aui(2)
     else
-      d(j)=angp(1,ii-1)*aui(1)+angp(1,ii)*aui(2)
-      dp(j)=au(ii,ii-1)*aui(1)+au(ii,ii)*aui(2)
-    endif
-  endif
-  sx=angp(2,ii-1)*angp(1,ii)-angp(1,ii-1)*angp(2,ii)
-  cx=angp(1,ii-1)*angp(2,ii-1)+angp(1,ii)*angp(2,ii)
-  if(abs(sx).gt.c1m15.or.abs(cx).gt.c1m15) then
-    dphi(j)=atan2_mb(sx,cx)/x2pi
+      d(j)  = angp(1,ii-1)*aui(1)+angp(1,ii)*aui(2)
+      dp(j) = au(ii,ii-1)*aui(1)+au(ii,ii)*aui(2)
+    end if
+  end if
+  sx = angp(2,ii-1)*angp(1,ii)-angp(1,ii-1)*angp(2,ii)
+  cx = angp(1,ii-1)*angp(2,ii-1)+angp(1,ii)*angp(2,ii)
+  if(abs(sx) > c1m15 .or. abs(cx) > c1m15) then
+    dphi(j) = atan2_mb(sx,cx)/x2pi
   else
-    dphi(j)=zero
-  endif
-  phi(j)=phi(j)+dphi(j)
-enddo ! end include/of optics calculation
+    dphi(j) = zero
+  end if
+  phi(j) = phi(j)+dphi(j)
+end do ! end include/of optics calculation
 
 if(ic(i)-nblo > 0) then ! Check if structure element is a block
   if(ldump(ic(i)-nblo)) then ! Check if particles are dumped at this element
-    ! Convert from units [mm,mrad,mm,mrad,1.e-3] to [mm,mrad,mm,mrad,1] as needed for normalization
-    ! tasData is now in units [mm,mrad,mm,mrad,1]
+    ! Fix scaling of the 6th column and row due to the use of mm and mrad elsewhere
     tasData(1:5,6) = tasData(1:5,6)*c1e3
     tasData(6,1:5) = tasData(6,1:5)*c1m3
     call dump_setTasMatrix(ic(i)-nblo, tasData, cloData)

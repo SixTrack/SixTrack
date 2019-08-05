@@ -155,21 +155,16 @@ subroutine fma_postpr
   logical spErr, fErr, cErr, isOpen, fExist
   integer i,j,k,l,m,n
 
-  ! Current turn no (particle, rel. turn no)
-  integer, allocatable :: turn(:,:)
-  ! Number of turns to analyze for this particle
-  integer, allocatable :: nturns(:)
-  ! Have we written a normDump file for this element before?
-  logical, allocatable :: hasNormDumped(:)
-  ! Number of turns used for fft for this FMA
-  integer, allocatable :: fma_nturn(:)
-  ! Phase space variables (x,x',y,y',z,dE/E) [mm,mrad,mm,mrad,mm,1.e-3]
-  real(kind=fPrec), allocatable :: xyzv(:,:,:)
-  ! Normalised phase space variables [sqrt(m) 1.e-3]
-  real(kind=fPrec), allocatable :: nxyzv(:,:,:)
-  ! Normalised emittances
-  real(kind=fPrec), allocatable :: epsnxyzv(:,:,:)
-  real(kind=fPrec) dumptas(6,6), dumpclo(6), dumptasinv(6,6)
+  integer,          allocatable :: turn(:,:)        ! Current turn no (particle, rel. turn no)
+  integer,          allocatable :: nturns(:)        ! Number of turns to analyze for this particle
+  logical,          allocatable :: hasNormDumped(:) ! Have we written a normDump file for this element before?
+  integer,          allocatable :: fma_nturn(:)     ! Number of turns used for fft for this FMA
+  real(kind=fPrec), allocatable :: xyzv(:,:,:)      ! Phase space variables (x,x',y,y',z,dE/E) [mm,mrad,mm,mrad,mm,1.e-3]
+  real(kind=fPrec), allocatable :: nxyzv(:,:,:)     ! Normalised phase space variables [sqrt(m) 1.e-3]
+  real(kind=fPrec), allocatable :: epsnxyzv(:,:,:)  ! Normalised emittances
+  real(kind=fPrec) dumptas(6,6)    ! Local copy of tas matrix from DUMP
+  real(kind=fPrec) dumptasinv(6,6) ! Local copy of inverse tas matrix from DUMP
+  real(kind=fPrec) dumpclo(6)      ! Local copy of closed orbit from DUMP
 
 #ifdef NAFF
   interface
