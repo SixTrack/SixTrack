@@ -21,35 +21,21 @@
 
 module dump
 
-  use parpro
-  use mod_alloc
   use floatPrecision
   use numerical_constants, only : zero
-#ifdef HDF5
-  use hdf5_output
-#endif
 
   implicit none
 
-  ! High precision printout required at all flagged SINGLE ELEMENTs
-  logical, save :: ldumphighprec = .false.
-  ! Dump at the beginning of each element, not at the end.
-  logical, save :: ldumpfront    = .false.
-  ! flag the SINGLE ELEMENT for dumping
-  logical, allocatable, save :: ldump(:)  !(-1:nele)
+  logical, private, save :: ldumphighprec = .false. ! High precision printout required at all flagged SINGLE ELEMENTs
+  logical, public,  save :: ldumpfront    = .false. ! Dump at the beginning of each element, not at the end.
 
-  ! Dump every n turns at a flagged SINGLE ELEMENT (dump frequency)
-  integer, allocatable, save :: ndumpt(:) !(-1:nele)
-  ! First turn for DUMP to be active
-  integer, allocatable, save :: dumpfirst(:) !(-1:nele)
-  ! Last turn for this DUMP to be active (-1=all)
-  integer, allocatable, save :: dumplast(:) !(-1:nele)
-  ! Fortran unit for dump at a flagged SINGLE ELEMENT
-  integer, allocatable, save :: dumpunit(:) !(-1:nele)
-  ! Flag the format of the dump
-  integer, allocatable, save :: dumpfmt(:) !(-1:nele)
-  ! Filename to write the dump to
-  character(len=:), allocatable, save :: dump_fname(:) !(mFileName)(-1:nele)
+  logical,          allocatable, public,  save :: ldump(:)      ! flag the SINGLE ELEMENT for dumping
+  integer,          allocatable, private, save :: ndumpt(:)     ! Dump every n turns at a flagged SINGLE ELEMENT (dump frequency)
+  integer,          allocatable, public,  save :: dumpfirst(:)  ! First turn for DUMP to be active
+  integer,          allocatable, public,  save :: dumplast(:)   ! Last turn for this DUMP to be active (-1=all)
+  integer,          allocatable, public,  save :: dumpunit(:)   ! Fortran unit for dump at a flagged SINGLE ELEMENT
+  integer,          allocatable, public,  save :: dumpfmt(:)    ! Flag the format of the dump
+  character(len=:), allocatable, public,  save :: dump_fname(:) ! Filename to write the dump to
 
   ! tas matrix used for nomalisation of phase space in DUMP and FMA.
   type, public :: dump_normType
@@ -64,13 +50,13 @@ module dump
 
 #ifdef HDF5
   ! Array to save hdf5 formats for each dump format
-  integer, allocatable, save :: dump_hdf5Format(:)
-  integer, allocatable, save :: dump_hdf5DataSet(:)
+  integer, allocatable, private, save :: dump_hdf5Format(:)
+  integer, allocatable, private, save :: dump_hdf5DataSet(:)
 #endif
 
 #ifdef CR
   ! For resetting file positions
-  integer, allocatable, save :: dumpfilepos(:), dumpfilepos_cr(:) !(-1:nele)
+  integer, allocatable, private, save :: dumpfilepos(:), dumpfilepos_cr(:)
 #endif
 
 ! ================================================================================================================================ !
@@ -81,30 +67,30 @@ contains
 ! ================================================================================================================================ !
 subroutine dump_expand_arrays(nele_new, nblz_new)
 
+  use parpro
+  use mod_alloc
   use numerical_constants, only : zero
-
-  implicit none
 
   integer, intent(in) :: nele_new
   integer, intent(in) :: nblz_new
 
-  call alloc(ldump,                 nele_new, .false.,    "ldump",       -1)
-  call alloc(ndumpt,                nele_new, 0,          "ndumpt",      -1)
-  call alloc(dumpfirst,             nele_new, 0,          "dumpfirst",   -1)
-  call alloc(dumplast,              nele_new, 0,          "dumplast",    -1)
-  call alloc(dumpunit,              nele_new, 0,          "dumpunit",    -1)
-  call alloc(dumpfmt,               nele_new, 0,          "dumpfmt",     -1)
-  call alloc(dump_fname, mFileName, nele_new, " ",        "dump_fname",  -1)
-  call alloc(dump_nMatMap,          nele_new, 0,          "dump_nMatMap",-1)
+  call alloc(ldump,                 nele_new, .false., "ldump",       -1)
+  call alloc(ndumpt,                nele_new, 0,       "ndumpt",      -1)
+  call alloc(dumpfirst,             nele_new, 0,       "dumpfirst",   -1)
+  call alloc(dumplast,              nele_new, 0,       "dumplast",    -1)
+  call alloc(dumpunit,              nele_new, 0,       "dumpunit",    -1)
+  call alloc(dumpfmt,               nele_new, 0,       "dumpfmt",     -1)
+  call alloc(dump_fname, mFileName, nele_new, " ",     "dump_fname",  -1)
+  call alloc(dump_nMatMap,          nele_new, 0,       "dump_nMatMap",-1)
 
 #ifdef CR
-  call alloc(dumpfilepos,           nele_new,-1,          "dumpfilepos",   -1)
-  call alloc(dumpfilepos_cr,        nele_new,-1,          "dumpfilepos_cr",-1)
+  call alloc(dumpfilepos,           nele_new,-1,       "dumpfilepos",   -1)
+  call alloc(dumpfilepos_cr,        nele_new,-1,       "dumpfilepos_cr",-1)
 #endif
 
 #ifdef HDF5
-  call alloc(dump_hdf5DataSet,      nele_new,0,           "dump_hdf5DataSet",-1)
-  call alloc(dump_hdf5Format,       9,       0,           "dump_hdf5Format")
+  call alloc(dump_hdf5DataSet,      nele_new,0,        "dump_hdf5DataSet",-1)
+  call alloc(dump_hdf5Format,       9,       0,        "dump_hdf5Format")
 #endif
 
 end subroutine dump_expand_arrays
@@ -253,6 +239,9 @@ subroutine dump_parseInputLine(inLine,iErr)
   use mod_common
   use mod_units
   use string_tools
+#ifdef HDF5
+  use hdf5_output
+#endif
 
   implicit none
 
@@ -484,6 +473,9 @@ subroutine dump_initialise
   use string_tools
   use mod_common
   use mod_units
+#ifdef HDF5
+  use hdf5_output
+#endif
 
   implicit none
 
@@ -1019,6 +1011,9 @@ subroutine dump_beam_population(nturn, i, ix, unit, fmt, lhighprec, loc_clo, tas
   use mod_common_main
   use mod_time
 
+#ifdef HDF5
+  use hdf5_output
+#endif
 #ifdef FLUKA
   use mod_fluka
 #endif

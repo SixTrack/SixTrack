@@ -50,8 +50,8 @@ else
   jj(5)=0
   do j1=1,2
     ii=2*j1
-    d(j1)=(((rdd(ii-1,1)*dicu(1)+rdd(ii-1,2)*dicu(2))+rdd(ii-1,3)*dicu(3))+rdd(ii-1,4)*dicu(4))+rdd(ii-1,5)              !hr03
-    dp(j1)=(((rdd(ii,1)*dicu(1)+rdd(ii,2)*dicu(2))+rdd(ii,3)*dicu(3))+rdd(ii,4)*dicu(4))+rdd(ii,5)                    !hr03
+    d(j1)=(((rdd(ii-1,1)*dicu(1)+rdd(ii-1,2)*dicu(2))+rdd(ii-1,3)*dicu(3))+rdd(ii-1,4)*dicu(4))+rdd(ii-1,5)
+    dp(j1)=(((rdd(ii,1)*dicu(1)+rdd(ii,2)*dicu(2))+rdd(ii,3)*dicu(3))+rdd(ii,4)*dicu(4))+rdd(ii,5)
   enddo
 endif
 call dacct(damap,nvar,aa2,nvar,damap,nvar)
@@ -96,9 +96,9 @@ do j=1,ndimf
 
   ! Store tas matrix (normalisation of phase space) and closed orbit for FMA and DUMP normalization.
   ! Variable added to DUMP block module variables;
-  ! units tasData: mm,mrad,mm,mrad,mm,1.e-3 -> convert later to 1.e3
-  if(ic(i)-nblo > 0) then !check if structure element is a block
-    if(ldump(ic(i)-nblo)) then !check if particles are dumped at this element
+  ! Units tasData: mm,mrad,mm,mrad,mm,1.e-3 -> convert later to 1.e3
+  if(ic(i)-nblo > 0) then ! Check if structure element is a block
+    if(ldump(ic(i)-nblo)) then ! Check if particles are dumped at this element
       tasData(ii-1,ii-1) = angp(1,ii-1)
       tasData(ii-1,ii  ) = angp(1,ii)
       tasData(ii  ,ii-1) = au(ii,ii-1)
@@ -156,10 +156,9 @@ do j=1,ndimf
   phi(j)=phi(j)+dphi(j)
 enddo ! end include/of optics calculation
 
-if(ic(i)-nblo > 0) then !check if structure element is a block
-  if(ldump(ic(i)-nblo)) then !check if particles are dumped at this element
-    ! do the unit conversion + inversion of tasData
-    ! convert from units [mm,mrad,mm,mrad,1.e-3] to [mm,mrad,mm,mrad,1] as needed for normalization
+if(ic(i)-nblo > 0) then ! Check if structure element is a block
+  if(ldump(ic(i)-nblo)) then ! Check if particles are dumped at this element
+    ! Convert from units [mm,mrad,mm,mrad,1.e-3] to [mm,mrad,mm,mrad,1] as needed for normalization
     ! tasData is now in units [mm,mrad,mm,mrad,1]
     tasData(1:5,6) = tasData(1:5,6)*c1e3
     tasData(6,1:5) = tasData(6,1:5)*c1m3
