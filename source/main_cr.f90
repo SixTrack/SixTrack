@@ -23,7 +23,7 @@ program maincr
 
   use dynk,    only : dynk_izuIndex
   use fma,     only : fma_postpr, fma_flag
-  use dump,    only : dump_initialise, dumpclo,dumptas,dumptasinv
+  use dump,    only : dump_initialise, dumpclo,dumptas,dumptasinv,dump_setTasMatrix
   use zipf,    only : zipf_numfiles, zipf_dozip
   use scatter, only : scatter_init
 
@@ -745,6 +745,17 @@ program maincr
   end do
   dumptas(-1,:,:) = tas(:,:)
   call invert_tas(dumptasinv(-1,:,:),dumptas(-1,:,:))
+
+  block
+    real(kind=fPrec) tmpClo(6)
+    tmpClo(1) = clo6v(1)
+    tmpClo(2) = clop6v(1)
+    tmpClo(3) = clo6v(2)
+    tmpClo(4) = clop6v(2)
+    tmpClo(5) = clo6v(3)
+    tmpClo(6) = clop6v(3)
+    call dump_setTasMatrix(-1,tas,tmpClo)
+  end block
 
   ! Convert to [mm,mrad,mm,mrad,1.e-3] for optics calculation
   tasiar16 = tas(1,6)*c1m3

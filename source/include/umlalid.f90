@@ -98,6 +98,29 @@ do j=1,ndimf
 !     units dumptas: mm,mrad,mm,mrad,mm,1.e-3 -> convert later to 1.e3
   if(ic(i)-nblo.gt.0) then !check if structure element is a block
     if(ldump(ic(i)-nblo)) then !check if particles are dumped at this element
+      block
+        real(kind=fPrec) tasData(6,6)
+        real(kind=fPrec) cloData(6)
+        tasData(ii-1,ii-1) = angp(1,ii-1)
+        tasData(ii-1,ii  ) = angp(1,ii)
+        tasData(ii  ,ii-1) = au(ii,ii-1)
+        tasData(ii  ,ii  ) = au(ii,ii  )
+        tasData(ii-1,i2-1) = au(i2-1,i2-1)
+        tasData(ii  ,i2-1) = au(i2  ,i2-1)
+        tasData(ii-1,i2  ) = au(i2-1,i2  )
+        tasData(ii  ,i2  ) = au(i2  ,i2  )
+        tasData(ii-1,i3-1) = au(i3-1,i3-1)
+        tasData(ii  ,i3-1) = au(i3  ,i3-1)
+        tasData(ii-1,i3  ) = au(i3-1,i3  )
+        tasData(ii  ,i3  ) = au(i3  ,i3  )
+        cloData(2*j-1) = c(j)
+        if(j == 3) then ! dp/p
+          cloData(2*j) = cp(j)*c1m3
+        else ! xp,yp
+          cloData(2*j) = cp(j)/(one+cp(3)*c1m3)
+        end if
+        call dump_setTasMatrix(ic(i)-nblo, tasData, cloData)
+      end block
       dumptas(ic(i)-nblo,ii-1,ii-1)=angp(1,ii-1)
       dumptas(ic(i)-nblo,ii-1,ii  )=angp(1,ii)
       dumptas(ic(i)-nblo,ii  ,ii-1)=au(ii,ii-1)

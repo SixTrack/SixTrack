@@ -21,9 +21,10 @@
 
 module dump
 
-  use floatPrecision
-  use parpro ! For nele
+  use parpro
   use mod_alloc
+  use floatPrecision
+  use numerical_constants, only : zero
 #ifdef HDF5
   use hdf5_output
 #endif
@@ -59,6 +60,16 @@ module dump
   ! TODO: check units used in dumpclo; is x' or px used?
   real(kind=fPrec), allocatable, save :: dumpclo(:,:)      ! (-1:nblz,6)
 
+  type, public :: dump_normType
+    real(kind=fPrec) :: tas(6,6)    = zero
+    real(kind=fPrec) :: invtas(6,6) = zero
+    real(kind=fPrec) :: orbit(6)    = zero
+  end type dump_normType
+
+  type(dump_normType), allocatable, public, save :: dump_normMat(:)
+  integer,             allocatable, public, save :: dump_nMatMap(:)
+  integer,                          public, save :: dump_nNormMat = 0
+
 #ifdef HDF5
   ! Array to save hdf5 formats for each dump format
   integer, allocatable, save :: dump_hdf5Format(:)
@@ -85,13 +96,14 @@ subroutine dump_expand_arrays(nele_new, nblz_new)
   integer, intent(in) :: nele_new
   integer, intent(in) :: nblz_new
 
-  call alloc(ldump,                 nele_new, .false.,    "ldump",      -1)
-  call alloc(ndumpt,                nele_new, 0,          "ndumpt",     -1)
-  call alloc(dumpfirst,             nele_new, 0,          "dumpfirst",  -1)
-  call alloc(dumplast,              nele_new, 0,          "dumplast",   -1)
-  call alloc(dumpunit,              nele_new, 0,          "dumpunit",   -1)
-  call alloc(dumpfmt,               nele_new, 0,          "dumpfmt",    -1)
-  call alloc(dump_fname, mFileName, nele_new, " ",        "dump_fname", -1)
+  call alloc(ldump,                 nele_new, .false.,    "ldump",       -1)
+  call alloc(ndumpt,                nele_new, 0,          "ndumpt",      -1)
+  call alloc(dumpfirst,             nele_new, 0,          "dumpfirst",   -1)
+  call alloc(dumplast,              nele_new, 0,          "dumplast",    -1)
+  call alloc(dumpunit,              nele_new, 0,          "dumpunit",    -1)
+  call alloc(dumpfmt,               nele_new, 0,          "dumpfmt",     -1)
+  call alloc(dump_fname, mFileName, nele_new, " ",        "dump_fname",  -1)
+  call alloc(dump_nMatMap,          nblz_new, 0,          "dump_nMatMap",-1)
 
   call alloc(dumptas,               nblz_new, 6, 6, zero, "dumptas",    -1,1,1)
   call alloc(dumptasinv,            nblz_new, 6, 6, zero, "dumptasinv", -1,1,1)
@@ -108,6 +120,81 @@ subroutine dump_expand_arrays(nele_new, nblz_new)
 #endif
 
 end subroutine dump_expand_arrays
+
+subroutine dump_setTasMatrix(elemID, tasData, cloData)
+
+  use crcoall
+  use mod_common, only : bezs
+  use mod_settings
+
+  integer,          intent(in) :: elemID
+  real(kind=fPrec), intent(in) :: tasData(6,6)
+  real(kind=fPrec), intent(in) :: cloData(6)
+
+  type(dump_normType), allocatable :: tmpNorm(:)
+  real(kind=fPrec) invData(6,6)
+  integer storeID
+
+  if(dump_nMatMap(elemID) == 0) then
+    if(allocated(dump_normMat)) then
+      allocate(tmpNorm(dump_nNormMat+1))
+      tmpNorm(1:dump_nNormMat) = dump_normMat(1:dump_nNormMat)
+      call move_alloc(tmpNorm, dump_normMat)
+      dump_nNormMat = dump_nNormMat + 1
+    else
+      allocate(dump_normMat(1))
+      dump_nNormMat = 1
+    end if
+    dump_nMatMap(elemID) = dump_nNormMat
+    storeID = dump_nNormMat
+    if(st_debug) then
+      if(elemID > 0) then
+        write(lout,"(a)") "DUMP> Saving normalisation matrix for element '"//trim(bezs(elemID))//"'"
+      else if(elemID == -1) then
+        write(lout,"(a)") "DUMP> Saving normalisation matrix for element 'StartDUMP'"
+      end if
+    end if
+  else
+    storeID = dump_nMatMap(elemID)
+    if(st_debug) then
+      if(elemID > 0) then
+        write(lout,"(a)") "DUMP> Updating normalisation matrix for element '"//trim(bezs(elemID))//"'"
+      else if(elemID == -1) then
+        write(lout,"(a)") "DUMP> Updating normalisation matrix for element 'StartDUMP'"
+      end if
+    end if
+  end if
+
+  call invert_tas(invData, tasData)
+
+  dump_normMat(storeID)%tas    = tasData
+  dump_normMat(storeID)%invtas = invData
+  dump_normMat(storeID)%orbit  = cloData
+
+end subroutine dump_setTasMatrix
+
+subroutine dump_getTasMatrix(elemID, invData, tasData, cloData)
+
+  use numerical_constants
+
+  integer,          intent(in)  :: elemID
+  real(kind=fPrec), intent(out) :: invData(6,6)
+  real(kind=fPrec), intent(out) :: tasData(6,6)
+  real(kind=fPrec), intent(out) :: cloData(6)
+
+  invData(:,:) = zero
+  tasData(:,:) = zero
+  cloData(:)   = zero
+
+  if(dump_nMatMap(elemID) == 0) then
+    return
+  end if
+
+  invData = dump_normMat(dump_nMatMap(elemID))%invtas
+  tasData = dump_normMat(dump_nMatMap(elemID))%tas
+  cloData = dump_normMat(dump_nMatMap(elemID))%orbit
+
+end subroutine dump_getTasMatrix
 
 subroutine dump_lines(n,i,ix)
 
@@ -314,8 +401,6 @@ subroutine dump_parseInputLine(inLine,iErr)
 #ifdef HDF5
   end if
 #endif
-
-  return
 
 end subroutine dump_parseInputLine
 
