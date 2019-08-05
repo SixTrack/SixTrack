@@ -163,9 +163,6 @@ program maincr
 #ifdef BOINC
   featList = featList//" BOINC"
 #endif
-#ifdef LIBARCHIVE
-  featList = featList//" LIBARCHIVE"
-#endif
 #ifdef PYTHIA
   featList = featList//" PYTHIA"
 #endif
