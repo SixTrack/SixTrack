@@ -52,14 +52,6 @@ module dump
   character(len=:), allocatable, save :: dump_fname(:) !(mFileName)(-1:nele)
 
   ! tas matrix used for nomalisation of phase space in DUMP and FMA.
-  ! First index = -1 -> StartDUMP, filled differently than idx > 0; First index = 0  -> Unused.
-  real(kind=fPrec), allocatable, save :: dumptas(:,:,:)    ! (-1:nblz,6,6)
-  ! inverse matrix of dumptas
-  real(kind=fPrec), allocatable, save :: dumptasinv(:,:,:) ! (-1:nblz,6,6)
-  ! closed orbit used for normalisation of phase space
-  ! TODO: check units used in dumpclo; is x' or px used?
-  real(kind=fPrec), allocatable, save :: dumpclo(:,:)      ! (-1:nblz,6)
-
   type, public :: dump_normType
     real(kind=fPrec) :: tas(6,6)    = zero
     real(kind=fPrec) :: invtas(6,6) = zero
@@ -103,11 +95,7 @@ subroutine dump_expand_arrays(nele_new, nblz_new)
   call alloc(dumpunit,              nele_new, 0,          "dumpunit",    -1)
   call alloc(dumpfmt,               nele_new, 0,          "dumpfmt",     -1)
   call alloc(dump_fname, mFileName, nele_new, " ",        "dump_fname",  -1)
-  call alloc(dump_nMatMap,          nblz_new, 0,          "dump_nMatMap",-1)
-
-  call alloc(dumptas,               nblz_new, 6, 6, zero, "dumptas",    -1,1,1)
-  call alloc(dumptasinv,            nblz_new, 6, 6, zero, "dumptasinv", -1,1,1)
-  call alloc(dumpclo,               nblz_new, 6,    zero, "dumpclo",    -1,1)
+  call alloc(dump_nMatMap,          nele_new, 0,          "dump_nMatMap",-1)
 
 #ifdef CR
   call alloc(dumpfilepos,           nele_new,-1,          "dumpfilepos",   -1)
@@ -121,6 +109,12 @@ subroutine dump_expand_arrays(nele_new, nblz_new)
 
 end subroutine dump_expand_arrays
 
+! ================================================================================================ !
+!  V.K. Berglyd Olsen
+!  Created: 2019-08-05
+!  Updated: 2019-08-05
+!  Set the normalisation matrix, compute its inverse, and save it in a compact array of structs.
+! ================================================================================================ !
 subroutine dump_setTasMatrix(elemID, tasData, cloData)
 
   use crcoall
@@ -173,6 +167,12 @@ subroutine dump_setTasMatrix(elemID, tasData, cloData)
 
 end subroutine dump_setTasMatrix
 
+! ================================================================================================ !
+!  V.K. Berglyd Olsen
+!  Created: 2019-08-05
+!  Updated: 2019-08-05
+!  Return the normalisation matrix for a given element. Used by the FMA module.
+! ================================================================================================ !
 subroutine dump_getTasMatrix(elemID, invData, tasData, cloData)
 
   use numerical_constants
@@ -649,7 +649,7 @@ subroutine dump_initialise
           ! units: x,xp,y,yp,sig,dp/p = [mm,mrad,mm,mrad,1]
           ! (note: units are already changed in linopt part)
           do k=1,6
-            call chr_fromReal(dumpclo(i,k),tasbuf(k,1),10,2,rErr)
+            call chr_fromReal(dump_normMat(dump_nMatMap(i))%orbit(k),tasbuf(k,1),10,2,rErr)
           end do
           write(dumpunit(i),"(a,1x,6(1x,a16))") "# closed orbit [mm,mrad,mm,mrad,1]", &
             tasbuf(1,1),tasbuf(2,1),tasbuf(3,1),tasbuf(4,1),tasbuf(5,1),tasbuf(6,1)

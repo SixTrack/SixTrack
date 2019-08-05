@@ -23,7 +23,7 @@ program maincr
 
   use dynk,    only : dynk_izuIndex
   use fma,     only : fma_postpr, fma_flag
-  use dump,    only : dump_initialise, dumpclo,dumptas,dumptasinv,dump_setTasMatrix
+  use dump,    only : dump_initialise, dump_setTasMatrix
   use zipf,    only : zipf_numfiles, zipf_dozip
   use scatter, only : scatter_init
 
@@ -731,21 +731,6 @@ program maincr
 
   ! save tas matrix and closed orbit for later dumping of the beam
   ! distribution at the first element (i=-1)
-  ! dumptas(*,*) [mm,mrad,mm,mrad,1] canonical variables
-  ! tas(iar,*,*) [mm,mrad,mm,mrad,1] canonical variables
-  ! clo6v,clop6v [mm,mrad,mm,mrad,1] canonical variables (x' or px?)
-  ! for the initialization of the particles. Only in 5D thick the ta
-  ! matrix is different for each particle.
-  ! -> implement a check for this!
-  ! In 4d,6d thin+thick and 5d thin we have:
-  !   tas(ia,*,*) = tas(1,*,*) for all particles ia
-  do i3=1,3
-    dumpclo(-1,i3*2-1) = clo6v(i3)
-    dumpclo(-1,i3*2)   = clop6v(i3)
-  end do
-  dumptas(-1,:,:) = tas(:,:)
-  call invert_tas(dumptasinv(-1,:,:),dumptas(-1,:,:))
-
   block
     real(kind=fPrec) tmpClo(6)
     tmpClo(1) = clo6v(1)
