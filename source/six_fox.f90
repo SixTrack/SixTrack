@@ -2771,55 +2771,56 @@ end subroutine clorda
 !           note: inversion method copied from subroutine postpr        *
 !-----------------------------------------------------------------------*
 subroutine invert_tas(fma_tas_inv,fma_tas)
+
   use floatPrecision
   use numerical_constants
   use matrix_inv
   use mod_common_track
   use crcoall
+
   implicit none
 
-  integer :: i,j            !iterators
-  real(kind=fPrec), dimension(6,6), intent(inout) :: fma_tas !tas = normalisation matrix
-  real(kind=fPrec), dimension(6,6), intent(out) :: fma_tas_inv !inverse of tas
-  integer ierro                   !error messages
-!     dummy variables
-  real(kind=fPrec), dimension(6,6) :: tdummy !dummy variable for transposing the matrix
-  integer, dimension(6) :: idummy !for matrix inversion
+  real(kind=fPrec), intent(inout) :: fma_tas(6,6) !tas = normalisation matrix
+  real(kind=fPrec), intent(out)   :: fma_tas_inv(6,6) !inverse of tas
+
+  real(kind=fPrec) tdummy(6,6)
+  integer ierro,i,j,idummy(6)
+
 !     units: [mm,mrad,mm,mrad,mm,1]
 !     invert matrix
 !     - set values close to 1 equal to 1
   do i=1,6
-      do j=1,6
-        fma_tas_inv(i,j)=fma_tas(j,i)
-      enddo
-  enddo
+    do j=1,6
+      fma_tas_inv(i,j)=fma_tas(j,i)
+    end do
+  end do
 
-  if(abs(fma_tas_inv(1,1)).le.pieni.and.abs(fma_tas_inv(2,2)).le.pieni) then
+  if(abs(fma_tas_inv(1,1)) <= pieni.and.abs(fma_tas_inv(2,2)) <= pieni) then
     fma_tas_inv(1,1)=one
     fma_tas_inv(2,2)=one
-  endif
-  if(abs(fma_tas_inv(3,3)).le.pieni.and.abs(fma_tas_inv(4,4)).le.pieni) then
+  end if
+  if(abs(fma_tas_inv(3,3)) <= pieni.and.abs(fma_tas_inv(4,4)) <= pieni) then
     fma_tas_inv(3,3)=one
     fma_tas_inv(4,4)=one
-  endif
-  if(abs(fma_tas_inv(5,5)).le.pieni.and.abs(fma_tas_inv(6,6)).le.pieni) then
+  end if
+  if(abs(fma_tas_inv(5,5)) <= pieni.and.abs(fma_tas_inv(6,6)) <= pieni) then
     fma_tas_inv(5,5)=one
     fma_tas_inv(6,6)=one
-  endif
+  end if
 
 !     - invert: dinv returns the transposed matrix
   call dinv(6,fma_tas_inv,6,idummy,ierro)
-  if (ierro.ne.0) then
-      write(lout,*) "Error in INVERT_TAS - Matrix inversion failed!"
-      write(lout,*) "Subroutine DINV returned ierro=",ierro
-      call prror
-  endif
+  if(ierro /= 0) then
+    write(lerr,"(a,i0)") "INVERT_TAS> ERROR Matrix inversion failed. Subroutine DINV returned ierro ",ierro
+    call prror
+  end if
 
 !     - transpose fma_tas_inv
   tdummy=fma_tas_inv
   do i=1,6
     do j=1,6
       fma_tas_inv(i,j)=tdummy(j,i)
-    enddo
-  enddo
+    end do
+  end do
+
 end subroutine invert_tas
