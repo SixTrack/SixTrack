@@ -33,7 +33,7 @@ subroutine umlauda
   integer damap(6),damapi(6),damap1(6),aa2(6),aa2r(6),a1(6),a1r(6),xy(6),df(6),jj(100),i4(10,2)
   real(kind=fPrec) zfeld1(100),zfeld2(100),dpdav2(6),rrad(3),rdd(6,6),dicu(20),angnoe(3),angp(2,6), &
     phi(3),dphi(3),b1(3),b2(3),b3(3),al1(3),al2(3),al3(3),g1(3),g2(3),g3(3),d(3),dp(3),c(3),cp(3),  &
-    au(6,6),aui(2)
+    au(6,6),aui(2),tasData(6,6),cloData(6)
   common/daele/alda,asda,aldaq,asdaq,smida,xx,yy,dpda,dpda1,sigmda,ej1,ejf1,rv
   character(len=mNameLen) typ
   integer expertUnit

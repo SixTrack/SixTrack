@@ -1,3 +1,4 @@
+! start include/umlalid.f90
 iwrite=0
 if(nlin.eq.0) then
   iwrite=1
@@ -98,29 +99,25 @@ do j=1,ndimf
 !     units dumptas: mm,mrad,mm,mrad,mm,1.e-3 -> convert later to 1.e3
   if(ic(i)-nblo.gt.0) then !check if structure element is a block
     if(ldump(ic(i)-nblo)) then !check if particles are dumped at this element
-      block
-        real(kind=fPrec) tasData(6,6)
-        real(kind=fPrec) cloData(6)
-        tasData(ii-1,ii-1) = angp(1,ii-1)
-        tasData(ii-1,ii  ) = angp(1,ii)
-        tasData(ii  ,ii-1) = au(ii,ii-1)
-        tasData(ii  ,ii  ) = au(ii,ii  )
-        tasData(ii-1,i2-1) = au(i2-1,i2-1)
-        tasData(ii  ,i2-1) = au(i2  ,i2-1)
-        tasData(ii-1,i2  ) = au(i2-1,i2  )
-        tasData(ii  ,i2  ) = au(i2  ,i2  )
-        tasData(ii-1,i3-1) = au(i3-1,i3-1)
-        tasData(ii  ,i3-1) = au(i3  ,i3-1)
-        tasData(ii-1,i3  ) = au(i3-1,i3  )
-        tasData(ii  ,i3  ) = au(i3  ,i3  )
-        cloData(2*j-1) = c(j)
-        if(j == 3) then ! dp/p
-          cloData(2*j) = cp(j)*c1m3
-        else ! xp,yp
-          cloData(2*j) = cp(j)/(one+cp(3)*c1m3)
-        end if
-        call dump_setTasMatrix(ic(i)-nblo, tasData, cloData)
-      end block
+      tasData(ii-1,ii-1) = angp(1,ii-1)
+      tasData(ii-1,ii  ) = angp(1,ii)
+      tasData(ii  ,ii-1) = au(ii,ii-1)
+      tasData(ii  ,ii  ) = au(ii,ii  )
+      tasData(ii-1,i2-1) = au(i2-1,i2-1)
+      tasData(ii  ,i2-1) = au(i2  ,i2-1)
+      tasData(ii-1,i2  ) = au(i2-1,i2  )
+      tasData(ii  ,i2  ) = au(i2  ,i2  )
+      tasData(ii-1,i3-1) = au(i3-1,i3-1)
+      tasData(ii  ,i3-1) = au(i3  ,i3-1)
+      tasData(ii-1,i3  ) = au(i3-1,i3  )
+      tasData(ii  ,i3  ) = au(i3  ,i3  )
+      cloData(2*j-1) = c(j)
+      if(j == 3) then ! dp/p
+        cloData(2*j) = cp(j)*c1m3
+      else ! xp,yp
+        cloData(2*j) = cp(j)/(one+cp(3)*c1m3)
+      end if
+
       dumptas(ic(i)-nblo,ii-1,ii-1)=angp(1,ii-1)
       dumptas(ic(i)-nblo,ii-1,ii  )=angp(1,ii)
       dumptas(ic(i)-nblo,ii  ,ii-1)=au(ii,ii-1)
@@ -178,21 +175,25 @@ do j=1,ndimf
   phi(j)=phi(j)+dphi(j)
 enddo ! end include/of optics calculation
 
-if(ic(i)-nblo.gt.0) then !check if structure element is a block
-   if(ldump(ic(i)-nblo)) then !check if particles are dumped at this element
+if(ic(i)-nblo > 0) then !check if structure element is a block
+  if(ldump(ic(i)-nblo)) then !check if particles are dumped at this element
 
 !     do the unit conversion + inversion of dumptas
 !     convert from units [mm,mrad,mm,mrad,1.e-3] to [mm,mrad,mm,mrad,1] as needed for normalization
 
-     dumptas(ic(i)-nblo,1:5,6)=dumptas(ic(i)-nblo,1:5,6)*c1e3
-     dumptas(ic(i)-nblo,6,1:5)=dumptas(ic(i)-nblo,6,1:5)*c1m3
+    dumptas(ic(i)-nblo,1:5,6)=dumptas(ic(i)-nblo,1:5,6)*c1e3
+    dumptas(ic(i)-nblo,6,1:5)=dumptas(ic(i)-nblo,6,1:5)*c1m3
 
 !     invert the tas matrix
-      call invert_tas(dumptasinv(ic(i)-nblo,:,:),dumptas(ic(i)-nblo,:,:))
+    call invert_tas(dumptasinv(ic(i)-nblo,:,:),dumptas(ic(i)-nblo,:,:))
 !     dumptas and dumptasinv are now in units [mm,mrad,mm,mrad,1]
 
-   endif
-endif
+    tasData(1:5,6) = tasData(1:5,6)*c1e3
+    tasData(6,1:5) = tasData(6,1:5)*c1m3
+    call dump_setTasMatrix(ic(i)-nblo, tasData, cloData)
+
+  end if
+end if
 
 do j=1,ndimf
   ii=2*j
@@ -222,3 +223,4 @@ if(iwrite.eq.1) then
   endif
   write(lout,10010)
 endif
+! end include/umlalid.f90

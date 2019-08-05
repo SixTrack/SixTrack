@@ -124,7 +124,7 @@ end subroutine dump_expand_arrays
 subroutine dump_setTasMatrix(elemID, tasData, cloData)
 
   use crcoall
-  use mod_common, only : bezs
+  use mod_common, only : bez
   use mod_settings
 
   integer,          intent(in) :: elemID
@@ -149,7 +149,7 @@ subroutine dump_setTasMatrix(elemID, tasData, cloData)
     storeID = dump_nNormMat
     if(st_debug) then
       if(elemID > 0) then
-        write(lout,"(a)") "DUMP> Saving normalisation matrix for element '"//trim(bezs(elemID))//"'"
+        write(lout,"(a,i0,a)") "DUMP> Saving normalisation matrix for element ",elemID," '"//trim(bez(elemID))//"'"
       else if(elemID == -1) then
         write(lout,"(a)") "DUMP> Saving normalisation matrix for element 'StartDUMP'"
       end if
@@ -158,7 +158,7 @@ subroutine dump_setTasMatrix(elemID, tasData, cloData)
     storeID = dump_nMatMap(elemID)
     if(st_debug) then
       if(elemID > 0) then
-        write(lout,"(a)") "DUMP> Updating normalisation matrix for element '"//trim(bezs(elemID))//"'"
+        write(lout,"(a,i0,a)") "DUMP> Updating normalisation matrix for element ",elemID," '"//trim(bez(elemID))//"'"
       else if(elemID == -1) then
         write(lout,"(a)") "DUMP> Updating normalisation matrix for element 'StartDUMP'"
       end if
@@ -208,7 +208,8 @@ subroutine dump_lines(n,i,ix)
     ! Dump at all SINGLE ELEMENTs
     if (ndumpt(0) == 1 .or. mod(n,ndumpt(0)) == 1) then
       if ((n >= dumpfirst(0)) .and. ((n <= dumplast(0)) .or. (dumplast(0) == -1))) then
-        call dump_beam_population(n, i, ix, dumpunit(0), dumpfmt(0), ldumphighprec, dumpclo(ix,1:6),dumptasinv(ix,1:6,1:6))
+        call dump_beam_population(n, i, ix, dumpunit(0), dumpfmt(0), ldumphighprec, &
+          dump_normMat(dump_nMatMap(ix))%orbit, dump_normMat(dump_nMatMap(ix))%invtas)
       end if
     end if
   end if
@@ -218,7 +219,8 @@ subroutine dump_lines(n,i,ix)
       ! Dump at this precise SINGLE ELEMENT
       if (ndumpt(ix) == 1 .or. mod(n,ndumpt(ix)) == 1) then
         if ((n >= dumpfirst(ix)) .and. ((n <= dumplast(ix)) .or. (dumplast(ix) == -1))) then
-          call dump_beam_population(n, i, ix, dumpunit(ix), dumpfmt(ix), ldumphighprec, dumpclo(ix,1:6),dumptasinv(ix,1:6,1:6))
+          call dump_beam_population(n, i, ix, dumpunit(ix), dumpfmt(ix), ldumphighprec, &
+            dump_normMat(dump_nMatMap(ix))%orbit, dump_normMat(dump_nMatMap(ix))%invtas)
         end if
       end if
     end if
@@ -236,7 +238,8 @@ subroutine dump_linesFirst(n)
   if (ldump(-1)) then
     if (ndumpt(-1) == 1 .or. mod(n,ndumpt(-1)) == 1) then
       if ((n >= dumpfirst(-1)) .and. ((n <= dumplast(-1)) .or. (dumplast(-1) == -1))) then
-        call dump_beam_population(n, 0, 0, dumpunit(-1), dumpfmt(-1), ldumphighprec, dumpclo(-1,1:6),dumptasinv(-1,1:6,1:6))
+        call dump_beam_population(n, 0, 0, dumpunit(-1), dumpfmt(-1), ldumphighprec, &
+          dump_normMat(dump_nMatMap(-1))%orbit, dump_normMat(dump_nMatMap(-1))%invtas)
       end if
     end if
   end if
@@ -653,7 +656,7 @@ subroutine dump_initialise
 
           do k=1,6
             do l=1,6
-              call chr_fromReal(dumptas(i,l,k),tasbuf(l,k),10,2,rErr)
+              call chr_fromReal(dump_normMat(dump_nMatMap(i))%tas(l,k),tasbuf(l,k),10,2,rErr)
             end do
           end do
           write(dumpunit(i),"(a,1x,36(1x,a16))") "# tamatrix [mm,mrad,mm,mrad,1]", &
@@ -666,7 +669,7 @@ subroutine dump_initialise
 
           do k=1,6
             do l=1,6
-              call chr_fromReal(dumptasinv(i,l,k),tasbuf(l,k),10,2,rErr)
+              call chr_fromReal(dump_normMat(dump_nMatMap(i))%invtas(l,k),tasbuf(l,k),10,2,rErr)
             end do
           end do
           write(dumpunit(i),"(a,1x,36(1x,a16))") "# inv(tamatrix)", &
@@ -691,8 +694,8 @@ subroutine dump_initialise
       ! Normalized DUMP
       if (dumpfmt(i) == 7 .or. dumpfmt(i) == 8 .or. dumpfmt(i) == 9) then
         ! Have a matrix that's not zero (i.e. did we put a 6d LINE block?)
-        if (dumptas(i,1,1) == zero .and. dumptas(i,1,2) == zero .and. &
-            dumptas(i,1,3) == zero .and. dumptas(i,1,4) == zero) then
+        if(dump_normMat(dump_nMatMap(1))%tas(1,1) == zero .and. dump_normMat(dump_nMatMap(i))%tas(1,2) == zero .and. &
+           dump_normMat(dump_nMatMap(i))%tas(1,3) == zero .and. dump_normMat(dump_nMatMap(i))%tas(1,4) == zero) then
           write(lerr,"(a)") "DUMP> ERROR The normalization matrix appears to not be set. Did you forget to put a 6D LINE block?"
           call prror
         end if
