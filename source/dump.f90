@@ -1894,15 +1894,14 @@ call h5_finaliseWrite(dump_hdf5DataSet(ix))
 
 end subroutine dump_beam_population
 
+#ifdef CR
 ! ================================================================================================================================ !
 !  Begin Checkpoint Restart
 ! ================================================================================================================================ !
-#ifdef CR
-
-! ================================================================================================================================ !
 subroutine dump_crcheck_readdata(fileunit, readerr)
 
-  implicit none
+  use parpro
+  use crcoall
 
   integer, intent(in) :: fileunit
   logical, intent(out) :: readerr
@@ -1926,11 +1925,9 @@ end subroutine dump_crcheck_readdata
 subroutine dump_crcheck_positionFiles
 
   use crcoall
-  use string_tools
-  use mod_common
   use mod_units
-
-  implicit none
+  use mod_common
+  use string_tools
 
   ! For skipping through binary DUMP files (format 3&8)
   integer tmp_ID, tmp_nturn, tmp_ktrack
@@ -2013,6 +2010,7 @@ end subroutine dump_crcheck_positionFiles
 subroutine dump_crpoint(fileunit,lerror)
 
   use parpro
+  use crcoall
 
   integer, intent(in)  :: fileunit
   logical, intent(out) :: lerror
@@ -2034,9 +2032,7 @@ subroutine dump_crpoint(fileunit,lerror)
 
 end subroutine dump_crpoint
 ! ================================================================================================================================ !
-
-#endif
-! ================================================================================================================================ !
 !  End Checkpoint Restart
 ! ================================================================================================================================ !
+#endif
 end module dump
