@@ -186,27 +186,32 @@ subroutine dump_lines(n,i,ix)
 
   use mod_common_track
 
-  implicit none
-
   integer, intent(in) :: n,i,ix
+  real(kind=fPrec) invTas(6,6), cloOrb(6)
 
-  if (ldump(0)) then
+  if(dump_nMatMap(ix) > 0) then
+    invTas = dump_normMat(dump_nMatMap(ix))%invtas
+    cloOrb = dump_normMat(dump_nMatMap(ix))%orbit
+  else
+    invTas = zero
+    cloOrb = zero
+  end if
+
+  if(ldump(0)) then
     ! Dump at all SINGLE ELEMENTs
-    if (ndumpt(0) == 1 .or. mod(n,ndumpt(0)) == 1) then
+    if(ndumpt(0) == 1 .or. mod(n,ndumpt(0)) == 1) then
       if ((n >= dumpfirst(0)) .and. ((n <= dumplast(0)) .or. (dumplast(0) == -1))) then
-        call dump_beam_population(n, i, ix, dumpunit(0), dumpfmt(0), ldumphighprec, &
-          dump_normMat(dump_nMatMap(ix))%orbit, dump_normMat(dump_nMatMap(ix))%invtas)
+        call dump_beam_population(n, i, ix, dumpunit(0), dumpfmt(0), ldumphighprec, cloOrb, invTas)
       end if
     end if
   end if
   if(ktrack(i) /= 1) then
     ! The next "if" is only safe for SINGLE ELEMENTS, not BLOC where ix<0.
-    if (ldump(ix)) then
+    if(ldump(ix)) then
       ! Dump at this precise SINGLE ELEMENT
-      if (ndumpt(ix) == 1 .or. mod(n,ndumpt(ix)) == 1) then
-        if ((n >= dumpfirst(ix)) .and. ((n <= dumplast(ix)) .or. (dumplast(ix) == -1))) then
-          call dump_beam_population(n, i, ix, dumpunit(ix), dumpfmt(ix), ldumphighprec, &
-            dump_normMat(dump_nMatMap(ix))%orbit, dump_normMat(dump_nMatMap(ix))%invtas)
+      if(ndumpt(ix) == 1 .or. mod(n,ndumpt(ix)) == 1) then
+        if((n >= dumpfirst(ix)) .and. ((n <= dumplast(ix)) .or. (dumplast(ix) == -1))) then
+          call dump_beam_population(n, i, ix, dumpunit(ix), dumpfmt(ix), ldumphighprec, cloOrb, invTas)
         end if
       end if
     end if
