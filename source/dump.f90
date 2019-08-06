@@ -186,27 +186,26 @@ subroutine dump_lines(n,i,ix)
 
   use mod_common_track
 
-  implicit none
-
   integer, intent(in) :: n,i,ix
+  real(kind=fPrec) tmpTas(6,6), tmpInv(6,6), tmpClo(6)
 
-  if (ldump(0)) then
+  call dump_getTasMatrix(ix, tmpInv, tmpTas, tmpClo)
+
+  if(ldump(0)) then
     ! Dump at all SINGLE ELEMENTs
-    if (ndumpt(0) == 1 .or. mod(n,ndumpt(0)) == 1) then
+    if(ndumpt(0) == 1 .or. mod(n,ndumpt(0)) == 1) then
       if ((n >= dumpfirst(0)) .and. ((n <= dumplast(0)) .or. (dumplast(0) == -1))) then
-        call dump_beam_population(n, i, ix, dumpunit(0), dumpfmt(0), ldumphighprec, &
-          dump_normMat(dump_nMatMap(ix))%orbit, dump_normMat(dump_nMatMap(ix))%invtas)
+        call dump_beam_population(n, i, ix, dumpunit(0), dumpfmt(0), ldumphighprec, tmpClo, tmpInv)
       end if
     end if
   end if
   if(ktrack(i) /= 1) then
     ! The next "if" is only safe for SINGLE ELEMENTS, not BLOC where ix<0.
-    if (ldump(ix)) then
+    if(ldump(ix)) then
       ! Dump at this precise SINGLE ELEMENT
-      if (ndumpt(ix) == 1 .or. mod(n,ndumpt(ix)) == 1) then
-        if ((n >= dumpfirst(ix)) .and. ((n <= dumplast(ix)) .or. (dumplast(ix) == -1))) then
-          call dump_beam_population(n, i, ix, dumpunit(ix), dumpfmt(ix), ldumphighprec, &
-            dump_normMat(dump_nMatMap(ix))%orbit, dump_normMat(dump_nMatMap(ix))%invtas)
+      if(ndumpt(ix) == 1 .or. mod(n,ndumpt(ix)) == 1) then
+        if((n >= dumpfirst(ix)) .and. ((n <= dumplast(ix)) .or. (dumplast(ix) == -1))) then
+          call dump_beam_population(n, i, ix, dumpunit(ix), dumpfmt(ix), ldumphighprec, tmpClo, tmpInv)
         end if
       end if
     end if
@@ -217,13 +216,13 @@ end subroutine dump_lines
 ! ================================================================================================================================ !
 subroutine dump_linesFirst(n)
 
-  implicit none
   integer, intent(in) :: n
 
   ! StartDUMP - dump on the first element
-  if (ldump(-1)) then
-    if (ndumpt(-1) == 1 .or. mod(n,ndumpt(-1)) == 1) then
-      if ((n >= dumpfirst(-1)) .and. ((n <= dumplast(-1)) .or. (dumplast(-1) == -1))) then
+  if(ldump(-1)) then
+    if(ndumpt(-1) == 1 .or. mod(n,ndumpt(-1)) == 1) then
+      if((n >= dumpfirst(-1)) .and. ((n <= dumplast(-1)) .or. (dumplast(-1) == -1))) then
+        ! dump_nMatMap(-1) is set explicitly in main_cr, so we do not check here
         call dump_beam_population(n, 0, 0, dumpunit(-1), dumpfmt(-1), ldumphighprec, &
           dump_normMat(dump_nMatMap(-1))%orbit, dump_normMat(dump_nMatMap(-1))%invtas)
       end if
@@ -477,11 +476,10 @@ subroutine dump_initialise
   use hdf5_output
 #endif
 
-  implicit none
-
   integer i,j,k,l
   logical lOpen, rErr
   character(len=16) tasbuf(6,6)
+  real(kind=fPrec) tmpTas(6,6), tmpInv(6,6), tmpClo(6)
 
 #ifdef HDF5
   type(h5_dataField), allocatable :: setFields(:)
@@ -493,10 +491,10 @@ subroutine dump_initialise
 
   do i=-1,il
 #ifdef CR
-    if (dumpfilepos(i) >= 0) then
+    if(dumpfilepos(i) >= 0) then
       ! Expect the file to be opened already, in crcheck
-      inquire( unit=dumpunit(i), opened=lopen )
-      if (.not.lopen) then
+      inquire(unit=dumpunit(i), opened=lopen)
+      if(.not.lopen) then
         write(lerr,"(2(a,i0),a)") "DUMP> ERROR The unit ",dumpunit(i)," has dumpfilepos = ", dumpfilepos(i), " >= 0, "//&
           "but the file is NOT open. This is probably a bug."
         call prror
@@ -504,7 +502,7 @@ subroutine dump_initialise
       cycle ! Everything OK, don't try to open the files again.
     end if
 #endif
-    if (ldump(i)) then
+    if(ldump(i)) then
       ! The same file could be used by more than one SINGLE ELEMENT
       inquire( unit=dumpunit(i), opened=lopen )
       if (.not.lopen) then
@@ -573,7 +571,8 @@ subroutine dump_initialise
       end if
 
       ! Write format-specific headers
-      if (dumpfmt(i) == 1) then
+      call dump_getTasMatrix(i, tmpInv, tmpTas, tmpClo)
+      if(dumpfmt(i) == 1) then
         write(dumpunit(i),'(a)') '# particleID turn s[m] x[mm] xp[mrad] y[mm] yp[mrad] (E-E0)/E0[1] ktrack'
         flush(dumpunit(i))
 #ifdef CR
@@ -641,14 +640,14 @@ subroutine dump_initialise
           ! units: x,xp,y,yp,sig,dp/p = [mm,mrad,mm,mrad,1]
           ! (note: units are already changed in linopt part)
           do k=1,6
-            call chr_fromReal(dump_normMat(dump_nMatMap(i))%orbit(k),tasbuf(k,1),10,2,rErr)
+            call chr_fromReal(tmpClo(k),tasbuf(k,1),10,2,rErr)
           end do
           write(dumpunit(i),"(a,1x,6(1x,a16))") "# closed orbit [mm,mrad,mm,mrad,1]", &
             tasbuf(1,1),tasbuf(2,1),tasbuf(3,1),tasbuf(4,1),tasbuf(5,1),tasbuf(6,1)
 
           do k=1,6
             do l=1,6
-              call chr_fromReal(dump_normMat(dump_nMatMap(i))%tas(l,k),tasbuf(l,k),10,2,rErr)
+              call chr_fromReal(tmpTas(l,k),tasbuf(l,k),10,2,rErr)
             end do
           end do
           write(dumpunit(i),"(a,1x,36(1x,a16))") "# tamatrix [mm,mrad,mm,mrad,1]", &
@@ -661,7 +660,7 @@ subroutine dump_initialise
 
           do k=1,6
             do l=1,6
-              call chr_fromReal(dump_normMat(dump_nMatMap(i))%invtas(l,k),tasbuf(l,k),10,2,rErr)
+              call chr_fromReal(tmpInv(l,k),tasbuf(l,k),10,2,rErr)
             end do
           end do
           write(dumpunit(i),"(a,1x,36(1x,a16))") "# inv(tamatrix)", &
@@ -686,8 +685,7 @@ subroutine dump_initialise
       ! Normalized DUMP
       if (dumpfmt(i) == 7 .or. dumpfmt(i) == 8 .or. dumpfmt(i) == 9) then
         ! Have a matrix that's not zero (i.e. did we put a 6d LINE block?)
-        if(dump_normMat(dump_nMatMap(1))%tas(1,1) == zero .and. dump_normMat(dump_nMatMap(i))%tas(1,2) == zero .and. &
-           dump_normMat(dump_nMatMap(i))%tas(1,3) == zero .and. dump_normMat(dump_nMatMap(i))%tas(1,4) == zero) then
+        if(tmpTas(1,1) == zero .and. tmpTas(1,2) == zero .and. tmpTas(1,3) == zero .and. tmpTas(1,4) == zero) then
           write(lerr,"(a)") "DUMP> ERROR The normalization matrix appears to not be set. Did you forget to put a 6D LINE block?"
           call prror
         end if
@@ -1889,15 +1887,14 @@ call h5_finaliseWrite(dump_hdf5DataSet(ix))
 
 end subroutine dump_beam_population
 
+#ifdef CR
 ! ================================================================================================================================ !
 !  Begin Checkpoint Restart
 ! ================================================================================================================================ !
-#ifdef CR
-
-! ================================================================================================================================ !
 subroutine dump_crcheck_readdata(fileunit, readerr)
 
-  implicit none
+  use parpro
+  use crcoall
 
   integer, intent(in) :: fileunit
   logical, intent(out) :: readerr
@@ -1921,11 +1918,9 @@ end subroutine dump_crcheck_readdata
 subroutine dump_crcheck_positionFiles
 
   use crcoall
-  use string_tools
-  use mod_common
   use mod_units
-
-  implicit none
+  use mod_common
+  use string_tools
 
   ! For skipping through binary DUMP files (format 3&8)
   integer tmp_ID, tmp_nturn, tmp_ktrack
@@ -2008,6 +2003,7 @@ end subroutine dump_crcheck_positionFiles
 subroutine dump_crpoint(fileunit,lerror)
 
   use parpro
+  use crcoall
 
   integer, intent(in)  :: fileunit
   logical, intent(out) :: lerror
@@ -2029,9 +2025,7 @@ subroutine dump_crpoint(fileunit,lerror)
 
 end subroutine dump_crpoint
 ! ================================================================================================================================ !
-
-#endif
-! ================================================================================================================================ !
 !  End Checkpoint Restart
 ! ================================================================================================================================ !
+#endif
 end module dump
