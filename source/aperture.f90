@@ -231,8 +231,9 @@ subroutine aperture_init
 #else
 &        chr_lpad('partid',9) // &
 #endif
-&        chr_lpad('x',15) // chr_lpad('xp',15) // chr_lpad('y',15) // chr_lpad('yp',15) // chr_lpad('etot (GeV)',15) // &
-&        chr_lpad('dE',15) // chr_lpad('dT',15) // chr_lpad('A',9) // chr_lpad('Z',9) // chr_lpad('Q',9) // chr_lpad('PDGid',13)
+&        chr_lpad('x (m)',15) // chr_lpad('xp',15) // chr_lpad('y (m)',15) // chr_lpad('yp',15) // &
+&        chr_lpad('P tot (GeV/c)',15) // chr_lpad('dE (eV)',15) // chr_lpad('dT (s)',15) // &
+&        chr_lpad('A',9) // chr_lpad('Z',9) // chr_lpad('Q',9) // chr_lpad('PDGid',13)
       ! Flush file
       flush(losses_unit)
 #ifdef CR

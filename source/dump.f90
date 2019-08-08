@@ -1793,6 +1793,71 @@ call h5_finaliseWrite(dump_hdf5DataSet(ix))
 #endif
 #endif
 
+  ! ------------------------------------------------------------------ !
+  !  Format #200
+  !  Same as fmt 2, but also include ion variables
+  ! ------------------------------------------------------------------ !
+  else if(fmt == 200) then
+    if(i == 0 .and. ix == 0) then
+      localDcum   = zero
+      localKtrack = 0
+    else
+      localDcum   = dcum(i)
+      localKtrack = ktrack(i)
+    end if
+#ifdef HDF5
+    if(h5_useForDUMP) then
+      call h5_prepareWrite(dump_hdf5DataSet(ix), napx)
+      call h5_writeData(dump_hdf5DataSet(ix), 1,  napx, partID)
+      call h5_writeData(dump_hdf5DataSet(ix), 2,  napx, nturn)
+      call h5_writeData(dump_hdf5DataSet(ix), 3,  napx, localDcum)
+      call h5_writeData(dump_hdf5DataSet(ix), 4,  napx, xv1(:))
+      call h5_writeData(dump_hdf5DataSet(ix), 5,  napx, yv1(:))
+      call h5_writeData(dump_hdf5DataSet(ix), 6,  napx, xv2(:))
+      call h5_writeData(dump_hdf5DataSet(ix), 7,  napx, yv2(:))
+      call h5_writeData(dump_hdf5DataSet(ix), 8,  napx, sigmv)
+      call h5_writeData(dump_hdf5DataSet(ix), 9,  napx, (ejv-e0)/e0)
+      call h5_writeData(dump_hdf5DataSet(ix), 10, napx, localKtrack)
+      call h5_writeData(dump_hdf5DataSet(ix), 11, napx, nzz)
+      call h5_writeData(dump_hdf5DataSet(ix), 12, napx, naa)
+      call h5_writeData(dump_hdf5DataSet(ix), 13, napx, nqq)
+      call h5_writeData(dump_hdf5DataSet(ix), 14, napx, pdgid)
+      call h5_finaliseWrite(dump_hdf5DataSet(ix))
+    else
+#endif
+      if(lhighprec) then
+        do j=1,napx
+          call chr_fromReal(xv1(j),       xyz_h(1),19,2,rErr)
+          call chr_fromReal(yv1(j),       xyz_h(2),19,2,rErr)
+          call chr_fromReal(xv2(j),       xyz_h(3),19,2,rErr)
+          call chr_fromReal(yv2(j),       xyz_h(4),19,2,rErr)
+          call chr_fromReal(sigmv(j),      xyz_h(5),19,2,rErr)
+          call chr_fromReal((ejv(j)-e0)/e0,xyz_h(6),19,2,rErr)
+          write(unit,"(2(1x,i8),1x,f12.5,6(1x,a25),1x,i8,3(1x,i8),1x,i12)") partID(j),nturn,localDcum,&
+            xyz_h(1),xyz_h(2),xyz_h(3),xyz_h(4),xyz_h(5),xyz_h(6),localKtrack, &
+            naa(j),nzz(j),nqq(j),pdgid(j)
+        end do
+      else
+        do j=1,napx
+          call chr_fromReal(xv1(j),       xyz_l(1),10,2,rErr)
+          call chr_fromReal(yv1(j),       xyz_l(2),10,2,rErr)
+          call chr_fromReal(xv2(j),       xyz_l(3),10,2,rErr)
+          call chr_fromReal(yv2(j),       xyz_l(4),10,2,rErr)
+          call chr_fromReal(sigmv(j),      xyz_l(5),10,2,rErr)
+          call chr_fromReal((ejv(j)-e0)/e0,xyz_l(6),10,2,rErr)
+          write(unit,"(2(1x,i8),1x,f12.5,6(1x,a16),1x,i8,3(1x,i8),1x,i12)") partID(j),nturn,localDcum,&
+            xyz_l(1),xyz_l(2),xyz_l(3),xyz_l(4),xyz_l(5),xyz_l(6),localKtrack, &
+            naa(j),nzz(j),nqq(j),pdgid(j)
+        end do
+      end if
+      flush(unit,iostat=ierro)
+#ifdef CR
+      dumpfilepos(dumpIdx) = dumpfilepos(dumpIdx)+napx
+#endif
+#ifdef HDF5
+    end if
+#endif
+
   ! Unrecognized format fmt
   ! ------------------------------------------------------------------ !
   else

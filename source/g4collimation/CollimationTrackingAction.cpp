@@ -10,7 +10,7 @@
 CollimationTrackingAction::CollimationTrackingAction() : do_debug(false),KeepOnlyStable(false)
 {}
 
-void CollimationTrackingAction::PreUserTrackingAction(const G4Track* Track)
+void CollimationTrackingAction::PreUserTrackingAction(const G4Track*)
 {
 /*
 	const G4ParticleDefinition* particle = Track->GetParticleDefinition();
@@ -70,7 +70,7 @@ void CollimationTrackingAction::PostUserTrackingAction(const G4Track* Track)
 			keep_this = true;
 		}
 		//Non-ions
-		else if(keep_ids->count( std::abs(Track->GetParticleDefinition()->GetPDGEncoding()) )  != 0)
+		else if(keep_ids->count( Track->GetParticleDefinition()->GetPDGEncoding() )  != 0)
 		{
 			keep_this = true;
 		}
@@ -117,6 +117,9 @@ void CollimationTrackingAction::PostUserTrackingAction(const G4Track* Track)
 			exit_particle.sx = Track->GetPolarization().x();
 			exit_particle.sy = Track->GetPolarization().y();
 			exit_particle.sz = Track->GetPolarization().z();
+
+			//Extract the time since the initial particle was injected
+			exit_particle.t = Track->GetGlobalTime()/CLHEP::second;
 
 			exit_particle.q = Track->GetDynamicParticle()->GetCharge();
 			EventAction->AddOutputParticle(exit_particle);
