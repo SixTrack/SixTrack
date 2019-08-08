@@ -4053,31 +4053,35 @@ subroutine matrix(dpp,am)
       return
 end subroutine matrix
 
-subroutine corrorb
 !-----------------------------------------------------------------------
 !  CORRECTION OF CLOSED ORBIT FIRST (MOST EFFECTIV CORRECTOR STRATEGY
 !  USING MICADO), THEN
 !  SCALING OF DIPOLE-ERRORS FOR RMS-VALUES OF THE CLOSED ORBIT
 !-----------------------------------------------------------------------
-      use floatPrecision
-      use numerical_constants
-      use mathlib_bouncer
-      use crcoall
-      use parpro
-      use mod_units
-      use mod_common
-      use mod_commons
-      use mod_common_track
-      implicit none
-      integer i,icflag,ihflag,ii,ij,im,iprinto,ivflag,j,k,kpz,kzz,l,nlino,ntcoo,nto,nx
-      real(kind=fPrec) ar(nmon1,ncor1)
-      real(kind=fPrec) b(nmon1),orbr(nmon1),xinc(ncor1)
-      real(kind=fPrec) rmsx,ptpx,rmsz,ptpz,rzero,rzero1
-      real(kind=fPrec) clo0,clop0,hfac,qwc1,vfac
-      character(len=mNameLen) bezlo(nele)
-      dimension clo0(2),clop0(2)
-      dimension qwc1(3),nx(ncor1)
-      save
+subroutine corrorb
+
+  use floatPrecision
+  use numerical_constants
+  use mathlib_bouncer
+  use crcoall
+  use parpro
+  use mod_units
+  use mod_linopt
+  use mod_common
+  use mod_commons
+  use mod_common_track
+
+  implicit none
+
+  integer i,icflag,ihflag,ii,ij,im,iprinto,ivflag,j,k,kpz,kzz,l,nlino,ntcoo,nto,nx
+  real(kind=fPrec) ar(nmon1,ncor1)
+  real(kind=fPrec) b(nmon1),orbr(nmon1),xinc(ncor1)
+  real(kind=fPrec) rmsx,ptpx,rmsz,ptpz,rzero,rzero1
+  real(kind=fPrec) clo0,clop0,hfac,qwc1,vfac
+  character(len=mNameLen) bezlo(nele)
+  dimension clo0(2),clop0(2)
+  dimension qwc1(3),nx(ncor1)
+  save
 !-----------------------------------------------------------------------
       rzero=zero
       rzero1=zero

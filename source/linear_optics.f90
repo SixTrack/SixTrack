@@ -1,3 +1,14 @@
+! ================================================================================================ !
+!  Linear Optics Calculations Module
+! ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+!  Updated: 2019-08-08
+! ================================================================================================ !
+module mod_linopt
+
+  implicit none
+
+contains
+
 !-----------------------------------------------------------------------
 !  LINEAR PARAMETERS AT THE POSITION OF EVERY ELEMENT OR BLOCK
 !-----------------------------------------------------------------------
@@ -1171,3 +1182,5 @@ subroutine cpltwis(typ,t,etl,phi)
   end if
 
 end subroutine cpltwis
+
+end module mod_linopt
