@@ -7,7 +7,7 @@ subroutine umlauda
   use physical_constants
   use numerical_constants
   use mathlib_bouncer
-  use dump, only : dumpclo, dumptas, dumptasinv, ldump
+  use dump, only : ldump, dump_setTasMatrix
   use crcoall
   use string_tools
   use mod_units
@@ -33,7 +33,7 @@ subroutine umlauda
   integer damap(6),damapi(6),damap1(6),aa2(6),aa2r(6),a1(6),a1r(6),xy(6),df(6),jj(100),i4(10,2)
   real(kind=fPrec) zfeld1(100),zfeld2(100),dpdav2(6),rrad(3),rdd(6,6),dicu(20),angnoe(3),angp(2,6), &
     phi(3),dphi(3),b1(3),b2(3),b3(3),al1(3),al2(3),al3(3),g1(3),g2(3),g3(3),d(3),dp(3),c(3),cp(3),  &
-    au(6,6),aui(2)
+    au(6,6),aui(2),tasData(6,6),cloData(6)
   common/daele/alda,asda,aldaq,asdaq,smida,xx,yy,dpda,dpda1,sigmda,ej1,ejf1,rv
   character(len=mNameLen) typ
   integer expertUnit
@@ -2771,55 +2771,56 @@ end subroutine clorda
 !           note: inversion method copied from subroutine postpr        *
 !-----------------------------------------------------------------------*
 subroutine invert_tas(fma_tas_inv,fma_tas)
+
   use floatPrecision
   use numerical_constants
   use matrix_inv
   use mod_common_track
   use crcoall
+
   implicit none
 
-  integer :: i,j            !iterators
-  real(kind=fPrec), dimension(6,6), intent(inout) :: fma_tas !tas = normalisation matrix
-  real(kind=fPrec), dimension(6,6), intent(out) :: fma_tas_inv !inverse of tas
-  integer ierro                   !error messages
-!     dummy variables
-  real(kind=fPrec), dimension(6,6) :: tdummy !dummy variable for transposing the matrix
-  integer, dimension(6) :: idummy !for matrix inversion
+  real(kind=fPrec), intent(inout) :: fma_tas(6,6) !tas = normalisation matrix
+  real(kind=fPrec), intent(out)   :: fma_tas_inv(6,6) !inverse of tas
+
+  real(kind=fPrec) tdummy(6,6)
+  integer ierro,i,j,idummy(6)
+
 !     units: [mm,mrad,mm,mrad,mm,1]
 !     invert matrix
 !     - set values close to 1 equal to 1
   do i=1,6
-      do j=1,6
-        fma_tas_inv(i,j)=fma_tas(j,i)
-      enddo
-  enddo
+    do j=1,6
+      fma_tas_inv(i,j)=fma_tas(j,i)
+    end do
+  end do
 
-  if(abs(fma_tas_inv(1,1)).le.pieni.and.abs(fma_tas_inv(2,2)).le.pieni) then
+  if(abs(fma_tas_inv(1,1)) <= pieni.and.abs(fma_tas_inv(2,2)) <= pieni) then
     fma_tas_inv(1,1)=one
     fma_tas_inv(2,2)=one
-  endif
-  if(abs(fma_tas_inv(3,3)).le.pieni.and.abs(fma_tas_inv(4,4)).le.pieni) then
+  end if
+  if(abs(fma_tas_inv(3,3)) <= pieni.and.abs(fma_tas_inv(4,4)) <= pieni) then
     fma_tas_inv(3,3)=one
     fma_tas_inv(4,4)=one
-  endif
-  if(abs(fma_tas_inv(5,5)).le.pieni.and.abs(fma_tas_inv(6,6)).le.pieni) then
+  end if
+  if(abs(fma_tas_inv(5,5)) <= pieni.and.abs(fma_tas_inv(6,6)) <= pieni) then
     fma_tas_inv(5,5)=one
     fma_tas_inv(6,6)=one
-  endif
+  end if
 
 !     - invert: dinv returns the transposed matrix
   call dinv(6,fma_tas_inv,6,idummy,ierro)
-  if (ierro.ne.0) then
-      write(lout,*) "Error in INVERT_TAS - Matrix inversion failed!"
-      write(lout,*) "Subroutine DINV returned ierro=",ierro
-      call prror
-  endif
+  if(ierro /= 0) then
+    write(lerr,"(a,i0)") "INVERT_TAS> ERROR Matrix inversion failed. Subroutine DINV returned ierro ",ierro
+    call prror
+  end if
 
 !     - transpose fma_tas_inv
   tdummy=fma_tas_inv
   do i=1,6
     do j=1,6
       fma_tas_inv(i,j)=tdummy(j,i)
-    enddo
-  enddo
+    end do
+  end do
+
 end subroutine invert_tas

@@ -13,7 +13,6 @@ test/run_kill_*
 devtools/physicsBenchmark/compareSix2Madx/work/*
 
 # Builds
-lib/libarchive_build
 lib/zlib/build
 lib/zlib/install
 lib/hdf5

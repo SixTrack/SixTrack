@@ -1862,7 +1862,7 @@ subroutine collimate_start
     yv2(1:napx) = c1e3 * yv2(1:napx) + torbyp(1)
   end if
 
-  call part_updatePartEnergy(1)
+  call part_updatePartEnergy(1,.false.)
 
   do i=1,napx
     do ieff=1,numeff

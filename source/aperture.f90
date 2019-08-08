@@ -1362,7 +1362,7 @@ end subroutine contour_FLUKA_markers
 subroutine contour_aperture_markers( itElUp, itElDw, lInsUp )
 !-----------------------------------------------------------------------
 ! by A.Mereghetti
-! last modified: 20-12-2016
+! last modified: 25-07-2019
 ! check elements itElUp (upstream) and itElDw (downstream) and
 !   assign them (or insert) an aperture marker, in case;
 ! lInsUp: force the insertion of an aperture marker upstream
@@ -1386,6 +1386,7 @@ subroutine contour_aperture_markers( itElUp, itElDw, lInsUp )
 ! do not overwrite interface variables
   iElUp=itElUp
   iElDw=itElDw
+  iuold=-1
 ! markers accross extremes of lattice structure?
   lAccrossLatticeExtremes=iElUp.gt.iElDw
 #ifdef DEBUG
@@ -1457,7 +1458,7 @@ end subroutine contour_aperture_markers
 subroutine contour_aperture_marker( iEl, lInsUp )
 !-----------------------------------------------------------------------
 !     by A.Mereghetti
-!     last modified: 20-12-2016
+!     last modified: 25-07-2019
 !     put an aperture marker at iEl
 !     NB: it can be either a brand new entry in lattice sequence or
 !         updating an existing one
@@ -1475,8 +1476,8 @@ subroutine contour_aperture_marker( iEl, lInsUp )
   implicit none
 
 ! interface variables
-  integer iEl
-  logical lInsUp
+  integer, intent(inout) ::  iEl
+  logical, intent(in)    ::  lInsUp
 ! temporary variables
   integer i,ix,iSrcUp,iSrcDw,iApeUp,ixApeUp,iApeDw,ixApeDw,jj,itmpape,iNew,ixNew,ixApeNewFrom,ixEl
   real(kind=fPrec) tmpape(11), ddcum
@@ -1497,6 +1498,7 @@ subroutine contour_aperture_marker( iEl, lInsUp )
       iEl=iu
       ixEl=ix
       bez(ixEl)='e.latt.aper'
+      bezs(iEl)=bez(ixEl)
       write(lout,"(a)") "APER> -> Inserted empty marker at end of lattice"
     end if
   else if( iEl.eq.1 ) then
@@ -1508,6 +1510,7 @@ subroutine contour_aperture_marker( iEl, lInsUp )
       iEl=1
       ixEl=ix
       bez(ixEl)='s.latt.aper'
+      bezs(iEl)=bez(ixEl)
       write(lout,"(a)") "APER> -> Inserted empty marker at start of lattice"
 #ifdef FLUKA
     else if( fluka_type(ixEl).eq.FLUKA_ELEMENT.or.fluka_type(ixEl).eq.FLUKA_ENTRY   ) then
@@ -1521,6 +1524,7 @@ subroutine contour_aperture_marker( iEl, lInsUp )
       iEl=1
       ixEl=ix
       bez(ixEl)='s.latt.aper'
+      bezs(iEl)=bez(ixEl)
       write(lout,"(a)") "APER> -> Inserted empty marker at start of lattice since first entry is a FLUKA element"
 #endif
     end if
@@ -1648,6 +1652,8 @@ subroutine contour_aperture_marker( iEl, lInsUp )
       write(lerr,"(a)") "APER> ERROR in aperture auto assignment."
       call prror
     end if
+!   update bezs array, based    
+    bezs(iNew)=bez(ic(iNew)-nblo)
   end if
 
 ! echo for checking
@@ -1806,15 +1812,17 @@ end subroutine interp_aperture
 subroutine copy_aperture( ixApeTo, ixApeFrom, nKApe, nApe )
 !-----------------------------------------------------------------------
 !     by A.Mereghetti
-!     last modified: 02-12-2016
+!     last modified: 25-07-2019
 !     copy aperture, either from an existing one or from the one
 !       received on the fly
 !-----------------------------------------------------------------------
   implicit none
 
 ! interface variables
-  integer ixApeTo, ixApeFrom, nKApe
-  real(kind=fPrec) nApe(11)
+  integer, intent(in) :: ixApeTo
+  integer, intent(in) :: ixApeFrom
+  integer, intent(in) :: nKApe
+  real(kind=fPrec), intent(in) ::  nApe(11)
 
   if( ixApeFrom.gt.0 ) then
 ! copy aperture marker from existing SINGLE ELEMENT
@@ -2056,18 +2064,23 @@ end subroutine dump_aperture_hdf5
 #endif
 
 subroutine dumpMe
+  use parpro, only : mNameLen
   implicit none
 
 ! temporary variables
   integer i, ix
-
+  character(len=mNameLen) tmpC, tmpD
+  tmpC="name"
+  tmpD="bezs(i)"
+  
   write(lout,"(a)") "APER> dumpMe -----------------------------------------------------------------------------"
+  write(lout,"(a,2(a8,1x),2(a,1x),a15,1x,a8)") "APER> ","i","ix",tmpC,tmpD,"dcum(i)","kape(ix)"
   do i=1,iu
     ix=ic(i)-nblo
     if( ix.gt.0 ) then
-      write(lout,"(a,2(i8,1x),a,1x,f15.6,1x,i8)") "APER> ",i,ix,bez(ix),dcum(i),kape(ix)
+      write(lout,"(a,2(i8,1x),2(a,1x),f15.6,1x,i8)") "APER> ",i,ix,bez(ix),bezs(i),dcum(i),kape(ix)
     else
-      write(lout,"(a,2(i8,1x),a,1x,f15.6)") "APER> ",i,ic(i),bezb(ic(i)),dcum(i)
+      write(lout,"(a,2(i8,1x),2(a,1x),f15.6)") "APER> ",i,ic(i),bezb(ic(i)),bezs(i),dcum(i)
     end if
   end do
   write(lout,"(a)") "APER> dumpMe -----------------------------------------------------------------------------"
