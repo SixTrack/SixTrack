@@ -9,6 +9,88 @@ module mod_linopt
 
 contains
 
+! ================================================================================================ !
+!  Parse Linear Optics Calculation Line
+!  Rewritten from code from DATEN by VKBO
+!  Updated: 2019-08-08
+! ================================================================================================ !
+subroutine linopt_parseInputLine(inLine, iLine, iErr)
+
+  use crcoall
+  use string_tools
+  use mod_settings
+  use mod_common
+  use sixtrack_input
+
+  character(len=*), intent(in)    :: inLine
+  integer,          intent(in)    :: iLine
+  logical,          intent(inout) :: iErr
+
+  character(len=:), allocatable   :: lnSplit(:)
+  character(len=mNameLen) mode
+  integer nSplit,i,ilin0
+  logical spErr
+
+  call chr_split(inLine, lnSplit, nSplit, spErr)
+  if(spErr) then
+    write(lerr,"(a)") "LINE> ERROR Failed to parse input line."
+    iErr = .true.
+    return
+  end if
+
+  if(iLine == 1) then
+
+    nlin = 0
+    ilin = 1
+
+    if(nSplit > 0) mode = lnSplit(1)
+    if(nSplit > 1) call chr_cast(lnSplit(2),nt,  iErr)
+    if(nSplit > 2) call chr_cast(lnSplit(3),ilin,iErr)
+    if(nSplit > 3) call chr_cast(lnSplit(4),ntco,iErr)
+    if(nSplit > 4) call chr_cast(lnSplit(5),eui, iErr)
+    if(nSplit > 5) call chr_cast(lnSplit(6),euii,iErr)
+
+    select case(mode)
+    case("ELEMENT")
+      iprint = 0
+    case("BLOCK")
+      iprint = 1
+    case default
+      write(lerr,"(a)") "LINE> ERROR Valid modes are 'BLOCK' or 'ELEMENT'"
+      iErr = .true.
+    end select
+
+    if(ilin /= 1 .and. ilin /= 2) then
+      write(lerr,"(a)") "LINE> ERROR Only 1 (4D) and 2 (6D) are valid options for ilin."
+      iErr = .true.
+    end if
+
+    if(st_debug) then
+      call sixin_echoVal("mode",mode,"LINE",iLine)
+      call sixin_echoVal("nt",  nt,  "LINE",iLine)
+      call sixin_echoVal("ilin",ilin,"LINE",iLine)
+      call sixin_echoVal("ntco",ntco,"LINE",iLine)
+      call sixin_echoVal("eui", eui, "LINE",iLine)
+      call sixin_echoVal("euii",euii,"LINE",iLine)
+    end if
+    if(iErr) return
+
+  else
+
+    do i=1,nSplit
+      nlin = nlin + 1
+      if(nlin > nele) then
+        write(lerr,"(2(a,i0))") "LINE> ERROR Too many elements for linear optics write out. Max is ",nele," got ",nlin
+        iErr = .true.
+        return
+      end if
+      bezl(nlin) = trim(lnSplit(i))
+    end do
+
+  end if
+
+end subroutine linopt_parseInputLine
+
 !-----------------------------------------------------------------------
 !  LINEAR PARAMETERS AT THE POSITION OF EVERY ELEMENT OR BLOCK
 !-----------------------------------------------------------------------
@@ -24,6 +106,7 @@ subroutine linopt(dpp)
   use floatPrecision
   use mathlib_bouncer
   use numerical_constants
+  use collimation
 
 #ifdef ROOT
   use root_output
@@ -33,10 +116,6 @@ subroutine linopt(dpp)
   use hdf5_output
   use hdf5_linopt
 #endif
-
-  use collimation
-
-  implicit none
 
   integer i,iiii,im,ium,ix,izu,j,jj,jk,jm,k,kpz,kzz,l,l1,ll,nmz,nr,dj
   real(kind=fPrec) aa,aeg,alfa,bb,benkr,beta,bexi,bezii,bl1eg,bl2eg,ci,cikve,clo0,clop0,cr,crkve, &
@@ -504,7 +583,6 @@ subroutine linopt(dpp)
         end do
       end if
 
-!+if collimat.or.bnlelens
       ! Marker, beam-beam, phase-trombone, crab cavity (incl. multipole), or wire
       if(kzz == 0 .or. kzz == 20 .or. kzz == 22 .or. abs(kzz) == 23 .or. abs(kzz) == 26 .or. &
         abs(kzz) == 27 .or. abs(kzz) == 28 .or. abs(kzz) == 15) then
@@ -731,7 +809,7 @@ subroutine linopt(dpp)
 
 !--SKEW ELEMENTS
     else if(kzz < 0) then
-      kzz = -kzz             !Make it positive
+      kzz = -kzz ! Make it positive
       select case(kzz)
       case(1)
 !--VERTICAL DIPOLE
@@ -819,8 +897,8 @@ subroutine linopt(dpp)
 #include "include/kicksho.f90"
 #include "include/kicklxxv.f90"
 
-!     Unrecognized skew element (including kzz=-12,kp /= 6 for non-collimat/bnlelens)
       case default
+        ! Unrecognized skew element (including kzz=-12,kp /= 6 for non-collimat/bnlelens)
         nr = nr+1
         call writelin(nr,bez(ix),etl,phi,t,ix,.false.,k)
         if(ntco /= 0) then
@@ -965,8 +1043,6 @@ subroutine writelin(nr,typ,tl,p1,t,ixwl,isBLOC,ielem)
   use hdf5_linopt
 #endif
 
-  implicit none
-
   integer i,iwrite,ixwl,l,ll,nr
   real(kind=fPrec) al1(2),al2(2),b1(2),b2(2),c(2),cp(2),d(2),dp(2),g1(2),g2(2),p1(2),t(6,4),tl
   character(len=mNameLen) typ
@@ -1095,8 +1171,6 @@ subroutine cpltwis(typ,t,etl,phi)
 #ifdef ROOT
   use root_output
 #endif
-
-  implicit none
 
   integer i,iwrite
   logical :: open11 = .false.

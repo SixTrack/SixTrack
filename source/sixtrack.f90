@@ -23,6 +23,7 @@ subroutine daten
   use string_tools
   use mod_alloc
   use mod_units
+  use mod_linopt
 
   use mod_dist,  only : dist_enable, dist_parseInputLine
   use scatter,   only : scatter_active,scatter_debug,scatter_parseInputLine
@@ -405,7 +406,7 @@ subroutine daten
     elseif(closeBlock) then
       continue
     else
-      call sixin_parseInputLineLINE(inLine,blockLine,inErr)
+      call linopt_parseInputLine(inLine,blockLine,inErr)
       if(inErr) goto 9999
     end if
 
