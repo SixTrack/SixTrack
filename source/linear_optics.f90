@@ -7,6 +7,10 @@ module mod_linopt
 
   implicit none
 
+  ! Linear optics dump file, formerly fort.11
+  character(len=15), private, parameter :: linopt_fileName = "linopt_dump.dat"
+  integer,           private, save      :: linopt_fileUnit = -1
+
 contains
 
 ! ================================================================================================ !
@@ -1173,7 +1177,6 @@ subroutine cpltwis(typ,t,etl,phi)
 #endif
 
   integer i,iwrite
-  logical :: open11 = .false.
   real(kind=fPrec) alxi,alxii,alzi,alzii,bexi,bexii,bezi,bezii,couuang,etl,gaxi,gaxii,gazi,gazii,   &
     phi(2),phxi,phxii,phxpi,phxpii,phzi,phzii,phzpi,phzpii,t(6,4)
   character(len=mNameLen) typ
@@ -1234,19 +1237,18 @@ subroutine cpltwis(typ,t,etl,phi)
     else
       couuang = zero
     end if
-    if(open11 .eqv. .false.) then
-      ! Note: Description above says binary file, but the file has been opened as ascii since at least 4.x
-      call f_open(unit=11,file="fort.11",formatted=.true.,mode="w")
-      open11 = .true.
+    if(linopt_fileUnit == -1) then
+      call f_requestUnit(linopt_fileName, linopt_fileUnit)
+      call f_open(unit=linopt_fileUnit,file=linopt_fileName,formatted=.true.,mode="w")
     end if
-    write(11,*) typ,etl,phi,bexi,bexii,bezi,bezii, alxi,alxii,alzi,     &
-      alzii, gaxi,gaxii,gazi,gazii,phxi,phxii,phzi,phzii, phxpi,        &
-      phxpii,phzpi,phzpii,couuang,t(6,1),t(6,2),t(6,3),t(6,4),t(1,1),   &
-      t(1,2),t(1,3),t(1,4)
+    write(linopt_fileUnit,*) typ,etl,phi,bexi,bexii,bezi,bezii,         &
+      alxi,alxii,alzi,alzii,gaxi,gaxii,gazi,gazii,                      &
+      phxi,phxii,phzi,phzii,phxpi,phxpii,phzpi,phzpii,couuang,          &
+      t(6,1),t(6,2),t(6,3),t(6,4),t(1,1),t(1,2),t(1,3),t(1,4)
 
 #ifdef ROOT
     if(root_flag .and. root_Optics == 1) then
-      call OpticsRootWriteCpl(phi(1), phi(2),bexi,bexii,bezi,bezii,     &
+      call OpticsRootWriteCpl(phi(1),phi(2),bexi,bexii,bezi,bezii,      &
         alxi,alxii,alzi,alzii,gaxi,gaxii,gazi,gazii,                    &
         phxi,phxii,phzi,phzii,phxpi,phxpii,phzpi,phzpii,couuang,        &
         t(6,1),t(6,2),t(6,3),t(6,4),t(1,1),t(1,2),t(1,3),t(1,4))
