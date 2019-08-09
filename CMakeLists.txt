@@ -1325,7 +1325,22 @@ if(BOINC)
 endif()
 
 if(FLUKA)
-  add_subdirectory(${CMAKE_SOURCE_DIR}/source/FlukaIO)
+  if(GIT_FOUND)
+    message(STATUS "Checking out FlukaIO submodule")
+    execute_process(
+      COMMAND ${GIT_EXECUTABLE} submodule update --init lib/FlukaIO
+      WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
+      RESULT_VARIABLE GIT_SUBMOD_RESULT
+      ERROR_QUIET
+    )
+    if(NOT GIT_SUBMOD_RESULT EQUAL "0")
+      message(FATAL_ERROR "git submodule update --init lib/FlukaIO failed with ${GIT_SUBMOD_RESULT}, please checkout submodules")
+    endif()
+  else()
+    message(FATAL_ERROR "The git submodule FlukaIO is not available. Please download it into lib/FlukaIO")
+  endif()
+
+  add_subdirectory(${CMAKE_SOURCE_DIR}/lib/FlukaIO)
   target_link_libraries(SixTrackCore flukaIO)
 endif(FLUKA)
 
