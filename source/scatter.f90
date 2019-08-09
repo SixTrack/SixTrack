@@ -59,10 +59,11 @@ module scatter
   integer, parameter :: scatter_proBeamUnCorr    = 5
 
   ! Input Variables
-  real(kind=fPrec), private, save :: scatter_beam2EmitX  = zero
-  real(kind=fPrec), private, save :: scatter_beam2EmitY  = zero
-  real(kind=fPrec), private, save :: scatter_beam2Length = zero
-  real(kind=fPrec), private, save :: scatter_beam2Spread = zero
+  real(kind=fPrec), private, save :: scatter_beam2EmitX     = zero ! Beam 2 horisontal emittance
+  real(kind=fPrec), private, save :: scatter_beam2EmitY     = zero ! Beam 2 vertical emittance
+  real(kind=fPrec), private, save :: scatter_beam2Length    = zero ! Beam 2 length (sigma_z)
+  real(kind=fPrec), private, save :: scatter_beam2Spread    = zero ! Beam 2 energy spread
+  integer,          private, save :: scatter_dumpDensity(2) = -1   ! Element and turn number for density diagnostics dump
 
   !  Storage Structs
   ! =================
@@ -127,11 +128,11 @@ module scatter
   character(len=19), parameter :: scatter_sumFile  = "scatter_summary.dat"
   character(len=20), parameter :: scatter_pVecFile = "scatter_momentum.dat"
   character(len=20), parameter :: scatter_densFile = "scatter_density.dat"
+  character(len=20), parameter :: scatter_pdfFile  = "scatter_pdf.dat"
 
   integer, private, save :: scatter_logUnit    = -1
   integer, private, save :: scatter_sumUnit    = -1
   integer, private, save :: scatter_pVecUnit   = -1
-  integer, private, save :: scatter_densUnit   = -1
 #ifdef HDF5
   integer, private, save :: scatter_logDataSet = 0
   integer, private, save :: scatter_logFormat  = 0
@@ -182,7 +183,7 @@ end subroutine scatter_expand_arrays
 subroutine scatter_init
 
   use crcoall
-  use mod_common, only : gamma0, beta0
+  use mod_common, only : gamma0, beta0, ilin
   use mathlib_bouncer
   use numerical_constants
 #ifdef HDF5
@@ -303,6 +304,7 @@ end subroutine scatter_init
 subroutine scatter_parseInputLine(inLine, iErr)
 
   use crcoall
+  use mod_find
   use mod_ranecu
   use string_tools
   use numerical_constants
@@ -381,6 +383,16 @@ subroutine scatter_parseInputLine(inLine, iErr)
       return
     end if
     call chr_cast(lnSplit(2), scatter_beam2Length, iErr)
+
+  case("DENSITY_DUMP")
+    if(nSplit /= 3) then
+      write(lerr,"(a,i0)") "SCATTER> ERROR DENSITY_DUMP expected 2 arguments, got ",nSplit-1
+      write(lerr,"(a)")    "SCATTER>       DENSITY_DUMP element_name turn"
+      iErr = .true.
+      return
+    end if
+    scatter_dumpDensity(1) = find_singElemFromName(lnSplit(2))
+    call chr_cast(lnSplit(3), scatter_dumpDensity(2), iErr)
 
   case("ELEM")
     call scatter_parseElem(lnSplit, nSplit, iErr)
@@ -1030,6 +1042,7 @@ subroutine scatter_thin(iStru, iElem, nTurn)
   use crcoall
   use mod_time
   use mod_alloc
+  use mod_units
   use mod_ranecu
   use mod_common
   use string_tools
@@ -1048,8 +1061,8 @@ subroutine scatter_thin(iStru, iElem, nTurn)
 
   integer          idElem, idPro, iGen, nGen, idGen, iError
   integer          i, j, k
-  integer          tmpSeed1, tmpSeed2
-  logical          updateE, autoRatio, isDiff, isExact
+  integer          tmpSeed1, tmpSeed2, unitDens
+  logical          updateE, autoRatio, isDiff, isExact, writeDump
   integer          iLost, procID
   real(kind=fPrec) t, dEE, dPP, theta, phi, pVec(3), pNew
   real(kind=fPrec) elemScale, sigmaTot, ratioTot, crossSection, scatterProb, targetDensity, scRatio, brRatio
@@ -1112,6 +1125,17 @@ subroutine scatter_thin(iStru, iElem, nTurn)
   isDiff   = .false.
   updateE  = .false.
 
+  ! Check if we're dumping the density diagnostics data on this element/turn
+  writeDump = scatter_dumpDensity(1) == iElem .and. scatter_dumpDensity(2) == nTurn
+  if(writeDump) then
+    call f_requestUnit(scatter_densFile, unitDens)
+    call f_open(unit=unitDens, file=scatter_densFile, formatted=.true., mode="w", status="replace")
+    write(unitDens,"(a)")            "# Element = "//trim(bez(iElem))
+    write(unitDens,"(a,i0)")         "# Turn    = ",nTurn
+    write(unitDens,"(a8,4(1x,a16))") "# partID","x[mm]","y[mm]","sigma[mm]","density"
+    call scatter_dumpPDF(idPro, iElem, nTurn)
+  end if
+
   ! Compute Thresholds
   allocate(brThreshold(nGen))
   do i=1,nGen
@@ -1128,7 +1152,11 @@ subroutine scatter_thin(iStru, iElem, nTurn)
     k = 3*j-2 ! Indices in the random number array
 
     ! Compute Scattering Probability
-    targetDensity = scatter_getDensity(idPro, j)
+    targetDensity = scatter_getDensity(idPro, xv1(j), xv2(j), sigmv(j))
+    if(writeDump) then
+      write(unitDens,"(i8,4(1x,1pe16.9))") partID(j), xv1(j), xv2(j), sigmv(j), targetDensity
+    end if
+
     if(autoRatio) then
       scatterProb = (targetDensity*sigmaTot)*elemScale
     else
@@ -1333,7 +1361,7 @@ end subroutine scatter_thin
 !  Created: 2017-08
 !  Updated: 2017-11-02
 ! =================================================================================================
-function scatter_getDensity(idPro, j) result(retval)
+function scatter_getDensity(idPro, xPos, yPos, sPos) result(retval)
 
   use crcoall
   use string_tools
@@ -1341,10 +1369,12 @@ function scatter_getDensity(idPro, j) result(retval)
   use numerical_constants
   use mod_common_main, only : xv1, xv2, sigmv
 
-  integer, intent(in) :: idPro
-  integer, intent(in) :: j
+  integer,          intent(in) :: idPro
+  real(kind=fPrec), intent(in) :: xPos
+  real(kind=fPrec), intent(in) :: yPos
+  real(kind=fPrec), intent(in) :: sPos
 
-  real(kind=fPrec) nBeam, normFac, sigmaX, sigmaY, orbX, orbY, retVal, cRot, sRot, xRot, yRot
+  real(kind=fPrec) retval, nBeam, normFac, sigmaX, sigmaY, orbX, orbY, cRot, sRot, xRot, yRot
 
   select case(scatter_proList(idPro)%proType)
   case(scatter_proFlat)
@@ -1359,9 +1389,9 @@ function scatter_getDensity(idPro, j) result(retval)
     sigmaY = scatter_proList(idPro)%fParams(3)
     orbX   = scatter_proList(idPro)%fParams(4)
     orbY   = scatter_proList(idPro)%fParams(5)
-    retval = ((nBeam/(twopi*(sigmaX*sigmaY)))    &
-      * exp_mb(-half*((xv1(j)-orbX)/sigmaX)**2)) &
-      * exp_mb(-half*((xv2(j)-orbY)/sigmaY)**2)
+    retval = ((nBeam/(twopi*(sigmaX*sigmaY)))  &
+      * exp_mb(-half*((xPos-orbX)/sigmaX)**2)) &
+      * exp_mb(-half*((yPos-orbY)/sigmaY)**2)
 
   case(scatter_proBeamRef)
     retval  = scatter_proList(idPro)%fParams(1)
@@ -1376,12 +1406,12 @@ function scatter_getDensity(idPro, j) result(retval)
     sRot    = scatter_proList(idPro)%fParams(15)
     cRot    = scatter_proList(idPro)%fParams(16)
 
-    xRot    = (xv1(j)-orbX)*cRot - (xv2(j)-orbY)*sRot
-    yRot    = (xv1(j)-orbX)*sRot + (xv2(j)-orbY)*cRot
+    xRot    = (xPos-orbX)*cRot - (yPos-orbY)*sRot
+    yRot    = (xPos-orbX)*sRot + (yPos-orbY)*cRot
     retval  = (nBeam*normFac) * exp_mb(( &
       -half*(xRot/sigmaX)**2             &
       -half*(yRot/sigmaY)**2)            &
-      -(sigmv(j)/scatter_beam2Length)**2)
+      -(sPos/scatter_beam2Length)**2)
 
   case default
     write(lerr,"(a,i0,a)") "SCATTER> ERROR Type ",scatter_proList(idPro)%proType," for profile '"//&
@@ -1760,6 +1790,56 @@ function scatter_generatePPElastic(a, b1, b2, phi, tmin) result(t)
   end if
 
 end function scatter_generatePPElastic
+
+! =================================================================================================
+!  V.K. Berglyd Olsen, BE-ABP-HSS
+!  Created: 2019-08-09
+!  Updated: 2019-08-09
+!  Dumps a histogram of the density PDF from -5 sigma to 5 sigma
+! =================================================================================================
+subroutine scatter_dumpPDF(idPro, iElem, nTurn)
+
+  use mod_units
+  use mod_common, only : bez
+
+  integer, intent(in) :: idPro
+  integer, intent(in) :: iElem
+  integer, intent(in) :: nTurn
+
+  real(kind=fPrec) sigmaX, sigmaY, dX, dY, posX, posY, denArr(10)
+  integer nX, nY, nArr, unitPDF
+
+  call f_requestUnit(scatter_pdfFile, unitPDF)
+  call f_open(unit=unitPDF, file=scatter_pdfFile, formatted=.true., mode="w", status="replace")
+
+  sigmaX = scatter_proList(idPro)%fParams(12)
+  sigmaY = scatter_proList(idPro)%fParams(13)
+  dX     = 10.0_fPrec*sigmaX/499_fPrec
+  dY     = 10.0_fPrec*sigmaY/499_fPrec
+
+  write(unitPDF,"(a)")                     "# Element = "//trim(bez(iElem))
+  write(unitPDF,"(a,i0)")                  "# Turn    = ",nTurn
+  write(unitPDF,"(a,2(1x,1pe16.9),1x,i0)") "# X-Range =",-5.0_fPrec*sigmaX,5.0_fPrec*sigmaX,500
+  write(unitPDF,"(a,2(1x,1pe16.9),1x,i0)") "# Y-Range =",-5.0_fPrec*sigmaY,5.0_fPrec*sigmaY,500
+
+  nArr = 1
+  do nX=1,500
+    do nY=1,500
+      posX = -5.0_fPrec*sigmaX + dX*real(nX,fPrec)
+      posY = -5.0_fPrec*sigmaY + dY*real(nY,fPrec)
+      denArr(nArr) = scatter_getDensity(idPro, posX, posY, zero)
+      if(nArr < 10) then
+        nArr = nArr + 1
+      else
+        write(unitPDF,"(1pe16.9,9(1x,1pe16.9))") denArr
+        nArr = 1
+      end if
+    end do
+  end do
+
+  call f_close(unitPDF)
+
+end subroutine scatter_dumpPDF
 
 ! =================================================================================================
 !  V.K. Berglyd Olsen, BE-ABP-HSS
