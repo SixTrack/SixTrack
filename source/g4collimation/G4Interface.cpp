@@ -1,39 +1,45 @@
-#include <iostream>
 
-#include "G4RunManager.hh"
-#include "FTFP_BERT.hh"
-#include "QGSP_BERT.hh"
+#include <algorithm>
+#include <iostream>
+#include <set>
+#include <string>
 
 #include "CollimationGeometry.h"
 #include "CollimationParticleGun.h"
 #include "CollimationStackingAction.h"
+#include "CollimationStorage.h"
 #include "CollimationTrackingAction.h"
 
-#include <string>
-#include <set>
+#ifdef USE_ROOT_FLAG
+#include "RootEnergyDeposition.h"
+#endif
 
 #include "G4GeometryManager.hh"
-#include "G4PhysicalVolumeStore.hh"
 #include "G4LogicalVolumeStore.hh"
+#include "G4PhysListFactory.hh"
+#include "G4PhysicalVolumeStore.hh"
+#include "G4RunManager.hh"
 #include "G4SolidStore.hh"
 
-#include "CollimationStorage.h"
+//G4UserRunAction
 
 CollimationParticleGun* part;
 G4RunManager* runManager;
-//CollimationGeometry* CollimatorJaw;
-FTFP_BERT* physlist_FTFP;
-QGSP_BERT* physlist_QGSP;
 CollimationStackingAction* stack;
 CollimationEventAction* event;
 CollimationTrackingAction* tracking;
 CollimationGeometry* geometry;
 
+#ifdef USE_ROOT_FLAG
+RootEnergyDeposition* ro;
+#endif
 
 std::string CleanFortranString(char* str, size_t count);
 
 std::vector<CollimationParticle> input_particles;
 std::vector<CollimationParticle> output_particles;
+
+std::vector<CollimationEnergyDeposition> EnergyDepositionConfiguration;
 
 std::set<int> keep_ids;
 
@@ -44,20 +50,25 @@ These include:
 2: The Physics to use.
 3: A particle source.
 */
-extern "C" void g4_collimation_init(double* ReferenceE, int* seed, double* recut, double* aecut, double* rcut, double* rangecut_mm, int* PhysicsSelect, bool* g4_debug, bool* g4_keep_stable)
+extern "C" void g4_collimation_init(double* ReferenceE, int* seed, double* recut, double* aecut, double* rcut, double* rangecut_mm, double* v0, char* PhysicsSelect, bool* g4_debug, bool* g4_keep_stable, bool *DoEnergyDeposition)
 {
-	std::cout << "Using seed " << *seed << " in geant4 C++" << std::endl;
-	std::cout << "The reference energy is " << *ReferenceE / CLHEP::GeV<< " and the relative energy cut will be at " << (*ReferenceE * *recut ) / CLHEP::GeV << " GeV!" << std::endl;
-	std::cout << "The reference energy is " << *ReferenceE / CLHEP::GeV<< " and the absolute energy cut will be at " << *aecut << " GeV!" << std::endl;
+
+	std::cout << "GEANT4> Using seed " << *seed << " in geant4 C++" << std::endl;
+	std::cout << "GEANT4> The reference energy is " << *ReferenceE / CLHEP::GeV<< " and the relative energy cut will be at " << (*ReferenceE * *recut ) / CLHEP::GeV << " GeV!" << std::endl;
+	std::cout << "GEANT4> The reference energy is " << *ReferenceE / CLHEP::GeV<< " and the absolute energy cut will be at " << *aecut << " GeV!" << std::endl;
 
 	if(*rangecut_mm != 0)
 	{
-		std::cout << "Using a user-set range cut of " << *rangecut_mm << " mm!" << std::endl;
+		std::cout << "GEANT4> Using a user-set range cut of " << *rangecut_mm << " mm!" << std::endl;
 	}
 	else
 	{
-		std::cout << "Using the default range cuts!" << std::endl;
+		std::cout << "GEANT4> Using the default range cuts!" << std::endl;
 	}
+
+	std::cout << "GEANT4> Perform energy deposition?: " << *DoEnergyDeposition << std::endl;
+	std::cout << "GEANT4> Energy deposition configuration entries: " << EnergyDepositionConfiguration.size()<< std::endl;
+
 	CLHEP::HepRandom::setTheSeed(*seed);
 
 	//Construct the run manager
@@ -65,34 +76,28 @@ extern "C" void g4_collimation_init(double* ReferenceE, int* seed, double* recut
 
 	//Physics list
 	G4int verbose = 0;
-	if(*PhysicsSelect == 0)
+	std::string PhysicsListName(PhysicsSelect);
+
+	std::cout << "GEANT4> Selected physics list: \"" << PhysicsListName << "\"" << std::endl;
+
+	G4PhysListFactory* PlistFactory = new G4PhysListFactory();
+	G4VModularPhysicsList* PhysicsList = PlistFactory->GetReferencePhysList(PhysicsListName);
+
+	if(!PhysicsList)
 	{
-		physlist_FTFP = new FTFP_BERT(verbose);
-		if(*rangecut_mm != 0)
-		{
-			physlist_FTFP->SetDefaultCutValue(*rangecut_mm);
-		}
-		//Add the physics
-		runManager->SetUserInitialization(physlist_FTFP);
-	}
-	else if(*PhysicsSelect == 1)
-	{
-		physlist_QGSP = new QGSP_BERT(verbose);
-		if(*rangecut_mm != 0)
-		{
-			physlist_QGSP->SetDefaultCutValue(*rangecut_mm);
-		}
-		//Add the physics
-		runManager->SetUserInitialization(physlist_QGSP);
-	}
-	else
-	{
-		std::cerr << "ERROR: Bad value for Geant4 physics list selection: Exiting" << std::endl;
+		std::cerr << "GEANT4> ERROR: Failed to build physics list: \"" << PhysicsSelect << "\"" << std::endl;
+
 		exit(EXIT_FAILURE);
 	}
 
+	PhysicsList->SetVerboseLevel(verbose);
+	PhysicsList->SetDefaultCutValue(*rangecut_mm);
+	runManager->SetUserInitialization(PhysicsList);
+
+	delete PlistFactory;
+
 	//Construct our collimator jaw geometry
-	geometry = new CollimationGeometry();
+	geometry = new CollimationGeometry(*DoEnergyDeposition);
 	geometry->SetDebug(*g4_debug);
 
 	//Make the particle gun
@@ -102,8 +107,40 @@ extern "C" void g4_collimation_init(double* ReferenceE, int* seed, double* recut
 	part->SetReferenceEnergy(*ReferenceE);
 	part->SetDebug(*g4_debug);
 
-	event = new CollimationEventAction();
+	event = new CollimationEventAction(*DoEnergyDeposition);
 	event->SetOutputVector(&output_particles);
+
+#ifdef USE_ROOT_FLAG
+	if(*DoEnergyDeposition)
+	{
+		ro = new RootEnergyDeposition(EnergyDepositionConfiguration);
+		event->SetRootOutput(ro);
+
+		std::vector<CollimationEnergyDeposition>::const_iterator itr = EnergyDepositionConfiguration.begin();
+		while(itr!=EnergyDepositionConfiguration.end())
+		{
+			std::cout << "GEANT4> Energy deposition: " << itr->name << "\t";
+			if(itr->type == 2)
+			{
+				std::cout << "HIST2D\t";
+			}
+			else if(itr->type == 3)
+			{
+				std::cout << "HIST3D\t";
+
+			}
+
+			std::cout << itr->xmax << "\t" << itr->ymax << "\t" << itr->zmax << "\t";
+			std::cout << itr->xstep << "\t" << itr->ystep << "\t" << itr->zstep << "\t";
+			std::cout << itr->xbigmax << "\t" << itr->ybigmax << "\t" << itr->zbigmax << "\t";
+			std::cout << itr->xbigstep << "\t" << itr->ybigstep << "\t" << itr->zbigstep;
+
+			std::cout << std::endl;
+
+			itr++;
+		}
+	}
+#endif
 
 	tracking = new CollimationTrackingAction();
 	tracking->SetEventAction(event);
@@ -118,7 +155,7 @@ extern "C" void g4_collimation_init(double* ReferenceE, int* seed, double* recut
 		std::set<int>::const_iterator it = keep_ids.begin();
 		while(it != keep_ids.end())
 		{
-			std::cout << "GEANT4 RETURNING> " << *it << std::endl;
+			std::cout << "GEANT4> RETURNING PDG id: " << *it << std::endl;
 			it++;
 		}
 	}
@@ -130,7 +167,6 @@ extern "C" void g4_collimation_init(double* ReferenceE, int* seed, double* recut
 	}
 	tracking->SetKeepStableParticles(*g4_keep_stable);
 	tracking->SetDebug(*g4_debug);
-
 
 	stack = new CollimationStackingAction();
 	stack->SetDebug(*g4_debug);
@@ -151,15 +187,16 @@ extern "C" void g4_collimation_init(double* ReferenceE, int* seed, double* recut
 	//Set up our tracking action
 	runManager->SetUserAction(tracking);
 
-	//Set up the stacking action to kill non-protons
+	//Set up the stacking action to kill non-desired particles
 	runManager->SetUserAction(stack);
 
 	//Added everything now set up the run manager
 	runManager->Initialize();
 
+	std::cout << std::flush;
 }
 
-extern "C" void g4_add_collimator(char* name, char* material, double* length, double* aperture, double* rotation, double* offset)
+extern "C" void g4_add_collimator(char* name, char* material, double* length, double* aperture, double* rotation, double* x_offset, double* y_offset)
 {
 	//NOTE: The closed orbit offset (e.g. at TCTs due to the crossing angle) should be subtracted in the sixtrack part.
 	//rcx(j)  = (xv(1,j)-torbx(ie))/1d3
@@ -169,25 +206,24 @@ extern "C" void g4_add_collimator(char* name, char* material, double* length, do
 //  keep 48 value in sync with mNameLen in common_modules.f90
 	std::string CollimatorName = CleanFortranString(name, 48);
 	std::string CollimatorMaterialName = CleanFortranString(material, 4);
-	std::cout << "Adding \"" << CollimatorName << "\" with material \"" << CollimatorMaterialName << "\" and rotation \"" << *rotation << "\" and offset \"" << *offset << "\" and length \"";
+	std::cout << "GEANT4> Adding \"" << CollimatorName << "\" with material \"" << CollimatorMaterialName << "\" and rotation \"" << *rotation << "\" and offset x: \"" << *x_offset << "\ y: \"" << *y_offset << "\" and length \"";
 	std::cout << *length << "\"" << std::endl;
 
 	G4double length_in = *length *CLHEP::m;
 	G4double aperture_in = *aperture *CLHEP::m;
 	G4double rotation_in = *rotation *CLHEP::rad;
-	G4double offset_in = *offset *CLHEP::m;
+	G4double offset_in = *x_offset *CLHEP::m;
 
 	geometry->AddCollimator(CollimatorName, length_in, aperture_in, rotation_in, offset_in, CollimatorMaterialName);
-
 }
 
 extern "C" void g4_terminate()
 {
-	std::cout << "EXIT GEANT4" << std::endl;
+	std::cout << "GEANT4> EXIT GEANT4" << std::endl;
 
 	if(runManager)
 	{
-		std::cout << "Deleting geant4 run manager" << std::endl;
+		std::cout << "GEANT4> Deleting geant4 run manager" << std::endl;
 		delete runManager;
 	}
 }
@@ -206,9 +242,11 @@ extern "C" void g4_set_collimator(char* name)
     G4SolidStore::GetInstance()->Clean();
 
 	runManager->ReinitializeGeometry();
+
+	std::cout << std::flush;
 }
 
-extern "C" void g4_add_particle(double* x, double* y, double* xp, double* yp, double* e, int32_t* pdgid, int16_t* nzz, int16_t* naa, int16_t* nqq, double* mass)
+extern "C" void g4_add_particle(double* x, double* y, double* xp, double* yp, double* e, int32_t* pdgid, int16_t* nzz, int16_t* naa, int16_t* nqq, double* mass, double* sigmv, double* sx, double* sy, double* sz)
 {
 //WARNING: at this stage in SixTrack the units have been converted to GeV, m, and rad!
 //The particle energy input is the TOTAL energy
@@ -249,6 +287,10 @@ extern "C" void g4_add_particle(double* x, double* y, double* xp, double* yp, do
 	in_particle.m = *mass;
 	in_particle.id = input_particles.size();
 
+	in_particle.sx = *sx;
+	in_particle.sy = *sy;
+	in_particle.sz = *sz;
+
 	input_particles.push_back(in_particle);
 }
 
@@ -258,18 +300,21 @@ extern "C" void g4_collimate()
 	//Update the gun with this particle's details
 	for(size_t n=0; n < input_particles.size(); n++)
 	{
-		part->SetParticleDetails(input_particles.at(n).x, input_particles.at(n).y, input_particles.at(n).px, input_particles.at(n).py, input_particles.at(n).pz, input_particles.at(n).e, input_particles.at(n).p, input_particles.at(n).pdgid, input_particles.at(n).q, input_particles.at(n).m);
+		part->SetParticleDetails(input_particles.at(n).x, input_particles.at(n).y, input_particles.at(n).px, input_particles.at(n).py, input_particles.at(n).pz, input_particles.at(n).e, input_particles.at(n).p, input_particles.at(n).pdgid, input_particles.at(n).q, input_particles.at(n).m, input_particles.at(n).sx, input_particles.at(n).sy, input_particles.at(n).sz);
+
+		//Tell the "event" about the parent particle ID for tracking secondaries
 
 		//Run!
 		runManager->BeamOn(1);
 	}
 	input_particles.clear();
+	std::cout << std::flush;
 }
 
 /**
 * Here we put the particles back into sixtrack and set any flags if needed
 */
-extern "C" void g4_collimate_return(int* j, double* x, double* y, double* xp, double* yp, double* e, int32_t* pdgid, double* m, int16_t* z, int16_t* a, int16_t* q, int *part_hit, int *part_abs, double *part_impact, double *part_indiv, double *part_linteract)
+extern "C" void g4_collimate_return(int* j, double* x, double* y, double* xp, double* yp, double* e, int32_t* pdgid, double* m, int16_t* z, int16_t* a, int16_t* q, double* sigmv, int *part_hit, int *part_abs, double *part_impact, double *part_indiv, double *part_linteract, double* sx, double* sy, double* sz)
 {
 /*
 part_hit(j), part_abs(j), part_impact(j), part_indiv(j),
@@ -300,6 +345,14 @@ double py = output_particles.at(*j).py;
 
 //nucm is in MeV on both sides
 *m  = output_particles.at(*j).m;
+
+//Spin
+*sx = output_particles.at(*j).sx;
+*sy = output_particles.at(*j).sy;
+*sz = output_particles.at(*j).sz;
+
+//time, must be converted for using with sigmv
+*sigmv  = output_particles.at(*j).t;
 }
 
 std::string CleanFortranString(char* str, size_t count)
@@ -314,13 +367,14 @@ std::string CleanFortranString(char* str, size_t count)
 	    sstring.erase(lpos+1);
 	}
 
+	std::transform(sstring.begin(), sstring.end(), sstring.begin(), ::toupper);
 	//Fortran string happy place
 	return sstring;
 }
 
 extern "C" void g4_get_particle_count(int* g4_npart)
 {
-	*g4_npart = output_particles.size(); 
+	*g4_npart = output_particles.size();
 }
 
 extern "C" void g4_collimation_clear()
@@ -332,5 +386,165 @@ extern "C" void g4_collimation_clear()
 extern "C" void g4_keep_id(int* id)
 {
 	keep_ids.insert(*id);
+}
+
+extern "C" void g4_add_edep(char* name_in, int* type, double* xstep, double* ystep, double* zstep, double* xmax, double* ymax, double* zmax, double* xbigstep, double* ybigstep, double* zbigstep, double* xbigmax, double* ybigmax, double* zbigmax)
+{
+	std::string name(name_in);
+	std::transform(name.begin(), name.end(), name.begin(), ::toupper);
+
+	//find name in struct vector
+	std::vector<CollimationEnergyDeposition>::iterator itr = std::find_if(EnergyDepositionConfiguration.begin(), EnergyDepositionConfiguration.end(), find_edep_name(name));
+
+	if(itr != EnergyDepositionConfiguration.end())
+	{
+		//update
+		//Check for non-zero values and update
+		if(*type != 0)
+		{
+			itr->type = *type;
+		}
+		if(*xstep != 0)
+		{
+			itr->xstep = *xstep;
+		}
+		if(*ystep != 0)
+		{
+			itr->ystep = *ystep;
+		}
+		if(*zstep != 0)
+		{
+			itr->zstep = *zstep;
+		}
+
+		if(*xbigstep != 0)
+		{
+			itr->xbigstep = *xbigstep;
+		}
+		if(*ybigstep != 0)
+		{
+			itr->ybigstep = *ybigstep;
+		}
+		if(*zbigstep != 0)
+		{
+			itr->zbigstep = *zbigstep;
+		}
+
+		if(*xmax != 0)
+		{
+			itr->xmax = *xmax;
+		}
+		if(*ymax != 0)
+		{
+			itr->ymax = *ymax;
+		}
+		if(*zmax != 0)
+		{
+			itr->zmax = *zmax;
+		}
+
+		if(*xbigmax != 0)
+		{
+			itr->xbigmax = *xbigmax;
+		}
+		if(*ybigmax != 0)
+		{
+			itr->ybigmax = *ybigmax;
+		}
+		if(*zbigmax != 0)
+		{
+			itr->zbigmax = *zbigmax;
+		}
+	}
+	else
+	{
+		//if not found, create
+		CollimationEnergyDeposition tmp;
+
+		//Remember values are in mm
+		double DefaultSmallStep = 0.05;
+		double DefaultBigStep   = 1.0;
+
+		double DefaultSmallMax = 10.0;
+		double DefaultBigMax   = 40.0;
+
+		//For z, assume default zmax is CollimatorLength : use -1 as a flag for this
+
+		tmp.name = name;
+		tmp.type = 0;
+		tmp.xstep = DefaultSmallStep;
+		tmp.ystep = DefaultSmallStep;
+		tmp.zstep = DefaultSmallStep;
+
+		tmp.xmax = DefaultSmallMax;
+		tmp.ymax = DefaultSmallMax;
+		tmp.zmax = -1;
+
+		tmp.xbigstep = DefaultBigStep;
+		tmp.ybigstep = DefaultBigStep;
+		tmp.zbigstep = DefaultBigStep;
+
+		tmp.xbigmax = DefaultBigMax;
+		tmp.ybigmax = DefaultBigMax;
+		tmp.zbigmax = -1;
+		//Check for non-zero values and update
+		if(*type != 0)
+		{
+			tmp.type = *type;
+		}
+		if(*xstep != 0)
+		{
+			tmp.xstep = *xstep;
+		}
+		if(*ystep != 0)
+		{
+			tmp.ystep = *ystep;
+		}
+		if(*zstep != 0)
+		{
+			tmp.zstep = *zstep;
+		}
+
+		if(*xbigstep != 0)
+		{
+			tmp.xbigstep = *xbigstep;
+		}
+		if(*ybigstep != 0)
+		{
+			tmp.ybigstep = *ybigstep;
+		}
+		if(*zbigstep != 0)
+		{
+			tmp.zbigstep = *zbigstep;
+		}
+
+		if(*xmax != 0)
+		{
+			tmp.xmax = *xmax;
+		}
+		if(*ymax != 0)
+		{
+			tmp.ymax = *ymax;
+		}
+		if(*zmax != 0)
+		{
+			tmp.zmax = *zmax;
+		}
+
+		if(*xbigmax != 0)
+		{
+			tmp.xbigmax = *xbigmax;
+		}
+		if(*ybigmax != 0)
+		{
+			tmp.ybigmax = *ybigmax;
+		}
+		if(*zbigmax != 0)
+		{
+			tmp.zbigmax = *zbigmax;
+		}
+
+		EnergyDepositionConfiguration.push_back(tmp);
+	}
 }
 
