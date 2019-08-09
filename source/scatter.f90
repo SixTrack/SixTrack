@@ -1,14 +1,19 @@
 ! ================================================================================================ !
-!  SixTrack SCATTER Module
+!
+!  SixTrack Scatter Module
+! ~~~~~~~~~~~~~~~~~~~~~~~~~
 !  V.K. Berglyd Olsen, K.N. Sjobak, H. Burkhardt, BE-ABP-HSS
 !  Created: 2017-08
-!  Updated: 2018-11-12
+!  Updated: 2019-08-08
 !
-!  References:
-!  "Elastic pp scattering estimates and simulation relevant for burn-off"
+!  References
+! ~~~~~~~~~~~~
+!  Slides: "Elastic pp scattering estimates and simulation relevant for burn-off"
 !    > https://indico.cern.ch/event/625576
-!  "Elastic Scattering in SixTrack"
+!  Slides: "Elastic Scattering in SixTrack"
 !    > https://indico.cern.ch/event/737429
+!   IPAC 2019: "Generalised Scattering Module in SixTrack 5"
+!    > https://doi.org/10.18429/JACoW-IPAC2019-WEPTS026
 ! ================================================================================================ !
 module scatter
 
@@ -59,15 +64,21 @@ module scatter
   real(kind=fPrec), private, save :: scatter_beam2Length = zero
   real(kind=fPrec), private, save :: scatter_beam2Spread = zero
 
-  ! Storage Structs
+  !  Storage Structs
+  ! =================
+
+  ! Struct for linear optics
   type, private :: scatter_linOpt
-    logical          :: isSet    = .false.
-    real(kind=fPrec) :: alpha(2) = zero
-    real(kind=fPrec) :: beta(2)  = zero
-    real(kind=fPrec) :: disp(4)  = zero
-    real(kind=fPrec) :: orbit(4) = zero
+    logical          :: isSet       = .false.
+    real(kind=fPrec) :: alpha(2)    = zero
+    real(kind=fPrec) :: beta(2)     = zero
+    real(kind=fPrec) :: disp(4)     = zero
+    real(kind=fPrec) :: orbit(4)    = zero
+    real(kind=fPrec) :: tas(6,6)    = zero
+    real(kind=fPrec) :: invtas(6,6) = zero
   end type scatter_linOpt
 
+  ! Struct for storing elements
   type, private :: scatter_elemStore
     character(len=mNameLen)       :: bezName    = " "
     integer                       :: bezID      = 0
@@ -81,6 +92,7 @@ module scatter
     type(scatter_linOpt)          :: linOpt
   end type scatter_elemStore
 
+  ! Struct for storing profiles
   type, private :: scatter_proStore
     character(len=:), allocatable :: proName
     integer                       :: proType  = 0
@@ -88,6 +100,7 @@ module scatter
     real(kind=fPrec), allocatable :: fParams(:)
   end type scatter_proStore
 
+  ! Struct for storing generators
   type, private :: scatter_genStore
     character(len=:), allocatable :: genName
     integer                       :: genType = 0
@@ -95,7 +108,7 @@ module scatter
     real(kind=fPrec), allocatable :: fParams(:)
   end type scatter_genStore
 
-  ! Storage Arrays
+  ! Storage arrays for structs
   type(scatter_elemStore), allocatable, private, save :: scatter_elemList(:)
   type(scatter_proStore),  allocatable, private, save :: scatter_proList(:)
   type(scatter_genStore),  allocatable, private, save :: scatter_genList(:)
@@ -113,10 +126,12 @@ module scatter
   character(len=15), parameter :: scatter_logFile  = "scatter_log.dat"
   character(len=19), parameter :: scatter_sumFile  = "scatter_summary.dat"
   character(len=20), parameter :: scatter_pVecFile = "scatter_momentum.dat"
+  character(len=20), parameter :: scatter_densFile = "scatter_density.dat"
 
   integer, private, save :: scatter_logUnit    = -1
   integer, private, save :: scatter_sumUnit    = -1
   integer, private, save :: scatter_pVecUnit   = -1
+  integer, private, save :: scatter_densUnit   = -1
 #ifdef HDF5
   integer, private, save :: scatter_logDataSet = 0
   integer, private, save :: scatter_logFormat  = 0
@@ -199,6 +214,12 @@ subroutine scatter_init
     select case(proType)
     case(scatter_proBeamUnCorr)
       if(isMirror) then
+        if(ilin /= 1) then
+          write(lerr,"(a,i0)") "SCATTER> ERROR In order to mirror the twiss parameters of beam 1, the ilin parameter of the "//&
+            "LINE block must be set to 1, but it is currently set to ",ilin
+          call prror
+        end if
+
         ! If we're mirroring beam 1, set the parameters from the data collected from writelin
         scatter_proList(idPro)%fParams(2) = scatter_elemList(idElem)%linOpt%beta(1)
         scatter_proList(idPro)%fParams(3) = scatter_elemList(idElem)%linOpt%beta(2)
@@ -402,6 +423,7 @@ subroutine scatter_parseElem(lnSplit, nSplit, iErr)
   type(scatter_elemStore), allocatable :: tmpElem(:)
   real(kind=fPrec),        allocatable :: brRatio(:)
   integer,                 allocatable :: generatorID(:)
+  type(scatter_linOpt)                 :: tmpLin
   character(len=mNameLen)              :: bezName
   integer                              :: bezID, profileID
   real(kind=fPrec)                     :: elemScale, sigmaTot, ratioTot
@@ -540,6 +562,7 @@ subroutine scatter_parseElem(lnSplit, nSplit, iErr)
   scatter_elemList(scatter_nElem)%profileID   = profileID
   scatter_elemList(scatter_nElem)%generatorID = generatorID
   scatter_elemList(scatter_nElem)%brRatio     = brRatio
+  scatter_elemList(scatter_nElem)%linOpt      = tmpLin
 
   if(scatter_debug .or. st_debug) then
     write(lout,"(a,i0,a)")    "SCATTER> DEBUG Element ",scatter_nElem,":"
@@ -887,6 +910,8 @@ end subroutine scatter_parseGenerator
 ! =================================================================================================
 ! END Input Parser Functions
 ! =================================================================================================
+! BEGIN Set and Get Routines
+! =================================================================================================
 
 ! =================================================================================================
 !  V.K. Berglyd Olsen, BE-ABP-HSS
@@ -913,13 +938,13 @@ end function scatter_getScaling
 ! =================================================================================================
 !  V.K. Berglyd Olsen, BE-ABP-HSS
 !  Created: 2019-07-22
-!  Updated: 2019-07-22
+!  Updated: 2019-08-08
 ! =================================================================================================
 subroutine scatter_setLinOpt(iElem, bAlpha, bBeta, bOrbit, bOrbitP, bDisp, bDispP)
 
   use crcoall
   use mathlib_bouncer
-  use parpro, only : nele
+  use parpro,     only : nele
   use mod_common, only : bez
   use numerical_constants
 
@@ -931,37 +956,69 @@ subroutine scatter_setLinOpt(iElem, bAlpha, bBeta, bOrbit, bOrbitP, bDisp, bDisp
   real(kind=fPrec), intent(in) :: bDisp(2)
   real(kind=fPrec), intent(in) :: bDispP(2)
 
-  type(scatter_linOpt) elemOpt
-
-  if(iElem < 1 .or. iElem > nele) then
+  if(iElem < 1 .or. iElem > nele .or. scatter_elemPointer(iElem) == 0) then
     return
   end if
 
-  if(scatter_elemPointer(iElem) > 0) then
+  scatter_elemList(scatter_elemPointer(iElem))%linOpt%isSet      = .true.
+  scatter_elemList(scatter_elemPointer(iElem))%linOpt%alpha      = bAlpha
+  scatter_elemList(scatter_elemPointer(iElem))%linOpt%beta       = bBeta
+  scatter_elemList(scatter_elemPointer(iElem))%linOpt%disp(1:2)  = bDisp
+  scatter_elemList(scatter_elemPointer(iElem))%linOpt%disp(3:4)  = bDispP
+  scatter_elemList(scatter_elemPointer(iElem))%linOpt%orbit(1:2) = bOrbit
+  scatter_elemList(scatter_elemPointer(iElem))%linOpt%orbit(3:4) = bOrbitP
 
-    elemOpt%isSet      = .true.
-    elemOpt%alpha      = bAlpha
-    elemOpt%beta       = bBeta
-    elemOpt%disp(1:2)  = bDisp
-    elemOpt%disp(3:4)  = bDispP
-    elemOpt%orbit(1:2) = bOrbit
-    elemOpt%orbit(3:4) = bOrbitP
-
-    scatter_elemList(scatter_elemPointer(iElem))%linOpt = elemOpt
-
-    if(scatter_debug) then
-      write(lout,"(a)")             "SCATTER> DEBUG LinOpt for element: '"//trim(bez(iElem))//"'"
-      write(lout,"(a,2(1x,f16.6))") "SCATTER> DEBUG  * Alpha X/Y:        ",bAlpha
-      write(lout,"(a,2(1x,f16.6))") "SCATTER> DEBUG  * Beta X/Y:         ",bBeta
-      write(lout,"(a,2(1x,f16.6))") "SCATTER> DEBUG  * Dispersion X/Y:   ",bDisp
-      write(lout,"(a,2(1x,f16.6))") "SCATTER> DEBUG  * Dispersion XP/YP: ",bDispP
-      write(lout,"(a,2(1x,f16.6))") "SCATTER> DEBUG  * Orbit X/Y:        ",bOrbit
-      write(lout,"(a,2(1x,f16.6))") "SCATTER> DEBUG  * Orbit XP/YP:      ",bOrbitP
-    end if
-
+  if(scatter_debug) then
+    write(lout,"(a)")             "SCATTER> DEBUG LinOpt for element: '"//trim(bez(iElem))//"'"
+    write(lout,"(a,2(1x,f16.6))") "SCATTER> DEBUG  * Alpha X/Y:        ",bAlpha
+    write(lout,"(a,2(1x,f16.6))") "SCATTER> DEBUG  * Beta X/Y:         ",bBeta
+    write(lout,"(a,2(1x,f16.6))") "SCATTER> DEBUG  * Dispersion X/Y:   ",bDisp
+    write(lout,"(a,2(1x,f16.6))") "SCATTER> DEBUG  * Dispersion XP/YP: ",bDispP
+    write(lout,"(a,2(1x,f16.6))") "SCATTER> DEBUG  * Orbit X/Y:        ",bOrbit
+    write(lout,"(a,2(1x,f16.6))") "SCATTER> DEBUG  * Orbit XP/YP:      ",bOrbitP
   end if
 
 end subroutine scatter_setLinOpt
+
+! =================================================================================================
+!  V.K. Berglyd Olsen, BE-ABP-HSS
+!  Created: 2019-08-08
+!  Updated: 2019-08-08
+! =================================================================================================
+subroutine scatter_setTAS(iElem, tasData)
+
+  use crcoall
+  use parpro,     only : nele
+  use mod_common, only : bez
+  use matrix_inv, only : invert_tas
+
+  integer,          intent(in) :: iElem
+  real(kind=fPrec), intent(in) :: tasData(6,6)
+
+  integer i
+  real(kind=fPrec) invData(6,6)
+
+  write(lout,*) "Boo!", iElem, scatter_elemPointer(iElem)
+  if(iElem < 1 .or. iElem > nele .or. scatter_elemPointer(iElem) == 0) then
+    return
+  end if
+
+  call invert_tas(invData, tasData)
+  scatter_elemList(scatter_elemPointer(iElem))%linOpt%tas    = tasData
+  scatter_elemList(scatter_elemPointer(iElem))%linOpt%invtas = invData
+
+  if(scatter_debug) then
+    write(lout,"(a)") "SCATTER> DEBUG Normalisation matrix for element: '"//trim(bez(iElem))//"'"
+    do i=1,6
+      write(lout,"(a,i0,a,6(1x,f16.6))") "SCATTER> DEBUG  * TAS(",i,",1:6): ",tasData(i,1:6)
+    end do
+  end if
+
+end subroutine scatter_setTAS
+
+! =================================================================================================
+! END Set and Get Routines
+! =================================================================================================
 
 ! =================================================================================================
 !  K. Sjobak, V.K. Berglyd Olsen, BE-ABP-HSS

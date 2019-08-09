@@ -937,16 +937,16 @@ subroutine sixin_postInputSIMU(iErr)
   logical, intent(inout) :: iErr
 
   if(sixin_hasSIMU .and. (sixin_simuThick .neqv. (ithick == 1))) then
-    write(lout,"(a)") "SIMU> ERROR Lattice format either not defined in SIMU block, or does not match the structure file."
+    write(lout,"(a)") "SIMU> ERROR Lattice format either not defined in SIMU block or does not match the structure file"
     iErr = .true.
   end if
 
   if(iclo6 > 0 .and. .not. sixin_simu6D) then
-    write(lout,"(a)") "SIMU> ERROR Can only calculated 6D closed orbit for 6D simulations."
+    write(lout,"(a)") "SIMU> ERROR Can only calculated 6D closed orbit for 6D simulations"
     iErr = .true.
   end if
 
-  if(sixin_simu6D) nsix  = 0
+  if(sixin_simu6D) nsix = 0
 
   if(st_debug) then
     call sixin_echoVal("idfor",idfor,"SIMU",-1)

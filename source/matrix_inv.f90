@@ -113,6 +113,65 @@ subroutine dinv(n,a,idim,ir,ifail)
 
 end subroutine dinv
 
+!-----------------------------------------------------------------------
+!  M.Fitterer, R. De Maria, K.Sjobak, BE-ABP-HSS
+!  last modified: 04-01-2016
+!  invert the matrix of eigenvecors tas
+!  (code copied from postpr only that ta is here tmpTas)
+!  x(normalized)=tmpTas^-1 x=tmpTas_inv x
+!  note: inversion method copied from subroutine postpr
+!-----------------------------------------------------------------------
+subroutine invert_tas(tmpTas_inv, tmpTas)
+
+  use crcoall
+  use floatPrecision
+  use numerical_constants
+
+  real(kind=fPrec), intent(in)  :: tmpTas(6,6) !tas = normalisation matrix
+  real(kind=fPrec), intent(out) :: tmpTas_inv(6,6) !inverse of tas
+
+  real(kind=fPrec) tdummy(6,6)
+  integer ierro,i,j,idummy(6)
+
+  ! units: [mm,mrad,mm,mrad,mm,1]
+  ! invert matrix
+  ! - set values close to 1 equal to 1
+  do i=1,6
+    do j=1,6
+      tmpTas_inv(i,j) = tmpTas(j,i)
+    end do
+  end do
+
+  if(abs(tmpTas_inv(1,1)) <= pieni .and. abs(tmpTas_inv(2,2)) <= pieni) then
+    tmpTas_inv(1,1) = one
+    tmpTas_inv(2,2) = one
+  end if
+  if(abs(tmpTas_inv(3,3)) <= pieni .and. abs(tmpTas_inv(4,4)) <= pieni) then
+    tmpTas_inv(3,3) = one
+    tmpTas_inv(4,4) = one
+  end if
+  if(abs(tmpTas_inv(5,5)) <= pieni .and. abs(tmpTas_inv(6,6)) <= pieni) then
+    tmpTas_inv(5,5) = one
+    tmpTas_inv(6,6) = one
+  end if
+
+  ! - invert: dinv returns the transposed matrix
+  call dinv(6,tmpTas_inv,6,idummy,ierro)
+  if(ierro /= 0) then
+    write(lerr,"(a,i0)") "INVERT_TAS> ERROR Matrix inversion failed. Subroutine DINV returned ierro ",ierro
+    call prror
+  end if
+
+  ! - transpose tmpTas_inv
+  tdummy = tmpTas_inv
+  do i=1,6
+    do j=1,6
+      tmpTas_inv(i,j) = tdummy(j,i)
+    end do
+  end do
+
+end subroutine invert_tas
+
 ! ================================================================================================ !
 subroutine kermtr(ercode,log,mflag,rflag)
 

@@ -94,31 +94,29 @@ do j=1,ndimf
   call dapek(damap(ii),jj,au(i3,i3))
   jj(i3)=0
 
-  ! Store tas matrix (normalisation of phase space) and closed orbit for FMA and DUMP normalisation.
+  ! Store tas matrix (normalisation of phase space) and closed orbit for use in other mdoules
   if(ic(i)-nblo > 0) then ! Check if structure element is a block
-    if(ldump(ic(i)-nblo)) then ! Check if particles are dumped at this element
-      tasData(ii-1,ii-1) = angp(1,ii-1)
-      tasData(ii-1,ii  ) = angp(1,ii)
-      tasData(ii  ,ii-1) = au(ii,ii-1)
-      tasData(ii  ,ii  ) = au(ii,ii  )
-      tasData(ii-1,i2-1) = au(i2-1,i2-1)
-      tasData(ii  ,i2-1) = au(i2  ,i2-1)
-      tasData(ii-1,i2  ) = au(i2-1,i2  )
-      tasData(ii  ,i2  ) = au(i2  ,i2  )
-      tasData(ii-1,i3-1) = au(i3-1,i3-1)
-      tasData(ii  ,i3-1) = au(i3  ,i3-1)
-      tasData(ii-1,i3  ) = au(i3-1,i3  )
-      tasData(ii  ,i3  ) = au(i3  ,i3  )
-      ! Closed orbit in canonical variables x,px,y,py,sig,delta [mm,mrad,mm,mrad,mm,1.e-3]
-      ! convert to x,xp,y,yp,sig,delta [mm,mrad,mm,mrad,mm,1]
-      !  -> check units used in dumpclo (is x' or px used?)
-      ! Note: this needs to be checked again. sigm is not canonical
-      cloData(2*j-1) = c(j)
-      if(j == 3) then ! dp/p
-        cloData(2*j) = cp(j)*c1m3
-      else ! xp,yp
-        cloData(2*j) = cp(j)/(one+cp(3)*c1m3)
-      end if
+    tasData(ii-1,ii-1) = angp(1,ii-1)
+    tasData(ii-1,ii  ) = angp(1,ii)
+    tasData(ii  ,ii-1) = au(ii,ii-1)
+    tasData(ii  ,ii  ) = au(ii,ii  )
+    tasData(ii-1,i2-1) = au(i2-1,i2-1)
+    tasData(ii  ,i2-1) = au(i2  ,i2-1)
+    tasData(ii-1,i2  ) = au(i2-1,i2  )
+    tasData(ii  ,i2  ) = au(i2  ,i2  )
+    tasData(ii-1,i3-1) = au(i3-1,i3-1)
+    tasData(ii  ,i3-1) = au(i3  ,i3-1)
+    tasData(ii-1,i3  ) = au(i3-1,i3  )
+    tasData(ii  ,i3  ) = au(i3  ,i3  )
+    ! Closed orbit in canonical variables x,px,y,py,sig,delta [mm,mrad,mm,mrad,mm,1.e-3]
+    ! convert to x,xp,y,yp,sig,delta [mm,mrad,mm,mrad,mm,1]
+    !  -> check units used in dumpclo (is x' or px used?)
+    ! Note: this needs to be checked again. sigm is not canonical
+    cloData(2*j-1) = c(j)
+    if(j == 3) then ! dp/p
+      cloData(2*j) = cp(j)*c1m3
+    else ! xp,yp
+      cloData(2*j) = cp(j)/(one+cp(3)*c1m3)
     end if
   end if
 
@@ -156,11 +154,16 @@ do j=1,ndimf
 end do ! end include/of optics calculation
 
 if(ic(i)-nblo > 0) then ! Check if structure element is a block
-  if(ldump(ic(i)-nblo)) then ! Check if particles are dumped at this element
-    ! Fix scaling of the 6th column and row due to the use of mm and mrad elsewhere
-    tasData(1:5,6) = tasData(1:5,6)*c1e3
-    tasData(6,1:5) = tasData(6,1:5)*c1m3
+  ! Fix scaling of the 6th column and row due to the use of mm and mrad elsewhere
+  tasData(1:5,6) = tasData(1:5,6)*c1e3
+  tasData(6,1:5) = tasData(6,1:5)*c1m3
+  if(ldump(ic(i)-nblo)) then
+    ! Check if particles are dumped at this element
     call dump_setTasMatrix(ic(i)-nblo, tasData, cloData)
+  end if
+  write(*,*) "TAS STUFF!"
+  if(scatter_active) then
+    call scatter_setTAS(ic(i)-nblo, tasData)
   end if
 end if
 

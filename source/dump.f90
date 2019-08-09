@@ -104,6 +104,7 @@ end subroutine dump_expand_arrays
 subroutine dump_setTasMatrix(elemID, tasData, cloData)
 
   use crcoall
+  use matrix_inv
   use mod_common, only : bez
   use mod_settings
 
