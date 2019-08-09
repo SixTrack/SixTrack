@@ -598,6 +598,9 @@ subroutine dump_initialise
         ! Write the format-specific headers:
         if (dumpfmt(i) == 2) then ! FORMAT 2
           write(dumpunit(i),'(a,a)') '# particleID turn s[m] x[mm] xp[mrad] y[mm] yp[mrad] sigma[mm] (E-E0)/E0[1] ktrack'
+        else if (dumpfmt(i) == 200) then ! FORMAT 200
+          write(dumpunit(i),'(a,a)') '# particleID turn s[m] x[mm] xp[mrad] y[mm] yp[mrad] sigma[mm] (E-E0)/E0[1] ktrack '// &
+&                                    'Z A Q PDGid'
         else if (dumpfmt(i) == 4) then ! FORMAT 4
           write(dumpunit(i),'(a)') '# napx turn s[m] <x>[mm] <xp>[mrad] <y>[mm] <yp>[mrad] <sigma>[mm] <(E-E0)/E0>[1]'
         else if (dumpfmt(i) == 5) then ! FORMAT 5
@@ -970,6 +973,40 @@ subroutine dump_initialise
           call h5_createFormat("dumpFormat101", setFields, dump_hdf5Format(101))
         end if
         call h5_createDataSet(dump_fname(i), h5_dumpID, dump_hdf5Format(101), dump_hdf5DataSet(i), napx)
+
+      case(200)
+        ! Format 200:
+        ! # particleID turn s[m] x[mm] xp[mrad] y[mm] yp[mrad] sigma[mm] (E-E0)/E0[1] ktrack Z A Q PDGid
+        if(dump_hdf5Format(200) == 0) then
+          allocate(setFields(14))
+          setFields(1)  = h5_dataField(name="ID",     type=h5_typeInt)
+          setFields(2)  = h5_dataField(name="TURN",   type=h5_typeInt)
+          setFields(3)  = h5_dataField(name="S",      type=h5_typeReal)
+          setFields(4)  = h5_dataField(name="X",      type=h5_typeReal)
+          setFields(5)  = h5_dataField(name="XP",     type=h5_typeReal)
+          setFields(6)  = h5_dataField(name="Y",      type=h5_typeReal)
+          setFields(7)  = h5_dataField(name="YP",     type=h5_typeReal)
+          setFields(8)  = h5_dataField(name="SIGMA",  type=h5_typeReal)
+          setFields(9)  = h5_dataField(name="dE/E",   type=h5_typeReal)
+          setFields(10) = h5_dataField(name="KTRACK", type=h5_typeInt)
+          setFields(11) = h5_dataField(name="Z",      type=h5_typeInt)
+          setFields(12) = h5_dataField(name="A",      type=h5_typeInt)
+          setFields(13) = h5_dataField(name="Q",      type=h5_typeInt)
+          setFields(14) = h5_dataField(name="PDGid",  type=h5_typeInt)
+          call h5_createFormat("dumpFormat200", setFields, dump_hdf5Format(200))
+        end if
+        call h5_createDataSet(dump_fname(i), h5_dumpID, dump_hdf5Format(200), dump_hdf5DataSet(i), napx)
+        block
+          character(len=:), allocatable :: colNames(:)
+          character(len=:), allocatable :: colUnits(:)
+          logical spErr
+          integer nSplit
+          call chr_split("ID turn s x xp y yp sigma (E-E0)/E0 ktrack Z A Q PDGid",colNames,nSplit,spErr)
+          call chr_split("1 1 m mm mrad mm mrad mm 1 1 1 1 1 1",colUnits,nSplit,spErr)
+          call h5_writeDataSetAttr(dump_hdf5DataSet(i),"dumpFormat",200)
+          call h5_writeDataSetAttr(dump_hdf5DataSet(i),"colNames",  colNames)
+          call h5_writeDataSetAttr(dump_hdf5DataSet(i),"colUnits",  colUnits)
+        end block
 
       end select
 
