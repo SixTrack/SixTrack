@@ -290,10 +290,8 @@ subroutine part_writeState(fileName, isText, withIons)
         write(fileUnit, "(i8,1x,i8,2(1x,l4),a225,3(1x,i4),1x,i11)") &
         partID(j),parentID(j),llostp(j),isPrim,roundBuf(1:225),naa(j),nzz(j),nqq(j),pdgid(j)
       else
-        ! write(fileUnit, "(i8,1x,i8,2(1x,l4),a200)") &
-        !   partID(j),parentID(j),llostp(j),isPrim,roundBuf(1:200)
-        write(fileUnit, "(i8,2(1x,i8),2(1x,l4),a200)") &
-          partID(j),parentID(j),pairID(j),llostp(j),isPrim,roundBuf(1:200)
+        write(fileUnit, "(i8,1x,i8,2(1x,l4),a200)") &
+          partID(j),parentID(j),llostp(j),isPrim,roundBuf(1:200)
       end if
     end do
   else

@@ -1108,7 +1108,7 @@ subroutine aperture_reportLoss(turn, i, ix)
 #else
       if(((partID(j).le.aperture_napxStart) .and. do_coll) .or. .not.do_coll) then
 #endif
-        pstop(partID(j))=.true.
+        pstop(j) = .true.
         ! Record for postpr
         if(.not.limifound.or.kape(ix).eq.0) then
           aperv(partID(j),1) = aper(1)

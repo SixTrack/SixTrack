@@ -2153,41 +2153,42 @@ subroutine dist1
 
   implicit none
 
-  integer ia,ib2,ib3,ie
+  integer ia,ib2,ib3,ie,ip
   real(kind=fPrec) dam1
 
-  do ia=1,napx,2
-    if(.not.pstop(partID(ia)).and..not.pstop(partID(ia)+1)) then
-      ie=ia+1
-      dam(ia)=zero
-      dam(ie)=zero
-      xau(1,1)= xv1(ia)
-      xau(1,2)= yv1(ia)
-      xau(1,3)= xv2(ia)
-      xau(1,4)= yv2(ia)
-      xau(1,5)=sigmv(ia)
-      xau(1,6)= dpsv(ia)
-      xau(2,1)= xv1(ie)
-      xau(2,2)= yv1(ie)
-      xau(2,3)= xv2(ie)
-      xau(2,4)= yv2(ie)
-      xau(2,5)=sigmv(ie)
-      xau(2,6)= dpsv(ie)
-      cloau(1)= clo6v(1)
-      cloau(2)=clop6v(1)
-      cloau(3)= clo6v(2)
-      cloau(4)=clop6v(2)
-      cloau(5)= clo6v(3)
-      cloau(6)=clop6v(3)
-      di0au(1)= di0xs
-      di0au(2)=dip0xs
-      di0au(3)= di0zs
-      di0au(4)=dip0zs
-      tau(:,:)=tasau(:,:)
+  do ip=1,(napx+1)/2
+    ia = pairMap(ip,1)
+    ie = pairMap(ip,2)
+    if(.not.pstop(ia) .and. .not.pstop(ie)) then
+      dam(ia)  = zero
+      dam(ie)  = zero
+      xau(1,1) = xv1(ia)
+      xau(1,2) = yv1(ia)
+      xau(1,3) = xv2(ia)
+      xau(1,4) = yv2(ia)
+      xau(1,5) = sigmv(ia)
+      xau(1,6) = dpsv(ia)
+      xau(2,1) = xv1(ie)
+      xau(2,2) = yv1(ie)
+      xau(2,3) = xv2(ie)
+      xau(2,4) = yv2(ie)
+      xau(2,5) = sigmv(ie)
+      xau(2,6) = dpsv(ie)
+      cloau(1) = clo6v(1)
+      cloau(2) = clop6v(1)
+      cloau(3) = clo6v(2)
+      cloau(4) = clop6v(2)
+      cloau(5) = clo6v(3)
+      cloau(6) = clop6v(3)
+      di0au(1) = di0xs
+      di0au(2) = dip0xs
+      di0au(3) = di0zs
+      di0au(4) = dip0zs
+      tau(:,:) = tasau(:,:)
 
       call distance(xau,cloau,di0au,tau,dam1)
-      dam(ia)=dam1
-      dam(ie)=dam1
+      dam(ia) = dam1
+      dam(ie) = dam1
     end if
   end do
 

@@ -3307,13 +3307,12 @@ subroutine join
 10010 format(//10x,'** ERROR IN JOIN** ----- PROBLEMS WITH DATA FILE : ',i2,' ----- ERROR CODE : ',i10//)
 end subroutine join
 
-
-!-------------------------------------------------------------------------
-!     Subroutine for writing the header of the binary files (fort.90 etc.)
-!     Always converting to real64 before writing to disk
-!-----------------------------------------------------------------------
-!     K. SJOBAK, October 2017
-!-----------------------------------------------------------------------
+! ================================================================================================ !
+!  Subroutine for writing the header of the binary files (fort.90 etc.)
+!  Always converting to real64 before writing to disk
+! ================================================================================================ !
+!  K. SJOBAK, October 2017
+! ================================================================================================ !
 subroutine writebin_header(ia_p1,ia_p2,fileunit_in, ierro_wbh, cdate,ctime,progrm)
 
   use, intrinsic :: iso_fortran_env, only : real64
@@ -3324,11 +3323,10 @@ subroutine writebin_header(ia_p1,ia_p2,fileunit_in, ierro_wbh, cdate,ctime,progr
 
   implicit none
 
-  integer, intent(in) :: ia_p1, ia_p2, fileunit_in
+  integer, intent(in)    :: ia_p1, ia_p2, fileunit_in
   integer, intent(inout) :: ierro_wbh
-  character(len=8) cdate,ctime,progrm !Note: Keep in sync with maincr
-                                      !DANGER: If the len changes, CRCHECK will break.
 
+  character(len=8) cdate,ctime,progrm ! Note: Keep in sync with maincr. If the len changes, CRCHECK will break.
   integer i,j
 
   real(kind=real64) qwcs_tmp(3), clo6v_tmp(3), clop6v_tmp(3)
@@ -3336,9 +3334,8 @@ subroutine writebin_header(ia_p1,ia_p2,fileunit_in, ierro_wbh, cdate,ctime,progr
   real(kind=real64) tas_tmp(6,6)
   real(kind=real64) mmac_tmp,nms_tmp,izu0_tmp,numlr_tmp,sigcor_tmp,dpscor_tmp
 
-  real(kind=real64) zero64,one64
-  parameter(zero64 = 0.0_real64)
-  parameter(one64  = 1.0_real64)
+  real(kind=real64), parameter :: zero64 = 0.0_real64
+  real(kind=real64), parameter :: one64  = 1.0_real64
 
   !Convert from whatever precission is used internally to real64,
   ! which is what should go in the output file
@@ -3348,9 +3345,9 @@ subroutine writebin_header(ia_p1,ia_p2,fileunit_in, ierro_wbh, cdate,ctime,progr
     clop6v_tmp(i) = real(clop6v(i), real64)
   end do
 
-  di0xs_tmp  = real(di0xs, real64)
+  di0xs_tmp  = real(di0xs,  real64)
   dip0xs_tmp = real(dip0xs, real64)
-  di0zs_tmp  = real(di0zs, real64)
+  di0zs_tmp  = real(di0zs,  real64)
   dip0zs_tmp = real(dip0zs, real64)
 
   do i=1,6
@@ -3361,10 +3358,10 @@ subroutine writebin_header(ia_p1,ia_p2,fileunit_in, ierro_wbh, cdate,ctime,progr
 
   mmac_tmp   = 1.0_real64
   nms_tmp    = 1.0_real64
-  izu0_tmp   = real(izu0,       real64)
-  numlr_tmp  = real(numlr,      real64)
-  sigcor_tmp = real(sigcor,     real64)
-  dpscor_tmp = real(dpscor,     real64)
+  izu0_tmp   = real(izu0,   real64)
+  numlr_tmp  = real(numlr,  real64)
+  sigcor_tmp = real(sigcor, real64)
+  dpscor_tmp = real(dpscor, real64)
 
   ! DANGER: IF THE LENGTH OR NUMBER OF THESE FIELDS CHANGE,
   ! CRCHECK WON'T WORK. SEE HOW VARIABLES HBUFF/TBUFF ARE USED.
@@ -3401,14 +3398,14 @@ subroutine writebin_header(ia_p1,ia_p2,fileunit_in, ierro_wbh, cdate,ctime,progr
 
 end subroutine writebin_header
 
-!-------------------------------------------------------------------------
-!     Subroutine for writing the the binary files (fort.90 etc.)
-!     Always converting to real64 before writing to disk
-!-------------------------------------------------------------------------
-!     F. SCHMIDT, 3 February 1999
-!     K. SJOBAK,    October  2017
-!     V.K. Berglyd Olsen, April 2019
-!-------------------------------------------------------------------------
+! ================================================================================================ !
+!  Subroutine for writing the the binary files (fort.90 etc.)
+!  Always converting to real64 before writing to disk
+! ================================================================================================ !
+!  F. SCHMIDT, 3 February 1999
+!  K. SJOBAK,    October  2017
+!  V.K. Berglyd Olsen, April 2019
+! ================================================================================================ !
 subroutine writebin(nthinerr)
 
   use, intrinsic :: iso_fortran_env, only : real64
@@ -3429,7 +3426,7 @@ subroutine writebin(nthinerr)
 
   integer, intent(inout) :: nthinerr
 
-  integer ia,ia2,ie,fUnit
+  integer ia,ie,ip,fUnit
   real(kind=real64) dam_tmp,xv_tmp(2,2),yv_tmp(2,2),sigmv_tmp(2),dpsv_tmp(2),e0_tmp
 
 #ifdef CR
@@ -3439,28 +3436,33 @@ subroutine writebin(nthinerr)
     return
   end if
 #endif
-  do ia=1,napx-1
-    !     PSTOP=true -> particle lost,
-    !     partID(ia)=particle ID that is not changing
-    !     (the particle arrays are compressed to remove lost particles) 
-    !     In the case of no lost particles, all partID(i)=i for 1..npart
-    ! FIXME: This logic assumes partID(ia)+1 exists, which it may very well not!
-    !        This only works if the largest particle ID is in the last position.
-    if(.not.pstop(partID(ia)).and..not.pstop(partID(ia)+1).and.(mod(partID(ia),2) /= 0)) then !Skip odd particle IDs
 
-      ia2=(partID(ia)+1)/2 !File ID for non-STF & binrecs
-      ie=ia+1              !ia = Particle ID 1, ie = Particle ID 2
+  ! Rewritten by VKBO to use a map to preserve the particle pairs after particle arrays have been reshuffled
+  ! Loop over pairs, looking up their current index in the pair-map generated by subroutine updatePairMap
+  do ip=1,(napx+1)/2
+
+    ia = pairMap(ip,1)
+    ie = pairMap(ip,2)
+
+    if(ia == 0 .or. ie == 0) then
+      ! Check that the map does not contain a 0 index, which means something is wrong in the record keeping of lost particles
+      write(lerr,"(a,i0)") "WRITEBIN> ERROR The map of particle pairs is missing one or both particles for pair ",ip
+      call prror
+    end if
+
+    if(.not.pstop(ia) .and. .not.pstop(ie)) then
+
 #ifdef STF
       fUnit = 90
 #else
-      fUnit = 91-ia2
+      fUnit = 91-ip
       if(ia2 > 32) then
         write(lerr,"(a)") "WRITEBIN> ERROR Trying to write more than 32 pairs to track files. This is a bug!"
         call prror
       end if
 #endif
 
-      if(ntwin /= 2) then !Write particle partID(ia) only
+      if(ntwin /= 2) then ! Write particle ia only
         dam_tmp      = real(dam(ia),   real64)
         xv_tmp(1,1)  = real(xv1(ia),   real64)
         yv_tmp(1,1)  = real(yv1(ia),   real64)
@@ -3479,10 +3481,10 @@ subroutine writebin(nthinerr)
           sigmv_tmp(1),dpsv_tmp(1),e0_tmp
         flush(fUnit)
 #ifdef CR
-        binrecs(ia2) = binrecs(ia2)+1
+        binrecs(ip) = binrecs(ip)+1
 #endif
 
-      else !Write both particles partID(ia) and partID(ia)+1
+      else ! Write both particles ia and ie
         ! Note that dam(ia) (distance in angular phase space) is written twice.
         dam_tmp      = real(dam(ia),   real64)
 
@@ -3508,23 +3510,23 @@ subroutine writebin(nthinerr)
         write(fUnit,iostat=ierro) numx,                            &
           partID(ia),dam_tmp,xv_tmp(1,1),yv_tmp(1,1),              &
           xv_tmp(2,1),yv_tmp(2,1),sigmv_tmp(1),dpsv_tmp(1),e0_tmp, &
-          partID(ia)+1,dam_tmp,xv_tmp(1,2),yv_tmp(1,2),            &
+          partID(ie),dam_tmp,xv_tmp(1,2),yv_tmp(1,2),              &
           xv_tmp(2,2),yv_tmp(2,2),sigmv_tmp(2),dpsv_tmp(2),e0_tmp
         flush(fUnit)
 
 #ifdef CR
-        binrecs(ia2) = binrecs(ia2)+1
+        binrecs(ip) = binrecs(ip)+1
 #endif
       end if
       if(ierro /= 0) then
-        write(lout,"(2(a,i0))") "WRITEBIN> ERROR Problem writing to file unit ",fUnit,", error code ",ierro
-        flush(lout)
+        write(lerr,"(2(a,i0))") "WRITEBIN> ERROR Problem writing to file unit ",fUnit,", error code ",ierro
+        flush(lerr)
         flush(12)
         nthinerr = 3000
         return
       end if
     end if
-  end do !END "do 10 ia=1,napx-1"
+  end do
 #ifdef CR
   if(lhc /= 9) then
     binrec = binrec+1

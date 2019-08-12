@@ -319,7 +319,7 @@ subroutine updatePairMap
   pairMap(:,:) = 0
   do j=1,npart
     m = mod(partID(j),2)
-    pairMap(pairID(j),m+1) = j
+    pairMap(pairID(j),2-m) = j
   end do
 
   ! do j=1,(npart+1)/2
