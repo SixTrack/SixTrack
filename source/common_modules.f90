@@ -915,6 +915,8 @@ module mod_common_main
 
   integer,          allocatable, save :: partID(:)     ! Particle ID
   integer,          allocatable, save :: parentID(:)   ! Particle parent ID in case of secondary particles
+  integer,          allocatable, save :: pairID(:)     ! The original particle pair ID for a particle
+  integer,          allocatable, save :: pairMap(:,:)  ! A reverse map for pairID to index
   logical,          allocatable, save :: pstop(:)      ! Particle lost flag
   logical,          allocatable, save :: llostp(:)     ! Particle lost flag
   real(kind=fPrec), allocatable, save :: aperv(:,:)    ! Aperture at loss
@@ -937,6 +939,9 @@ subroutine mod_commonmn_expand_arrays(nblz_new,npart_new)
 
   integer :: nblz_prev  = -2
   integer :: npart_prev = -2
+  integer npair_new
+
+  npair_new = (npart_new+1)/2
 
   if(nblz_new /= nblz_prev) then
     call alloc(smiv,     nblz_new,     zero,    "smiv")
@@ -960,6 +965,8 @@ subroutine mod_commonmn_expand_arrays(nblz_new,npart_new)
     call alloc(nnumxv,   npart_new,    0,       "nnumxv")
     call alloc(partID,   npart_new,    0,       "partID")
     call alloc(parentID, npart_new,    0,       "parentID")
+    call alloc(pairID,   npart_new,    0,       "pairID")
+    call alloc(pairMap,  npair_new, 2, 0,       "pairMap")
     call alloc(pstop,    npart_new,    .false., "pstop")
     call alloc(llostp,   npart_new,    .false., "llostp")
     call alloc(dpd,      npart_new,    zero,    "dpd")

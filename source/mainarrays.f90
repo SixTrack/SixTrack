@@ -12,8 +12,8 @@ subroutine allocate_arrays
   use crcoall
 
   use mod_common,         only : mod_common_expand_arrays
-  use mod_common_track,        only : mod_commont_expand_arrays
-  use mod_common_main,       only : mod_commonmn_expand_arrays
+  use mod_common_track,   only : mod_commont_expand_arrays
+  use mod_common_main,    only : mod_commonmn_expand_arrays
   use mod_commond2,       only : mod_commond2_expand_arrays
   use aperture,           only : aperture_expand_arrays
   use elens,              only : elens_allocate_arrays
@@ -211,6 +211,7 @@ subroutine shuffleLostParticles
     ! Move lost particle to the back
     partID(j:tnapx)    = cshift(partID(j:tnapx),    1)
     parentID(j:tnapx)  = cshift(parentID(j:tnapx),  1)
+    pairID(j:tnapx)    = cshift(pairID(j:tnapx),    1)
     tmp_lostP(j:tnapx) = cshift(tmp_lostP(j:tnapx), 1)
 
     ! Main Particle Arrays
@@ -304,5 +305,25 @@ subroutine shuffleLostParticles
 
   napx = napx_new
   call move_alloc(tmp_lostP, llostp)
+  call updatePairMap
 
 end subroutine shuffleLostParticles
+
+subroutine updatePairMap
+
+  use parpro, only : npart
+  use mod_common_main, only : partID, pairID, pairMap
+
+  integer j, m
+
+  pairMap(:,:) = 0
+  do j=1,npart
+    m = mod(partID(j),2)
+    pairMap(pairID(j),m+1) = j
+  end do
+
+  ! do j=1,(npart+1)/2
+  !   write(*,*) "PAIR ",j," = ",pairMap(j,:)
+  ! end do
+
+end subroutine updatePairMap
