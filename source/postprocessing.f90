@@ -3308,101 +3308,99 @@ subroutine join
 end subroutine join
 
 
-      subroutine writebin_header(ia_p1,ia_p2,fileunit_in, ierro_wbh,    &
-     &     cdate,ctime,progrm)
 !-------------------------------------------------------------------------
 !     Subroutine for writing the header of the binary files (fort.90 etc.)
 !     Always converting to real64 before writing to disk
 !-----------------------------------------------------------------------
 !     K. SJOBAK, October 2017
 !-----------------------------------------------------------------------
-      use numerical_constants
-      use, intrinsic :: iso_fortran_env, only : real64
-      use parpro
-      use mod_common
-      use mod_common_main
-      implicit none
+subroutine writebin_header(ia_p1,ia_p2,fileunit_in, ierro_wbh, cdate,ctime,progrm)
 
-      integer, intent(in) :: ia_p1, ia_p2, fileunit_in
-      integer, intent(inout) :: ierro_wbh
+  use, intrinsic :: iso_fortran_env, only : real64
+  use numerical_constants
+  use parpro
+  use mod_common
+  use mod_common_main
 
-      character(len=8) cdate,ctime,progrm !Note: Keep in sync with maincr
-                                          !DANGER: If the len changes, CRCHECK will break.
+  implicit none
 
-      integer i,j
+  integer, intent(in) :: ia_p1, ia_p2, fileunit_in
+  integer, intent(inout) :: ierro_wbh
+  character(len=8) cdate,ctime,progrm !Note: Keep in sync with maincr
+                                      !DANGER: If the len changes, CRCHECK will break.
 
-      real(kind=real64) qwcs_tmp(3), clo6v_tmp(3), clop6v_tmp(3)
-      real(kind=real64) di0xs_tmp, dip0xs_tmp, di0zs_tmp,dip0zs_tmp
-      real(kind=real64) tas_tmp(6,6)
-      real(kind=real64) mmac_tmp,nms_tmp,izu0_tmp,numlr_tmp,            &
-     &     sigcor_tmp,dpscor_tmp
+  integer i,j
 
-      real(kind=real64) zero64,one64
-      parameter(zero64 = 0.0_real64)
-      parameter(one64  = 1.0_real64)
+  real(kind=real64) qwcs_tmp(3), clo6v_tmp(3), clop6v_tmp(3)
+  real(kind=real64) di0xs_tmp, dip0xs_tmp, di0zs_tmp,dip0zs_tmp
+  real(kind=real64) tas_tmp(6,6)
+  real(kind=real64) mmac_tmp,nms_tmp,izu0_tmp,numlr_tmp,sigcor_tmp,dpscor_tmp
 
-      !Convert from whatever precission is used internally to real64,
-      ! which is what should go in the output file
-      do i=1,3
-         qwcs_tmp  (i) = real(qwcs  (i), real64)
-         clo6v_tmp (i) = real(clo6v (i), real64)
-         clop6v_tmp(i) = real(clop6v(i), real64)
-      enddo
+  real(kind=real64) zero64,one64
+  parameter(zero64 = 0.0_real64)
+  parameter(one64  = 1.0_real64)
 
-      di0xs_tmp  = real(di0xs, real64)
-      dip0xs_tmp = real(dip0xs, real64)
-      di0zs_tmp  = real(di0zs, real64)
-      dip0zs_tmp = real(dip0zs, real64)
+  !Convert from whatever precission is used internally to real64,
+  ! which is what should go in the output file
+  do i=1,3
+    qwcs_tmp  (i) = real(qwcs  (i), real64)
+    clo6v_tmp (i) = real(clo6v (i), real64)
+    clop6v_tmp(i) = real(clop6v(i), real64)
+  end do
 
-      do i=1,6
-         do j=1,6
-            tas_tmp(j,i) = real(tas(j,i), real64)
-         enddo
-      enddo
+  di0xs_tmp  = real(di0xs, real64)
+  dip0xs_tmp = real(dip0xs, real64)
+  di0zs_tmp  = real(di0zs, real64)
+  dip0zs_tmp = real(dip0zs, real64)
 
-      mmac_tmp   = 1.0_real64
-      nms_tmp    = 1.0_real64
-      izu0_tmp   = real(izu0,       real64)
-      numlr_tmp  = real(numlr,      real64)
-      sigcor_tmp = real(sigcor,     real64)
-      dpscor_tmp = real(dpscor,     real64)
+  do i=1,6
+    do j=1,6
+      tas_tmp(j,i) = real(tas(j,i), real64)
+    end do
+  end do
 
-      ! DANGER: IF THE LENGTH OR NUMBER OF THESE FIELDS CHANGE,
-      ! CRCHECK WON'T WORK. SEE HOW VARIABLES HBUFF/TBUFF ARE USED.
-      ! WE ALSO ASSUME THAT THE INTEGERS ARE ALWAYS 32BIT...
+  mmac_tmp   = 1.0_real64
+  nms_tmp    = 1.0_real64
+  izu0_tmp   = real(izu0,       real64)
+  numlr_tmp  = real(numlr,      real64)
+  sigcor_tmp = real(sigcor,     real64)
+  dpscor_tmp = real(dpscor,     real64)
 
-      write(fileunit_in,iostat=ierro_wbh)                               &
-     &     sixtit,commen,cdate,ctime,progrm,                            &
-     &     ia_p1,ia_p2, napx, icode,numl,                               &
-     &     qwcs_tmp(1),qwcs_tmp(2),qwcs_tmp(3),                         &
-     &     clo6v_tmp(1),clop6v_tmp(1),clo6v_tmp(2),clop6v_tmp(2),       &
-     &     clo6v_tmp(3),clop6v_tmp(3),                                  &
-     &     di0xs_tmp,dip0xs_tmp,di0zs_tmp,dip0zs_tmp,                   &
-     &     zero64,one64,                                                &
-     &     tas_tmp(1,1),tas_tmp(1,2),tas_tmp(1,3),                      &
-     &     tas_tmp(1,4),tas_tmp(1,5),tas_tmp(1,6),                      &
-     &     tas_tmp(2,1),tas_tmp(2,2),tas_tmp(2,3),                      &
-     &     tas_tmp(2,4),tas_tmp(2,5),tas_tmp(2,6),                      &
-     &     tas_tmp(3,1),tas_tmp(3,2),tas_tmp(3,3),                      &
-     &     tas_tmp(3,4),tas_tmp(3,5),tas_tmp(3,6),                      &
-     &     tas_tmp(4,1),tas_tmp(4,2),tas_tmp(4,3),                      &
-     &     tas_tmp(4,4),tas_tmp(4,5),tas_tmp(4,6),                      &
-     &     tas_tmp(5,1),tas_tmp(5,2),tas_tmp(5,3),                      &
-     &     tas_tmp(5,4),tas_tmp(5,5),tas_tmp(5,6),                      &
-     &     tas_tmp(6,1),tas_tmp(6,2),tas_tmp(6,3),                      &
-     &     tas_tmp(6,4),tas_tmp(6,5),tas_tmp(6,6),                      &
-     &     mmac_tmp,nms_tmp,izu0_tmp,numlr_tmp,                         &
-     &     sigcor_tmp,dpscor_tmp,                                       &
-     &     zero64,zero64,zero64,zero64,zero64,zero64,zero64,zero64,     &
-     &     zero64,zero64,zero64,zero64,zero64,zero64,zero64,zero64,     &
-     &     zero64,zero64,zero64,zero64,zero64,zero64,zero64,zero64,     &
-     &     zero64,zero64,zero64,zero64,zero64,zero64,zero64,zero64,     &
-     &     zero64,zero64,zero64,zero64,zero64,zero64,zero64,zero64,     &
-     &     zero64,zero64,zero64,zero64
+  ! DANGER: IF THE LENGTH OR NUMBER OF THESE FIELDS CHANGE,
+  ! CRCHECK WON'T WORK. SEE HOW VARIABLES HBUFF/TBUFF ARE USED.
+  ! WE ALSO ASSUME THAT THE INTEGERS ARE ALWAYS 32BIT...
 
-      end subroutine writebin_header
+  write(fileunit_in,iostat=ierro_wbh)                            &
+    sixtit,commen,cdate,ctime,progrm,                            &
+    ia_p1,ia_p2, napx, icode,numl,                               &
+    qwcs_tmp(1),qwcs_tmp(2),qwcs_tmp(3),                         &
+    clo6v_tmp(1),clop6v_tmp(1),clo6v_tmp(2),clop6v_tmp(2),       &
+    clo6v_tmp(3),clop6v_tmp(3),                                  &
+    di0xs_tmp,dip0xs_tmp,di0zs_tmp,dip0zs_tmp,                   &
+    zero64,one64,                                                &
+    tas_tmp(1,1),tas_tmp(1,2),tas_tmp(1,3),                      &
+    tas_tmp(1,4),tas_tmp(1,5),tas_tmp(1,6),                      &
+    tas_tmp(2,1),tas_tmp(2,2),tas_tmp(2,3),                      &
+    tas_tmp(2,4),tas_tmp(2,5),tas_tmp(2,6),                      &
+    tas_tmp(3,1),tas_tmp(3,2),tas_tmp(3,3),                      &
+    tas_tmp(3,4),tas_tmp(3,5),tas_tmp(3,6),                      &
+    tas_tmp(4,1),tas_tmp(4,2),tas_tmp(4,3),                      &
+    tas_tmp(4,4),tas_tmp(4,5),tas_tmp(4,6),                      &
+    tas_tmp(5,1),tas_tmp(5,2),tas_tmp(5,3),                      &
+    tas_tmp(5,4),tas_tmp(5,5),tas_tmp(5,6),                      &
+    tas_tmp(6,1),tas_tmp(6,2),tas_tmp(6,3),                      &
+    tas_tmp(6,4),tas_tmp(6,5),tas_tmp(6,6),                      &
+    mmac_tmp,nms_tmp,izu0_tmp,numlr_tmp,                         &
+    sigcor_tmp,dpscor_tmp,                                       &
+    zero64,zero64,zero64,zero64,zero64,zero64,zero64,zero64,     &
+    zero64,zero64,zero64,zero64,zero64,zero64,zero64,zero64,     &
+    zero64,zero64,zero64,zero64,zero64,zero64,zero64,zero64,     &
+    zero64,zero64,zero64,zero64,zero64,zero64,zero64,zero64,     &
+    zero64,zero64,zero64,zero64,zero64,zero64,zero64,zero64,     &
+    zero64,zero64,zero64,zero64
 
-subroutine writebin(nthinerr)
+end subroutine writebin_header
+
 !-------------------------------------------------------------------------
 !     Subroutine for writing the the binary files (fort.90 etc.)
 !     Always converting to real64 before writing to disk
@@ -3411,143 +3409,137 @@ subroutine writebin(nthinerr)
 !     K. SJOBAK,    October  2017
 !     V.K. Berglyd Olsen, April 2019
 !-------------------------------------------------------------------------
-      use numerical_constants
-      use, intrinsic :: iso_fortran_env, only : real64
-      use crcoall
-      use parpro
-      use mod_common
-      use mod_common_main
-      use mod_commons
-      use mod_common_track
-      use mod_common_da
-      use mod_settings
+subroutine writebin(nthinerr)
+
+  use, intrinsic :: iso_fortran_env, only : real64
+  use numerical_constants
+  use crcoall
+  use parpro
+  use mod_common
+  use mod_common_main
+  use mod_commons
+  use mod_common_track
+  use mod_common_da
+  use mod_settings
 #ifdef CR
-      use checkpoint_restart
+  use checkpoint_restart
 #endif
-      implicit none
 
-      integer ia,ia2,ie,nthinerr
+  implicit none
 
-      real(kind=real64) dam_tmp, xv_tmp(2,2),yv_tmp(2,2),sigmv_tmp(2),dpsv_tmp(2),e0_tmp
+  integer ia,ia2,ie,nthinerr
+  real(kind=real64) dam_tmp, xv_tmp(2,2),yv_tmp(2,2),sigmv_tmp(2),dpsv_tmp(2),e0_tmp
 
-      save
-!-----------------------------------------------------------------------
 #ifdef CR
-      if(cr_restart) then
-        write(crlog,"(a)") "WRITEBIN> Restarting, so not writing records"
-        flush(crlog)
+  if(cr_restart) then
+    write(crlog,"(a)") "WRITEBIN> Restarting, so not writing records"
+    flush(crlog)
+    return
+  end if
+#endif
+  do ia=1,napx-1
+    !     PSTOP=true -> particle lost,
+    !     partID(ia)=particle ID that is not changing
+    !     (the particle arrays are compressed to remove lost particles) 
+    !     In the case of no lost particles, all partID(i)=i for 1..npart
+    ! FIXME: This logic assumes partID(ia)+1 exists, which it may very well not!
+    !        This only works if the largest particle ID is in the last position.
+    if(.not.pstop(partID(ia)).and..not.pstop(partID(ia)+1).and.(mod(partID(ia),2).ne.0)) then !Skip odd particle IDs
+
+      ia2=(partID(ia)+1)/2 !File ID for non-STF & binrecs
+      ie=ia+1              !ia = Particle ID 1, ie = Particle ID 2
+
+      if(ntwin.ne.2) then !Write particle partID(ia) only
+        dam_tmp      = real(dam(ia),   real64)
+        xv_tmp(1,1)  = real(xv1(ia),  real64)
+        yv_tmp(1,1)  = real(yv1(ia),  real64)
+        xv_tmp(2,1)  = real(xv2(ia),  real64)
+        yv_tmp(2,1)  = real(yv2(ia),  real64)
+        sigmv_tmp(1) = real(sigmv(ia), real64)
+        dpsv_tmp(1)  = real(dpsv(ia),  real64)
+        e0_tmp       = real(e0,        real64)
+
+        ! DANGER: IF THE LENGTH OR NUMBER OF THESE FIELDS CHANGE,
+        ! CRCHECK WON'T WORK. SEE HOW VARIABLES HBUFF/TBUFF ARE USED.
+        ! WE ALSO ASSUME THAT THE INTEGERS ARE ALWAYS 32BIT...
+
+#ifndef STF
+        write(91-ia2,iostat=ierro)                            &
+#else
+        write(90,iostat=ierro)                                &
+#endif
+          numx,partID(ia),dam_tmp,                           &
+          xv_tmp(1,1),yv_tmp(1,1),                           &
+          xv_tmp(2,1),yv_tmp(2,1),                           &
+          sigmv_tmp(1),dpsv_tmp(1),e0_tmp
+#ifndef STF
+        flush(91-ia2)
+#else
+        flush(90)
+#endif
+#ifdef CR
+        binrecs(ia2)=binrecs(ia2)+1
+#endif
+
+      else !Write both particles partID(ia) and partID(ia)+1
+        ! Note that dam(ia) (distance in angular phase space) is written twice.
+        dam_tmp      = real(dam(ia),   real64)
+
+        xv_tmp(1,1)  = real(xv1(ia),  real64)
+        yv_tmp(1,1)  = real(yv1(ia),  real64)
+        xv_tmp(2,1)  = real(xv2(ia),  real64)
+        yv_tmp(2,1)  = real(yv2(ia),  real64)
+        sigmv_tmp(1) = real(sigmv(ia), real64)
+        dpsv_tmp(1)  = real(dpsv(ia),  real64)
+
+        xv_tmp(1,2)  = real(xv1(ie),  real64)
+        yv_tmp(1,2)  = real(yv1(ie),  real64)
+        xv_tmp(2,2)  = real(xv2(ie),  real64)
+        yv_tmp(2,2)  = real(yv2(ie),  real64)
+        sigmv_tmp(2) = real(sigmv(ie), real64)
+        dpsv_tmp(2)  = real(dpsv(ie),  real64)
+
+        e0_tmp       = real(e0,        real64)
+
+        ! DANGER: IF THE LENGTH OR NUMBER OF THESE FIELDS CHANGE,
+        ! CRCHECK WON'T WORK. SEE HOW VARIABLES HBUFF/TBUFF ARE USED.
+        ! WE ALSO ASSUME THAT THE INTEGERS ARE ALWAYS 32BIT...
+#ifndef STF
+        write(91-ia2,iostat=ierro)                            &
+#else
+        write(90,iostat=ierro)                                &
+#endif
+          numx,partID(ia),dam_tmp,                           &
+          xv_tmp(1,1),yv_tmp(1,1),                           &
+          xv_tmp(2,1),yv_tmp(2,1),                           &
+          sigmv_tmp(1),dpsv_tmp(1),e0_tmp,                   &
+          partID(ia)+1,dam_tmp,                              &
+          xv_tmp(1,2),yv_tmp(1,2),                           &
+          xv_tmp(2,2),yv_tmp(2,2),                           &
+          sigmv_tmp(2),dpsv_tmp(2),e0_tmp
+#ifndef STF
+        flush(91-ia2)
+#else
+        flush(90)
+#endif
+
+#ifdef CR
+        binrecs(ia2)=binrecs(ia2)+1
+#endif
+      end if
+      if(ierro.ne.0) then
+        write(lout,"(2(a,i0))") "WRITEBIN> ERROR Problem writing to file #: ",91-ia2,", error code: ",ierro
+        flush(lout)
+        flush(12)
+        nthinerr=3000
         return
       end if
-#endif
-         do ia=1,napx-1
-!GRD
-!     PSTOP=true -> particle lost,
-!     partID(ia)=particle ID that is not changing
-!     (the particle arrays are compressed to remove lost particles)
-!     In the case of no lost particles, all partID(i)=i for 1..npart
-      ! FIXME: This logic assumes partID(ia)+1 exists, which it may very well not!
-      !        This only works if the largest particle ID is in the last position.
-            if(.not.pstop(partID(ia)).and..not.pstop(partID(ia)+1).and. &
-     &           (mod(partID(ia),2).ne.0)) then !Skip odd particle IDs
-
-               ia2=(partID(ia)+1)/2 !File ID for non-STF & binrecs
-               ie=ia+1              !ia = Particle ID 1, ie = Particle ID 2
-
-               if(ntwin.ne.2) then !Write particle partID(ia) only
-                  dam_tmp      = real(dam(ia),   real64)
-                  xv_tmp(1,1)  = real(xv1(ia),  real64)
-                  yv_tmp(1,1)  = real(yv1(ia),  real64)
-                  xv_tmp(2,1)  = real(xv2(ia),  real64)
-                  yv_tmp(2,1)  = real(yv2(ia),  real64)
-                  sigmv_tmp(1) = real(sigmv(ia), real64)
-                  dpsv_tmp(1)  = real(dpsv(ia),  real64)
-                  e0_tmp       = real(e0,        real64)
-
-                  ! DANGER: IF THE LENGTH OR NUMBER OF THESE FIELDS CHANGE,
-                  ! CRCHECK WON'T WORK. SEE HOW VARIABLES HBUFF/TBUFF ARE USED.
-                  ! WE ALSO ASSUME THAT THE INTEGERS ARE ALWAYS 32BIT...
-
-#ifndef STF
-                  write(91-ia2,iostat=ierro)                            &
-#else
-                  write(90,iostat=ierro)                                &
-#endif
-     &               numx,partID(ia),dam_tmp,                           &
-     &               xv_tmp(1,1),yv_tmp(1,1),                           &
-     &               xv_tmp(2,1),yv_tmp(2,1),                           &
-     &               sigmv_tmp(1),dpsv_tmp(1),e0_tmp
-#ifndef STF
-                  flush(91-ia2)
-#else
-                  flush(90)
-#endif
+    end if
+  end do !END "do 10 ia=1,napx-1"
 #ifdef CR
-                  binrecs(ia2)=binrecs(ia2)+1
-#endif
-
-               else !Write both particles partID(ia) and partID(ia)+1
-                    ! Note that dam(ia) (distance in angular phase space)
-                    ! is written twice.
-                  dam_tmp      = real(dam(ia),   real64)
-
-                  xv_tmp(1,1)  = real(xv1(ia),  real64)
-                  yv_tmp(1,1)  = real(yv1(ia),  real64)
-                  xv_tmp(2,1)  = real(xv2(ia),  real64)
-                  yv_tmp(2,1)  = real(yv2(ia),  real64)
-                  sigmv_tmp(1) = real(sigmv(ia), real64)
-                  dpsv_tmp(1)  = real(dpsv(ia),  real64)
-
-                  xv_tmp(1,2)  = real(xv1(ie),  real64)
-                  yv_tmp(1,2)  = real(yv1(ie),  real64)
-                  xv_tmp(2,2)  = real(xv2(ie),  real64)
-                  yv_tmp(2,2)  = real(yv2(ie),  real64)
-                  sigmv_tmp(2) = real(sigmv(ie), real64)
-                  dpsv_tmp(2)  = real(dpsv(ie),  real64)
-
-                  e0_tmp       = real(e0,        real64)
-
-                  ! DANGER: IF THE LENGTH OR NUMBER OF THESE FIELDS CHANGE,
-                  ! CRCHECK WON'T WORK. SEE HOW VARIABLES HBUFF/TBUFF ARE USED.
-                  ! WE ALSO ASSUME THAT THE INTEGERS ARE ALWAYS 32BIT...
-#ifndef STF
-                  write(91-ia2,iostat=ierro)                            &
-#else
-                  write(90,iostat=ierro)                                &
-#endif
-     &               numx,partID(ia),dam_tmp,                           &
-     &               xv_tmp(1,1),yv_tmp(1,1),                           &
-     &               xv_tmp(2,1),yv_tmp(2,1),                           &
-     &               sigmv_tmp(1),dpsv_tmp(1),e0_tmp,                   &
-     &               partID(ia)+1,dam_tmp,                              &
-     &               xv_tmp(1,2),yv_tmp(1,2),                           &
-     &               xv_tmp(2,2),yv_tmp(2,2),                           &
-     &               sigmv_tmp(2),dpsv_tmp(2),e0_tmp
-#ifndef STF
-                  flush(91-ia2)
-#else
-                  flush(90)
-#endif
-
-#ifdef CR
-                  binrecs(ia2)=binrecs(ia2)+1
-#endif
-               endif
-               if(ierro.ne.0) then
-                  write(lout,"(2(a,i0))") "WRITEBIN> ERROR Problem writing to file #: ",91-ia2,", error code: ",ierro
-#ifdef CR
-                  flush(lout)
-#else
-                  flush(12)
-#endif
-                  nthinerr=3000
-                  return
-               endif
-            endif
-         end do !END "do 10 ia=1,napx-1"
-#ifdef CR
-      if (lhc.ne.9) then
-         binrec=binrec+1
-      endif
+  if (lhc.ne.9) then
+    binrec=binrec+1
+  end if
 #endif
 
 end subroutine writebin
