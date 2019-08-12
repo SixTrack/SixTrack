@@ -212,6 +212,7 @@ subroutine shuffleLostParticles
     partID(j:tnapx)    = cshift(partID(j:tnapx),    1)
     parentID(j:tnapx)  = cshift(parentID(j:tnapx),  1)
     pairID(j:tnapx)    = cshift(pairID(j:tnapx),    1)
+    pstop(j:tnapx)     = cshift(pstop(j:tnapx),     1)
     tmp_lostP(j:tnapx) = cshift(tmp_lostP(j:tnapx), 1)
 
     ! Main Particle Arrays
