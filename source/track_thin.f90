@@ -2145,22 +2145,19 @@ end subroutine trackReport
 !  3 February 1999
 !-----------------------------------------------------------------------
 subroutine dist1
-  use floatPrecision
-  use mathlib_bouncer
-  use numerical_constants
-  use parpro
+
   use mod_common
   use mod_common_main
-  use mod_commons
-  use mod_common_track
-  use mod_common_da
+  use floatPrecision
+  use numerical_constants
+
   implicit none
+
   integer ia,ib2,ib3,ie
   real(kind=fPrec) dam1
-  save
-!-----------------------------------------------------------------------
-  do 20 ia=1,napx,2
-    if(.not.pstop(partID(ia)).and..not.pstop(partID(ia)+1).and.(mod(partID(ia),2).ne.0)) then
+
+  do ia=1,napx,2
+    if(.not.pstop(partID(ia)).and..not.pstop(partID(ia)+1)) then
       ie=ia+1
       dam(ia)=zero
       dam(ie)=zero
@@ -2191,9 +2188,9 @@ subroutine dist1
       call distance(xau,cloau,di0au,tau,dam1)
       dam(ia)=dam1
       dam(ie)=dam1
-    endif
-20 continue
-  return
+    end if
+  end do
+
 end subroutine dist1
 
 !-----------------------------------------------------------------------
