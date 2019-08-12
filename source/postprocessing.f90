@@ -3427,8 +3427,10 @@ subroutine writebin(nthinerr)
 
   implicit none
 
-  integer ia,ia2,ie,nthinerr
-  real(kind=real64) dam_tmp, xv_tmp(2,2),yv_tmp(2,2),sigmv_tmp(2),dpsv_tmp(2),e0_tmp
+  integer, intent(inout) :: nthinerr
+
+  integer ia,ia2,ie,fUnit
+  real(kind=real64) dam_tmp,xv_tmp(2,2),yv_tmp(2,2),sigmv_tmp(2),dpsv_tmp(2),e0_tmp
 
 #ifdef CR
   if(cr_restart) then
@@ -3444,17 +3446,26 @@ subroutine writebin(nthinerr)
     !     In the case of no lost particles, all partID(i)=i for 1..npart
     ! FIXME: This logic assumes partID(ia)+1 exists, which it may very well not!
     !        This only works if the largest particle ID is in the last position.
-    if(.not.pstop(partID(ia)).and..not.pstop(partID(ia)+1).and.(mod(partID(ia),2).ne.0)) then !Skip odd particle IDs
+    if(.not.pstop(partID(ia)).and..not.pstop(partID(ia)+1).and.(mod(partID(ia),2) /= 0)) then !Skip odd particle IDs
 
       ia2=(partID(ia)+1)/2 !File ID for non-STF & binrecs
       ie=ia+1              !ia = Particle ID 1, ie = Particle ID 2
+#ifdef STF
+      fUnit = 90
+#else
+      fUnit = 91-ia2
+      if(ia2 > 32) then
+        write(lerr,"(a)") "WRITEBIN> ERROR Trying to write more than 32 pairs to track files. This is a bug!"
+        call prror
+      end if
+#endif
 
-      if(ntwin.ne.2) then !Write particle partID(ia) only
+      if(ntwin /= 2) then !Write particle partID(ia) only
         dam_tmp      = real(dam(ia),   real64)
-        xv_tmp(1,1)  = real(xv1(ia),  real64)
-        yv_tmp(1,1)  = real(yv1(ia),  real64)
-        xv_tmp(2,1)  = real(xv2(ia),  real64)
-        yv_tmp(2,1)  = real(yv2(ia),  real64)
+        xv_tmp(1,1)  = real(xv1(ia),   real64)
+        yv_tmp(1,1)  = real(yv1(ia),   real64)
+        xv_tmp(2,1)  = real(xv2(ia),   real64)
+        yv_tmp(2,1)  = real(yv2(ia),   real64)
         sigmv_tmp(1) = real(sigmv(ia), real64)
         dpsv_tmp(1)  = real(dpsv(ia),  real64)
         e0_tmp       = real(e0,        real64)
@@ -3463,39 +3474,29 @@ subroutine writebin(nthinerr)
         ! CRCHECK WON'T WORK. SEE HOW VARIABLES HBUFF/TBUFF ARE USED.
         ! WE ALSO ASSUME THAT THE INTEGERS ARE ALWAYS 32BIT...
 
-#ifndef STF
-        write(91-ia2,iostat=ierro)                            &
-#else
-        write(90,iostat=ierro)                                &
-#endif
-          numx,partID(ia),dam_tmp,                           &
-          xv_tmp(1,1),yv_tmp(1,1),                           &
-          xv_tmp(2,1),yv_tmp(2,1),                           &
+        write(fUnit,iostat=ierro) numx,partID(ia),dam_tmp, &
+          xv_tmp(1,1),yv_tmp(1,1),xv_tmp(2,1),yv_tmp(2,1), &
           sigmv_tmp(1),dpsv_tmp(1),e0_tmp
-#ifndef STF
-        flush(91-ia2)
-#else
-        flush(90)
-#endif
+        flush(fUnit)
 #ifdef CR
-        binrecs(ia2)=binrecs(ia2)+1
+        binrecs(ia2) = binrecs(ia2)+1
 #endif
 
       else !Write both particles partID(ia) and partID(ia)+1
         ! Note that dam(ia) (distance in angular phase space) is written twice.
         dam_tmp      = real(dam(ia),   real64)
 
-        xv_tmp(1,1)  = real(xv1(ia),  real64)
-        yv_tmp(1,1)  = real(yv1(ia),  real64)
-        xv_tmp(2,1)  = real(xv2(ia),  real64)
-        yv_tmp(2,1)  = real(yv2(ia),  real64)
+        xv_tmp(1,1)  = real(xv1(ia),   real64)
+        yv_tmp(1,1)  = real(yv1(ia),   real64)
+        xv_tmp(2,1)  = real(xv2(ia),   real64)
+        yv_tmp(2,1)  = real(yv2(ia),   real64)
         sigmv_tmp(1) = real(sigmv(ia), real64)
         dpsv_tmp(1)  = real(dpsv(ia),  real64)
 
-        xv_tmp(1,2)  = real(xv1(ie),  real64)
-        yv_tmp(1,2)  = real(yv1(ie),  real64)
-        xv_tmp(2,2)  = real(xv2(ie),  real64)
-        yv_tmp(2,2)  = real(yv2(ie),  real64)
+        xv_tmp(1,2)  = real(xv1(ie),   real64)
+        yv_tmp(1,2)  = real(yv1(ie),   real64)
+        xv_tmp(2,2)  = real(xv2(ie),   real64)
+        yv_tmp(2,2)  = real(yv2(ie),   real64)
         sigmv_tmp(2) = real(sigmv(ie), real64)
         dpsv_tmp(2)  = real(dpsv(ie),  real64)
 
@@ -3504,41 +3505,29 @@ subroutine writebin(nthinerr)
         ! DANGER: IF THE LENGTH OR NUMBER OF THESE FIELDS CHANGE,
         ! CRCHECK WON'T WORK. SEE HOW VARIABLES HBUFF/TBUFF ARE USED.
         ! WE ALSO ASSUME THAT THE INTEGERS ARE ALWAYS 32BIT...
-#ifndef STF
-        write(91-ia2,iostat=ierro)                            &
-#else
-        write(90,iostat=ierro)                                &
-#endif
-          numx,partID(ia),dam_tmp,                           &
-          xv_tmp(1,1),yv_tmp(1,1),                           &
-          xv_tmp(2,1),yv_tmp(2,1),                           &
-          sigmv_tmp(1),dpsv_tmp(1),e0_tmp,                   &
-          partID(ia)+1,dam_tmp,                              &
-          xv_tmp(1,2),yv_tmp(1,2),                           &
-          xv_tmp(2,2),yv_tmp(2,2),                           &
-          sigmv_tmp(2),dpsv_tmp(2),e0_tmp
-#ifndef STF
-        flush(91-ia2)
-#else
-        flush(90)
-#endif
+        write(fUnit,iostat=ierro) numx,                            &
+          partID(ia),dam_tmp,xv_tmp(1,1),yv_tmp(1,1),              &
+          xv_tmp(2,1),yv_tmp(2,1),sigmv_tmp(1),dpsv_tmp(1),e0_tmp, &
+          partID(ia)+1,dam_tmp,xv_tmp(1,2),yv_tmp(1,2),            &
+          xv_tmp(2,2),yv_tmp(2,2),sigmv_tmp(2),dpsv_tmp(2),e0_tmp
+        flush(fUnit)
 
 #ifdef CR
-        binrecs(ia2)=binrecs(ia2)+1
+        binrecs(ia2) = binrecs(ia2)+1
 #endif
       end if
-      if(ierro.ne.0) then
-        write(lout,"(2(a,i0))") "WRITEBIN> ERROR Problem writing to file #: ",91-ia2,", error code: ",ierro
+      if(ierro /= 0) then
+        write(lout,"(2(a,i0))") "WRITEBIN> ERROR Problem writing to file unit ",fUnit,", error code ",ierro
         flush(lout)
         flush(12)
-        nthinerr=3000
+        nthinerr = 3000
         return
       end if
     end if
   end do !END "do 10 ia=1,napx-1"
 #ifdef CR
-  if (lhc.ne.9) then
-    binrec=binrec+1
+  if(lhc /= 9) then
+    binrec = binrec+1
   end if
 #endif
 
