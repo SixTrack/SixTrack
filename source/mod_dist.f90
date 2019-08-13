@@ -1327,14 +1327,13 @@ subroutine dist_readDist
   if(inLine(1:1) == "#") goto 10
   if(inLine(1:1) == "!") goto 10
 
-  dist_numPart = dist_numPart + 1
   nRead = nRead + 1
-
-  if(dist_numPart > napx) then
+  if(nRead > napx) then
     write(lout,"(a,i0,a)") "DIST> Stopping reading file as ",napx," particles have been read, as requested in '"//trim(fort3)//"'"
     goto 40
   end if
 
+  dist_numPart = dist_numPart + 1
   call chr_split(inLine, lnSplit, nSplit, spErr)
   if(spErr) goto 30
   if(nSplit == 0) goto 10
