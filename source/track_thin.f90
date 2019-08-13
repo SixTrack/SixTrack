@@ -2157,7 +2157,7 @@ subroutine dist1
   integer ia,ib2,ib3,ie,ip
   real(kind=fPrec) dam1
 
-  do ip=1,(napx+1)/2
+  do ip=1,(napxo+1)/2
     ia = pairMap(1,ip)
     ie = pairMap(2,ip)
     if(ia == 0 .or. ie == 0) then
