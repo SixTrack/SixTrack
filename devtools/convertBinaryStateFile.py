@@ -75,7 +75,7 @@ else:
 
 
 for i in range(npart):
-  partID,parentID,pairIDa,pairIDb,iLost,iPrim = unpack("<iiiiii", inData.read(24))
+  partID,parentID,pairIDa,pairIDb,iLost,iPrim,nTurn,dum1 = unpack("<iiiiiiii", inData.read(32))
   outData.write("%8d %8d %8d.%1d" % (partID,parentID,pairIDa,pairIDb))
   if iLost == 1:
     outData.write("    T")
@@ -85,6 +85,7 @@ for i in range(npart):
     outData.write("    T")
   else:
     outData.write("    F")
+  outData.write(" %8d" % nTurn)
   tmp[:8] = unpack("<dddddddd", inData.read(64))
   outData.write(" %s" % (" ".join(f"{n:23.16e}" for n in tmp[:8])))
   if iions == 1:

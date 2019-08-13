@@ -1111,9 +1111,7 @@ subroutine aperture_reportLoss(turn, i, ix)
 #else
       if(((partID(j).le.aperture_napxStart) .and. do_coll) .or. .not.do_coll) then
 #endif
-        pstop(j) = .true.
-        ! Record for postpr
-        if(.not.limifound.or.kape(ix).eq.0) then
+        if(.not.limifound .or. kape(ix) == 0) then
           aperv(partID(j),1) = aper(1)
           aperv(partID(j),2) = aper(2)
         else
@@ -1127,8 +1125,11 @@ subroutine aperture_reportLoss(turn, i, ix)
         dpsv(j)  = dpsvlos
         ejv(j)   = ejvlos
         sigmv(j) = sigmvlos
-        numxv(partID(j))   = numx
-        nnumxv(partID(j))  = numx
+        numxv(j) = numx
+
+        ! Record for postpr
+        pstop(j) = .true.
+        nnumxv(partID(j)) = numx ! For PostPR: Must be indexed by partID
 #ifdef FLUKA
       end if ! partID(j).le.aperture_napxStart
 #else

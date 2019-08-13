@@ -1966,7 +1966,7 @@ subroutine dist_finaliseDist
     tmpID(:) = 0
     do j=1,napx
       if(partID(j) < 1 .or. partID(j) > napx) then
-        write(lerr,"(a,i0,a)") "DIST> ERROR Particle ID must be a value between 1 and ",napx," (napx)"
+        write(lerr,"(a,i0,a)") "DIST> ERROR Particle ID must be a value in the range 1 to ",napx," (napx)"
         call prror
       end if
       if(tmpID(partID(j)) == 0) then
