@@ -1112,11 +1112,11 @@ subroutine aperture_reportLoss(turn, i, ix)
       if(((partID(j).le.aperture_napxStart) .and. do_coll) .or. .not.do_coll) then
 #endif
         if(.not.limifound .or. kape(ix) == 0) then
-          aperv(partID(j),1) = aper(1)
-          aperv(partID(j),2) = aper(2)
+          aperv(1,j) = aper(1)
+          aperv(2,j) = aper(2)
         else
-          aperv(partID(j),1) = min(ape(1,ix),ape(3,ix))
-          aperv(partID(j),2) = min(ape(2,ix),ape(4,ix))
+          aperv(1,j) = min(ape(1,ix),ape(3,ix))
+          aperv(2,j) = min(ape(2,ix),ape(4,ix))
         end if
         xv1(j)   = xlos(1)
         xv2(j)   = xlos(2)

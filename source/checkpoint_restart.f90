@@ -185,30 +185,30 @@ subroutine cr_expand_arrays(npart_new)
   integer :: npair_new
   npair_new = npart_new/2 + 1
 
-  call alloc(crxv1,        npart_new,    zero,    "crxv1")
-  call alloc(crxv2,        npart_new,    zero,    "crxv2")
-  call alloc(cryv1,        npart_new,    zero,    "cryv1")
-  call alloc(cryv2,        npart_new,    zero,    "cryv2")
-  call alloc(crsigmv,      npart_new,    zero,    "crsigmv")
-  call alloc(crdpsv,       npart_new,    zero,    "crdpsv")
-  call alloc(crdpsv1,      npart_new,    zero,    "crdpsv1")
-  call alloc(crejv,        npart_new,    zero,    "crejv")
-  call alloc(crejfv,       npart_new,    zero,    "crejfv")
-  call alloc(crnucm,       npart_new,    nucm0,   "crnucm")
-  call alloc(crmtc,        npart_new,    one,     "crmtc")
-  call alloc(crnaa,        npart_new,    aa0,     "crnaa")
-  call alloc(crnzz,        npart_new,    zz0,     "crnzz")
-  call alloc(crnqq,        npart_new,    qq0,     "crnqq")
-  call alloc(crpdgid,      npart_new,    pdgid0,  "crpdgid")
-  call alloc(craperv,      npart_new, 2, zero,    "craperv")
-  call alloc(binrecs,      npair_new,    0,       "binrecs")
-  call alloc(crbinrecs,    npair_new,    0,       "crbinrecs")
-  call alloc(crnumxv,      npart_new,    0,       "crnumxv")
-  call alloc(crpartID,     npart_new,    0,       "crpartID")
-  call alloc(crparentID,   npart_new,    0,       "crparentID")
-  call alloc(crpairID,  2, npart_new,    0,       "crpairID")
-  call alloc(crpstop,      npart_new,    .false., "crpstop")
-  call alloc(crllostp,     npart_new,    .false., "crllostp")
+  call alloc(crxv1,        npart_new, zero,    "crxv1")
+  call alloc(crxv2,        npart_new, zero,    "crxv2")
+  call alloc(cryv1,        npart_new, zero,    "cryv1")
+  call alloc(cryv2,        npart_new, zero,    "cryv2")
+  call alloc(crsigmv,      npart_new, zero,    "crsigmv")
+  call alloc(crdpsv,       npart_new, zero,    "crdpsv")
+  call alloc(crdpsv1,      npart_new, zero,    "crdpsv1")
+  call alloc(crejv,        npart_new, zero,    "crejv")
+  call alloc(crejfv,       npart_new, zero,    "crejfv")
+  call alloc(crnucm,       npart_new, nucm0,   "crnucm")
+  call alloc(crmtc,        npart_new, one,     "crmtc")
+  call alloc(crnaa,        npart_new, aa0,     "crnaa")
+  call alloc(crnzz,        npart_new, zz0,     "crnzz")
+  call alloc(crnqq,        npart_new, qq0,     "crnqq")
+  call alloc(crpdgid,      npart_new, pdgid0,  "crpdgid")
+  call alloc(craperv,   2, npart_new, zero,    "craperv")
+  call alloc(binrecs,      npair_new, 0,       "binrecs")
+  call alloc(crbinrecs,    npair_new, 0,       "crbinrecs")
+  call alloc(crnumxv,      npart_new, 0,       "crnumxv")
+  call alloc(crpartID,     npart_new, 0,       "crpartID")
+  call alloc(crparentID,   npart_new, 0,       "crparentID")
+  call alloc(crpairID,  2, npart_new, 0,       "crpairID")
+  call alloc(crpstop,      npart_new, .false., "crpstop")
+  call alloc(crllostp,     npart_new, .false., "crllostp")
 
   crnpart_old = npart_new
 
@@ -417,8 +417,7 @@ subroutine crcheck
       (crnzz(j),     j=1,crnapxo),       &
       (crnqq(j),     j=1,crnapxo),       &
       (crpdgid(j),   j=1,crnapxo),       &
-      (craperv(j,1), j=1,crnapxo),       &
-      (craperv(j,2), j=1,crnapxo),       &
+      (craperv(:,j), j=1,crnapxo),       &
       (crllostp(j),  j=1,crnapxo)
     if(ioStat /= 0) cycle
 
@@ -660,8 +659,7 @@ subroutine crpoint
       (nzz(j),     j=1,napxo),       &
       (nqq(j),     j=1,napxo),       &
       (pdgid(j),   j=1,napxo),       &
-      (aperv(j,1), j=1,napxo),       &
-      (aperv(j,2), j=1,napxo),       &
+      (aperv(:,j), j=1,napxo),       &
       (llostp(j),  j=1,napxo)
     flush(cr_pntUnit(nPoint))
 
@@ -835,7 +833,7 @@ subroutine crstart
   call updatePairMap
 
   ! Aperture data
-  aperv(1:napxo,1:2) = craperv(1:napxo,1:2)
+  aperv(1:2,1:napxo) = craperv(1:2,1:napxo)
 
   ! Module data
   call meta_crstart

@@ -255,6 +255,7 @@ subroutine shuffleLostParticles
     nzzLast(j:tnapx)   = cshift(nzzLast(j:tnapx),   1)
     nqqLast(j:tnapx)   = cshift(nqqLast(j:tnapx),   1)
     pdgidLast(j:tnapx) = cshift(pdgidLast(j:tnapx), 1)
+    aperv(:,j:tnapx)   = cshift(aperv(:,j:tnapx),   1, 2)
 
     tnapx = tnapx - 1
   end do

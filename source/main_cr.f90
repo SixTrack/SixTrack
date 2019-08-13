@@ -1359,8 +1359,8 @@ program maincr
     napxto = napxto+numxv(ia)+numxv(ie)
 
     if(pstop(ia).and.pstop(ie)) then !-- BOTH PARTICLES LOST
-      write(lout,10000) partID(ia),izu0,dpsv(ia),numxv(ia),abs(xv1(ia)),aperv(partID(ia),1),abs(xv2(ia)),aperv(partID(ia),2)
-      write(lout,10000) partID(ie),izu0,dpsv(ia),numxv(ie),abs(xv1(ie)),aperv(partID(ie),1),abs(xv2(ie)),aperv(partID(ie),2)
+      write(lout,10000) partID(ia),izu0,dpsv(ia),numxv(ia),abs(xv1(ia)),aperv(1,ia),abs(xv2(ia)),aperv(2,ia)
+      write(lout,10000) partID(ie),izu0,dpsv(ia),numxv(ie),abs(xv1(ie)),aperv(1,ie),abs(xv2(ie)),aperv(2,ie)
     end if
 
     if(.not.pstop(ia).and.pstop(ie)) then !-- SECOND PARTICLE LOST
@@ -1369,11 +1369,11 @@ program maincr
       else if(st_quiet == 1) then
         write(lout,10241) partID(ia),izu0,dpsv(ia),numxv(ia)
       end if
-      write(lout,10000) partID(ie),izu0,dpsv(ia),numxv(ie),abs(xv1(ie)),aperv(partID(ie),1),abs(xv2(ie)),aperv(partID(ie),2)
+      write(lout,10000) partID(ie),izu0,dpsv(ia),numxv(ie),abs(xv1(ie)),aperv(1,ie),abs(xv2(ie)),aperv(2,ie)
     end if
 
     if(pstop(ia).and..not.pstop(ie)) then !-- FIRST PARTICLE LOST
-      write(lout,10000) partID(ia),izu0,dpsv(ia),numxv(ia),abs(xv1(ia)),aperv(partID(ia),1),abs(xv2(ia)),aperv(partID(ia),2)
+      write(lout,10000) partID(ia),izu0,dpsv(ia),numxv(ia),abs(xv1(ia)),aperv(1,ia),abs(xv2(ia)),aperv(2,ia)
       if(st_quiet == 0) then
         write(lout,10240) partID(ie),izu0,dpsv(ia),numxv(ie)
       else if(st_quiet == 1) then
