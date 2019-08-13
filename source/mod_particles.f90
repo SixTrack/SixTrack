@@ -301,7 +301,7 @@ subroutine part_writeState(fileName, isText, withIons)
     end if
     do j=1,npart
       roundBuf = " "
-      isPrim = partID(j) <= napxo
+      isPrim = partID(j) == parentID(j)
       call chr_fromReal(xv1(j),  roundBuf(  2:25 ),17,3,rErr)
       call chr_fromReal(xv2(j),  roundBuf( 27:50 ),17,3,rErr)
       call chr_fromReal(yv1(j),  roundBuf( 52:75 ),17,3,rErr)
@@ -343,7 +343,7 @@ subroutine part_writeState(fileName, isText, withIons)
     write(fileUnit) tas(6,1:6)                                          ! 6x64bit
     do j=1,npart
       ! These have to be set explicitly as ifort converts logical to integer differently than gfortran and nagfor
-      if(partID(j) <= napxo) then
+      if(partID(j) == parentID(j)) then
         iPrim = 1
       else
         iPrim = 0
