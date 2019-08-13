@@ -917,7 +917,7 @@ module mod_common_main
   integer,          allocatable, save :: parentID(:)   ! Particle parent ID in case of secondary particles
   integer,          allocatable, save :: pairID(:,:)   ! The original particle pair ID for a particle
   integer,          allocatable, save :: pairMap(:,:)  ! A reverse map for pairID to index
-  logical,          allocatable, save :: pstop(:)      ! Particle lost flag
+  logical,          allocatable, save :: pstop(:)      ! Particle lost flag (post-processing)
   logical,          allocatable, save :: llostp(:)     ! Particle lost flag
   real(kind=fPrec), allocatable, save :: aperv(:,:)    ! Aperture at loss
   integer,          allocatable, save :: iv(:)         ! Entry in the sequence where loss occured
