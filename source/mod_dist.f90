@@ -1078,13 +1078,8 @@ subroutine dist_setMultiColFormat(fmtName, isValid)
     ! This is added for the block to be compatible with the old, fixed column DIST file format.
     ! The scaling is hardcoded, and the file format has a few columns that are not used.
     ! Specifically the weight (column 3), and the z and pz coordinates (columns 6 and 9).
-    ! Column 1 and 2 in the original format is actually partID and parentID, but the old code
-    ! ignored these columns, so we will do the same here. Since the partID is used for indexing
-    ! in some parts of the code (aperture & postpr), setting it to 0 or an arbitrary value will
-    ! cause indexing problems. A check in DIST prevents this from being accepted, but that would
-    ! also rejct old files were these columns are 0, breaking backwards compatibility.
-    call dist_appendFormat(dist_fmtNONE,     one,  0)
-    call dist_appendFormat(dist_fmtNONE,     one,  0)
+    call dist_appendFormat(dist_fmtPartID,   one,  0)
+    call dist_appendFormat(dist_fmtParentID, one,  0)
     call dist_appendFormat(dist_fmtNONE,     one,  0)
     call dist_appendFormat(dist_fmtX,        c1e3, 1)
     call dist_appendFormat(dist_fmtY,        c1e3, 3)
@@ -1940,7 +1935,7 @@ subroutine dist_finaliseDist
   use numerical_constants
 
   real(kind=fPrec) chkP, chkE
-  integer j, tmpID(napx)
+  integer j
 
   ! Finish the ION bits
   if(dist_numPart /= napx) then
@@ -1960,31 +1955,13 @@ subroutine dist_finaliseDist
   end if
 
   if(dist_readPartID) then
-    ! If we have read particle IDs from file, they must be a number between 1 and napx.
-    ! This is due to the partID sometimes being used as an index.
-    ! In addition, each partID must be unique.
-    tmpID(:) = 0
-    do j=1,napx
-      if(partID(j) < 1 .or. partID(j) > napx) then
-        write(lerr,"(a,i0,a)") "DIST> ERROR Particle ID must be a value in the range 1 to ",napx," (napx)"
-        call prror
-      end if
-      if(tmpID(partID(j)) == 0) then
-        tmpID(partID(j)) = j
-      else
-        write(lerr,"(a,i0,a)") "DIST> ERROR Particle ID ",partID(j)," is not unique"
-        call prror
-      end if
-    end do
-
     if(dist_readParentID .eqv. .false.) then
       ! Particle parentID is not set, so we set its parentID to itself
       parentID(1:napx) = partID(1:napx)
     end if
-
     call part_setPairID ! Set the pairID only
   else
-    ! Now IDs provided, so we set them to the default range 1:napx and compute their corresponding pairID
+    ! No IDs provided, so we set them to the default range 1:napx and compute their corresponding pairID
     call part_setParticleID ! Set partID, parentID and pairID
   end if
 
