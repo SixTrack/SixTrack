@@ -40,7 +40,7 @@ end subroutine part_setParticleID
 !  V.K. Berglyd Olsen, BE-ABP-HSS
 !  Created: 2019-08-13
 !  Updated: 2019-08-13
-!      This routine is called if the partID and parentID is already set, and pairID needs to be
+!      This routine is called if the partID and parentID are already set, and pairID needs to be
 !  populated. Each particle has a pairID associated with it and whether it's the first or second
 !  particle of the pair.
 ! ================================================================================================ !

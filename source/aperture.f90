@@ -1129,7 +1129,6 @@ subroutine aperture_reportLoss(turn, i, ix)
 
         ! Record for postpr
         pstop(j) = .true.
-        nnumxv(partID(j)) = numx ! For PostPR: Must be indexed by partID
 #ifdef FLUKA
       end if ! partID(j).le.aperture_napxStart
 #else

@@ -910,7 +910,6 @@ module mod_common_main
   integer(kind=int16), allocatable, save :: nzz(:)     ! Ion atomic number
   integer(kind=int32), allocatable, save :: pdgid(:)   ! Particle PDGid
 
-  integer,          allocatable, save :: nnumxv(:)     ! Turn in which a particle was lost
   integer,          allocatable, save :: numxv(:)      ! Turn in which a particle was lost
 
   integer,          allocatable, save :: partID(:)     ! Particle ID
@@ -962,7 +961,6 @@ subroutine mod_commonmn_expand_arrays(nblz_new,npart_new)
     call alloc(rvv,        npart_new,    one,     "rvv")
     call alloc(ejf0v,      npart_new,    zero,    "ejf0v")
     call alloc(numxv,      npart_new,    0,       "numxv")
-    call alloc(nnumxv,     npart_new,    0,       "nnumxv")
     call alloc(partID,     npart_new,    0,       "partID")
     call alloc(parentID,   npart_new,    0,       "parentID")
     call alloc(pairID,  2, npart_new,    0,       "pairID")

@@ -78,7 +78,6 @@ module checkpoint_restart
   integer,          allocatable, public,  save :: binrecs(:)    ! ((npart+1)/2)
   integer,          allocatable, public,  save :: crbinrecs(:)  ! (npart+1)/2)
   integer,          allocatable, private, save :: crnumxv(:)    ! (npart)
-  integer,          allocatable, private, save :: crnnumxv(:)   ! (npart)
   integer,          allocatable, private, save :: crpartID(:)   ! (npart)
   integer,          allocatable, private, save :: crparentID(:) ! (npart)
   integer,          allocatable, private, save :: crpairID(:,:) ! (2,npart)
@@ -205,7 +204,6 @@ subroutine cr_expand_arrays(npart_new)
   call alloc(binrecs,      npair_new,    0,       "binrecs")
   call alloc(crbinrecs,    npair_new,    0,       "crbinrecs")
   call alloc(crnumxv,      npart_new,    0,       "crnumxv")
-  call alloc(crnnumxv,     npart_new,    0,       "crnnumxv")
   call alloc(crpartID,     npart_new,    0,       "crpartID")
   call alloc(crparentID,   npart_new,    0,       "crparentID")
   call alloc(crpairID,  2, npart_new,    0,       "crpairID")
@@ -400,7 +398,6 @@ subroutine crcheck
     read(cr_pntUnit(nPoint),iostat=ioStat) &
       (crbinrecs(j), j=1,(crnapxo+1)/2), &
       (crnumxv(j),   j=1,crnapxo),       &
-      (crnnumxv(j),  j=1,crnapxo),       &
       (crpartID(j),  j=1,crnapxo),       &
       (crparentID(j),j=1,crnapxo),       &
       (crpairID(:,j),j=1,crnapxo),       &
@@ -644,7 +641,6 @@ subroutine crpoint
     write(cr_pntUnit(nPoint),err=100) &
       (binrecs(j), j=1,(napxo+1)/2), &
       (numxv(j),   j=1,napxo),       &
-      (nnumxv(j),  j=1,napxo),       &
       (partID(j),  j=1,napxo),       &
       (parentID(j),j=1,napxo),       &
       (pairID(:,j),j=1,napxo),       &
@@ -820,11 +816,9 @@ subroutine crstart
   pdgid(1:napxo)    = crpdgid(1:napxo)
 
   numxv(1:napxo)    = crnumxv(1:napxo)
-  nnumxv(1:napxo)   = crnnumxv(1:napxo)
   do j=1,napxo
     if(pstop(j) .eqv. .false.) then
-      numxv(j)  = numl
-      nnumxv(j) = numl
+      numxv(j) = numl
     end if
   end do
 

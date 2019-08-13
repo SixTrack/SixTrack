@@ -31,11 +31,11 @@ subroutine postpr(arg1,arg2)
       use mod_version
       use mod_time
       use mod_units
-      use mod_common_main, only : nnumxv
+      use mod_common_main, only : numxv,partID
       use mod_common, only : dpscor,sigcor,icode,idam,its6d,dphix,dphiz,qx0,qz0,&
         dres,dfft,cma1,cma2,nstart,nstop,iskip,iconv,imad,ipos,iav,iwg,ivox,    &
         ivoz,ires,ifh,toptit,kwtype,itf,icr,idis,icow,istw,iffw,nprint,ndafi,   &
-        chromc,tlim,trtime,fort10,fort110,unit10,unit110
+        chromc,tlim,trtime,fort10,fort110,unit10,unit110,napxo
 #ifdef ROOT
       use root_output
 #endif
@@ -1876,25 +1876,27 @@ subroutine postpr(arg1,arg2)
 !--PRINTING
 !----------------------------------------------------------------------
       if(nstop.lt.ia.and.(ia.lt.numl.or.ia.lt.nint(dnumlr))) nlost=1
-      if(nnumxv(ifipa).eq.0.and.nnumxv(ilapa).eq.0) then
-        sumda(22)=real(ia,fPrec)                                         !hr06
-        sumda(23)=real(ia,fPrec)                                         !hr06
-      else
-        sumda(22)=real(nnumxv(ifipa),fPrec)                              !hr06
-        sumda(23)=real(nnumxv(ilapa),fPrec)                              !hr06
-      endif
-! #ifdef SIXDA
-!       sumda(22)=real(ia,fPrec)                                           !hr06
-!       sumda(23)=real(ia,fPrec)                                           !hr06
-! #endif
-#ifdef CR
-! TRY a FIX for nnuml
-! should be redumdant now
-!     if (nnuml.ne.numl) then
-!       if (nint(sumda(22)).eq.numl) sumda(22)=dble(nnuml)
-!       if (nint(sumda(23)).eq.numl) sumda(23)=dble(nnuml)
-!     endif
-#endif
+
+      block
+        ! Search for the particle ID read from track file in the partID array
+        ! This is necessary in order to look up the correct lost turn in the numxv array
+        integer partN, partA, partB
+        partA = 0
+        partB = 0
+        do partN=1,napxo
+          if(partID(partN) == ifipa) partA = partN
+          if(partID(partN) == ilapa) partB = partN
+          if(partA > 0 .and. partB > 0) exit
+        end do
+        if(numxv(partA) == 0 .and. numxv(partB) == 0) then
+          sumda(22) = real(ia,fPrec)
+          sumda(23) = real(ia,fPrec)
+        else
+          sumda(22) = real(numxv(partA),fPrec)
+          sumda(23) = real(numxv(partB),fPrec)
+        end if
+      end block
+
       sumda(2)=real(nlost,fPrec)
       sumda(9)=dp1-clop(3)
 

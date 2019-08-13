@@ -961,9 +961,8 @@ program maincr
 ! ---------------------------------------------------------------------------- !
 
   do i=1,npart
-    pstop(i)  = .false.
-    nnumxv(i) = numl
-    numxv(i)  = numl
+    pstop(i) = .false.
+    numxv(i) = numl
   end do
   rat0 = rat
 
@@ -1320,8 +1319,8 @@ program maincr
 
   ! If CR we have to worry about turns printed in fort.6
   ! If lost should be OK, otherwise we need to use nnuml instead
-  ! of the numl in numxv/nnumxv???? Eric.
-  ! where we reset [n]numxv to nnuml UNLESS particle lost
+  ! of the numl in numxv???? Eric.
+  ! where we reset numxv to nnuml UNLESS particle lost
   ! Now we shall try using that fix at start of tracking
   write(lout,"(a)") str_divLine
   write(lout,"(a)") ""
