@@ -293,11 +293,11 @@ subroutine part_writeState(fileName, isText, withIons)
 
     write(fileUnit,"(a)") "#"
     if(withIons) then
-      write(fileUnit,"(a1,a7,1x,a8,2(1x,a4),9(1x,a24),3(1x,a4),1x,a11)") &
-        "#","partID","parentID","lost","prim","x","y","xp","yp","sigma","dp","p","e","mass","A","Z","Q","PDGid"
+      write(fileUnit,"(a1,a7,1x,a8,1x,a10,2(1x,a4),9(1x,a24),3(1x,a4),1x,a11)") &
+        "#","partID","parentID","pairID","lost","prim","x","y","xp","yp","sigma","dp","p","e","mass","A","Z","Q","PDGid"
     else
-      write(fileUnit,"(a1,a7,1x,a8,2(1x,a4),8(1x,a24))") &
-        "#","partID","parentID","lost","prim","x","y","xp","yp","sigma","dp","p","e"
+      write(fileUnit,"(a1,a7,1x,a8,1x,a10,2(1x,a4),8(1x,a24))") &
+        "#","partID","parentID","pairID","lost","prim","x","y","xp","yp","sigma","dp","p","e"
     end if
     do j=1,npart
       roundBuf = " "
@@ -312,17 +312,17 @@ subroutine part_writeState(fileName, isText, withIons)
       call chr_fromReal(ejv(j),  roundBuf(177:200),17,3,rErr)
       if(withIons) then
         call chr_fromReal(nucm(j), roundBuf(202:225),17,3,rErr)
-        write(fileUnit, "(i8,1x,i8,2(1x,l4),a225,3(1x,i4),1x,i11)") &
-        partID(j),parentID(j),llostp(j),isPrim,roundBuf(1:225),naa(j),nzz(j),nqq(j),pdgid(j)
+        write(fileUnit, "(i8,1x,i8,1x,i8,a1,i1,2(1x,l4),a225,3(1x,i4),1x,i11)") &
+        partID(j),parentID(j),pairID(1,j),".",pairID(2,j),llostp(j),isPrim,roundBuf(1:225),naa(j),nzz(j),nqq(j),pdgid(j)
       else
-        write(fileUnit, "(i8,1x,i8,2(1x,l4),a200)") &
-          partID(j),parentID(j),llostp(j),isPrim,roundBuf(1:200)
+        write(fileUnit, "(i8,1x,i8,1x,i8,a1,i1,2(1x,l4),a200)") &
+          partID(j),parentID(j),pairID(1,j),".",pairID(2,j),llostp(j),isPrim,roundBuf(1:200)
       end if
     end do
   else
     ! Format
     ! Header: 440 bytes
-    ! Record:  80 bytes
+    ! Record:  88 bytes
     ! + Ions:  24 bytes
     call f_open(unit=fileUnit,file=fileName,formatted=.false.,mode="w",status="replace",access="stream")
     if(withIons) then
@@ -353,12 +353,13 @@ subroutine part_writeState(fileName, isText, withIons)
       else
         iLost = 0
       end if
-      write(fileUnit) partID(j),parentID(j),iLost,iPrim       ! 4x32 bit
-      write(fileUnit) xv1(j),xv2(j),yv1(j),yv2(j)             ! 4x64 bit
-      write(fileUnit) sigmv(j),dpsv(j),ejfv(j),ejv(j)         ! 4x64 bit
+      write(fileUnit) partID(j),parentID(j),pairID(1,j),pairID(2,j) ! 4x32 bit
+      write(fileUnit) iLost,iPrim                                   ! 2x32 bit
+      write(fileUnit) xv1(j),xv2(j),yv1(j),yv2(j)                   ! 4x64 bit
+      write(fileUnit) sigmv(j),dpsv(j),ejfv(j),ejv(j)               ! 4x64 bit
       if(withIons) then
-        write(fileUnit) nucm(j),naa(j),nzz(j),nqq(j),pdgid(j) ! 64 bit + 3x16 + 32 bit
-        write(fileUnit) 0_int16, 0_int32                      ! Pad to nearest 64 bit
+        write(fileUnit) nucm(j),naa(j),nzz(j),nqq(j),pdgid(j)       ! 64 bit + 3x16 + 32 bit
+        write(fileUnit) 0_int16, 0_int32                            ! Pad to nearest 64 bit
       end if
     end do
   end if
