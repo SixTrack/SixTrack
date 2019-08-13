@@ -21,18 +21,18 @@ void CollimationParticleGun::GeneratePrimaries(G4Event* anEvent)
 	ParticleGun->GeneratePrimaryVertex(anEvent);
 }
 
-void CollimationParticleGun::SetParticleDetails(double x, double y, double px, double py, double pz, double e, double p, int pdgid, int q, double mass)
+void CollimationParticleGun::SetParticleDetails(double x, double y, double px, double py, double pz, double e, double p, int pdgid, int q, double mass, double sx, double sy, double sz)
 {
 //UNITS MUST BE MeV, mm, rad!
 	if(do_debug)
-	std::cout << "PDG id: " << pdgid << std::endl;
+	std::cout << "GEANT4> PDG id: " << pdgid << std::endl;
 
 	if(pdgid < 1000000000)
 	{
 		particle = particleTable->FindParticle(pdgid);
 
 		if(do_debug)
-		std::cout << "name: " << particle->GetParticleName();// << std::endl;
+		std::cout << "GEANT4> name: " << particle->GetParticleName();// << std::endl;
 	}
 	else
 	{
@@ -62,7 +62,7 @@ void CollimationParticleGun::SetParticleDetails(double x, double y, double px, d
 			int Z3 = (tmpid%10);
 			int Z = Z1 + 10*Z2 + 100*Z3;
 
-			std::cout << "Ion: A: " << A << "\tZ: " << Z << "\tQ: " << q; // << std::endl;
+			std::cout << "GEANT4> Ion: A: " << A << "\tZ: " << Z << "\tQ: " << q; // << std::endl;
 		}
 
 		//Remove states other than the ground state otherwise we get a crash.
@@ -85,10 +85,11 @@ void CollimationParticleGun::SetParticleDetails(double x, double y, double px, d
 	if(mp != mass)
 	{
 		std::cout.precision(17);
-		std::cout << "Mass missmatch between Geant4 and SixTrack!" << std::endl;
-		std::cout << "PDG mass     : " << mp << std::endl;
-		std::cout << "SixTrack mass: " << mass << std::endl;
-		std::cout << "Please set the particle mass in SixTrack to the Geant4 (PDG) value!" << std::endl;
+		std::cout << "GEANT4> Mass missmatch between Geant4 and SixTrack!" << std::endl;
+		std::cout << "GEANT4> PDG mass (MeV)     : " << mp << std::endl;
+		std::cout << "GEANT4> SixTrack mass (MeV): " << mass << std::endl;
+		std::cout << "GEANT4> Please set the particle mass in SixTrack to the Geant4 (PDG) value!" << std::endl;
+		std::cout << "GEANT4> If the HION block is used, convert to GeV!" << std::endl;
 		exit(EXIT_FAILURE);
 	}
 
@@ -99,6 +100,8 @@ void CollimationParticleGun::SetParticleDetails(double x, double y, double px, d
 	ParticleGun->SetParticlePosition(G4ThreeVector(x, y, 0));
 	ParticleGun->SetParticleMomentumDirection(G4ThreeVector(px,py,pz));
 //	ParticleGun->SetParticleMomentum(G4ThreeVector(px,py,pz));
+
+	ParticleGun->SetParticlePolarization(G4ThreeVector(sx,sy,sz));
 
 	if(do_debug)
 	{

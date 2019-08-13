@@ -8,6 +8,10 @@
 #include "G4PVPlacement.hh"
 #include "CollimationMaterials.h"
 
+#ifdef USE_ROOT_FLAG
+#include "CollimationJawSD.h"
+#endif
+
 #include <string>
 #include <map>
 
@@ -15,7 +19,7 @@ class CollimationGeometry : public G4VUserDetectorConstruction
 {
 	public:
 
-	CollimationGeometry()
+	CollimationGeometry(bool edep) : G4VUserDetectorConstruction(), DoEnergyDeposition(edep)
 	{
 		Mmap = new CollimationMaterials();
 
@@ -37,13 +41,20 @@ class CollimationGeometry : public G4VUserDetectorConstruction
 		ThisCollimatorJawOffset = 0.0;
 		ThisCollimatorJawMaterial = Mmap->GetMaterial("Iner");
 		ThisCollimatorName = "dummy";
+#ifdef USE_ROOT_FLAG
+		LeftJaw_SD = nullptr;
+		RightJaw_SD = nullptr;
+#endif
 	};
 
+	~CollimationGeometry();
+
 	G4VPhysicalVolume* Construct();
+	void ConstructSDandField();
 	void SetCollimator(std::string);
 	void AddCollimator(std::string name, double length, double gap, double rotation, double offset, std::string Material);
 	void SetDebug(bool flag);
-
+	double GetCurrentCollimatorLength();
 
 	private:
 
@@ -72,6 +83,7 @@ class CollimationGeometry : public G4VUserDetectorConstruction
 
 	bool Assembled;
 	bool DoDebug;
+	bool DoEnergyDeposition;
 
 	G4Box* world_box;
 	G4Box* Jaw1;
@@ -91,6 +103,12 @@ class CollimationGeometry : public G4VUserDetectorConstruction
 	G4double ThisCollimatorJawOffset;
 	G4Material* ThisCollimatorJawMaterial;
 	std::string ThisCollimatorName;
+
+#ifdef USE_ROOT_FLAG
+	CollimationJawSD* LeftJaw_SD;
+	CollimationJawSD* RightJaw_SD;
+#endif
+
 };
 
 #endif
