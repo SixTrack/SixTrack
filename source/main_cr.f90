@@ -966,7 +966,6 @@ program maincr
   end do
   rat0 = rat
 
-  call part_setParticleID ! Must be set before reading DIST
   if(dist_enable) then
     ! DIST Block
     call dist_generateDist
@@ -974,6 +973,7 @@ program maincr
     ! Restart from fort.13
     call readFort13
     call part_updatePartEnergy(1,.false.)
+    call part_setParticleID
   else
     ! Generated from INIT Distribution Block
     do ia=1,napx,2
@@ -1045,6 +1045,7 @@ program maincr
       end if
     end do
     call part_applyClosedOrbit
+    call part_setParticleID
   end if
 
   do ia=1,napx,2

@@ -178,9 +178,9 @@ end subroutine expand_thickarrays
 ! ================================================================================================ !
 !  Shuffle Lost Particles
 !  A. Mereghetti, V.K. Berglyd Olsen, BE-ABP-HSS
-!  Last modified: 2018-12-04
+!  Last modified: 2019-08-12
 !  This routine is called to move all lost particles to the end of particle arrays (after napx)
-!  Routine has ben renamed from compactArrays.
+!  Routine has been renamed from compactArrays.
 ! ================================================================================================ !
 subroutine shuffleLostParticles
 
@@ -211,7 +211,7 @@ subroutine shuffleLostParticles
     ! Move lost particle to the back
     partID(j:tnapx)    = cshift(partID(j:tnapx),    1)
     parentID(j:tnapx)  = cshift(parentID(j:tnapx),  1)
-    pairID(j:tnapx)    = cshift(pairID(j:tnapx),    1)
+    pairID(:,j:tnapx)  = cshift(pairID(:,j:tnapx),  1, 2)
     pstop(j:tnapx)     = cshift(pstop(j:tnapx),     1)
     tmp_lostP(j:tnapx) = cshift(tmp_lostP(j:tnapx), 1)
 
@@ -310,6 +310,21 @@ subroutine shuffleLostParticles
 
 end subroutine shuffleLostParticles
 
+! ================================================================================================ !
+!  Build Particle Pair Map
+! ~~~~~~~~~~~~~~~~~~~~~~~~~
+!  V.K. Berglyd Olsen, BE-ABP-HSS
+!  Created: 2019-08-12
+!  Updated: 2019-08-12
+!
+!      This map allows for reverse lookup from a pairID to the index of its two particles in the
+!  main particle arrays. This is used for the distance calculation and for post-processing.
+!      It is assumed that the array of pairIDs is never modified after initialisation, only
+!  reshuffled when lost particles are moved to the end. The pairID must be preserved also for these.
+!      If, for some reason, each pair ID is not represented exactly twice in the array, the final
+!  map will contain zeros. Any routine using this map for lookup must therefore check for 0 values
+!  and trigger necessary error handling.
+! ================================================================================================ !
 subroutine updatePairMap
 
   use parpro, only : npart
@@ -319,12 +334,7 @@ subroutine updatePairMap
 
   pairMap(:,:) = 0
   do j=1,npart
-    m = mod(partID(j),2)
-    pairMap(pairID(j),2-m) = j
+    pairMap(pairID(2,j),pairID(1,j)) = j
   end do
-
-  ! do j=1,(npart+1)/2
-  !   write(*,*) "PAIR ",j," = ",pairMap(j,:)
-  ! end do
 
 end subroutine updatePairMap

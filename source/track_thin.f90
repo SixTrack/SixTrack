@@ -2146,6 +2146,7 @@ end subroutine trackReport
 !-----------------------------------------------------------------------
 subroutine dist1
 
+  use crcoall
   use mod_common
   use mod_common_main
   use floatPrecision
@@ -2157,8 +2158,13 @@ subroutine dist1
   real(kind=fPrec) dam1
 
   do ip=1,(napx+1)/2
-    ia = pairMap(ip,1)
-    ie = pairMap(ip,2)
+    ia = pairMap(1,ip)
+    ie = pairMap(2,ip)
+    if(ia == 0 .or. ie == 0) then
+      ! Check that the map does not contain a 0 index, which means something is wrong in the record keeping of lost particles
+      write(lerr,"(a,i0)") "WRITEBIN> ERROR The map of particle pairs is missing one or both particles for pair ",ip
+      call prror
+    end if
     if(.not.pstop(ia) .and. .not.pstop(ie)) then
       dam(ia)  = zero
       dam(ie)  = zero

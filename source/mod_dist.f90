@@ -1928,6 +1928,7 @@ subroutine dist_finaliseDist
   use parpro
   use mod_pdgid
   use mod_common
+  use mod_particles
   use mod_common_main
   use mod_common_track
   use numerical_constants
@@ -1952,8 +1953,13 @@ subroutine dist_finaliseDist
     call prror
   end if
 
-  if(dist_readPartID .and. .not. dist_readParentID) then
-    parentID(1:napx) = partID(1:napx)
+  if(dist_readPartID) then
+    if(dist_readParentID .eqv. .false.) then
+      parentID(1:napx) = partID(1:napx)
+    end if
+    call part_setPairID ! Sets partID only
+  else
+    call part_setParticleID ! Sets partID, parentID and pairID
   end if
 
   if(dist_readIonZ .and. .not. dist_readCharge) then

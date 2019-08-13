@@ -14,9 +14,14 @@ module mod_particles
 contains
 
 ! ================================================================================================ !
+!  Set Initial Particle IDs
+! ~~~~~~~~~~~~~~~~~~~~~~~~~~
 !  V.K. Berglyd Olsen, BE-ABP-HSS
-!  Last modified: 2019-01-11
-!  Set the initial particle IDs (called before tracking, formerly in trauthin/trauthck)
+!  Created: 2019-01-11
+!  Updated: 2019-08-13
+!      Sets the default particle ID to run from 1 to npart, and each particle being its own parent,
+!  that is, it is a primary particle. The pairID signifies its original paired particle. Each pair
+!  must consist of one particle with an even ID and one with an odd ID.
 ! ================================================================================================ !
 subroutine part_setParticleID
   use parpro
@@ -25,10 +30,30 @@ subroutine part_setParticleID
   do j=1,npart
     partID(j)   = j
     parentID(j) = j
-    pairID(j)   = (j+1)/2
+  end do
+  call part_setPairID
+end subroutine part_setParticleID
+
+! ================================================================================================ !
+!  Set Initial Pair IDs
+! ~~~~~~~~~~~~~~~~~~~~~~
+!  V.K. Berglyd Olsen, BE-ABP-HSS
+!  Created: 2019-08-13
+!  Updated: 2019-08-13
+!      This routine is called if the partID and parentID is already set, and pairID needs to be
+!  populated. Each particle has a pairID associated with it and whether it's the first or second
+!  particle of the pair.
+! ================================================================================================ !
+subroutine part_setPairID
+  use parpro
+  use mod_common_main
+  integer j
+  do j=1,npart
+    pairID(1,j) = (j+1)/2    ! The pairID of particle j
+    pairID(2,j) = 2-mod(j,2) ! Either particle 1 or 2 of the pair
   end do
   call updatePairMap
-end subroutine part_setParticleID
+end subroutine part_setPairID
 
 ! ================================================================================================ !
 !  V.K. Berglyd Olsen, BE-ABP-HSS
