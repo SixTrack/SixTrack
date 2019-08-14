@@ -227,7 +227,7 @@ subroutine aperture_init
       write(losses_unit,"(a)") chr_lpad('turn',9) // chr_lpad('block',9) // chr_lpad('bezid',9) // chr_rpad(' bez',49) //&
 &                              chr_lpad('slos',13) // &
 #ifdef FLUKA
-&        chr_lpad('fluka_uid',9) // chr_lpad('fluka_gen',9) // chr_lpad('fluka_weight',15) //  &
+&        chr_lpad('fluka_uid',10) // chr_lpad('fluka_gen',10) // chr_lpad('fluka_weight',15) //  &
 #else
 &        chr_lpad('partid',9) // &
 #endif
@@ -1066,7 +1066,7 @@ subroutine aperture_reportLoss(turn, i, ix)
 #endif
 
 #ifdef FLUKA
-        write(losses_unit,'(3(1X,I8),1X,A48,1X,F12.5,2(1X,I8),8(1X,1PE14.7),3(1X,I8),1X,I12)') &
+        write(losses_unit,'(3(1X,I8),1X,A48,1X,F12.5,2(1X,I9),8(1X,1PE14.7),3(1X,I8),1X,I12)') &
 #else
         write(losses_unit,'(3(1X,I8),1X,A48,1X,F12.5,1X,I8,7(1X,1PE14.7),3(1X,I8),1X,I12)')    &
 #endif
