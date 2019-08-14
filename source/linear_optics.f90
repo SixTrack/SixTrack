@@ -200,7 +200,7 @@ subroutine linopt(dpp)
     call f_requestUnit(linopt_dumpFile, linopt_dumpUnit)
     call f_open(unit=linopt_dumpUnit,file=linopt_dumpFile,formatted=.true.,mode="w",status="replace")
     write(linopt_dumpUnit,"(a1,1x,a15,1x,a,1x,a4,5(1x,a16))") "#","len_tot",chr_rPad("element",mNameLen),&
-      "kz","ekk","bexi","bezii","phi(1)","phi(2)"
+      "type","strength","beta(1)","beta(2)","phi(1)","phi(2)"
     write(lout,"(a)") repeat("-",132)
     write(lout,"(a)")                  ""
     write(lout,"(a)")                  "     PLANE |             DISP(MM) |           DISP(MRAD)"
