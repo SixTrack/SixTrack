@@ -428,7 +428,7 @@ subroutine dist_parseInputLine(inLine, iLine, iErr)
   case("READ")
     if(nSplit /= 2 .and. nSplit /= 3) then
       write(lerr,"(a,i0)") "DIST> ERROR READ takes 1 or 2 arguments, got ",nSplit-1
-      write(lerr,"(a)")    "DIST>       READ filename [LIBDIST]"
+      write(lerr,"(a)")    "DIST>       READ filename [use_distlib]"
       iErr = .true.
       return
     end if
@@ -1362,7 +1362,7 @@ subroutine dist_readDist
 
 40 continue
   call f_close(fUnit)
-  write(lout,"(a,i0,a)") "DIST> Read ",nRead," particles from file '"//trim(dist_distFile)//"'"
+  write(lout,"(a,i0,a)") "DIST> Read ",dist_numPart," particles from file '"//trim(dist_distFile)//"'"
 
 end subroutine dist_readDist
 
