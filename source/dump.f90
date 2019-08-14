@@ -90,7 +90,7 @@ subroutine dump_expand_arrays(nele_new, nblz_new)
 
 #ifdef HDF5
   call alloc(dump_hdf5DataSet,      nele_new,0,        "dump_hdf5DataSet",-1)
-  call alloc(dump_hdf5Format,       9,       0,        "dump_hdf5Format")
+  call alloc(dump_hdf5Format,       200,     0,        "dump_hdf5Format")
 #endif
 
 end subroutine dump_expand_arrays
@@ -598,6 +598,9 @@ subroutine dump_initialise
         ! Write the format-specific headers:
         if (dumpfmt(i) == 2) then ! FORMAT 2
           write(dumpunit(i),'(a,a)') '# particleID turn s[m] x[mm] xp[mrad] y[mm] yp[mrad] sigma[mm] (E-E0)/E0[1] ktrack'
+        else if (dumpfmt(i) == 200) then ! FORMAT 200
+          write(dumpunit(i),'(a,a)') '# particleID turn s[m] x[mm] xp[mrad] y[mm] yp[mrad] sigma[mm] (E-E0)/E0[1] ktrack '// &
+&                                    'Z A Q PDGid'
         else if (dumpfmt(i) == 4) then ! FORMAT 4
           write(dumpunit(i),'(a)') '# napx turn s[m] <x>[mm] <xp>[mrad] <y>[mm] <yp>[mrad] <sigma>[mm] <(E-E0)/E0>[1]'
         else if (dumpfmt(i) == 5) then ! FORMAT 5
@@ -946,31 +949,64 @@ subroutine dump_initialise
 
       case(101)
         ! Format 101:
-        ! # particleID turn s[m] x[mm] xp[mrad] y[mm] yp[mrad] z[mm] (E-E0)/E0[1] ktrack
-        if(dump_hdf5Format(3) == 0) then
+        if(dump_hdf5Format(101) == 0) then
           allocate(setFields(19))
-          setFields(1)  = h5_dataField(name="ID",         type=h5_typeInt)
-          setFields(2)  = h5_dataField(name="TURN",       type=h5_typeInt)
-          setFields(3)  = h5_dataField(name="S",          type=h5_typeReal)
-          setFields(4)  = h5_dataField(name="X",          type=h5_typeReal)
-          setFields(5)  = h5_dataField(name="XP",         type=h5_typeReal)
-          setFields(6)  = h5_dataField(name="Y",          type=h5_typeReal)
-          setFields(7)  = h5_dataField(name="YP",         type=h5_typeReal)
-          setFields(8)  = h5_dataField(name="dE/E",       type=h5_typeReal)
-          setFields(9)  = h5_dataField(name="SIGMA",      type=h5_typeReal)
-          setFields(10) = h5_dataField(name="KTRACK",     type=h5_typeInt)
-          setFields(11) = h5_dataField(name="E",          type=h5_typeReal)
-          setFields(12) = h5_dataField(name="PC",         type=h5_typeReal)
-          setFields(13) = h5_dataField(name="P/P0",       type=h5_typeReal)
-          setFields(14) = h5_dataField(name="P0/P)",      type=h5_typeReal)
-          setFields(15) = h5_dataField(name="BETA0/BETA", type=h5_typeReal)
-          setFields(16) = h5_dataField(name="MASS",       type=h5_typeReal)
-          setFields(17) = h5_dataField(name="M/M0/Q0/Q",  type=h5_typeReal)
-          setFields(18) = h5_dataField(name="ENERGY0",    type=h5_typeReal)
-          setFields(19) = h5_dataField(name="PC0",        type=h5_typeReal)
-          call h5_createFormat("dumpFormat3", setFields, dump_hdf5Format(3))
+          setFields(1)  = h5_dataField(name="ID",      type=h5_typeInt)
+          setFields(2)  = h5_dataField(name="TURN",    type=h5_typeInt)
+          setFields(3)  = h5_dataField(name="S",       type=h5_typeReal)
+          setFields(4)  = h5_dataField(name="X",       type=h5_typeReal)
+          setFields(5)  = h5_dataField(name="XP",      type=h5_typeReal)
+          setFields(6)  = h5_dataField(name="Y",       type=h5_typeReal)
+          setFields(7)  = h5_dataField(name="YP",      type=h5_typeReal)
+          setFields(8)  = h5_dataField(name="dE/E",    type=h5_typeReal)
+          setFields(9)  = h5_dataField(name="SIGMA",   type=h5_typeReal)
+          setFields(10) = h5_dataField(name="KTRACK",  type=h5_typeInt)
+          setFields(11) = h5_dataField(name="E",       type=h5_typeReal)
+          setFields(12) = h5_dataField(name="PC",      type=h5_typeReal)
+          setFields(13) = h5_dataField(name="P/P0",    type=h5_typeReal)
+          setFields(14) = h5_dataField(name="P0/P)",   type=h5_typeReal)
+          setFields(15) = h5_dataField(name="RV",      type=h5_typeReal)
+          setFields(16) = h5_dataField(name="MASS",    type=h5_typeReal)
+          setFields(17) = h5_dataField(name="MTC",     type=h5_typeReal)
+          setFields(18) = h5_dataField(name="ENERGY0", type=h5_typeReal)
+          setFields(19) = h5_dataField(name="PC0",     type=h5_typeReal)
+          call h5_createFormat("dumpFormat101", setFields, dump_hdf5Format(101))
         end if
-        call h5_createDataSet(dump_fname(i), h5_dumpID, dump_hdf5Format(3), dump_hdf5DataSet(i), napx)
+        call h5_createDataSet(dump_fname(i), h5_dumpID, dump_hdf5Format(101), dump_hdf5DataSet(i), napx)
+
+      case(200)
+        ! Format 200:
+        ! # particleID turn s[m] x[mm] xp[mrad] y[mm] yp[mrad] sigma[mm] (E-E0)/E0[1] ktrack Z A Q PDGid
+        if(dump_hdf5Format(200) == 0) then
+          allocate(setFields(14))
+          setFields(1)  = h5_dataField(name="ID",     type=h5_typeInt)
+          setFields(2)  = h5_dataField(name="TURN",   type=h5_typeInt)
+          setFields(3)  = h5_dataField(name="S",      type=h5_typeReal)
+          setFields(4)  = h5_dataField(name="X",      type=h5_typeReal)
+          setFields(5)  = h5_dataField(name="XP",     type=h5_typeReal)
+          setFields(6)  = h5_dataField(name="Y",      type=h5_typeReal)
+          setFields(7)  = h5_dataField(name="YP",     type=h5_typeReal)
+          setFields(8)  = h5_dataField(name="SIGMA",  type=h5_typeReal)
+          setFields(9)  = h5_dataField(name="dE/E",   type=h5_typeReal)
+          setFields(10) = h5_dataField(name="KTRACK", type=h5_typeInt)
+          setFields(11) = h5_dataField(name="Z",      type=h5_typeInt)
+          setFields(12) = h5_dataField(name="A",      type=h5_typeInt)
+          setFields(13) = h5_dataField(name="Q",      type=h5_typeInt)
+          setFields(14) = h5_dataField(name="PDGid",  type=h5_typeInt)
+          call h5_createFormat("dumpFormat200", setFields, dump_hdf5Format(200))
+        end if
+        call h5_createDataSet(dump_fname(i), h5_dumpID, dump_hdf5Format(200), dump_hdf5DataSet(i), napx)
+        block
+          character(len=:), allocatable :: colNames(:)
+          character(len=:), allocatable :: colUnits(:)
+          logical spErr
+          integer nSplit
+          call chr_split("ID turn s x xp y yp sigma (E-E0)/E0 ktrack Z A Q PDGid",colNames,nSplit,spErr)
+          call chr_split("1 1 m mm mrad mm mrad mm 1 1 1 1 1 1",colUnits,nSplit,spErr)
+          call h5_writeDataSetAttr(dump_hdf5DataSet(i),"dumpFormat",200)
+          call h5_writeDataSetAttr(dump_hdf5DataSet(i),"colNames",  colNames)
+          call h5_writeDataSetAttr(dump_hdf5DataSet(i),"colUnits",  colUnits)
+        end block
 
       end select
 
@@ -1778,10 +1814,10 @@ call h5_finaliseWrite(dump_hdf5DataSet(ix))
 #endif
     end if
 
-  ! ------------------------------------------------------------------ !
-  !  Format #101                                                       !
-  !  Same as fmt 3, but with additional variable                       !
-  ! ------------------------------------------------------------------ !
+  ! ------------------------------------------------------------------
+  !  Format #101
+  !  Same as fmt 3, but with additional variables
+  ! ------------------------------------------------------------------
   else if(fmt == 101) then
     if(i == 0 .and. ix == 0) then
       localDcum   = zero
@@ -1872,6 +1908,71 @@ call h5_finaliseWrite(dump_hdf5DataSet(ix))
 #ifdef CR
       dumpfilepos(dumpIdx) = dumpfilepos(dumpIdx)+napx
 #endif
+#endif
+
+  ! ------------------------------------------------------------------ !
+  !  Format #200
+  !  Same as fmt 2, but also include ion variables
+  ! ------------------------------------------------------------------ !
+  else if(fmt == 200) then
+    if(i == 0 .and. ix == 0) then
+      localDcum   = zero
+      localKtrack = 0
+    else
+      localDcum   = dcum(i)
+      localKtrack = ktrack(i)
+    end if
+#ifdef HDF5
+    if(h5_useForDUMP) then
+      call h5_prepareWrite(dump_hdf5DataSet(ix), napx)
+      call h5_writeData(dump_hdf5DataSet(ix), 1,  napx, partID)
+      call h5_writeData(dump_hdf5DataSet(ix), 2,  napx, nturn)
+      call h5_writeData(dump_hdf5DataSet(ix), 3,  napx, localDcum)
+      call h5_writeData(dump_hdf5DataSet(ix), 4,  napx, xv1(:))
+      call h5_writeData(dump_hdf5DataSet(ix), 5,  napx, yv1(:))
+      call h5_writeData(dump_hdf5DataSet(ix), 6,  napx, xv2(:))
+      call h5_writeData(dump_hdf5DataSet(ix), 7,  napx, yv2(:))
+      call h5_writeData(dump_hdf5DataSet(ix), 8,  napx, sigmv)
+      call h5_writeData(dump_hdf5DataSet(ix), 9,  napx, (ejv-e0)/e0)
+      call h5_writeData(dump_hdf5DataSet(ix), 10, napx, localKtrack)
+      call h5_writeData(dump_hdf5DataSet(ix), 11, napx, nzz)
+      call h5_writeData(dump_hdf5DataSet(ix), 12, napx, naa)
+      call h5_writeData(dump_hdf5DataSet(ix), 13, napx, nqq)
+      call h5_writeData(dump_hdf5DataSet(ix), 14, napx, pdgid)
+      call h5_finaliseWrite(dump_hdf5DataSet(ix))
+    else
+#endif
+      if(lhighprec) then
+        do j=1,napx
+          call chr_fromReal(xv1(j),       xyz_h(1),19,2,rErr)
+          call chr_fromReal(yv1(j),       xyz_h(2),19,2,rErr)
+          call chr_fromReal(xv2(j),       xyz_h(3),19,2,rErr)
+          call chr_fromReal(yv2(j),       xyz_h(4),19,2,rErr)
+          call chr_fromReal(sigmv(j),      xyz_h(5),19,2,rErr)
+          call chr_fromReal((ejv(j)-e0)/e0,xyz_h(6),19,2,rErr)
+          write(unit,"(2(1x,i8),1x,f12.5,6(1x,a25),1x,i8,3(1x,i8),1x,i12)") partID(j),nturn,localDcum,&
+            xyz_h(1),xyz_h(2),xyz_h(3),xyz_h(4),xyz_h(5),xyz_h(6),localKtrack, &
+            naa(j),nzz(j),nqq(j),pdgid(j)
+        end do
+      else
+        do j=1,napx
+          call chr_fromReal(xv1(j),       xyz_l(1),10,2,rErr)
+          call chr_fromReal(yv1(j),       xyz_l(2),10,2,rErr)
+          call chr_fromReal(xv2(j),       xyz_l(3),10,2,rErr)
+          call chr_fromReal(yv2(j),       xyz_l(4),10,2,rErr)
+          call chr_fromReal(sigmv(j),      xyz_l(5),10,2,rErr)
+          call chr_fromReal((ejv(j)-e0)/e0,xyz_l(6),10,2,rErr)
+          write(unit,"(2(1x,i8),1x,f12.5,6(1x,a16),1x,i8,3(1x,i8),1x,i12)") partID(j),nturn,localDcum,&
+            xyz_l(1),xyz_l(2),xyz_l(3),xyz_l(4),xyz_l(5),xyz_l(6),localKtrack, &
+            naa(j),nzz(j),nqq(j),pdgid(j)
+        end do
+      end if
+      flush(unit,iostat=ierro)
+#ifdef CR
+      dumpfilepos(dumpIdx) = dumpfilepos(dumpIdx)+napx
+#endif
+#ifdef HDF5
+    end if
 #endif
 
   ! Unrecognized format fmt

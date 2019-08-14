@@ -41,6 +41,18 @@ integer(kind=int16) :: z1,z2,z3
 integer(kind=int16) :: a1,a2,a3
 integer(kind=int16) :: tmpid 
 
+  if(id.eq.2212) then
+    a = 1
+    z = 1
+    return
+  end if
+
+  if(id.lt.1000000000) then
+    a = 0
+    z = 0
+    return
+  end if
+
   tmpid = id - 1000000000
 
   tmpid = tmpid / 10
