@@ -911,7 +911,7 @@ subroutine dist_parseColumn(fmtName, fErr, fmtID, fmtFac, fmtCol, isValid)
   case("DP/P0","DPP0","DELTA")
     fmtID  = dist_fmtDPP0
     fmtCol = 6
-  case("DE/P0","DEP0","PT")
+  case("PT")
     fmtID  = dist_fmtPT
     fmtCol = 6
   case("PSIGMA")
