@@ -39,7 +39,7 @@ integer(kind=int16), intent(out) :: z
 
 integer(kind=int16) :: z1,z2,z3
 integer(kind=int16) :: a1,a2,a3
-integer(kind=int16) :: tmpid 
+integer(kind=int32) :: tmpid
 
   if(id.eq.2212) then
     a = 1
@@ -56,24 +56,24 @@ integer(kind=int16) :: tmpid
   tmpid = id - 1000000000
 
   tmpid = tmpid / 10
-  a1 = mod(tmpid,10_int16)
+  a1 = mod(tmpid,10_int32)
 
   tmpid = tmpid / 10
-  a2 = mod(tmpid,10_int16)
+  a2 = mod(tmpid,10_int32)
 
   tmpid = tmpid / 10
-  a3 = mod(tmpid,10_int16)
+  a3 = mod(tmpid,10_int32)
 
   a = a1 + 10*a2 + 100*a3
 
   tmpid = tmpid / 10
-  z1 = mod(tmpid,10_int16)
+  z1 = mod(tmpid,10_int32)
 
   tmpid = tmpid / 10
-  z2 = mod(tmpid,10_int16)
+  z2 = mod(tmpid,10_int32)
 
   tmpid = tmpid / 10
-  z3 = mod(tmpid,10_int16)
+  z3 = mod(tmpid,10_int32)
 
   z = z1 + 10*z2 + 100*z3
 
