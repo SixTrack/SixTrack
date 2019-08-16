@@ -1,0 +1,55 @@
+\chapter{Conventions} \label{Ch:Conv}
+
+% ================================================================================================================================ %
+\section{Tracking} \label{Sec:PartArrays}
+
+The main particle tracking arrays used in SixTrack are listed in Table~\ref{Table:TrackArray}.
+Some of them are relative to the reference particle main values, which are listed in Table~\ref{Table:RefPart}.
+\index{tracking arrays}\index{reference particle}
+
+\begin{center}
+\begin{longtabu}{@{}lllp{7cm}}
+  \caption{An overview of the reference particle variables used in SixTrack.}
+  \label{Table:RefPart} \\*
+  \textbf{Name} & \textbf{Variable} & \textbf{Unit} & \textbf{Description} \\
+  \hline
+  $m_0$      & \texttt{numc0}  & [MeV]   & Reference mass \\
+  $E_0$      & \texttt{e0}     & [MeV]   & Reference energy \\
+  $P_0$      & \texttt{e0f}    & [MeV/c] & Reference momentum \\
+  $\beta_0$  & \texttt{beta0}  & [1]     & Reference relativistic beta factor \\
+  $\gamma_0$ & \texttt{gamma0} & [1]     & Reference relativistic gamma factor \\
+\end{longtabu}
+\end{center}
+
+\begin{center}
+\begin{longtabu}{@{}llllp{7cm}}
+  \caption{An overview of the particle arrays used in SixTrack, and their definition.}
+  \label{Table:TrackArray} \\*
+  \textbf{Name} & \textbf{Variable} & \textbf{Unit} & \textbf{Definition} & \textbf{Description} \\
+  \hline
+  $x$        & \texttt{xv1(j)}    & [mm]         & --                            & Horizontal position \\
+  $y$        & \texttt{xv2(j)}    & [mm]         & --                            & Vertical position \\
+  $x^\prime$ & \texttt{yv1(j)}    & [1/1000]     & $\frac{P_x}{P}$               & Approximate horizontal angle \\
+  $y^\prime$ & \texttt{yv2(j)}    & [1/1000]     & $\frac{P_y}{P}$               & Approximate vertical angle \\
+  $\sigma$   & \texttt{sigmv(j)}  & [mm]         & $s-\beta_0 c t$               & Longitudinal offset \\
+  $p_\sigma$ & n/a                & [1]          & $\frac{E-E_0}{\beta_0 P_0 c}$ & Canonical conjugate of $\sigma$ \\
+  $\delta$   & \texttt{dpsv(j)}   & [1]          & $\frac{P-P_0}{P_0}$           & Canonical conjugate of $\sigma$ \\
+  $r_v$      & \texttt{rvv(j)}    & [1]          & $\frac{\beta_0}{\beta}$       & Velocity ratio \\
+  $r_p$      & \texttt{oidpsv(j)} & [1]          & $\frac{P_0}{P}$               & Momentum ratio \\
+  $\zeta$    & n/a                & [mm]         & $r_v\sigma$                   & Longitudinal offset conjugate with $\delta$ \\
+  $m$        & \texttt{nucm(j)}   & [MeV/c$^2$]  & --                            & Mass \\
+  $m/c$      & \texttt{mtc(j)}    & [1]          & $\frac{q}{q_0} \frac{m_0}{m}$ & Mass-to-charge ratio \\
+  $P$        & \texttt{ejfv(j)}   & [MeV/c]      & --                            & Momentum \\
+  $E$        & \texttt{ejv(j)}    & [MeV]        & --                            & Energy \\
+\end{longtabu}
+\end{center}
+
+% ================================================================================================================================ %
+\subsection{Normalisation Matrix} \label{Sec:TMatrix}
+
+The normalisation matrix, referred to in this manual as the \emph{T-matrix} and in the source code with the variable \texttt{tas}, is a $6 \times 6$ matrix calculated from the eigenvectors of the one-turn-map.\index{T-matrix}\index{normalisation matrix}
+The T-matrix is used to convert normalised coordinates to physical coordinates, and its inverse converts physical to normaliased.
+
+The T-matrix and its inverse is printed to the tracking files (see Appendix~\ref{Files}) and to the particle state files dumped from the settings block (see Section~\ref{STSett}).
+
+It is also used for writing normalised particle dumps (see Section~\ref{sec:DUMP}) and to read normalised input beam distributions (see Section~\ref{distBlock}).

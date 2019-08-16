@@ -547,6 +547,8 @@ Table~\ref{Table:DIST} lists the currently available keywords of the \texttt{DIS
 Table~\ref{Table:DIST_FORMAT} lists all the column formats the block supports.
 Table~\ref{Table:DIST_FILL} lists all the available fill methods for populating the particle arrays without having to read from file.
 
+For an overview of the definitions used for the particle tracking variables in SixTrack, see Section~\ref{Sec:PartArrays}.
+
 \paragraph{Default Behaviour}~\\
 
 Since there are multiple ways to set the particle coordinates, a few default behaviours and precedences have been coded into the parsing.
@@ -562,7 +564,7 @@ It is only possible to set each particle coordinate using one method.
 If conflicting methods are selected in the \texttt{FORMAT} keyword and in \texttt{FILL} methods, an error will be raised.
 Since SixTrack uses multiple arrays for different values related to the particle energy, these are calculated after initialisation from the input format chosen.
 
-The default normalisation method is to use the internal T-matrix in SixTrack.
+The default normalisation method is to use the internal T-matrix in SixTrack (see Section~\ref{Sec:TMatrix}).
 Alternatively, Twiss and dispersion can be set in the block, or a new T-matrix provided.
 These will then take precedence over the internal matrix.
 
