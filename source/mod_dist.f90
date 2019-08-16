@@ -845,7 +845,7 @@ subroutine dist_parseColumn(fmtName, fErr, fmtID, fmtFac, fmtCol, isValid)
 
   select case(chr_toUpper(fmtBase))
 
-  case("OFF","SKIP")
+  case("SKIP")
     fmtID = dist_fmtNONE
   case("ID")
     fmtID = dist_fmtPartID

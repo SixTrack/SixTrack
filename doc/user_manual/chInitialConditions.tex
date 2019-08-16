@@ -525,7 +525,7 @@ By default, all particles are initialised to the same values, but if multiple io
 The \texttt{DIST} block adds the ability to read a beam distribution from file, or generate it internally in SixTrack.\index{DIST}\index{initial distribution}
 The file format is very flexible and can be specified column-wise with the \texttt{FORMAT} keyword to support many file layouts.
 It is also possible to specify the unit of the data in the input file, within a limited range.
-If no format is specified, it falls back to the fixed 14 column format read by the original simple \texttt{DIST} block (see Table~\ref{tab:distReadFileColumns}).
+If no format is specified, the \texttt{DIST} block falls back to the fixed 14 column format read by the original simple \texttt{DIST} block prior to version 5.3.1 (see Table~\ref{tab:distReadFileColumns}).
 
 \bigskip
 \begin{tabular}{@{}lp{0.7\linewidth}}
@@ -540,7 +540,7 @@ There are several approaches available for initiating the beam distribution.
 It can be read in its entirety from a file, selecting a set of many available conventions for describing the particle coordinates, ion values and meta data.
 For a small number of particles, the coordinates can be set directly in the \texttt{DIST} block as well.
 
-The \texttt{DIST} block is linked to the external \texttt{DISTlib} library for beam distributions, and the filled particle coordinates can be passed on to this library for further processing, like applying the normalisation matrix.
+The \texttt{DIST} block is linked to the external \texttt{DISTlib} library for beam distributions, and the filled particle coordinates can be passed on to this library for further processing, like applying the T-matrix (see Section~\ref{Sec:TMatrix}).
 In the future, more features will be added to this library, and made available through the \texttt{DIST} block interface.
 
 Table~\ref{Table:DIST} lists the currently available keywords of the \texttt{DIST} block.
@@ -647,7 +647,7 @@ All emittances default to 0, so if these are not set, the normalisation will als
     \texttt{LONGEMIT} & \texttt{emit3 unit[eVs|um]} & \texttt{0.0}\\*
     \hline
     \multicolumn{3}{|>{\raggedright}p{\textwidth}|}{%
-        Longitudinal emittance and its unit. The emittance can either be provided in $\mu m$ or in eVs.
+        Longitudinal emittance and its unit. The emittance can either be provided in $\mu$m or in eVs.
     } \\*
     \hline
 
@@ -701,7 +701,7 @@ All emittances default to 0, so if these are not set, the normalisation will als
 \subsection{Column Formats}
 
 The \texttt{FORMAT} keyword allows the user to specify their own file format by providing a list of columns it contains.
-The available formats and how they are converted to internal SixTrack particle coordinates is listed in Table~\ref{Table:DIST_FORMAT}.
+The available formats and how they are converted to internal SixTrack particle coordinates are listed in Table~\ref{Table:DIST_FORMAT}.
 
 Each column can optionally take a unit in square brackets, appended to the column name itself with no space in between.
 The available units are also listed in the table for the column formats that support units.
@@ -768,7 +768,7 @@ NEXT
     \hline
 
     \rowcolor{gray!15}
-    \texttt{OFF, SKIP} & N/A\\*
+    \texttt{SKIP} & N/A\\*
     \hline
     \multicolumn{2}{|>{\raggedright}p{\textwidth}|}{%
         Disables the column in the file, that is, during parsing, the column is skipped.
@@ -807,7 +807,7 @@ NEXT
     \texttt{XP, YP} & [1] \\*
     \hline
     \multicolumn{2}{|>{\raggedright}p{\textwidth}|}{%
-        The particle transverse momentum ratio relative to its total momentum, $x_p = p_x/p \approx x^\prime$. These are the internal values used for tracking in SixTrack, and are read in as provides.
+        The particle transverse momentum ratio relative to its total momentum, $p_x/p \approx x^\prime$, $p_y/p \approx y^\prime$. These are the internal values used for tracking in SixTrack, and are read in as provides.
     } \\*
     \hline
 
@@ -823,7 +823,7 @@ NEXT
     \texttt{PX/P0, PXP0, PY/P0, PYP0} & [1] \\*
     \hline
     \multicolumn{2}{|>{\raggedright}p{\textwidth}|}{%
-        The particle transverse momentum relative to the reference momentum, $p_{x,0} = p_x/p_0$. The slash in the column name is optional. These values will be converted to SixTrack internal values.
+        The particle transverse momentum relative to the reference momentum, $p_x/p_0$, $p_y/p_0$. The slash in the column name is optional. These values will be converted to SixTrack internal values.
     } \\*
     \hline
 
@@ -835,7 +835,7 @@ NEXT
     \texttt{SIGMA} & m or mm \\*
     \hline
     \multicolumn{2}{|>{\raggedright}p{\textwidth}|}{%
-        The particle offset relative to the reference particle $\sigma$. This is the internal value used for tracking in SixTrack.
+        The particle offset relative to the reference particle, $\sigma$. This is the internal value used for tracking in SixTrack, and is read in as provided.
     } \\*
     \hline
 
@@ -871,7 +871,7 @@ NEXT
     \texttt{DE/E0, DEE0} & [1] \\*
     \hline
     \multicolumn{2}{|>{\raggedright}p{\textwidth}|}{%
-        The particle total energy relative to reference energy, $E = \Delta E \cdot E_0$
+        The particle total energy relative to reference energy, $\Delta E / E_0$. This is converted to SixTrack internal value $E$ after input.
     } \\*
     \hline
 
@@ -879,7 +879,7 @@ NEXT
     \texttt{DP/P0, DPP0, DELTA} & [1] \\*
     \hline
     \multicolumn{2}{|>{\raggedright}p{\textwidth}|}{%
-        The particle total momentum relative to reference momentum, $\delta = p/p_0$. This is a value used by SixTrack for tracking. If provided as input, aprticle total energy and momentum is calculated from this value.
+        The particle total momentum relative to reference momentum, $\Delta P / P_0$. This is a value used by SixTrack for tracking. If provided as input, particle total energy and momentum is calculated from this value.
     } \\*
     \hline
 
@@ -887,7 +887,7 @@ NEXT
     \texttt{PT} & [1] \\*
     \hline
     \multicolumn{2}{|>{\raggedright}p{\textwidth}|}{%
-        The particle total momentum relative to reference energy. This value is converted after input.
+        The particle total momentum relative to reference energy, $\Delta E / P_0 c$. This is converted to SixTrack internal value $E$ after input.
     } \\*
     \hline
 
@@ -895,7 +895,7 @@ NEXT
     \texttt{PSIGMA} & [1] \\*
     \hline
     \multicolumn{2}{|>{\raggedright}p{\textwidth}|}{%
-        The particle total momentum relative to reference energy, and scaled by $\beta_0$. This value is converted after input.
+        The particle total momentum relative to reference energy and relativistic velocity, $\Delta E / \beta_0 P_0 c$. This is converted to SixTrack internal value $E$ after input.
     } \\*
     \hline
 
@@ -907,7 +907,7 @@ NEXT
     \texttt{XN, YN, ZN, PXN, PYN, PZN} & N/A \\*
     \hline
     \multicolumn{2}{|>{\raggedright}p{\textwidth}|}{%
-        The six coordinates in nurmalised coordinates. These are transformed by the beam parameters given in the \texttt{DIST} block after input.
+        The six coordinates in nurmalised coordinates in units of $\sqrt{m}$. These are transformed by the beam parameters given in the \texttt{DIST} block after input.
     } \\*
     \hline
 
@@ -1024,7 +1024,7 @@ NEXT
     \texttt{OLD\_DIST} & N/A \\*
     \hline
     \multicolumn{2}{|>{\raggedright}p{\textwidth}|}{%
-        Gives the old file format as described in Table~\ref{tab:distReadFileColumns}.
+        Gives the old file format as described in Table~\ref{tab:distReadFileColumns}. That is, it's equivalent to \texttt{ID PARENT SKIP X[M] Y[M] SKIP XP[RAD] YP[RAD] SKIP ION\_A ION\_Z MASS[GEV] P[GEV] DT}.
     } \\*
     \hline
 
@@ -1043,7 +1043,7 @@ The \texttt{FILL} feature can also be used to populate the arrays from scratch, 
 The different fill methods are listed in Table~\ref{Table:DIST_FILL}.
 
 Note that the \texttt{PARENT} column cannot be filled.
-The \texttt{SPIN} columns are also currently disbaled with these feature.
+The \texttt{SPIN} columns are also currently disbaled with this feature.
 
 Also note that the \texttt{FILL} methods cannot create corrolated distributions.
 This can be achieved by using the normalised column formats, which triggers a normalisation after they have been filled.
@@ -1058,7 +1058,7 @@ FILL column method param1 ... paramN [firstIDX lastIDX]
     \texttt{FILL}     & The keyword selecting this feature. \\
     \texttt{column}   & The target column format. Must be one of the columns described in Table~\ref{Table:DIST_FORMAT}. \\
     \texttt{method}   & The fill method. Must be one of the methods described in Table~\ref{Table:DIST_FILL}. \\
-    \texttt{params}   & The fill method parameters. This varies from method to method. See Table~\ref{Table:DIST_FILL}. \\
+    \texttt{params}   & The fill method parameters. These vary from method to method. See Table~\ref{Table:DIST_FILL}. \\
     \texttt{firstIDX} & Optional: The first paricle index for this fill method. Defaults to particle 1. \\
     \texttt{lastIDX}  & Optional: The last paricle index for this fill method, where -1 indicates the last particle as request in the \texttt{SIMU} or \texttt{TRAC} block. Defaults to particle -1.
 \end{tabular}
