@@ -428,7 +428,7 @@ subroutine dist_parseInputLine(inLine, iLine, iErr)
   case("READ")
     if(nSplit /= 2 .and. nSplit /= 3) then
       write(lerr,"(a,i0)") "DIST> ERROR READ takes 1 or 2 arguments, got ",nSplit-1
-      write(lerr,"(a)")    "DIST>       READ filename [LIBDIST]"
+      write(lerr,"(a)")    "DIST>       READ filename [use_distlib]"
       iErr = .true.
       return
     end if
@@ -845,7 +845,7 @@ subroutine dist_parseColumn(fmtName, fErr, fmtID, fmtFac, fmtCol, isValid)
 
   select case(chr_toUpper(fmtBase))
 
-  case("OFF","SKIP")
+  case("SKIP")
     fmtID = dist_fmtNONE
   case("ID")
     fmtID = dist_fmtPartID
@@ -911,7 +911,7 @@ subroutine dist_parseColumn(fmtName, fErr, fmtID, fmtFac, fmtCol, isValid)
   case("DP/P0","DPP0","DELTA")
     fmtID  = dist_fmtDPP0
     fmtCol = 6
-  case("DE/P0","DEP0","PT")
+  case("PT")
     fmtID  = dist_fmtPT
     fmtCol = 6
   case("PSIGMA")
@@ -1327,14 +1327,13 @@ subroutine dist_readDist
   if(inLine(1:1) == "#") goto 10
   if(inLine(1:1) == "!") goto 10
 
-  dist_numPart = dist_numPart + 1
   nRead = nRead + 1
-
-  if(dist_numPart > napx) then
+  if(nRead > napx) then
     write(lout,"(a,i0,a)") "DIST> Stopping reading file as ",napx," particles have been read, as requested in '"//trim(fort3)//"'"
     goto 40
   end if
 
+  dist_numPart = dist_numPart + 1
   call chr_split(inLine, lnSplit, nSplit, spErr)
   if(spErr) goto 30
   if(nSplit == 0) goto 10
@@ -1363,7 +1362,7 @@ subroutine dist_readDist
 
 40 continue
   call f_close(fUnit)
-  write(lout,"(a,i0,a)") "DIST> Read ",nRead," particles from file '"//trim(dist_distFile)//"'"
+  write(lout,"(a,i0,a)") "DIST> Read ",dist_numPart," particles from file '"//trim(dist_distFile)//"'"
 
 end subroutine dist_readDist
 

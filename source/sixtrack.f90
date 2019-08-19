@@ -23,6 +23,7 @@ subroutine daten
   use string_tools
   use mod_alloc
   use mod_units
+  use mod_linopt
 
   use mod_dist,  only : dist_enable, dist_parseInputLine
   use scatter,   only : scatter_active,scatter_debug,scatter_parseInputLine
@@ -405,7 +406,7 @@ subroutine daten
     elseif(closeBlock) then
       continue
     else
-      call sixin_parseInputLineLINE(inLine,blockLine,inErr)
+      call linopt_parseInputLine(inLine,blockLine,inErr)
       if(inErr) goto 9999
     end if
 
@@ -4053,31 +4054,35 @@ subroutine matrix(dpp,am)
       return
 end subroutine matrix
 
-subroutine corrorb
 !-----------------------------------------------------------------------
 !  CORRECTION OF CLOSED ORBIT FIRST (MOST EFFECTIV CORRECTOR STRATEGY
 !  USING MICADO), THEN
 !  SCALING OF DIPOLE-ERRORS FOR RMS-VALUES OF THE CLOSED ORBIT
 !-----------------------------------------------------------------------
-      use floatPrecision
-      use numerical_constants
-      use mathlib_bouncer
-      use crcoall
-      use parpro
-      use mod_units
-      use mod_common
-      use mod_commons
-      use mod_common_track
-      implicit none
-      integer i,icflag,ihflag,ii,ij,im,iprinto,ivflag,j,k,kpz,kzz,l,nlino,ntcoo,nto,nx
-      real(kind=fPrec) ar(nmon1,ncor1)
-      real(kind=fPrec) b(nmon1),orbr(nmon1),xinc(ncor1)
-      real(kind=fPrec) rmsx,ptpx,rmsz,ptpz,rzero,rzero1
-      real(kind=fPrec) clo0,clop0,hfac,qwc1,vfac
-      character(len=mNameLen) bezlo(nele)
-      dimension clo0(2),clop0(2)
-      dimension qwc1(3),nx(ncor1)
-      save
+subroutine corrorb
+
+  use floatPrecision
+  use numerical_constants
+  use mathlib_bouncer
+  use crcoall
+  use parpro
+  use mod_units
+  use mod_linopt
+  use mod_common
+  use mod_commons
+  use mod_common_track
+
+  implicit none
+
+  integer i,icflag,ihflag,ii,ij,im,iprinto,ivflag,j,k,kpz,kzz,l,nlino,ntcoo,nto,nx
+  real(kind=fPrec) ar(nmon1,ncor1)
+  real(kind=fPrec) b(nmon1),orbr(nmon1),xinc(ncor1)
+  real(kind=fPrec) rmsx,ptpx,rmsz,ptpz,rzero,rzero1
+  real(kind=fPrec) clo0,clop0,hfac,qwc1,vfac
+  character(len=mNameLen) bezlo(nele)
+  dimension clo0(2),clop0(2)
+  dimension qwc1(3),nx(ncor1)
+  save
 !-----------------------------------------------------------------------
       rzero=zero
       rzero1=zero
@@ -5593,9 +5598,8 @@ subroutine phasad(dpp,qwc)
         if(kzz.eq.24) then
           t(i,2)=(t(i,2)+t(i,1)*qu)-qv*t(i,3)                          !hr06
           t(i,4)=(t(i,4)-t(i,3)*quz)-qvz*t(i,1)                        !hr06
-#include "include/phas1so1.f90"
-#include "include/phas2so1.f90"
-#include "include/phas3so1.f90"
+        elseif(kzz.eq.25) then !--solenoid
+#include "include/phassolenoid.f90"
         else
           t(i,2)=(t(i,2)+t(i,1)*qu)-qv*t(i,3)                          !hr06
           t(i,4)=(t(i,4)-t(i,3)*qu)-qv*t(i,1)                          !hr06
@@ -6922,9 +6926,8 @@ subroutine resex(dpp)
           if(kzz.eq.24) then
             t(i,2)=(t(i,2)+t(i,1)*qu)-qv*t(i,3)                          !hr06
             t(i,4)=(t(i,4)-t(i,3)*quz)-qvz*t(i,1)                        !hr06
-#include "include/phas1so1.f90"
-#include "include/phas2so1.f90"
-#include "include/phas3so1.f90"
+          elseif(kzz.eq.25) then !--solenoid
+#include "include/phassolenoid.f90"
           else
             t(i,2)=(t(i,2)+t(i,1)*qu)-qv*t(i,3)                          !hr06
             t(i,4)=(t(i,4)-t(i,3)*qu)-qv*t(i,1)                          !hr06
@@ -8214,9 +8217,8 @@ subroutine subre(dpp)
             if(kzz.eq.24) then
               t(i,2)=(t(i,2)+t(i,1)*qu)-qv*t(i,3)                          !hr06
               t(i,4)=(t(i,4)-t(i,3)*quz)-qvz*t(i,1)                        !hr06
-#include "include/phas1so1.f90"
-#include "include/phas2so1.f90"
-#include "include/phas3so1.f90"
+            elseif(kzz.eq.25) then !--solenoid
+#include "include/phassolenoid.f90"
             else
               t(i,2)=(t(i,2)+t(i,1)*qu)-qv*t(i,3)                          !hr06
               t(i,4)=(t(i,4)-t(i,3)*qu)-qv*t(i,1)                          !hr06
@@ -9140,9 +9142,8 @@ subroutine subsea(dpp)
         if(kzz.eq.24) then
           t(i,2)=(t(i,2)+t(i,1)*qu)-qv*t(i,3)                          !hr06
           t(i,4)=(t(i,4)-t(i,3)*quz)-qvz*t(i,1)                        !hr06
-#include "include/phas1so1.f90"
-#include "include/phas2so1.f90"
-#include "include/phas3so1.f90"
+        elseif(kzz.eq.25) then !--solenoid
+#include "include/phassolenoid.f90"
         else
           t(i,2)=(t(i,2)+t(i,1)*qu)-qv*t(i,3)                          !hr06
           t(i,4)=(t(i,4)-t(i,3)*qu)-qv*t(i,1)                          !hr06

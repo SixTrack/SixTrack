@@ -60,6 +60,7 @@ CollimationMaterials::CollimationMaterials()
 	MoGr->AddMaterial(C,0.863);
 	AddMaterial("MoGr", MoGr);
 	AddMaterial("MoGR", MoGr);
+	AddMaterial("MOGR", MoGr);
 
 	//Glidcop
 	G4Material* Glid = new G4Material("Glid", 8.930*CLHEP::g/CLHEP::cm3,3);
@@ -69,6 +70,7 @@ CollimationMaterials::CollimationMaterials()
 	Glid->AddMaterial(Al,0.0028 * Al_M / (Al_M + O_M));
 	Glid->AddMaterial(O,0.0028 * O_M / (Al_M + O_M));
 	AddMaterial("Glid", Glid);
+	AddMaterial("GLID", Glid);
 
 	//INERMET 180
 	G4Material* Iner = new G4Material("Iner", 18.060*CLHEP::g/CLHEP::cm3,3);
@@ -76,6 +78,7 @@ CollimationMaterials::CollimationMaterials()
 	Iner->AddMaterial(Ni,0.035);
 	Iner->AddMaterial(Cu,0.015);
 	AddMaterial("Iner", Iner);
+	AddMaterial("INER", Iner);
 
 	//Copper diamond - fractions from https://twiki.cern.ch/twiki/pub/LHCAtHome/SixTrackCollimatVer/material_test_2015-03-30_corretto.xlsx
 	//https://cds.cern.ch/record/2112203/files/tho4ab03.pdf
@@ -84,6 +87,7 @@ CollimationMaterials::CollimationMaterials()
 	CuCD->AddMaterial(C,0.349);
 	CuCD->AddMaterial(B,0.004);
 	AddMaterial("CuCD", CuCD);
+	AddMaterial("CUCD", CuCD);
 }
 
 
