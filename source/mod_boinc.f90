@@ -249,16 +249,17 @@ subroutine boinc_summary(exitStatus)
   lenVer = len_trim(boinc_sumBuffer) - 24
   if(lenVer < 1) lenVer = 7
 
-  write(boinc_sumBuffer( 1:9 ),"(i9.9)") int(time_lastTick*1.0e3)
-  write(boinc_sumBuffer(11:16),"(i6.6)") int(progFrac*1.0e5)
-  write(boinc_sumBuffer(18:18),"(i1.1)") exitStatus
-  write(boinc_sumBuffer(20:24),"(i5.5)") lenVer
-  write(boinc_sumBuffer(26:31),"(i6.6)") numvers
-  write(boinc_sumBuffer(33:40),"(i8.8)") numl
-  write(boinc_sumBuffer(42:49),"(i8.8)") napx
-  write(boinc_sumBuffer(51:58),"(i8.8)") napxo
-  write(boinc_sumBuffer(60:69),"(i10.10)") meta_nPartTurn
-  write(boinc_sumBuffer(71:88),"(i18.18)") meta_nPTurnEle
+  write(boinc_sumBuffer( 1:9 ) ,"(i9.9)")   int(time_lastTick*1.0e3)
+  write(boinc_sumBuffer(11:16) ,"(i6.6)")   int(progFrac*1.0e5)
+  write(boinc_sumBuffer(18:18) ,"(i1.1)")   exitStatus
+  write(boinc_sumBuffer(20:24) ,"(i5.5)")   lenVer
+  write(boinc_sumBuffer(26:31) ,"(i6.6)")   numvers
+  write(boinc_sumBuffer(33:41) ,"(i9.9)")   iu
+  write(boinc_sumBuffer(43:51) ,"(i9.9)")   numl
+  write(boinc_sumBuffer(53:61) ,"(i9.9)")   napx
+  write(boinc_sumBuffer(63:71) ,"(i9.9)")   napxo
+  write(boinc_sumBuffer(73:82) ,"(i10.10)") meta_nPartTurn
+  write(boinc_sumBuffer(84:101),"(i18.18)") meta_nPTurnEle
 
   ! Write the BOINC summary file as a binary stream to avoid line endings
   call f_requestUnit("boinc_summary.dat",fUnit)
@@ -288,7 +289,7 @@ subroutine boinc_done
   integer           :: cPos
 
   boinc_sumBuffer = " "
-  cPos = 90
+  cPos = 103
 
   ! Write our own final state file that does not interfere with the user's sttings in fort.3
   call part_writeState(boincSum,.true.,.true.)
