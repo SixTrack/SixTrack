@@ -621,7 +621,7 @@ subroutine thin4d(nthinerr)
       ! No if(ktrack(i).eq.1) - a BLOC - is needed in thin tracking,
       ! as no dependency on ix in this case.
       ix=ic(i)-nblo ! ix = index of single element
-!Should this be inside "if ktrack .ne. 1"? (time)
+      meta_nPTurnEle = meta_nPTurnEle + napx
 
       if (ldumpfront) then
         call dump_lines(n,i,ix)
@@ -1077,7 +1077,6 @@ subroutine thin4d(nthinerr)
 620 continue
 
 #include "include/lostpart.f90"
-    meta_nPTurnEle = meta_nPTurnEle + napx
 
 625 continue
     if (.not. ldumpfront) then
@@ -1260,6 +1259,7 @@ subroutine thin6d(nthinerr)
       ! No if(ktrack(i).eq.1) - a BLOC - is needed in thin tracking,
       ! as no dependency on ix in this case.
       ix=ic(i)-nblo
+      meta_nPTurnEle = meta_nPTurnEle + napx
 
       ! Fringe Fields
       if(ffield_enabled .and. ix > 0) then
@@ -2043,7 +2043,6 @@ subroutine thin6d(nthinerr)
       end if
 
 #include "include/lostpart.f90"
-      meta_nPTurnEle = meta_nPTurnEle + napx
 
 645   continue
 
