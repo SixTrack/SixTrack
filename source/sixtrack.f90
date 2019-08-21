@@ -2286,9 +2286,9 @@ subroutine envars(j,dpp,rv)
         al(2,l,j,i) = el(i)
         al(3,l,j,i) = zero
         al(4,l,j,i) = one
-        as(6,l,j,i) = ((-one*rv)*al(2,l,j,i))/c2e3 ! hr05
+        as(6,l,j,i) = ((-one*rv)*al(2,l,j,i))/c2e3
       end do
-      as(1,1,j,i) = (el(i)*(one-rv))*c1e3          ! hr05
+      as(1,1,j,i) = (el(i)*(one-rv))*c1e3
 
     case (2,5)
       ! 2: RECTANGULAR MAGNET HORIZONTAL
@@ -2305,9 +2305,9 @@ subroutine envars(j,dpp,rv)
           al(2,l,j,i) = el(i)
           al(3,l,j,i) = zero
           al(4,l,j,i) = one
-          as(6,l,j,i) = ((-one*rv)*al(2,l,j,i))/c2e3 ! hr05
+          as(6,l,j,i) = ((-one*rv)*al(2,l,j,i))/c2e3
         end do
-        as(1,1,j,i) = (el(i)*(one-rv))*c1e3          ! hr05
+        as(1,1,j,i) = (el(i)*(one-rv))*c1e3
         cycle
       end if
       rho=(one/ed(i))*dpsq
@@ -2361,9 +2361,9 @@ subroutine envars(j,dpp,rv)
           al(2,l,j,i) = el(i)
           al(3,l,j,i) = zero
           al(4,l,j,i) = one
-          as(6,l,j,i) = ((-one*rv)*al(2,l,j,i))/c2e3 ! hr05
+          as(6,l,j,i) = ((-one*rv)*al(2,l,j,i))/c2e3
         end do
-        as(1,1,j,i) = (el(i)*(one-rv))*c1e3          ! hr05
+        as(1,1,j,i) = (el(i)*(one-rv))*c1e3
         cycle
       end if
       ih=0
@@ -2411,9 +2411,9 @@ subroutine envars(j,dpp,rv)
           al(2,l,j,i) = el(i)
           al(3,l,j,i) = zero
           al(4,l,j,i) = one
-          as(6,l,j,i) = ((-one*rv)*al(2,l,j,i))/c2e3 ! hr05
+          as(6,l,j,i) = ((-one*rv)*al(2,l,j,i))/c2e3
         end do
-        as(1,1,j,i) = (el(i)*(one-rv))*c1e3          ! hr05
+        as(1,1,j,i) = (el(i)*(one-rv))*c1e3
         cycle
       end if
       rho=(one/ed(i))*dpsq
@@ -2452,7 +2452,7 @@ subroutine envars(j,dpp,rv)
         fokq = ek(i)
       else
         ih   = 1
-        fokq = -one*ek(i) ! hr05
+        fokq = -one*ek(i)
       end if
       ! FOCUSSING
       wf=ed(i)/dpsq
@@ -2463,9 +2463,9 @@ subroutine envars(j,dpp,rv)
           al(2,l,j,i) = el(i)
           al(3,l,j,i) = zero
           al(4,l,j,i) = one
-          as(6,l,j,i) = ((-one*rv)*al(2,l,j,i))/c2e3 ! hr05
+          as(6,l,j,i) = ((-one*rv)*al(2,l,j,i))/c2e3
         end do
-        as(1,1,j,i) = (el(i)*(one-rv))*c1e3          ! hr05
+        as(1,1,j,i) = (el(i)*(one-rv))*c1e3
         cycle
       end if
       afok=abs(fok)
@@ -3507,21 +3507,21 @@ subroutine envar(dpp)
                 a(i,1,2) = rho*si
                 a(i,1,3) = zero
                 a(i,1,4) = one
-                a(i,1,5) = ((-one*rho)*(one-co))/dpsq         ! hr06
-                a(i,1,6) = ((-one*two)*tan_mb(fok*half))/dpsq ! hr06
+                a(i,1,5) = ((-one*rho)*(one-co))/dpsq
+                a(i,1,6) = ((-one*two)*tan_mb(fok*half))/dpsq
                 ! VERTICAL
                 a(i,2,1) = one-gl
                 a(i,2,2) = el(i)
-                a(i,2,3) = (-one*g)*(two-gl) ! hr06
+                a(i,2,3) = (-one*g)*(two-gl)
                 a(i,2,4) = a(i,2,1)
             case (4)
                 ! HORIZONTAL
                 a(i,1,1) = co
                 a(i,1,2) = rho*si
-                a(i,1,3) = (-one*si)/rho              ! hr06
+                a(i,1,3) = (-one*si)/rho
                 a(i,1,4) = co
-                a(i,1,5) = ((-one*rho)*(one-co))/dpsq ! hr06
-                a(i,1,6) = (-one*si)/dpsq             ! hr06
+                a(i,1,5) = ((-one*rho)*(one-co))/dpsq
+                a(i,1,6) = (-one*si)/dpsq
                 ! VERTICAL
                 a(i,2,1) = one
                 a(i,2,2) = el(i)
@@ -3533,21 +3533,21 @@ subroutine envar(dpp)
                 a(i,2,2) = rho*si
                 a(i,2,3) = zero
                 a(i,2,4) = one
-                a(i,2,5) = ((-one*rho)*(one-co))/dpsq         ! hr06
-                a(i,2,6) = ((-one*two)*tan_mb(fok*half))/dpsq ! hr06
+                a(i,2,5) = ((-one*rho)*(one-co))/dpsq
+                a(i,2,6) = ((-one*two)*tan_mb(fok*half))/dpsq
                 ! VERTIKAL
                 a(i,1,1) = one-gl
                 a(i,1,2) = el(i)
-                a(i,1,3) = (-one*g)*(two-gl) ! hr06
+                a(i,1,3) = (-one*g)*(two-gl)
                 a(i,1,4) = a(i,1,1)
             case (6)
                 ! HORIZONTAL
                 a(i,2,1) = co
                 a(i,2,2) = rho*si
-                a(i,2,3) = (-one*si)/rho              ! hr06
+                a(i,2,3) = (-one*si)/rho
                 a(i,2,4) = co
-                a(i,2,5) = ((-one*rho)*(one-co))/dpsq ! hr06
-                a(i,2,6) = (-one*si)/dpsq             ! hr06
+                a(i,2,5) = ((-one*rho)*(one-co))/dpsq
+                a(i,2,6) = (-one*si)/dpsq
                 ! VERTIKAL
                 a(i,1,1) = one
                 a(i,1,2) = el(i)
@@ -3574,7 +3574,7 @@ subroutine envar(dpp)
             a(i,ih,1) = cos_mb(fi)
             hi1 = sin_mb(fi)
             a(i,ih,2) = hi1/hi
-            a(i,ih,3) = (-one*hi1)*hi  ! hr06
+            a(i,ih,3) = (-one*hi1)*hi
             a(i,ih,4) = a(i,ih,1)
             if(ih.eq.2) cycle
             !--DEFOCUSSING
@@ -3597,10 +3597,10 @@ subroutine envar(dpp)
                 fokq = ek(i)
             else
                 ih   = 1
-                fokq = -one*ek(i) ! hr06
+                fokq = -one*ek(i)
             end if
             wf  = ed(i)/dpsq
-            fok = fokq/dpd-wf**2  ! hr06
+            fok = fokq/dpd-wf**2
             if(abs(fok).le.pieni) then
                 do l=1,2
                     a(i,l,1) = one
@@ -3619,10 +3619,10 @@ subroutine envar(dpp)
             co = cos_mb(fi)
             a(i,ih,1) = co
             a(i,ih,2) = si/hi
-            a(i,ih,3) = (-one*si)*hi                     ! hr06
+            a(i,ih,3) = (-one*si)*hi
             a(i,ih,4) = co
-            a(i,ih,5) = (((-one*wf)/afok)*(one-co))/dpsq ! hr06
-            a(i,ih,6) = (((-one*wf)/hi)*si)/dpsq         ! hr06
+            a(i,ih,5) = (((-one*wf)/afok)*(one-co))/dpsq
+            a(i,ih,6) = (((-one*wf)/hi)*si)/dpsq
             ih = ih+1
             if(ih.gt.2) ih = 1
             hi = sqrt(abs(ek(i)/dpd))
@@ -3648,8 +3648,8 @@ subroutine envar(dpp)
             a(i,ih,2) = hs/hi
             a(i,ih,3) = hs*hi
             a(i,ih,4) = hc
-            a(i,ih,5) = ((wf/afok)*(one-hc))/dpsq ! hr06
-            a(i,ih,6) = (((-one*wf)/hi)*hs)/dpsq  ! hr06
+            a(i,ih,5) = ((wf/afok)*(one-hc))/dpsq
+            a(i,ih,6) = (((-one*wf)/hi)*hs)/dpsq
             ih = ih+1
             if(ih.gt.2) ih = 1
             hi = sqrt(abs(ek(i)/dpd))
@@ -3658,19 +3658,19 @@ subroutine envar(dpp)
             co = cos_mb(fi)
             a(i,ih,1) = co
             a(i,ih,2) = si/hi
-            a(i,ih,3) = (-one*si)*hi ! hr06
+            a(i,ih,3) = (-one*si)*hi
             a(i,ih,4) = co
 
         case (9) ! EDGE FOCUSSING
             rhoi = ed(i)/dpsq
-            fok  = rhoi*tan_mb((el(i)*rhoi)*half) ! hr06
+            fok  = rhoi*tan_mb((el(i)*rhoi)*half)
             a(i,1,1) = one
             a(i,1,2) = zero
             a(i,1,3) = fok
             a(i,1,4) = one
             a(i,2,1) = one
             a(i,2,2) = zero
-            a(i,2,3) = -one*fok ! hr06
+            a(i,2,3) = -one*fok
             a(i,2,4) = one
 
         end select
@@ -3743,23 +3743,23 @@ subroutine envardis(dpp,aeg,bl1eg,bl2eg)
                 aeg(i,1,2) = rho*si
                 aeg(i,1,3) = zero
                 aeg(i,1,4) = one
-                aeg(i,1,5) = ((-one*rho)*(one-co))/dpsq         ! hr06
-                aeg(i,1,6) = ((-one*two)*tan_mb(fok*half))/dpsq ! hr06
+                aeg(i,1,5) = ((-one*rho)*(one-co))/dpsq
+                aeg(i,1,6) = ((-one*two)*tan_mb(fok*half))/dpsq
                 ! VERTICAL
                 g  = tan_mb(fok*half)/rho
                 gl = el(i)*g
                 aeg(i,2,1) = one-gl
                 aeg(i,2,2) = el(i)
-                aeg(i,2,3) = (-one*g)*(two-gl)                  ! hr06
+                aeg(i,2,3) = (-one*g)*(two-gl)
                 aeg(i,2,4) = aeg(i,2,1)
             case (4)
                 ! HORIZONTAL
                 aeg(i,1,1)=co
                 aeg(i,1,2)=rho*si
-                aeg(i,1,3)=(-one*si)/rho                        ! hr06
+                aeg(i,1,3)=(-one*si)/rho
                 aeg(i,1,4)=co
-                aeg(i,1,5)=((-one*rho)*(one-co))/dpsq           ! hr06
-                aeg(i,1,6)=(-one*si)/dpsq                       ! hr06
+                aeg(i,1,5)=((-one*rho)*(one-co))/dpsq
+                aeg(i,1,6)=(-one*si)/dpsq
                 ! VERTICAL
                 aeg(i,2,1)=one
                 aeg(i,2,2)=el(i)
@@ -3771,23 +3771,23 @@ subroutine envardis(dpp,aeg,bl1eg,bl2eg)
                 aeg(i,2,2) = rho*si
                 aeg(i,2,3) = zero
                 aeg(i,2,4) = one
-                aeg(i,2,5) = ((-one*rho)*(one-co))/dpsq         ! hr06
-                aeg(i,2,6) = ((-one*two)*tan_mb(fok*half))/dpsq ! hr06
+                aeg(i,2,5) = ((-one*rho)*(one-co))/dpsq
+                aeg(i,2,6) = ((-one*two)*tan_mb(fok*half))/dpsq
                 ! VERTICAL
                 g  = tan_mb(fok*half)/rho
                 gl = el(i)*g
                 aeg(i,1,1) = one-gl
                 aeg(i,1,2) = el(i)
-                aeg(i,1,3) = (-one*g)*(two-gl)                  ! hr06
+                aeg(i,1,3) = (-one*g)*(two-gl)
                 aeg(i,1,4) = aeg(i,1,1)
             case (6)
                 ! HORIZONTAL
                 aeg(i,2,1)=co
                 aeg(i,2,2)=rho*si
-                aeg(i,2,3)=(-one*si)/rho                        ! hr06
+                aeg(i,2,3)=(-one*si)/rho
                 aeg(i,2,4)=co
-                aeg(i,2,5)=((-one*rho)*(one-co))/dpsq           ! hr06
-                aeg(i,2,6)=(-one*si)/dpsq                       ! hr06
+                aeg(i,2,5)=((-one*rho)*(one-co))/dpsq
+                aeg(i,2,6)=(-one*si)/dpsq
                 ! VERTICAL
                 aeg(i,1,1)=one
                 aeg(i,1,2)=el(i)
@@ -3815,7 +3815,7 @@ subroutine envardis(dpp,aeg,bl1eg,bl2eg)
             aeg(i,ih,1) = cos_mb(fi)
             hi1 = sin_mb(fi)
             aeg(i,ih,2) = hi1/hi
-            aeg(i,ih,3) = (-one*hi1)*hi ! hr06
+            aeg(i,ih,3) = (-one*hi1)*hi
             aeg(i,ih,4) = aeg(i,ih,1)
             if(ih.eq.2) cycle
             ! DEFOCUSSING
@@ -3838,10 +3838,10 @@ subroutine envardis(dpp,aeg,bl1eg,bl2eg)
                 fokq = ek(i)
             else
                 ih   = 1
-                fokq = -one*ek(i)      ! hr06
+                fokq = -one*ek(i)
             end if
             wf  = ed(i)/dpsq
-            fok = fokq/dpd-wf**2       ! hr06
+            fok = fokq/dpd-wf**2
             if(abs(fok).le.pieni) then
                 do l=1,2
                     aeg(i,l,1) = one
@@ -3860,10 +3860,10 @@ subroutine envardis(dpp,aeg,bl1eg,bl2eg)
             co = cos_mb(fi)
             aeg(i,ih,1) = co
             aeg(i,ih,2) = si/hi
-            aeg(i,ih,3) = (-one*si)*hi                      ! hr06
+            aeg(i,ih,3) = (-one*si)*hi
             aeg(i,ih,4) = co
-            aeg(i,ih,5) = (((-one*wf)/afok)*(one-co))/dpsq  ! hr06
-            aeg(i,ih,6) = (((-one*wf)/hi)*si)/dpsq          ! hr06
+            aeg(i,ih,5) = (((-one*wf)/afok)*(one-co))/dpsq
+            aeg(i,ih,6) = (((-one*wf)/hi)*si)/dpsq
             ih = ih+1
             if(ih.gt.2) ih=1
             hi = sqrt(abs(ek(i)/dpd))
@@ -3888,8 +3888,8 @@ subroutine envardis(dpp,aeg,bl1eg,bl2eg)
             aeg(i,ih,2) = hs/hi
             aeg(i,ih,3) = hs*hi
             aeg(i,ih,4) = hc
-            aeg(i,ih,5) = ((wf/afok)*(one-hc))/dpsq ! hr06
-            aeg(i,ih,6) = (((-one*wf)/hi)*hs)/dpsq  ! hr06
+            aeg(i,ih,5) = ((wf/afok)*(one-hc))/dpsq
+            aeg(i,ih,6) = (((-one*wf)/hi)*hs)/dpsq
             ih = ih+1
             if(ih.gt.2) ih = 1
             hi = sqrt(abs(ek(i)/dpd))
@@ -3898,12 +3898,12 @@ subroutine envardis(dpp,aeg,bl1eg,bl2eg)
             co = cos_mb(fi)
             aeg(i,ih,1) = co
             aeg(i,ih,2) = si/hi
-            aeg(i,ih,3) = (-one*si)*hi              ! hr06
+            aeg(i,ih,3) = (-one*si)*hi
             aeg(i,ih,4) = co
 
         case (9) ! EDGE FOCUSSING
             rhoi = ed(i)/dpsq
-            fok  = rhoi*tan_mb((el(i)*rhoi)*half) ! hr06
+            fok  = rhoi*tan_mb((el(i)*rhoi)*half)
             aeg(i,1,1) = one
             aeg(i,1,2) = zero
             aeg(i,1,3) = fok
