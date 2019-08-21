@@ -1,6 +1,3 @@
-[submodule "lib/libarchive"]
-	path = lib/libarchive
-	url = https://github.com/SixTrack/libarchive.git
 [submodule "lib/boinc"]
 	path = lib/boinc
 	url = https://github.com/SixTrack/boinc.git
@@ -10,3 +7,6 @@
 [submodule "lib/DISTlib"]
 	path = lib/DISTlib
 	url = https://github.com/SixTrack/DISTlib.git
+[submodule "source/FlukaIO"]
+	path = lib/FlukaIO
+	url = https://:@gitlab.cern.ch:8443/bmi/fedb/coupling/flukaio.git

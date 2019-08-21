@@ -131,16 +131,7 @@ subroutine zipf_dozip
   end do
 #endif
 
-#if defined(LIBARCHIVE)
-  write(lout,"(a)") "LIBARCHIVE> Compressing file '"//trim(zipf_outFile)//"' ..."
-  ! The f_write_archive function will handle the conversion from Fortran to C-style strings
-  ! NOTE: Last two arguments of the C function are implicitly passed from FORTRAN, there is no need to do it explicitly.
-#ifdef BOINC
-  call f_write_archive(trim(boincZipFile),boincNames,zipf_numFiles)
-#else
-  call f_write_archive(trim(zipf_outFile),zipf_fileNames,zipf_numFiles)
-#endif
-#elif defined(ZLIB)
+#ifdef ZLIB
 #ifdef BOINC
   call minizip_zip(trim(boincZipFile),boincNames(1),zipf_numFiles,zipf_zipLevel,iErr,len_trim(boincZipFile),256)
 #else
@@ -150,7 +141,7 @@ subroutine zipf_dozip
     write(lerr,"(a,i0)") "ZIPF> WARNING MiniZip returned error code ",iErr
   end if
 #else
-  write(lout,"(a)") "ZIPF> *** No Archive Libraries in this SixTrack *** "
+  write(lout,"(a)") "ZIPF> *** No ZLIB in this SixTrack *** "
 #endif
 
   write(lout,"(a)") "ZIPF> Done!"

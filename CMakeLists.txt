@@ -91,7 +91,6 @@ option(MERLINSCATTER "Interaction physics for collimation from Merlin" OFF)
 option(G4COLLIMATION "Interaction physics for collimation from Geant4" OFF)
 option(FLUKA "Couple to FLUKA for beam collimation" OFF)
 option(PYTHIA "Link with Pythia8 for SCATTER module" OFF)
-option(LIBARCHIVE "Link with LIBARCHIVE, needed for BOINC and ZIPF block" OFF)
 option(ROOT "Link to the root libraries" OFF)
 
 # Build Options
@@ -127,8 +126,6 @@ option(NOSYMLINK "Don't use symlinks for test inputs and canonicals" OFF)
 option(MEMUSAGE "Writes PID and actual memory usage to sim_meta.dat (GNU/UNIX only)" OFF)
 
 set(BOINC_DIR ${CMAKE_SOURCE_DIR}/lib/boinc CACHE PATH "Path to the boinc build folder")
-set(LIBARCHIVE_BUILD_DIR ${CMAKE_SOURCE_DIR}/lib/libarchive_build CACHE PATH "Path to the libarchive build folder")
-set(LIBARCHIVE_SOURCE_DIR ${CMAKE_SOURCE_DIR}/lib/libarchive CACHE PATH "Path to the libarchive source folder")
 set(PYTHIA_DIR ${CMAKE_SOURCE_DIR}/lib/pythia CACHE PATH "Path to the Pythia build folder")
 
 ###################################################################################################
@@ -203,9 +200,6 @@ endif(FLUKA)
 if(PYTHIA)
   set(SIXTRACK_FEAT_CR "pythia_${SIXTRACK_FEAT_CR}")
 endif()
-if(LIBARCHIVE)
-  set(SIXTRACK_FEAT_CR "libarchive_${SIXTRACK_FEAT_CR}")
-endif()
 if(ZLIB)
   set(SIXTRACK_FEAT_CR "zlib_${SIXTRACK_FEAT_CR}")
 endif()
@@ -278,7 +272,7 @@ set(SIXTRACK_BINARY_NAME_DA "SixDA_${NUM_VERSION}${GIT_BUILD}_${SIXTRACK_FEAT_DA
 ###################################################################################################
 
 list(APPEND PREPRO_FLAGS_TOOLS TILT BOINC BEAMGAS STF MERLINSCATTER G4COLLIMATION FLUKA CR PYTHIA NAFF)
-list(APPEND PREPRO_FLAGS_LIB CRLIBM ROUND_NEAR ROUND_UP ROUND_DOWN ROUND_ZERO CERNLIB HDF5 FIO LIBARCHIVE ROOT HASHLIB ZLIB DISTLIB)
+list(APPEND PREPRO_FLAGS_LIB CRLIBM ROUND_NEAR ROUND_UP ROUND_DOWN ROUND_ZERO CERNLIB HDF5 FIO ROOT HASHLIB ZLIB DISTLIB)
 list(APPEND PREPRO_FLAGS_COMPILE GFORTRAN IFORT NAGFOR WIN32 DEBUG MEMUSAGE)
 
 ###################################################################################################
@@ -307,6 +301,7 @@ list(APPEND FORT90_LIB
   end_sixtrack
   fma
   lielib
+  linear_optics
   mainarrays
   matrix_inv
   mod_alloc
@@ -399,18 +394,6 @@ foreach(loop IN LISTS DAFOR_F90)
   set_property(DIRECTORY APPEND PROPERTY ADDITIONAL_MAKE_CLEAN_FILES ${loop}a.f90)
 endforeach()
 
-if(LIBARCHIVE)
-  if(NOT ZLIB)
-    # Temporary compatibility hack for libArchive
-    # If we're not building ZLIB, we must include the one built with libArchive instead
-    add_library(zlibstatic STATIC IMPORTED)
-    set_target_properties(zlibstatic PROPERTIES IMPORTED_LOCATION ${CMAKE_SOURCE_DIR}/lib/zlib/install/lib/libz.a)
-  endif(NOT ZLIB)
-  add_library(libArchive_wrapper STATIC libArchive_Fwrapper.c libArchive_wrapper.c libArchive_wrapper.h)
-  target_compile_options(libArchive_wrapper PRIVATE -std=c99)
-  add_dependencies(libArchive_wrapper zlibstatic)
-endif(LIBARCHIVE)
-
 if(ZLIB)
   set(ZLIB_DIR ${CMAKE_SOURCE_DIR}/lib/zlib)
   include_directories(${ZLIB_DIR} ${CMAKE_CURRENT_BINARY_DIR}/zlib)
@@ -420,21 +403,6 @@ endif(ZLIB)
 ###################################################################################################
 # Checking if some requested packages exist
 ###################################################################################################
-
-if(G4COLLIMATION)
-  if(STATIC)
-    find_package(Geant4 REQUIRED static)
-  else()
-    find_package(Geant4 REQUIRED)
-  endif(STATIC)
-
-  #no error checking yet
-  message(STATUS "Geant4 include folders: ${Geant4_INCLUDE_DIRS}")
-  message(STATUS "Geant4 use file: ${Geant4_USE_FILE}")
-  message(STATUS "Geant4 libraries: ${Geant4_LIBRARIES}")
-  message(STATUS "Geant4 definitions: ${Geant4_DEFINITIONS}")
-  add_subdirectory(${CMAKE_SOURCE_DIR}/source/g4collimation)
-endif(G4COLLIMATION)
 
 ##Possible check for Root
 if(ROOT)
@@ -448,17 +416,36 @@ if(ROOT)
   if(NOT ROOT_FOUND)
     MESSAGE(FATAL_ERROR "Root enabled build requested but root was not found!")
   endif(NOT ROOT_FOUND)
+  MESSAGE(STATUS "ROOT include folders: ${ROOT_INCLUDE_DIRS}")
+  MESSAGE(STATUS "ROOT definitions:${ROOT_DEFINITIONS}")
+  MESSAGE(STATUS "ROOT CXX flags:  ${ROOT_CXX_FLAGS}")
   add_subdirectory(${CMAKE_SOURCE_DIR}/source/root_output)
 endif(ROOT)
 
-if(BUILD_TESTING OR BOINC OR LIBARCHIVE OR G4COLLIMATION OR CERNLIB)
+if(G4COLLIMATION)
+  if(STATIC)
+    find_package(Geant4 REQUIRED static)
+  else()
+    find_package(Geant4 REQUIRED)
+  endif(STATIC)
+
+  #no error checking yet
+  message(STATUS "Geant4 include folders: ${Geant4_INCLUDE_DIRS}")
+  message(STATUS "Geant4 use file: ${Geant4_USE_FILE}")
+  message(STATUS "Geant4 libraries: ${Geant4_LIBRARIES}")
+  message(STATUS "Geant4 definitions: ${Geant4_DEFINITIONS}")
+  message(STATUS "Geant4 CXX flags: ${Geant4_CXX_FLAGS}")
+  add_subdirectory(${CMAKE_SOURCE_DIR}/source/g4collimation)
+endif(G4COLLIMATION)
+
+if(BUILD_TESTING OR BOINC OR G4COLLIMATION OR CERNLIB)
 
   find_package(Threads REQUIRED)
   if(NOT Threads_FOUND)
     message(FATAL_ERROR "Could not find a thread library! This is required for your selected build configuration.")
   endif(NOT Threads_FOUND)
 
-endif(BUILD_TESTING OR BOINC OR LIBARCHIVE OR G4COLLIMATION OR CERNLIB)
+endif(BUILD_TESTING OR BOINC OR G4COLLIMATION OR CERNLIB)
 
 ###################################################################################################
 # Checking if requested options are compatible
@@ -499,8 +486,8 @@ if(BOINC)
   if(NOT CR)
     message(FATAL_ERROR "Building with BOINC requires CR enabled.")
   endif()
-  if(NOT LIBARCHIVE AND NOT ZLIB)
-    message(FATAL_ERROR "Building with BOINC requires LIBARCHIVE or ZLIB enabled.")
+  if(NOT ZLIB)
+    message(FATAL_ERROR "Building with BOINC requires ZLIB enabled.")
   endif()
 endif(BOINC)
 if(FLUKA)
@@ -1343,7 +1330,22 @@ if(BOINC)
 endif()
 
 if(FLUKA)
-  add_subdirectory(${CMAKE_SOURCE_DIR}/source/FlukaIO)
+  if(GIT_FOUND)
+    message(STATUS "Checking out FlukaIO submodule")
+    execute_process(
+      COMMAND ${GIT_EXECUTABLE} submodule update --init lib/FlukaIO
+      WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
+      RESULT_VARIABLE GIT_SUBMOD_RESULT
+      ERROR_QUIET
+    )
+    if(NOT GIT_SUBMOD_RESULT EQUAL "0")
+      message(FATAL_ERROR "git submodule update --init lib/FlukaIO failed with ${GIT_SUBMOD_RESULT}, please checkout submodules")
+    endif()
+  else()
+    message(FATAL_ERROR "The git submodule FlukaIO is not available. Please download it into lib/FlukaIO")
+  endif()
+
+  add_subdirectory(${CMAKE_SOURCE_DIR}/lib/FlukaIO)
   target_link_libraries(SixTrackCore flukaIO)
 endif(FLUKA)
 
@@ -1370,8 +1372,7 @@ if(PYTHIA)
 
 endif(PYTHIA)
 
-if(ZLIB AND NOT LIBARCHIVE)
-  # Build minizip as a lightweight alternative to libArchive
+if(ZLIB)
   set(MINIZIP_DIR  ${ZLIB_DIR}/contrib/minizip)
   set(MINIZIP_WRAP ${CMAKE_SOURCE_DIR}/source/minizip)
   set(MINIZIP_SOURCES ${MINIZIP_DIR}/zip.c ${MINIZIP_DIR}/unzip.c ${MINIZIP_DIR}/ioapi.c ${MINIZIP_WRAP}/utils.c ${MINIZIP_WRAP}/libminizip.c)
@@ -1383,50 +1384,10 @@ if(ZLIB AND NOT LIBARCHIVE)
   target_link_libraries(minizip zlibstatic)
   add_dependencies(SixTrackCore minizip)
   target_link_libraries(SixTrackCore minizip)
-endif(ZLIB AND NOT LIBARCHIVE)
+endif(ZLIB)
 
+# We need to build dafor before we build SixTrack, but crlibm and so on can be built at the same time.
 add_custom_target(copy_input_files)
-if(LIBARCHIVE)
-  add_custom_command(
-    OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/libArchive_Fwrapper.c POST_BUILD
-    COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_SOURCE_DIR}/source/libarchive_wr/libArchive_Fwrapper.c ${CMAKE_BINARY_DIR}/libArchive_Fwrapper.c
-    DEPENDS copy_input_files
-  )
-  add_custom_command(
-    OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/libArchive_wrapper.c POST_BUILD
-    COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_SOURCE_DIR}/source/libarchive_wr/libArchive_wrapper.c ${CMAKE_BINARY_DIR}/libArchive_wrapper.c
-    DEPENDS copy_input_files
-  )
-  add_custom_command(
-    OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/libArchive_wrapper.h POST_BUILD
-    COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_SOURCE_DIR}/source/libarchive_wr/libArchive_wrapper.h ${CMAKE_BINARY_DIR}/libArchive_wrapper.h
-    DEPENDS copy_input_files
-  )
-
-  include_directories(${LIBARCHIVE_SOURCE_DIR}/libarchive)
-  include_directories(${CMAKE_CURRENT_BINARY_DIR})
-
-  #A very small but convenient test code for debugging libArchive.
-  add_executable(libArchiveTester ${CMAKE_SOURCE_DIR}/source/libarchive_wr/libArchiveTester.cpp)
-  target_link_libraries(libArchiveTester libArchive_wrapper)
-
-  #See also further down for SixTestWrapper linking
-  target_link_libraries(SixTrackCore libArchive_wrapper)
-  add_library(libarchive STATIC IMPORTED)
-  if(WIN32)
-    set_target_properties(libarchive PROPERTIES IMPORTED_LOCATION ${LIBARCHIVE_BUILD_DIR}/libarchive/libarchive_static.a)
-    add_definitions( -DLIBARCHIVE_STATIC )
-  else()
-    set_target_properties(libarchive PROPERTIES IMPORTED_LOCATION ${LIBARCHIVE_BUILD_DIR}/libarchive/libarchive.a)
-  endif()
-
-  target_link_libraries(SixTrackCore libarchive zlibstatic Threads::Threads)
-  target_link_libraries(libArchiveTester libarchive zlibstatic Threads::Threads)
-
-  add_definitions( -DLIBARCHIVE )
-endif()
-
-#We need to build dafor before we build SixTrack, but crlibm and so on can be built at the same time.
 add_dependencies(SixTrackCore copy_input_files generate_input)
 add_dependencies(SixTrackCR SixTrackCore)
 if(SIXDA)
@@ -1594,9 +1555,6 @@ if(BUILD_TESTING)
 
   # The Test Wrapper
   add_executable(SixTestWrapper ${CMAKE_SOURCE_DIR}/test/tools/SixTestWrapper.cpp)
-  if(LIBARCHIVE)
-    target_link_libraries(SixTestWrapper libArchive_wrapper libarchive zlibstatic Threads::Threads)
-  endif()
   set_target_properties(SixTestWrapper PROPERTIES LINK_FLAGS "${CMAKE_CXX_LINKER_FLAGS}")
 
   target_link_libraries(SixTestWrapper Threads::Threads)

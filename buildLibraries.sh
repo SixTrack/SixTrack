@@ -8,7 +8,6 @@ echo ""
 
 ALL=true
 BOINC=false
-LIBARCH=false
 ZLIB=false
 HDF5=false
 PYTHIA=false
@@ -17,10 +16,6 @@ NAFF=false
 for ARG in "$@"; do
     if [[ $ARG == "boinc" ]]; then
         BOINC=true
-    elif [[ $ARG == "libarchive" ]]; then
-        LIBARCH=true
-        ZLIB=true
-        echo "Libarchive depends on zlib, zlib enabled as well."
     elif [[ $ARG == "hdf5" ]]; then
         HDF5=true
         ZLIB=true
@@ -47,18 +42,10 @@ if [ $BOINC = true ] || [ $ALL = true ]; then
     cd ..
 fi
 
-# If building libArchive or HDF5, ZLib must be built first!
+# If building HDF5, ZLib must be built first!
 if [ $ZLIB = true ] || [ $ALL = true ]; then
     cd lib
     source ./buildZlib.sh
-    cd ..
-fi
-
-if [ $LIBARCH = true ] || [ $ALL = true ]; then
-    git submodule init lib/libarchive
-    git submodule update lib/libarchive
-    cd lib
-    ./buildLibarchive.sh
     cd ..
 fi
 
