@@ -2738,17 +2738,12 @@ subroutine betalf(dpp,qw)
       if(abs(fak1).gt.pieni) then
         rcw1(1)=am(1,2)-(am(1,3)*am(3,2)+am(1,4)*am(4,2))/fak1
         ycw1(1)=zero
-        rcw1(2)=((am(1,3)*am(3,1)+am(1,4)*am(4,1))+detb)/fak1-(am(1,1)  &
-     &-rclam1)
+        rcw1(2)=((am(1,3)*am(3,1)+am(1,4)*am(4,1))+detb)/fak1-(am(1,1)-rclam1)
         ycw1(2)=yclam1
-      rcw1(3)=-one*((am(3,1)+am(2,4))*rcw1(1)+(am(3,2)-am(1,4))*rcw1(2))&
-     &/fak1
-      ycw1(3)=-one*((am(3,1)+am(2,4))*ycw1(1)+(am(3,2)-am(1,4))*ycw1(2))&
-     &/fak1
-      rcw1(4)=-one*((am(4,1)-am(2,3))*rcw1(1)+(am(4,2)+am(1,3))*rcw1(2))&
-     &/fak1
-      ycw1(4)=-one*((am(4,1)-am(2,3))*ycw1(1)+(am(4,2)+am(1,3))*ycw1(2))&
-     &/fak1
+        rcw1(3)=-one*((am(3,1)+am(2,4))*rcw1(1)+(am(3,2)-am(1,4))*rcw1(2))/fak1
+        ycw1(3)=-one*((am(3,1)+am(2,4))*ycw1(1)+(am(3,2)-am(1,4))*ycw1(2))/fak1
+        rcw1(4)=-one*((am(4,1)-am(2,3))*rcw1(1)+(am(4,2)+am(1,3))*rcw1(2))/fak1
+        ycw1(4)=-one*((am(4,1)-am(2,3))*ycw1(1)+(am(4,2)+am(1,3))*ycw1(2))/fak1
       else
         rcw1(1)=am(1,2)
         ycw1(1)=zero
@@ -2763,17 +2758,12 @@ subroutine betalf(dpp,qw)
       if(abs(fak2).gt.pieni) then
         rcw2(3)=am(3,4)-(am(3,1)*am(1,4)+am(3,2)*am(2,4))/fak2
         ycw2(3)=zero
-        rcw2(4)=((am(3,1)*am(1,3)+am(3,2)*am(2,3))+detc)/fak2-(am(3,3)  &
-     &-rclam2)
+        rcw2(4)=((am(3,1)*am(1,3)+am(3,2)*am(2,3))+detc)/fak2-(am(3,3)-rclam2)
         ycw2(4)=yclam2
-      rcw2(1)=-one*((am(1,3)+am(4,2))*rcw2(3)+(am(1,4)-am(3,2))*rcw2(4))&
-     &/fak2
-      ycw2(1)=-one*((am(1,3)+am(4,2))*ycw2(3)+(am(1,4)-am(3,2))*ycw2(4))&
-     &/fak2
-      rcw2(2)=-one*((am(2,3)-am(4,1))*rcw2(3)+(am(2,4)+am(3,1))*rcw2(4))&
-     &/fak2
-      ycw2(2)=-one*((am(2,3)-am(4,1))*ycw2(3)+(am(2,4)+am(3,1))*ycw2(4))&
-     &/fak2
+        rcw2(1)=-one*((am(1,3)+am(4,2))*rcw2(3)+(am(1,4)-am(3,2))*rcw2(4))/fak2
+        ycw2(1)=-one*((am(1,3)+am(4,2))*ycw2(3)+(am(1,4)-am(3,2))*ycw2(4))/fak2
+        rcw2(2)=-one*((am(2,3)-am(4,1))*rcw2(3)+(am(2,4)+am(3,1))*rcw2(4))/fak2
+        ycw2(2)=-one*((am(2,3)-am(4,1))*ycw2(3)+(am(2,4)+am(3,1))*ycw2(4))/fak2
       else
         rcw2(3)=am(3,4)
         ycw2(3)=zero
@@ -2975,14 +2965,10 @@ subroutine blockdis(aeg,bl1eg,bl2eg)
             g(j,l,2)=g(j-1,l,2)*aeg(n,l,1)+g(j-1,l,4)*aeg(n,l,2)
             g(j,l,3)=g(j-1,l,1)*aeg(n,l,3)+g(j-1,l,3)*aeg(n,l,4)
             g(j,l,4)=g(j-1,l,2)*aeg(n,l,3)+g(j-1,l,4)*aeg(n,l,4)
-            h(j,l,5)=(h(j-1,l,5)*aeg(i,l,1)+h(j-1,l,6)*aeg(i,l,2))+aeg  &
-     &(i,l,5)
-            h(j,l,6)=(h(j-1,l,5)*aeg(i,l,3)+h(j-1,l,6)*aeg(i,l,4))+aeg  &
-     &(i,l,6)
-            g(j,l,5)=(g(j-1,l,5)*aeg(n,l,1)+g(j-1,l,6)*aeg(n,l,2))+aeg  &
-     &(n,l,5)
-            g(j,l,6)=(g(j-1,l,5)*aeg(n,l,3)+g(j-1,l,6)*aeg(n,l,4))+aeg  &
-     &(n,l,6)
+            h(j,l,5)=(h(j-1,l,5)*aeg(i,l,1)+h(j-1,l,6)*aeg(i,l,2))+aeg(i,l,5)
+            h(j,l,6)=(h(j-1,l,5)*aeg(i,l,3)+h(j-1,l,6)*aeg(i,l,4))+aeg(i,l,6)
+            g(j,l,5)=(g(j-1,l,5)*aeg(n,l,1)+g(j-1,l,6)*aeg(n,l,2))+aeg(n,l,5)
+            g(j,l,6)=(g(j-1,l,5)*aeg(n,l,3)+g(j-1,l,6)*aeg(n,l,4))+aeg(n,l,6)
           end do
         end do
 
@@ -3203,15 +3189,11 @@ subroutine chromda
             edcor(1)=ed(iq1)
             edcor(2)=ed(iq2)
             if(ncorr.eq.1) then
-              write(lout,10010) cro(1),corr(1,1)*c1e3,cro(2),           &
-     &corr(1,2)*c1e3,ncorr-1,cor
-              write(lout,10030) edcor1,ed(iq1),bez(iq1),edcor2,ed(iq2), &
-     &bez(iq2)
+              write(lout,10010) cro(1),corr(1,1)*c1e3,cro(2),corr(1,2)*c1e3,ncorr-1,cor
+              write(lout,10030) edcor1,ed(iq1),bez(iq1),edcor2,ed(iq2),bez(iq2)
             else
-              write(lout,10020) cro(1),corr(1,1)*c1e3,cro(2),           &
-     &corr(1,2)*c1e3,ncorr-1,cor
-              write(lout,10030) edcor1,ed(iq1),bez(iq1),edcor2,ed(iq2), &
-     &bez(iq2)
+              write(lout,10020) cro(1),corr(1,1)*c1e3,cro(2),corr(1,2)*c1e3,ncorr-1,cor
+              write(lout,10030) edcor1,ed(iq1),bez(iq1),edcor2,ed(iq2),bez(iq2)
             endif
           else
             write(lout,10040) ncorr-1
@@ -3227,11 +3209,9 @@ subroutine chromda
       chromc(2)=corr(1,2)
       if(ncorr.eq.itcro+1) write(lout,10060) itcro
       if(ncorr.eq.1) then
-        write(lout,10010) cro(1),corr(1,1)*c1e3,cro(2),                 &
-     &corr(1,2)*c1e3,ncorr-1,cor
+        write(lout,10010) cro(1),corr(1,1)*c1e3,cro(2),corr(1,2)*c1e3,ncorr-1,cor
       else
-        write(lout,10020) cro(1),corr(1,1)*c1e3,cro(2),corr(1,2)*c1e3,  &
-     &ncorr-1,cor
+        write(lout,10020) cro(1),corr(1,1)*c1e3,cro(2),corr(1,2)*c1e3,ncorr-1,cor
       endif
       write(lout,10030) edcor1,ed(iq1),bez(iq1),edcor2,ed(iq2),bez(iq2)
 !-----------------------------------------------------------------------
@@ -3276,8 +3256,7 @@ subroutine clorb(dpp)
 
       implicit none
       integer ierr,ii,l,ll
-      real(kind=fPrec) am,cor,dclo,dclop,dcx,dcxp,dcz,dczp,det,dpp,dx,  &
-     &dy,x0,x1,y0,y1
+      real(kind=fPrec) am,cor,dclo,dclop,dcx,dcxp,dcz,dczp,det,dpp,dx,dy,x0,x1,y0,y1
       dimension x1(2),y1(2),x0(2),y0(2)
       dimension dclo(2),dclop(2)
       dimension dx(2),dy(2),am(4,4)
@@ -3299,8 +3278,7 @@ subroutine clorb(dpp)
         dcxp=abs(dy(1))
         dcz=abs(dx(2))
         dczp=abs(dy(2))
-        if(dcx.le.dma.and.dcz.le.dma.and.dcxp.le.dmap.and.dczp.le.dmap) &
-     &goto 50
+        if(dcx.le.dma.and.dcz.le.dma.and.dcxp.le.dmap.and.dczp.le.dmap) goto 50
 
         do l=1,2
           x(1,l)=clo(l)
@@ -3379,8 +3357,7 @@ subroutine clorb2(dpp)
         dcxp=abs(dy(1))
         dcz=abs(dx(2))
         dczp=abs(dy(2))
-        if(dcx.le.dma.and.dcz.le.dma.and.dcxp.le.dmap.and.dczp.le.dmap) &
-     &return
+        if(dcx.le.dma.and.dcz.le.dma.and.dcxp.le.dmap.and.dczp.le.dmap) return
 
         do l=1,2
           x(1,l)=clo(l)
@@ -4162,8 +4139,7 @@ subroutine corrorb
       nlin=0
 
       do i=1,il
-        if(kp(i).eq.3.or.kp(i).eq.4.or. kp(i).eq.-3.or.kp(i).eq.-4) bezl&
-     &(i)=bez(i)
+        if(kp(i).eq.3.or.kp(i).eq.4.or. kp(i).eq.-3.or.kp(i).eq.-4) bezl(i)=bez(i)
         nlin=nlin+1
       end do
 
@@ -4204,8 +4180,7 @@ subroutine corrorb
         do i=1,nhmoni
           b(i)=bclorb(i,1)
           do j=1,nhcorr
-      ar(i,j)=((sqrt(betam(i,1)*betac(j,1))*cos_mb(abs(pam(i,1)-pac     &
-     &(j,1))-qwc1(1)*pi))*c1e3)/(two*sin_mb(qwc1(1)*pi))
+            ar(i,j)=((sqrt(betam(i,1)*betac(j,1))*cos_mb(abs(pam(i,1)-pac(j,1))-qwc1(1)*pi))*c1e3)/(two*sin_mb(qwc1(1)*pi))
           end do
         end do
 
@@ -4218,8 +4193,7 @@ subroutine corrorb
         do i=1,nvmoni
           b(i)=bclorb(i,2)
           do j=1,nvcorr
-      ar(i,j)=((sqrt(betam(i,2)*betac(j,2))*cos_mb(abs(pam(i,2)-pac     &
-     &(j,2))-qwc1(2)*pi))*c1e3)/(two*sin_mb(qwc1(2)*pi))
+            ar(i,j)=((sqrt(betam(i,2)*betac(j,2))*cos_mb(abs(pam(i,2)-pac(j,2))-qwc1(2)*pi))*c1e3)/(two*sin_mb(qwc1(2)*pi))
           end do
         end do
 
@@ -4329,9 +4303,7 @@ subroutine corrorb
           write(lout,10150) ii,rmsx,rmsz
           write(lout,10160) ii,ptpx,ptpz
           write(lout,"(a)") ""
-          if(abs(real(rmsx,fPrec)-sigma0(1)).lt.dsi.and.                      &
-     &       abs(real(rmsz,fPrec)-sigma0(2)).lt.dsi)                          &
-     &goto 190
+          if(abs(real(rmsx,fPrec)-sigma0(1)).lt.dsi.and.abs(real(rmsz,fPrec)-sigma0(2)).lt.dsi) goto 190
   180   continue
       endif
 
@@ -4437,8 +4409,7 @@ subroutine putorb(xinc,nx,npflag)
         if(kzz.eq.15) goto 60
         if(iorg.lt.0) mzu(i)=izu
         izu=mzu(i)+1
-        if(kpz.eq.4.and.kzz.eq.1.and.npflag.eq.1.or.                    &
-     &kpz.eq.-4.and.kzz.eq.-1.and.npflag.eq.2) then
+        if(kpz.eq.4.and.kzz.eq.1.and.npflag.eq.1.or.kpz.eq.-4.and.kzz.eq.-1.and.npflag.eq.2) then
           kcorr=kcorr+1
           do 10 j=1,ncorru
             if(nx(j).eq.kcorr) then
@@ -4446,8 +4417,7 @@ subroutine putorb(xinc,nx,npflag)
               ckickold=sm(ix)+zfz(izu)*ek(ix)
               zfz(izu)=zfz(izu)+real(xinc(j),fPrec)/ek(ix)
               ckicknew=sm(ix)+zfz(izu)*ek(ix)
-              write(lout,10000) kcorru,kcorr,bez(ix), ckickold*c1e3,    &
-     &ckicknew*c1e3
+              write(lout,10000) kcorru,kcorr,bez(ix),ckickold*c1e3,ckicknew*c1e3
             endif
    10     continue
         endif
@@ -4471,11 +4441,9 @@ subroutine putorb(xinc,nx,npflag)
                 if(nx(j).eq.kcorr) then
                   kcorru=kcorru+1
                   ckickold=ed(ix)*(ak0(im,k)+zfz(izu)* aka(im,k))/r0a
-           zfz(izu)=zfz(izu)+(c1e3*(real(xinc(j),fPrec)/(r0a*ed(ix))-ak0&
-     &(im,k)))/aka(im,k)
+                  zfz(izu)=zfz(izu)+(c1e3*(real(xinc(j),fPrec)/(r0a*ed(ix))-ak0(im,k)))/aka(im,k)
                   ckicknew=(ed(ix)*(ak0(im,k)+zfz(izu)* aka(im,k)))/r0a
-                  write(lout,10000) kcorru,kcorr,bez(ix), ckickold,     &
-     &ckicknew
+                  write(lout,10000) kcorru,kcorr,bez(ix),ckickold,ckicknew
                 endif
    30         continue
             endif
@@ -4486,11 +4454,9 @@ subroutine putorb(xinc,nx,npflag)
                 if(nx(j).eq.kcorr) then
                   kcorru=kcorru+1
                   ckickold=(ed(ix)*(bk0(im,k)+zfz(izu)* bka(im,k)))/r0a
-           zfz(izu)=zfz(izu)+(c1e3*(real(xinc(j),fPrec)/(r0a*ed(ix))-bk0&
-     &(im,k)))/bka(im,k)
+                  zfz(izu)=zfz(izu)+(c1e3*(real(xinc(j),fPrec)/(r0a*ed(ix))-bk0(im,k)))/bka(im,k)
                   ckicknew=(ed(ix)*(bk0(im,k)+zfz(izu)* bka(im,k)))/r0a
-                  write(lout,10000) kcorru,kcorr,bez(ix), ckickold,     &
-     &ckicknew
+                  write(lout,10000) kcorru,kcorr,bez(ix),ckickold,ckicknew
                 endif
    40         continue
             endif
@@ -4500,8 +4466,7 @@ subroutine putorb(xinc,nx,npflag)
    60 continue
 !-----------------------------------------------------------------------
       return
-10000 format(t5,i4,i4,' ',a16,'  OLD: ',d14.7,' MRAD   NEW: ' ,d14.7,   &
-     &' MRAD')
+10000 format(t5,i4,i4,' ',a16,'  OLD: ',d14.7,' MRAD   NEW: ' ,d14.7,' MRAD')
 end subroutine putorb
 
 subroutine orbinit
@@ -4582,8 +4547,7 @@ subroutine htls(a,b,m,n,x,ipiv,r,iter,rms,ptp)
       use mathlib_bouncer
       use crcoall
       implicit none
-      integer i,iii,ij1,ip,ipiv,iter,j,j1,k,k2,k3,ki,kk,kpiv,m,n,ncor1, &
-     &nmon1
+      integer i,iii,ij1,ip,ipiv,iter,j,j1,k,k2,k3,ki,kk,kpiv,m,n,ncor1,nmon1
       real(kind=fPrec) a,b,piv,pivt,ptop,r,rho,rmss,x,xiter,xptp,xrms
       real(kind=fPrec) rms,ptp
       real(kind=fPrec) g,h,sig,beta
@@ -5148,8 +5112,8 @@ subroutine phasad(dpp,qwc)
   use mod_common_track
   implicit none
   integer i,ikpv,im,ium,ix,izu,j,jj,jk,jm,k,kpv,kpz,kzz,l,l1,ll,nmz,dj
-  real(kind=fPrec) aa,alfa,bb,benkr,beta,ci,cikve,cr,crkve,crkveuk,dphi,dpp,dppi,dpr,&
-                   dyy1,dyy2,ekk,phi,phibf,pie,puf,qu,qv,qw,qwc,qxsa,qxse,r0,r0a,t,xl,xs,zl,zs,quz,qvz
+  real(kind=fPrec) aa,alfa,bb,benkr,beta,ci,cikve,cr,crkve,crkveuk,dphi,dpp,dppi,dpr,dyy1,dyy2,ekk, &
+    phi,phibf,pie,puf,qu,qv,qw,qwc,qxsa,qxse,r0,r0a,t,xl,xs,zl,zs,quz,qvz
 #ifdef TILT
   real(kind=fPrec) dyy11,qu1,tiltck,tiltsk
 #endif
@@ -5640,7 +5604,7 @@ subroutine qmod0
       implicit none
       integer i,ierr,ii,iq1,iq2,iq3,iql,j,l,n,nite
       real(kind=fPrec) a11,a12,a13,a21,a22,a23,a31,a32,a33,aa,aa1,bb,   &
-     &dpp,dq1,dq2,dq3,qwc,qx,qz,sens,sm0,sqx,sqxh,sqz
+        dpp,dq1,dq2,dq3,qwc,qx,qz,sens,sm0,sqx,sqxh,sqz
       dimension sens(3,5),aa(3,3),bb(3),qx(3),qz(3),sm0(3),qwc(3)
       dimension aa1(2,2)
       save
@@ -5816,22 +5780,18 @@ subroutine qmod0
           sens(3,5)=qwc(3)
           write(lout,10020) qw0(1),qwc(1),qw0(2),qwc(2),qw0(3),qwc(3)
           if (abs(el(iq1)).le.pieni) then
-            write(lout,10040) sm0(1),ed(iq1),bez(iq1),sm0(2),ed(iq2),bez&
-     &(iq2),sm0(3),ed(iq3),bez(iq3)
+            write(lout,10040) sm0(1),ed(iq1),bez(iq1),sm0(2),ed(iq2),bez(iq2),sm0(3),ed(iq3),bez(iq3)
           else
-            write(lout,10040) sm0(1),ek(iq1),bez(iq1),sm0(2),ek(iq2),bez&
-     &(iq2),sm0(3),ek(iq3),bez(iq3)
+            write(lout,10040) sm0(1),ek(iq1),bez(iq1),sm0(2),ek(iq2),bez(iq2),sm0(3),ek(iq3),bez(iq3)
           endif
           write(lout,10080) sqx,sqz,sqxh
           write(lout,10060) a11,a12,a13,a21,a22,a23,a31,a32,a33
         else
           write(lout,10030) qw0(1),qwc(1),qw0(2),qwc(2)
           if (abs(el(iq1)).le.pieni) then
-            write(lout,10050) sm0(1),ed(iq1),bez(iq1),sm0(2),ed(iq2),bez&
-     &(iq2)
+            write(lout,10050) sm0(1),ed(iq1),bez(iq1),sm0(2),ed(iq2),bez(iq2)
           else
-            write(lout,10050) sm0(1),ek(iq1),bez(iq1),sm0(2),ek(iq2),bez&
-     &(iq2)
+            write(lout,10050) sm0(1),ek(iq1),bez(iq1),sm0(2),ek(iq2),bez(iq2)
           endif
           write(lout,10090) sqx,sqz
           write(lout,10070) a11,a12,a21,a22
@@ -6004,26 +5964,18 @@ subroutine qmodda(mm,qwc)
                 edcor(2)=ek(iq(2))
               endif
               if(ncorr.eq.1) then
-                write(lout,10020) nd2,qw0(1),qwc(1),qw0(2),qwc(2),      &
-     &ncorr-1,                                                          &
-     &cor
+                write(lout,10020) nd2,qw0(1),qwc(1),qw0(2),qwc(2),ncorr-1,cor
               else
-                write(lout,10030) nd2,qw0(1),qwc(1),qw0(2),qwc(2),      &
-     &ncorr-1,                                                          &
-     &cor
+                write(lout,10030) nd2,qw0(1),qwc(1),qw0(2),qwc(2),ncorr-1,cor
               endif
               if(el(iq(1)).le.pieni.and.el(iq(2)).le.pieni) then
-                write(lout,10040) edcor1,ed(iq(1)),bez(iq(1)),edcor2,   &
-     &ed(iq(2)),bez(iq(2))
+                write(lout,10040) edcor1,ed(iq(1)),bez(iq(1)),edcor2,ed(iq(2)),bez(iq(2))
               elseif(el(iq(1)).le.pieni.and.el(iq(2)).gt.pieni) then
-                write(lout,10040) edcor1,ed(iq(1)),bez(iq(1)),edcor2,   &
-     &ek(iq(2)),bez(iq(2))
+                write(lout,10040) edcor1,ed(iq(1)),bez(iq(1)),edcor2,ek(iq(2)),bez(iq(2))
               elseif(el(iq(1)).gt.pieni.and.el(iq(2)).le.pieni) then
-                write(lout,10040) edcor1,ek(iq(1)),bez(iq(1)),edcor2,   &
-     &ed(iq(2)),bez(iq(2))
+                write(lout,10040) edcor1,ek(iq(1)),bez(iq(1)),edcor2,ed(iq(2)),bez(iq(2))
               else
-                write(lout,10040) edcor1,ek(iq(1)),bez(iq(1)),edcor2,   &
-     &ek(iq(2)),bez(iq(2))
+                write(lout,10040) edcor1,ek(iq(1)),bez(iq(1)),edcor2,ek(iq(2)),bez(iq(2))
               endif
             else
               write(lout,10050) nd2,ncorr-1
@@ -6063,17 +6015,13 @@ subroutine qmodda(mm,qwc)
           write(lout,10030) nd2,qw0(1),qwc(1),qw0(2),qwc(2),ncorr-1,cor
         endif
         if(el(iq(1)).le.pieni.and.el(iq(2)).le.pieni) then
-          write(lout,10040)edcor1,ed(iq(1)),bez(iq(1)),edcor2,ed(iq(2)),&
-     &bez(iq(2))
+          write(lout,10040)edcor1,ed(iq(1)),bez(iq(1)),edcor2,ed(iq(2)),bez(iq(2))
         elseif(el(iq(1)).le.pieni.and.el(iq(2)).gt.pieni) then
-          write(lout,10040)edcor1,ed(iq(1)),bez(iq(1)),edcor2,ek(iq(2)),&
-     &bez(iq(2))
+          write(lout,10040)edcor1,ed(iq(1)),bez(iq(1)),edcor2,ek(iq(2)),bez(iq(2))
         elseif(el(iq(1)).gt.pieni.and.el(iq(2)).le.pieni) then
-          write(lout,10040)edcor1,ek(iq(1)),bez(iq(1)),edcor2,ed(iq(2)),&
-     &bez(iq(2))
+          write(lout,10040)edcor1,ek(iq(1)),bez(iq(1)),edcor2,ed(iq(2)),bez(iq(2))
         else
-          write(lout,10040)edcor1,ek(iq(1)),bez(iq(1)),edcor2,ek(iq(2)),&
-     &bez(iq(2))
+          write(lout,10040)edcor1,ek(iq(1)),bez(iq(1)),edcor2,ek(iq(2)),bez(iq(2))
         endif
       endif
       ncorru=ncorruo
@@ -7546,33 +7494,26 @@ subroutine rmod(dppr)
         end do
 
   240   write(lout,10100)
-        write(lout,10110)bez(irr(1)),sn(1),ed(irr(1)),bez(irr(2)),sn(2),&
-     &ed(irr(2))
+        write(lout,10110)bez(irr(1)),sn(1),ed(irr(1)),bez(irr(2)),sn(2),ed(irr(2))
         if(nre.eq.1) goto 260
 
         do i=2,nre
           i2=2*i
           i1=i2-1
-        write(lout,10110)bez(irr(i1)),sn(i1),ed(irr(i1)),bez(irr(i2)),sn&
-     &(i2), ed(irr(i2))
+        write(lout,10110)bez(irr(i1)),sn(i1),ed(irr(i1)),bez(irr(i2)),sn(i2), ed(irr(i2))
         end do
 
   260   write(lout,10070)
   270   if(nch.eq.0) goto 280
         write(lout,10120) sen(j3),ss(j3),sen(j4),ss(j4)
-        write(lout,10110)bez(irr(j3)),sn(j3),ed(irr(j3)),bez(irr(j4)),sn&
-     &(j4), ed(irr(j4))
+        write(lout,10110)bez(irr(j3)),sn(j3),ed(irr(j3)),bez(irr(j4)),sn(j4), ed(irr(j4))
         write(lout,10070)
   280   if(nqc.eq.0) goto 290
         write(lout,10130) qw0(1),qwc(1),qw0(2),qwc(2)
         if (abs(el(irr(j1))).le.pieni) then
-          write(lout,10140) sn(j1),ed(irr(j1)),irr(j1),sn(j2),          &
-     &ed(irr(j2)),                                                      &
-     &irr(j2)
+          write(lout,10140) sn(j1),ed(irr(j1)),irr(j1),sn(j2),ed(irr(j2)),irr(j2)
         else
-          write(lout,10140) sn(j1),ek(irr(j1)),irr(j1),sn(j2),          &
-     &ek(irr(j2)),                                                      &
-     &irr(j2)
+          write(lout,10140) sn(j1),ek(irr(j1)),irr(j1),sn(j2),ek(irr(j2)),irr(j2)
         endif
 
   290   do i=1,j2
@@ -7899,8 +7840,7 @@ subroutine subre(dpp)
         write(lout,10030)
         write(lout,10040)
         write(lout,10030)
-        write(lout,10010) nr,'START   ',zero,zero,(beta(l),alfa(l),phi(l),&
-                          di0(l),dip0(l),clo0(l),clop0(l),l=1,2)
+        write(lout,10010) nr,'START   ',zero,zero,(beta(l),alfa(l),phi(l),di0(l),dip0(l),clo0(l),clop0(l),l=1,2)
 
 !--EP=EMITTANCE IN PI*MM*MRAD
         ep(1)=tam1**2/beta(1)
@@ -9200,8 +9140,7 @@ subroutine subsea(dpp)
         b(2,3)=b2*sb1
         if(nta.gt.4) goto 540
         if(mpe.eq.3.or.(mpe.eq.9.and.nmz.le.3)) goto 650
-        if(mx.eq.2.or.mx.eq.3.or.mx.eq.4 .or.mx.eq.5.or.mx.eq.6.or.mx.eq&
-     &.7) goto 540
+        if(mx.eq.2.or.mx.eq.3.or.mx.eq.4 .or.mx.eq.5.or.mx.eq.6.or.mx.eq.7) goto 540
 
 !-----------------------------------------------------------------------
 !  REGULAR-OCTUPOLE;MULTIPOLES UP TO 9-TH ORDER
@@ -9221,8 +9160,7 @@ subroutine subsea(dpp)
         b(3,3)=b1*b2
         if(nta.gt.5) goto 560
         if(mpe.eq.4.or.(mpe.eq.9.and.nmz.le.4)) goto 650
-        if(mx.eq.3.or.mx.eq.4 .or.mx.eq.5.or.mx.eq.6.or.mx.eq.7)        &
-     &goto 560
+        if(mx.eq.3.or.mx.eq.4 .or.mx.eq.5.or.mx.eq.6.or.mx.eq.7) goto 560
 
 !-----------------------------------------------------------------------
 !  REGULAR-DEKAPOLE;MULTIPOLES UP TO 9-TH ORDER
@@ -9347,10 +9285,8 @@ subroutine subsea(dpp)
 !--RE=DISTANCE FROM THE RESONANCE
             re(np,nv)=re1-real(ip(np,nv),fPrec)
             res=re(np,nv)/radi
-           chy(np,nv)=cos_mb((real(nn1,fPrec)*phi(1)+real(n2,fPrec)*    &
-     &phi(2))-res*etl)
-           shy(np,nv)=sin_mb((real(nn1,fPrec)*phi(1)+real(n2,fPrec)*    &
-     &phi(2))-res*etl)
+           chy(np,nv)=cos_mb((real(nn1,fPrec)*phi(1)+real(n2,fPrec)*phi(2))-res*etl)
+           shy(np,nv)=sin_mb((real(nn1,fPrec)*phi(1)+real(n2,fPrec)*phi(2))-res*etl)
   660     continue
   670   continue
         do 730 np=nta,mpe
@@ -9475,8 +9411,7 @@ subroutine subsea(dpp)
             nf1=nn1+i
             nf3=nkk-i+1
             nf4=nf3+nn2
-            vdt2=vdt1*e(nv1,nv2)/                                       &
-     &real(nnf(nf1)*nnf(i)*nnf(nf3)*nnf(nf4),fPrec)
+            vdt2=vdt1*e(nv1,nv2)/real(nnf(nf1)*nnf(i)*nnf(nf3)*nnf(nf4),fPrec)
             vdt3=real(nn2,fPrec)*ea+real(nn1,fPrec)*eb
             if(n2.ge.0) then
               vdt3=real(n2*nv21,fPrec)*ea+real(nn1*nv11,fPrec)*eb
@@ -9625,21 +9560,16 @@ subroutine decoup
           ss(6)=qwc(2)
         endif
         write(lout,10010)
-        write(lout,10020) no,sen(1),ss(1),sen(2),ss(2),sen(3),ss(3), sen&
-     &(4),ss(4)
-        write(lout,10030) bez(nskew(1)),sn(1),ed(nskew(1)),             &
-     &bez(nskew(2)),sn                                                  &
-     &(2),ed(nskew(2)),bez(nskew(3)),sn(3),ed(nskew(3)), bez            &
-     &(nskew(4)),sn(4),ed(nskew(4))
+        write(lout,10020) no,sen(1),ss(1),sen(2),ss(2),sen(3),ss(3),sen(4),ss(4)
+        write(lout,10030) bez(nskew(1)),sn(1),ed(nskew(1)),bez(nskew(2)),sn(2), &
+          ed(nskew(2)),bez(nskew(3)),sn(3),ed(nskew(3)),bez(nskew(4)),sn(4),ed(nskew(4))
         if(iskew.eq.1) then
           write(lout,10010)
           write(lout,10040) qwsk(1),qwc(1),qwsk(2),qwc(2)
           if (abs(el(nskew(5))).le.pieni) then
-            write(lout,10060) sn(5),ed(nskew(5)),nskew(5),sn(6),ed      &
-     &(nskew(6)), nskew(6)
+            write(lout,10060) sn(5),ed(nskew(5)),nskew(5),sn(6),ed(nskew(6)),nskew(6)
           else
-            write(lout,10060) sn(5),ek(nskew(5)),nskew(5),sn(6),ek      &
-     &(nskew(6)), nskew(6)
+            write(lout,10060) sn(5),ek(nskew(5)),nskew(5),sn(6),ek(nskew(6)),nskew(6)
           endif
         else if(iskew.eq.2) then
           write(lout,10010)
