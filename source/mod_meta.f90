@@ -7,18 +7,20 @@
 module mod_meta
 
   use floatPrecision
+  use, intrinsic :: iso_fortran_env, only : int64
 
   implicit none
 
-  character(len=12), parameter     :: meta_fileName = "sim_meta.dat"
-  integer,           private, save :: meta_fileUnit
-  logical,           public,  save :: meta_isActive = .false.
+  character(len=12),   parameter     :: meta_fileName = "sim_meta.dat"
+  integer,             private, save :: meta_fileUnit
+  logical,             public,  save :: meta_isActive = .false.
 
   ! Collected MetaData
-  integer,           public,  save :: meta_nPartInit = 0   ! Initial number of particles
-  integer,           public,  save :: meta_nPartTurn = 0   ! Counted in tracking routines
-  integer,           public,  save :: meta_nRestarts = 0   ! Number of C/Rs
-  real(kind=fPrec),  public,  save :: meta_sympCheck = 0.0 ! Symplecticity check
+  integer,             public,  save :: meta_nPartInit = 0   ! Initial number of particles
+  integer,             public,  save :: meta_nPartTurn = 0   ! Particle-turns: Counted in tracking routines
+  integer(kind=int64), public,  save :: meta_nPTurnEle = 0   ! Particle-turn-eklements: Counted in tracking routines
+  integer,             public,  save :: meta_nRestarts = 0   ! Number of C/Rs
+  real(kind=fPrec),    public,  save :: meta_sympCheck = 0.0 ! Symplecticity check
 
   ! Meta Write Interface
   interface meta_write

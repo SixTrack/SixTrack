@@ -233,7 +233,9 @@ end subroutine boinc_postProgress
 subroutine boinc_summary(exitStatus)
 
   use mod_time
+  use mod_meta
   use mod_units
+  use mod_common
   use mod_version
 
   integer, intent(in) :: exitStatus
@@ -252,6 +254,11 @@ subroutine boinc_summary(exitStatus)
   write(boinc_sumBuffer(18:18),"(i1.1)") exitStatus
   write(boinc_sumBuffer(20:24),"(i5.5)") lenVer
   write(boinc_sumBuffer(26:31),"(i6.6)") numvers
+  write(boinc_sumBuffer(33:40),"(i8.8)") numl
+  write(boinc_sumBuffer(42:49),"(i8.8)") napx
+  write(boinc_sumBuffer(51:58),"(i8.8)") napxo
+  write(boinc_sumBuffer(60:69),"(i10.10)") meta_nPartTurn
+  write(boinc_sumBuffer(71:88),"(i18.18)") meta_nPTurnEle
 
   ! Write the BOINC summary file as a binary stream to avoid line endings
   call f_requestUnit("boinc_summary.dat",fUnit)
@@ -281,7 +288,7 @@ subroutine boinc_done
   integer           :: cPos
 
   boinc_sumBuffer = " "
-  cPos = 33
+  cPos = 90
 
   ! Write our own final state file that does not interfere with the user's sttings in fort.3
   call part_writeState(boincSum,.true.,.true.)
