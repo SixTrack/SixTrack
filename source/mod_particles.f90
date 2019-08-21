@@ -56,6 +56,21 @@ subroutine part_setPairID
 end subroutine part_setPairID
 
 ! ================================================================================================ !
+!  Get Original Particle Index
+! ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+!  V.K. Berglyd Olsen, BE-ABP-HSS
+!  Created: 2019-08-21
+!  Updated: 2019-08-21
+!      This function returns the original particle index based on its pairID. This is a substiture
+!  for the old reverse lookup map that is now used as a particle ID array.
+! ================================================================================================ !
+pure integer function part_getOrigIndex(j)
+  use mod_common_main, only : pairID
+  integer, intent(in) :: j
+  part_getOrigIndex = (pairID(1,j) - 1)*2 + pairID(2,j)
+end function part_getOrigIndex
+
+! ================================================================================================ !
 !  V.K. Berglyd Olsen, BE-ABP-HSS
 !  Last modified: 2018-10-31
 !  Moved from maincr. Applies the closed orbit correction to the particle coordinates.
@@ -66,8 +81,6 @@ subroutine part_applyClosedOrbit
   use mod_commons
   use mod_common_track
   use mod_common_main
-
-  implicit none
 
   if(iclo6 == 2) then
     xv1(1:napx)   = xv1(1:napx)   +  clo6(1)
