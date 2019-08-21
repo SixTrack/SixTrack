@@ -701,10 +701,10 @@ subroutine thin4d(nthinerr)
         ! store old particle coordinates
         if (lbacktracking) call aperture_saveLastCoordinates(i,ix,0)
         goto 630
-      case (3)  !Phase Trombone  
+      case (3)  !Phase Trombone
         irrtr=imtr(ix)
         do j=1,napx
-#include "include/trombone.f90" 
+#include "include/trombone.f90"
         enddo
       goto 620
       case (2,4,5,6,7,8,9,10)

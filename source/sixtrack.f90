@@ -905,7 +905,7 @@ subroutine daten
       write(lout,"(a,e22.15)") "ENDE>  * M = ",nucm0
       write(lout,"(a,i0)")     "ENDE>  * Q = ",qq0
     end if
-  
+
     ! Init arrays
     mtc(:)      = one
     naa(:)      = aa0
@@ -932,7 +932,7 @@ subroutine daten
     if(do_coll) then
       call collimate_postInput(gammar)
     end if
-  
+
     ! Check for incompatible flags
     if(ipos == 1) then
       if (do_coll) then
@@ -2686,7 +2686,7 @@ subroutine betalf(dpp,qw)
       f0=spa-spd
       f1=spa+spd
       f2=f0**2+four*det
-      if(f2 .lt. zero) then 
+      if(f2 .lt. zero) then
         write(lerr,'(a,F12.5, a, F12.5, a, F12.5)') 'ERROR in betalf() - f2 < 0: ',  f2, ' f0: ', f0, ' det: ', det
         goto 160
       end if
@@ -2721,7 +2721,7 @@ subroutine betalf(dpp,qw)
       yclam1=yca1*half
       rclam2=(egwg2+rca2)*half
       yclam2=yca2*half
-      if(egwg1**2 .ge. four) then 
+      if(egwg1**2 .ge. four) then
         write(lerr,'(a,F12.5,a,F12.5,a,F12.5,a,F12.5,a,F12.5,a,F12.5)') 'ERROR in betalf() - egwg1**2 > 4: ',&
         egwg1**2, ' f0: ', spa-spd, ' f1: ', spa+spd, ' f2: ', f0**2+four*det, ' spa: ', spa, ' spd: ', spd
         write(lerr,'(a,F12.5)') 'ERROR in betalf() - am: ',  am
@@ -2797,7 +2797,7 @@ subroutine betalf(dpp,qw)
       rn1=((ta(1,1)*ta(2,2)-ta(2,1)*ta(1,2))                            &
      &+ta(3,1)*ta(4,2))-ta(4,1)*ta(3,2)
       if(rn1.lt.zero) goto 70
-      if(rn1.eq.zero) then 
+      if(rn1.eq.zero) then
         write(lerr,'(a,F12.5)') 'ERROR in betalf() - rn1 = 0: ', rn1
         goto 160
       end if

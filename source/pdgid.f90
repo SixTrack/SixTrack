@@ -210,7 +210,7 @@ else if(pdgid .gt. 1000000000) then
       fluka_id = -5
     else if(A .eq. 4) then
       fluka_id = -6
-    else 
+    else
       fluka_id = -2
     end if
 
