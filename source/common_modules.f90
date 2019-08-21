@@ -31,7 +31,7 @@ module parpro
   integer, parameter :: nelb  = 280       ! Maximum elements per BLOC
 
   ! Maximum length of strings
-  integer, parameter :: mNameLen  = 48    ! Maximum length of element names. Keep in sync with MadX
+  integer, parameter :: mNameLen  = 48    ! Maximum length of element names. Keep in sync with MadX (and inside Geant4 code!)
   integer, parameter :: mFileName = 64    ! Maximum length of file names
   integer, parameter :: mPathName = 255   ! Maximum length of path names
   integer, parameter :: mStrLen   = 161   ! Standard string length
@@ -124,7 +124,7 @@ module mod_common
   use floatPrecision
   use numerical_constants
   use physical_constants, only : pmap
-  use, intrinsic :: iso_fortran_env, only : int16
+  use, intrinsic :: iso_fortran_env, only : int16, int32
 
   implicit none
 
@@ -325,8 +325,7 @@ module mod_common
   real(kind=fPrec), save :: emitx      = zero ! Horisontal emittance
   real(kind=fPrec), save :: emity      = zero ! Vertical emittance
   real(kind=fPrec), save :: emitz      = zero ! Longitudinal emittance
-  real(kind=fPrec), save :: gammar     = one  ! Gamma factor
-  real(kind=fPrec), save :: betrel     = zero ! Relativistic beta of beam
+  real(kind=fPrec), save :: gammar     = one  ! Inverse Lorentz factor
   real(kind=fPrec), save :: brho       = zero ! magnetic rigitidy of beam [Tm]
   integer,          save :: ibb6d      = 0    ! 6D beam-beam switch
   integer,          save :: nbeam      = 0    ! Beam-beam elements flag
@@ -353,10 +352,12 @@ module mod_common
   real(kind=fPrec),    save :: e0f     = zero ! Reference momentum [MeV/c]
   real(kind=fPrec),    save :: nucm0   = pmap ! Reference mass [MeV/c^2]
   real(kind=fPrec),    save :: nucmda  = pmap ! Reference mass [MeV/c^2] (DA)
+  real(kind=fPrec),    save :: gamma0  = one  ! Reference beam Lorentz factor
+  real(kind=fPrec),    save :: beta0   = zero ! Reference beam relativistic beta
   integer(kind=int16), save :: aa0     = 1    ! Reference nucleon number
   integer(kind=int16), save :: zz0     = 1    ! Reference charge multiplicity
   integer(kind=int16), save :: qq0     = 1    ! Reference charge
-  integer,             save :: pdgid0  = 2212 ! Reference particle PDG ID
+  integer(kind=int32), save :: pdgid0  = 2212 ! Reference particle PDG ID
   integer,             save :: pdgyear = 2002 ! Reference particle PDG year
 
   ! Tracking Particles
@@ -829,7 +830,7 @@ module mod_common_main
   use parpro
   use floatPrecision
   use numerical_constants
-  use, intrinsic :: iso_fortran_env, only : int16
+  use, intrinsic :: iso_fortran_env, only : int16, int32
 
   implicit none
 
@@ -889,9 +890,14 @@ module mod_common_main
   real(kind=fPrec), allocatable, save :: nucm(:)       ! Particle mass
   real(kind=fPrec), allocatable, save :: mtc(:)        ! Mass-to-charge ratio
 
+  real(kind=fPrec), allocatable, save :: spin_x(:)     ! x component of the particle spin
+  real(kind=fPrec), allocatable, save :: spin_y(:)     ! y component of the particle spin
+  real(kind=fPrec), allocatable, save :: spin_z(:)     ! z component of the particle spin
+
   integer(kind=int16), allocatable, save :: nqq(:)     ! Particle charge
   integer(kind=int16), allocatable, save :: naa(:)     ! Ion atomic mass
   integer(kind=int16), allocatable, save :: nzz(:)     ! Ion atomic number
+  integer(kind=int32), allocatable, save :: pdgid(:)   ! Particle PDGid
 
   integer,          allocatable, save :: nnumxv(:)     ! Turn in which a particle was lost
   integer,          allocatable, save :: numxv(:)      ! Turn in which a particle was lost
@@ -910,7 +916,7 @@ contains
 subroutine mod_commonmn_expand_arrays(nblz_new,npart_new)
 
   use mod_alloc
-  use mod_common, only : nucm0, aa0, zz0, qq0
+  use mod_common, only : nucm0, aa0, zz0, qq0, pdgid0
   use numerical_constants, only : zero, one
 
   implicit none
@@ -952,9 +958,13 @@ subroutine mod_commonmn_expand_arrays(nblz_new,npart_new)
     call alloc(omoidpsv, npart_new,    zero,    "omoidpsv")
     call alloc(nucm,     npart_new,    zero,    "nucm")
     call alloc(mtc,      npart_new,    nucm0,   "mtc")
+    call alloc(spin_x,   npart_new,    zero,    "spin_x")
+    call alloc(spin_y,   npart_new,    zero,    "spin_y")
+    call alloc(spin_z,   npart_new,    zero,    "spin_z")
     call alloc(naa,      npart_new,    aa0,     "naa")
     call alloc(nzz,      npart_new,    zz0,     "nzz")
     call alloc(nqq,      npart_new,    qq0,     "nqq")
+    call alloc(pdgid,    npart_new,    pdgid0,  "pdgid")
     call alloc(ampv,     npart_new,    zero,    "ampv")
     call alloc(aperv,    npart_new, 2, zero,    "aperv")
     call alloc(iv,       npart_new,    0,       "iv")

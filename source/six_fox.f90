@@ -7,7 +7,7 @@ subroutine umlauda
   use physical_constants
   use numerical_constants
   use mathlib_bouncer
-  use dump, only : dumpclo, dumptas, dumptasinv, ldump
+  use dump, only : ldump, dump_setTasMatrix
   use crcoall
   use string_tools
   use mod_units
@@ -33,7 +33,7 @@ subroutine umlauda
   integer damap(6),damapi(6),damap1(6),aa2(6),aa2r(6),a1(6),a1r(6),xy(6),df(6),jj(100),i4(10,2)
   real(kind=fPrec) zfeld1(100),zfeld2(100),dpdav2(6),rrad(3),rdd(6,6),dicu(20),angnoe(3),angp(2,6), &
     phi(3),dphi(3),b1(3),b2(3),b3(3),al1(3),al2(3),al3(3),g1(3),g2(3),g3(3),d(3),dp(3),c(3),cp(3),  &
-    au(6,6),aui(2)
+    au(6,6),aui(2),tasData(6,6),cloData(6)
   common/daele/alda,asda,aldaq,asdaq,smida,xx,yy,dpda,dpda1,sigmda,ej1,ejf1,rv
   character(len=mNameLen) typ
   integer expertUnit
@@ -936,7 +936,7 @@ subroutine umlauda
 
 
     if(kzz.eq.23) then
-!FOX  CRABAMP=ED(IX)*ZZ0 ;
+!FOX  CRABAMP=ED(IX)*QQ0 ;
 
       crabfreq=ek(ix)*c1e3
       crabpht=crabph(ix)
@@ -967,7 +967,7 @@ subroutine umlauda
       goto 440
   endif
     if(kzz.eq.-23) then
-!FOX  CRABAMP=ED(IX)*ZZ0 ;
+!FOX  CRABAMP=ED(IX)*QQ0 ;
         crabfreq=ek(ix)*c1e3
         crabpht=crabph(ix)
 !FOX  KCRABDA=(SIGMDA/(CLIGHT*(E0F/E0))
@@ -1001,7 +1001,7 @@ subroutine umlauda
       xs=xsi(i) ! JBG change of variables for misal calculations
       zs=zsi(i)
 #include "include/alignf.f90"
-!FOX  CRABAMP2=ED(IX)*ZZ0 ;
+!FOX  CRABAMP2=ED(IX)*QQ0 ;
 
     crabfreq=ek(ix)*c1e3 !JBG Input in MHz changed to kHz
     crabpht2=crabph2(ix)
@@ -1036,7 +1036,7 @@ subroutine umlauda
       xs=xsi(i) ! JBG change of variables for misal calculations
       zs=zsi(i)
 #include "include/alignf.f90"
-!FOX  CRABAMP2=ED(IX)*ZZ0 ;
+!FOX  CRABAMP2=ED(IX)*QQ0 ;
           crabfreq=ek(ix)*c1e3
           crabpht2=crabph2(ix)
 !FOX  KCRABDA=(SIGMDA/(CLIGHT*(E0F/E0))
@@ -1069,7 +1069,7 @@ subroutine umlauda
       xs=xsi(i)
       zs=zsi(i)
 #include "include/alignf.f90"
-!FOX  CRABAMP3=ED(IX)*ZZ0 ;
+!FOX  CRABAMP3=ED(IX)*QQ0 ;
           crabfreq=ek(ix)*c1e3
           crabpht3=crabph3(ix)
 !FOX  KCRABDA=(SIGMDA/(CLIGHT*(E0F/E0))
@@ -1103,7 +1103,7 @@ subroutine umlauda
       xs=xsi(i)
       zs=zsi(i)
 #include "include/alignf.f90"
-!FOX  CRABAMP3=ED(IX)*ZZ0 ;
+!FOX  CRABAMP3=ED(IX)*QQ0 ;
           crabfreq=ek(ix)*c1e3
           crabpht3=crabph3(ix)
 !FOX  KCRABDA=(SIGMDA/(CLIGHT*(E0F/E0))
@@ -1136,7 +1136,7 @@ subroutine umlauda
       xs=xsi(i)
       zs=zsi(i)
 #include "include/alignf.f90"
-!FOX  CRABAMP4=ED(IX)*ZZ0 ;
+!FOX  CRABAMP4=ED(IX)*QQ0 ;
           crabfreq=ek(ix)*c1e3
           crabpht4=crabph4(ix)
 !FOX  KCRABDA=(SIGMDA/(CLIGHT*(E0F/E0))
@@ -1174,7 +1174,7 @@ subroutine umlauda
       xs=xsi(i)
       zs=zsi(i)
 #include "include/alignf.f90"
-!FOX  CRABAMP4=ED(IX)*ZZ0 ;
+!FOX  CRABAMP4=ED(IX)*QQ0 ;
           crabfreq=ek(ix)*c1e3
           crabpht4=crabph4(ix)
 !FOX  KCRABDA=(SIGMDA/(CLIGHT*(E0F/E0))
@@ -2134,17 +2134,17 @@ subroutine synoda
 !FOX  D V RE EXT PHASC NELE ;  D V RE INT NUCMDA ;
 !FOX  D V RE INT C1E3 ; D V RE INT ONE ; D V IN INT IKZ ;
 !FOX  D V IN EXT NELE ; D V IN INT ITION ; D V IN INT IX ;
-!FOX  E D ; D V RE INT NUCM0 ; D V RE INT MTCDA ; D V RE INT ZZ0 ;
+!FOX  E D ; D V RE INT NUCM0 ; D V RE INT MTCDA ; D V RE INT QQ0 ;
 !FOX  1 if(1.eq.1) then
 !-----------------------------------------------------------------------
   ix=ixcav
 
   if(abs(kz(ix)) == 12) then
     ikz = sign(1,kz(ix))
-!FOX  EJ1=EJ1+ED(IX)*ZZ0*SIN(HSYC(IX)*SIGMDA/C1E3*
+!FOX  EJ1=EJ1+ED(IX)*QQ0*SIN(HSYC(IX)*SIGMDA/C1E3*
 !FOX  IKZ+PHASC(IX)) ;
   else
-!FOX  EJ1=EJ1+HSY(1)*ZZ0*SIN(HSY(3)*SIGMDA/C1E3*ITION+PHAS) ;
+!FOX  EJ1=EJ1+HSY(1)*QQ0*SIN(HSY(3)*SIGMDA/C1E3*ITION+PHAS) ;
   endif
 !FOX  EJF1=SQRT(EJ1*EJ1-NUCMDA*NUCMDA) ;
 !FOX  DPDA1=(EJF1-E0F)/E0F*C1E3 ;
@@ -2769,55 +2769,56 @@ end subroutine clorda
 !           note: inversion method copied from subroutine postpr        *
 !-----------------------------------------------------------------------*
 subroutine invert_tas(fma_tas_inv,fma_tas)
+
   use floatPrecision
   use numerical_constants
   use matrix_inv
   use mod_common_track
   use crcoall
+
   implicit none
 
-  integer :: i,j            !iterators
-  real(kind=fPrec), dimension(6,6), intent(inout) :: fma_tas !tas = normalisation matrix
-  real(kind=fPrec), dimension(6,6), intent(out) :: fma_tas_inv !inverse of tas
-  integer ierro                   !error messages
-!     dummy variables
-  real(kind=fPrec), dimension(6,6) :: tdummy !dummy variable for transposing the matrix
-  integer, dimension(6) :: idummy !for matrix inversion
+  real(kind=fPrec), intent(inout) :: fma_tas(6,6) !tas = normalisation matrix
+  real(kind=fPrec), intent(out)   :: fma_tas_inv(6,6) !inverse of tas
+
+  real(kind=fPrec) tdummy(6,6)
+  integer ierro,i,j,idummy(6)
+
 !     units: [mm,mrad,mm,mrad,mm,1]
 !     invert matrix
 !     - set values close to 1 equal to 1
   do i=1,6
-      do j=1,6
-        fma_tas_inv(i,j)=fma_tas(j,i)
-      enddo
-  enddo
+    do j=1,6
+      fma_tas_inv(i,j)=fma_tas(j,i)
+    end do
+  end do
 
-  if(abs(fma_tas_inv(1,1)).le.pieni.and.abs(fma_tas_inv(2,2)).le.pieni) then
+  if(abs(fma_tas_inv(1,1)) <= pieni.and.abs(fma_tas_inv(2,2)) <= pieni) then
     fma_tas_inv(1,1)=one
     fma_tas_inv(2,2)=one
-  endif
-  if(abs(fma_tas_inv(3,3)).le.pieni.and.abs(fma_tas_inv(4,4)).le.pieni) then
+  end if
+  if(abs(fma_tas_inv(3,3)) <= pieni.and.abs(fma_tas_inv(4,4)) <= pieni) then
     fma_tas_inv(3,3)=one
     fma_tas_inv(4,4)=one
-  endif
-  if(abs(fma_tas_inv(5,5)).le.pieni.and.abs(fma_tas_inv(6,6)).le.pieni) then
+  end if
+  if(abs(fma_tas_inv(5,5)) <= pieni.and.abs(fma_tas_inv(6,6)) <= pieni) then
     fma_tas_inv(5,5)=one
     fma_tas_inv(6,6)=one
-  endif
+  end if
 
 !     - invert: dinv returns the transposed matrix
   call dinv(6,fma_tas_inv,6,idummy,ierro)
-  if (ierro.ne.0) then
-      write(lout,*) "Error in INVERT_TAS - Matrix inversion failed!"
-      write(lout,*) "Subroutine DINV returned ierro=",ierro
-      call prror
-  endif
+  if(ierro /= 0) then
+    write(lerr,"(a,i0)") "INVERT_TAS> ERROR Matrix inversion failed. Subroutine DINV returned ierro ",ierro
+    call prror
+  end if
 
 !     - transpose fma_tas_inv
   tdummy=fma_tas_inv
   do i=1,6
     do j=1,6
       fma_tas_inv(i,j)=tdummy(j,i)
-    enddo
-  enddo
+    end do
+  end do
+
 end subroutine invert_tas

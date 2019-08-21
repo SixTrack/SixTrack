@@ -1,8 +1,8 @@
-!ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+
 module mod_ranlux
+
   use floatPrecision
   use numerical_constants
-  use crcoall
 
   implicit none
 
@@ -59,6 +59,10 @@ module mod_ranlux
   public rluxut
   public rluxat
   public rluxgo
+  public rndm4
+  public rndm5
+  public ran_gauss
+  public ran_gauss2
 
 contains
 
@@ -107,6 +111,8 @@ subroutine ranlux(rvec,lenv)
 !!!      ISVEC must be dimensioned 25 in the calling program        ++
 !!! ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
+  use crcoall
+
   implicit none
 
   integer :: lenv
@@ -114,142 +120,148 @@ subroutine ranlux(rvec,lenv)
 
 !  NOTYET is .TRUE. if no initialization has been performed yet.
 !              Default Initialization by Multiplicative Congruential
-      if (notyet) then
-         notyet = .false.
-         jseed = jsdflt
-         inseed = jseed
-         write(lout,'(A,I12)') ' RANLUX DEFAULT INITIALIZATION: ',jseed
-         luxlev = lxdflt
-         nskip = ndskip(luxlev)
-         lp = nskip + 24
-         in24 = 0
-         kount = 0
-         mkount = 0
-         twom24 = 1.
-         do 25 i= 1, 24
-            twom24 = twom24 * 0.5
-         k = jseed/53668
-         jseed = 40014*(jseed-k*53668) -k*12211
-         if (jseed .lt. 0)  jseed = jseed+icons
-         iseeds(i) = mod(jseed,itwo24)
-   25    continue
-         twom12 = twom24 * 4096.
-         do 50 i= 1,24
-         seeds(i) = real(iseeds(i))*twom24
-         next(i) = i-1
-   50    continue
-         next(1) = 24
-         i24 = 24
-         j24 = 10
-         carry = 0.
-         if (seeds(24) .eq. 0.) carry = twom24
-      endif
-!
-!          The Generator proper: "Subtract-with-borrow",
-!          as proposed by Marsaglia and Zaman,
-!          Florida State University, March, 1989
-!
-      do 100 ivec= 1, lenv
-      uni = seeds(j24) - seeds(i24) - carry
-      if (uni .lt. 0.)  then
-         uni = uni + 1.
-         carry = twom24
-      else
-         carry = 0.
-      endif
-      seeds(i24) = uni
-      i24 = next(i24)
-      j24 = next(j24)
-      rvec(ivec) = uni
-!  small numbers (with less than 12 "significant" bits) are "padded".
-      if (uni .lt. twom12)  then
-         rvec(ivec) = rvec(ivec) + twom24*seeds(j24)
-!        and zero is forbidden in case someone takes a logarithm
-         if (rvec(ivec) .eq. 0.)  rvec(ivec) = twom24*twom24
-      endif
-!        Skipping to luxury.  As proposed by Martin Luscher.
-      in24 = in24 + 1
-      if (in24 .eq. 24)  then
-         in24 = 0
-         kount = kount + nskip
-         do 90 isk= 1, nskip
-         uni = seeds(j24) - seeds(i24) - carry
-         if (uni .lt. 0.)  then
-            uni = uni + 1.
-            carry = twom24
-         else
-            carry = 0.
-         endif
-         seeds(i24) = uni
-         i24 = next(i24)
-         j24 = next(j24)
-   90    continue
-      endif
-  100 continue
-      kount = kount + lenv
-      if (kount .ge. igiga)  then
-         mkount = mkount + 1
-         kount = kount - igiga
-      endif
-      return
+  if(notyet) then
+    notyet = .false.
+    jseed = jsdflt
+    inseed = jseed
+    write(lout,"(a,i0)") "RANLUX> Default initialization: ",jseed
+    luxlev = lxdflt
+    nskip = ndskip(luxlev)
+    lp = nskip + 24
+    in24 = 0
+    kount = 0
+    mkount = 0
+    twom24 = 1.
+    do i= 1, 24
+      twom24 = twom24 * 0.5
+      k = jseed/53668
+      jseed = 40014*(jseed-k*53668) -k*12211
+      if(jseed < 0) jseed = jseed+icons
+      iseeds(i) = mod(jseed,itwo24)
+    end do
+    twom12 = twom24 * 4096.
+    do i= 1,24
+      seeds(i) = real(iseeds(i))*twom24
+      next(i) = i-1
+    end do
+    next(1) = 24
+    i24 = 24
+    j24 = 10
+    carry = 0.
+    if (seeds(24) == 0.) carry = twom24
+  end if
+
+  ! The Generator proper: "Subtract-with-borrow",
+  ! as proposed by Marsaglia and Zaman,
+  ! Florida State University, March, 1989
+
+  do ivec= 1, lenv
+    uni = seeds(j24) - seeds(i24) - carry
+    if(uni < 0.)  then
+      uni = uni + 1.
+      carry = twom24
+    else
+      carry = 0.
+    end if
+    seeds(i24) = uni
+    i24 = next(i24)
+    j24 = next(j24)
+    rvec(ivec) = uni
+
+    ! small numbers (with less than 12 "significant" bits) are "padded".
+    if(uni < twom12) then
+      rvec(ivec) = rvec(ivec) + twom24*seeds(j24)
+      ! and zero is forbidden in case someone takes a logarithm
+      if(rvec(ivec) == 0.) rvec(ivec) = twom24*twom24
+    end if
+
+    ! Skipping to luxury.  As proposed by Martin Luscher.
+    in24 = in24 + 1
+    if(in24 == 24) then
+      in24 = 0
+      kount = kount + nskip
+      do isk= 1, nskip
+        uni = seeds(j24) - seeds(i24) - carry
+        if(uni < 0.) then
+          uni = uni + 1.
+          carry = twom24
+        else
+          carry = 0.
+        end if
+        seeds(i24) = uni
+        i24 = next(i24)
+        j24 = next(j24)
+      end do
+    end if
+  end do
+
+  kount = kount + lenv
+  if(kount >= igiga) then
+    mkount = mkount + 1
+    kount = kount - igiga
+  end if
+
 end subroutine ranlux
 
 !           Entry to input and float integer seeds from previous run
 subroutine rluxin(isdext_tmp)
 
-  implicit none
+  use crcoall
 
   integer, intent(in) :: isdext_tmp(25)
+
   isdext = isdext_tmp
-         notyet = .false.
-         twom24 = 1.
-         do i= 1, 24
-           next(i) = i-1
-           twom24 = twom24 * 0.5
-         end do
-         next(1) = 24
-         twom12 = twom24 * 4096.
-      write(lout,"(a)")      "RANLUX> Full initialization of ranlux with 25 integers: "
-      write(lout,"(a,5i12)") "RANLUX> ",isdext
-      do 200 i= 1, 24
-      seeds(i) = real(isdext(i))*twom24
-  200 continue
-      carry = 0.
-      if (isdext(25) .lt. 0)  carry = twom24
-      isd = iabs(isdext(25))
-      i24 = mod(isd,100)
-      isd = isd/100
-      j24 = mod(isd,100)
-      isd = isd/100
-      in24 = mod(isd,100)
-      isd = isd/100
-      luxlev = isd
-        if (luxlev .le. maxlev) then
-          nskip = ndskip(luxlev)
-          write(lout,'(A,I2)')' RANLUX LUXURY LEVEL SET BY RLUXIN TO: ', luxlev
-        else  if (luxlev .ge. 24) then
-          nskip = luxlev - 24
-          write(lout,'(A,I5)')' RANLUX P-VALUE SET BY RLUXIN TO:',luxlev
-        else
-          nskip = ndskip(maxlev)
-          write(lout,'(A,I5)') ' RANLUX ILLEGAL LUXURY RLUXIN: ',luxlev
-          luxlev = maxlev
-        endif
-      inseed = -1
-      return
+  notyet = .false.
+  twom24 = 1.
+  do i=1,24
+    next(i) = i-1
+    twom24 = twom24 * 0.5
+  end do
+  next(1) = 24
+  twom12 = twom24 * 4096.
+  write(lout,"(a)")      "RANLUX> Full initialisation of ranlux with 25 integers: "
+  write(lout,"(a,5i12)") "RANLUX> ",isdext
+  do i=1,24
+    seeds(i) = real(isdext(i))*twom24
+  end do
+
+  carry = 0.
+  if (isdext(25) .lt. 0)  carry = twom24
+  isd = iabs(isdext(25))
+  i24 = mod(isd,100)
+  isd = isd/100
+  j24 = mod(isd,100)
+  isd = isd/100
+  in24 = mod(isd,100)
+  isd = isd/100
+  luxlev = isd
+  if(luxlev <= maxlev) then
+    nskip = ndskip(luxlev)
+    write(lout,"(a,i0)") "RANLUX> Luxury level set by rluxin to ",luxlev
+  else if(luxlev >= 24) then
+    nskip = luxlev - 24
+    write(lout,"(a,i0)") "RANLUX> P-value set by rluxin to ",luxlev
+  else
+    nskip = ndskip(maxlev)
+    write(lout,"(a,i0)") "RANLUX> Illegal luxury rluxin ",luxlev
+    luxlev = maxlev
+  end if
+  inseed = -1
+
 end subroutine rluxin
 
 ! Entry to ouput seeds as integers
 subroutine rluxut(isdext_tmp)
-  implicit none
+
   integer, intent(in) :: isdext_tmp(25)
+
   isdext = isdext_tmp
-      do 300 i= 1, 24
-         isdext(i) = int(seeds(i)*twop12*twop12)
-  300 continue
-      isdext(25) = i24 + 100*j24 + 10000*in24 + 1000000*luxlev
-      if (carry .gt. 0.)  isdext(25) = -isdext(25)
-      return
+  do i= 1,24
+    isdext(i) = int(seeds(i)*twop12*twop12)
+  end do
+  isdext(25) = i24 + 100*j24 + 10000*in24 + 1000000*luxlev
+  if(carry > 0.) isdext(25) = -isdext(25)
+
 end subroutine rluxut
 
 ! Entry to output the "convenient" restart point
@@ -257,112 +269,266 @@ end subroutine rluxut
 ! however this conflicts with the variable name used for selecting output unit.
 ! It was therefore renamed to "lout2".
 subroutine rluxat(lout2,inout,k1,k2)
-  implicit none
+
   integer lout2
   integer inout
-
   integer k1,k2
 
   lout2 = luxlev
   inout = inseed
   k1 = kount
   k2 = mkount
-  return
+
 end subroutine rluxat
 
 ! Entry to initialize from one or three integers
 subroutine rluxgo(lux,ins,k1,k2)
-  implicit none
-  integer lux,ins,k1,k2
-  if (lux .lt. 0) then
-     luxlev = lxdflt
-  else if (lux .le. maxlev) then
-     luxlev = lux
-  else if (lux .lt. 24 .or. lux .gt. 2000) then
-     luxlev = maxlev
-     write(lout,"(a,i7)") "RANLUX> Illegal luxury rluxgo: ",lux
-  else
-     luxlev = lux
-     do 310 ilx= 0, maxlev
-       if (lux .eq. ndskip(ilx)+24)  luxlev = ilx
-310       continue
-  endif
 
-  if (luxlev .le. maxlev)  then
-     nskip = ndskip(luxlev)
-     write(lout,"(a,i2,a,i4)") "RANLUX> Luxury level set by rluxgo: ",luxlev," P = ",nskip+24
+  use crcoall
+
+  integer lux,ins,k1,k2
+
+  if(lux < 0) then
+    luxlev = lxdflt
+  elseif(lux <= maxlev) then
+    luxlev = lux
+  elseif(lux < 24 .or. lux > 2000) then
+    luxlev = maxlev
+    write(lout,"(a,i0)") "RANLUX> Illegal luxury rluxgo ",lux
   else
-      nskip = luxlev - 24
-      write(lout,"(a,i5)") "RANLUX> P-value set by rluxgo to: ",luxlev
-  endif
+    luxlev = lux
+    do ilx= 0, maxlev
+      if(lux == ndskip(ilx)+24) luxlev = ilx
+    end do
+  end if
+
+  if(luxlev <= maxlev) then
+    nskip = ndskip(luxlev)
+    write(lout,"(a,i0,a,i0)") "RANLUX> Luxury level set by rluxgo: ",luxlev," P = ",nskip+24
+  else
+    nskip = luxlev - 24
+    write(lout,"(a,i0)") "RANLUX> P-value set by rluxgo to ",luxlev
+  end if
 
   in24 = 0
 
-  if (ins .lt. 0)  write(lout,"(a)") "RANLUX> Illegal initialization by RLUXGO, negative input seed"
-  if (ins .gt. 0)  then
+  if(ins < 0) write(lout,"(a)") "RANLUX> Illegal initialisation by RLUXGO, negative input seed"
+  if(ins > 0) then
     jseed = ins
-    write(lout,"(a,3i12)") "RANLUX> Initialized by rluxgo from seeds ",jseed,k1,k2
+    write(lout,"(a,3(1x,i0))") "RANLUX> Initialised by rluxgo from seeds ",jseed,k1,k2
   else
     jseed = jsdflt
-    write(lout,"(a)") "RANLUX> Initialized by rluxgo from default seed"
-  endif
+    write(lout,"(a)") "RANLUX> Initialised by rluxgo from default seed"
+  end if
+
   inseed = jseed
   notyet = .false.
   twom24 = 1.
-  do 325 i= 1, 24
+  do i= 1,24
     twom24 = twom24 * 0.5
-  k = jseed/53668
-  jseed = 40014*(jseed-k*53668) -k*12211
-  if (jseed .lt. 0)  jseed = jseed+icons
-  iseeds(i) = mod(jseed,itwo24)
-325    continue
-    twom12 = twom24 * 4096.
-   do 350 i= 1,24
-   seeds(i) = real(iseeds(i))*twom24
-   next(i) = i-1
-350    continue
+    k = jseed/53668
+    jseed = 40014*(jseed-k*53668) -k*12211
+    if(jseed < 0) jseed = jseed+icons
+    iseeds(i) = mod(jseed,itwo24)
+  end do
+
+  twom12 = twom24 * 4096.
+  do i= 1,24
+    seeds(i) = real(iseeds(i))*twom24
+    next(i) = i-1
+  end do
+
   next(1) = 24
   i24 = 24
   j24 = 10
   carry = 0.
-  if (seeds(24) .eq. 0.) carry = twom24
-!        If restarting at a break point, skip K1 + IGIGA*K2
-!        Note that this is the number of numbers delivered to
-!        the user PLUS the number skipped (if luxury .GT. 0).
-    kount = k1
-    mkount = k2
-    if (k1+k2 .ne. 0)  then
-      do 500 iouter= 1, k2+1
-        inner = igiga
-        if (iouter .eq. k2+1)  inner = k1
-        do 450 isk= 1, inner
-          uni = seeds(j24) - seeds(i24) - carry
-          if (uni .lt. 0.)  then
-             uni = uni + 1.
-             carry = twom24
-          else
-             carry = 0.
-          endif
-          seeds(i24) = uni
-          i24 = next(i24)
-          j24 = next(j24)
-450     continue
-500   continue
-!         Get the right value of IN24 by direct calculation
-      in24 = mod(kount, nskip+24)
-      if (mkount .gt. 0)  then
-         izip = mod(igiga, nskip+24)
-         izip2 = mkount*izip + in24
-         in24 = mod(izip2, nskip+24)
-      endif
-!       Now IN24 had better be between zero and 23 inclusive
-      if (in24 .gt. 23) then
-         write(lerr,"(a)")           "RANLUX> ERROR RESTARTING with RLUXGO:"
-         write(lerr,"(a,3i11,a,i5)") "RANLUX>       The values",ins,k1,k2," cannot occur at luxury level ",luxlev
-         in24 = 0
-      endif
-    endif
-    return
+  if(seeds(24) == 0.) carry = twom24
+
+  ! If restarting at a break point, skip K1 + IGIGA*K2
+  ! Note that this is the number of numbers delivered to
+  ! the user PLUS the number skipped (if luxury .GT. 0).
+  kount = k1
+  mkount = k2
+  if(k1+k2 /= 0) then
+    do iouter= 1, k2+1
+      inner = igiga
+      if(iouter == k2+1) inner = k1
+      do isk=1,inner
+        uni = seeds(j24) - seeds(i24) - carry
+        if(uni < 0.) then
+          uni = uni + 1.
+          carry = twom24
+        else
+          carry = 0.
+        end if
+        seeds(i24) = uni
+        i24 = next(i24)
+        j24 = next(j24)
+      end do
+    end do
+
+    ! Get the right value of IN24 by direct calculation
+    in24 = mod(kount, nskip+24)
+    if(mkount > 0) then
+      izip = mod(igiga, nskip+24)
+      izip2 = mkount*izip + in24
+      in24 = mod(izip2, nskip+24)
+    end if
+
+    ! Now IN24 had better be between zero and 23 inclusive
+    if(in24 > 23) then
+      write(lerr,"(a)")               "RANLUX> ERROR RESTARTING with RLUXGO:"
+      write(lerr,"(a,3(1x,i0),a,i0)") "RANLUX>       The values",ins,k1,k2," cannot occur at luxury level ",luxlev
+      in24 = 0
+    end if
+  end if
+
 end subroutine rluxgo
+
+function rndm4()
+
+  integer len, in
+  real(kind=fPrec) rndm4, a
+
+  save in,a
+
+  parameter ( len =  30000 )
+  dimension a(len)
+  data in/1/
+
+  if(in == 1) then
+    call ranlux(a,len)
+!    call ranecu(a,len,-1)
+    rndm4=a(1)
+    in=2
+  else
+    rndm4=a(in)
+    in=in+1
+    if(in == len+1)in=1
+  endif
+
+end function rndm4
+
+!ccccccccccccccccccccccccccccccccccccccc
+!-TW-01/2007
+! function rndm5(irnd) , irnd = 1 will reset
+! inn counter => enables reproducible set of
+! random unmbers
+!cccccccccccccccccccccccccccccccccc
+!
+function rndm5(irnd)
+
+  use mathlib_bouncer
+
+  implicit none
+
+  integer len, inn, irnd
+  real(kind=fPrec) rndm5,a
+  save
+
+  parameter( len =  30000 )
+  dimension a(len)
+  data inn/1/
+!
+! reset inn to 1 enable reproducible random numbers
+  if(irnd == 1) inn = 1
+
+  if(inn == 1) then
+    call ranlux(a,len)
+!     call ranecu(a,len,-1)
+    rndm5=a(1)
+    inn=2
+  else
+    rndm5=a(inn)
+    inn=inn+1
+    if(inn == len+1) inn=1
+  end if
+
+end function rndm5
+
+!*********************************************************************
+!
+! RAN_GAUSS - will generate a normal distribution from a uniform
+!   distribution between [0,1].
+!   See "Communications of the ACM", V. 15 (1972), p. 873.
+!
+! cut - real(kind=fPrec) - cut for distribution in units of sigma
+!                the cut must be greater than 0.5
+!
+!*********************************************************************
+real(kind=fPrec) function ran_gauss(cut)
+
+  use mathlib_bouncer
+
+  real(kind=fPrec), intent(in) :: cut
+
+  logical :: flag = .true.
+  real(kind=fPrec) :: x, u1, u2, r
+
+  save
+
+1 if (flag) then
+    r = real(rndm4(),fPrec)
+    r = max(r, half**32)
+    r = min(r, one-half**32)
+    u1 = sqrt(-two*log_mb( r ))
+    u2 = real(rndm4(),fPrec)
+    x = u1 * cos_mb(twopi*u2)
+  else
+    x = u1 * sin_mb(twopi*u2)
+  end if
+
+  flag = .not. flag
+
+  ! Cut the distribution if cut > 0.5
+  if(cut > half .and. abs(x) > cut) goto 1
+
+  ran_gauss = x
+
+end function ran_gauss
+
+!*********************************************************************
+!
+! ran_gauss2 - will generate a normal distribution from a uniform
+!     distribution between [0,1].
+!     See "Communications of the ACM", V. 15 (1972), p. 873.
+!
+!     cut - real(kind=fPrec) - cut for distribution in units of sigma
+!     the cut must be greater than 0.5
+!
+!     changed rndm4 to rndm5(irnd) and defined flag as true
+!
+!*********************************************************************
+real(kind=fPrec) function ran_gauss2(cut)
+
+  use numerical_constants, only : twopi
+  use mathlib_bouncer
+
+  logical flag
+  real(kind=fPrec) x, u1, u2, r,cut
+  save
+
+  flag = .true. !Does this initialize only once, or is it executed every pass?
+                !See ran_gauss(cut)
+
+1 if (flag) then
+    r = real(rndm5(0),fPrec)
+    r = max(r, half**32)
+    r = min(r, one-half**32)
+    u1 = sqrt(-two*log_mb( r ))
+    u2 = real(rndm5(0),fPrec)
+    x = u1 * cos_mb(twopi*u2)
+  else
+    x = u1 * sin_mb(twopi*u2)
+  endif
+
+  flag = .not. flag
+
+  ! cut the distribution if cut > 0.5
+  if(cut > half .and. abs(x) > cut) goto 1
+
+  ran_gauss2 = x
+
+end function ran_gauss2
 
 end module mod_ranlux

@@ -5,7 +5,7 @@
 \section{Main Input Files} \label{InFiles}
 
 SixTrack requires a main input file, which by default must be named \texttt{fort.3}.
-Alternatively, if a different file name is needed, it can be given to the SixTrack executable as the first command line argument.
+Alternatively, if a different file name is desired, it can be given to the SixTrack executable as the first command line argument.
 If a geometry file is requested in the main input file (see Section~\ref{ProVer}), it can be given as the second command line argument.
 If none is provided, SixTrack will look for a file named \texttt{fort.2}.
 These files will be referred to as \texttt{fort.3} and \texttt{fort.2} in the rest of this document.
@@ -15,7 +15,7 @@ Note that you can always add the global \texttt{DEBUG} flag to the \texttt{SETTI
 The flag is described in Section~\ref{STSett}.
 This can not only verify that SixTrack understood and received the values correctly, but it also often echoes back other parameters computed from the input values.
 The echoed back lines will start with ``\texttt{INPUT> DEBUG}'', so it is sometimes easier to grep for these lines in the output.
-They contain the nme of the block where they were parsed, and the line number within the block if available.
+They contain the name of the block where they were parsed, and their line number within the block if available or relevant.
 
 % ================================================================================================================================ %
 \section{Program Version} \label{ProVer}
@@ -23,7 +23,7 @@ They contain the nme of the block where they were parsed, and the line number wi
 The \textit{Program Version} input block determines if all of the input will be in the input file \texttt{fort.3}, or if the geometry part of the machine (see~\ref{MaGe}) will be in a separate file: \texttt{fort.2}.\index{input block}\index{fort.2}\index{fort.3}
 The latter option is useful if tracking parameters are changed, but the geometry part of the input is left as it is.
 The geometry part can be produced directly from a MAD-X input file (see~\ref{MADT}).
-Note that this line should not have a \texttt{NEXT} keyword after it.\index{NEXT}
+Note that this line should not have a \texttt{NEXT} keyword after it, and must always be the first line of the file.\index{NEXT}
 
 \bigskip
 \begin{tabular}{@{}lp{0.8\linewidth}}
@@ -78,7 +78,7 @@ However, for backwards compatibility, the \texttt{PRIN} flag is still accepted.
 % ================================================================================================================================ %
 \section{Comment Line} \label{ComLin}
 
-An additional comment can be specified with the \textit{Comment} block.
+An additional comment can be specified with the \textit{Comment} block.\index{COMM}\index{comment}
 The comment will be written to the binary data files (Appendix~\ref{Header}), and will appear in the post processing output as well.
 
 \bigskip
@@ -104,7 +104,6 @@ If the input block is left out, default values will be used.
 \begin{table}[h]
     \caption{Iteration Errors\index{chromaticity}\index{dispersion}\index{aperture limit}\index{closed orbit}}
     \label{T-IteErr}
-    % \footnotesize
     \centering
     \renewcommand{\arraystretch}{1.5}
     \begin{tabular}{|l|l|l|>{\raggedright\arraybackslash}p{10.2cm}|}
@@ -152,7 +151,6 @@ If the input block is left out, default values will be used.
         \texttt{APER(2)} & \texttt{dbl} & \texttt{1000 [mm]} & Demanded Precision of vertical aperture limit. \\
         \hline
     \end{tabular}
-    % \normalsize
 \end{table}
 
 % ================================================================================================================================ %
@@ -164,69 +162,3 @@ It also produce a file \texttt{fort.34} with linear lattice functions, phase adv
 
 In addition, the flag \texttt{aperture} will produce an aperture limitations file.
 The flag \texttt{multicol} will produce an alternative \texttt{fort.2} file with more information on the machine structure (see Section~\ref{stru:multicol}).
-
-% A description of %how to use the converter can be found in Appendix\ref{MADSIXC}.
-% Pasted here for reference:
-
-% \chapter{MAD SixTrack Convertor} \label{MADSIXC}
-
-% A special version of the MAD program has been generated that creates
-% input files for SixTrack with the complete and exact description of
-% the current accelerator model stored in MAD\@. This then allows a
-% detailed comparison of the tracking results from both programs.
-
-% The programs SixTrack and MAD \cite {MAD} are both used for particle
-% tracking in realistic machines such as the LHC with all expected field
-% errors up to the highest order, and with displacement errors of
-% quadrupoles and possibly other elements. The LHC lattice and error
-% description, however, exists only in MAD format due to its much
-% greater flexibility and readability. If one wants to compare tracking
-% results of the two programs one needs therefore a conversion of the
-% current machine inside MAD into SixTrack format. In particular the
-% generated random field and displacement errors have to be transmitted
-% correctly since they influence the outcome of the long-term tracking
-% greatly.
-
-% To this end it was necessary to make a special MAD version that reads
-% a machine description, expands it, generates the errors, and then
-% performs the necessary transformations for SixTrack: different
-% conventions for the signs of magnet forces, grouping of identical
-% elements, concatenation of multiple drift spaces, creation of blocks
-% of linear elements between nonlinear ones, a different description
-% of field and position errors, and similar tedious questions had to be
-% solved. The results of the transformation are then written into input
-% files for SixTrack.
-
-% The special MAD version is actually a full MAD (except for plotting)
-% with an additional module for the SixTrack output.  This then allows
-% the user to perform orbit corrections and other calculations inside
-% MAD, and have the resulting modifications of the machine be
-% transferred to SixTrack.  All position errors (including tilt errors)
-% and field errors are transmitted.
-
-% The converter works correctly for thin and thick lens lattices.  In
-% the latter case, all dipoles and quadrupoles are split into two, and a
-% multipole is inserted in the centre, except for orbit corrector
-% magnets which are converted to thin lens.  Since MAD does not support
-% field errors higher than third order for thick elements, the
-% multipolar errors will have to be created with the corresponding thin
-% lens model, or by some other means.
-
-% The special MAD version accepts one additional command:
-% \begin{verbatim}
-%  sixt:
-%       elem       = (up to 20) element names
-%       lgelem     = (up to 20) lengths of the above elements
-%       structure  = structure file name, default: "fort.2"
-%       param_in   = name of a (mandatory, possibly empty)
-%                    extra input file for MAD, default: "fort.3.in"
-%       param_out  = parameter file name, default: "fort.3"
-%       errors     = field errors file name, default: "fort.16"
-%       poserr     = position errors file name, default: "fort.8"
-%       cavall     = all cavities in the structure, default: one only.
-% \end{verbatim}
-% The element length facility is necessary to give SixTrack the real
-% lengths of the dipoles (and possibly other elements) that are replaced
-% by thin multipoles.  \\
-% The parameter input file is copied to the start of the parameter
-% output file which may be useful in certain situations.

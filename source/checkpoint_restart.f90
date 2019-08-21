@@ -8,7 +8,7 @@
 module checkpoint_restart
 
   use floatPrecision
-  use, intrinsic :: iso_fortran_env, only : int16
+  use, intrinsic :: iso_fortran_env, only : int16, int32
 
   implicit none
 
@@ -43,7 +43,7 @@ module checkpoint_restart
 
   ! C/R Temp Variables and Arrays
   real(kind=fPrec),  private, save :: cre0
-  real(kind=fPrec),  private, save :: crbetrel
+  real(kind=fPrec),  private, save :: crbeta0
   real(kind=fPrec),  private, save :: crbrho
   real(kind=fPrec),  private, save :: crnucmda
 
@@ -72,6 +72,7 @@ module checkpoint_restart
   integer(kind=int16), allocatable, private, save :: crnaa(:)   ! (npart)
   integer(kind=int16), allocatable, private, save :: crnzz(:)   ! (npart)
   integer(kind=int16), allocatable, private, save :: crnqq(:)   ! (npart)
+  integer(kind=int32), allocatable, private, save :: crpdgid(:) ! (npart)
 
   integer,          allocatable, public,  save :: binrecs(:)    ! ((npart+1)/2)
   integer,          allocatable, public,  save :: crbinrecs(:)  ! (npart+1)/2)
@@ -131,9 +132,7 @@ subroutine cr_fileInit
       ! Name hardcoded in our boinc_unzip_.
       ! Either it is only the fort.* input data or it is a restart.
       call boincrf("Sixin.zip",fileName)
-#if defined(LIBARCHIVE)
-      call f_read_archive(trim(fileName),".")
-#elif defined(ZLIB)
+#ifdef ZLIB
       call minizip_unzip(trim(fileName),".",zErr,len_trim(fileName),1)
       if(zErr /= 0) then
         write(cr_errUnit,"(a)") "SIXTRACR> ERROR Could not extract 'Sixin.zip'"
@@ -178,7 +177,7 @@ subroutine cr_expand_arrays(npart_new)
 
   use mod_alloc
   use numerical_constants, only : zero, one
-  use mod_common, only : nucm0, aa0, zz0, qq0
+  use mod_common, only : nucm0, aa0, zz0, qq0, pdgid0
 
   integer, intent(in) :: npart_new
 
@@ -199,6 +198,7 @@ subroutine cr_expand_arrays(npart_new)
   call alloc(crnaa,      npart_new,    aa0,     "crnaa")
   call alloc(crnzz,      npart_new,    zz0,     "crnzz")
   call alloc(crnqq,      npart_new,    qq0,     "crnqq")
+  call alloc(crpdgid,    npart_new,    pdgid0,  "crpdgid")
   call alloc(craperv,    npart_new, 2, zero,    "craperv")
   call alloc(binrecs,    npair_new,    0,       "binrecs")
   call alloc(crbinrecs,  npair_new,    0,       "crbinrecs")
@@ -389,7 +389,7 @@ subroutine crcheck
     write(crlog,"(a)") "CR_CHECK>  * Tracking variables"
     flush(crlog)
     read(cr_pntUnit(nPoint),iostat=ioStat) crnumlcr,crnuml,crsixrecs,crbinrec,cril,crnapxo, &
-      crnapx,cre0,crbetrel,crbrho,crnucmda
+      crnapx,cre0,crbeta0,crbrho,crnucmda
     if(ioStat /= 0) cycle
 
     write(crlog,"(a)") "CR_CHECK>  * Particle arrays"
@@ -415,6 +415,7 @@ subroutine crcheck
       (crnaa(j),     j=1,crnapxo),       &
       (crnzz(j),     j=1,crnapxo),       &
       (crnqq(j),     j=1,crnapxo),       &
+      (crpdgid(j),   j=1,crnapxo),       &
       (craperv(j,1), j=1,crnapxo),       &
       (craperv(j,2), j=1,crnapxo),       &
       (crllostp(j),  j=1,crnapxo)
@@ -625,7 +626,7 @@ subroutine crpoint
       write(crlog,"(a)") "CR_POINT>  * Tracking variables"
       flush(crlog)
     end if
-    write(cr_pntUnit(nPoint),err=100) crnumlcr,numl,sixrecs,binrec,il,napxo,napx,e0,betrel,brho,nucmda
+    write(cr_pntUnit(nPoint),err=100) crnumlcr,numl,sixrecs,binrec,il,napxo,napx,e0,beta0,brho,nucmda
 
     if(st_debug) then
       write(crlog,"(a)") "CR_POINT>  * Particle arrays"
@@ -652,6 +653,7 @@ subroutine crpoint
       (naa(j),     j=1,napxo),       &
       (nzz(j),     j=1,napxo),       &
       (nqq(j),     j=1,napxo),       &
+      (pdgid(j),   j=1,napxo),       &
       (aperv(j,1), j=1,napxo),       &
       (aperv(j,2), j=1,napxo),       &
       (llostp(j),  j=1,napxo)
@@ -770,7 +772,7 @@ subroutine crstart
   napx   = crnapx
   e0     = cre0
   e0f    = sqrt(e0**2-nucm0**2)
-  betrel = crbetrel
+  beta0 = crbeta0
   brho   = crbrho
   nucmda = crnucmda
 
@@ -803,6 +805,7 @@ subroutine crstart
   naa(1:napxo)      = crnaa(1:napxo)
   nzz(1:napxo)      = crnzz(1:napxo)
   nqq(1:napxo)      = crnqq(1:napxo)
+  pdgid(1:napxo)    = crpdgid(1:napxo)
 
   numxv(1:napxo)    = crnumxv(1:napxo)
   nnumxv(1:napxo)   = crnnumxv(1:napxo)

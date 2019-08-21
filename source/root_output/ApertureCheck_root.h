@@ -5,8 +5,8 @@
 #include "TROOT.h"
 
 extern "C" void ApertureCheckRootInit();
-extern "C" void ApertureCheckWriteLossParticle(int, int, int, char*, int, double, int, double, double, double, double, double, double, double, int, int);
-extern "C" void ApertureCheckWriteLossParticleF(int, int, int, char*, int, double, int32_t, int32_t, double, double, double, double, double, double, double, double, int, int);
+extern "C" void ApertureCheckWriteLossParticle(int, int, int, char*, int, double, int, double, double, double, double, double, double, double, int, int, int, int);
+extern "C" void ApertureCheckWriteLossParticleF(int, int, int, char*, int, double, int32_t, int32_t, double, double, double, double, double, double, double, double, int, int, int, int);
 
 class ApertureCheckRootOutput
 {
@@ -14,8 +14,8 @@ public:
 
 ApertureCheckRootOutput();
 
-void WriteLossParticle(int, int, int, char*, int, double, int, double, double, double, double, double, double, double, int, int);
-void WriteLossParticleF(int, int, int, char*, int, double, int32_t, int32_t, double, double, double, double, double, double, double, double, int, int);
+void WriteLossParticle(int, int, int, char*, int, double, int, double, double, double, double, double, double, double, int, int, int, int);
+void WriteLossParticleF(int, int, int, char*, int, double, int32_t, int32_t, double, double, double, double, double, double, double, double, int, int, int, int);
 
 
 private:
@@ -38,6 +38,8 @@ Double_t dp;
 //Ion variables
 int na;
 int nz;
+int nq;
+int pdgid;
 
 //FLUKA variables
 int32_t fluka_uid;

@@ -93,6 +93,8 @@ list(APPEND SIXTRACK_TESTS
   chebythin6d_ramp_DYNK
   crabs
   dipedge
+  dist_file_6d
+  dist_file_6d_direct
   distance
   dump_2_all_ele_highprec
   dump_all_highprec
@@ -183,16 +185,21 @@ endif()
 
 if(NOT CR)
   list(APPEND SIXTRACK_TESTS
+    collimation_dist_1h
+    collimation_dist_1v
+    collimation_dist_2h
+    collimation_dist_2v
+    collimation_dist_3h
+    collimation_dist_3v
+    collimation_dist_4
+    collimation_dist_5
+    collimation_dist_6
+    collimation_dist_radial
     collimation_k2
+    collimation_new-db_new-block
     collimation_old-db_new-block
     collimation_old-db_old-block
     scatter_collimation
-  )
-endif()
-
-if(LIBARCHIVE)
-  list(APPEND SIXTRACK_TESTS
-    elensidealthin6d_DYNK_ZIPF
   )
 endif()
 
@@ -205,6 +212,14 @@ endif()
 if(PYTHIA)
   list(APPEND SIXTRACK_TESTS
     scatter_pythia
+  )
+endif()
+
+if(DISTLIB AND STF)
+  list(APPEND SIXTRACK_TESTS
+    distlib_normalised
+    distlib_tmatrix
+    distlib_twiss
   )
 endif()
 
@@ -235,9 +250,25 @@ set(TESTS_NOFORT10
   beam-HO_6D-simple-oldstyle
   beambeam4dDYNK
   beambeamDYNK
+  collimation_dist_1h
+  collimation_dist_1v
+  collimation_dist_2h
+  collimation_dist_2v
+  collimation_dist_3h
+  collimation_dist_3v
+  collimation_dist_4
+  collimation_dist_5
+  collimation_dist_6
+  collimation_dist_radial
   collimation_k2
+  collimation_new-db_new-block
   collimation_old-db_new-block
   collimation_old-db_old-block
+  dist_file_6d
+  dist_file_6d_direct
+  distlib_normalised
+  distlib_tmatrix
+  distlib_twiss
   dump_2_all_ele_highprec
   dump_all_highprec
   dump_binary
@@ -289,12 +320,28 @@ set(TESTS_NO_STF_FORT90
   chebythin6d_DYNK
   chebythin6d_ions
   chebythin6d_ramp_DYNK
+  collimation_dist_1h
+  collimation_dist_1v
+  collimation_dist_2h
+  collimation_dist_2v
+  collimation_dist_3h
+  collimation_dist_3v
+  collimation_dist_4
+  collimation_dist_5
+  collimation_dist_6
+  collimation_dist_radial
   collimation_k2
+  collimation_new-db_new-block
   collimation_old-db_new-block
   collimation_old-db_old-block
   crabs
   orbit6d-element-rotations
   dipedge
+  dist_file_6d
+  dist_file_6d_direct
+  distlib_normalised
+  distlib_tmatrix
+  distlib_twiss
   dump_all_highprec
   dump4
   dump5
@@ -377,16 +424,6 @@ foreach(TST IN ITEMS ${SIXTRACK_TESTS})
     set(FORT90 0)
   endif()
 
-  if(LIBARCHIVE)
-    if(TST STREQUAL elensidealthin6d_DYNK_ZIPF)
-      set(SIXOUT_NUMFILES 2)
-    else()
-      set(SIXOUT_NUMFILES 0)
-    endif()
-  else()
-    set(SIXOUT_NUMFILES 0)
-  endif(LIBARCHIVE)
-
   set(DUMP_BIN_FILE NONE)
   if(TST STREQUAL dump_binary)
     set(DUMP_BIN_FILE dump.dat,dumpStart.dat)
@@ -410,7 +447,7 @@ foreach(TST IN ITEMS ${SIXTRACK_TESTS})
   add_test(
     NAME ${TST} WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/test/${TST}
     COMMAND SixTestWrapper $<TARGET_FILE:SixTrackCR> $<TARGET_FILE:checkf10> $<TARGET_FILE:read90>
-      ${FORT10} ${FORT90} ${STF_ENABLE} ${SIXOUT_NUMFILES} ${CR_ENABLE} ${CR_KILL_TIME}
+      ${FORT10} ${FORT90} ${STF_ENABLE} 0 ${CR_ENABLE} ${CR_KILL_TIME}
       $<TARGET_FILE:readDump3> ${DUMP_BIN_FILE} ${CR_NUMRESTARTS}
   )
 
@@ -426,7 +463,6 @@ if(SIXDA)
     set(FORT10 0)
     set(FORT90 0)
     set(STF_ENABLE 0)
-    set(SIXOUT_NUMFILES 0)
     set(CR_ENABLE 0)
     set(CR_KILL_TIME 0)
     set(DUMP_BIN_FILE NONE)
@@ -434,7 +470,7 @@ if(SIXDA)
     add_test(
       NAME ${TST} WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/test/${TST}
       COMMAND SixTestWrapper $<TARGET_FILE:SixTrackDA> $<TARGET_FILE:checkf10> $<TARGET_FILE:read90>
-        ${FORT10} ${FORT90} ${STF_ENABLE} ${SIXOUT_NUMFILES} ${CR_ENABLE} ${CR_KILL_TIME}
+        ${FORT10} ${FORT90} ${STF_ENABLE} 0 ${CR_ENABLE} ${CR_KILL_TIME}
         $<TARGET_FILE:readDump3> ${DUMP_BIN_FILE} 0
     )
 
@@ -554,9 +590,25 @@ set(FAST_TESTS
   chebythin6d_DYNK
   chebythin6d_ions
   chebythin6d_ramp_DYNK
+  collimation_dist_1h
+  collimation_dist_1v
+  collimation_dist_2h
+  collimation_dist_2v
+  collimation_dist_3h
+  collimation_dist_3v
+  collimation_dist_4
+  collimation_dist_5
+  collimation_dist_6
+  collimation_dist_radial
   collimation_old-db_new-block
   collimation_old-db_old-block
+  collimation_old-db_old-block
   crabs
+  dist_file_6d
+  dist_file_6d_direct
+  distlib_normalised
+  distlib_tmatrix
+  distlib_twiss
   dump_2_all_ele_highprec
   dump_all_highprec
   dump_binary
@@ -697,7 +749,9 @@ endforeach()
 # Zlib tests
 if(ZLIB)
   set_property(TEST SelfTest_zlib PROPERTY LABELS tool fast)
-  set_property(TEST SelfTest_zlib_64 PROPERTY LABELS tool fast)
+  if(64BIT)
+    set_property(TEST SelfTest_zlib_64 PROPERTY LABELS tool fast)
+  endif()
 endif()
 
 # Inputs

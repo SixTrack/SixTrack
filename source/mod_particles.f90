@@ -5,7 +5,6 @@
 ! ================================================================================================ !
 module mod_particles
 
-  use crcoall
   use floatPrecision
 
   implicit none
@@ -56,7 +55,7 @@ subroutine part_applyClosedOrbit
     xv2(1:napx)   = xv2(1:napx)   +   clo(2)*real(idz(2),fPrec)
     yv2(1:napx)   = yv2(1:napx)   +  clop(2)*real(idz(2),fPrec)
   end if
-  call part_updatePartEnergy(3)
+  call part_updatePartEnergy(3,.false.)
 
 end subroutine part_applyClosedOrbit
 
@@ -67,6 +66,7 @@ end subroutine part_applyClosedOrbit
 ! ================================================================================================ !
 subroutine part_updateRefEnergy(refEnergy)
 
+  use crcoall
   use mod_common
   use mod_common_main
   use numerical_constants, only : one, c1m6
@@ -88,8 +88,9 @@ subroutine part_updateRefEnergy(refEnergy)
   e0     = refEnergy
   e0f    = sqrt(e0**2 - nucm0**2)
   gammar = nucm0/e0
-  betrel = sqrt((one+gammar)*(one-gammar))
-  brho   = (e0f/(clight*c1m6))/zz0
+  gamma0 = e0/nucm0
+  beta0  = sqrt((one+gammar)*(one-gammar))
+  brho   = (e0f/(clight*c1m6))/qq0
 
   ! Also update sigmv with the new beta0 = e0f/e0
   sigmv(1:napx) = ((e0f*e0o)/(e0fo*e0))*sigmv(1:napx)
@@ -99,7 +100,7 @@ subroutine part_updateRefEnergy(refEnergy)
     call prror
   end if
 
-  call part_updatePartEnergy(1)
+  call part_updatePartEnergy(1,.false.)
 
 end subroutine part_updateRefEnergy
 
@@ -108,8 +109,9 @@ end subroutine part_updateRefEnergy
 !  Last modified: 2019-01-10
 !  Updates the relevant particle arrays after the particle's energy, momentum or delta has changed.
 ! ================================================================================================ !
-subroutine part_updatePartEnergy(refArray,updateAngle)
+subroutine part_updatePartEnergy(refArray, updateAngle)
 
+  use crcoall
   use mod_common
   use mod_common_track
   use mod_common_main
@@ -117,21 +119,15 @@ subroutine part_updatePartEnergy(refArray,updateAngle)
 
   implicit none
 
-  integer,           intent(in) :: refArray
-  logical, optional, intent(in) :: updateAngle
-
-  logical :: doUpdateAngle = .false.
+  integer, intent(in) :: refArray
+  logical, intent(in) :: updateAngle
 
   !if(part_isTracking .and. refArray /= 1) then
   !  write(lerr,"(a)") "PART> ERROR During tracking, only energy updates are allowed in part_updatePartEnergy."
   !  call prror
   !end if
 
-  if(present(updateAngle)) then
-    doUpdateAngle = updateAngle
-  end if
-
-  if(doUpdateAngle .and. refArray /= 2) then
+  if(updateAngle .and. refArray /= 2) then
     ! If momentum is updated before the call, then ejf0v must be too
     ejf0v(1:napx) = ejfv(1:napx)
   end if
@@ -161,7 +157,7 @@ subroutine part_updatePartEnergy(refArray,updateAngle)
   omoidpsv(1:napx) = ((one-mtc(1:napx))*oidpsv(1:napx))*c1e3
   rvv(1:napx)      = (ejv(1:napx)*e0f)/(e0*ejfv(1:napx))     ! Beta_0 / beta(j)
 
-  if(doUpdateAngle) then ! Update particle angles
+  if(updateAngle) then ! Update particle angles
     yv1(1:napx)    = (ejf0v(1:napx)/ejfv(1:napx))*yv1(1:napx)
     yv2(1:napx)    = (ejf0v(1:napx)/ejfv(1:napx))*yv2(1:napx)
   end if
@@ -182,8 +178,8 @@ end subroutine part_updatePartEnergy
 ! ================================================================================================ !
 subroutine part_writeState(fileName, isText, withIons)
 
-  use mod_units
   use parpro
+  use mod_units
   use mod_common
   use mod_common_main
   use mod_common_track
@@ -191,16 +187,17 @@ subroutine part_writeState(fileName, isText, withIons)
   use string_tools
   use numerical_constants
 
-  use, intrinsic :: iso_fortran_env, only : int16
+  use, intrinsic :: iso_fortran_env, only : int16, int32
 
   character(len=*), intent(in) :: fileName
   logical,          intent(in) :: isText
   logical,          intent(in) :: withIons
 
-  character(len=225) :: roundBuf
-  real(kind=fPrec)   :: tmpTas(6,6)
-  integer            :: fileUnit, i, j, iPrim, iLost
-  logical            :: rErr, isPrim
+  character(len=225)  :: roundBuf
+  real(kind=fPrec)    :: tmpTas(6,6)
+  integer(kind=int16) :: iIons
+  integer             :: fileUnit, i, j, iPrim, iLost
+  logical             :: rErr, isPrim
 
   call f_requestUnit(fileName, fileUnit)
 
@@ -269,8 +266,8 @@ subroutine part_writeState(fileName, isText, withIons)
 
     write(fileUnit,"(a)") "#"
     if(withIons) then
-      write(fileUnit,"(a1,a7,1x,a8,2(1x,a4),9(1x,a24),3(1x,a4))") &
-        "#","partID","parentID","lost","prim","x","y","xp","yp","sigma","dp","p","e","mass","A","Z","Q"
+      write(fileUnit,"(a1,a7,1x,a8,2(1x,a4),9(1x,a24),3(1x,a4),1x,a11)") &
+        "#","partID","parentID","lost","prim","x","y","xp","yp","sigma","dp","p","e","mass","A","Z","Q","PDGid"
     else
       write(fileUnit,"(a1,a7,1x,a8,2(1x,a4),8(1x,a24))") &
         "#","partID","parentID","lost","prim","x","y","xp","yp","sigma","dp","p","e"
@@ -288,8 +285,8 @@ subroutine part_writeState(fileName, isText, withIons)
       call chr_fromReal(ejv(j),  roundBuf(177:200),17,3,rErr)
       if(withIons) then
         call chr_fromReal(nucm(j), roundBuf(202:225),17,3,rErr)
-        write(fileUnit, "(i8,1x,i8,2(1x,l4),a225,3(1x,i4))") &
-        partID(j),parentID(j),llostp(j),isPrim,roundBuf(1:225),naa(j),nzz(j),nqq(j)
+        write(fileUnit, "(i8,1x,i8,2(1x,l4),a225,3(1x,i4),1x,i11)") &
+        partID(j),parentID(j),llostp(j),isPrim,roundBuf(1:225),naa(j),nzz(j),nqq(j),pdgid(j)
       else
         write(fileUnit, "(i8,1x,i8,2(1x,l4),a200)") &
           partID(j),parentID(j),llostp(j),isPrim,roundBuf(1:200)
@@ -299,10 +296,15 @@ subroutine part_writeState(fileName, isText, withIons)
     ! Format
     ! Header: 440 bytes
     ! Record:  80 bytes
-    ! + Ions:  16 bytes
+    ! + Ions:  24 bytes
     call f_open(unit=fileUnit,file=fileName,formatted=.false.,mode="w",status="replace",access="stream")
+    if(withIons) then
+      iIons = 1
+    else
+      iIons = 0
+    end if
     write(fileUnit) napxo,napx,npart,numl                               ! 4x32bit
-    write(fileUnit) nucm0,e0,e0f,aa0,zz0,qq0,1_int16                    ! 3x64bit + 4x16bit
+    write(fileUnit) nucm0,e0,e0f,aa0,zz0,qq0,iIons                      ! 3x64bit + 4x16bit
     write(fileUnit) clo(1),clop(1),clo(2),clop(2)                       ! 4x64bit
     write(fileUnit) clo6(1),clop6(1),clo6(2),clop6(2),clo6(3),clop6(3)  ! 6x64bit
     write(fileUnit) qwc(1),qwc(2),qwc(3)                                ! 3x64bit
@@ -324,11 +326,12 @@ subroutine part_writeState(fileName, isText, withIons)
       else
         iLost = 0
       end if
-      write(fileUnit) partID(j),parentID(j),iLost,iPrim      ! 4x32 bit
-      write(fileUnit) xv1(j),xv2(j),yv1(j),yv2(j)            ! 4x64 bit
-      write(fileUnit) sigmv(j),dpsv(j),ejfv(j),ejv(j)        ! 4x64 bit
+      write(fileUnit) partID(j),parentID(j),iLost,iPrim       ! 4x32 bit
+      write(fileUnit) xv1(j),xv2(j),yv1(j),yv2(j)             ! 4x64 bit
+      write(fileUnit) sigmv(j),dpsv(j),ejfv(j),ejv(j)         ! 4x64 bit
       if(withIons) then
-        write(fileUnit) nucm(j),naa(j),nzz(j),nqq(j),0_int16 ! 64 bit + 4x16 bit
+        write(fileUnit) nucm(j),naa(j),nzz(j),nqq(j),pdgid(j) ! 64 bit + 3x16 + 32 bit
+        write(fileUnit) 0_int16, 0_int32                      ! Pad to nearest 64 bit
       end if
     end do
   end if

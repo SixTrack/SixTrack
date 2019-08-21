@@ -137,7 +137,7 @@ subroutine fma_postpr
   use string_tools
   use mathlib_bouncer
   use platofma
-  use dump, only : dump_fname, dumpfmt, dumpunit, dumpfirst, dumplast, dumptas, dumpclo, dumptasinv
+  use dump, only : dump_fname, dumpfmt, dumpunit, dumpfirst, dumplast, dump_getTasMatrix
   use numerical_constants, only : zero, one, c1e3
 
   use crcoall
@@ -156,24 +156,20 @@ subroutine fma_postpr
   logical spErr, fErr, cErr, isOpen, fExist
   integer i,j,k,l,m,n
 
-  ! Current turn no (particle, rel. turn no)
-  integer, allocatable :: turn(:,:)
-  ! Number of turns to analyze for this particle
-  integer, allocatable :: nturns(:)
-  ! Have we written a normDump file for this element before?
-  logical, allocatable :: hasNormDumped(:)
-  ! Number of turns used for fft for this FMA
-  integer, allocatable :: fma_nturn(:)
-  ! Phase space variables (x,x',y,y',z,dE/E) [mm,mrad,mm,mrad,mm,1.e-3]
-  real(kind=fPrec), allocatable :: xyzv(:,:,:)
-  ! Normalised phase space variables [sqrt(m) 1.e-3]
-  real(kind=fPrec), allocatable :: nxyzv(:,:,:)
-  ! Normalised emittances
-  real(kind=fPrec), allocatable :: epsnxyzv(:,:,:)
+  integer,          allocatable :: turn(:,:)        ! Current turn no (particle, rel. turn no)
+  integer,          allocatable :: nturns(:)        ! Number of turns to analyze for this particle
+  logical,          allocatable :: hasNormDumped(:) ! Have we written a normDump file for this element before?
+  integer,          allocatable :: fma_nturn(:)     ! Number of turns used for fft for this FMA
+  real(kind=fPrec), allocatable :: xyzv(:,:,:)      ! Phase space variables (x,x',y,y',z,dE/E) [mm,mrad,mm,mrad,mm,1.e-3]
+  real(kind=fPrec), allocatable :: nxyzv(:,:,:)     ! Normalised phase space variables [sqrt(m) 1.e-3]
+  real(kind=fPrec), allocatable :: epsnxyzv(:,:,:)  ! Normalised emittances
+  real(kind=fPrec) dumptas(6,6)    ! Local copy of tas matrix from DUMP
+  real(kind=fPrec) dumptasinv(6,6) ! Local copy of inverse tas matrix from DUMP
+  real(kind=fPrec) dumpclo(6)      ! Local copy of closed orbit from DUMP
 
 #ifdef NAFF
   interface
-    real(c_double) function tunenaff(x,xp,maxn,plane_idx,norm_flag, fft_naff) bind(c)
+    real(c_double) function tunenaff(x,xp,maxn,plane_idx,norm_flag,fft_naff) bind(c)
       use, intrinsic :: iso_c_binding
       implicit none
       real(c_double), intent(in), dimension(1) :: x,xp
@@ -232,13 +228,13 @@ subroutine fma_postpr
     fExist = .false.
     do j=-1,nele ! START: loop over dump files = loop over single elements
       if(fma_fname(i) == dump_fname(j)) then
+        call dump_getTasMatrix(j,dumptasinv,dumptas, dumpclo)
         fExist = .true.
         write(lout,"(3(a,i0))") "FMA> Start FMA analysis using file '"//trim(fma_fname(i))//&
           "': Number of particles = ",napx,", first turn = ",fma_first(i),", last turn = ",fma_last(i)
 
         ! Check the format, if dumpfmt != 2,3 (physical) or 7,8 (normalised) then abort
-        if(.not.(dumpfmt(j) == 2 .or. dumpfmt(j) == 3 .or. &
-                 dumpfmt(j) == 7 .or. dumpfmt(j) == 8)) then
+        if(.not.(dumpfmt(j) == 2 .or. dumpfmt(j) == 3 .or. dumpfmt(j) == 7 .or. dumpfmt(j) == 8)) then
           write(lerr,"(a)") "FMA> ERROR Input file has wrong format. Choose format 2, 3, 7 or 8 in DUMP block."
           call prror
         end if
@@ -357,8 +353,8 @@ subroutine fma_postpr
         else ! Reading physical coordinates
           if(fma_norm_flag(i) == 1 ) then
             ! Have a matrix that's not zero (i.e. did we put a 6d LINE block?)
-            if(dumptas(j,1,1) == zero .and. dumptas(j,1,2) == zero .and. &
-                dumptas(j,1,3) == zero .and. dumptas(j,1,4) == zero) then
+            if(dumptas(1,1) == zero .and. dumptas(1,2) == zero .and. &
+               dumptas(1,3) == zero .and. dumptas(1,4) == zero) then
               write(lerr,"(a)") "FMA> ERROR The normalisation matrix appears to not be set? Did you forget to put a 6D LINE block?"
               call prror
             end if
@@ -392,35 +388,35 @@ subroutine fma_postpr
           ! - write closed orbit in header of file with normalised phase space coordinates (tmpUnit)
           !   units: x,xp,y,yp,sig,dp/p = [mm,mrad,mm,mrad,1] (note: units are already changed in linopt part)
           write(tmpUnit,"(a,1x,6(1x,1pe16.9))") "# closorb", &
-            dumpclo(j,1),dumpclo(j,2),dumpclo(j,3), &
-            dumpclo(j,4),dumpclo(j,5),dumpclo(j,6)
+            dumpclo(1),dumpclo(2),dumpclo(3), &
+            dumpclo(4),dumpclo(5),dumpclo(6)
 
           ! - write tas-matrix and its inverse in header of file with normalised phase space coordinates (tmpUnit)
           !   units: x,px,y,py,sig,dp/p [mm,mrad,mm,mrad,1]
           write(tmpUnit,"(a,1x,36(1x,1pe16.9))") "# tamatrix [mm,mrad,mm,mrad,1]", &
-            dumptas(j,1,1),dumptas(j,1,2),dumptas(j,1,3),dumptas(j,1,4), &
-            dumptas(j,1,5),dumptas(j,1,6),dumptas(j,2,1),dumptas(j,2,2), &
-            dumptas(j,2,3),dumptas(j,2,4),dumptas(j,2,5),dumptas(j,2,6), &
-            dumptas(j,3,1),dumptas(j,3,2),dumptas(j,3,3),dumptas(j,3,4), &
-            dumptas(j,3,5),dumptas(j,3,6),dumptas(j,4,1),dumptas(j,4,2), &
-            dumptas(j,4,3),dumptas(j,4,4),dumptas(j,4,5),dumptas(j,4,6), &
-            dumptas(j,5,1),dumptas(j,5,2),dumptas(j,5,3),dumptas(j,5,4), &
-            dumptas(j,5,5),dumptas(j,5,6),dumptas(j,6,1),dumptas(j,6,2), &
-            dumptas(j,6,3),dumptas(j,6,4),dumptas(j,6,5),dumptas(j,6,6)
+            dumptas(1,1),dumptas(1,2),dumptas(1,3),dumptas(1,4), &
+            dumptas(1,5),dumptas(1,6),dumptas(2,1),dumptas(2,2), &
+            dumptas(2,3),dumptas(2,4),dumptas(2,5),dumptas(2,6), &
+            dumptas(3,1),dumptas(3,2),dumptas(3,3),dumptas(3,4), &
+            dumptas(3,5),dumptas(3,6),dumptas(4,1),dumptas(4,2), &
+            dumptas(4,3),dumptas(4,4),dumptas(4,5),dumptas(4,6), &
+            dumptas(5,1),dumptas(5,2),dumptas(5,3),dumptas(5,4), &
+            dumptas(5,5),dumptas(5,6),dumptas(6,1),dumptas(6,2), &
+            dumptas(6,3),dumptas(6,4),dumptas(6,5),dumptas(6,6)
 
           write(tmpUnit,"(a,1x,36(1x,1pe16.9))") "# inv(tamatrix)", &
-            dumptasinv(j,1,1),dumptasinv(j,1,2),dumptasinv(j,1,3), &
-            dumptasinv(j,1,4),dumptasinv(j,1,5),dumptasinv(j,1,6), &
-            dumptasinv(j,2,1),dumptasinv(j,2,2),dumptasinv(j,2,3), &
-            dumptasinv(j,2,4),dumptasinv(j,2,5),dumptasinv(j,2,6), &
-            dumptasinv(j,3,1),dumptasinv(j,3,2),dumptasinv(j,3,3), &
-            dumptasinv(j,3,4),dumptasinv(j,3,5),dumptasinv(j,3,6), &
-            dumptasinv(j,4,1),dumptasinv(j,4,2),dumptasinv(j,4,3), &
-            dumptasinv(j,4,4),dumptasinv(j,4,5),dumptasinv(j,4,6), &
-            dumptasinv(j,5,1),dumptasinv(j,5,2),dumptasinv(j,5,3), &
-            dumptasinv(j,5,4),dumptasinv(j,5,5),dumptasinv(j,5,6), &
-            dumptasinv(j,6,1),dumptasinv(j,6,2),dumptasinv(j,6,3), &
-            dumptasinv(j,6,4),dumptasinv(j,6,5),dumptasinv(j,6,6)
+            dumptasinv(1,1),dumptasinv(1,2),dumptasinv(1,3), &
+            dumptasinv(1,4),dumptasinv(1,5),dumptasinv(1,6), &
+            dumptasinv(2,1),dumptasinv(2,2),dumptasinv(2,3), &
+            dumptasinv(2,4),dumptasinv(2,5),dumptasinv(2,6), &
+            dumptasinv(3,1),dumptasinv(3,2),dumptasinv(3,3), &
+            dumptasinv(3,4),dumptasinv(3,5),dumptasinv(3,6), &
+            dumptasinv(4,1),dumptasinv(4,2),dumptasinv(4,3), &
+            dumptasinv(4,4),dumptasinv(4,5),dumptasinv(4,6), &
+            dumptasinv(5,1),dumptasinv(5,2),dumptasinv(5,3), &
+            dumptasinv(5,4),dumptasinv(5,5),dumptasinv(5,6), &
+            dumptasinv(6,1),dumptasinv(6,2),dumptasinv(6,3), &
+            dumptasinv(6,4),dumptasinv(6,5),dumptasinv(6,6)
 
           write(tmpUnit,"(a)") "# id turn pos[m] nx[1.e-3 sqrt(m)] npx[1.e-3 sqrt(m)] ny[1.e-3 sqrt(m)] "//&
             "npy[1.e-3 sqrt(m)] nsig[1.e-3 sqrt(m)] ndp/p[1.e-3 sqrt(m)] kt"
@@ -498,18 +494,18 @@ subroutine fma_postpr
 
               ! remove closed orbit -> check units used in dumpclo (is x' or px used?)
               do m=1,6
-                xyzvdummy2(m)=xyzvdummy(m)-dumpclo(j,m)
+                xyzvdummy2(m)=xyzvdummy(m)-dumpclo(m)
               end do
 
               ! For use in with normalised coordinates: convert to canonical variables
-              xyzvdummy2(2)=xyzvdummy2(2) * ((one+xyzvdummy2(6))+dumpclo(j,6))
-              xyzvdummy2(4)=xyzvdummy2(4) * ((one+xyzvdummy2(6))+dumpclo(j,6))
+              xyzvdummy2(2)=xyzvdummy2(2) * ((one+xyzvdummy2(6))+dumpclo(6))
+              xyzvdummy2(4)=xyzvdummy2(4) * ((one+xyzvdummy2(6))+dumpclo(6))
 
               ! Normalise nxyz=dumptasinv*xyz2
               do m=1,6
                 nxyzvdummy(m)=zero
                 do n=1,6
-                  nxyzvdummy(m)=nxyzvdummy(m) + dumptasinv(j,m,n)*xyzvdummy2(n)
+                  nxyzvdummy(m)=nxyzvdummy(m) + dumptasinv(m,n)*xyzvdummy2(n)
                 end do
                 ! convert nxyzvdummy(6) to 1.e-3 sqrt(m)
                 ! unit: nx,npx,ny,npy,nsig,ndelta all in [1.e-3 sqrt(m)]

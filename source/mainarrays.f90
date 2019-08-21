@@ -228,12 +228,16 @@ subroutine shuffleLostParticles
     nzz(j:tnapx)       = cshift(nzz(j:tnapx),       1)
     naa(j:tnapx)       = cshift(naa(j:tnapx),       1)
     nqq(j:tnapx)       = cshift(nqq(j:tnapx),       1)
+    pdgid(j:tnapx)     = cshift(pdgid(j:tnapx),     1)
     nucm(j:tnapx)      = cshift(nucm(j:tnapx),      1)
     mtc(j:tnapx)       = cshift(mtc(j:tnapx),       1)
     dpsv1(j:tnapx)     = cshift(dpsv1(j:tnapx),     1)
     oidpsv(j:tnapx)    = cshift(oidpsv(j:tnapx),    1)
     moidpsv(j:tnapx)   = cshift(moidpsv(j:tnapx),   1)
     omoidpsv(j:tnapx)  = cshift(omoidpsv(j:tnapx),  1)
+    spin_x(j:tnapx)    = cshift(spin_x(j:tnapx),    1)
+    spin_y(j:tnapx)    = cshift(spin_y(j:tnapx),    1)
+    spin_z(j:tnapx)    = cshift(spin_z(j:tnapx),    1)
 
     ! Backtracking + Aperture
     plost(j:tnapx)     = cshift(plost(j:tnapx),     1)
@@ -246,6 +250,8 @@ subroutine shuffleLostParticles
     dpsvLast(j:tnapx)  = cshift(dpsvLast(j:tnapx),  1)
     naaLast(j:tnapx)   = cshift(naaLast(j:tnapx),   1)
     nzzLast(j:tnapx)   = cshift(nzzLast(j:tnapx),   1)
+    nqqLast(j:tnapx)   = cshift(nqqLast(j:tnapx),   1)
+    pdgidLast(j:tnapx) = cshift(pdgidLast(j:tnapx), 1)
 
     tnapx = tnapx - 1
   end do
@@ -256,18 +262,6 @@ subroutine shuffleLostParticles
     tnapx = napx
     do j=napx,1,-1
       if(llostp(j) .eqv. .false.) cycle
-
-      xgrd(j:tnapx)                 = cshift(xgrd(j:tnapx),                 1)
-      ygrd(j:tnapx)                 = cshift(ygrd(j:tnapx),                 1)
-      xpgrd(j:tnapx)                = cshift(xpgrd(j:tnapx),                1)
-      ypgrd(j:tnapx)                = cshift(ypgrd(j:tnapx),                1)
-      pgrd(j:tnapx)                 = cshift(pgrd(j:tnapx),                 1)
-      ejfvgrd(j:tnapx)              = cshift(ejfvgrd(j:tnapx),              1)
-      sigmvgrd(j:tnapx)             = cshift(sigmvgrd(j:tnapx),             1)
-      rvvgrd(j:tnapx)               = cshift(rvvgrd(j:tnapx),               1)
-      dpsvgrd(j:tnapx)              = cshift(dpsvgrd(j:tnapx),              1)
-      oidpsvgrd(j:tnapx)            = cshift(oidpsvgrd(j:tnapx),            1)
-      dpsv1grd(j:tnapx)             = cshift(dpsv1grd(j:tnapx),             1)
 
       part_hit_pos(j:tnapx)         = cshift(part_hit_pos(j:tnapx),         1)
       part_hit_turn(j:tnapx)        = cshift(part_hit_turn(j:tnapx),        1)

@@ -15,6 +15,7 @@ program maincr
 
   use floatPrecision
   use mod_units
+  use mod_linopt
   use string_tools
   use sixtrack_input
   use mathlib_bouncer
@@ -23,7 +24,7 @@ program maincr
 
   use dynk,    only : dynk_izuIndex
   use fma,     only : fma_postpr, fma_flag
-  use dump,    only : dump_initialise, dumpclo,dumptas,dumptasinv
+  use dump,    only : dump_initialise, dump_setTasMatrix
   use zipf,    only : zipf_numfiles, zipf_dozip
   use scatter, only : scatter_init
 
@@ -42,6 +43,9 @@ program maincr
 
 #ifdef FLUKA
   use mod_fluka
+#endif
+#ifdef G4COLLIMATION
+  use geant4
 #endif
 #ifdef HDF5
   use hdf5_output
@@ -84,7 +88,6 @@ program maincr
     eps(2),epsa(2),pretime,trtime,posttime,tottime
   integer idummy(6)
   character(len=4) cpto
-  character(len=1024) arecord
 
   ! Keep in sync with writebin_header and more. If the len changes, CRCHECK will break.
   character(len=8) cDate,cTime,progrm
@@ -135,9 +138,6 @@ program maincr
 #ifdef TILT
   featList = featList//" TILT"
 #endif
-#ifdef FAST
-  featList = featList//" FAST"
-#endif
 #ifdef STF
   featList = featList//" STF"
 #endif
@@ -151,6 +151,9 @@ program maincr
 #ifdef CR
   featList = featList//" CR"
 #endif
+#ifdef ZLIB
+  featList = featList//" ZLIB"
+#endif
 #ifdef ROOT
   featList = featList//" ROOT"
 #endif
@@ -160,9 +163,6 @@ program maincr
 #endif
 #ifdef BOINC
   featList = featList//" BOINC"
-#endif
-#ifdef LIBARCHIVE
-  featList = featList//" LIBARCHIVE"
 #endif
 #ifdef PYTHIA
   featList = featList//" PYTHIA"
@@ -431,6 +431,9 @@ program maincr
     call SixTrackRootInit()
     call ConfigurationOutputRootSet_npart(napx)
     call ConfigurationOutputRootSet_nturns(nnuml)
+    call ConfigurationOutputRootSet_aperture_binsize(bktpre)
+    call ConfigurationOutputRootSet_reference_energy(e0)
+    call ConfigurationOutputRootSet_reference_mass(nucm0)
     call ConfigurationRootWrite()
 
     ! Dump the accelerator lattice
@@ -458,6 +461,10 @@ program maincr
       call root_FLUKA_DumpInsertions
     end if
 #endif
+
+    if(root_flag .and. root_DumpPipe.eq.1) then
+      call root_dump_aperture_model
+    end if
 
   end if
 #endif
@@ -747,20 +754,16 @@ program maincr
 
   ! save tas matrix and closed orbit for later dumping of the beam
   ! distribution at the first element (i=-1)
-  ! dumptas(*,*) [mm,mrad,mm,mrad,1] canonical variables
-  ! tas(iar,*,*) [mm,mrad,mm,mrad,1] canonical variables
-  ! clo6v,clop6v [mm,mrad,mm,mrad,1] canonical variables (x' or px?)
-  ! for the initialization of the particles. Only in 5D thick the ta
-  ! matrix is different for each particle.
-  ! -> implement a check for this!
-  ! In 4d,6d thin+thick and 5d thin we have:
-  !   tas(ia,*,*) = tas(1,*,*) for all particles ia
-  do i3=1,3
-    dumpclo(-1,i3*2-1) = clo6v(i3)
-    dumpclo(-1,i3*2)   = clop6v(i3)
-  end do
-  dumptas(-1,:,:) = tas(:,:)
-  call invert_tas(dumptasinv(-1,:,:),dumptas(-1,:,:))
+  block
+    real(kind=fPrec) tmpClo(6)
+    tmpClo(1) = clo6v(1)
+    tmpClo(2) = clop6v(1)
+    tmpClo(3) = clo6v(2)
+    tmpClo(4) = clop6v(2)
+    tmpClo(5) = clo6v(3)
+    tmpClo(6) = clop6v(3)
+    call dump_setTasMatrix(-1,tas,tmpClo)
+  end block
 
   ! Convert to [mm,mrad,mm,mrad,1.e-3] for optics calculation
   tasiar16 = tas(1,6)*c1m3
@@ -990,18 +993,14 @@ program maincr
   end do
   rat0 = rat
 
+  call part_setParticleID ! Must be set before reading DIST
   if(dist_enable) then
     ! DIST Block
-    call dist_readDist
-    call dist_finaliseDist
-    call part_applyClosedOrbit
-    if(dist_echo) then
-      call dist_echoDist
-    end if
+    call dist_generateDist
   elseif(rdfort13) then
     ! Restart from fort.13
     call readFort13
-    call part_updatePartEnergy(1)
+    call part_updatePartEnergy(1,.false.)
   else
     ! Generated from INIT Distribution Block
     do ia=1,napx,2
@@ -1243,7 +1242,7 @@ program maincr
     flush(lout)
     flush(fluka_log_unit)
 
-    fluka_con = fluka_set_synch_part( e0, e0f, nucm0, aa0, zz0)
+    fluka_con = fluka_set_synch_part( e0, e0f, nucm0, aa0, zz0, qq0)
 
     if(fluka_con < 0) then
       write(lerr,"(a)") "FLUKA> ERROR Failed to update the reference particle"
@@ -1261,8 +1260,8 @@ program maincr
 
   ! Initialise Modules
   call dump_initialise
-  if(iclo6 > 0 .and. ithick == 0 .and. do_coll) then
-    ! Only if thin 6D and collimation enabled
+  if(ithick == 0 .and. do_coll) then
+    ! Only if thin and collimation enabled
     call collimate_init
   end if
 
@@ -1275,7 +1274,6 @@ program maincr
 !  START OF TRACKING
 ! ---------------------------------------------------------------------------- !
   write(lout,10200)
-  call part_setParticleID
 
   if(st_iStateWrite) then
     if(st_iStateText) then

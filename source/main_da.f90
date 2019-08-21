@@ -21,6 +21,7 @@ program mainda
   use mathlib_bouncer
   use crcoall
   use parpro
+  use mod_linopt
   use mod_common
   use mod_commons
   use mod_common_track
@@ -64,9 +65,6 @@ program mainda
   featList = ""
 #ifdef TILT
   featList = featList//" TILT"
-#endif
-#ifdef FAST
-  featList = featList//" FAST"
 #endif
 #ifdef STF
   featList = featList//" STF"

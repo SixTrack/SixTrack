@@ -29,9 +29,6 @@ module sixtrack_input
   logical,          allocatable, private, save :: sixin_lBlock(:) ! Block closed
   integer,                       private, save :: sixin_nBlock    ! Number of blocks
 
-  ! Linear Optics Variables
-  integer,          private, save :: sixin_ilin0 = 1
-
   ! Synchrotron Oscillations
   real(kind=fPrec), public,  save :: sixin_alc  = c1m3
   real(kind=fPrec), public,  save :: sixin_harm = one
@@ -521,6 +518,7 @@ subroutine sixin_parseInputLineSIMU(inLine, iLine, iErr)
   use mod_common
   use mod_commons
   use mod_common_track
+  use mod_pdgid
   use physical_constants
 
   character(len=*), intent(in)    :: inLine
@@ -575,11 +573,11 @@ subroutine sixin_parseInputLineSIMU(inLine, iLine, iErr)
     if(numPart > npart) then
       call expand_arrays(nele, numPart, nblz, nblo)
     end if
-    if(napx > 32 .and. sixin_forcePartSummary .eqv. .false.) then
+    if(napx > 32 .and. .not. sixin_forcePartSummary) then
       write(lout,"(a)") "SIMU> NOTE More than 64 particles requested, switching off printing of particle summary."
       st_partsum = .false.
     end if
-    if(napx > 32 .and. sixin_forceWriteFort12 .eqv. .false.) then
+    if(napx > 32 .and. .not. sixin_forceWriteFort12) then
       write(lout,"(a)") "SIMU> NOTE More than 64 particles requested, switching off wriritng of fort.12."
       st_writefort12 = .false.
     end if
@@ -652,6 +650,9 @@ subroutine sixin_parseInputLineSIMU(inLine, iLine, iErr)
       select case(chr_toLower(lnSplit(2)))
       case("proton","pdg2212")
         pdgid0 = 2212
+        aa0    = 1
+        zz0    = 1
+        qq0    = 1
       case default
         write(lerr,"(a)") "SIMU> ERROR Unknown or unsupported named particle mass or PDG ID '"//trim(lnSplit(2))//"'"
         iErr = .true.
@@ -665,10 +666,13 @@ subroutine sixin_parseInputLineSIMU(inLine, iLine, iErr)
     if(nSplit > 3) then
       call chr_cast(lnSplit(4),aa0,iErr)
       call chr_cast(lnSplit(5),zz0,iErr)
-    else
-      zz0 = qq0
     end if
+
+!   aa0, zz0 will default to 1
+    call CalculatePDGid(pdgid0, aa0, zz0)
+
     if(st_debug) then
+      call sixin_echoVal("PDGid",        pdgid0,   "SIMU",iLine)
       call sixin_echoVal("charge",       int(qq0), "SIMU",iLine)
       call sixin_echoVal("A",            int(aa0), "SIMU",iLine)
       call sixin_echoVal("Z",            int(zz0), "SIMU",iLine)
@@ -934,7 +938,7 @@ subroutine sixin_postInputSIMU(iErr)
     iErr = .true.
   end if
 
-  if((sixin_simu6D .eqv. .false.) .and. iclo6 > 0) then
+  if(iclo6 > 0 .and. .not. sixin_simu6D) then
     write(lout,"(a)") "SIMU> ERROR Can only calculated 6D closed orbit for 6D simulations."
     iErr = .true.
   end if
@@ -1202,6 +1206,7 @@ subroutine sixin_parseInputLineHION(inLine, iLine, iErr)
   use crcoall
   use string_tools
   use mod_common
+  use mod_pdgid
 
   character(len=*), intent(in)    :: inLine
   integer,          intent(inout) :: iLine
@@ -1223,8 +1228,8 @@ subroutine sixin_parseInputLineHION(inLine, iLine, iErr)
     write(lout,"(a)") "HIONS> WARNING Only expected one input line."
   end if
 
-  if(nSplit /= 3) then
-    write(lerr,"(a,i0)") "HIONS> ERROR Line must have 3 values, got ",nSplit
+  if(nSplit < 3 .or. nSplit > 4) then
+    write(lerr,"(a,i0)") "HIONS> ERROR Line must have 3 values (4 with Q), got ",nSplit
     iErr = .true.
     return
   end if
@@ -1232,6 +1237,14 @@ subroutine sixin_parseInputLineHION(inLine, iLine, iErr)
   call chr_cast(lnSplit(1),aa0,  iErr)
   call chr_cast(lnSplit(2),zz0,  iErr)
   call chr_cast(lnSplit(3),nucm0,iErr)
+
+  if(nSplit == 4) then
+    call chr_cast(lnSplit(4),qq0,iErr)
+  else
+    qq0 = zz0
+  end if
+
+  call CalculatePDGid(pdgid0, aa0, zz0)
 
   nucm0 = nucm0*c1e3 ! [GeV/c^2] -> [MeV/c^2]
   sixin_hionSet = .true.
@@ -1326,12 +1339,12 @@ subroutine sixin_parseInputLineTRAC(inLine, iLine, iErr)
       call expand_arrays(nele, napx*2, nblz, nblo)
     end if
 
-    if(napx > 32 .and. sixin_forcePartSummary .eqv. .false.) then
+    if(napx > 32 .and. .not. sixin_forcePartSummary) then
       write(lout,"(a)") "TRAC> NOTE More than 64 particles requested, switching off printing of particle summary."
       st_partsum = .false.
     end if
 
-    if(napx > 32 .and. sixin_forceWriteFort12 .eqv. .false.) then
+    if(napx > 32 .and. .not. sixin_forceWriteFort12) then
       write(lout,"(a)") "TRAC> NOTE More than 64 particles requested, switching off wriritng of fort.12."
       st_writefort12 = .false.
     end if
@@ -1797,89 +1810,6 @@ subroutine sixin_parseInputLineTUNE(inLine, iLine, iErr)
   end select
 
 end subroutine sixin_parseInputLineTUNE
-
-! ================================================================================================ !
-!  Parse Linear Optics Calculation Line
-!  Rewritten from code from DATEN by VKBO
-!  Last modified: 2018-06-xx
-! ================================================================================================ !
-subroutine sixin_parseInputLineLINE(inLine, iLine, iErr)
-
-  use crcoall
-  use string_tools
-  use mod_settings
-  use mod_common
-
-  character(len=*), intent(in)    :: inLine
-  integer,          intent(in)    :: iLine
-  logical,          intent(inout) :: iErr
-
-  character(len=:), allocatable   :: lnSplit(:)
-  character(len=mNameLen) mode
-  integer nSplit,i
-  logical spErr
-
-  call chr_split(inLine, lnSplit, nSplit, spErr)
-  if(spErr) then
-    write(lerr,"(a)") "LINE> ERROR Failed to parse input line."
-    iErr = .true.
-    return
-  end if
-
-  if(iLine == 1) then
-
-    nlin = 0
-    ilin = 1
-
-    if(nSplit > 0) mode = lnSplit(1)
-    if(nSplit > 1) call chr_cast(lnSplit(2),nt,         iErr)
-    if(nSplit > 2) call chr_cast(lnSplit(3),sixin_ilin0,iErr)
-    if(nSplit > 3) call chr_cast(lnSplit(4),ntco,       iErr)
-    if(nSplit > 4) call chr_cast(lnSplit(5),eui,        iErr)
-    if(nSplit > 5) call chr_cast(lnSplit(6),euii,       iErr)
-
-    select case(mode)
-    case("ELEMENT")
-      iprint = 0
-    case("BLOCK")
-      iprint = 1
-    case default
-      write(lerr,"(a)") "LINE> ERROR Valid modes are 'BLOCK' or 'ELEMENT'"
-      iErr = .true.
-    end select
-
-    if(sixin_ilin0 == 1 .or. sixin_ilin0 == 2) then
-      ilin = sixin_ilin0
-    else
-      write(lerr,"(a)") "LINE> ERROR Only 1 (4D) and 2 (6D) are valid options for ilin."
-      iErr = .true.
-    end if
-
-    if(st_debug) then
-      call sixin_echoVal("mode",mode,"LINE",iLine)
-      call sixin_echoVal("nt",  nt,  "LINE",iLine)
-      call sixin_echoVal("ilin",ilin,"LINE",iLine)
-      call sixin_echoVal("ntco",ntco,"LINE",iLine)
-      call sixin_echoVal("eui", eui, "LINE",iLine)
-      call sixin_echoVal("euii",euii,"LINE",iLine)
-    end if
-    if(iErr) return
-
-  else
-
-    do i=1,nSplit
-      nlin = nlin + 1
-      if(nlin > nele) then
-        write(lerr,"(2(a,i0))") "LINE> ERROR Too many elements for linear optics write out. Max is ",nele," got ",nlin
-        iErr = .true.
-        return
-      end if
-      bezl(nlin) = trim(lnSplit(i))
-    end do
-
-  end if
-
-end subroutine sixin_parseInputLineLINE
 
 ! ================================================================================================ !
 !  Parse Synchrotron Oscillations Line
