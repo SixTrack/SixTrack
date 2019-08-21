@@ -96,6 +96,7 @@ subroutine meta_finalise
 
   call meta_write("SymplecticityDeviation",   meta_sympCheck)
   call meta_write("NumParticleTurns",         meta_nPartTurn)
+  call meta_write("NumParticleTurnsElement",  meta_nPTurnEle)
   call meta_write("AvgParticlesPerTurn",      real(meta_nPartTurn,fPrec)/numl, "f15.3")
   call meta_write("CR_RestartCount",          meta_nRestarts)
   call meta_write("CR_KillSwitchCount",       nCRKills2)

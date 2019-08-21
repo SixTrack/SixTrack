@@ -1060,6 +1060,7 @@ subroutine thck4d(nthinerr)
 470   continue
 
 #include "include/lostpart.f90"
+      meta_nPTurnEle = meta_nPTurnEle + napx
 
 #ifdef FLUKA
       ! A.Mereghetti and D.Sinuela Pastor, for the FLUKA Team
@@ -1108,8 +1109,6 @@ subroutine thck4d(nthinerr)
 #endif
 
 490 continue
-
-  return
 
 end subroutine thck4d
 
@@ -1765,6 +1764,7 @@ subroutine thck6d(nthinerr)
 490   continue
 
 #include "include/lostpart.f90"
+      meta_nPTurnEle = meta_nPTurnEle + napx
 
 #ifdef FLUKA
       ! A.Mereghetti and D.Sinuela Pastor, for the FLUKA Team

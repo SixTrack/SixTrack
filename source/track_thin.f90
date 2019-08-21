@@ -1077,6 +1077,7 @@ subroutine thin4d(nthinerr)
 620 continue
 
 #include "include/lostpart.f90"
+    meta_nPTurnEle = meta_nPTurnEle + napx
 
 625 continue
     if (.not. ldumpfront) then
@@ -2042,6 +2043,7 @@ subroutine thin6d(nthinerr)
       end if
 
 #include "include/lostpart.f90"
+      meta_nPTurnEle = meta_nPTurnEle + napx
 
 645   continue
 
