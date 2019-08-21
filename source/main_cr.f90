@@ -15,6 +15,7 @@ program maincr
 
   use floatPrecision
   use mod_units
+  use mod_linopt
   use string_tools
   use sixtrack_input
   use mathlib_bouncer

@@ -1887,8 +1887,8 @@ call h5_finaliseWrite(dump_hdf5DataSet(ix))
           call chr_fromReal(yv2(j),       xyz_h(4),19,2,rErr)
           call chr_fromReal(sigmv(j),      xyz_h(5),19,2,rErr)
           call chr_fromReal((ejv(j)-e0)/e0,xyz_h(6),19,2,rErr)
-          write(unit,"(3(1x,i8),1x,2(f12.5),6(1x,a25),1x,i8)") fluka_uid(j), nturn, fluka_gen(j), fluka_weight(j), localDcum, &
-            xyz_h(1),xyz_h(2),xyz_h(3),xyz_h(4),xyz_h(5),xyz_h(6),localKtrack
+          write(unit,"(3(1x,i8),1x,2(f12.5),6(1x,a25),4(1x,i8),1x,i12)") fluka_uid(j), nturn, fluka_gen(j), fluka_weight(j), &
+            localDcum, xyz_h(1),xyz_h(2),xyz_h(3),xyz_h(4),xyz_h(5),xyz_h(6),localKtrack, naa(j), nzz(j), nqq(j), pdgid(j)
         end do
       else
         do j=1,napx
@@ -1898,8 +1898,8 @@ call h5_finaliseWrite(dump_hdf5DataSet(ix))
           call chr_fromReal(yv2(j),       xyz_l(4),10,2,rErr)
           call chr_fromReal(sigmv(j),      xyz_l(5),10,2,rErr)
           call chr_fromReal((ejv(j)-e0)/e0,xyz_l(6),10,2,rErr)
-          write(unit,"(3(1x,i8),1x,2(f12.5),6(1x,a16),1x,i8)") fluka_uid(j), nturn, fluka_gen(j), fluka_weight(j), localDcum,&
-            xyz_l(1),xyz_l(2),xyz_l(3),xyz_l(4),xyz_l(5),xyz_l(6),localKtrack
+          write(unit,"(3(1x,i8),1x,2(f12.5),6(1x,a16),4(1x,i8),1x,i12)") fluka_uid(j), nturn, fluka_gen(j), fluka_weight(j), &
+            localDcum, xyz_l(1),xyz_l(2),xyz_l(3),xyz_l(4),xyz_l(5),xyz_l(6),localKtrack, naa(j), nzz(j), nqq(j), pdgid(j)
         end do
       end if
 
@@ -1935,9 +1935,9 @@ call h5_finaliseWrite(dump_hdf5DataSet(ix))
       call h5_writeData(dump_hdf5DataSet(ix), 8,  napx, sigmv)
       call h5_writeData(dump_hdf5DataSet(ix), 9,  napx, (ejv-e0)/e0)
       call h5_writeData(dump_hdf5DataSet(ix), 10, napx, localKtrack)
-      call h5_writeData(dump_hdf5DataSet(ix), 11, napx, nzz)
-      call h5_writeData(dump_hdf5DataSet(ix), 12, napx, naa)
-      call h5_writeData(dump_hdf5DataSet(ix), 13, napx, nqq)
+      call h5_writeData(dump_hdf5DataSet(ix), 11, napx, int(nzz))
+      call h5_writeData(dump_hdf5DataSet(ix), 12, napx, int(naa))
+      call h5_writeData(dump_hdf5DataSet(ix), 13, napx, int(nqq))
       call h5_writeData(dump_hdf5DataSet(ix), 14, napx, pdgid)
       call h5_finaliseWrite(dump_hdf5DataSet(ix))
     else

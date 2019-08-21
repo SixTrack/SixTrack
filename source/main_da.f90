@@ -21,6 +21,7 @@ program mainda
   use mathlib_bouncer
   use crcoall
   use parpro
+  use mod_linopt
   use mod_common
   use mod_commons
   use mod_common_track
