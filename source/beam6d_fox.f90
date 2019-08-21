@@ -189,7 +189,7 @@ subroutine sbcf(star,cphi,cphi2,nsli,f,ibb,bcu,track,ibbc)
 !FOX    SEPY0=TRACK(3)+TRACK(4)*S-STAR(2,JSLI) ;
   if(ibbc1.eq.1) then
       sfac=one
-      if(dare(dum(4)).lt.zero) sfac=(-one*one)                       !hr05
+      if(dare(dum(4)).lt.zero) sfac=(-one*one)
 !FOX    DUM(6)=SFAC*DUM(4)/DUM(5) ;
 !FOX    DUM(7)=DUM(1)+DUM(2) ;
 !FOX    COSTH=HALF*(ONE+DUM(6)) ;

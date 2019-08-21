@@ -310,8 +310,8 @@ subroutine trauthck(nthinerr)
         r0a=one
         r000=r0*r00(irm(ix))
         do j=1,mmul
-          fake(1,j)=(bbiv(j,i)*r0a)/benkcc                           !hr01
-          fake(2,j)=(aaiv(j,i)*r0a)/benkcc                           !hr01
+          fake(1,j)=(bbiv(j,i)*r0a)/benkcc
+          fake(2,j)=(aaiv(j,i)*r0a)/benkcc
           r0a=r0a*r000
         end do
 
@@ -425,7 +425,7 @@ subroutine trauthck(nthinerr)
 290 continue ! Label is still needed as it is referenced in some of the ca blocks
 
   do j=1,napx
-    dpsv1(j)=(dpsv(j)*c1e3)/(one+dpsv(j))                            !hr01
+    dpsv1(j)=(dpsv(j)*c1e3)/(one+dpsv(j))
   end do
 
   if (dynk_enabled) call dynk_pretrack
@@ -437,7 +437,7 @@ subroutine trauthck(nthinerr)
     write(lout,"(a)") ""
     call thck4d(nthinerr)
   else
-    hsy(3)=(c1m3*hsy(3))*real(ition,fPrec)                                 !hr01
+    hsy(3)=(c1m3*hsy(3))*real(ition,fPrec)
 
     do jj=1,nele
       if(abs(kz(jj)) == 12) then
@@ -677,12 +677,12 @@ subroutine thck4d(nthinerr)
           do j=1,napx
             puxve=xv1(j)
             puzve=yv1(j)
-            xv1(j)=bl1v(1,1,j,ix)*puxve+bl1v(2,1,j,ix)*puzve+((real(idz1,fPrec)*bl1v(5,1,j,ix))*dpsv(j))*c1e3 !hr01
-            yv1(j)=bl1v(3,1,j,ix)*puxve+bl1v(4,1,j,ix)*puzve+((real(idz1,fPrec)*bl1v(6,1,j,ix))*dpsv(j))*c1e3 !hr01
+            xv1(j)=bl1v(1,1,j,ix)*puxve+bl1v(2,1,j,ix)*puzve+((real(idz1,fPrec)*bl1v(5,1,j,ix))*dpsv(j))*c1e3
+            yv1(j)=bl1v(3,1,j,ix)*puxve+bl1v(4,1,j,ix)*puzve+((real(idz1,fPrec)*bl1v(6,1,j,ix))*dpsv(j))*c1e3
             puxve=xv2(j)
             puzve=yv2(j)
-            xv2(j)=bl1v(1,2,j,ix)*puxve+bl1v(2,2,j,ix)*puzve+((real(idz2,fPrec)*bl1v(5,2,j,ix))*dpsv(j))*c1e3 !hr01
-            yv2(j)=bl1v(3,2,j,ix)*puxve+bl1v(4,2,j,ix)*puzve+((real(idz2,fPrec)*bl1v(6,2,j,ix))*dpsv(j))*c1e3 !hr01
+            xv2(j)=bl1v(1,2,j,ix)*puxve+bl1v(2,2,j,ix)*puzve+((real(idz2,fPrec)*bl1v(5,2,j,ix))*dpsv(j))*c1e3
+            yv2(j)=bl1v(3,2,j,ix)*puxve+bl1v(4,2,j,ix)*puzve+((real(idz2,fPrec)*bl1v(6,2,j,ix))*dpsv(j))*c1e3
           end do
         end if
         goto 480
@@ -1343,15 +1343,15 @@ subroutine thck6d(nthinerr)
           else
             ejv(j)=ejv(j)+(hsy(1)*sin_mb(hsy(3)*sigmv(j)))*nqq(j)
           end if
-          ejfv(j)=sqrt(ejv(j)**2-nucm(j)**2)                             !hr01
+          ejfv(j)=sqrt(ejv(j)**2-nucm(j)**2)
           rvv(j)=(ejv(j)*e0f)/(e0*ejfv(j))
           dpsv(j)=(ejfv(j)-e0f)/e0f
           oidpsv(j)=one/(one+dpsv(j))
           moidpsv(j)=mtc(j)/(one+dpsv(j))
           omoidpsv(j)=c1e3*((one-mtc(j))*oidpsv(j))
-          dpsv1(j)=(dpsv(j)*c1e3)*oidpsv(j)                          !hr01
-          yv1(j)=(ejf0v(j)/ejfv(j))*yv1(j)                         !hr01
-          yv2(j)=(ejf0v(j)/ejfv(j))*yv2(j)                         !hr01
+          dpsv1(j)=(dpsv(j)*c1e3)*oidpsv(j)
+          yv1(j)=(ejf0v(j)/ejfv(j))*yv1(j)
+          yv2(j)=(ejf0v(j)/ejfv(j))*yv2(j)
         end do
         call synuthck
         goto 490
@@ -2130,7 +2130,7 @@ subroutine synuthck
           al(2,ih2,j,l) = si/hi
           al(3,ih2,j,l) = (-one*si)*hi
           al(4,ih2,j,l) = co
-          as(4,ih2,j,l) = (((-one*rvv(j))*al(2,ih2,j,l))*al(3,ih2,j,l))/c2e3 !hr01
+          as(4,ih2,j,l) = (((-one*rvv(j))*al(2,ih2,j,l))*al(3,ih2,j,l))/c2e3
           as(5,ih2,j,l) = (((-one*rvv(j))*(el(l)-al(1,ih2,j,l)*al(2,ih2,j,l)))*aek)/c4e3
           as(6,ih2,j,l) = ((-one*rvv(j))*(el(l)+al(1,ih2,j,l)*al(2,ih2,j,l)))/c4e3
         end if
@@ -2142,7 +2142,7 @@ subroutine synuthck
 !-----------------------------------------------------------------------
 140   do j=1,napx
         rhoi = ed(l)/dpsq(j)
-        fok  = rhoi*tan_mb((el(l)*rhoi)*half)                  !hr01
+        fok  = rhoi*tan_mb((el(l)*rhoi)*half)
         al(3,1,j,l) = fok
         al(3,2,j,l) = -fok
       end do
@@ -2156,9 +2156,9 @@ subroutine synuthck
 !  DRIFTLENGTH
 !-----------------------------------------------------------------------
 20  do j=1,napx
-      as(6,1,j,l) = ((-one*rvv(j))*el(l))/c2e3                         !hr01
+      as(6,1,j,l) = ((-one*rvv(j))*el(l))/c2e3
       as(6,2,j,l) = as(6,1,j,l)
-      as(1,1,j,l) = (el(l)*(one-rvv(j)))*c1e3                          !hr01
+      as(1,1,j,l) = (el(l)*(one-rvv(j)))*c1e3
     end do
 160 continue
 !---------------------------------------  END OF 'ENVARS' (2)

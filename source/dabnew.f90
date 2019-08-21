@@ -246,7 +246,7 @@ subroutine daini(no,nv,iunit)
 
       ibase = no+1
       js    = nv/2
-      if(real(ibase,fPrec)**((nv+1)/2).gt.real(lia,fPrec)) then          !hr10
+      if(real(ibase,fPrec)**((nv+1)/2).gt.real(lia,fPrec)) then
          write(lout,*) 'ERROR, NO = ',no,', NV = ',nv,' TOO LARGE FOR',' LIA = ',lia
          call dadeb(31,'ERR DAINI ',1)
       endif
@@ -791,7 +791,7 @@ subroutine davar(ina,ckon,i)
 
       if(i.gt.(nvmax+1)/2) then
         ic1 = 0
-        ic2 = ibase**((i-(nvmax+1)/2)-1)                                 !hr10
+        ic2 = ibase**((i-(nvmax+1)/2)-1)
       else
         ic1 = ibase**(i-1)
         ic2 = 0
@@ -941,7 +941,7 @@ subroutine dapek(ina,jj,cjj)
       call dainf(ina,inoa,inva,ipoa,ilma,illa)
 
       if(illa.eq.0) then   ! etienne shit
-        cjj = zero                                                        !hr10
+        cjj = zero
        return
       endif
       jj1 = 1
@@ -1001,7 +1001,7 @@ subroutine dapek(ina,jj,cjj)
       icz = ia1(i1(iz))+ia2(i2(iz))
 
       if(illa.eq.0) then
-         cjj = zero                                                       !hr10
+         cjj = zero
          return
       elseif(ic.eq.icu) then
          cjj = cc(iu)
@@ -1010,7 +1010,7 @@ subroutine dapek(ina,jj,cjj)
          cjj = cc(iz)
          return
       elseif(ic.lt.icu.or.ic.gt.icz) then
-         cjj = zero                                                       !hr10
+         cjj = zero
          return
       endif
 
@@ -1025,7 +1025,7 @@ subroutine dapek(ina,jj,cjj)
       i = (iu+iz)/2
 
 !     if(ia1(i1(i))+ia2(i2(i)) - ic) 20,30,40
-      mchk=(ia1(i1(i))+ia2(i2(i))) - ic                                  !hr10
+      mchk=(ia1(i1(i))+ia2(i2(i))) - ic
       if(mchk.lt.0) goto 20
       if(mchk.eq.0) goto 30
       if(mchk.gt.0) goto 40
@@ -1137,7 +1137,7 @@ subroutine dapok(ina,jj,cjj)
       i = (iu+iz)/2
 
 !      if(ia1(i1(i))+ia2(i2(i)) - ic) 20,30,40
-      mchk=(ia1(i1(i))+ia2(i2(i))) - ic                                  !hr10
+      mchk=(ia1(i1(i))+ia2(i2(i))) - ic
       if(mchk.lt.0) goto 20
       if(mchk.eq.0) goto 30
       if(mchk.gt.0) goto 40
@@ -1249,7 +1249,7 @@ subroutine dacop(ina,inb)
 
  100  continue
 
-      idall(inb) = (ib - ipob) + 1                                       !hr10
+      idall(inb) = (ib - ipob) + 1
       if(idall(inb).gt.idalm(inb)) then
          write(lout,*)'ERROR IN DACOP'
          call dadeb(31,'ERR DACOP ',1)
@@ -1568,7 +1568,7 @@ subroutine daexct(ina,ckon,inb)
         call dacmu(inb,ckon,idaexc(1))
         call dafun('EXP   ',idaexc(1),inb)
       else
-        xic=abs(ckon-real(int(ckon),fPrec))                               !hr10
+        xic=abs(ckon-real(int(ckon),fPrec))
         if(xic.gt.eps) then
           call dafun('LOG   ',ina,inb)
           call dacmu(inb,ckon,idaexc(1))
@@ -1799,7 +1799,7 @@ subroutine dasqrt(ina,inc)
 
       if(inva+invc.eq.0) then
          do i=0,illa-1
-           cc(ipoc+i) = cc(ipoa+i)**2                                      !hr10
+           cc(ipoc+i) = cc(ipoa+i)**2
          end do
 
          idall(inc) = idall(ina)
@@ -1816,7 +1816,7 @@ subroutine dasqrt(ina,inc)
       if(nomax.eq.1) then
          minv = min(inva,invc)
          ccipoa = cc(ipoa)
-         cc(ipoc) = ccipoa**2                                            !hr10
+         cc(ipoc) = ccipoa**2
 
          do i=1,minv
            cc(ipoc+i) = two*ccipoa*cc(ipoa+i)
@@ -1871,7 +1871,7 @@ subroutine dasqrt(ina,inc)
           ccia = cc(ia)
 
           ic = ia2(i2ia+i2ia) + ia1(i1ia+i1ia)
-          cc(ic) = cc(ic) + ccia**2                                          !hr10
+          cc(ic) = cc(ic) + ccia**2
           ccia = ccia + ccia
 
           do noib = noia,nom-noia
@@ -2073,7 +2073,7 @@ subroutine dacmut(ina,ckon,inb)
 
  100  continue
 
-      idall(inb) = (ib-ipob)+1                                           !hr10
+      idall(inb) = (ib-ipob)+1
       if(idall(inb).gt.idalm(inb)) then
         write(lout,*)'ERROR IN DACMU '
         call dadeb(31,'ERR DACMU ',1)
@@ -2248,9 +2248,9 @@ subroutine dalint(ina,afac,inb,bfac,inc)
       ia = ipoa
       ib = ipob
       ic = ipoc - 1
-      iamax = (ipoa+illa)-1                                              !hr10
-      ibmax = (ipob+illb)-1                                              !hr10
-      icmax = (ipoc+ilmc)-1                                              !hr10
+      iamax = (ipoa+illa)-1
+      ibmax = (ipob+illb)-1
+      icmax = (ipoc+ilmc)-1
       ja = ia1(i1(ia)) + ia2(i2(ia))
       jb = ia1(i1(ib)) + ia2(i2(ib))
 
@@ -2365,7 +2365,7 @@ subroutine dalint(ina,afac,inb,bfac,inc)
       i2(ic) = i2(is)
   60  continue
 
-      idall(inc) = (ic - ipoc) + 1                                       !hr10
+      idall(inc) = (ic - ipoc) + 1
 
       if(idall(inc).gt.idalm(inc)) then
         write(lout,*)'ERROR IN DALIN, RESULT HAS TOO MANY TERMS '
@@ -2484,7 +2484,7 @@ subroutine dafunt(cf,ina,inc)
 !
       if(cf.eq.'INV ') then
 !        1/(A0+P) = 1/A0*(1-(P/A0)+(P/A0)**2-...)
-         if(a0.eq.zero) then                                              !hr10
+         if(a0.eq.zero) then
             write(lout,1000) cf,ina,a0
             call dadeb(31,'ERR DAFUN ',1)
             lfun = 0
@@ -2497,30 +2497,30 @@ subroutine dafunt(cf,ina,inc)
 
       elseif(cf.eq.'SQRT') then
 !        SQRT(A0+P) = SQRT(A0)*(1+1/2(P/A0)-1/8*(P/A0)**2+...)
-         if(a0.le.zero) then                                              !hr10
+         if(a0.le.zero) then
             write(lout,1000) cf,ina,a0
             call dadeb(31,'ERR DAFUN ',1)
             lfun = 0
             return
          endif
-         ra = sqrt(a0)                                                   !hr10
+         ra = sqrt(a0)
          xf(0) = ra
          do i=1,no
-           xf(i) = (((-one*xf(i-1))/a0)/real(2*i,fPrec))*real(2*i-3,fPrec) !hr10
+           xf(i) = (((-one*xf(i-1))/a0)/real(2*i,fPrec))*real(2*i-3,fPrec)
          end do
 
       elseif(cf.eq.'ISRT') then
 !        1/SQRT(A0+P) = 1/SQRT(A0)*(1-1/2(P/A0)+3/8*(P/A0)**2-...)
-         if(a0.le.zero) then                                              !hr10
+         if(a0.le.zero) then
             write(lout,1000) cf,ina,a0
             call dadeb(31,'ERR DAFUN ',1)
             lfun = 0
             return
          endif
-         era = one/sqrt(a0)                                             !hr10
+         era = one/sqrt(a0)
          xf(0) = era
          do i=1,no
-           xf(i) = (((-one*xf(i-1))/a0)/real(2*i,fPrec))*real(2*i-1,fPrec) !hr10
+           xf(i) = (((-one*xf(i-1))/a0)/real(2*i,fPrec))*real(2*i-1,fPrec)
          end do
 
       elseif(cf.eq.'EXP ') then
@@ -2533,7 +2533,7 @@ subroutine dafunt(cf,ina,inc)
 
       elseif(cf.eq.'LOG ') then
 !        LOG(A0+P) = LOG(A0) + (P/A0) - 1/2*(P/A0)**2 + 1/3*(P/A0)**3 - ...)
-         if(a0.le.zero) then                                              !hr10
+         if(a0.le.zero) then
             write(lout,1000) cf,ina,a0
             call dadeb(31,'ERR DAFUN ',1)
             lfun = 0
@@ -2543,7 +2543,7 @@ subroutine dafunt(cf,ina,inc)
          xf(0) = ea
          xf(1) = one/a0
          do i=2,no
-           xf(i) = (((-one*xf(i-1))/a0)/real(i,fPrec))*real((i-1),fPrec)                !hr10
+           xf(i) = (((-one*xf(i-1))/a0)/real(i,fPrec))*real((i-1),fPrec)
          end do
 
       elseif(cf.eq.'SIN ') then
@@ -2553,7 +2553,7 @@ subroutine dafunt(cf,ina,inc)
          xf(0) = sa
          xf(1) = ca
          do i=2,no
-           xf(i) = (-one*xf(i-2))/real(i*(i-1),fPrec)                       !hr10
+           xf(i) = (-one*xf(i-2))/real(i*(i-1),fPrec)
          end do
 
       elseif(cf.eq.'COS ') then
@@ -2561,14 +2561,14 @@ subroutine dafunt(cf,ina,inc)
          sa  = sin_mb(a0)
          ca  = cos_mb(a0)
          xf(0) = ca
-         xf(1) = -one*sa                                                 !hr10
+         xf(1) = -one*sa
          do i=2,no
-           xf(i) = (-one*xf(i-2))/real(i*(i-1),fPrec)                      !hr10
+           xf(i) = (-one*xf(i-2))/real(i*(i-1),fPrec)
          end do
 
       elseif(cf.eq.'SIRX') then
 !        SIN(SQRT(P))/SQRT(P) = 1 - P/3! + P**2/5! - P**3/7! + ...
-         if(a0.ne.zero) then                                              !hr10
+         if(a0.ne.zero) then
             write(lout,1000) cf,ina,a0
             call dadeb(31,'ERR DAFUN ',1)
             lfun = 0
@@ -2576,12 +2576,12 @@ subroutine dafunt(cf,ina,inc)
          endif
          xf(0)=one
          do i=1,no
-           xf(i) = (-one*xf(i-1))/real((2*i)*(2*i+1),fPrec)                !hr10
+           xf(i) = (-one*xf(i-1))/real((2*i)*(2*i+1),fPrec)
          end do
 
       elseif(cf.eq.'CORX') then
 !        COS(SQRT(P)) = 1 - P/2! + P**2/4! - P**3/6! + ...
-         if(a0.ne.zero) then                                              !hr10
+         if(a0.ne.zero) then
             write(lout,1000) cf,ina,a0
             call dadeb(31,'ERR DAFUN ',1)
             lfun = 0
@@ -2589,12 +2589,12 @@ subroutine dafunt(cf,ina,inc)
          endif
          xf(0)=one
          do i=1,no
-           xf(i) = (-one*xf(i-1))/real((2*i)*(2*i-1),fPrec)                !hr10
+           xf(i) = (-one*xf(i-1))/real((2*i)*(2*i-1),fPrec)
          end do
 
       elseif(cf.eq.'SIDX') then
 !        SIN(P)/P = 1 - P**2/3! + P**4/5! - P**6/7! + ...
-         if(a0.ne.zero) then                                              !hr10
+         if(a0.ne.zero) then
             write(lout,1000) cf,ina,a0
             call dadeb(31,'ERR DAFUN ',1)
             lfun = 0
@@ -2603,7 +2603,7 @@ subroutine dafunt(cf,ina,inc)
          xf(0)=one
          xf(1)=zero
          do i=2,no
-           xf(i) = (-one*xf(i-2))/real(i*(i+1),fPrec)                      !hr10
+           xf(i) = (-one*xf(i-2))/real(i*(i+1),fPrec)
          end do
 
       elseif(cf.eq.'TAN ') then
@@ -2616,12 +2616,12 @@ subroutine dafunt(cf,ina,inc)
          sa  = sin_mb(a0)
          ca  = cos_mb(a0)
          xf(0) = sa/ca
-         xf(1) = (one/ca)/ca                                            !hr10
+         xf(1) = (one/ca)/ca
          xf(2) = ((((two*sa)/ca)/ca)/ca)/two
-         xf(3) = (((((two*ca**2+six*sa**2)/ca)/ca)/ca)/ca)/six          !hr10
-         xf(4) = ((((((16.0_fPrec*sa+eight*sa**3)/ca)/ca)/ca)/ca)/ca)/24.0_fPrec    !hr10
+         xf(3) = (((((two*ca**2+six*sa**2)/ca)/ca)/ca)/ca)/six
+         xf(4) = ((((((16.0_fPrec*sa+eight*sa**3)/ca)/ca)/ca)/ca)/ca)/24.0_fPrec
          xf(5) = (((((((((16.0_fPrec*ca**2+(24.0_fPrec*ca**2)*sa**2)+80.0_fPrec*sa**2)+40.0_fPrec*sa**4)/ca)/ca)/ca)/ca)/ca)/ca)/&
-     &120.0_fPrec !hr10
+     &120.0_fPrec
          if(no.gt.5) then
             write(lout,*)'ERROR IN DAFUN, ',cf, ' ONLY UP TO NO = 5'
             call dadeb(31,'ERR DAFUN ',1)
@@ -2642,11 +2642,11 @@ subroutine dafunt(cf,ina,inc)
          ca  = cos_mb(a0)
          xf(0) = ca/sa
          xf(1) = (-one/sa)/sa
-         xf(2) = ((((two*ca)/sa)/sa)/sa)/two                           !hr10
-         xf(3) = (((((-one*(two*sa**2+six*ca**2))/sa)/sa)/sa)/sa)/six    !hr10
-         xf(4) = ((((((16.0_fPrec*ca+eight*ca**3)/sa)/sa)/sa)/sa)/sa)/24.0_fPrec !hr10
+         xf(2) = ((((two*ca)/sa)/sa)/sa)/two
+         xf(3) = (((((-one*(two*sa**2+six*ca**2))/sa)/sa)/sa)/sa)/six
+         xf(4) = ((((((16.0_fPrec*ca+eight*ca**3)/sa)/sa)/sa)/sa)/sa)/24.0_fPrec
          xf(5) = (((((((-one*(((16.0_fPrec*sa**2+(24.0_fPrec*sa**2)*ca**2)+80.0_fPrec*ca**2)+ 40.0_fPrec*ca**4))/sa)/sa)/sa)/sa)/&
-     &sa)/sa)/120.0_fPrec         !hr10
+     &sa)/sa)/120.0_fPrec
 
          if(no.gt.5) then
             write(lout,*)'ERROR IN DAFUN, ',cf, ' ONLY UP TO NO = 5'
@@ -2667,15 +2667,15 @@ subroutine dafunt(cf,ina,inc)
          xf(0) = asin_mb(a0)
 !hr10 This code is not tested so leave **(-0.5d0) as it is.
 !hr10 lf95 opt 1 gives a different result to opt 0 so should be changed to SQRT.
-!        xf(1) = (1.d0-a0**2)**(-0.5d0)                                  !hr10
+!        xf(1) = (1.d0-a0**2)**(-0.5d0)
          xf(1) = sqrt(one-a0*a0)                                        !eric
-!        xf(2) = (a0*xf(1)**3.d0)/2.d0                                   !hr10
+!        xf(2) = (a0*xf(1)**3.d0)/2.d0
          xf(2) = (a0*(xf(1)*xf(1)*xf(1)))/two                            !eric
-!        xf(3) = ((1.d0+2.d0*a0**2)*xf(1)**5.d0)/6.d0                    !hr10
+!        xf(3) = ((1.d0+2.d0*a0**2)*xf(1)**5.d0)/6.d0
          xf(3) = ((one+two*(a0*a0))*(xf(1)*xf(1)*xf(1)*xf(1)*xf(1)))/six                   !eric
-!        xf(4) = ((9.d0*a0+6.d0*a0**3)*xf(1)**7.d0)/24.d0                !hr10
+!        xf(4) = ((9.d0*a0+6.d0*a0**3)*xf(1)**7.d0)/24.d0
          xf(4) = ((nine*a0+six*(a0*a0*a0))*(xf(1)*xf(1)*xf(1)*xf(1)*xf(1)*xf(1)*xf(1)))/24.0_fPrec !eric
-!        xf(5) = ((9.d0+72.d0*a0**2+24.d0*a0**4)*xf(1)**9.d0)/120.d0     !hr10
+!        xf(5) = ((9.d0+72.d0*a0**2+24.d0*a0**4)*xf(1)**9.d0)/120.d0
          xf(5) = ((nine+72.0_fPrec*(a0*a0)+24.0_fPrec*(a0*a0*a0*a0))*(xf(1)*xf(1)*xf(1)*xf(1)*xf(1)*xf(1)*xf(1)*xf(1)*xf(1)))    &
      &/120.0_fPrec !eric
          if(no.gt.5) then
@@ -2696,12 +2696,12 @@ subroutine dafunt(cf,ina,inc)
          xf(0) =  acos_mb(a0)
 !hr10 This code is not tested so leave **(-0.5d0) as it is.
 !hr10 lf95 opt 1 gives a different result to opt 0 so should be changed to SQRT.
-         scr =  (one-a0**2)**(-half)                                   !hr10
+         scr =  (one-a0**2)**(-half)
          xf(1) =  -one*scr
-         xf(2) = ((-one*a0)*scr**three)/two                              !hr10
-         xf(3) = ((-one*(one+two*a0**2))*scr**five)/six               !hr10
-         xf(4) = ((-one*(nine*a0+six*a0**3))*scr**seven)/24.0_fPrec           !hr10
-         xf(5) =((-one*(nine+72.0_fPrec*a0**2+24.0_fPrec*a0**4))*scr**nine)/120.0_fPrec !hr10
+         xf(2) = ((-one*a0)*scr**three)/two
+         xf(3) = ((-one*(one+two*a0**2))*scr**five)/six
+         xf(4) = ((-one*(nine*a0+six*a0**3))*scr**seven)/24.0_fPrec
+         xf(5) =((-one*(nine+72.0_fPrec*a0**2+24.0_fPrec*a0**4))*scr**nine)/120.0_fPrec
          if(no.gt.5) then
             write(lout,*)'ERROR IN DAFUN, ',cf, ' ONLY UP TO NO = 5'
             call dadeb(31,'ERR DAFUN ',1)

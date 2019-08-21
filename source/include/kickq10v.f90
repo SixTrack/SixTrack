@@ -1,11 +1,11 @@
 ! start include/kickq10v.f90
 #ifndef TILT
-qu=(nine*ekk)*cikve                                               !hr02
-qv=(-nine*ekk)*crkve                                              !hr02
+qu=(nine*ekk)*cikve
+qv=(-nine*ekk)*crkve
 #else
-tiltck=tiltc(k)**2-tilts(k)**2                                   !hr08
-tiltsk=(two*tiltc(k))*tilts(k)                                   !hr02
-qu=(nine*ekk)*(tiltck*cikve-tiltsk*crkve)                         !hr02
-qv=(-nine*ekk)*(tiltck*crkve+tiltsk*cikve)                        !hr02
+tiltck=tiltc(k)**2-tilts(k)**2
+tiltsk=(two*tiltc(k))*tilts(k)
+qu=(nine*ekk)*(tiltck*cikve-tiltsk*crkve)
+qv=(-nine*ekk)*(tiltck*crkve+tiltsk*cikve)
 #endif
 ! end include/kickq10v.f90
