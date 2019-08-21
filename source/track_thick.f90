@@ -600,6 +600,7 @@ subroutine thck4d(nthinerr)
         ix=ic(i)
       else
         ix=ic(i)-nblo
+        meta_nPTurnEle = meta_nPTurnEle + napx
 
         if(ldumpfront) then
           write(lout,"(a)") "TRACKING> DUMP/FRONT not yet supported on thick elements "//&
@@ -1060,7 +1061,6 @@ subroutine thck4d(nthinerr)
 470   continue
 
 #include "include/lostpart.f90"
-      meta_nPTurnEle = meta_nPTurnEle + napx
 
 #ifdef FLUKA
       ! A.Mereghetti and D.Sinuela Pastor, for the FLUKA Team
@@ -1263,6 +1263,7 @@ subroutine thck6d(nthinerr)
       else
         ix=ic(i)-nblo
       end if
+      meta_nPTurnEle = meta_nPTurnEle + napx
 
       if (ldumpfront) then
         write(lerr,"(a)") "DUMP> ERROR FRONT not yet supported on thick elements due to lack of test cases. "//&
@@ -1764,7 +1765,6 @@ subroutine thck6d(nthinerr)
 490   continue
 
 #include "include/lostpart.f90"
-      meta_nPTurnEle = meta_nPTurnEle + napx
 
 #ifdef FLUKA
       ! A.Mereghetti and D.Sinuela Pastor, for the FLUKA Team
