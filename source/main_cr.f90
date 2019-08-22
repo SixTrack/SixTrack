@@ -1446,6 +1446,9 @@ program maincr
       call part_writeState("final_state.bin",.false.,st_fStateIons)
     end if
   end if
+#ifdef BOINC
+  call boinc_postProgress(1)
+#endif
 
 #ifdef FLUKA
 

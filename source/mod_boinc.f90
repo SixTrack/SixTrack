@@ -225,10 +225,10 @@ subroutine boinc_postProgress(nStep)
 end subroutine boinc_postProgress
 
 ! ================================================================================================ !
-!  Writes the validation file header, and creates the file. Hash values must be set before this.
+!  Writes the validation file tracking values to the buffer, and writes the buffer to file.
 !  V.K. Berglyd Olsen, BE-ABP-HSS
 !  Created: 2019-05-22
-!  Updated: 2019-05-22
+!  Updated: 2019-08-22
 ! ================================================================================================ !
 subroutine boinc_summary(exitStatus)
 
@@ -270,7 +270,8 @@ subroutine boinc_summary(exitStatus)
 end subroutine boinc_summary
 
 ! ================================================================================================ !
-!  Write the validation file, then bump progress to 100%, and close the log file
+!  Writes the hashes to the validation file buffer and calls boinc_summary one last time to save
+!  the complete file.
 !  V.K. Berglyd Olsen, BE-ABP-HSS
 !  Created: 2019-05-20
 !  Updated: 2019-05-22
