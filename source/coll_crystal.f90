@@ -1,3 +1,19 @@
+! ============================================================================ !
+!
+!  Crystal Collimation Module
+! ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+!
+! ============================================================================ !
+
+module coll_crystal
+
+  use floatPrecision
+
+  implicit none
+
+contains
+
+end module coll_crystal
 
 !.**************************************************************************
 !     SUBROUTINE FOR THE MOVEMENTS OF THE PARTICLES IN THE CRYSTAL
@@ -1458,6 +1474,13 @@
       end
 
 
+
+!~~~~~~~~~~~~~~~~~~~~~~~~~~~
+! STUFF BELOW IS NOT IN USE
+!~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+
+
 !------------------------------past treatment commented (c always comment, cc old line)----------------------------------------------------------------------------------
 
 
@@ -1606,152 +1629,152 @@
 !     distribution
 !.**************************************************************************
 !.**************************************************************************
-      SUBROUTINE RANNOR(A,B) !gaussian with mean 0 and sigma 1
-!
-!1    Gauss distribution simulation procedure
-!
-      Y = RNDM(1.)
-      IF (Y .EQ. 0.) Y = RNDM(1.)
-      Z = RNDM(1.)
-      X = 6.2831853*Z
-      A1= SQRT(-2.0*ALOG(Y))
-      A = A1*SIN(X)
-      B = A1*COS(X)
-!
-      RETURN
-      END
-!
-      REAL function RNDM(rdummy)
-      REAL          u,c,cd,cm, rrdummy
-      COMMON/RANDOM/  u(97),c,cd,cm,i,j
-!
-      rrdummy = rdummy
-!
-      RNDM = u(i)-u(j)
-      if (RNDM .LT. 0.) RNDM = RNDM+1.
-      U(i) = RNDM
-      i = i-1
-      if ( i .EQ. 0 ) i = 97
-      j = j-1
-      if ( j .EQ. 0 ) j = 97
-      c = c-cd
-      if ( C .LT. 0.) c = c+cm
-      RNDM = RNDM - c
-      if ( RNDM .LT. 0. ) RNDM = RNDM+1.
-!
-      return
-      END
-!.**************************************************************************
-!
-!.**************************************************************************
-      subroutine RNDMST(NA1,NA2,NA3,NB1)
-      REAL u,c,cd,cm
-      COMMON/RANDOM/ u(97),c,cd,cm,i,j
-!
-      ma1 = na1
-      ma2 = na2
-      ma3 = na3
-      mb1 = nb1
-      i   = 97
-      j   = 33
-!
-      do ii2 = 1,97
-        s = 0.0
-        t = 0.5
-        do ii1 = 1,24
-          mat  = MOD(MOD(ma1*ma2,179)*ma3,179)
-          ma1  = ma2
-          ma2  = ma3
-          ma3  = mat
-          mb1  = MOD(53*mb1+1,169)
-          if (MOD(MB1*MAT,64) .GE. 32 ) s = s+t
-          t = 0.5*t
-        end do
-        u(ii2) = s
-      end do
-!
-      c  =   362436./16777216.
-      cd =  7654321./16777216.
-      cm = 16777213./16777216.
-!
-      return
-      END
-!.**************************************************************************
-!
-!.**************************************************************************
-      subroutine RNDMIN(uin,cin,cdin,cmin,iin,jin)
-      REAL uin(97),cin,cdin,cmin
-      REAL u,c,cd,cm
-      COMMON/RANDOM/ u(97),c,cd,cm,i,j
-!
-      do kkk = 1,97
-        u(kkk) = uin(kkk)
-      end do
-!
-      c  = cin
-      cd = cdin
-      cm = cmin
-      i  = iin
-      j  = jin
-!
-      return
-      END
-!.**************************************************************************
-!
-!.**************************************************************************
-      subroutine RNDMOU(UOUT,COUT,CDOUT,CMOUT,IOUT,JOUT)
-      REAL uout(97),cout,cdout,cmout
-      REAL u,c,cd,cm
-      COMMON/RANDOM/ u(97),c,cd,cm,i,j
-!
-      do kkk = 1,97
-        uout(kkk) = u(kkk)
-      end do
-!
-      COUT  = C
-      CDOUT = CD
-      CMOUT = CM
-      IOUT  = I
-      JOUT  = J
-!
-      return
-      END
-!.**************************************************************************
-!
-!.**************************************************************************
-      subroutine RNDMTE(IO)
-!
-!.    *******************************************************************
-!.    *  SUBROUTINE RNDMTE(IO)
-!.    *******************************************************************
-!
-      REAL uu(97)
-      REAL u(6),x(6),d(6)
-      DATA u / 6533892.0 , 14220222.0 ,  7275067.0 ,  6172232.0 ,  8354498.0 , 10633180.0 /
-!
-      call RNDMOU(UU,CC,CCD,CCM,II,JJ)
-      call RNDMST(12,34,56,78)
-!
-      do ii1 = 1,20000
-        xx = rndm4()
-      end do
-!
-      sd = 0.0
-      do ii2 = 1,6
-        x(II2)  = 4096.*(4096.*rndm4())
-        d(II2)  = x(II2)-u(II2)
-        sd = sd+d(II2)
-      end do
-!
-      call RNDMIN(uu,cc,ccd,ccm,ii,jj)
-      if (IO.EQ.1 .OR. SD .NE. 0.) write(6,10) (u(I),x(I),d(I),i=1,6)
-!
- 10   format('  === TEST OF THE RANDOM-GENERATOR ===',/, &
-     &       '    EXPECTED VALUE    CALCULATED VALUE     DIFFERENCE',/, &
-     &       6(F17.1,F20.1,F15.3,/), &
-     &       '  === END OF TEST ;', &
-     &       '  GENERATOR HAS THE SAME STATUS AS BEFORE CALLING RNDMTE')
-      return
-      END
+!       SUBROUTINE RANNOR(A,B) !gaussian with mean 0 and sigma 1
+! !
+! !1    Gauss distribution simulation procedure
+! !
+!       Y = RNDM(1.)
+!       IF (Y .EQ. 0.) Y = RNDM(1.)
+!       Z = RNDM(1.)
+!       X = 6.2831853*Z
+!       A1= SQRT(-2.0*ALOG(Y))
+!       A = A1*SIN(X)
+!       B = A1*COS(X)
+! !
+!       RETURN
+!       END
+! !
+!       REAL function RNDM(rdummy)
+!       REAL          u,c,cd,cm, rrdummy
+!       COMMON/RANDOM/  u(97),c,cd,cm,i,j
+! !
+!       rrdummy = rdummy
+! !
+!       RNDM = u(i)-u(j)
+!       if (RNDM .LT. 0.) RNDM = RNDM+1.
+!       U(i) = RNDM
+!       i = i-1
+!       if ( i .EQ. 0 ) i = 97
+!       j = j-1
+!       if ( j .EQ. 0 ) j = 97
+!       c = c-cd
+!       if ( C .LT. 0.) c = c+cm
+!       RNDM = RNDM - c
+!       if ( RNDM .LT. 0. ) RNDM = RNDM+1.
+! !
+!       return
+!       END
+! ! !.**************************************************************************
+! !
+! !.**************************************************************************
+!       subroutine RNDMST(NA1,NA2,NA3,NB1)
+!       REAL u,c,cd,cm
+!       COMMON/RANDOM/ u(97),c,cd,cm,i,j
+! !
+!       ma1 = na1
+!       ma2 = na2
+!       ma3 = na3
+!       mb1 = nb1
+!       i   = 97
+!       j   = 33
+! !
+!       do ii2 = 1,97
+!         s = 0.0
+!         t = 0.5
+!         do ii1 = 1,24
+!           mat  = MOD(MOD(ma1*ma2,179)*ma3,179)
+!           ma1  = ma2
+!           ma2  = ma3
+!           ma3  = mat
+!           mb1  = MOD(53*mb1+1,169)
+!           if (MOD(MB1*MAT,64) .GE. 32 ) s = s+t
+!           t = 0.5*t
+!         end do
+!         u(ii2) = s
+!       end do
+! !
+!       c  =   362436./16777216.
+!       cd =  7654321./16777216.
+!       cm = 16777213./16777216.
+! !
+!       return
+!       END
+! !.**************************************************************************
+! !
+! !.**************************************************************************
+!       subroutine RNDMIN(uin,cin,cdin,cmin,iin,jin)
+!       REAL uin(97),cin,cdin,cmin
+!       REAL u,c,cd,cm
+!       COMMON/RANDOM/ u(97),c,cd,cm,i,j
+! !
+!       do kkk = 1,97
+!         u(kkk) = uin(kkk)
+!       end do
+! !
+!       c  = cin
+!       cd = cdin
+!       cm = cmin
+!       i  = iin
+!       j  = jin
+! !
+!       return
+!       END
+! !.**************************************************************************
+! !
+! !.**************************************************************************
+!       subroutine RNDMOU(UOUT,COUT,CDOUT,CMOUT,IOUT,JOUT)
+!       REAL uout(97),cout,cdout,cmout
+!       REAL u,c,cd,cm
+!       COMMON/RANDOM/ u(97),c,cd,cm,i,j
+! !
+!       do kkk = 1,97
+!         uout(kkk) = u(kkk)
+!       end do
+! !
+!       COUT  = C
+!       CDOUT = CD
+!       CMOUT = CM
+!       IOUT  = I
+!       JOUT  = J
+! !
+!       return
+!       END
+! !.**************************************************************************
+! !
+! !.**************************************************************************
+!       subroutine RNDMTE(IO)
+! !
+! !.    *******************************************************************
+! !.    *  SUBROUTINE RNDMTE(IO)
+! !.    *******************************************************************
+! !
+!       REAL uu(97)
+!       REAL u(6),x(6),d(6)
+!       DATA u / 6533892.0 , 14220222.0 ,  7275067.0 ,  6172232.0 ,  8354498.0 , 10633180.0 /
+! !
+!       call RNDMOU(UU,CC,CCD,CCM,II,JJ)
+!       call RNDMST(12,34,56,78)
+! !
+!       do ii1 = 1,20000
+!         xx = rndm4()
+!       end do
+! !
+!       sd = 0.0
+!       do ii2 = 1,6
+!         x(II2)  = 4096.*(4096.*rndm4())
+!         d(II2)  = x(II2)-u(II2)
+!         sd = sd+d(II2)
+!       end do
+! !
+!       call RNDMIN(uu,cc,ccd,ccm,ii,jj)
+!       if (IO.EQ.1 .OR. SD .NE. 0.) write(6,10) (u(I),x(I),d(I),i=1,6)
+! !
+!  10   format('  === TEST OF THE RANDOM-GENERATOR ===',/, &
+!      &       '    EXPECTED VALUE    CALCULATED VALUE     DIFFERENCE',/, &
+!      &       6(F17.1,F20.1,F15.3,/), &
+!      &       '  === END OF TEST ;', &
+!      &       '  GENERATOR HAS THE SAME STATUS AS BEFORE CALLING RNDMTE')
+!       return
+!       END
 
 
