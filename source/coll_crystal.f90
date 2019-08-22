@@ -15,59 +15,58 @@ contains
 
 end module coll_crystal
 
-cut 
-c=============================================================== 
-c 
-      SUBROUTINE collimate_cry(name_coll,C_MATERIAL, C_LENGTH,
-     1                   C_ROTATION, 
-     1                   C_APERTURE, C_OFFSET, C_TILT, 
-     1                   X_IN, XP_IN, Y_IN,  
-     2                   YP_IN, P_IN, S_IN, NP, ENOM, LHIT, 
-     3                   PART_ABS, IMPACT, INDIV, LINT,
-     4                   BX,BY,AX,
-     5                   AY,EMITX0,EMITY0,
-     6                   name,flagsec,dowrite_impact)!
-c
-c++  Based on routines by JBJ-R.assmann... Re-written for the crystal
-c case by V.previtali in september 2008
-c
-c++  - Deleted all HBOOK stuff.
-c++  - Deleted optics routine and all parser routines.
-c++  - Replaced RANMAR call by RANLUX call
-c++  - Included RANLUX code from CERNLIB into source
-c++  - Changed dimensions from CGen(100,nmat) to CGen(200,nmat)
-c++  - Replaced FUNPRE with FUNLXP
-c++  - Replaced FUNRAN with FUNLUX
-c++  - Included all CERNLIB code into source: RANLUX, FUNLXP, FUNLUX,
-c++	                                      FUNPCT, FUNLZ, RADAPT,
-c++                                           RGS56P
-c++	 with additional entries:             RLUXIN, RLUXUT, RLUXAT,
-c++                                           RLUXGO
-c++                                           
-c++  - Changed program so that Nev is total number of particles
-c++    (scattered and not-scattered)
-c++  - Added debug comments
-c++  - Put real dp/dx
-c
-c
-c   !!!!!!!!   KNOWN ISSUES:  !!!!!!!
-c      1- the pencil beam is not working in the 6track version (I did not change
-c      the colltrack version yet)
-c      
+!===============================================================
+!
+      SUBROUTINE collimate_cry(name_coll,C_MATERIAL, C_LENGTH, &
+     &                   C_ROTATION, &
+     &                   C_APERTURE, C_OFFSET, C_TILT, &
+     &                   X_IN, XP_IN, Y_IN,   &
+     &                   YP_IN, P_IN, S_IN, NP, ENOM, LHIT, &
+     &                   PART_ABS, IMPACT, INDIV, LINT, &
+     &                   BX,BY,AX, &
+     &                   AY,EMITX0,EMITY0, &
+     &                   name,flagsec,dowrite_impact)!
+!
+!++  Based on routines by JBJ-R.assmann... Re-written for the crystal
+! case by V.previtali in september 2008
+!
+!++  - Deleted all HBOOK stuff.
+!++  - Deleted optics routine and all parser routines.
+!++  - Replaced RANMAR call by RANLUX call
+!++  - Included RANLUX code from CERNLIB into source
+!++  - Changed dimensions from CGen(100,nmat) to CGen(200,nmat)
+!++  - Replaced FUNPRE with FUNLXP
+!++  - Replaced FUNRAN with FUNLUX
+!++  - Included all CERNLIB code into source: RANLUX, FUNLXP, FUNLUX,
+!++	                                      FUNPCT, FUNLZ, RADAPT,
+!++                                           RGS56P
+!++	 with additional entries:             RLUXIN, RLUXUT, RLUXAT,
+!++                                           RLUXGO
+!++
+!++  - Changed program so that Nev is total number of particles
+!++    (scattered and not-scattered)
+!++  - Added debug comments
+!++  - Put real dp/dx
+!
+!
+!   !!!!!!!!   KNOWN ISSUES:  !!!!!!!
+!      1- the pencil beam is not working in the 6track version (I did not change
+!      the colltrack version yet)
+!
       IMPLICIT NONE
-c
+!
       integer     MAX_NCOLL
       PARAMETER     (MAX_NCOLL = 99)
-c
+!
          integer         mat
          integer         Nev
          integer         j
          integer         nabs
          integer         NHIT
-         integer         MAX_NPART 
+         integer         MAX_NPART
          integer         NP
          PARAMETER         (MAX_NPART=1500000)
-c
+!
          double precision            p0
          double precision            xp_pencil0(MAX_NCOLL)
          double precision            yp_pencil0(MAX_NCOLL)
@@ -86,27 +85,27 @@ c
          double precision            zp
          double precision            p
          double precision            dpop
-         double precision            s 
+         double precision            s
          double precision            a_eq,b_eq,c_eq,Delta
          double precision            ENOM
-c         
-         double precision            x_PRINT,xp_PRINT,y_PRINT,yp_PRINT 
+!
+         double precision            x_PRINT,xp_PRINT,y_PRINT,yp_PRINT
          double precision            AX,BX,AY,BY
          double precision            X_NORM,XP_NORM,Y_NORM,YP_NORM
-         double precision            EMITX0               
-         double precision            EMITY0              
-c
+         double precision            EMITX0
+         double precision            EMITY0
+!
          integer         LHIT(MAX_NPART)
          integer         PART_ABS(MAX_NPART)
-c
-c
+!
+!
          double precision            x_in(MAX_NPART)
          double precision            xp_in(MAX_NPART)
          double precision            y_in(MAX_NPART)
          double precision            yp_in(MAX_NPART)
          double precision            p_in(MAX_NPART)    !be careful: [Gev]
          double precision            s_in(MAX_NPART)
-c        adding variables for the pencil beam. Variables in the absolute reference frame. 
+!        adding variables for the pencil beam. Variables in the absolute reference frame.
          double precision            x_in0(MAX_NPART)
          double precision            xp_in0(MAX_NPART)
          double precision            y_in0(MAX_NPART)
@@ -116,88 +115,88 @@ c        adding variables for the pencil beam. Variables in the absolute referen
          double precision            s_impact
          integer                     flagsec(MAX_NPART)
          logical                     dowrite_impact
-         
-c
+
+!
          double precision            IMPACT(MAX_NPART)
          double precision            INDIV(MAX_NPART)
          double precision            LINT(MAX_NPART)
          integer                     name(MAX_NPART)
-c
+!
          double precision            x_out(MAX_NPART)
          double precision            xp_out(MAX_NPART)
          double precision            y_out(MAX_NPART)
          double precision            yp_out(MAX_NPART)
          double precision            p_out(MAX_NPART)
          double precision            s_out(MAX_NPART)
-c
+!
          double precision            fracab
-         double precision            drift_length 
-         double precision            mirror 
+         double precision            drift_length
+         double precision            mirror
          double precision            tiltangle
          double precision            tiltangle2
-c
-         CHARACTER*6 C_MATERIAL     !Material 
-         double precision      C_LENGTH       !Length in m 
-         double precision      C_ROTATION     !Rotation angle vs vertical in radian 
-         double precision      C_APERTURE     !Aperture in m 
-         double precision      C_OFFSET       !Offset in m 
-         double precision      C_TILT(2)      !Tilt in radian 
-         double precision      C_TILT0(2)      !Tilt in radian 
+!
+         CHARACTER(LEN=6) C_MATERIAL     !Material
+         double precision      C_LENGTH       !Length in m
+         double precision      C_ROTATION     !Rotation angle vs vertical in radian
+         double precision      C_APERTURE     !Aperture in m
+         double precision      C_OFFSET       !Offset in m
+         double precision      C_TILT(2)      !Tilt in radian
+         double precision      C_TILT0(2)      !Tilt in radian
          double precision      PENCIL_DX(MAX_NCOLL)
          double precision      PENCIL_SPREAD(MAX_NCOLL)
          double precision      cry_bend
-         
-c
+
+!
          LOGICAL           CHANGED_TILT1(MAX_NCOLL)
          LOGICAL           CHANGED_TILT2(MAX_NCOLL)
-c
-         COMMON /TILT/ CHANGED_TILT1, CHANGED_TILT2
-c
-         REAL*4      rndm4
-         REAL*4      RAN_GAUSS
-c
+!
+         COMMON /tilt/ CHANGED_TILT1, CHANGED_TILT2
+!
+         REAL      rndm4
+         REAL      RAN_GAUSS
+!
          common/materia/mat
          common/nommom/p0
-c
+!
         integer ie,iturn,nabs_total
         COMMON  /INFO/ IE, ITURN, nabs_total
-c
+!
         integer   IPENCIL
         integer   ICOLL
         common  /icoll/  icoll
-        
+
         common  /pencil/  xp_pencil0,yp_pencil0,pencil_dx,ipencil
-c
+!
         COMMON  /PENCIL2/ X_PENCIL, Y_PENCIL
-c
-c
+!
+!
         double precision        AMPLZ
-c 
+!
       double precision XP_tangent
-c
+!
       double precision Rcurv,C_xmax,C_ymax           !crystal geometrical parameters  - be careful! are in [m]
       double precision Alayer                           !amorphous layer [mm]
-      integer C_orient                           !crystal orientation [0-1] 
+      integer C_orient                           !crystal orientation [0-1]
       double precision Cry_tilt_part                    !crystal tilt [rad]
       double precision Cry_tilt                         !crystal tilt [rad]
       double precision Cry_tilt0                        !tilt of the crystal for having channeling (determined by divergence of the beam) [rad]
       double precision Cry_length                       !original length (from the db) [m]
       double precision miscut
-c                                           !instead of this parameter, I use (mat-7) 
-c
-      
-      integer bool_proc(MAX_NPART)           
-      integer bool_proc_old(MAX_NPART)           
+!                                           !instead of this parameter, I use (mat-7)
+!
+
+      integer bool_proc(MAX_NPART)
+      integer bool_proc_old(MAX_NPART)
       integer n_chan
       integer n_VR
       integer n_amorphous
-      character*50 name_coll
-      CHARACTER*50 PROC                     !string that contains the physical process
-c                                            !=' ' if the particle does not pass by crystal, ='*' if there is interaction
+      character(len=50) name_coll
+      CHARACTER(len=50) PROC                     !string that contains the physical process
+!                                            !=' ' if the particle does not pass by crystal, ='*' if there is interaction
       logical  bool_create
       common /miscut/ miscut
-      common /Par_Cry1/ Cry_length, Rcurv,C_xmax,C_ymax,Alayer,C_orient 
-      
+      common /Par_Cry1/ Cry_length, Rcurv,C_xmax,C_ymax,Alayer,C_orient
+
       common /Par_Cry2/ Cry_tilt,Cry_tilt0
       common /Process/ bool_proc,bool_create
       common /Process_old/ bool_proc_old
@@ -210,64 +209,64 @@ c                                            !=' ' if the particle does not pass
 
       integer idx_proc                !daniele
       integer   samplenumber                !daniele
-      character*4 smpl                !daniele
-      character*80 pfile                !daniele
+      character(len=4) smpl                !daniele
+      character(len=80) pfile                !daniele
       common /samplenumber/ pfile,smpl,samplenumber                !daniele
 
 !----------------------
 
 
-c
+!
   666 FORMAT(A,1x,e20.10,1x,A,1x,e20.10,A,1x,e20.10,1x,A,1x,e20.10)
-c=======================================================================
-c
-c      write(*,*) 'enter collimate_cry routine, rotation ',C_ROTATION
+!=======================================================================
+!
+!      write(*,*) 'enter collimate_cry routine, rotation ',C_ROTATION
 
-c      open(unit=9999,file='debug.dat')
-      IF (C_MATERIAL.eq.'CRY-Si')THEN 
-           mat = 8 
-      ELSEIF (C_MATERIAL.eq.'CRY-W')THEN 
-           mat = 9 
-      ELSEIF (C_MATERIAL.eq.'CRY-C')THEN 
-           mat = 10 
-      ELSEIF (C_MATERIAL.eq.'CRY-Ge')THEN 
+!      open(unit=9999,file='debug.dat')
+      IF (C_MATERIAL.eq.'CRY-Si')THEN
+           mat = 8
+      ELSEIF (C_MATERIAL.eq.'CRY-W')THEN
+           mat = 9
+      ELSEIF (C_MATERIAL.eq.'CRY-C')THEN
+           mat = 10
+      ELSEIF (C_MATERIAL.eq.'CRY-Ge')THEN
            mat = 11
-      ELSE 
-           WRITE(*,*) 'ERR>', C_MATERIAL, ' Material not found. STOP' 
-           STOP 
-      ENDIF 
-c
+      ELSE
+           WRITE(*,*) 'ERR>', C_MATERIAL, ' Material not found. STOP'
+           STOP
+      ENDIF
+!
 
-c          write(*,*) "debug - length  bent" , C_LENGTH   
-c          write(*,*) "debug - length  unbent" , CRY_LENGTH   
+!          write(*,*) "debug - length  bent" , C_LENGTH
+!          write(*,*) "debug - length  unbent" , CRY_LENGTH
       Cry_bend =  Cry_length/Rcurv !cry_length longitudinal estension of the straight crystal
-c          write(*,*) "debug - bend angle" , CRY_BEND   
-c          write(*,*) "debug - C_xmax" , C_xmax   
-c          write(*,*) "debug - miscut angle" , miscut  
+!          write(*,*) "debug - bend angle" , CRY_BEND
+!          write(*,*) "debug - C_xmax" , C_xmax
+!          write(*,*) "debug - miscut angle" , miscut
       if (c_length .gt. 0.) then
-       NEV = NP 
-       P0  = ENOM 
+       NEV = NP
+       P0  = ENOM
        C_TILT0(1) = C_TILT(1)
        C_TILT0(2) = C_TILT(2)
        tiltangle=C_TILT0(1)
-c
-c++  Initialize scattering processes
-c
+!
+!++  Initialize scattering processes
+!
        call scatin(p0)
 
-* EVENT LOOP,  initial distribution is here a flat distribution with
-* xmin=x-, xmax=x+, etc. from the input file
-*
+! EVENT LOOP,  initial distribution is here a flat distribution with
+! xmin=x-, xmax=x+, etc. from the input file
+!
       nhit    = 0
       fracab  = 0.
-      n_chan  = 0          !valentina :initialize to zero the counters for crystal effects 
+      n_chan  = 0          !valentina :initialize to zero the counters for crystal effects
       n_VR    = 0          !
       n_amorphous = 0      !
-c      
-c- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-c        WRITE(*,*) ITURN,ICOLL  
-      do j = 1, nev 
-c 
+!
+!- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+!        WRITE(*,*) ITURN,ICOLL
+      do j = 1, nev
+!
         impact(j) = -1.
         lint(j)   = -1.
         indiv(j)  = -1.
@@ -277,7 +276,7 @@ c
         if (ITURN .eq. 1) then                                                          !daniele
                 bool_proc_old(idx_proc)=-1                                                     !daniele
         else                                                                            !daniele
-               if (bool_proc(idx_proc).ne.-1)                    
+               if (bool_proc(idx_proc).ne.-1)     &
      &                       bool_proc_old(idx_proc)=bool_proc(idx_proc)                  !daniele
         endif                                                                           !daniele
         PROC='out' !the default process is 'out'                                        !daniele
@@ -285,14 +284,14 @@ c
 
 
         nabs = 0
-c
+!
         s   = 0
         x   = x_in(j)
         xp  = xp_in(j)
         z   = y_in(j)
         zp  = yp_in(j)
         p   = p_in(j)
-c        
+!
         x_temp=0.
         x_int=0.
         x_rot=0
@@ -308,11 +307,11 @@ c
         shift=0.
         tilt_int=0.
         dpop = (p -p0)/p0
-c        Cry_tilt_part=Cry_tilt                         !crystal tilt [rad]
-C             write(*,*)'collimator',mat,'particle',j,'x',x,
-C     1       'in sigma', x/sqrt(bx)/sqrt(EMITX0),'sig_sk',
-C     2       C_APERTURE/2
-c 
+!        Cry_tilt_part=Cry_tilt                         !crystal tilt [rad]
+!             write(*,*)'collimator',mat,'particle',j,'x',x,
+!     1       'in sigma', x/sqrt(bx)/sqrt(EMITX0),'sig_sk',
+!     2       C_APERTURE/2
+!
 
 
 
@@ -324,40 +323,40 @@ c
 !-----------------------------------------------
 
         s_in0(j)   = s_in(j)                         !daniele
-c        x_in0(j)   = x                         !daniele
+!        x_in0(j)   = x                         !daniele
         xp_in0(j)  = xp                         !daniele
         y_in0(j)   = z                         !daniele
         yp_in0(j)  = zp                         !daniele
         p_in0(j)   = p                         !daniele
-        
-c/*----------------DANIELE------------------*/
+
+!/*----------------DANIELE------------------*/
 
 
 
 
-c++  transform particle coordinates to get into collimator coordinate 
-c++  system 
-c 
-c++  first check whether particle was lost before 
-c 
+!++  transform particle coordinates to get into collimator coordinate
+!++  system
+!
+!++  first check whether particle was lost before
+!
         if (x.lt.99.0*1d-3 .and. z.lt.99.0*1d-3) then
-c /
-c++  first do rotation into collimator frame 
-c 
-              
-c          write(*,*) "debug - rotazione" ,c_rotation   
-          x  = x_in(j)*cos(c_rotation) +sin(c_rotation)*y_in(j) 
-          z  = y_in(j)*cos(c_rotation) -sin(c_rotation)*x_in(j) 
-          xp = xp_in(j)*cos(c_rotation)+sin(c_rotation)*yp_in(j) 
-          zp = yp_in(j)*cos(c_rotation)-sin(c_rotation)*xp_in(j) 
+! /
+!++  first do rotation into collimator frame
+!
 
-c
-c++  for one-sided collimators consider only positive x. for negative
-c++  x jump to the next particle
+!          write(*,*) "debug - rotazione" ,c_rotation
+          x  = x_in(j)*cos(c_rotation) +sin(c_rotation)*y_in(j)
+          z  = y_in(j)*cos(c_rotation) -sin(c_rotation)*x_in(j)
+          xp = xp_in(j)*cos(c_rotation)+sin(c_rotation)*yp_in(j)
+          zp = yp_in(j)*cos(c_rotation)-sin(c_rotation)*xp_in(j)
+
+!
+!++  for one-sided collimators consider only positive x. for negative
+!++  x jump to the next particle
 
           if ((name_coll(1:10) .eq. "CRY.SPSEXP")) then
           mirror=-1
-c             write(*,*) "valentina crsitallo SPS riconosciuto"     
+!             write(*,*) "valentina crsitallo SPS riconosciuto"
              if (x .gt. 0) then
                 goto 777
              endif
@@ -369,133 +368,133 @@ c             write(*,*) "valentina crsitallo SPS riconosciuto"
           endif
           x  = mirror * x
           xp = mirror * xp
- 
-              
-          
-c++Shift with opening and offset 
-c 
-          X  = X - C_APERTURE/2 - C_OFFSET 
-c
-c++  Include collimator tilt
-c
-c          write(*,*) "debug - collimator tilt" ,tiltangle   
+
+
+
+!++Shift with opening and offset
+!
+          X  = X - C_APERTURE/2 - C_OFFSET
+!
+!++  Include collimator tilt
+!
+!          write(*,*) "debug - collimator tilt" ,tiltangle
           IF (tiltangle.GT.0.) THEN
             XP = XP - tiltangle
           ELSEIF (tiltangle.LT.0.) THEN
             X  = X + SIN(tiltangle) * C_LENGTH
             XP = XP - tiltangle
           ENDIF
-c
-c++  For selected collimator, first turn reset particle distribution
-c++  to simple pencil beam
-c
+!
+!++  For selected collimator, first turn reset particle distribution
+!++  to simple pencil beam
+!
           IF (ipencil .eq. 0) bool_create=.true.
-!            
-c! pencil beam stuffffffffffffffffffffffffffffffffff  (~80 lines)           
-cc ----------------------------pencil beam generatio at the crystal--------------------------------------
-c          IF ( (ICOLL.EQ.IPENCIL 
-c     1           .AND. ITURN.EQ.1)    
-c     2           ) THEN
-c            X    = pencil_dx(ICOLL)
-c            XP = cry_tilt0 !valentina (if the beam is generated @ crystal, I want it to have the natural beam divergence)
-c            bool_create=.true.
-cc
-c            AMPLZ = RAN_GAUSS(3.)!*pencil_spread(ICOLL)
-c            Z     = AMPLZ
-c            ZP   = 0.
-c            dpop = 0.
-cc
-c            if (write_c_out) then
-cc++             I want to write the original coordinates in a file... I have to transform back all coordinates....Include collimator tilt
-cc 
-c              IF (tiltangle.GT.0.) THEN
-c                x_print  = X  + tiltangle*C_LENGTH
-c                XP_print = XP + tiltangle
-c              ELSEIF (tiltangle.LT.0.) THEN
-c                x_print  = X + tiltangle*C_LENGTH
-c                XP_print = XP + tiltangle
-c                x_print  = X - SIN(tiltangle) * C_LENGTH
-c              ELSE
-c                x_print = x
-c                xp_print = xp
-c              ENDIF
-c
-cc++  Transform back to particle coordinates with opening and offset 
-cc
-c              x_print = x_print + C_APERTURE/2 + MIRROR*C_OFFSET 
-cc++  Now mirror at the horizontal axis for negative X offset 
-cc 
-c              x_print    = MIRROR * x_print 
-c              XP_print   = MIRROR * xp_print
-c
-cc++  Last do rotation into collimator frame 
-cc 
-c              Y_print  = Z  *COS(-1.*C_ROTATION) - 
-c     1                     X_print  *SIN(-1.*C_ROTATION) 
-c              x_print  = x_print  *COS(-1.*C_ROTATION) + 
-c     1                     Z  *SIN(-1.*C_ROTATION) 
-c              YP_print = ZP *COS(-1.*C_ROTATION) - 
-c     1                     XP_print *SIN(-1.*C_ROTATION) 
-c              XP_print = XP_print *COS(-1.*C_ROTATION) + 
-c     1                     ZP *SIN(-1.*C_ROTATION) 
-cc              WRITE(*,'(i4,2x,i4,2x,a,2x,5(f15.8,2x))') 
-cc     2          ITURN,ICOLL,C_MATERIAL,x_print,XP_print,Y_print,YP_print
-cc     3          ,P
-cC
-cc++ Then drift forward of half lenght
-cc       
-c              x_print= x_print+xp_print*C_length/2        !valentina drift removed                               
-c              y_print= y_print+yp_print*C_length/2                   
-c              WRITE(881,'(i4,2x,i4,2x,a,2x,5(f15.8,2x))') 
-c     2        ITURN,ICOLL,C_MATERIAL,x_print,XP_print,Y_print,YP_print
-c     3        ,P
-c
-c              X_NORM=x_print/ SQRT(bx)/sqrt(EMITX0)
-c              XP_NORM=(x_print*ax+xp_print*bx)/SQRT(bx)/sqrt(EMITX0)
-c              Y_NORM=y_print/ SQRT(by)/sqrt(EMITY0)
-c              YP_NORM=(y_print*AY+yp_print*by)/SQRT(by)/sqrt(EMITY0)
-cc
-c              WRITE(883,'(i4,2x,i4,2x,a,2x,7(f15.8,2x))')            
-c     2          ITURN,ICOLL,C_MATERIAL,X_NORM,XP_NORM,Y_NORM,YP_NORM,   
-c     3          SQRT(X_NORM**2+XP_NORM**2),
-c     4          SQRT(Y_NORM**2+YP_NORM**2),P
-cc
-cc
-c            endif
-c          ENDIF
-cc.--------------------end of pencil beam stuff-------------------------------
+!
+!! pencil beam stuffffffffffffffffffffffffffffffffff  (~80 lines)
+!c ----------------------------pencil beam generatio at the crystal--------------------------------------
+!          IF ( (ICOLL.EQ.IPENCIL
+!     1           .AND. ITURN.EQ.1)
+!     2           ) THEN
+!            X    = pencil_dx(ICOLL)
+!            XP = cry_tilt0 !valentina (if the beam is generated @ crystal, I want it to have the natural beam divergence)
+!            bool_create=.true.
+!c
+!            AMPLZ = RAN_GAUSS(3.)!*pencil_spread(ICOLL)
+!            Z     = AMPLZ
+!            ZP   = 0.
+!            dpop = 0.
+!c
+!            if (write_c_out) then
+!c++             I want to write the original coordinates in a file... I have to transform back all coordinates....Include collimator tilt
+!c
+!              IF (tiltangle.GT.0.) THEN
+!                x_print  = X  + tiltangle*C_LENGTH
+!                XP_print = XP + tiltangle
+!              ELSEIF (tiltangle.LT.0.) THEN
+!                x_print  = X + tiltangle*C_LENGTH
+!                XP_print = XP + tiltangle
+!                x_print  = X - SIN(tiltangle) * C_LENGTH
+!              ELSE
+!                x_print = x
+!                xp_print = xp
+!              ENDIF
+!
+!c++  Transform back to particle coordinates with opening and offset
+!c
+!              x_print = x_print + C_APERTURE/2 + MIRROR*C_OFFSET
+!c++  Now mirror at the horizontal axis for negative X offset
+!c
+!              x_print    = MIRROR * x_print
+!              XP_print   = MIRROR * xp_print
+!
+!c++  Last do rotation into collimator frame
+!c
+!              Y_print  = Z  *COS(-1.*C_ROTATION) -
+!     1                     X_print  *SIN(-1.*C_ROTATION)
+!              x_print  = x_print  *COS(-1.*C_ROTATION) +
+!     1                     Z  *SIN(-1.*C_ROTATION)
+!              YP_print = ZP *COS(-1.*C_ROTATION) -
+!     1                     XP_print *SIN(-1.*C_ROTATION)
+!              XP_print = XP_print *COS(-1.*C_ROTATION) +
+!     1                     ZP *SIN(-1.*C_ROTATION)
+!c              WRITE(*,'(i4,2x,i4,2x,a,2x,5(f15.8,2x))')
+!c     2          ITURN,ICOLL,C_MATERIAL,x_print,XP_print,Y_print,YP_print
+!c     3          ,P
+!C
+!c++ Then drift forward of half lenght
+!c
+!              x_print= x_print+xp_print*C_length/2        !valentina drift removed
+!              y_print= y_print+yp_print*C_length/2
+!              WRITE(881,'(i4,2x,i4,2x,a,2x,5(f15.8,2x))')
+!     2        ITURN,ICOLL,C_MATERIAL,x_print,XP_print,Y_print,YP_print
+!     3        ,P
+!
+!              X_NORM=x_print/ SQRT(bx)/sqrt(EMITX0)
+!              XP_NORM=(x_print*ax+xp_print*bx)/SQRT(bx)/sqrt(EMITX0)
+!              Y_NORM=y_print/ SQRT(by)/sqrt(EMITY0)
+!              YP_NORM=(y_print*AY+yp_print*by)/SQRT(by)/sqrt(EMITY0)
+!c
+!              WRITE(883,'(i4,2x,i4,2x,a,2x,7(f15.8,2x))')
+!     2          ITURN,ICOLL,C_MATERIAL,X_NORM,XP_NORM,Y_NORM,YP_NORM,
+!     3          SQRT(X_NORM**2+XP_NORM**2),
+!     4          SQRT(Y_NORM**2+YP_NORM**2),P
+!c
+!c
+!            endif
+!          ENDIF
+!c.--------------------end of pencil beam stuff-------------------------------
 
 
-c-valentina for the first impact file        
-c        s_in0(j)   = s_in(j)                         !daniele SEE COMMENTS ABOVE
+!-valentina for the first impact file
+!        s_in0(j)   = s_in(j)                         !daniele SEE COMMENTS ABOVE
         x_in0(j)   = x                         !daniele
-c        xp_in0(j)  = xp                         !daniele
-c        y_in0(j)   = z                         !daniele
-c        yp_in0(j)  = zp                         !daniele
-c        p_in0(j)   = p                         !daniele
-        
-
-c        write(*,*) "debug - coll RFS" , s_in(j),x,xp,z,zp   
+!        xp_in0(j)  = xp                         !daniele
+!        y_in0(j)   = z                         !daniele
+!        yp_in0(j)  = zp                         !daniele
+!        p_in0(j)   = p                         !daniele
 
 
-          
-            
-c-~-o-~-o-~-o-~-o-~-o-~-o-~-o-~-o-~-o-~-o-~-o-~-o-~-o-~-o-~-o-~-o-~-o-~-o-~-o-~-o
+!        write(*,*) "debug - coll RFS" , s_in(j),x,xp,z,zp
 
 
-c
-c crystal!!! transform in the crystal rerference system
-c    1st transformation: shift of the center of my reference frame  
-c          write(*,*) "debug - cry tilt" , Cry_tilt  
-c          write(*,*) "debug - cry tilt 0" , Cry_tilt0  
+
+
+!-~-o-~-o-~-o-~-o-~-o-~-o-~-o-~-o-~-o-~-o-~-o-~-o-~-o-~-o-~-o-~-o-~-o-~-o-~-o-~-o
+
+
+!
+! crystal!!! transform in the crystal rerference system
+!    1st transformation: shift of the center of my reference frame
+!          write(*,*) "debug - cry tilt" , Cry_tilt
+!          write(*,*) "debug - cry tilt 0" , Cry_tilt0
 
          if (Cry_tilt .lt. 0) then
            S_shift=S
-c           write(*,*) j,'- s=',s
+!           write(*,*) j,'- s=',s
            shift=Rcurv*(1-cos(Cry_tilt))
            if (Cry_tilt .lt. (-Cry_bend) ) then
-                shift= ( Rcurv *
-     &          ( cos ( - Cry_tilt)
+                shift= ( Rcurv * &
+     &          ( cos ( - Cry_tilt) &
      &          - cos( Cry_bend - Cry_tilt) ) )
            endif
            X_shift=X-shift
@@ -503,105 +502,104 @@ c           write(*,*) j,'- s=',s
            S_shift=S
            X_shift=X
          endif
-c          write(*,*) "debug - S shift" ,  S_shift 
-c          write(*,*) "debug - X shift" ,  X_shift 
-c         
-c    2nd transformation: rotation
+!          write(*,*) "debug - S shift" ,  S_shift
+!          write(*,*) "debug - X shift" ,  X_shift
+!
+!    2nd transformation: rotation
          S_rot =X_shift*sin(Cry_tilt)+S_shift*cos(Cry_tilt)
          X_rot = X_shift*cos(Cry_tilt)-S_shift*sin(Cry_tilt)
-         XP_rot= XP - Cry_tilt      
-c          write(*,*) "debug - S rot" ,  S_rot 
-c          write(*,*) "debug - X rot" ,  X_rot 
-c          write(*,*) "debug - XP rot" ,  XP_rot 
-c    3rd transformation: drift to the new coordinate s=0         
+         XP_rot= XP - Cry_tilt
+!          write(*,*) "debug - S rot" ,  S_rot
+!          write(*,*) "debug - X rot" ,  X_rot
+!          write(*,*) "debug - XP rot" ,  XP_rot
+!    3rd transformation: drift to the new coordinate s=0
          XP=XP_rot
          X= X_rot - XP_rot*S_rot
          Z= Z - ZP*S_rot
-         S=0     
-c          write(*,*) "debug - S cryRF" ,  S_rot 
-c          write(*,*) "debug - X cryRF" ,  X_rot 
-c          write(*,*) "debug - XP cryRF" ,  XP_rot 
-c
-c  NOW CHECK IF THE PARTICLE HIT the crystal
-c        
+         S=0
+!          write(*,*) "debug - S cryRF" ,  S_rot
+!          write(*,*) "debug - X cryRF" ,  X_rot
+!          write(*,*) "debug - XP cryRF" ,  XP_rot
+!
+!  NOW CHECK IF THE PARTICLE HIT the crystal
+!
 
 
 
          if (x .ge. 0 .and. x.lt.C_xmax) then !Daniele: check that part. hit cry
-           s_impact=s_in0(j) !(for the first impact)      
-c           write(*,*)'hit the cry entrance face', x, C_xmax
-c           write(*,*)'impact at s,x = ', s_impact,x_in0(j)
-c           write(*,*)'with angle xp = ',xp
-c           write(*,*)'s before', s
+           s_impact=s_in0(j) !(for the first impact)
+!           write(*,*)'hit the cry entrance face', x, C_xmax
+!           write(*,*)'impact at s,x = ', s_impact,x_in0(j)
+!           write(*,*)'with angle xp = ',xp
+!           write(*,*)'s before', s
            CALL CRYST(mat-7,X,XP,Z,ZP,p,cry_length)
            s=Rcurv*sin(cry_bend)
            zlm=Rcurv*sin(cry_bend)
-c           write(*,*) 'process:',PROC
-c           write(*,*)'s after', s
-c           write(*,*)'hit the crystal'
+!           write(*,*) 'process:',PROC
+!           write(*,*)'s after', s
+!           write(*,*)'hit the crystal'
            if (PROC(1:3).ne.'out')then
              NHIT = NHIT + 1
              LHIT(j) = 100000000*ie + ITURN
-             IMPACT(j) = X_in0(j)            
+             IMPACT(j) = X_in0(j)
              INDIV(j) = XP_in0(j)
            endif
-         else 
+         else
            XP_tangent=sqrt((-2*X*Rcurv+X**2)/(Rcurv**2))
-c           write(*,*)j,'-','tangent',xp_tangent,'angle',xp
-c           write(*,*)'s tan',Rcurv*sin(XP_tangent)
-c           write(*,*) 's tot', c_length,Rcurv*sin(cry_bend) 
+!           write(*,*)j,'-','tangent',xp_tangent,'angle',xp
+!           write(*,*)'s tan',Rcurv*sin(XP_tangent)
+!           write(*,*) 's tot', c_length,Rcurv*sin(cry_bend)
            if ( XP .ge. XP_tangent  ) then
 
-c if it hits the crystal, calculate in which point and apply the
-c transformation and drift to that point
+! if it hits the crystal, calculate in which point and apply the
+! transformation and drift to that point
              a_eq=(1.+xp**2)
              b_eq=2.*xp*(x-Rcurv)
              c_eq=-2.*x*Rcurv+x**2
              Delta=b_eq**2-4.*(a_eq*c_eq)
              S_int=(-b_eq-sqrt(Delta))/(2.*a_eq)
-c             write(*,*)'s int',S_int
+!             write(*,*)'s int',S_int
              if (S_int .lt. Rcurv*sin(cry_bend)) then
-c  transform to a new ref system:shift and rotate
+!  transform to a new ref system:shift and rotate
                X_int=XP*S_int+X
                XP_int=XP
                Z=Z+ZP*S_int
                X=0
                S=0
-c               tilt_int=2*X_int/S_int
+!               tilt_int=2*X_int/S_int
                tilt_int=S_int/Rcurv
                XP=XP-tilt_int
-c               write(*,*)'hit the cry from below!!!'
-c               write(*,*)'tilt int',tilt_int,'over',cry_bend
-c               write(*,*)'tilt bending',Cry_length/Rcurv,
-c     &         'total tilt', cry_tilt-cry_tilt0,         
-c     &         'int. tilt', tilt_int         
-c               s_impact=Rcurv*(sin(Cry_length/Rcurv)
-c     &           -sin(Cry_length/Rcurv-tilt_int))!(for the first impact)      
-c               x_in0(j)=Rcurv*(1-cos(Cry_length/Rcurv-tilt_int))
-c               write(*,*)'impact at s,x = ', s_impact,x_in0(j)
-c               write(*,*)'with angle xp = ',xp
-c               write(*,*) "debug - S minicry" ,  S 
-c               write(*,*) "debug - X minicry" ,  X 
-c               write(*,*) "debug - XP minicry" ,  XP 
-c call cry routine             
-              CALL 
-     &        CRYST(mat-7,X,XP,Z,ZP,p,(cry_length-(tilt_int*Rcurv)))
-              s=Rcurv*sin(cry_bend-tilt_int) 
+!               write(*,*)'hit the cry from below!!!'
+!               write(*,*)'tilt int',tilt_int,'over',cry_bend
+!               write(*,*)'tilt bending',Cry_length/Rcurv,
+!     &         'total tilt', cry_tilt-cry_tilt0,
+!     &         'int. tilt', tilt_int
+!               s_impact=Rcurv*(sin(Cry_length/Rcurv)
+!     &           -sin(Cry_length/Rcurv-tilt_int))!(for the first impact)
+!               x_in0(j)=Rcurv*(1-cos(Cry_length/Rcurv-tilt_int))
+!               write(*,*)'impact at s,x = ', s_impact,x_in0(j)
+!               write(*,*)'with angle xp = ',xp
+!               write(*,*) "debug - S minicry" ,  S
+!               write(*,*) "debug - X minicry" ,  X
+!               write(*,*) "debug - XP minicry" ,  XP
+! call cry routine
+              CALL CRYST(mat-7,X,XP,Z,ZP,p,(cry_length-(tilt_int*Rcurv)))
+              s=Rcurv*sin(cry_bend-tilt_int)
               zlm=Rcurv*sin(cry_bend-tilt_int)
-c              write(*,*) 'process:',PROC
-c              write(*,*) "debug - S minicry 2" ,  S 
-c              write(*,*) "debug - X minicry 2" ,  X
-c              write(*,*) "debug - XP minicry 2" ,  XP 
+!              write(*,*) 'process:',PROC
+!              write(*,*) "debug - S minicry 2" ,  S
+!              write(*,*) "debug - X minicry 2" ,  X
+!              write(*,*) "debug - XP minicry 2" ,  XP
               if (PROC(1:3).ne.'out')then
                  X_rot=X_int
                  S_rot=S_int
-                 XP_rot=XP_int             
+                 XP_rot=XP_int
                  S_shift=S_rot*cos(-Cry_tilt)+X_rot*sin(-Cry_tilt)
                  X_shift=-S_rot*sin(-Cry_tilt)+X_rot*cos(-Cry_tilt)
-                 XP_shift=XP_rot + Cry_tilt 
+                 XP_shift=XP_rot + Cry_tilt
                  if (Cry_tilt .lt. 0) then
-                   S_impact=S_shift       
-                   X_in0(j)=X_shift+shift                
+                   S_impact=S_shift
+                   X_in0(j)=X_shift+shift
                    XP_in0(j)=XP_shift
                  else
                    X_in0(j)=X_shift
@@ -610,130 +608,130 @@ c              write(*,*) "debug - XP minicry 2" ,  XP
                  endif
                  NHIT = NHIT + 1
                  LHIT(j) = 100000000*ie + ITURN
-                 IMPACT(j) = X_in0(j)            
+                 IMPACT(j) = X_in0(j)
                  INDIV(j) = XP_in0(j)
                endif
-c           write(*,*)'s after', s
-c un-rotate
+!           write(*,*)'s after', s
+! un-rotate
                X_temp=X
                S_temp=S
-               XP_temp=XP              
+               XP_temp=XP
                S=S_temp*cos(-tilt_int)+X_temp*sin(-tilt_int)
                X=-S_temp*sin(-tilt_int)+X_temp*cos(-tilt_int)
                XP=XP_temp + tilt_int
-c     2nd: shift back the 2 axis
-               X=X+X_int                
+!     2nd: shift back the 2 axis
+               X=X+X_int
                S=S+S_int
-c               write(*,*)'s after', s
+!               write(*,*)'s after', s
              else
-c               write(*,*)'treat the drift'
+!               write(*,*)'treat the drift'
                S=Rcurv*sin(cry_length/Rcurv)
                X=X+S*XP
                Z=Z+S*ZP
              endif
            else
-c              write(*,*) 'just the drift'
+!              write(*,*) 'just the drift'
              S=Rcurv*sin(cry_length/Rcurv)
              X=X+S*XP
              Z=Z+S*ZP
            endif
          endif
-c               WRITE(*,*)'X1_cry',X,'Z1_Cry',Z,'XP1_Cry',XP,'ZP1_Cry',ZP
-c     1         ,'s',s, Cry_tilt
-c
+!               WRITE(*,*)'X1_cry',X,'Z1_Cry',Z,'XP1_Cry',XP,'ZP1_Cry',ZP
+!     1         ,'s',s, Cry_tilt
+!
 
 
 
-               
-c trasform back from the crystal to the collimator reference system
-c    1st: un-rotate the coordinates
+
+! trasform back from the crystal to the collimator reference system
+!    1st: un-rotate the coordinates
                X_rot=X
                S_rot=S
-               XP_rot=XP              
-c               write(*,*) "debug - S cryRF 2" ,  S_rot 
-c               write(*,*) "debug - X cryRF 2" ,  X_rot 
-c               write(*,*) "debug - XP cryRF 2" ,  XP_rot 
+               XP_rot=XP
+!               write(*,*) "debug - S cryRF 2" ,  S_rot
+!               write(*,*) "debug - X cryRF 2" ,  X_rot
+!               write(*,*) "debug - XP cryRF 2" ,  XP_rot
                S_shift=S_rot*cos(-Cry_tilt)+X_rot*sin(-Cry_tilt)
                X_shift=-S_rot*sin(-Cry_tilt)+X_rot*cos(-Cry_tilt)
-               XP_shift=XP_rot + Cry_tilt 
-c     2nd: shift back the reference frame
+               XP_shift=XP_rot + Cry_tilt
+!     2nd: shift back the reference frame
                if (Cry_tilt .lt. 0) then
-                 S=S_shift       
-                 X=X_shift+shift               
+                 S=S_shift
+                 X=X_shift+shift
                  XP=XP_shift
                else
                  X=X_shift
                  S=S_shift
                  XP=XP_shift
                endif
-c     3rd: shift to new S=Length position               
+!     3rd: shift to new S=Length position
                X=XP*(c_length-S)+X
                Z=ZP*(c_length-S)+Z
                S=c_length
-               
 
-c               write(*,*) "debug - S Coll RF 2" ,  S_rot 
-c               write(*,*) "debug - X Coll RF 2" ,  X_rot 
-c               write(*,*) "debug - XP Coll RF 2" ,  XP_rot 
-c
-c          WRITE(*,*)'X1_coll',X,'Z1_coll',Z,'XP1_coll',XP,'ZP1_coll',ZP
-c     1         ,'s' ,s
+
+!               write(*,*) "debug - S Coll RF 2" ,  S_rot
+!               write(*,*) "debug - X Coll RF 2" ,  X_rot
+!               write(*,*) "debug - XP Coll RF 2" ,  XP_rot
+!
+!          WRITE(*,*)'X1_coll',X,'Z1_coll',Z,'XP1_coll',XP,'ZP1_coll',ZP
+!     1         ,'s' ,s
 
                NABS=0
 
-c               if (PROC(1:2).eq.'AM')then 
-c                 bool_proc(j)=1
-c                 n_amorphous = n_amorphous + 1 
-c               elseif (PROC(1:2).eq.'VR') then 
-c                 bool_proc(j)=2
-c                 n_VR = n_VR + 1
-c               elseif (PROC(1:2).eq.'CH')then
-c                 bool_proc(j) = 3
-c                 n_chan = n_Chan + 1
-c               elseif (PROC(1:2).eq.'VC') then 
-c                 bool_proc(j)=3
-c                 n_chan = n_Chan + 1
-c               elseif (PROC(1:3).eq.'out')then
-c                 bool_proc(j)=-1
-c               elseif (PROC(1:8).eq.'absorbed') then 
-c                 bool_proc(j)=5
-c                 NABS=1
-c               elseif (PROC(1:2).eq.'DC')then
-c                 bool_proc(j)=6
-c               elseif (PROC(1:3).eq.'mcs')then        !daniele 
-c                 bool_proc(j)=7
-c               elseif (PROC(1:4).eq.'diff')then       !daniele                                                                                                                           
-c                 bool_proc(j)=8
-c               else  
-c                write(*,*)'???????????????????',PROC(1:2) 
-c                stop
-c               endif
+!               if (PROC(1:2).eq.'AM')then
+!                 bool_proc(j)=1
+!                 n_amorphous = n_amorphous + 1
+!               elseif (PROC(1:2).eq.'VR') then
+!                 bool_proc(j)=2
+!                 n_VR = n_VR + 1
+!               elseif (PROC(1:2).eq.'CH')then
+!                 bool_proc(j) = 3
+!                 n_chan = n_Chan + 1
+!               elseif (PROC(1:2).eq.'VC') then
+!                 bool_proc(j)=3
+!                 n_chan = n_Chan + 1
+!               elseif (PROC(1:3).eq.'out')then
+!                 bool_proc(j)=-1
+!               elseif (PROC(1:8).eq.'absorbed') then
+!                 bool_proc(j)=5
+!                 NABS=1
+!               elseif (PROC(1:2).eq.'DC')then
+!                 bool_proc(j)=6
+!               elseif (PROC(1:3).eq.'mcs')then        !daniele
+!                 bool_proc(j)=7
+!               elseif (PROC(1:4).eq.'diff')then       !daniele
+!                 bool_proc(j)=8
+!               else
+!                write(*,*)'???????????????????',PROC(1:2)
+!                stop
+!               endif
 
 
 
-c  ----------------------DANIELE----------
-c debugged assignation of the process experienced in the crystal
-c ----------------
+!  ----------------------DANIELE----------
+! debugged assignation of the process experienced in the crystal
+! ----------------
 
-c               if (PROC(1:3).ne.'out')then
-c                 write(*,*) PROC
-c              endif
+!               if (PROC(1:3).ne.'out')then
+!                 write(*,*) PROC
+!              endif
 
-               if (PROC(1:2).eq.'AM')then 
+               if (PROC(1:2).eq.'AM')then
                  bool_proc(idx_proc)=1
-                 n_amorphous = n_amorphous + 1 
-               elseif (PROC(1:2).eq.'VR') then 
+                 n_amorphous = n_amorphous + 1
+               elseif (PROC(1:2).eq.'VR') then
                  bool_proc(idx_proc)=2
                  n_VR = n_VR + 1
                elseif (PROC(1:2).eq.'CH')then
                  bool_proc(idx_proc) = 3
                  n_chan = n_Chan + 1
-               elseif (PROC(1:2).eq.'VC') then 
+               elseif (PROC(1:2).eq.'VC') then
                  bool_proc(idx_proc)=4
                  !n_chan = n_Chan + 1
                elseif (PROC(1:3).eq.'out')then
                  bool_proc(idx_proc)=-1
-               elseif (PROC(1:8).eq.'absorbed') then 
+               elseif (PROC(1:8).eq.'absorbed') then
                  bool_proc(idx_proc)=5
                  NABS=1
                elseif (PROC(1:2).eq.'DC')then
@@ -761,68 +759,62 @@ c              endif
                  bool_proc(idx_proc)=100
                elseif (PROC(1:4).eq.'TRAM')then
                  bool_proc(idx_proc)=101
-               else  
-                write(*,*)'???????????????????',PROC(1:2) 
+               else
+                write(*,*)'???????????????????',PROC(1:2)
                 stop
 
                endif
 
-c               if (PROC(1:3).ne.'out')then
-c                 write(*,*) bool_proc(idx_proc)
-c               endif
+!               if (PROC(1:3).ne.'out')then
+!                 write(*,*) bool_proc(idx_proc)
+!               endif
 
-c ---------------------END DANIELE--------------
+! ---------------------END DANIELE--------------
 
 
-c=========================== 
-c++  Transform back to particle coordinates with opening and offset 
-c 
-       IF (PART_ABS(j).eq.0) THEN 
-c 
-c++  Include collimator tilt
-c
+!===========================
+!++  Transform back to particle coordinates with opening and offset
+!
+       IF (PART_ABS(j).eq.0) THEN
+!
+!++  Include collimator tilt
+!
          IF (tiltangle.GT.0.) THEN
            X  = X  + tiltangle*C_LENGTH
            XP = XP + tiltangle
          ELSEIF (tiltangle.LT.0.) THEN
            X  = X + tiltangle*C_LENGTH
            XP = XP + tiltangle
-c
+!
            X  = X - SIN(tiltangle) * C_LENGTH
          ENDIF
-c
-c++  Transform back to particle coordinates with opening and offset 
-c
+!
+!++  Transform back to particle coordinates with opening and offset
+!
          Z00 = Z
-         X00 = X + MIRROR*C_OFFSET 
-         X = X + C_APERTURE/2 + MIRROR*C_OFFSET 
-c 
-c++  Now mirror at the horizontal axis for negative X offset 
-c 
-         X    = MIRROR * X 
-         XP   = MIRROR * XP 
+         X00 = X + MIRROR*C_OFFSET
+         X = X + C_APERTURE/2 + MIRROR*C_OFFSET
+!
+!++  Now mirror at the horizontal axis for negative X offset
+!
+         X    = MIRROR * X
+         XP   = MIRROR * XP
 
 
-c 
-c++  Last do rotation into collimator frame 
-c 
-         X_IN(J)  = X  *COS(-1.*C_ROTATION) + 
-     1                 Z  *SIN(-1.*C_ROTATION) 
-         Y_IN(J)  = Z  *COS(-1.*C_ROTATION) - 
-     1                 X  *SIN(-1.*C_ROTATION) 
-         XP_IN(J) = XP *COS(-1.*C_ROTATION) + 
-     1                 ZP *SIN(-1.*C_ROTATION) 
-         YP_IN(J) = ZP *COS(-1.*C_ROTATION) - 
-     1                 XP *SIN(-1.*C_ROTATION) 
+!
+!++  Last do rotation into collimator frame
+!
+         X_IN(J)  = X  *COS(-1.*C_ROTATION) + Z  *SIN(-1.*C_ROTATION)
+         Y_IN(J)  = Z  *COS(-1.*C_ROTATION) - X  *SIN(-1.*C_ROTATION)
+         XP_IN(J) = XP *COS(-1.*C_ROTATION) + ZP *SIN(-1.*C_ROTATION)
+         YP_IN(J) = ZP *COS(-1.*C_ROTATION) - XP *SIN(-1.*C_ROTATION)
 
-c----- other pencil beam stuff-------
-         IF ( ICOLL.EQ.IPENCIL) then 
-           X00  = MIRROR * X00 
-           X_IN(J)  = X00  *COS(-1.*C_ROTATION) + 
-     1                    Z00  *SIN(-1.*C_ROTATION) 
-           Y_IN(J)  = Z00  *COS(-1.*C_ROTATION) - 
-     1                    X00  *SIN(-1.*C_ROTATION) 
-c
+!----- other pencil beam stuff-------
+         IF ( ICOLL.EQ.IPENCIL) then
+           X00  = MIRROR * X00
+           X_IN(J)  = X00  *COS(-1.*C_ROTATION) + Z00  *SIN(-1.*C_ROTATION)
+           Y_IN(J)  = Z00  *COS(-1.*C_ROTATION) - X00  *SIN(-1.*C_ROTATION)
+!
            XP_IN(J) = XP_IN(J) + MIRROR*XP_PENCIL0(ICOLL)
            YP_IN(J) = YP_IN(J) + MIRROR*YP_PENCIL0(ICOLL)
            X_IN(J) = X_IN(J) + MIRROR*X_PENCIL(ICOLL)
@@ -830,93 +822,88 @@ c
 
            IF (.NOT. CHANGED_TILT1(ICOLL) .AND. MIRROR.GT.0.) THEN
                    WRITE (*,*) 'NEVER!!!'
-                   C_TILT(1) = XP_PENCIL0(ICOLL)*COS(C_ROTATION)+
-     1                         SIN(C_ROTATION)*YP_PENCIL0(ICOLL)
-                   WRITE(*,*) 'INFO> Changed tilt1  ICOLL  to  ANGLE  ',
-     1                     ICOLL, C_TILT(1)
-c
+                   C_TILT(1) = XP_PENCIL0(ICOLL)*COS(C_ROTATION)+SIN(C_ROTATION)*YP_PENCIL0(ICOLL)
+                   WRITE(*,*) 'INFO> Changed tilt1  ICOLL  to  ANGLE  ',ICOLL, C_TILT(1)
+!
                    CHANGED_TILT1(ICOLL) = .true.
-           ELSEIF (.NOT. CHANGED_TILT2(ICOLL) 
-     1                                   .AND. MIRROR.LT.0.) THEN
-                   C_TILT(2) = -1.*(XP_PENCIL0(ICOLL)*COS(C_ROTATION)+
-     1                       SIN(C_ROTATION)*YP_PENCIL0(ICOLL))
-                   WRITE(*,*) 'INFO> Changed tilt2  ICOLL  to  ANGLE  ',
-     1                   ICOLL, C_TILT(2)
-c                
+           ELSEIF (.NOT. CHANGED_TILT2(ICOLL) .AND. MIRROR.LT.0.) THEN
+                   C_TILT(2) = -1.*(XP_PENCIL0(ICOLL)*COS(C_ROTATION)+SIN(C_ROTATION)*YP_PENCIL0(ICOLL))
+                   WRITE(*,*) 'INFO> Changed tilt2  ICOLL  to  ANGLE  ',ICOLL, C_TILT(2)
+!
                    CHANGED_TILT2(ICOLL) = .true.
            ENDIF
-         ELSE 
+         ELSE
            C_TILT(1) = 0.
            C_TILT(2) = 0.
            CHANGED_TILT1(ICOLL) = .true.
            CHANGED_TILT2(ICOLL) = .true.
-         ENDIF 
-c------------------- end pencil beam stuff-----------------
+         ENDIF
+!------------------- end pencil beam stuff-----------------
 
 !-----------daniele------------------
 ! debugged assignation of p after passage in the crystal
 !-------------
 
-c         p_in(J) = (1 + dpop) * p0      !daniele
+!         p_in(J) = (1 + dpop) * p0      !daniele
          p_in(J) = P                   !daniele
          s_in(J) = s_in(J) + S
-c 
+!
           if (nabs.eq.1) then
              fracab = fracab + 1
              part_abs(j) = 100000000*ie + iturn
              lint(j) = zlm
              if (dowrite_impact) then
-               write(48,'(i4,(1x,f6.3),(1x,f8.6),4(1x,e19.10),i2,
-     &         2(1x,i7))')                                              
-     &         icoll,c_rotation,                                       
-     &         s,                 
-     &         x_in(j)*1d3, xp_in(j)*1d3, y_in(j)*1d3, yp_in(j)*1d3,  
+               write(48,'(i4,(1x,f6.3),(1x,f8.6),4(1x,e19.10),i2, &
+     &         2(1x,i7))')                                         &
+     &         icoll,c_rotation,                                    &
+     &         s,                 &
+     &         x_in(j)*1d3, xp_in(j)*1d3, y_in(j)*1d3, yp_in(j)*1d3,  &
      &         nabs,name(j),iturn
              endif
              x = 99.99d-3
              z = 99.99d-3
           endif
-       ENDIF 
+       ENDIF
 
 
 
-c-~-o-~-o-~-o-~-o-~-o-~-o-~-o-~-o-~-o-~-o-~-o-~-o-~-o-~-o-~-o-~-o-~-o-~-o-~-o-~-o
-c valentina First impact file
-c
-c                write(9999,*) "dowrite impact value", dowrite_impact
+!-~-o-~-o-~-o-~-o-~-o-~-o-~-o-~-o-~-o-~-o-~-o-~-o-~-o-~-o-~-o-~-o-~-o-~-o-~-o-~-o
+! valentina First impact file
+!
+!                write(9999,*) "dowrite impact value", dowrite_impact
              if(flagsec(j).eq.0 .and. PROC(1:3) .ne. 'out') then
-               flagsec(j)=1 
+               flagsec(j)=1
                if (dowrite_impact) then
-               write(39,'(i5,1x,i7,1x,i2,1x,i1,2(1x,f7.6),8(1x,e17.9))')
-     &               name(j),iturn,icoll,nabs,                          
-     &               s_impact,          
-     &               s, 
-     &               x_in0(j),xp_in0(j),y_in0(j),yp_in0(j),
+               write(39,'(i5,1x,i7,1x,i2,1x,i1,2(1x,f7.6),8(1x,e17.9))') &
+     &               name(j),iturn,icoll,nabs,                          &
+     &               s_impact,          &
+     &               s, &
+     &               x_in0(j),xp_in0(j),y_in0(j),yp_in0(j), &
      &               x_in(j),xp_in(j),y_in(j),yp_in(j)
                endif
              endif
-c
-c++  End of check for particles not being lost before   (see @330)
-c
-        ENDIF 
-c++  End of loop over all particles 
-c 
+!
+!++  End of check for particles not being lost before   (see @330)
+!
+        ENDIF
+!++  End of loop over all particles
+!
  777  END DO
-c- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
-c
-c        if (nhit .gt. 0.) then
-c          WRITE(*,*) 'Collimator:                    ',ICOLL 
-c          WRITE(*,*) 'Number of particles:           ', Nev
-c          WRITE(*,*) 'Number of particle hits:       ', Nhit
-c          WRITE(*,*) 'Number of absorped particles:   ', fracab 
-c          WRITE(*,*) 'Number of escaped particles:    ', Nhit-fracab 
-c          WRITE(*,*) 'Fraction of absorbed particles:', 100.*fracab/Nhit
-c            WRITE(*,*)'Fraction of channeled particles:',100*n_chan/Nhit
-c            WRITE(*,*)'Fraction of VR particles:       ',100*n_VR/Nhit
-c            WRITE(*,*)'Fraction of amorphous process:  ',100*n_amorphous
-c     1/Nhit
-c        endif 
-c
+!- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+!
+!        if (nhit .gt. 0.) then
+!          WRITE(*,*) 'Collimator:                    ',ICOLL
+!          WRITE(*,*) 'Number of particles:           ', Nev
+!          WRITE(*,*) 'Number of particle hits:       ', Nhit
+!          WRITE(*,*) 'Number of absorped particles:   ', fracab
+!          WRITE(*,*) 'Number of escaped particles:    ', Nhit-fracab
+!          WRITE(*,*) 'Fraction of absorbed particles:', 100.*fracab/Nhit
+!            WRITE(*,*)'Fraction of channeled particles:',100*n_chan/Nhit
+!            WRITE(*,*)'Fraction of VR particles:       ',100*n_VR/Nhit
+!            WRITE(*,*)'Fraction of amorphous process:  ',100*n_amorphous
+!     1/Nhit
+!        endif
+!
       endif  !collimator with length = 0
       return
       end

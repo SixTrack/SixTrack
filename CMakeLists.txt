@@ -287,6 +287,7 @@ list(APPEND FORT90_LIB
   bouncy_castle
   cheby
   close
+  coll_crystal
   coll_db
   coll_dist
   collimation
