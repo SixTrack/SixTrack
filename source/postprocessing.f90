@@ -229,7 +229,7 @@ subroutine postpr(arg1,arg2)
       enddo
 
       ttot=ttot*10**2+itot
-      sumda(52)=real(ttot,fPrec)                                               !hr06
+      sumda(52)=real(ttot,fPrec)
 ! and put CPU time for Massimo
 ! so even if we go to 550 we now get the stats
       sumda(60)=real(trtime,fPrec)
@@ -523,7 +523,7 @@ subroutine postpr(arg1,arg2)
       endif
 #endif
 
-      if((((numl+1)/iskip)/(iab-iaa))/iav.gt.nlya) nstop=iav*nlya !hr06
+      if((((numl+1)/iskip)/(iab-iaa))/iav.gt.nlya) nstop=iav*nlya
 
       rewind nfile
 
@@ -535,8 +535,8 @@ subroutine postpr(arg1,arg2)
          read(nfile) !One header per particle pair.
       enddo
 #endif
-      sumda(5)=ta(1,1)**2+ta(1,2)**2                                     !hr06
-      sumda(6)=ta(3,3)**2+ta(3,4)**2                                     !hr06
+      sumda(5)=ta(1,1)**2+ta(1,2)**2
+      sumda(6)=ta(3,3)**2+ta(3,4)**2
 
       if(iconv.eq.1) then
         cma1=one
@@ -597,33 +597,33 @@ subroutine postpr(arg1,arg2)
       ta63=ta(6,3)*c1e3
       ta64=ta(6,4)*c1e3
       ta65=ta(6,5)*c1e3
-      bet0(1)=ta(1,1)**2+ta(1,2)**2                                      !hr06
-      bet0x2 =ta(1,3)**2+ta(1,4)**2                                      !hr06
-      bet0x3 =ta(1,5)**2+ta16**2                                         !hr06
-      gam0x1 =ta(2,1)**2+ta(2,2)**2                                      !hr06
-      gam0x2 =ta(2,3)**2+ta(2,4)**2                                      !hr06
-      gam0x3 =ta(2,5)**2+ta26**2                                         !hr06
-      alf0(1)=-one*(ta(1,1)*ta(2,1)+ta(1,2)*ta(2,2))                     !hr06
-      alf0x2 =-one*(ta(1,3)*ta(2,3)+ta(1,4)*ta(2,4))                     !hr06
-      alf0x3 =-one*(ta(1,5)*ta(2,5)+ta16*ta26)                           !hr06
-      bet0(2)=ta(3,3)**2+ta(3,4)**2                                      !hr06
-      bet0z2 =ta(3,1)**2+ta(3,2)**2                                      !hr06
-      bet0z3 =ta(3,5)**2+ta36**2                                         !hr06
-      gam0z1 =ta(4,3)**2+ta(4,4)**2                                      !hr06
-      gam0z2 =ta(4,1)**2+ta(4,2)**2                                      !hr06
-      gam0z3 =ta(4,5)**2+ta46**2                                         !hr06
-      alf0(2)=-one*(ta(3,3)*ta(4,3)+ta(3,4)*ta(4,4))                     !hr06
-      alf0z2 =-one*(ta(3,1)*ta(4,1)+ta(3,2)*ta(4,2))                     !hr06
-      alf0z3 =-one*(ta(3,5)*ta(4,5)+ta36*ta46)                           !hr06
-      bet0(3)=ta(5,5)**2+ta56**2                                         !hr06
-      bet0s2 =ta(5,1)**2+ta(5,2)**2                                      !hr06
-      bet0s3 =ta(5,3)**2+ta(5,4)**2                                      !hr06
-      gam0s1 =ta65**2+ta(6,6)**2                                         !hr06
-      gam0s2 =ta61**2+ta62**2                                            !hr06
-      gam0s3 =ta63**2+ta64**2                                            !hr06
-      alf0(3)=-one*(ta(5,5)*ta65+ta56*ta(6,6))                           !hr06
-      alf0s2 =-one*(ta(5,1)*ta61+ta(5,2)*ta62)                           !hr06
-      alf0s3 =-one*(ta(5,3)*ta63+ta(5,4)*ta64)                           !hr06
+      bet0(1)=ta(1,1)**2+ta(1,2)**2
+      bet0x2 =ta(1,3)**2+ta(1,4)**2
+      bet0x3 =ta(1,5)**2+ta16**2
+      gam0x1 =ta(2,1)**2+ta(2,2)**2
+      gam0x2 =ta(2,3)**2+ta(2,4)**2
+      gam0x3 =ta(2,5)**2+ta26**2
+      alf0(1)=-one*(ta(1,1)*ta(2,1)+ta(1,2)*ta(2,2))
+      alf0x2 =-one*(ta(1,3)*ta(2,3)+ta(1,4)*ta(2,4))
+      alf0x3 =-one*(ta(1,5)*ta(2,5)+ta16*ta26)
+      bet0(2)=ta(3,3)**2+ta(3,4)**2
+      bet0z2 =ta(3,1)**2+ta(3,2)**2
+      bet0z3 =ta(3,5)**2+ta36**2
+      gam0z1 =ta(4,3)**2+ta(4,4)**2
+      gam0z2 =ta(4,1)**2+ta(4,2)**2
+      gam0z3 =ta(4,5)**2+ta46**2
+      alf0(2)=-one*(ta(3,3)*ta(4,3)+ta(3,4)*ta(4,4))
+      alf0z2 =-one*(ta(3,1)*ta(4,1)+ta(3,2)*ta(4,2))
+      alf0z3 =-one*(ta(3,5)*ta(4,5)+ta36*ta46)
+      bet0(3)=ta(5,5)**2+ta56**2
+      bet0s2 =ta(5,1)**2+ta(5,2)**2
+      bet0s3 =ta(5,3)**2+ta(5,4)**2
+      gam0s1 =ta65**2+ta(6,6)**2
+      gam0s2 =ta61**2+ta62**2
+      gam0s3 =ta63**2+ta64**2
+      alf0(3)=-one*(ta(5,5)*ta65+ta56*ta(6,6))
+      alf0s2 =-one*(ta(5,1)*ta61+ta(5,2)*ta62)
+      alf0s3 =-one*(ta(5,3)*ta63+ta(5,4)*ta64)
       bet04(1)=bet0(1)
       bet04(2)=bet0(2)
       alf04(1)=alf0(1)
@@ -728,7 +728,7 @@ subroutine postpr(arg1,arg2)
       endif ! END if(nprint.eq.1)
 
 !--INITIALISATION
-      tpi=eight*atan_mb(one)                                               !hr06
+      tpi=eight*atan_mb(one)
       prec=c1m1
       i1=0
       i11=1
@@ -743,15 +743,15 @@ subroutine postpr(arg1,arg2)
       iap6=0
       ivo6=1
       qs0=zero
-      armin0=c1e9                                                         !hr06
+      armin0=c1e9
       armin=armin0
       nivh=ninv/2
-      finv=tpi/real(ninv,fPrec)                                                !hr06
+      finv=tpi/real(ninv,fPrec)
       dani(1)=zero
       dani(ninv+1)=tpi
 
       do i=1,ninv-1
-        dani(i+1)=real(i,fPrec)*finv                                             !hr06
+        dani(i+1)=real(i,fPrec)*finv
       end do
 
       dle1=zero
@@ -828,11 +828,11 @@ subroutine postpr(arg1,arg2)
       its6d=0
 
       do i=1,6
-        tasum=(tasum+abs(t(i,5)))+abs(t(i,6))                            !hr06
+        tasum=(tasum+abs(t(i,5)))+abs(t(i,6))
       end do
 
       do i=1,4
-        tasum=(tasum+abs(t(5,i)))+abs(t(6,i))                            !hr06
+        tasum=(tasum+abs(t(5,i)))+abs(t(6,i))
       end do
 
       tasum=tasum-two
@@ -969,7 +969,7 @@ subroutine postpr(arg1,arg2)
         x(2,6)=h1
         call distance(x,cloau,di0au,t,b)
       endif
-      if(nstop.gt.nstart.and.(ia-nstop).gt.0) goto 200                   !hr06
+      if(nstop.gt.nstart.and.(ia-nstop).gt.0) goto 200
       if(b.lt.b0.or.abs(b0).le.pieni) b0=b
       goto 190
   200 if(ia.le.0) goto 530
@@ -1179,8 +1179,8 @@ subroutine postpr(arg1,arg2)
 !--EMITTANCES
       xp0=bet0(1)*d+alf0(1)*c
       zp0=bet0(2)*f+alf0(2)*e
-      emx=(c**2+xp0**2)/bet0(1)                                          !hr06
-      emz=(e**2+zp0**2)/bet0(2)                                          !hr06
+      emx=(c**2+xp0**2)/bet0(1)
+      emz=(e**2+zp0**2)/bet0(2)
       if(icode.ge.4.and.its6d.ne.0) then
         c=c+di0(1)*h
         d=d+dip0(1)*h
@@ -1214,8 +1214,8 @@ subroutine postpr(arg1,arg2)
 
 !--CONVERT TO CANONICAL VARIABLES
       if(its6d.eq.1) then
-        xyzv(2)=xyzv(2)*((one+xyzv(6))+clop(3))                          !hr06
-        xyzv(4)=xyzv(4)*((one+xyzv(6))+clop(3))                          !hr06
+        xyzv(2)=xyzv(2)*((one+xyzv(6))+clop(3))
+        xyzv(4)=xyzv(4)*((one+xyzv(6))+clop(3))
       endif
 
       do iq=1,6
@@ -1231,8 +1231,8 @@ subroutine postpr(arg1,arg2)
       endif
 
 !--EMITTANCES WITH LINEAR COUPLING
-      evx=txyz(1)**2+txyz(2)**2                                          !hr06
-      evz=txyz(3)**2+txyz(4)**2                                          !hr06
+      evx=txyz(1)**2+txyz(2)**2
+      evz=txyz(3)**2+txyz(4)**2
 !     calculation second particle
       xyzv2(1)=c1
       xyzv2(2)=d1
@@ -1243,8 +1243,8 @@ subroutine postpr(arg1,arg2)
 
 !--CONVERT TO CANONICAL VARIABLES
       if(its6d.eq.1) then
-        xyzv2(2)=xyzv2(2)*((one+xyzv2(6))+clop(3))                       !hr06
-        xyzv2(4)=xyzv2(4)*((one+xyzv2(6))+clop(3))                       !hr06
+        xyzv2(2)=xyzv2(2)*((one+xyzv2(6))+clop(3))
+        xyzv2(4)=xyzv2(4)*((one+xyzv2(6))+clop(3))
       endif
 
       do iq=1,6
@@ -1254,8 +1254,8 @@ subroutine postpr(arg1,arg2)
         end do
       end do
 
-      evx2=txyz2(1)**2+txyz2(2)**2                                       !hr06
-      evz2=txyz2(3)**2+txyz2(4)**2                                       !hr06
+      evx2=txyz2(1)**2+txyz2(2)**2
+      evz2=txyz2(3)**2+txyz2(4)**2
       write(toptit(3)(6:15),10010) sqrt(evx*bet0(1))+sqrt(evz*bet0x2)
       write(toptit(3)(23:32),10010) sqrt(evz*bet0(2))+sqrt(evx*bet0z2)
 
@@ -1480,8 +1480,8 @@ subroutine postpr(arg1,arg2)
 !--EMITTANCES
       xp=bet0(1)*d+alf0(1)*c
       zp=bet0(2)*f+alf0(2)*e
-      emx=(c**2+xp**2)/bet0(1)                                           !hr06
-      emz=(e**2+zp**2)/bet0(2)                                           !hr06
+      emx=(c**2+xp**2)/bet0(1)
+      emz=(e**2+zp**2)/bet0(2)
       if(icode.ge.4.and.its6d.ne.0) then
         c=c+di0(1)*h
         d=d+dip0(1)*h
@@ -1509,8 +1509,8 @@ subroutine postpr(arg1,arg2)
 
 !--CONVERT TO CANONICAL VARIABLES
       if(its6d.eq.1) then
-        xyzv(2)=xyzv(2)*((one+xyzv(6))+clop(3))                          !hr06
-        xyzv(4)=xyzv(4)*((one+xyzv(6))+clop(3))                          !hr06
+        xyzv(2)=xyzv(2)*((one+xyzv(6))+clop(3))
+        xyzv(4)=xyzv(4)*((one+xyzv(6))+clop(3))
       endif
 
       do iq=1,6
@@ -1521,8 +1521,8 @@ subroutine postpr(arg1,arg2)
       end do
 
 !--EMITTANCES WITH LINEAR COUPLING
-      evx1=txyz(1)**2+txyz(2)**2                                         !hr06
-      evz1=txyz(3)**2+txyz(4)**2                                         !hr06
+      evx1=txyz(1)**2+txyz(2)**2
+      evz1=txyz(3)**2+txyz(4)**2
 
 !--COURANT SYNDER CONT.
       do 260 iq=1,6
@@ -1562,7 +1562,7 @@ subroutine postpr(arg1,arg2)
       b=b-b0
       dle1c=zero
       if(b.gt.zero) dle1c=log_mb(b)
-      if(b.lt.zero) dle1c=-one*log_mb(-one*b)                            !hr06
+      if(b.lt.zero) dle1c=-one*log_mb(-one*b)
       dle1=dle1+dle1c
 
 !--EMITTANCES WITH LINEAR COUPLING CONT.
@@ -1595,11 +1595,11 @@ subroutine postpr(arg1,arg2)
       if(mod(i1,iav).eq.0) then
         if(i2.ge.nlya) goto 240
         i2=i2+1
-        dle(i2)=dle1/real(iav,fPrec)                                     !hr06
+        dle(i2)=dle1/real(iav,fPrec)
         if(ia.gt.0) then
-          tle1=log_mb(real(ia,fPrec))                                          !hr06
+          tle1=log_mb(real(ia,fPrec))
           if(i2.gt.1) then
-            biav(i2-1)=bold/real(iav,fPrec)                                    !hr06
+            biav(i2-1)=bold/real(iav,fPrec)
             if(i2.eq.2) biav(1)=biav(1)*half
             bold=zero
             tle(i2)=(tle1+tlo)*half
@@ -1681,26 +1681,26 @@ subroutine postpr(arg1,arg2)
         write(lout,*) 'WARNING: IAPZ IS ZERO'
         iapz=1
       endif
-      tphx=dphx/real(iapx,fPrec)                                         !hr06
-      tphz=dphz/real(iapz,fPrec)                                         !hr06
-      if(iap6.gt.0) tph6=dph6/real(iap6,fPrec)                           !hr06
+      tphx=dphx/real(iapx,fPrec)
+      tphz=dphz/real(iapz,fPrec)
+      if(iap6.gt.0) tph6=dph6/real(iap6,fPrec)
 
 !--STANDARD DEVIATION OF PHASEADVANCES
       do i=1,iapx
-        sdpx=sdpx+(phase(1,i)-tphx)**2                                   !hr06
+        sdpx=sdpx+(phase(1,i)-tphx)**2
       end do
 
       do i=1,iapz
-        sdpz=sdpz+(phase(2,i)-tphz)**2                                   !hr06
+        sdpz=sdpz+(phase(2,i)-tphz)**2
       end do
 
       do i=1,iap6
-        sdp6=sdp6+(phase(3,i)-tph6)**2                                   !hr06
+        sdp6=sdp6+(phase(3,i)-tph6)**2
       end do
 
-      sdpx=sqrt(sdpx)/real(iapx,fPrec)                                   !hr06
-      sdpz=sqrt(sdpz)/real(iapz,fPrec)                                   !hr06
-      if(iap6.gt.0) sdp6=sqrt(sdp6)/real(iap6,fPrec)                     !hr06
+      sdpx=sqrt(sdpx)/real(iapx,fPrec)
+      sdpz=sqrt(sdpz)/real(iapz,fPrec)
+      if(iap6.gt.0) sdp6=sqrt(sdp6)/real(iap6,fPrec)
 
 !--AVERAGED EMITTANCES
       di11=i11
@@ -1803,8 +1803,8 @@ subroutine postpr(arg1,arg2)
 !--MEAN EMITTANCES
         xp=bet0(1)*d+alf0(1)*c
         zp=bet0(2)*f+alf0(2)*e
-        emx=(c**2+xp**2)/bet0(1)                                         !hr06
-        emz=(e**2+zp**2)/bet0(2)                                         !hr06
+        emx=(c**2+xp**2)/bet0(1)
+        emz=(e**2+zp**2)/bet0(2)
 
         if(icode.ge.4.and.its6d.ne.0) then
           c=c+di0(1)*h
@@ -1814,9 +1814,9 @@ subroutine postpr(arg1,arg2)
         endif
 
         emt=emx+emz
-        emxs=emxs+(emx-emxa)**2                                          !hr06
-        emzs=emzs+(emz-emza)**2                                          !hr06
-        emts=emts+(emt-emta)**2                                          !hr06
+        emxs=emxs+(emx-emxa)**2
+        emzs=emzs+(emz-emza)**2
+        emts=emts+(emt-emta)**2
 
 !--COURANT SYNDER
         xyzv(1)=c
@@ -1828,8 +1828,8 @@ subroutine postpr(arg1,arg2)
 
 !--CONVERT TO CANONICAL VARIABLES
         if(its6d.eq.1) then
-          xyzv(2)=xyzv(2)*((one+xyzv(6))+clop(3))                        !hr06
-          xyzv(4)=xyzv(4)*((one+xyzv(6))+clop(3))                        !hr06
+          xyzv(2)=xyzv(2)*((one+xyzv(6))+clop(3))
+          xyzv(4)=xyzv(4)*((one+xyzv(6))+clop(3))
         endif
 
 ! normalisation with t-matrix = inverse matrix of eigenvectors
@@ -1841,8 +1841,8 @@ subroutine postpr(arg1,arg2)
         end do
 
 !--MEAN EMITTANCES WITH LINEAR COUPLING
-        evx=txyz(1)**2+txyz(2)**2                                        !hr06
-        evz=txyz(3)**2+txyz(4)**2                                        !hr06
+        evx=txyz(1)**2+txyz(2)**2
+        evz=txyz(3)**2+txyz(4)**2
 
 !--COURANT SYNDER CONT.
         do iq=1,6
@@ -1858,9 +1858,9 @@ subroutine postpr(arg1,arg2)
 
 !--MEAN EMITTANCES WITH LINEAR COUPLING CONT.
         evt=evx+evz
-        sevx=sevx+(evx-evxm)**2                                          !hr06
-        sevz=sevz+(evz-evzm)**2                                          !hr06
-        sevt=sevt+(evt-evtm)**2                                          !hr06
+        sevx=sevx+(evx-evxm)**2
+        sevz=sevz+(evz-evzm)**2
+        sevt=sevt+(evt-evtm)**2
   340 continue
   350 continue
 
@@ -1877,15 +1877,15 @@ subroutine postpr(arg1,arg2)
 !----------------------------------------------------------------------
       if(nstop.lt.ia.and.(ia.lt.numl.or.ia.lt.nint(dnumlr))) nlost=1
       if(nnumxv(ifipa).eq.0.and.nnumxv(ilapa).eq.0) then
-        sumda(22)=real(ia,fPrec)                                         !hr06
-        sumda(23)=real(ia,fPrec)                                         !hr06
+        sumda(22)=real(ia,fPrec)
+        sumda(23)=real(ia,fPrec)
       else
-        sumda(22)=real(nnumxv(ifipa),fPrec)                              !hr06
-        sumda(23)=real(nnumxv(ilapa),fPrec)                              !hr06
+        sumda(22)=real(nnumxv(ifipa),fPrec)
+        sumda(23)=real(nnumxv(ilapa),fPrec)
       endif
 ! #ifdef SIXDA
-!       sumda(22)=real(ia,fPrec)                                           !hr06
-!       sumda(23)=real(ia,fPrec)                                           !hr06
+!       sumda(22)=real(ia,fPrec)
+!       sumda(23)=real(ia,fPrec)
 ! #endif
 #ifdef CR
 ! TRY a FIX for nnuml
@@ -1900,14 +1900,14 @@ subroutine postpr(arg1,arg2)
 
 !--GET DIFFERENCE IN THE NUMBER OF TURNS PER DATA ENTRY : TIDNT
 !--NOW CONSIDERING ONLY TURNS LARGER THAN NSTART
-      tidnt=real(((ia-nstart)+idnt)/i11,fPrec)                           !hr06
+      tidnt=real(((ia-nstart)+idnt)/i11,fPrec)
       if(i2.ge.2) then
         if(nprint.eq.1) write(lout,10110)
         ilyap=0
         slopem=zero
 
         do i=1,i2-1
-          iturn=nint(real((i+1)*iav,fPrec)*tidnt)                        !hr06
+          iturn=nint(real((i+1)*iav,fPrec)*tidnt)
           if(nprint.eq.1) write(lout,10120) iturn,biav(i),slope(i),varlea(i)
           if(biav(i).gt.c1m1) ilyap=1
           slopem=max(slopem,slope(i))
@@ -1917,7 +1917,7 @@ subroutine postpr(arg1,arg2)
         sumda(10)=biav(i2-1)
 
         if(ilyap.eq.0) then
-         sumda(11)=slope(i2-1)                                           !hr06
+         sumda(11)=slope(i2-1)
         else
          sumda(11)=slopem
         endif
@@ -1956,7 +1956,7 @@ subroutine postpr(arg1,arg2)
           jm1=j-1
           if(im1.eq.0.and.jm1.eq.0) goto 370
           if(im1+jm1.gt.ires) goto 370
-          ares=real(im1,fPrec)*tphx+real(jm1,fPrec)*tphz                 !hr06
+          ares=real(im1,fPrec)*tphx+real(jm1,fPrec)*tphz
           dares=anint(ares)
           ares=ares-dares
           if(abs(ares).lt.armin) then
@@ -1964,7 +1964,7 @@ subroutine postpr(arg1,arg2)
             im1s=im1
             jm1s=jm1
           endif
-          ared=real(im1,fPrec)*tphx-real(jm1,fPrec)*tphz                 !hr06
+          ared=real(im1,fPrec)*tphx-real(jm1,fPrec)*tphz
           dared=anint(ared)
           ared=ared-dared
           if(abs(ared).lt.armin) then
@@ -1980,8 +1980,8 @@ subroutine postpr(arg1,arg2)
 
 
       if(armin.lt.armin0) then
-        sumda(16)=real(im1s,fPrec)                                       !hr06
-        sumda(17)=real(jm1s,fPrec)                                       !hr06
+        sumda(16)=real(im1s,fPrec)
+        sumda(17)=real(jm1s,fPrec)
         sumda(18)=sumda(16)+abs(sumda(17))
       endif
       if(iwarx.eq.1.and.nprint.eq.1) write(lout,10150)
@@ -2063,12 +2063,12 @@ subroutine postpr(arg1,arg2)
         do 400 i=if1,if2
           xxaux=sqrt(xxr(i)**2+xxi(i)**2)
           zzaux=sqrt(zzr(i)**2+zzi(i)**2)
-          if(abs(xxaux-xxmax).le.pieni) ffx=(real(i-1,fPrec)/dife)+qx0         !hr06
-          if(abs(zzaux-zzmax).le.pieni) ffz=(real(i-1,fPrec)/dife)+qz0         !hr06
+          if(abs(xxaux-xxmax).le.pieni) ffx=(real(i-1,fPrec)/dife)+qx0
+          if(abs(zzaux-zzmax).le.pieni) ffz=(real(i-1,fPrec)/dife)+qz0
           xxaux=xxaux/xxmax
           zzaux=zzaux/zzmax
-          if(xxaux.gt.dfft.and.nprint.eq.1) write(lout,10190) real(i-1,fPrec)/dife+qx0,xxaux*c1e2  !hr06
-      if(zzaux.gt.dfft.and.nprint.eq.1) write(lout,10200) real(i-1,fPrec)/dife+qz0,zzaux*c1e2      !hr06
+          if(xxaux.gt.dfft.and.nprint.eq.1) write(lout,10190) real(i-1,fPrec)/dife+qx0,xxaux*c1e2
+      if(zzaux.gt.dfft.and.nprint.eq.1) write(lout,10200) real(i-1,fPrec)/dife+qz0,zzaux*c1e2
   400   continue
 
         if(nprint.eq.1) write(lout,10210) ffx,ffz,qwc(1),ffx-qwc(1),qwc(2),ffz-qwc(2),dres,ires
@@ -2080,10 +2080,10 @@ subroutine postpr(arg1,arg2)
             jm1=j-1
             if(im1.eq.0.and.jm1.eq.0) goto 410
             if(im1+jm1.gt.ires) goto 410
-            ares=real(im1,fPrec)*ffx+real(jm1,fPrec)*ffz                             !hr06
+            ares=real(im1,fPrec)*ffx+real(jm1,fPrec)*ffz
             dares=anint(ares)
             ares=ares-dares
-            ared=real(im1,fPrec)*ffx-real(jm1,fPrec)*ffz                             !hr06
+            ared=real(im1,fPrec)*ffx-real(jm1,fPrec)*ffz
             dared=anint(ared)
             ared=ared-dared
             if(abs(ares).lt.dres.and.nprint.eq.1) write(lout,10170) im1,jm1,dares,ares
@@ -2118,28 +2118,28 @@ subroutine postpr(arg1,arg2)
 ! This place 60 now used for CPU time seconds
 ! But it is set earlier in case particles are lost very early
       sumda(24)=dizu0
-      emax=(emax/c1e2)*emxa+emxa                                        !hr06
-      emix=(emix/c1e2)*emxa+emxa                                        !hr06
-      emaz=(emaz/c1e2)*emza+emza                                        !hr06
-      emiz=(emiz/c1e2)*emza+emza                                        !hr06
+      emax=(emax/c1e2)*emxa+emxa
+      emix=(emix/c1e2)*emxa+emxa
+      emaz=(emaz/c1e2)*emza+emza
+      emiz=(emiz/c1e2)*emza+emza
       sumda(28)=sqrt(bet0(1)*abs(emix))
       sumda(29)=sqrt(bet0(1)*emxa)
       sumda(30)=sqrt(bet0(1)*emax)
       sumda(31)=sqrt(bet0(2)*abs(emiz))
       sumda(32)=sqrt(bet0(2)*emza)
       sumda(33)=sqrt(bet0(2)*emaz)
-      evxma=(evxma/c1e2)*evxm+evxm                                      !hr06
-      evxmi=(evxmi/c1e2)*evxm+evxm                                      !hr06
-      evzma=(evzma/c1e2)*evzm+evzm                                      !hr06
-      evzmi=(evzmi/c1e2)*evzm+evzm                                      !hr06
+      evxma=(evxma/c1e2)*evxm+evxm
+      evxmi=(evxmi/c1e2)*evxm+evxm
+      evzma=(evzma/c1e2)*evzm+evzm
+      evzmi=(evzmi/c1e2)*evzm+evzm
       sumda(34)=sqrt(bet0(1)*abs(evxmi))
       sumda(35)=sqrt(bet0(1)*evxm)
       sumda(36)=sqrt(bet0(1)*evxma)
       sumda(37)=sqrt(bet0(2)*abs(evzmi))
       sumda(38)=sqrt(bet0(2)*evzm)
       sumda(39)=sqrt(bet0(2)*evzma)
-      evtma=(evtma/c1e2)*evtm+evtm                                      !hr06
-      evtmi=(evtmi/c1e2)*evtm+evtm                                      !hr06
+      evtma=(evtma/c1e2)*evtm+evtm
+      evtmi=(evtmi/c1e2)*evtm+evtm
 
       if(abs(evxm+evzm).gt.pieni) then
         ratemx=evxm/(evxm+evzm)
@@ -2149,12 +2149,12 @@ subroutine postpr(arg1,arg2)
         ratemz=zero
       endif
 
-      sumda(40)=sqrt((bet0(1)*abs(evtmi))*ratemx)                        !hr06
-      sumda(41)=sqrt((bet0(1)*evtm)*ratemx)                              !hr06
-      sumda(42)=sqrt((bet0(1)*evtma)*ratemx)                             !hr06
-      sumda(43)=sqrt((bet0(2)*abs(evtmi))*ratemz)                        !hr06
-      sumda(44)=sqrt((bet0(2)*evtm)*ratemz)                              !hr06
-      sumda(45)=sqrt((bet0(2)*evtma)*ratemz)                             !hr06
+      sumda(40)=sqrt((bet0(1)*abs(evtmi))*ratemx)
+      sumda(41)=sqrt((bet0(1)*evtm)*ratemx)
+      sumda(42)=sqrt((bet0(1)*evtma)*ratemx)
+      sumda(43)=sqrt((bet0(2)*abs(evtmi))*ratemz)
+      sumda(44)=sqrt((bet0(2)*evtm)*ratemz)
+      sumda(45)=sqrt((bet0(2)*evtma)*ratemz)
 
 !--PUT IN THE CHROMATICITY
       sumda(50)=chromc(1)*c1e3
@@ -2185,28 +2185,28 @@ subroutine postpr(arg1,arg2)
       do 420 i=1,ninv
         if(invx(i).gt.0) then
           nuix=nuix+1
-          xing=xing+xinv(i)/real(invx(i),fPrec)                          !hr06
+          xing=xing+xinv(i)/real(invx(i),fPrec)
         endif
 
         if(invz(i).gt.0) then
           nuiz=nuiz+1
-          zing=zing+zinv(i)/real(invz(i),fPrec)                          !hr06
+          zing=zing+zinv(i)/real(invz(i),fPrec)
         endif
   420 continue
 
-      pinx=real(nuix,fPrec)                                              !hr06
-      pinz=real(nuiz,fPrec)                                              !hr06
+      pinx=real(nuix,fPrec)
+      pinz=real(nuiz,fPrec)
 
       if(nuix.ne.0) then
         pixr=real(nuez,fPrec)/real(nuix,fPrec)
-        xing=xing/real(nuix,fPrec)                                       !hr06
+        xing=xing/real(nuix,fPrec)
       endif
       if(nuiz.ne.0) then
         pizr=real(nuex,fPrec)/real(nuiz,fPrec)
-        zing=zing/real(nuiz,fPrec)                                       !hr06
+        zing=zing/real(nuiz,fPrec)
       endif
-      pinx=(pinx/real(ninv,fPrec))*c1e2                                  !hr06
-      pinz=(pinz/real(ninv,fPrec))*c1e2                                  !hr06
+      pinx=(pinx/real(ninv,fPrec))*c1e2
+      pinz=(pinz/real(ninv,fPrec))*c1e2
       if(nprint.eq.1) write(lout,10230)
       if(nuez.lt.ninv.and.nprint.eq.1) write(lout,10240) nuez,ninv
       if(nuex.lt.ninv.and.nprint.eq.1) write(lout,10250) nuex,ninv
@@ -2216,7 +2216,7 @@ subroutine postpr(arg1,arg2)
 !--PLOTTING
 !----------------------------------------------------------------------
       pmin(1)=zero
-      pmax(1)=real(ia,fPrec)                                             !hr06
+      pmax(1)=real(ia,fPrec)
       pmin(7)=pmin(3)
       pmax(7)=pmax(3)
       pmin(8)=pmin(5)
@@ -2229,7 +2229,7 @@ subroutine postpr(arg1,arg2)
       pmax(13)=pmax(5)
       pmin(14)=pmin(10)
       pmax(14)=pmax(10)
-      pmax(15)=real(ia,fPrec)                                            !hr06
+      pmax(15)=real(ia,fPrec)
       pmin(17)=pmin(3)
       pmax(17)=pmax(3)
       pmin(18)=pmin(4)
@@ -2443,8 +2443,8 @@ subroutine postpr(arg1,arg2)
             xyzv(6)=h
 !--CONVERT TO CANONICAL VARIABLES
             if(its6d.eq.1) then
-              xyzv(2)=xyzv(2)*((one+xyzv(6))+clop(3))                    !hr06
-              xyzv(4)=xyzv(4)*((one+xyzv(6))+clop(3))                    !hr06
+              xyzv(2)=xyzv(2)*((one+xyzv(6))+clop(3))
+              xyzv(4)=xyzv(4)*((one+xyzv(6))+clop(3))
             endif
 
             do iq=1,6
@@ -2506,7 +2506,7 @@ subroutine postpr(arg1,arg2)
               k1=k-if1+1
               xxaux=sqrt(xxr(k)**2+xxi(k)**2)
               xxaux=xxaux/xxmax
-              fxs(k1)=real(dble(k-1)/dife+qx0)                           !hr06
+              fxs(k1)=real(dble(k-1)/dife+qx0)
               if(iffw.eq.2) then
                 if(abs(xxaux).lt.pieni) then
                   write(lout,*) '* * * ERROR * * *'
@@ -2533,7 +2533,7 @@ subroutine postpr(arg1,arg2)
               k1=k-if1+1
               zzaux=sqrt(zzr(k)**2+zzi(k)**2)
               zzaux=zzaux/zzmax
-              fxs(k1)=real(real(k-1,fPrec)/dife+qz0)                           !hr06
+              fxs(k1)=real(real(k-1,fPrec)/dife+qz0)
 
               if(iffw.eq.2) then
                 if(abs(zzaux).lt.pieni) then
@@ -2855,8 +2855,8 @@ subroutine fft(ar,ai,m,n)
         le1=le/2
         ur=one
         ui=zero
-        wr=cos_mb(pi/real(le1,fPrec))                                          !hr06
-        wi=-one*sin_mb(pi/real(le1,fPrec))                                     !hr06
+        wr=cos_mb(pi/real(le1,fPrec))
+        wi=-one*sin_mb(pi/real(le1,fPrec))
         do j=1,le1
           do i=j,n,le
             ip=i+le1
@@ -2875,8 +2875,8 @@ subroutine fft(ar,ai,m,n)
       end do
 
       do i=1,n
-        ar(i)=(ar(i)/real(n,fPrec))*2                                          !hr06
-        ai(i)=(ai(i)/real(n,fPrec))*2                                          !hr06
+        ar(i)=(ar(i)/real(n,fPrec))*2
+        ai(i)=(ai(i)/real(n,fPrec))*2
       end do
 
       return
@@ -2906,7 +2906,7 @@ subroutine cphase(k,a,b,c,d,i,j,ie)
       real(kind=fPrec) a,b,c,d,f,tpi
       save
 !---------------------------------------------------------------------
-      tpi=eight*atan_mb(one)                                               !hr06
+      tpi=eight*atan_mb(one)
       if(abs(b).gt.pieni.or.abs(c).gt.pieni) then
         f=atan2_mb(b,c)
         ie=ie+1
@@ -2955,12 +2955,12 @@ subroutine sinpro(a,b,c,d,e)
 !---------------------------------------------------------------------
       if(abs(a).gt.pieni) then
         if(c.gt.pieni.and.b.gt.pieni) then
-          c=(sqrt(c/b)/a)*c1e2                                          !hr06
+          c=(sqrt(c/b)/a)*c1e2
         else
           c=zero
         endif
-        d=((d-a)/a)*c1e2                                                !hr06
-        e=((e-a)/a)*c1e2                                                !hr06
+        d=((d-a)/a)*c1e2
+        e=((e-a)/a)*c1e2
       else
         c=zero
         d=zero
@@ -3570,7 +3570,7 @@ subroutine lfitwd(x,y,w,l,key,a,b,e)
   integer icnt,j,key,l
   real(kind=fPrec) a,b,e,x,y,w
   real(kind=fPrec) w2,w2x,w2x2,w2xy,w2y,w2y2,ww,wwf,wwfi
-  dimension x(l),y(l),w(l)                                           !hr07
+  dimension x(l),y(l),w(l)
   save
 !-----------------------------------------------------------------------
 !
@@ -3587,7 +3587,7 @@ subroutine lfitwd(x,y,w,l,key,a,b,e)
   icnt=0
   do 2 j=1,l
   if(y(j).eq.0..and.key.eq.0) goto 2
-  ww=w(j)**2                                                         !hr07
+  ww=w(j)**2
   w2=ww+w2
   wwf=ww*x(j)
   w2x=wwf+w2x
@@ -3604,7 +3604,7 @@ subroutine lfitwd(x,y,w,l,key,a,b,e)
   b=(w2y-a*w2x)/w2
   if(icnt.le.2) goto 3
 !Eric
-  e=((w2y2-w2y**2/w2)-(w2xy-(w2x*w2y)/w2)**2/(w2x2-w2x**2/w2))/     &!hr07
+  e=((w2y2-w2y**2/w2)-(w2xy-(w2x*w2y)/w2)**2/(w2x2-w2x**2/w2))/     &
   &real(icnt-2,fPrec)
   goto 4
 !
@@ -3629,7 +3629,7 @@ subroutine lfitd(x,y,l,key,a,b,e)
   integer j,key,l
   real(kind=fPrec) a,b,count,e,scartx,scarty
   real(kind=fPrec) sumx,sumxx,sumxy,sumy,sumyy,x,xmed,y,ymed
-  dimension x(l),y(l)                                                !hr07
+  dimension x(l),y(l)
   save
 !-----------------------------------------------------------------------
 !

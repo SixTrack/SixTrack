@@ -15,12 +15,12 @@ tan_t = tan_mb(temp_angle)
 !FOX  TEMPI(6) = ((EJ1-E0)/E0F) ;
 
 
-!FOX  ZTDA = SQRT((ONE + DPDA)*(ONE + DPDA) 
+!FOX  ZTDA = SQRT((ONE + DPDA)*(ONE + DPDA)
 !FOX  - TEMPI(2)*TEMPI(2) - TEMPI(4)*TEMPI(4)) ;
 
 !FOX  PTTDA = ONE - (TAN_T*TEMPI(2))/ZTDA ;
 
-!FOX  X(2) = X(2) + 
+!FOX  X(2) = X(2) +
 !FOX  C1E3*(TAN_T*TEMPI(1)*TEMPI(4)/(ZTDA*PTTDA)) ;
 !FOX  X(1) = C1E3*TEMPI(1)/(COS_T*PTTDA) ;
 !FOX  Y(1) = C1E3*(COS_T*TEMPI(2) + SIN_T*ZTDA)/(ONE+DPDA)/MTCDA ;
