@@ -45,9 +45,9 @@ subroutine dinv(n,a,idim,ir,ifail)
   c31=a(1,2)*a(2,3)-a(1,3)*a(2,2)
   c32=a(1,3)*a(2,1)-a(1,1)*a(2,3)
   c33=a(1,1)*a(2,2)-a(1,2)*a(2,1)
-  t1=abs(a(1,1))                                               !hr07
-  t2=abs(a(2,1))                                               !hr07
-  t3=abs(a(3,1))                                               !hr07
+  t1=abs(a(1,1))
+  t2=abs(a(2,1))
+  t3=abs(a(3,1))
 
   ! (SET TEMP=PIVOT AND DET=PIVOT*DET.)
   if(t1.ge.t2) goto 1
@@ -85,8 +85,8 @@ subroutine dinv(n,a,idim,ir,ifail)
   if(det.eq.zero) goto 8
   s=one/det
   c11   =s*a(2,2)
-  a(1,2)=(-one*s)*a(1,2)                                             !hr07
-  a(2,1)=(-one*s)*a(2,1)                                             !hr07
+  a(1,2)=(-one*s)*a(1,2)
+  a(2,1)=(-one*s)*a(2,1)
   a(2,2)=s*a(1,1)
   a(1,1)=c11
   return
@@ -272,17 +272,17 @@ subroutine rinv(n,a,idim,ir,ifail)
   ! N=2 CASE BY CRAMERS RULE.
   det=a(1,1)*a(2,2)-a(1,2)*a(2,1)
   if(det.eq.zero) goto 8
-  s=one/det                                                          !hr07
+  s=one/det
   c11   =s*a(2,2)
-  a(1,2)=(-one*s)*a(1,2)                                             !hr07
-  a(2,1)=(-one*s)*a(2,1)                                             !hr07
+  a(1,2)=(-one*s)*a(1,2)
+  a(2,1)=(-one*s)*a(2,1)
   a(2,2)=s*a(1,1)
   a(1,1)=c11
   return
 
   ! N=1 CASE.
 5 if(a(1,1).eq.zero) goto 8
-  a(1,1)=one/a(1,1)                                                  !hr07
+  a(1,1)=one/a(1,1)
   return
 
   ! N.GT.3 CASES.  FACTORIZE MATRIX AND INVERT.
@@ -359,7 +359,7 @@ subroutine rfact(n,a,idim,ir,ifail,det,jfail)
 
   dimension ir(*),a(idim,*)
   !      data      g1, g2              /  1.e-37,  1.e37  /
-  data      g1, g2              /  1.0e-37_fPrec,  1.0e37_fPrec  /               !hr07
+  data      g1, g2              /  1.0e-37_fPrec,  1.0e37_fPrec  /
   data      hname               /  ' RFACT'  /
   data      normal, imposs      /  0, -1  /
   data      jrange, jover, junder  /  0, +1, -1  /
@@ -410,15 +410,15 @@ subroutine rfact(n,a,idim,ir,ifail,det,jfail)
       jm1  =  j-1
       jp1  =  j+1
       do 143   k  =  jp1, n
-        s11  =  -one*a(j,k)                                          !hr07
-        s12  =  -one*a(k,j+1)                                        !hr07
+        s11  =  -one*a(j,k)
+        s12  =  -one*a(k,j+1)
         if(j .eq. 1)  goto 142
         do 141  i  =  1, jm1
           s11  =  dotf(a(i,k),a(j,i),s11)
           s12  =  dotf(a(i,j+1),a(k,i),s12)
 141     continue
-142     a(j,k)   =  (-one*s11) * a(j,j)                              !hr07
-        a(k,j+1) =   -one*dotf(a(j,j+1),a(k,j),s12)                  !hr07
+142     a(j,k)   =  (-one*s11) * a(j,j)
+        a(k,j+1) =   -one*dotf(a(j,j+1),a(k,j),s12)
 143   continue
 144 continue
 150 if(mod(nxch,2) .ne. 0)  det  =  -one*det
@@ -465,7 +465,7 @@ subroutine dfact(n,a,idim,ir,ifail,det,jfail)
   dimension ir(*),a(idim,*)
 
   !      data      g1, g2              /  1.e-37,  1.e37  /
-  data      g1, g2              /  1.0e-37_fPrec,  1.0e37_fPrec  /               !hr07
+  data      g1, g2              /  1.0e-37_fPrec,  1.0e37_fPrec  /
   data      hname               /  ' DFACT'  /
   data      normal, imposs      /  0, -1  /
   data      jrange, jover, junder  /  0, +1, -1  /
@@ -519,18 +519,18 @@ subroutine dfact(n,a,idim,ir,ifail,det,jfail)
     jm1  =  j-1
     jp1  =  j+1
     do 143   k  =  jp1, n
-      s11  =  -one*a(j,k)                                          !hr07
-      s12  =  -one*a(k,j+1)                                        !hr07
+      s11  =  -one*a(j,k)
+      s12  =  -one*a(k,j+1)
       if(j .eq. 1)  goto 142
       do 141  i  =  1, jm1
         s11  =  dotf(a(i,k),a(j,i),s11)
         s12  =  dotf(a(i,j+1),a(k,i),s12)
 141   continue
-142   a(j,k)    =  (-one*s11) * a(j,j)                             !hr07
-      a(k,j+1)  =  -one*dotf(a(j,j+1),a(k,j),s12)                  !hr07
+142   a(j,k)    =  (-one*s11) * a(j,j)
+      a(k,j+1)  =  -one*dotf(a(j,j+1),a(k,j),s12)
 143 continue
 144 continue
-150 if(mod(nxch,2) .ne. 0)  det  =  -one*det                           !hr07
+150 if(mod(nxch,2) .ne. 0)  det  =  -one*det
   if(jfail .ne. jrange)   det  =  zero
   ir(n)  =  nxch
   return
@@ -653,23 +653,23 @@ subroutine rfinv(n,a,idim,ir)
   return
 310 if(n .eq. 1) return
 
-  a(2,1)  = (-one*a(2,2)) * dotf(a(1,1),a(2,1),zero)     !hr07
-  a(1,2)  =  -one*a(1,2)                                             !hr07
+  a(2,1)  = (-one*a(2,2)) * dotf(a(1,1),a(2,1),zero)
+  a(1,2)  =  -one*a(1,2)
   if(n .eq. 2) goto 330
   do i=3,n
     im2 = i-2
     do j=1,im2
       s31  =  zero
-      s32  =  a(j,i)                                               !hr07
+      s32  =  a(j,i)
       do k=j,im2
         s31  =  dotf(a(k,j),a(i,k),s31)
         s32  =  dotf(a(j,k+1),a(k+1,i),s32)
       end do
-      a(i,j) = (-one*a(i,i)) * dotf(a(i-1,j),a(i,i-1),s31)        !hr07
-      a(j,i) =  -one*s32                                            !hr07
+      a(i,j) = (-one*a(i,i)) * dotf(a(i-1,j),a(i,i-1),s31)
+      a(j,i) =  -one*s32
     end do
-    a(i,i-1) = (-one*a(i,i))*dotf(a(i-1,i-1),a(i,i-1),zero)         !hr07
-    a(i-1,i) =  -one*a(i-1,i)                                       !hr07
+    a(i,i-1) = (-one*a(i,i))*dotf(a(i-1,i-1),a(i,i-1),zero)
+    a(i-1,i) =  -one*a(i-1,i)
   end do
 
 330 continue
@@ -677,7 +677,7 @@ subroutine rfinv(n,a,idim,ir)
   do i=1,nm1
     nmi  =  n-i
     do j=1,i
-      s33 = a(i,j)                                               !hr07
+      s33 = a(i,j)
       do k=1,nmi
         s33 = dotf(a(i+k,j),a(i,i+k),s33)
       end do
@@ -688,7 +688,7 @@ subroutine rfinv(n,a,idim,ir)
       do k=j,nmi
         s34 = dotf(a(i+k,i+j),a(i,i+k),s34)
       end do
-      a(i,i+j) = s34                                               !hr07
+      a(i,i+j) = s34
     end do
   end do
   nxch = ir(n)
@@ -748,11 +748,11 @@ subroutine dfinv(n,a,idim,ir)
         s31 = dotf(a(k,j),a(i,k),s31)
         s32 = dotf(a(j,k+1),a(k+1,i),s32)
       end do
-      a(i,j) = (-one*a(i,i)) * dotf(a(i-1,j),a(i,i-1),s31)       !hr07
-      a(j,i) = -one*s32                                          !hr07
+      a(i,j) = (-one*a(i,i)) * dotf(a(i-1,j),a(i,i-1),s31)
+      a(j,i) = -one*s32
     end do
-    a(i,i-1) = (-one*a(i,i)) * dotf(a(i-1,i-1),a(i,i-1),zero)     !hr07
-    a(i-1,i) = -one*a(i-1,i)                                      !hr07
+    a(i,i-1) = (-one*a(i,i)) * dotf(a(i-1,i-1),a(i,i-1),zero)
+    a(i-1,i) = -one*a(i-1,i)
   end do
 
 330 continue
