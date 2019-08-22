@@ -600,6 +600,7 @@ subroutine thck4d(nthinerr)
         ix=ic(i)
       else
         ix=ic(i)-nblo
+        meta_nPTurnEle = meta_nPTurnEle + napx
 
         if(ldumpfront) then
           write(lout,"(a)") "TRACKING> DUMP/FRONT not yet supported on thick elements "//&
@@ -1109,8 +1110,6 @@ subroutine thck4d(nthinerr)
 
 490 continue
 
-  return
-
 end subroutine thck4d
 
 !-----------------------------------------------------------------------
@@ -1264,6 +1263,7 @@ subroutine thck6d(nthinerr)
       else
         ix=ic(i)-nblo
       end if
+      meta_nPTurnEle = meta_nPTurnEle + napx
 
       if (ldumpfront) then
         write(lerr,"(a)") "DUMP> ERROR FRONT not yet supported on thick elements due to lack of test cases. "//&
