@@ -62,6 +62,12 @@ Copyright 2019 CERN. This software is distributed under the terms of the GNU Les
 
 In applying this licence, CERN does not waive the privileges and immunities granted to it by virtue of its status as an Intergovernmental Organization or submit itself to any jurisdiction.
 
+## Reference
+
+If you use SixTrack 5 in your publication, please cite:
+
+* De Maria, R., et al. ‘SixTrack Version 5: Status and New Developments’. In Proceedings of IPAC 2019, 3200–3203. Melbourne, Australia: JACoW, 2019. DOI:[10.18429/JACoW-IPAC2019-WEPTS043](https://doi.org/10.18429/JACoW-IPAC2019-WEPTS043).
+
 ## Quick Build
 
 To build the standard release version of SixTrack with default options, run the script `defaultBuild.sh`.
