@@ -17,7 +17,7 @@
 
 * General particle transport for FLUKA and changing FLUKAIO to a submodule pulled from the GitLab repository (requires CERN Kerberos access). PR #919 (J. Molson)
 * The submodule for libArchive, and its interface and wrapper code, has been removed. PR #920 (V.K. Berglyd Olsen)
-* Clean-up of the formatting of the header in a number of output files in the ap[erture module. PR #923 (J. Molson)
+* Clean-up of the formatting of the header in a number of output files in the aperture module. PR #923 (J. Molson)
 * The arrays for the per-element normalisation matrix is now no longer sparse, but instead using a compact array of structs. This reduces the memory usage of SixTrack by up to about 35%. PRs #934 and #935 (V.K. Berglyd Olsen)
 * The linear optics subroutines have been moved the a new module together with the parsing of the `LINEAR OPTICS` input block. PR #936 (V.K. Berglyd Olsen)
 
