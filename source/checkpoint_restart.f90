@@ -379,7 +379,7 @@ subroutine crcheck
       cycle
     end if
     if(cr_version /= version .or. cr_moddate /= moddate) then
-      write(crlog,"(a)") "CR_CHECK> Checkpoint files "//cr_pntFile(nPoint)//" was written by SixTrack version "//
+      write(crlog,"(a)") "CR_CHECK> Checkpoint files "//cr_pntFile(nPoint)//" was written by SixTrack version "//&
         trim(cr_version)//" with release date "//trim(cr_moddate)
       write(crlog,"(a)") "CR_CHECK> This is SixTrack version "//trim(version)//" with release date "//trim(moddate)
       write(crlog,"(a)") "CR_CHECK> Version mismatch. Skipping this file."
@@ -389,36 +389,36 @@ subroutine crcheck
 
     write(crlog,"(a)") "CR_CHECK>  * Tracking variables"
     flush(crlog)
-    read(cr_pntUnit(nPoint),iostat=ioStat) crnumlcr,crnuml,crsixrecs,crbinrec,cril,cr_time,crnapxo, 
+    read(cr_pntUnit(nPoint),iostat=ioStat) crnumlcr,crnuml,crsixrecs,crbinrec,cril,cr_time,crnapxo,&
       crnapx,cre0,crbeta0,crbrho,crnucmda
     if(ioStat /= 0) cycle
 
     write(crlog,"(a)") "CR_CHECK>  * Particle arrays"
     flush(crlog)
-    read(cr_pntUnit(nPoint),iostat=ioStat) 
-      (crbinrecs(j), j=1,(crnapxo+1)/2), 
-      (crnumxv(j),   j=1,crnapxo),       
-      (crnnumxv(j),  j=1,crnapxo),       
-      (crpartID(j),  j=1,crnapxo),       
-      (crparentID(j),j=1,crnapxo),       
-      (crpstop(j),   j=1,crnapxo),       
-      (crxv1(j),     j=1,crnapxo),       
-      (cryv1(j),     j=1,crnapxo),       
-      (crxv2(j),     j=1,crnapxo),       
-      (cryv2(j),     j=1,crnapxo),       
-      (crsigmv(j),   j=1,crnapxo),       
-      (crdpsv(j),    j=1,crnapxo),       
-      (crdpsv1(j),   j=1,crnapxo),       
-      (crejv(j),     j=1,crnapxo),       
-      (crejfv(j),    j=1,crnapxo),       
-      (crnucm(j),    j=1,crnapxo),       
-      (crmtc(j),     j=1,crnapxo),       
-      (crnaa(j),     j=1,crnapxo),       
-      (crnzz(j),     j=1,crnapxo),       
-      (crnqq(j),     j=1,crnapxo),       
-      (crpdgid(j),   j=1,crnapxo),       
-      (craperv(j,1), j=1,crnapxo),       
-      (craperv(j,2), j=1,crnapxo),       
+    read(cr_pntUnit(nPoint),iostat=ioStat) &
+      (crbinrecs(j), j=1,(crnapxo+1)/2),   &
+      (crnumxv(j),   j=1,crnapxo),         &
+      (crnnumxv(j),  j=1,crnapxo),         &
+      (crpartID(j),  j=1,crnapxo),         &
+      (crparentID(j),j=1,crnapxo),         &
+      (crpstop(j),   j=1,crnapxo),         &
+      (crxv1(j),     j=1,crnapxo),         &
+      (cryv1(j),     j=1,crnapxo),         &
+      (crxv2(j),     j=1,crnapxo),         &
+      (cryv2(j),     j=1,crnapxo),         &
+      (crsigmv(j),   j=1,crnapxo),         &
+      (crdpsv(j),    j=1,crnapxo),         &
+      (crdpsv1(j),   j=1,crnapxo),         &
+      (crejv(j),     j=1,crnapxo),         &
+      (crejfv(j),    j=1,crnapxo),         &
+      (crnucm(j),    j=1,crnapxo),         &
+      (crmtc(j),     j=1,crnapxo),         &
+      (crnaa(j),     j=1,crnapxo),         &
+      (crnzz(j),     j=1,crnapxo),         &
+      (crnqq(j),     j=1,crnapxo),         &
+      (crpdgid(j),   j=1,crnapxo),         &
+      (craperv(j,1), j=1,crnapxo),         &
+      (craperv(j,2), j=1,crnapxo),         &
       (crllostp(j),  j=1,crnapxo)
     if(ioStat /= 0) cycle
 
@@ -638,30 +638,30 @@ subroutine crpoint
       write(crlog,"(a)") "CR_POINT>  * Particle arrays"
       flush(crlog)
     end if
-    write(cr_pntUnit(nPoint),err=100) 
-      (binrecs(j), j=1,(napxo+1)/2), 
-      (numxv(j),   j=1,napxo),       
-      (nnumxv(j),  j=1,napxo),       
-      (partID(j),  j=1,napxo),       
-      (parentID(j),j=1,napxo),       
-      (pstop(j),   j=1,napxo),       
-      (xv1(j),     j=1,napxo),       
-      (yv1(j),     j=1,napxo),       
-      (xv2(j),     j=1,napxo),       
-      (yv2(j),     j=1,napxo),       
-      (sigmv(j),   j=1,napxo),       
-      (dpsv(j),    j=1,napxo),       
-      (dpsv1(j),   j=1,napxo),       
-      (ejv(j),     j=1,napxo),       
-      (ejfv(j),    j=1,napxo),       
-      (nucm(j),    j=1,napxo),       
-      (mtc(j),     j=1,napxo),       
-      (naa(j),     j=1,napxo),       
-      (nzz(j),     j=1,napxo),       
-      (nqq(j),     j=1,napxo),       
-      (pdgid(j),   j=1,napxo),       
-      (aperv(j,1), j=1,napxo),       
-      (aperv(j,2), j=1,napxo),       
+    write(cr_pntUnit(nPoint),err=100) &
+      (binrecs(j), j=1,(napxo+1)/2),  &
+      (numxv(j),   j=1,napxo),        &
+      (nnumxv(j),  j=1,napxo),        &
+      (partID(j),  j=1,napxo),        &
+      (parentID(j),j=1,napxo),        &
+      (pstop(j),   j=1,napxo),        &
+      (xv1(j),     j=1,napxo),        &
+      (yv1(j),     j=1,napxo),        &
+      (xv2(j),     j=1,napxo),        &
+      (yv2(j),     j=1,napxo),        &
+      (sigmv(j),   j=1,napxo),        &
+      (dpsv(j),    j=1,napxo),        &
+      (dpsv1(j),   j=1,napxo),        &
+      (ejv(j),     j=1,napxo),        &
+      (ejfv(j),    j=1,napxo),        &
+      (nucm(j),    j=1,napxo),        &
+      (mtc(j),     j=1,napxo),        &
+      (naa(j),     j=1,napxo),        &
+      (nzz(j),     j=1,napxo),        &
+      (nqq(j),     j=1,napxo),        &
+      (pdgid(j),   j=1,napxo),        &
+      (aperv(j,1), j=1,napxo),        &
+      (aperv(j,2), j=1,napxo),        &
       (llostp(j),  j=1,napxo)
     flush(cr_pntUnit(nPoint))
 
@@ -779,7 +779,7 @@ subroutine crstart
   napx   = crnapx
   e0     = cre0
   e0f    = sqrt(e0**2-nucm0**2)
-  beta0 = crbeta0
+  beta0  = crbeta0
   brho   = crbrho
   nucmda = crnucmda
 
@@ -1068,7 +1068,7 @@ subroutine cr_positionTrackFiles
   call prror
 105 continue
   write(lerr,"(2(a,i0))") "CR_CHECK> ERROR Copying fort.",iau," IOSTAT = ",ierro
-  write(lerr,"(4(a,i0))") "CR_CHECK>       Unit ",iau," binrecs9x=",binrecs9x,
+  write(lerr,"(4(a,i0))") "CR_CHECK>       Unit ",iau," binrecs9x=",binrecs9x,&
     " Expected crbinrecs=",crbinrecs(ia)," binrecs94=",binrecs94
   call prror
 #else
