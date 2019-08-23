@@ -64,7 +64,8 @@ In applying this licence, CERN does not waive the privileges and immunities gran
 
 ## Quick Build
 
-To build the standard release version of SixTrack with default options, run the script `defaultBuild.sh`.
+To build the standard release version of SixTrack, run the script `cmake_six` with no additional options.
+This will build the SixTrack 64 bit executable with the singletrackfile, zlib support, as well as the crlibm math library.
 
 ## Resources
 
