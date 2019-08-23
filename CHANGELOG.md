@@ -1,5 +1,30 @@
 # SixTrack Changelog
 
+### Version 5.3.2 [23.08.2019] - Release
+
+**Bug Fixes**
+
+* Fixed a bug with `DUMP` format 101 when using HDF5 output. The memory map used was mixed up with the map for format 3. PR #937 (V.K. Berglyd Olsen)
+* Fixed a bug in the `DIST` block module where reading less than all particles of a file would fail. PR #939 (V.K. Berglyd Olsen)
+* Fixed an issue where calculating PDGID would overflow due to intermediate integer variables being 16 bit. PR #940 (J. Molson)
+* Fixed a bug with saving int16 ion variables to HDF5 files. PR #942 (V.K. Berglyd Olsen)
+
+**Documentation**
+
+* Added full documentation of the new and improved `DIST` block. PR #941 (V.K. Berglyd Olsen)
+
+**Code Improvements and Changes**
+
+* General particle transport for FLUKA and changing FLUKAIO to a submodule pulled from the GitLab repository (requires CERN Kerberos access). PR #919 (J. Molson)
+* The submodule for libArchive, and its interface and wrapper code, has been removed. PR #920 (V.K. Berglyd Olsen)
+* Clean-up of the formatting of the header in a number of output files in the ap[erture module. PR #923 (J. Molson)
+* The arrays for the per-element normalisation matrix is now no longer sparse, but instead using a compact array of structs. This reduces the memory usage of SixTrack by up to about 35%. PRs #934 and #935 (V.K. Berglyd Olsen)
+* The linear optics subroutines have been moved the a new module together with the parsing of the `LINEAR OPTICS` input block. PR #936 (V.K. Berglyd Olsen)
+
+**Test Suite**
+
+* Removed unused and incomplete test `thick6dsingles` and duplicate test `thick4in_da` as well as a lot of comments in the code used as "version control". PR #944 (V.K. Berglyd Olsen)
+
 ### Version 5.3.1 [02.08.2019] - Release
 
 **Bug Fixes**
