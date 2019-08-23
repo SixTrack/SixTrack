@@ -901,7 +901,7 @@ subroutine runda
           else if(sigman(1,imbb(i)).gt.sigman(2,imbb(i))) then
             if(ibeco.eq.1) then
               if(abs(sigman(1,imbb(i))).lt.pieni.or.abs(sigman(2,imbb(i))).lt.pieni) goto 9088
-              r2b=two*(sigman(1,imbb(i))**2-sigman(2,imbb(i))**2) !hr08
+              r2b=two*(sigman(1,imbb(i))**2-sigman(2,imbb(i))**2)
               rb=sqrt(r2b)
               rkb=((crad*ptnfac(ix))*pisqrt)/rb
               if(ibbc.eq.0) then
@@ -923,7 +923,7 @@ subroutine runda
               beamoff5=(rkb*(crxb-exp_mb(-one*tkb)*cbxb))*sign(one,cik)
             endif
             if(abs(sigman(1,imbb(i))).lt.pieni.or.abs(sigman(2,imbb(i))).lt.pieni) goto 9088
-            r2bf=two*(sigman(1,imbb(i))**2-sigman(2,imbb(i))**2) !hr08
+            r2bf=two*(sigman(1,imbb(i))**2-sigman(2,imbb(i))**2)
             rbf=sqrt(r2bf)
             rkbf=((crad*ptnfac(ix))*pisqrt)/rbf
 #include "include/beamcof.f90"
@@ -1689,14 +1689,14 @@ subroutine anfb(tas)
   write(lout,10030)
   if(itra.eq.0) goto 60
   tas56=tas(5,6)*c1m3
-  bet0x2=tas(1,3)**2+tas(1,4)**2                                     !hr08
-  bet0z2=tas(3,1)**2+tas(3,2)**2                                     !hr08
-  bet0s1=tas(5,5)**2+tas56**2                                        !hr08
+  bet0x2=tas(1,3)**2+tas(1,4)**2
+  bet0z2=tas(3,1)**2+tas(3,2)**2
+  bet0s1=tas(5,5)**2+tas56**2
   dsign=one
-  if(tas(3,3).lt.-one*pieni) rat=-one*rat                            !hr08
+  if(tas(3,3).lt.-one*pieni) rat=-one*rat
   if(rat.lt.-one*pieni) dsign=-one*one
   x11=amp(1)/(sqrt(bet0(1))+sqrt(abs(rat)*bet0x2))
-  x13=(x11*dsign)*sqrt(abs(rat))                                     !hr08
+  x13=(x11*dsign)*sqrt(abs(rat))
   amp(2)=(dsign*real(1-iver,fPrec))*(abs(x11)*sqrt(bet0z2)+abs(x13)*sqrt(bet0(2)))
   x1(5)=zero
   if(iclo6.eq.1.or.iclo6.eq.2) then
@@ -1720,8 +1720,8 @@ subroutine anfb(tas)
 10     continue
 20   continue
     if(iclo6.eq.1.or.iclo6.eq.2) then
-      x2(2)=x2(2)/((one+x2(6))+clop6(3))                             !hr08
-      x2(4)=x2(4)/((one+x2(6))+clop6(3))                             !hr08
+      x2(2)=x2(2)/((one+x2(6))+clop6(3))
+      x2(4)=x2(4)/((one+x2(6))+clop6(3))
     endif
     if(abs(bet0s1).le.pieni) x2(6)=dp1
     if(iver.eq.1) then

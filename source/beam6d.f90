@@ -90,10 +90,10 @@ subroutine boost(np,sphi,cphi,tphi,salpha,calpha,track)
     h=(track(6,i)+one)-sqrt(((one+track(6,i))**2-track(2,i)**2)-track(4,i)**2)
 
     track(6,i)=((track(6,i)-(calpha*tphi)*track(2,i))-(track(4,i)*salpha)*tphi)+h*tphi**2
-    track(2,i)=(track(2,i)-(tphi*h)*calpha)/cphi                     !hr06
-    track(4,i)=(track(4,i)-(tphi*h)*salpha)/cphi                     !hr06
+    track(2,i)=(track(2,i)-(tphi*h)*calpha)/cphi
+    track(4,i)=(track(4,i)-(tphi*h)*salpha)/cphi
 
-    hd1=sqrt(((one+track(6,i))**2-track(2,i)**2)-track(4,i)**2)      !hr06
+    hd1=sqrt(((one+track(6,i))**2-track(2,i)**2)-track(4,i)**2)
 
     h1x=track(2,i)/hd1
     h1y=track(4,i)/hd1
@@ -347,19 +347,19 @@ subroutine bbf(sepx,sepy,sigxx,sigyy,bbfx,bbfy,bbgx,bbgy,ibtyp)
       const=x/xxyy
     end if
 
-    expfac=exp_mb(-one*const)                                        !hr06
+    expfac=exp_mb(-one*const)
     bbfx=zero
     bbfy=zero
     bbgx=zero
     bbgy=zero
 
     if(abs(x).gt.pieni) then
-      bbfx=((two*sepx)*(one-expfac))/x                             !hr06
-      bbfy=((two*sepy)*(one-expfac))/x                             !hr06
-      comfac=sepy*bbfy-sepx*bbfx                                     !hr06
+      bbfx=((two*sepx)*(one-expfac))/x
+      bbfy=((two*sepy)*(one-expfac))/x
+      comfac=sepy*bbfy-sepx*bbfx
       comfac2=(abs(sigxx)+abs(sigyy))**2
-      bbgx=(comfac+(((four*sepx**2)*const)/x)*expfac)/(two*x)         !hr06
-      bbgy=((((four*sepy**2)*const)/x)*expfac-comfac)/(two*x)         !hr06
+      bbgx=(comfac+(((four*sepx**2)*const)/x)*expfac)/(two*x)
+      bbgy=((((four*sepy**2)*const)/x)*expfac-comfac)/(two*x)
     end if
   else
     x=sepx**2/sigxx+sepy**2/sigyy
@@ -375,7 +375,7 @@ subroutine bbf(sepx,sepy,sigxx,sigyy,bbfx,bbfy,bbgx,bbgy,ibtyp)
     if(ibtyp.eq.1) call wzsub(arg1x,arg1y,wy1,wx1)
 
     if(x.lt.c1e2) then
-      expfac=exp_mb(-half*x)                                        !hr06
+      expfac=exp_mb(-half*x)
       arg2x=arg1x/sigxy
       arg2y=arg1y*sigxy
 
@@ -386,24 +386,24 @@ subroutine bbf(sepx,sepy,sigxx,sigyy,bbfx,bbfy,bbgx,bbgy,ibtyp)
       bbfx=const*(wx1-expfac*wx2)
       bbfy=const*(wy1-expfac*wy2)
 
-      if(sepx.lt.0) bbfx=-one*bbfx                                   !hr06
+      if(sepx.lt.0) bbfx=-one*bbfx
 
-      if(sepy.lt.0) bbfy=-one*bbfy                                   !hr06
+      if(sepy.lt.0) bbfy=-one*bbfy
 
       comfac=sepx*bbfx+sepy*bbfy
-      bbgx=(-one*(comfac+two*(expfac/sigxy -one)))/fac2              !hr06
-      bbgy= (comfac+two*(expfac*sigxy -one))/fac2                    !hr06
+      bbgx=(-one*(comfac+two*(expfac/sigxy -one)))/fac2
+      bbgy= (comfac+two*(expfac*sigxy -one))/fac2
     else
       bbfx=const*wx1
       bbfy=const*wy1
 
-      if(sepx.lt.0) bbfx=-one*bbfx                                   !hr06
+      if(sepx.lt.0) bbfx=-one*bbfx
 
-      if(sepy.lt.0) bbfy=-one*bbfy                                   !hr06
+      if(sepy.lt.0) bbfy=-one*bbfy
 
       comfac=sepx*bbfx+sepy*bbfy
-      bbgx=(-one*(comfac-two))/fac2                                  !hr06
-      bbgy= -one*bbgx                                                !hr06
+      bbgx=(-one*(comfac-two))/fac2
+      bbgy= -one*bbgx
     end if
 
   end if
@@ -446,13 +446,13 @@ subroutine stsld(star,cphi2,sphi2,sigzs,nsli,calpha,salpha)
   bord=+border
 
   do i=nsli,1,-1
-    yy=(one/real(nsli,fPrec))*real(i-1,fPrec)                        !hr06
+    yy=(one/real(nsli,fPrec))*real(i-1,fPrec)
 
-    if(i.ne.1) bord1=gauinv(yy)                                      !hr06
+    if(i.ne.1) bord1=gauinv(yy)
 
-    if(i.eq.1) bord1=-one*border                                     !hr06
+    if(i.eq.1) bord1=-one*border
 
-    star(3,i)=(((exp_mb((-one*bord**2)*half)-exp_mb((-one*bord1**2)*half))/sqrt(two*pi))*real(nsli,fPrec))*sigz !hr06
+    star(3,i)=(((exp_mb((-one*bord**2)*half)-exp_mb((-one*bord1**2)*half))/sqrt(two*pi))*real(nsli,fPrec))*sigz
     bord=bord1
     !JBG When doing slicing phi=0 for crab crossing
     ! star(1,i)=0.
@@ -460,8 +460,8 @@ subroutine stsld(star,cphi2,sphi2,sigzs,nsli,calpha,salpha)
     !JBG When doing slicing phi2 different tiltings of the strong beam
     star(1,i)=(star(3,i)*sphi2)*calpha
     star(2,i)=(star(3,i)*sphi2)*salpha
-    !star(1,i)=(star(3,i)*sphi)*calpha                                !hr06
-    !star(2,i)=(star(3,i)*sphi)*salpha                                !hr06
+    !star(1,i)=(star(3,i)*sphi)*calpha
+    !star(2,i)=(star(3,i)*sphi)*salpha
   end do
 
   return
