@@ -59,11 +59,6 @@ if(NOT CR)
 endif(NOT CR)
 
 ##
-## Needs checking: thick6dsingles (broken input files -- this test could probably be removed)
-## thick6dblocks elensidealthck6d dynk_globalvars thick6ddynk - empty fort.10 (no POST block in fort.3) -- this is OK, we still test the tracking with fort.90 / STF.
-##
-
-##
 # List of Tests
 ##
 
@@ -233,10 +228,7 @@ if(SIXDA)
 endif()
 
 ## UNUSED TESTS
-
 # orbit6d-element-wire
-# thick6dsingles (only contains one canonical, fort.6, which shows that it crashes. Not sure what it is supposed to show?)
-# thick4in_da (copy of thick4_da that contains an extra huge MULT block in fort.3?)
 
 ## END UNUSED TESTS
 
