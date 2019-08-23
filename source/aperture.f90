@@ -1322,14 +1322,14 @@ subroutine contour_FLUKA_markers()
 ! last modified: 22-05-2019
 ! check that aperture is well defined accross a Fluka insertion
   !-----------------------------------------------------------------------
-  
+
   use mod_fluka, only : FLUKA_ENTRY, FLUKA_EXIT, fluka_type, fluka_geo_index
   use parpro, only : nblo
   use mod_common, only : iu, ic
   use mod_common_track, only : ktrack
-  
+
   implicit none
-  
+
   ! temporary variables
   integer i1 , i2
   integer ix1, ix2
@@ -1355,7 +1355,7 @@ subroutine contour_FLUKA_markers()
     endif
     i1 = i1+1
   enddo
-     
+
 end subroutine contour_FLUKA_markers
 #endif
 
@@ -1390,7 +1390,7 @@ subroutine contour_aperture_markers( itElUp, itElDw, lInsUp )
 ! markers accross extremes of lattice structure?
   lAccrossLatticeExtremes=iElUp.gt.iElDw
 #ifdef DEBUG
-  write(lout,*) "check 00: il, iu, iuold, iElUp, iElDw, ic(iElUp)-nblo, ic(iElDw)-nblo", & 
+  write(lout,*) "check 00: il, iu, iuold, iElUp, iElDw, ic(iElUp)-nblo, ic(iElDw)-nblo", &
        il, iu, iuold, iElUp, iElDw, ic(iElUp)-nblo, ic(iElDw)-nblo
   call dumpMe
 #endif
@@ -1411,7 +1411,7 @@ subroutine contour_aperture_markers( itElUp, itElDw, lInsUp )
     end if
   end if
 #ifdef DEBUG
-  write(lout,*) "check 01: il, iu, iuold, iElUp, iElDw, ic(iElUp)-nblo, ic(iElDw)-nblo", & 
+  write(lout,*) "check 01: il, iu, iuold, iElUp, iElDw, ic(iElUp)-nblo, ic(iElDw)-nblo", &
        il, iu, iuold, iElUp, iElDw, ic(iElUp)-nblo, ic(iElDw)-nblo
   call dumpMe
 #endif
@@ -1652,7 +1652,7 @@ subroutine contour_aperture_marker( iEl, lInsUp )
       write(lerr,"(a)") "APER> ERROR in aperture auto assignment."
       call prror
     end if
-!   update bezs array, based    
+!   update bezs array, based
     bezs(iNew)=bez(ic(iNew)-nblo)
   end if
 
@@ -2072,7 +2072,7 @@ subroutine dumpMe
   character(len=mNameLen) tmpC, tmpD
   tmpC="name"
   tmpD="bezs(i)"
-  
+
   write(lout,"(a)") "APER> dumpMe -----------------------------------------------------------------------------"
   write(lout,"(a,2(a8,1x),2(a,1x),a15,1x,a8)") "APER> ","i","ix",tmpC,tmpD,"dcum(i)","kape(ix)"
   do i=1,iu

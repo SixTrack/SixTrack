@@ -70,7 +70,7 @@ program maincr
 
   use mod_dist
   use matrix_inv
-  
+
   use wire
   use mod_version
 #ifdef HASHLIB

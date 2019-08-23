@@ -8,7 +8,7 @@
           ix=ic(i)
           if(ix.gt.nblo) then
             ix=ix-nblo
-            if(kz(ix).eq.20.and.parbe(ix,2).eq.zero) then                 !hr03
+            if(kz(ix).eq.20.and.parbe(ix,2).eq.zero) then
 !--round beam
               if(sigman(1,imbb(i)).eq.sigman(2,imbb(i))) then
                 if(nbeaux(imbb(i)).eq.2.or.nbeaux(imbb(i)).eq.3) then

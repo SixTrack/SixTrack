@@ -3,7 +3,7 @@
   mpe=20
   cxzr=xl
   cxzi=zl
-  cxzyr=cxzr**2-cxzi**2                                            !hr08
+  cxzyr=cxzr**2-cxzi**2
   cxzyi=cxzr*cxzi+cxzi*cxzr
   cxzyrr=cxzyr*cxzr-cxzyi*cxzi
   cxzyi=cxzyr*cxzi+cxzyi*cxzr
@@ -23,8 +23,8 @@
   cxzyrr=cxzyr*cxzr-cxzyi*cxzi
   cxzyi=cxzyr*cxzi+cxzyi*cxzr
   cxzyr=cxzyrr
-  qu=(nine*ekk)*cxzyi                                               !hr02
-  qv=(-nine*ekk)*cxzyr                                              !hr02
+  qu=(nine*ekk)*cxzyi
+  qv=(-nine*ekk)*cxzyr
   cxzyrr=cxzyr*cxzr-cxzyi*cxzi
   cxzyi=cxzyr*cxzi+cxzyi*cxzr
   cxzyr=cxzyrr
@@ -34,7 +34,7 @@
   mpe=20
   cxzr=xl
   cxzi=zl
-  cxzyr=cxzr**2-cxzi**2                                            !hr08
+  cxzyr=cxzr**2-cxzi**2
   cxzyi=cxzr*cxzi+cxzi*cxzr
   cxzyrr=cxzyr*cxzr-cxzyi*cxzi
   cxzyi=cxzyr*cxzi+cxzyi*cxzr
@@ -54,10 +54,10 @@
   cxzyrr=cxzyr*cxzr-cxzyi*cxzi
   cxzyi=cxzyr*cxzi+cxzyi*cxzr
   cxzyr=cxzyrr
-  tiltck=tiltc(k)**2-tilts(k)**2                                    !hr08
-  tiltsk=(two*tiltc(k))*tilts(k)                                    !hr02
-  qu=(nine*ekk)*(tiltck*cxzyi-tiltsk*cxzyr)                         !hr02
-  qv=(-nine*ekk)*(tiltck*cxzyr+tiltsk*cxzyi)                        !hr02
+  tiltck=tiltc(k)**2-tilts(k)**2
+  tiltsk=(two*tiltc(k))*tilts(k)
+  qu=(nine*ekk)*(tiltck*cxzyi-tiltsk*cxzyr)
+  qv=(-nine*ekk)*(tiltck*cxzyr+tiltsk*cxzyi)
   cxzyrr=cxzyr*cxzr-cxzyi*cxzi
   cxzyi=cxzyr*cxzi+cxzyi*cxzr
   cxzyr=cxzyrr

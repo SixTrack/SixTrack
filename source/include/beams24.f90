@@ -4,9 +4,9 @@
   endif
   goto 290
 !--Hirata's 6D beam-beam kick
-else if(kzz.eq.20.and.parbe(ix,2).gt.zero) then                   !hr03
+else if(kzz.eq.20.and.parbe(ix,2).gt.zero) then
   ktrack(i)=44
-  parbe(ix,4)=(((-one*crad)*ptnfac(ix))*half)*c1m6               !hr03
+  parbe(ix,4)=(((-one*crad)*ptnfac(ix))*half)*c1m6
   if(ibeco.eq.1) then
     track6d(1,1)=parbe(ix,5)*c1m3
     track6d(2,1)=zero
