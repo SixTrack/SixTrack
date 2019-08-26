@@ -33,10 +33,10 @@ DIST--------------------------------------------------------------------
     LONGEMIT  2.5 eVs
 !   TWISS     121.56 2.2957 218.59 -2.6429
     SEED 12
-    FILL XN  GAUSS 1.0 0.0 3.0
-    FILL PXN GAUSS 1.0 0.0 3.0
-    FILL YN  GAUSS 1.0 0.0 3.0
-    FILL PYN GAUSS 1.0 0.0 3.0
+    FILL XN  GAUSS 0.3 0.0 3.0
+    FILL PXN GAUSS 0.3 0.0 3.0
+    FILL YN  GAUSS 0.3 0.0 3.0
+    FILL PYN GAUSS 0.3 0.0 3.0
     FILL ZN  GAUSS 0.8 0.0 3.0
     FILL PZN GAUSS 0.5 0.0 3.0
 NEXT
@@ -85,7 +85,7 @@ SCATTER-----------------------------------------------------------------
     SEED 42
     WRITE_PLOG
     DENSITY_DUMP ip1_scatter 3
-    BEAM_DUMP    ip1_scatter 3
+    BEAM_DUMP    ip5_scatter 3
     BEAM2_EMIT 2.5 2.5
     BEAM2_LEN  755.0
     GEN  sc_pythia   PYTHIA  42.0

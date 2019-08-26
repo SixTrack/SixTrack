@@ -1010,7 +1010,7 @@ end subroutine dist_parseColumn
 !  Parse Multi-Column Formats
 !  V.K. Berglyd Olsen, BE-ABP-HSS
 !  Created: 2019-07-05
-!  Updated: 2019-07-10
+!  Updated: 2019-08-13
 ! ================================================================================================ !
 subroutine dist_setMultiColFormat(fmtName, isValid)
 
@@ -1920,13 +1920,15 @@ end subroutine dist_normToPhysical
 ! ================================================================================================ !
 !  A. Mereghetti and D. Sinuela Pastor, for the FLUKA Team
 !  V.K. Berglyd Olsen, BE-ABP-HSS
-!  Updated: 2019-07-09
+!  Rewritten: 2019-07-09
+!  Updated:   2019-08-13
 ! ================================================================================================ !
 subroutine dist_finaliseDist
 
   use parpro
   use mod_pdgid
   use mod_common
+  use mod_particles
   use mod_common_main
   use mod_common_track
   use numerical_constants
@@ -1951,8 +1953,15 @@ subroutine dist_finaliseDist
     call prror
   end if
 
-  if(dist_readPartID .and. .not. dist_readParentID) then
-    parentID(1:napx) = partID(1:napx)
+  if(dist_readPartID) then
+    if(dist_readParentID .eqv. .false.) then
+      ! Particle parentID is not set, so we set its parentID to itself
+      parentID(1:napx) = partID(1:napx)
+    end if
+    call part_setPairID ! Set the pairID only
+  else
+    ! No IDs provided, so we set them to the default range 1:napx and compute their corresponding pairID
+    call part_setParticleID ! Set partID, parentID and pairID
   end if
 
   if(dist_readIonZ .and. .not. dist_readCharge) then
