@@ -1434,15 +1434,9 @@ function scatter_getDensity(idPro, xPos, yPos, sPos) result(retval)
     sOrbXP  = scatter_proList(idPro)%fParams(18)
     sOrbYP  = scatter_proList(idPro)%fParams(19)
 
-    orbX    = orbX + sPos*sOrbXP
-    orbY    = orbY + sPos*sOrbYP
-
-    xRot    = (xPos-orbX)*cRot - (yPos-orbY)*sRot
-    yRot    = (xPos-orbX)*sRot + (yPos-orbY)*cRot
-    retval  = (nBeam*normFac) * exp_mb(( &
-      -half*(xRot/sigmaX)**2             &
-      -half*(yRot/sigmaY)**2)            &
-      -(sPos/scatter_beam2Length)**2)
+    xRot    = (xPos - orbX + sPos*sOrbXP)*cRot - (yPos - orbY + sPos*sOrbXP)*sRot
+    yRot    = (xPos - orbX + sPos*sOrbYP)*sRot + (yPos - orbY + sPos*sOrbYP)*cRot
+    retval  = (nBeam*normFac) * exp_mb(-half*(xRot/sigmaX)**2 -half*(yRot/sigmaY)**2)
 
   case default
     write(lerr,"(a,i0,a)") "SCATTER> ERROR Type ",scatter_proList(idPro)%proType," for profile '"//&
@@ -1830,32 +1824,34 @@ subroutine scatter_dumpPDF(idPro, iElem, nTurn)
   integer, intent(in) :: iElem
   integer, intent(in) :: nTurn
 
-  real(kind=fPrec) sigmaX, sigmaY, dX, dY, posX, posY, denArr(10)
+  real(kind=fPrec) sigmaX, sigmaY, dX, dY, posX, posY, orbX, orbY, denArr(10)
   integer nX, nY, nArr, unitPDF
 
   call f_requestUnit(scatter_pdfFile, unitPDF)
   call f_open(unit=unitPDF, file=scatter_pdfFile, formatted=.true., mode="w", status="replace")
 
-  sigmaX = scatter_proList(idPro)%fParams(12)
-  sigmaY = scatter_proList(idPro)%fParams(13)
-  dX     = 10.0_fPrec*sigmaX/499_fPrec
-  dY     = 10.0_fPrec*sigmaY/499_fPrec
+  orbX   = scatter_proList(idPro)%fParams(8)
+  orbY   = scatter_proList(idPro)%fParams(9)
+  sigmaX = scatter_proList(idPro)%fParams(10)
+  sigmaY = scatter_proList(idPro)%fParams(11)
+  dX     = 20.0_fPrec*sigmaX/499_fPrec
+  dY     = 20.0_fPrec*sigmaY/499_fPrec
 
   write(unitPDF,"(a)")                     "# Element = "//trim(bez(iElem))
   write(unitPDF,"(a,i0)")                  "# Turn    = ",nTurn
-  write(unitPDF,"(a,2(1x,1pe16.9),1x,i0)") "# X-Range =",-5.0_fPrec*sigmaX,5.0_fPrec*sigmaX,500
-  write(unitPDF,"(a,2(1x,1pe16.9),1x,i0)") "# Y-Range =",-5.0_fPrec*sigmaY,5.0_fPrec*sigmaY,500
+  write(unitPDF,"(a,2(1x,1pe16.9),1x,i0)") "# X-Range =",-10.0_fPrec*sigmaX + orbX, 10.0_fPrec*sigmaX + orbX, 500
+  write(unitPDF,"(a,2(1x,1pe16.9),1x,i0)") "# Y-Range =",-10.0_fPrec*sigmaY + orbY, 10.0_fPrec*sigmaY + orbY, 500
 
   nArr = 1
   do nX=1,500
     do nY=1,500
-      posX = -5.0_fPrec*sigmaX + dX*real(nX,fPrec)
-      posY = -5.0_fPrec*sigmaY + dY*real(nY,fPrec)
+      posX = -10.0_fPrec*sigmaX + orbX + dX*real(nX,fPrec)
+      posY = -10.0_fPrec*sigmaY + orbY + dY*real(nY,fPrec)
       denArr(nArr) = scatter_getDensity(idPro, posX, posY, zero)
       if(nArr < 10) then
         nArr = nArr + 1
       else
-        write(unitPDF,"(1pe16.9,9(1x,1pe16.9))") denArr
+        write(unitPDF,"(es17.9e3,9(1x,es17.9e3))") denArr
         nArr = 1
       end if
     end do
