@@ -21,13 +21,13 @@
 #   * sigmaXeff, sigmaYeff [mm]   =      0.244238      0.100276
 #   * beam2 rotation x,y   [deg]  =    -90.000000
 #  Profile(2): 'ip5_UNCORR'
-#   * betaX,     betaY     [m]    =     30.000000     30.000000
-#   * alphaX,    alphaY    [1]    =      0.000000      0.000000
-#   * orbitX,    orbitY    [mm]   =     -0.750000      0.750000
-#   * orbitXP,   orbitYP   [mrad] =      0.295000      0.295000
-#   * sigmaX,    sigmaY    [mm]   =      0.100264      0.100264
-#   * sigmaXeff, sigmaYeff [mm]   =      0.345425      0.000000
-#   * beam2 rotation x,y   [deg]  =    -45.000000
+#   * betaX,     betaY     [m]    =     29.998987     29.987486
+#   * alphaX,    alphaY    [1]    =      0.000280      0.000022
+#   * orbitX,    orbitY    [mm]   =     -0.749870      0.749811
+#   * orbitXP,   orbitYP   [mrad] =      0.295000      0.295026
+#   * sigmaX,    sigmaY    [mm]   =      0.100263      0.100243
+#   * sigmaXeff, sigmaYeff [mm]   =      0.345432      0.000061
+#   * beam2 rotation x,y   [deg]  =    -45.011301
 #
 #  Cross Sections
 # ================
@@ -44,3 +44,5 @@
         3       50 ip1_scatter          sc_pythia            Elastic        12        0  0.240000     10.080000  5.000000E+14
         3       50 ip1_scatter          sc_pythia            SingD_XB        4        4  0.080000      3.360000  5.000000E+14
         3       50 ip1_scatter          sc_pythia            SingD_AX        3        0  0.060000      2.520000  5.000000E+14
+        4       45 ip1_scatter          sc_pythia            SingD_XB        1        1  0.022222      0.933333  5.000000E+14
+        5       44 ip1_scatter          sc_pythia            Elastic         1        0  0.022727      0.954545  5.000000E+14

@@ -4,7 +4,7 @@
 ! ~~~~~~~~~~~~~~~~~~~~~~~~~
 !  V.K. Berglyd Olsen, K.N. Sjobak, H. Burkhardt, BE-ABP-HSS
 !  Created: 2017-08
-!  Updated: 2019-08-08
+!  Updated: 2019-08-26
 !
 !  References
 ! ~~~~~~~~~~~~
@@ -64,6 +64,7 @@ module scatter
   real(kind=fPrec), private, save :: scatter_beam2Length    = zero ! Beam 2 length (sigma_z)
   real(kind=fPrec), private, save :: scatter_beam2Spread    = zero ! Beam 2 energy spread
   integer,          private, save :: scatter_dumpDensity(2) = -1   ! Element and turn number for density diagnostics dump
+  integer,          private, save :: scatter_dumpBeam(2)    = -1   ! Element and turn number for beam diagnostics dump
 
   !  Storage Structs
   ! =================
@@ -124,11 +125,13 @@ module scatter
   integer, public,  save :: scatter_seed2      = -1
 
   ! Variable for file output
-  character(len=15), parameter :: scatter_logFile  = "scatter_log.dat"
-  character(len=19), parameter :: scatter_sumFile  = "scatter_summary.dat"
-  character(len=20), parameter :: scatter_pVecFile = "scatter_momentum.dat"
-  character(len=20), parameter :: scatter_densFile = "scatter_density.dat"
-  character(len=20), parameter :: scatter_pdfFile  = "scatter_pdf.dat"
+  character(len=15), parameter :: scatter_logFile   = "scatter_log.dat"
+  character(len=19), parameter :: scatter_sumFile   = "scatter_summary.dat"
+  character(len=20), parameter :: scatter_pVecFile  = "scatter_momentum.dat"
+  character(len=20), parameter :: scatter_densFile  = "scatter_density.dat"
+  character(len=20), parameter :: scatter_pdfFile   = "scatter_pdf.dat"
+  character(len=23), parameter :: scatter_beamFileB = "scatter_beam_before.dat"
+  character(len=22), parameter :: scatter_beamFileA = "scatter_beam_after.dat"
 
   integer, private, save :: scatter_logUnit    = -1
   integer, private, save :: scatter_sumUnit    = -1
@@ -247,8 +250,8 @@ subroutine scatter_init
       sigmaY = sqrt((scatter_beam2EmitY * betaY) / (gamma0 / beta0)) * c1m3
 
       ! Compute approximate effective sigmas from crossing angle, assuming sigma_z >> sigma_x,y
-      xFac  = sqrt(1 + ((scatter_beam2Length / sigmaX) * (orbXP * c1m3))**2)
-      yFac  = sqrt(1 + ((scatter_beam2Length / sigmaY) * (orbYP * c1m3))**2)
+      xFac  = sqrt(1 + ((scatter_beam2Length / sigmaX) * tan_mb(orbXP * c1m3))**2)
+      yFac  = sqrt(1 + ((scatter_beam2Length / sigmaY) * tan_mb(orbYP * c1m3))**2)
 
       ! Rotate beam 2 in x,y plane so the crossing angle is only in x
       elRot = -atan2_mb(yFac-one,xFac-one)
@@ -270,6 +273,8 @@ subroutine scatter_init
       scatter_proList(idPro)%fParams(15) = sRot
       scatter_proList(idPro)%fParams(16) = cRot
       scatter_proList(idPro)%fParams(17) = elRot
+      scatter_proList(idPro)%fParams(18) = sin_mb(orbXP)
+      scatter_proList(idPro)%fParams(19) = sin_mb(orbYP)
 
     end select
 
@@ -393,6 +398,16 @@ subroutine scatter_parseInputLine(inLine, iErr)
     end if
     scatter_dumpDensity(1) = find_singElemFromName(lnSplit(2))
     call chr_cast(lnSplit(3), scatter_dumpDensity(2), iErr)
+
+  case("BEAM_DUMP")
+    if(nSplit /= 3) then
+      write(lerr,"(a,i0)") "SCATTER> ERROR BEAM_DUMP expected 2 arguments, got ",nSplit-1
+      write(lerr,"(a)")    "SCATTER>       BEAM_DUMP element_name turn"
+      iErr = .true.
+      return
+    end if
+    scatter_dumpBeam(1) = find_singElemFromName(lnSplit(2))
+    call chr_cast(lnSplit(3), scatter_dumpBeam(2), iErr)
 
   case("ELEM")
     call scatter_parseElem(lnSplit, nSplit, iErr)
@@ -731,7 +746,7 @@ subroutine scatter_parseProfile(lnSplit, nSplit, iErr)
       return
     end if
 
-    allocate(fParams(17))
+    allocate(fParams(19))
     fParams(:) = zero
     call chr_cast(lnSplit(4),fParams(1),iErr) ! Beam Charge
     if(nSplit > 4) then
@@ -1010,7 +1025,6 @@ subroutine scatter_setTAS(iElem, tasData)
   integer i
   real(kind=fPrec) invData(6,6)
 
-  write(lout,*) "Boo!", iElem, scatter_elemPointer(iElem)
   if(iElem < 1 .or. iElem > nele .or. scatter_elemPointer(iElem) == 0) then
     return
   end if
@@ -1062,7 +1076,7 @@ subroutine scatter_thin(iStru, iElem, nTurn)
   integer          idElem, idPro, iGen, nGen, idGen, iError
   integer          i, j, k
   integer          tmpSeed1, tmpSeed2, unitDens
-  logical          updateE, autoRatio, isDiff, isExact, writeDump
+  logical          updateE, autoRatio, isDiff, isExact, densDump, beamDump
   integer          iLost, procID
   real(kind=fPrec) t, dEE, dPP, theta, phi, pVec(3), pNew
   real(kind=fPrec) elemScale, sigmaTot, ratioTot, crossSection, scatterProb, targetDensity, scRatio, brRatio
@@ -1126,14 +1140,20 @@ subroutine scatter_thin(iStru, iElem, nTurn)
   updateE  = .false.
 
   ! Check if we're dumping the density diagnostics data on this element/turn
-  writeDump = scatter_dumpDensity(1) == iElem .and. scatter_dumpDensity(2) == nTurn
-  if(writeDump) then
+  densDump = scatter_dumpDensity(1) == iElem .and. scatter_dumpDensity(2) == nTurn
+  if(densDump) then
     call f_requestUnit(scatter_densFile, unitDens)
     call f_open(unit=unitDens, file=scatter_densFile, formatted=.true., mode="w", status="replace")
     write(unitDens,"(a)")            "# Element = "//trim(bez(iElem))
     write(unitDens,"(a,i0)")         "# Turn    = ",nTurn
     write(unitDens,"(a8,4(1x,a16))") "# partID","x[mm]","y[mm]","sigma[mm]","density"
     call scatter_dumpPDF(idPro, iElem, nTurn)
+  end if
+
+  ! Check if we're dumping the beam diagnostics data on this element/turn
+  beamDump = scatter_dumpBeam(1) == iElem .and. scatter_dumpBeam(2) == nTurn
+  if(beamDump) then
+    call part_writeState(scatter_beamFileB, .true., .false.)
   end if
 
   ! Compute Thresholds
@@ -1153,7 +1173,7 @@ subroutine scatter_thin(iStru, iElem, nTurn)
 
     ! Compute Scattering Probability
     targetDensity = scatter_getDensity(idPro, xv1(j), xv2(j), sigmv(j))
-    if(writeDump) then
+    if(densDump) then
       write(unitDens,"(i8,4(1x,1pe16.9))") partID(j), xv1(j), xv2(j), sigmv(j), targetDensity
     end if
 
@@ -1335,6 +1355,11 @@ subroutine scatter_thin(iStru, iElem, nTurn)
     call part_updatePartEnergy(1,.false.)
   end if
 
+  ! If we're dumping beam diagnostics, dump the 'after' file too
+  if(beamDump) then
+    call part_writeState(scatter_beamFileA, .true., .false.)
+  end if
+
   ! Restore seeds in random generator
   call recuut(scatter_seed1,scatter_seed2)
   call recuin(tmpSeed1,tmpSeed2)
@@ -1374,7 +1399,7 @@ function scatter_getDensity(idPro, xPos, yPos, sPos) result(retval)
   real(kind=fPrec), intent(in) :: yPos
   real(kind=fPrec), intent(in) :: sPos
 
-  real(kind=fPrec) retval, nBeam, normFac, sigmaX, sigmaY, orbX, orbY, cRot, sRot, xRot, yRot
+  real(kind=fPrec) retval, nBeam, normFac, sigmaX, sigmaY, orbX, orbY, cRot, sRot, xRot, yRot, sOrbXP, sOrbYP
 
   select case(scatter_proList(idPro)%proType)
   case(scatter_proFlat)
@@ -1405,6 +1430,11 @@ function scatter_getDensity(idPro, xPos, yPos, sPos) result(retval)
     normFac = scatter_proList(idPro)%fParams(14)
     sRot    = scatter_proList(idPro)%fParams(15)
     cRot    = scatter_proList(idPro)%fParams(16)
+    sOrbXP  = scatter_proList(idPro)%fParams(18)
+    sOrbYP  = scatter_proList(idPro)%fParams(19)
+
+    orbX    = orbX + sPos*sOrbXP
+    orbY    = orbY + sPos*sOrbYP
 
     xRot    = (xPos-orbX)*cRot - (yPos-orbY)*sRot
     yRot    = (xPos-orbX)*sRot + (yPos-orbY)*cRot
@@ -1514,13 +1544,6 @@ subroutine scatter_generateParticle(idPro, iElem, j, pVec)
     call recuin(scatter_seed1,scatter_seed2)
 
     call ranecu(rndVals, 2, 0)
-
-    write(lout,*) rndVals
-    write(lout,*) betaX, betaY
-    write(lout,*) alphaX, alphaY
-    write(lout,*) orbX, orbY, orbXP, orbYP
-    write(lout,*) xv1(j), xv2(j)
-    write(lout,*) oidpsv(j), ejfv(j)
 
     pVec(1) = ((rndVals(1)/sqrt(betaX))*c1m3 - (alphaX/betaX)*(xv1(j)-orbX) + orbXP*oidpsv(j)) * ejfv(j)*c1m3
     pVec(2) = ((rndVals(2)/sqrt(betaY))*c1m3 - (alphaY/betaY)*(xv2(j)-orbY) + orbYP*oidpsv(j)) * ejfv(j)*c1m3

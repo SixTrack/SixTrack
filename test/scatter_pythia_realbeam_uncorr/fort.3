@@ -16,16 +16,29 @@ HASH--------------------------------------------------------------------
 NEXT
 
 SIMULATION--------------------------------------------------------------
-    PARTICLES    50
+    PARTICLES    10000
     TURNS        5
     CRPOINT      10
     LATTICE      Thin 6D
     6D_CLORB     on
-    READ_FORT13  on
+!   READ_FORT13  on
     WRITE_TRACKS 100 on
     REF_PARTICLE proton
     REF_ENERGY   7.0e6
     PDG_YEAR     2018
+NEXT
+
+DIST--------------------------------------------------------------------
+    EMITTANCE 2.5 2.5
+    LONGEMIT  2.5 eVs
+!   TWISS     121.56 2.2957 218.59 -2.6429
+    SEED 12
+    FILL XN  GAUSS 1.0 0.0 3.0
+    FILL PXN GAUSS 1.0 0.0 3.0
+    FILL YN  GAUSS 1.0 0.0 3.0
+    FILL PYN GAUSS 1.0 0.0 3.0
+    FILL ZN  GAUSS 0.8 0.0 3.0
+    FILL PZN GAUSS 0.5 0.0 3.0
 NEXT
 
 ITERATION-ACCURACY------------------------------------------------------
@@ -72,6 +85,7 @@ SCATTER-----------------------------------------------------------------
     SEED 42
     WRITE_PLOG
     DENSITY_DUMP ip1_scatter 3
+    BEAM_DUMP    ip1_scatter 3
     BEAM2_EMIT 2.5 2.5
     BEAM2_LEN  755.0
     GEN  sc_pythia   PYTHIA  42.0
