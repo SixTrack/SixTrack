@@ -278,7 +278,7 @@ subroutine dist_generateDist
   case(1) ! Micrometre
     dist_beamEmit(3) = dist_beamEmit(3)*c1m6
   case(2) ! eV s
-    dist_beamEmit(3) = dist_beamEmit(3)*((clight*beta0)/((four*pi)*e0))
+    dist_beamEmit(3) = dist_beamEmit(3)*((clight*beta0)/((four*pi)*(e0*c1e6)))
   end select
   write(lout,"(a,1pe13.6,a)") "DIST> EMITTANCE X = ",dist_beamEmit(1)," m"
   write(lout,"(a,1pe13.6,a)") "DIST> EMITTANCE Y = ",dist_beamEmit(2)," m"
