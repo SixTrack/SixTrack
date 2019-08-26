@@ -4,7 +4,7 @@
 
   SixTrack DevTools :: Plot Particle State
  ==========================================
-  Script for plotting the content of initial_state.dat or final_state.dat files
+  Script for plotting the content of particle state files
   By: Veronica Berglyd Olsen
       CERN (BE-ABP-HSS)
       Geneva, Switzerland
@@ -29,7 +29,7 @@ if len(sys.argv) < 3:
 
 # Constants
 
-colMap = {"x":4,"y":5,"xp":6,"yp":7,"sigma":8,"dp":9,"p":10,"e":11}
+colMap = {"x":6,"y":7,"xp":8,"yp":9,"sigma":10,"dp":11,"p":12,"e":13}
 
 # Save the arguments and check that they make sense
 
