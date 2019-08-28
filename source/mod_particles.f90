@@ -308,12 +308,12 @@ subroutine part_writeState(fileName, isText, withIons)
     write(fileUnit) clo(1),clop(1),clo(2),clop(2)                       ! 4x64bit
     write(fileUnit) clo6(1),clop6(1),clo6(2),clop6(2),clo6(3),clop6(3)  ! 6x64bit
     write(fileUnit) qwc(1),qwc(2),qwc(3)                                ! 3x64bit
-    write(fileUnit) tas(1,1:6)                                          ! 6x64bit
-    write(fileUnit) tas(2,1:6)                                          ! 6x64bit
-    write(fileUnit) tas(3,1:6)                                          ! 6x64bit
-    write(fileUnit) tas(4,1:6)                                          ! 6x64bit
-    write(fileUnit) tas(5,1:6)                                          ! 6x64bit
-    write(fileUnit) tas(6,1:6)                                          ! 6x64bit
+    write(fileUnit) tmpTas(1,1:6)                                       ! 6x64bit
+    write(fileUnit) tmpTas(2,1:6)                                       ! 6x64bit
+    write(fileUnit) tmpTas(3,1:6)                                       ! 6x64bit
+    write(fileUnit) tmpTas(4,1:6)                                       ! 6x64bit
+    write(fileUnit) tmpTas(5,1:6)                                       ! 6x64bit
+    write(fileUnit) tmpTas(6,1:6)                                       ! 6x64bit
     do j=1,npart
       ! These have to be set explicitly as ifort converts logical to integer differently than gfortran and nagfor
       if(partID(j) <= napxo) then
