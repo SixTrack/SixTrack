@@ -288,7 +288,7 @@ subroutine dist_generateDist
   if(dist_distLib) then
     call distlib_init(1)
     call distlib_setEnergyMass(e0, nucm0)
-    call distlib_setEmittance12(dist_beamEmit(1), dist_beamEmit(2))
+    call distlib_setEmittance12(dist_beamEmit(1)/gamma0, dist_beamEmit(2)/gamma0) ! DISTlib expects geometric emittance
     call distlib_setEmittance3(dist_beamEmit(3))
     select case(dist_normMethod)
     case(dist_normSIXTRACK, dist_normINPUT)
