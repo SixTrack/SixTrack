@@ -910,12 +910,13 @@ module mod_common_main
   integer(kind=int16), allocatable, save :: nzz(:)     ! Ion atomic number
   integer(kind=int32), allocatable, save :: pdgid(:)   ! Particle PDGid
 
-  integer,          allocatable, save :: nnumxv(:)     ! Turn in which a particle was lost
   integer,          allocatable, save :: numxv(:)      ! Turn in which a particle was lost
 
   integer,          allocatable, save :: partID(:)     ! Particle ID
   integer,          allocatable, save :: parentID(:)   ! Particle parent ID in case of secondary particles
-  logical,          allocatable, save :: pstop(:)      ! Particle lost flag
+  integer,          allocatable, save :: pairID(:,:)   ! The original particle pair ID for a particle
+  integer,          allocatable, save :: pairMap(:,:)  ! A reverse map for pairID to index
+  logical,          allocatable, save :: pstop(:)      ! Particle lost flag (post-processing)
   logical,          allocatable, save :: llostp(:)     ! Particle lost flag
   real(kind=fPrec), allocatable, save :: aperv(:,:)    ! Aperture at loss
   integer,          allocatable, save :: iv(:)         ! Entry in the sequence where loss occured
@@ -937,6 +938,9 @@ subroutine mod_commonmn_expand_arrays(nblz_new,npart_new)
 
   integer :: nblz_prev  = -2
   integer :: npart_prev = -2
+  integer npair_new
+
+  npair_new = (npart_new+1)/2
 
   if(nblz_new /= nblz_prev) then
     call alloc(smiv,     nblz_new,     zero,    "smiv")
@@ -945,40 +949,41 @@ subroutine mod_commonmn_expand_arrays(nblz_new,npart_new)
   end if
 
   if(npart_new /= npart_prev) then
-    call alloc(xv1,      npart_new,    zero,    "xv1")
-    call alloc(yv1,      npart_new,    zero,    "yv1")
-    call alloc(xv2,      npart_new,    zero,    "xv2")
-    call alloc(yv2,      npart_new,    zero,    "yv2")
-    call alloc(sigmv,    npart_new,    zero,    "sigmv")
-    call alloc(dpsv,     npart_new,    zero,    "dpsv")
-    call alloc(ejv,      npart_new,    zero,    "ejv")
-    call alloc(ejfv,     npart_new,    zero,    "ejfv")
-    call alloc(dam,      npart_new,    zero,    "dam")
-    call alloc(rvv,      npart_new,    one,     "rvv")
-    call alloc(ejf0v,    npart_new,    zero,    "ejf0v")
-    call alloc(numxv,    npart_new,    0,       "numxv")
-    call alloc(nnumxv,   npart_new,    0,       "nnumxv")
-    call alloc(partID,   npart_new,    0,       "partID")
-    call alloc(parentID, npart_new,    0,       "parentID")
-    call alloc(pstop,    npart_new,    .false., "pstop")
-    call alloc(llostp,   npart_new,    .false., "llostp")
-    call alloc(dpd,      npart_new,    zero,    "dpd")
-    call alloc(dpsq,     npart_new,    zero,    "dpsq")
-    call alloc(oidpsv,   npart_new,    one,     "oidpsv")
-    call alloc(moidpsv,  npart_new,    one,     "moidpsv")
-    call alloc(omoidpsv, npart_new,    zero,    "omoidpsv")
-    call alloc(nucm,     npart_new,    zero,    "nucm")
-    call alloc(mtc,      npart_new,    nucm0,   "mtc")
-    call alloc(spin_x,   npart_new,    zero,    "spin_x")
-    call alloc(spin_y,   npart_new,    zero,    "spin_y")
-    call alloc(spin_z,   npart_new,    zero,    "spin_z")
-    call alloc(naa,      npart_new,    aa0,     "naa")
-    call alloc(nzz,      npart_new,    zz0,     "nzz")
-    call alloc(nqq,      npart_new,    qq0,     "nqq")
-    call alloc(pdgid,    npart_new,    pdgid0,  "pdgid")
-    call alloc(ampv,     npart_new,    zero,    "ampv")
-    call alloc(aperv,    npart_new, 2, zero,    "aperv")
-    call alloc(iv,       npart_new,    0,       "iv")
+    call alloc(xv1,        npart_new, zero,    "xv1")
+    call alloc(yv1,        npart_new, zero,    "yv1")
+    call alloc(xv2,        npart_new, zero,    "xv2")
+    call alloc(yv2,        npart_new, zero,    "yv2")
+    call alloc(sigmv,      npart_new, zero,    "sigmv")
+    call alloc(dpsv,       npart_new, zero,    "dpsv")
+    call alloc(ejv,        npart_new, zero,    "ejv")
+    call alloc(ejfv,       npart_new, zero,    "ejfv")
+    call alloc(dam,        npart_new, zero,    "dam")
+    call alloc(rvv,        npart_new, one,     "rvv")
+    call alloc(ejf0v,      npart_new, zero,    "ejf0v")
+    call alloc(numxv,      npart_new, 0,       "numxv")
+    call alloc(partID,     npart_new, 0,       "partID")
+    call alloc(parentID,   npart_new, 0,       "parentID")
+    call alloc(pairID,  2, npart_new, 0,       "pairID")
+    call alloc(pairMap, 2, npair_new, 0,       "pairMap")
+    call alloc(pstop,      npart_new, .false., "pstop")
+    call alloc(llostp,     npart_new, .false., "llostp")
+    call alloc(dpd,        npart_new, zero,    "dpd")
+    call alloc(dpsq,       npart_new, zero,    "dpsq")
+    call alloc(oidpsv,     npart_new, one,     "oidpsv")
+    call alloc(moidpsv,    npart_new, one,     "moidpsv")
+    call alloc(omoidpsv,   npart_new, zero,    "omoidpsv")
+    call alloc(nucm,       npart_new, zero,    "nucm")
+    call alloc(mtc,        npart_new, nucm0,   "mtc")
+    call alloc(spin_x,     npart_new, zero,    "spin_x")
+    call alloc(spin_y,     npart_new, zero,    "spin_y")
+    call alloc(spin_z,     npart_new, zero,    "spin_z")
+    call alloc(naa,        npart_new, aa0,     "naa")
+    call alloc(nzz,        npart_new, zz0,     "nzz")
+    call alloc(nqq,        npart_new, qq0,     "nqq")
+    call alloc(pdgid,      npart_new, pdgid0,  "pdgid")
+    call alloc(ampv,       npart_new, zero,    "ampv")
+    call alloc(aperv,   2, npart_new, zero,    "aperv")
+    call alloc(iv,         npart_new, 0,       "iv")
   end if
 
   nblz_prev  = nblz_new

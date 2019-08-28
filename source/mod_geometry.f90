@@ -864,7 +864,7 @@ subroutine geom_reshuffleLattice
 ! bezs(1:iu)    = cshift(bezs(1:iu),    kanf-1)
   elpos(1:iu)   = cshift(elpos(1:iu),   kanf-1)
 
-  ! Do string arrays manually due to a gfrotran bug in at least 8.3
+  ! Do string arrays manually due to a gfortran bug in at least 8.3
   allocate(tmpC(kanf))
   tmpC(1:kanf-1)     = bezs(1:kanf-1)
   bezs(1:iu-kanf+1)  = bezs(kanf:iu)
