@@ -3458,7 +3458,7 @@ subroutine writebin(nthinerr)
       fUnit = 90
 #else
       fUnit = 91-ip
-      if(ia2 > 32) then
+      if(ip > 32) then
         write(lerr,"(a)") "WRITEBIN> ERROR Trying to write more than 32 pairs to track files. This is a bug!"
         call prror
       end if
