@@ -609,29 +609,30 @@ end subroutine wzsub
 !
 !  *********************************************************************
 subroutine wzset
+
   use floatPrecision
-      use mathlib_bouncer
-      use numerical_constants
-      use parpro
-      use parbeam
-      implicit none
-      integer i,j,k
-      real(kind=fPrec) wi,wr,x,y
-      save
-!-----------------------------------------------------------------------
-      hrecip = one/h
-      kstep = nx+2
-      k = 0
-      do 2 j=0,ny+1
-         do 1 i=0,nx+1
-            k = k+1
-            x=real(i,fPrec)*h
-            y=real(j,fPrec)*h
-            call wwerf(x,y,wr,wi)
-            wtreal(k)=wr
-            wtimag(k)=wi
- 1       continue
- 2    continue
+  use mathlib_bouncer
+  use numerical_constants
+  use parpro
+  use parbeam
+
+  integer i,j,k
+  real(kind=fPrec) wi,wr,x,y
+
+  hrecip = one/h
+  kstep = nx+2
+  k = 0
+  do j=0,ny+1
+    do i=0,nx+1
+      k = k+1
+      x = real(i,fPrec)*h
+      y = real(j,fPrec)*h
+      call wwerf(x,y,wr,wi)
+      wtreal(k) = wr
+      wtimag(k) = wi
+    end do
+  end do
+
 end subroutine wzset
 
 end module mod_utils
