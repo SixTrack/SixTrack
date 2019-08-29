@@ -926,6 +926,12 @@ subroutine collimate_init()
 #endif
 
 #ifdef G4COLLIMATION
+
+  if(n_slices /= 0) then
+    write(lerr,"(a)") "COLL> ERROR Cannot use jaw fit in G4COLLIMATION version of SixTrack"
+    call prror
+  end if
+
 ! Open the edep file
   call f_requestUnit("fort.208", unit208)
   call f_open(unit=unit208, file="fort.208",formatted=.true.,mode="w")
