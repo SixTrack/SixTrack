@@ -62,7 +62,7 @@ subroutine daten
 
   implicit none
 
-  character(len=mInputLn) inLine, pLines(5)
+  character(len=mInputLn) inLine, pLines2(5), pLines3(5)
   character(len=mNameLen) ic0(10)
   character(len=60)       iHead
   character(len=8)        cPad
@@ -95,7 +95,8 @@ subroutine daten
   nGeom       = 0
   lineNo2     = 0
   lineNo3     = 0
-  pLines(:)   = " "
+  pLines2(:)  = " "
+  pLines3(:)  = " "
 
 ! ================================================================================================ !
 !  READ FORT.3 HEADER
@@ -113,8 +114,8 @@ subroutine daten
     write(lerr,"(a)") "INPUT> ERROR Could not read from "//trim(fort3)
     call prror
   end if
-  pLines(5) = cCheck//cPad//iHead
-  lineNo3 = lineNo3+1
+  pLines3(5) = cCheck//cPad//iHead
+  lineNo3    = lineNo3+1
   if(cCheck(1:1) == "/") goto 90
   if(cCheck(1:1) == "!") goto 90
 
@@ -182,12 +183,14 @@ subroutine daten
     call prror
   end if
 
-  ! Keep the last few lines for error output, but only fort fort.3
+  ! Keep the last few lines for error output
+  if(nUnit == 2) then
+    pLines2(1:4) = pLines2(2:5)
+    pLines2(5)   = inLine
+  end if
   if(nUnit == 3) then
-    do i=1,4
-      pLines(i) = pLines(i+1)
-    end do
-    pLines(5) = inLine
+    pLines3(1:4) = pLines3(2:5)
+    pLines3(5)   = inLine
   end if
 
   if(len_trim(inLine) == 0) goto 110 ! Empty line, ignore
@@ -1278,8 +1281,17 @@ subroutine daten
 9999 continue
   if(nUnit == 2) then
     write(lerr,"(a)")      ""
-    write(lerr,"(a)")      " ERROR in "//trim(fort2)
-    write(lerr,"(a,i0,a)") " Line ",lineNo2,": '"//trim(adjustl(inLine))//"'"
+    write(lerr,"(a,i0)")   " ERROR in "//trim(fort2)//" on line ",lineNo2
+    write(lerr,"(a)")      "========O"//repeat("=",91)
+    do i=1,5
+      if(lineNo2-5+i <= 0) cycle
+      if(i == 5) then
+        write(lerr,"(a,i5,a)") ">>",lineNo2-5+i," | "//trim(pLines2(i))
+      else
+        write(lerr,"(a,i5,a)") "  ",lineNo2-5+i," | "//trim(pLines2(i))
+      end if
+    end do
+    write(lerr,"(a)")      "========O"//repeat("=",91)
   else
     write(lerr,"(a)")      ""
     write(lerr,"(a,i0)")   " ERROR in "//trim(fort3)//" on line ",lineNo3
@@ -1287,9 +1299,9 @@ subroutine daten
     do i=1,5
       if(lineNo3-5+i <= 0) cycle
       if(i == 5) then
-        write(lerr,"(a,i5,a)") ">>",lineNo3-5+i," | "//trim(pLines(i))
+        write(lerr,"(a,i5,a)") ">>",lineNo3-5+i," | "//trim(pLines3(i))
       else
-        write(lerr,"(a,i5,a)") "  ",lineNo3-5+i," | "//trim(pLines(i))
+        write(lerr,"(a,i5,a)") "  ",lineNo3-5+i," | "//trim(pLines3(i))
       end if
     end do
     write(lerr,"(a)")      "========O"//repeat("=",91)
