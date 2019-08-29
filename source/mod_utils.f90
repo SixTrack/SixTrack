@@ -153,84 +153,78 @@ subroutine errf(xx, yy, wx, wy)
 
 end subroutine errf
 
-subroutine wwerf(x,y,wr,wi)
+subroutine wwerf(x, y, wr, wi)
+
   use floatPrecision
   use mathlib_bouncer
   use numerical_constants
-  implicit none
+
+  real(kind=fPrec), intent(in)  :: x
+  real(kind=fPrec), intent(in)  :: y
+  real(kind=fPrec), intent(out) :: wr
+  real(kind=fPrec), intent(out) :: wi
+
   integer n
-  real(kind=fPrec) c,c1,c2,c3,c4,hf,p,rr,ri,sr0,sr,si,tr,ti,vi,vr,  &
- &wi,wr,x,xa,xl,y,ya,zhi,zhr,z1,z10
-  parameter (z1=one,hf=z1/two,z10=c1e1)
-  parameter (c1=74.0_fPrec/z10,c2=83.0_fPrec/z10)
-  parameter (c3=z10/32.0_fPrec,c4=16.0_fPrec/z10)
-!     parameter (c=1.12837916709551257d0,p=(2d0*c4)**33)
-  parameter (c=1.12837916709551257_fPrec)
-  parameter (p=46768052394588893.3825_fPrec)
-  dimension rr(37),ri(37)
-  save
-!-----------------------------------------------------------------------
-  xa=abs(x)
-  ya=abs(y)
-  if(ya.lt.c1.and.xa.lt.c2) then
-!        zh=dcmplx(ya+c4,xa)
-    zhr=ya+c4
-    zhi=xa
-    rr(37)=zero
-    ri(37)=zero
+  real(kind=fPrec) rr(37),ri(37),sr0,sr,si,tr,ti,vi,vr,xa,xl,ya,zhi,zhr
+
+  real(kind=fPrec), parameter :: c1 = 74.0_fPrec/c1e1
+  real(kind=fPrec), parameter :: c2 = 83.0_fPrec/c1e1
+  real(kind=fPrec), parameter :: c3 = c1e1/32.0_fPrec
+  real(kind=fPrec), parameter :: c4 = 16.0_fPrec/c1e1
+  real(kind=fPrec), parameter :: c  = two/pisqrt
+  real(kind=fPrec), parameter :: p  = 46768052394588893.3825_fPrec
+
+  xa = abs(x)
+  ya = abs(y)
+  if(ya < c1 .and. xa > c2) then
+    zhr = ya+c4
+    zhi = xa
+    rr(37) = zero
+    ri(37) = zero
     do n=36,1,-1
-!          t=zh+n*dconjg(r(n+1))
-      tr=zhr+real(n,fPrec)*rr(n+1)
-      ti=zhi-real(n,fPrec)*ri(n+1)
-!          r(n)=hf*t/(dreal(t)**2+dimag(t)**2)
-      rr(n)=(hf*tr)/(tr**2+ti**2)
-      ri(n)=(hf*ti)/(tr**2+ti**2)
-    enddo
-    xl=p
-    sr=zero
-    si=zero
+      tr = zhr+real(n,fPrec)*rr(n+1)
+      ti = zhi-real(n,fPrec)*ri(n+1)
+      rr(n) = (half*tr)/(tr**2+ti**2)
+      ri(n) = (half*ti)/(tr**2+ti**2)
+    end do
+    xl = p
+    sr = zero
+    si = zero
     do n=33,1,-1
-      xl=c3*xl
-!          s=r(n)*(s+xl)
-      sr0=rr(n)*(sr+xl)-ri(n)*si
-      si=rr(n)*si+ri(n)*(sr+xl)
-      sr=sr0
-    enddo
-!        v=c*s
-    vr=c*sr
-    vi=c*si
+      xl  = c3*xl
+      sr0 = rr(n)*(sr+xl)-ri(n)*si
+      si  = rr(n)*si+ri(n)*(sr+xl)
+      sr  = sr0
+    end do
+    vr = c*sr
+    vi = c*si
   else
-    zhr=ya
-    zhi=xa
-    rr(1)=zero
-    ri(1)=zero
+    zhr = ya
+    zhi = xa
+    rr(1) = zero
+    ri(1) = zero
     do n=9,1,-1
-!          t=zh+n*dconjg(r(1))
-      tr=zhr+real(n,fPrec)*rr(1)
-      ti=zhi-real(n,fPrec)*ri(1)
-!          r(1)=hf*t/(dreal(t)**2+dimag(t)**2)
-      rr(1)=(hf*tr)/(tr**2+ti**2)
-      ri(1)=(hf*ti)/(tr**2+ti**2)
-    enddo
-!        v=c*r(1)
-    vr=c*rr(1)
-    vi=c*ri(1)
-  endif
-  if(ya.eq.zero) then
-!        v=dcmplx(exp(-xa**2),dimag(v))
-    vr=exp_mb(-one*xa**2)
-  endif
-  if(y.lt.zero) then
-!        v=2*exp(-dcmplx(xa,ya)**2)-v
-    vr=(two*exp_mb(ya**2-xa**2))*cos_mb((two*xa)*ya)-vr
-    vi=(-two*exp_mb(ya**2-xa**2))*sin_mb((two*xa)*ya)-vi
-    if(x.gt.zero) vi=-one*vi
+      tr = zhr+real(n,fPrec)*rr(1)
+      ti = zhi-real(n,fPrec)*ri(1)
+      rr(1) = (half*tr)/(tr**2+ti**2)
+      ri(1) = (half*ti)/(tr**2+ti**2)
+    end do
+    vr = c*rr(1)
+    vi = c*ri(1)
+  end if
+  if(ya == zero) then
+    vr = exp_mb(-one*xa**2)
+  end if
+  if(y < zero) then
+    vr = (two*exp_mb(ya**2-xa**2))*cos_mb((two*xa)*ya)-vr
+    vi = (-two*exp_mb(ya**2-xa**2))*sin_mb((two*xa)*ya)-vi
+    if(x > zero) vi = -one*vi
   else
-    if(x.lt.zero) vi=-one*vi
-  endif
-  wr=vr
-  wi=vi
-  return
+    if(x < zero) vi = -one*vi
+  end if
+  wr = vr
+  wi = vi
+
 end subroutine wwerf
 
 ! ================================================================================================ !
