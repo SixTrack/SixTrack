@@ -89,7 +89,7 @@ theFig = plt.figure(figsize=(7, 6),dpi=100)
 theFig.clf()
 
 plt.imshow(bPDF,extent=[xLim[0],xLim[1],yLim[0],yLim[1]],aspect="auto",zorder=1)
-plt.scatter(bScat[:,0],bScat[:,1],1,"#000000",marker=",",zorder=2)
+plt.scatter(bScat[:,0],bScat[:,1],1,"#ffffff",marker=",",zorder=2)
 plt.title("Beam 2 at '%s' on turn %d" % (elName, iTurn))
 plt.xlim((xLim[0],xLim[1]))
 plt.ylim((yLim[0],yLim[1]))
