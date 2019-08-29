@@ -274,78 +274,71 @@ end subroutine wwerf
 subroutine wzsubv(n,vx,vy,vu,vv)
 
   use parpro, only : npart
+  use parbeam
   use floatPrecision
   use numerical_constants
-  implicit none
 
-  dimension vx(*),vy(*),vu(*),vv(*)
-  integer i,j,k,n,vmu,vnu
-  real(kind=fPrec) a1,a2,b1,b2,vd12i,vd12r,vd23i,vd23r,vd34i,vd34r,vp,vq,vqsq,vr,vsimag,vsreal,vt,  &
-    vtdd13i,vtdd13r,vtdd24i,vtdd24r,vtdddi,vtdddr,vti,vtr,vu,vusum,vusum3,vv,vvsum,vvsum3,vw1i,vw1r,&
-    vw2i,vw2r,vw3i,vw3r,vw4i,vw4r,vx,vxh,vxhrel,vy,vyh,vyhrel
-  integer idim,kstep,nx,ny
-  real(kind=fPrec) h,hrecip,wtimag,wtreal,xcut,ycut
-  parameter ( xcut = 7.77_fPrec, ycut = 7.46_fPrec )
-  parameter ( h = one/63.0_fPrec )
-  parameter ( nx = 490, ny = 470 )
-  parameter ( idim = (nx+2)*(ny+2) )
-  common /wzcom1/ hrecip, kstep
-  common /wzcom2/ wtreal(idim), wtimag(idim)
-  parameter ( a1 = 0.5124242248_fPrec, a2 = 0.0517653588_fPrec )
-  parameter ( b1 = 0.2752551286_fPrec, b2 = 2.7247448714_fPrec )
-  real(kind=fPrec) xm,xx,yy
-  parameter (xm=1e16_fPrec)
-!     temporary arrays to facilitate vectorisation
-  integer in,out,ins,outs
-  dimension ins(npart),outs(npart)
-!-----------------------------------------------------------------------
-  save
-  in=0
-  out=0
+  integer,          intent(in)  :: n
+  real(kind=fPrec), intent(out) :: vx(*)
+  real(kind=fPrec), intent(out) :: vy(*)
+  real(kind=fPrec), intent(out) :: vu(*)
+  real(kind=fPrec), intent(out) :: vv(*)
+
+  integer i,j,k,vmu,vnu
+  integer in,out,ins(npart),outs(npart)
+  real(kind=fPrec) vd12i,vd12r,vd23i,vd23r,vd34i,vd34r,vp,vq,vqsq,vr,vsimag,vsreal,vt,vtdd13i,      &
+    vtdd13r,vtdd24i,vtdd24r,vtdddi,vtdddr,vti,vtr,vusum,vusum3,vvsum,vvsum3,vw1i,vw1r,vw2i,vw2r,    &
+    vw3i,vw3r,vw4i,vw4r,vxh,vxhrel,vyh,vyhrel,xx,yy
+
+  real(kind=fprec), parameter :: a1 = 0.5124242248_fPrec
+  real(kind=fprec), parameter :: a2 = 0.0517653588_fPrec
+  real(kind=fprec), parameter :: b1 = 0.2752551286_fPrec
+  real(kind=fprec), parameter :: b2 = 2.7247448714_fPrec
+  real(kind=fPrec), parameter :: xm = 1e16_fPrec
+
+  in  = 0
+  out = 0
   do i=1,n
     if (vx(i).ge.xcut.or.vy(i).ge.ycut) then
       out=out+1
       outs(out)=i
-      if (out.eq.npart) then
-!     everything outside the rectangle so approximate
-!     write (*,*) 'ALL outside'
-!     write (*,*) 'i=',i
+      if(out == npart) then
+        ! Everything outside the rectangle so approximate
         do j=1,out
-          xx=vx(outs(j))
-          yy=vy(outs(j))
-          if (xx.ge.xm) xx=xm
-          if (yy.ge.xm) yy=xm
-          vp=xx**2-yy**2
-          vq=(two*xx)*yy
-          vqsq=vq**2
-          !  First term.
-          vt=vp-b1
-          vr=a1/(vt**2+vqsq)
-          vsreal=vr*vt
-          vsimag=-vr*vq
-          !  Second term
-          vt=vp-b2
-          vr=a2/(vt**2+vqsq)
-          vsreal=vsreal+vr*vt
-          vsimag=vsimag-vr*vq
-          !  Multiply by i*z.
-          vu(outs(j))=-(yy*vsreal+xx*vsimag)
-          vv(outs(j))=xx*vsreal-yy*vsimag
-        enddo
-        out=0
-      endif
+          xx = vx(outs(j))
+          yy = vy(outs(j))
+          if(xx >= xm) xx = xm
+          if(yy >= xm) yy = xm
+          vp = xx**2-yy**2
+          vq = (two*xx)*yy
+          vqsq = vq**2
+          ! First term.
+          vt = vp-b1
+          vr = a1/(vt**2+vqsq)
+          vsreal = vr*vt
+          vsimag = -vr*vq
+          ! Second term
+          vt = vp-b2
+          vr = a2/(vt**2+vqsq)
+          vsreal = vsreal+vr*vt
+          vsimag = vsimag-vr*vq
+          ! Multiply by i*z.
+          vu(outs(j)) = -(yy*vsreal+xx*vsimag)
+          vv(outs(j)) = xx*vsreal-yy*vsimag
+        end do
+        out =0
+      end if
     else
-      in=in+1
-      ins(in)=i
-      if (in.eq.npart) then
-!     everything inside the square, so interpolate
-!     write (*,*) 'ALL inside'
+      in = in+1
+      ins(in) = i
+      if(in == npart) then
+      ! Everything inside the square, so interpolate
         do j=1,in
           vxh = hrecip*vx(ins(j))
           vyh = hrecip*vy(ins(j))
           vmu = int(vxh)
           vnu = int(vyh)
-!  Compute divided differences.
+          !  Compute divided differences.
           k = 2 + vmu + vnu*kstep
           vw4r = wtreal(k)
           vw4i = wtimag(k)
@@ -374,7 +367,7 @@ subroutine wzsubv(n,vx,vy,vu,vv)
           vtdd13i = vti - vtr
           vtdddr = vtdd13i - vtdd24i
           vtdddi = vtdd24r - vtdd13r
-!  Evaluate polynomial.
+          ! Evaluate polynomial.
           vxhrel = vxh - real(vmu,fPrec)
           vyhrel = vyh - real(vnu,fPrec)
           vusum3=half*(vtdd13r+(vxhrel*vtdddr-vyhrel*vtdddi))
@@ -385,44 +378,43 @@ subroutine wzsubv(n,vx,vy,vu,vv)
           vxhrel = vxhrel - one
           vu(ins(j))=vw1r+(vxhrel*vusum-vyhrel*vvsum)
           vv(ins(j))=vw1i+(vxhrel*vvsum+vyhrel*vusum)
-        enddo
-        in=0
-      endif
-    endif
-  enddo
-!     everything outside the rectangle so approximate
-!     write (*,*) 'ALL outside'
-!     write (*,*) 'i=',i
+        end do
+        in = 0
+      end if
+    end if
+  end do
+
+  ! Everything outside the rectangle so approximate
   do j=1,out
-    xx=vx(outs(j))
-    yy=vy(outs(j))
-    if (xx.ge.xm) xx=xm
-    if (yy.ge.xm) yy=xm
-    vp=xx**2-yy**2
-    vq=(two*xx)*yy
-    vqsq=vq**2
-!  First term.
-    vt=vp-b1
-    vr=a1/(vt**2+vqsq)
-    vsreal=vr*vt
-    vsimag=-vr*vq
-!  Second term
-    vt=vp-b2
-    vr=a2/(vt**2+vqsq)
-    vsreal=vsreal+vr*vt
-    vsimag=vsimag-vr*vq
-!  Multiply by i*z.
-    vu(outs(j))=-(yy*vsreal+xx*vsimag)
-    vv(outs(j))=xx*vsreal-yy*vsimag
-  enddo
-!     everything inside the square, so interpolate
-!     write (*,*) 'ALL inside'
+    xx = vx(outs(j))
+    yy = vy(outs(j))
+    if(xx >= xm) xx = xm
+    if(yy >= xm) yy = xm
+    vp = xx**2-yy**2
+    vq = (two*xx)*yy
+    vqsq = vq**2
+    ! First term
+    vt = vp-b1
+    vr = a1/(vt**2+vqsq)
+    vsreal = vr*vt
+    vsimag = -vr*vq
+    ! Second term
+    vt = vp-b2
+    vr = a2/(vt**2+vqsq)
+    vsreal = vsreal+vr*vt
+    vsimag = vsimag-vr*vq
+    ! Multiply by i*z.
+    vu(outs(j)) = -(yy*vsreal+xx*vsimag)
+    vv(outs(j)) = xx*vsreal-yy*vsimag
+  end do
+
+  ! Everything inside the square, so interpolate
   do j=1,in
     vxh = hrecip*vx(ins(j))
     vyh = hrecip*vy(ins(j))
     vmu = int(vxh)
     vnu = int(vyh)
-!  Compute divided differences.
+    ! Compute divided differences
     k = 2 + vmu + vnu*kstep
     vw4r = wtreal(k)
     vw4i = wtimag(k)
@@ -451,7 +443,7 @@ subroutine wzsubv(n,vx,vy,vu,vv)
     vtdd13i = vti - vtr
     vtdddr = vtdd13i - vtdd24i
     vtdddi = vtdd24r - vtdd13r
-!  Evaluate polynomial.
+    ! Evaluate polynomial
     vxhrel = vxh - real(vmu,fPrec)
     vyhrel = vyh - real(vnu,fPrec)
     vusum3=half*(vtdd13r+(vxhrel*vtdddr-vyhrel*vtdddi))
@@ -462,8 +454,8 @@ subroutine wzsubv(n,vx,vy,vu,vv)
     vxhrel = vxhrel - one
     vu(ins(j))=vw1r+(vxhrel*vusum-vyhrel*vvsum)
     vv(ins(j))=vw1i+(vxhrel*vvsum+vyhrel*vusum)
-  enddo
-  return
+  end do
+
 end subroutine wzsubv
 
 ! ================================================================================================ !

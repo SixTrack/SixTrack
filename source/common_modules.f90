@@ -73,12 +73,10 @@ module parbeam
   integer,          parameter :: ny   = 470
   integer,          parameter :: idim = (nx+2)*(ny+2)
 
-  ! common /wzcom1/
-  real(kind=fPrec), save :: hrecip
   integer,          save :: kstep
-
-  ! common /wzcom2/
-  real(kind=fPrec), save :: wtreal(idim),wtimag(idim)
+  real(kind=fPrec), save :: hrecip
+  real(kind=fPrec), save :: wtreal(idim)
+  real(kind=fPrec), save :: wtimag(idim)
 
   ! common /beam_exp/
   integer,          save :: beam_expflag      = 0       ! 0: Old BEAM block, 1: New BEAM::EXPERT
