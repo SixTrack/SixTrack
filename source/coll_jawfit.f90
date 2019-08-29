@@ -19,17 +19,17 @@ module coll_jawfit
     logical                       :: reCentre     = .false. ! Recentre the collimator to new minimum
   end type type_fitParams
 
-  type, private :: type_collParams
+  type, private :: type_sliceParams
     integer                       :: nSlices      = 0       ! The number of slices
     real(kind=fPrec)              :: fitLength    = zero    ! Slice length
     real(kind=fPrec), allocatable :: fitData(:,:)           ! Slice data
     real(kind=fPrec), allocatable :: fitTilt(:,:)           ! Slice tilt
-  end type type_collParams
+  end type type_sliceParams
 
   type(type_fitParams),  allocatable, private, save :: jaw_fitData(:)  ! List of jaw fit parameters
-  type(type_collParams), allocatable, private, save :: jaw_collData(:) ! List of collimator fit slices
-  integer,                         private, save :: jaw_nFitData  = 0  ! Count of jaw_fitData
-  integer,                         private, save :: jaw_nCollData = 0  ! Count of jaw_collData
+  type(type_sliceParams), allocatable, private, save :: jaw_sliceData(:) ! List of collimator fit slices
+  integer,                            private, save :: jaw_nFitData  = 0  ! Count of jaw_fitData
+  integer,                            private, save :: jaw_nSliceData = 0  ! Count of jaw_sliceData
 
 contains
 
@@ -90,21 +90,21 @@ subroutine jaw_computeFit(collName, fitID, nSlices, cLength, cTilt, cOffset, sli
   real(kind=fPrec), intent(in)  :: cOffset
   integer,          intent(out) :: sliceID
 
-  type(type_collParams), allocatable :: collTmp(:)
+  type(type_sliceParams), allocatable :: collTmp(:)
   real(kind=fPrec) sX(nSlices+1), sX1(nSlices+1), sX2(nSlices+1), sY1(nSlices+1), sY2(nSlices+1)
   real(kind=fPrec) angle1(nSlices), angle2(nSlices)
   real(kind=fPrec) fac1(6), fac2(6), scale1, scale2, maxY
   real(kind=fPrec) fitData(2,nSlices+1), fitTilt(2,nSlices)
   integer i
 
-  if(allocated(jaw_collData)) then
-    allocate(collTmp(jaw_nCollData+1))
-    collTmp(1:jaw_nCollData) = jaw_collData(1:jaw_nCollData)
-    call move_alloc(collTmp, jaw_collData)
-    jaw_nCollData = jaw_nCollData + 1
+  if(allocated(jaw_sliceData)) then
+    allocate(collTmp(jaw_nSliceData+1))
+    collTmp(1:jaw_nSliceData) = jaw_sliceData(1:jaw_nSliceData)
+    call move_alloc(collTmp, jaw_sliceData)
+    jaw_nSliceData = jaw_nSliceData + 1
   else
-    allocate(jaw_collData(1))
-    jaw_nCollData = 1
+    allocate(jaw_sliceData(1))
+    jaw_nSliceData = 1
   end if
 
   fac1   = jaw_fitData(fitID(1))%fitParams
@@ -161,12 +161,12 @@ subroutine jaw_computeFit(collName, fitID, nSlices, cLength, cTilt, cOffset, sli
   fitTilt(1,:) = angle1(:)
   fitTilt(2,:) = angle2(:)
 
-  jaw_collData(jaw_nCollData)%nSlices   = nSlices
-  jaw_collData(jaw_nCollData)%fitLength = cLength/real(nSlices,fPrec)
-  jaw_collData(jaw_nCollData)%fitData   = fitData
-  jaw_collData(jaw_nCollData)%fitTilt   = fitTilt
+  jaw_sliceData(jaw_nSliceData)%nSlices   = nSlices
+  jaw_sliceData(jaw_nSliceData)%fitLength = cLength/real(nSlices,fPrec)
+  jaw_sliceData(jaw_nSliceData)%fitData   = fitData
+  jaw_sliceData(jaw_nSliceData)%fitTilt   = fitTilt
 
-  sliceID = jaw_nCollData
+  sliceID = jaw_nSliceData
 
   write(lout,"(a,i0,a)") "COLLJAW> Collimator "//trim(collName)//" sliced in ",nSlices," slices"
 
@@ -191,19 +191,19 @@ subroutine jaw_getFitSliceValues(sliceID, iSlice, cLength, cAperture, cOffset, c
 
   real(kind=fPrec) val1, val2
 
-  cLength  = jaw_collData(sliceID)%fitLength
-  cTilt(:) = jaw_collData(sliceID)%fitTilt(:,iSlice)
+  cLength  = jaw_sliceData(sliceID)%fitLength
+  cTilt(:) = jaw_sliceData(sliceID)%fitTilt(:,iSlice)
 
   if(cTilt(1) > zero) then
-    val1 = jaw_collData(sliceID)%fitData(1,iSlice)
+    val1 = jaw_sliceData(sliceID)%fitData(1,iSlice)
   else
-    val1 = jaw_collData(sliceID)%fitData(1,iSlice+1)
+    val1 = jaw_sliceData(sliceID)%fitData(1,iSlice+1)
   end if
 
   if(cTilt(2) < zero) then
-    val2 = jaw_collData(sliceID)%fitData(2,iSlice)
+    val2 = jaw_sliceData(sliceID)%fitData(2,iSlice)
   else
-    val2 = jaw_collData(sliceID)%fitData(2,iSlice+1)
+    val2 = jaw_sliceData(sliceID)%fitData(2,iSlice+1)
   end if
 
   val1 = val1 + half*cAperture
@@ -219,7 +219,7 @@ end subroutine jaw_getFitSliceValues
 ! ================================================================================================ !
 integer function jaw_getSliceCount(sliceID)
   integer, intent(in) :: sliceID
-  jaw_getSliceCount = jaw_collData(sliceID)%nSlices
+  jaw_getSliceCount = jaw_sliceData(sliceID)%nSlices
 end function jaw_getSliceCount
 
 end module coll_jawfit
