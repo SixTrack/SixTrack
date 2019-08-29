@@ -1708,7 +1708,7 @@ subroutine collimate_openFiles
   ! Survival File
   call f_requestUnit(coll_survivalFile,coll_survivalUnit)
   call f_open(unit=coll_survivalUnit,file=coll_survivalFile,formatted=.true.,mode="w")
-  write(coll_survivalUnit,"(a7,1x,a9)") "# turn","n_particle"
+  write(coll_survivalUnit,"(a7,1x,a9)") "#  turn","n_part"
 
   ! Collimator Gaps File
   call f_requestUnit(coll_gapsFile,coll_gapsUnit)
@@ -1717,7 +1717,7 @@ subroutine collimate_openFiles
     "#","ID","name            ","angle[rad]","betax[m]","betay[m]","halfgap[m]",&
     "mat.","length[m]","sigx[m]","sigy[m]","tilt1[rad]","tilt2[rad]","nsig"
 
-  ! Temporary Datanase
+  ! Temporary Database
   call f_requestUnit(coll_tempDbFile,coll_tempDbUnit)
   call f_open(unit=coll_tempDbUnit,file=coll_tempDbFile,formatted=.true.,mode="w")
 
@@ -2695,7 +2695,7 @@ subroutine collimate_do_collimator(stracki)
       jawAperture = c_aperture
       jawOffset   = c_offset
       jawTilt     = c_tilt
-      call jaw_getFitData(cdb_cSliced(icoll), iSlice, jawLength, jawAperture, jawOffset, jawTilt)
+      call jaw_getFitSliceValues(cdb_cSliced(icoll), iSlice, jawLength, jawAperture, jawOffset, jawTilt)
       if(firstrun) then
         write(coll_settingsUnit,"(a20,1x,i10,5(1x,1pe13.6),1x,a)") &
           cdb_cName(icoll)(1:20), iSlice, jawAperture/two, jawOffset, jawTilt(1), jawTilt(2), jawLength, cdb_cMaterial(icoll)

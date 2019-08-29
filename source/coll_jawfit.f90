@@ -12,24 +12,24 @@ module coll_jawfit
 
   implicit none
 
-  type, private :: jaw_fitType
+  type, private :: type_fitParams
     character(len=:), allocatable :: fitName                ! Fit name
     real(kind=fPrec)              :: fitParams(6) = zero    ! Fit parameters
     real(kind=fPrec)              :: fitScale     = one     ! Fit scale
     logical                       :: reCentre     = .false. ! Recentre the collimator to new minimum
-  end type jaw_fitType
+  end type type_fitParams
 
-  type, private :: jaw_collType
+  type, private :: type_collParams
     integer                       :: nSlices      = 0       ! The number of slices
     real(kind=fPrec)              :: fitLength    = zero    ! Slice length
     real(kind=fPrec), allocatable :: fitData(:,:)           ! Slice data
     real(kind=fPrec), allocatable :: fitTilt(:,:)           ! Slice tilt
-  end type jaw_collType
+  end type type_collParams
 
-  type(jaw_fitType),  allocatable, private, save :: jaw_fitData(:)  ! List of jaw fit parameters
-  type(jaw_collType), allocatable, private, save :: jaw_collData(:) ! List of collimator fit slices
-  integer,                         private, save :: jaw_nFits  = 0  ! Count of jaw_fitData
-  integer,                         private, save :: jaw_nColls = 0  ! Count of jaw_collData
+  type(type_fitParams),  allocatable, private, save :: jaw_fitData(:)  ! List of jaw fit parameters
+  type(type_collParams), allocatable, private, save :: jaw_collData(:) ! List of collimator fit slices
+  integer,                         private, save :: jaw_nFitData  = 0  ! Count of jaw_fitData
+  integer,                         private, save :: jaw_nCollData = 0  ! Count of jaw_collData
 
 contains
 
@@ -47,24 +47,24 @@ subroutine jaw_addJawFit(fitName, fitParams, fitScale, reCentre, fitID)
   logical,          intent(in)  :: reCentre
   integer,          intent(out) :: fitID
 
-  type(jaw_fitType), allocatable :: jawTmp(:)
+  type(type_fitParams), allocatable :: jawTmp(:)
 
   if(allocated(jaw_fitData)) then
-    allocate(jawTmp(jaw_nFits+1))
-    jawTmp(1:jaw_nFits) = jaw_fitData(1:jaw_nFits)
+    allocate(jawTmp(jaw_nFitData+1))
+    jawTmp(1:jaw_nFitData) = jaw_fitData(1:jaw_nFitData)
     call move_alloc(jawTmp, jaw_fitData)
-    jaw_nFits = jaw_nFits + 1
+    jaw_nFitData = jaw_nFitData + 1
   else
     allocate(jaw_fitData(1))
-    jaw_nFits = 1
+    jaw_nFitData = 1
   end if
 
-  jaw_fitData(jaw_nFits)%fitName   = fitName
-  jaw_fitData(jaw_nFits)%fitParams = fitParams
-  jaw_fitData(jaw_nFits)%fitScale  = fitScale
-  jaw_fitData(jaw_nFits)%reCentre  = reCentre
+  jaw_fitData(jaw_nFitData)%fitName   = fitName
+  jaw_fitData(jaw_nFitData)%fitParams = fitParams
+  jaw_fitData(jaw_nFitData)%fitScale  = fitScale
+  jaw_fitData(jaw_nFitData)%reCentre  = reCentre
 
-  fitID = jaw_nFits
+  fitID = jaw_nFitData
 
 end subroutine jaw_addJawFit
 
@@ -90,7 +90,7 @@ subroutine jaw_computeFit(collName, fitID, nSlices, cLength, cTilt, cOffset, sli
   real(kind=fPrec), intent(in)  :: cOffset
   integer,          intent(out) :: sliceID
 
-  type(jaw_collType), allocatable :: collTmp(:)
+  type(type_collParams), allocatable :: collTmp(:)
   real(kind=fPrec) sX(nSlices+1), sX1(nSlices+1), sX2(nSlices+1), sY1(nSlices+1), sY2(nSlices+1)
   real(kind=fPrec) angle1(nSlices), angle2(nSlices)
   real(kind=fPrec) fac1(6), fac2(6), scale1, scale2, maxY
@@ -98,13 +98,13 @@ subroutine jaw_computeFit(collName, fitID, nSlices, cLength, cTilt, cOffset, sli
   integer i
 
   if(allocated(jaw_collData)) then
-    allocate(collTmp(jaw_nColls+1))
-    collTmp(1:jaw_nColls) = jaw_collData(1:jaw_nColls)
+    allocate(collTmp(jaw_nCollData+1))
+    collTmp(1:jaw_nCollData) = jaw_collData(1:jaw_nCollData)
     call move_alloc(collTmp, jaw_collData)
-    jaw_nColls = jaw_nColls + 1
+    jaw_nCollData = jaw_nCollData + 1
   else
     allocate(jaw_collData(1))
-    jaw_nColls = 1
+    jaw_nCollData = 1
   end if
 
   fac1   = jaw_fitData(fitID(1))%fitParams
@@ -161,12 +161,12 @@ subroutine jaw_computeFit(collName, fitID, nSlices, cLength, cTilt, cOffset, sli
   fitTilt(1,:) = angle1(:)
   fitTilt(2,:) = angle2(:)
 
-  jaw_collData(jaw_nColls)%nSlices   = nSlices
-  jaw_collData(jaw_nColls)%fitLength = cLength/real(nSlices,fPrec)
-  jaw_collData(jaw_nColls)%fitData   = fitData
-  jaw_collData(jaw_nColls)%fitTilt   = fitTilt
+  jaw_collData(jaw_nCollData)%nSlices   = nSlices
+  jaw_collData(jaw_nCollData)%fitLength = cLength/real(nSlices,fPrec)
+  jaw_collData(jaw_nCollData)%fitData   = fitData
+  jaw_collData(jaw_nCollData)%fitTilt   = fitTilt
 
-  sliceID = jaw_nColls
+  sliceID = jaw_nCollData
 
   write(lout,"(a,i0,a)") "COLLJAW> Collimator "//trim(collName)//" sliced in ",nSlices," slices"
 
@@ -178,7 +178,7 @@ end subroutine jaw_computeFit
 !  Updated: 2019-08-02
 !  Return the adjusted length, aperture and offset for a specific collimator
 ! ================================================================================================ !
-subroutine jaw_getFitData(sliceID, iSlice, cLength, cAperture, cOffset, cTilt)
+subroutine jaw_getFitSliceValues(sliceID, iSlice, cLength, cAperture, cOffset, cTilt)
 
   use numerical_constants
 
@@ -212,7 +212,7 @@ subroutine jaw_getFitData(sliceID, iSlice, cLength, cAperture, cOffset, cTilt)
   cAperture = val1 - val2
   cOffset   = half*(val1 + val2) + cOffset
 
-end subroutine jaw_getFitData
+end subroutine jaw_getFitSliceValues
 
 ! ================================================================================================ !
 !  Return the number of slices for a given jaw fit
