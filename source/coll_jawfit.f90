@@ -26,10 +26,10 @@ module coll_jawfit
     real(kind=fPrec), allocatable :: fitTilt(:,:)           ! Slice tilt
   end type type_sliceParams
 
-  type(type_fitParams),  allocatable, private, save :: jaw_fitData(:)  ! List of jaw fit parameters
-  type(type_sliceParams), allocatable, private, save :: jaw_sliceData(:) ! List of collimator fit slices
-  integer,                            private, save :: jaw_nFitData  = 0  ! Count of jaw_fitData
-  integer,                            private, save :: jaw_nSliceData = 0  ! Count of jaw_sliceData
+  type(type_fitParams),   allocatable, private, save :: jaw_fitData(:)     ! List of jaw fit parameters
+  type(type_sliceParams), allocatable, private, save :: jaw_sliceData(:)   ! List of collimator fit slices
+  integer,                             private, save :: jaw_nFitData   = 0 ! Count of jaw_fitData
+  integer,                             private, save :: jaw_nSliceData = 0 ! Count of jaw_sliceData
 
 contains
 
