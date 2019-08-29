@@ -2,7 +2,7 @@
 ! A.Mereghetti (CERN, 2018-03-01)
 ! A general module, collecting some utility functions
 ! ================================================================================================ !
-module utils
+module mod_utils
 
   implicit none
 
@@ -72,4 +72,4 @@ real(kind=fPrec) function lininterp(x,xvals,yvals,datalen)
 
 end function lininterp
 
-end module utils
+end module mod_utils

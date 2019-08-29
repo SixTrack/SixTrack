@@ -314,6 +314,7 @@ list(APPEND FORT90_LIB
   mod_particles
   mod_time
   mod_units
+  mod_utils
   pdgid
   plato_seq
   postprocessing
@@ -326,7 +327,6 @@ list(APPEND FORT90_LIB
   sixtrack_input
   string_tools
   strings
-  utils
   version
   wire
   zipf

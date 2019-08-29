@@ -1987,7 +1987,7 @@ recursive real(kind=fPrec) function dynk_computeFUN(funNum, turn) result(retval)
   use mod_ranecu
   use numerical_constants, only : pi
   use string_tools
-  use utils
+  use mod_utils
 
   implicit none
 
