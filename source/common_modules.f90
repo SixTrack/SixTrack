@@ -129,10 +129,7 @@ module mod_common
   implicit none
 
   ! Parameters
-  real(kind=fPrec),  parameter :: cc         = 1.12837916709551_fPrec ! Used in errf
-  real(kind=fPrec),  parameter :: xlim       = 5.33_fPrec             ! Used in errf
-  real(kind=fPrec),  parameter :: ylim       = 4.29_fPrec             ! Used in errf
-  real(kind=fPrec),  parameter :: eps_dcum   = c1m6                   ! Tolerance for machine length mismatch [m]
+  real(kind=fPrec),  parameter :: eps_dcum   = c1m6    ! Tolerance for machine length mismatch [m]
 
   ! Various Flags and Variables
   character(len=80), save      :: toptit(5)  = " "     ! DANGER: If the len changes, CRCHECK will break

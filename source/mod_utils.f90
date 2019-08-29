@@ -73,79 +73,84 @@ real(kind=fPrec) function lininterp(x,xvals,yvals,datalen)
 end function lininterp
 
 ! ================================================================================================ !
-! purpose:                                                             *
-!   modification of wwerf, real(kind=fPrec) complex error function,    *
-!   written at cern by k. koelbig.                                     *
-!   taken from mad8                                                    *
-! input:                                                               *
-!   xx, yy    (real)    argument to cerf.                              *
-! output:                                                              *
-!   wx, wy    (real)    function result.                               *
+!  K. Koelbig, CERN
+!  Modification of wwerf, real complex error function, taken from mad8
+!  Input:
+!    xx, yy    (real)    argument to cerf.
+!  Output:
+!    wx, wy    (real)    function result.
 ! ================================================================================================ !
-subroutine errf(xx,yy,wx,wy)
+subroutine errf(xx, yy, wx, wy)
 
   use floatPrecision
   use numerical_constants
   use mathlib_bouncer
-  use mod_common, only : cc,xlim,ylim
 
+  real(kind=fPrec), intent(in)  :: xx
+  real(kind=fPrec), intent(in)  :: yy
+  real(kind=fPrec), intent(out) :: wx
+  real(kind=fPrec), intent(out) :: wy
+
+  real(kind=fPrec), parameter :: cc   = 1.12837916709551_fPrec ! FIXME: Should use two/pisqrt
+  real(kind=fPrec), parameter :: xlim = 5.33_fPrec
+  real(kind=fPrec), parameter :: ylim = 4.29_fPrec
+
+  real(kind=fPrec) h,q,rx(33),ry(33),saux,sx,sy,tn,tx,ty,x,xh,xl,y,yh
   integer n,nc,nu
-  real(kind=fPrec) h,q,rx(33),ry(33),saux,sx,sy,tn,tx,ty,wx,wy,x,xh,xl,xx,y,yh,yy
-  save
-!-----------------------------------------------------------------------
-  x=abs(xx)
-  y=abs(yy)
-  if(y.lt.ylim.and.x.lt.xlim) then
-    q=(one-y/ylim)*sqrt(one-(x/xlim)**2)
-    h=one/(3.2_fPrec*q)
-    nc=7+int(23.0_fPrec*q)
-!       xl=h**(1-nc)
-    xl=exp_mb((1-nc)*log_mb(h))                                      !yil11
-    xh=y+half/h
-    yh=x
-    nu=10+int(21.0_fPrec*q)
-    rx(nu+1)=zero
-    ry(nu+1)=zero
-    do 10 n=nu,1,-1
-      tx=xh+real(n,fPrec)*rx(n+1)
-      ty=yh-real(n,fPrec)*ry(n+1)
-      tn=tx**2+ty**2
-      rx(n)=(half*tx)/tn
-      ry(n)=(half*ty)/tn
-10   continue
-    sx=zero
-    sy=zero
-    do 20 n=nc,1,-1
-      saux=sx+xl
-      sx=rx(n)*saux-ry(n)*sy
-      sy=rx(n)*sy+ry(n)*saux
-      xl=h*xl
-20   continue
-    wx=cc*sx
-    wy=cc*sy
+
+  x = abs(xx)
+  y = abs(yy)
+  if(y < ylim .and. x < xlim) then
+    q  = (one-y/ylim)*sqrt(one-(x/xlim)**2)
+    h  = one/(3.2_fPrec*q)
+    nc = 7+int(23.0_fPrec*q)
+    xl = exp_mb((1-nc)*log_mb(h))
+    xh = y+half/h
+    yh = x
+    nu = 10+int(21.0_fPrec*q)
+    rx(nu+1) = zero
+    ry(nu+1) = zero
+    do n=nu,1,-1
+      tx = xh+real(n,fPrec)*rx(n+1)
+      ty = yh-real(n,fPrec)*ry(n+1)
+      tn = tx**2+ty**2
+      rx(n) = (half*tx)/tn
+      ry(n) = (half*ty)/tn
+    end do
+    sx = zero
+    sy = zero
+    do n=nc,1,-1
+      saux = sx+xl
+      sx   = rx(n)*saux-ry(n)*sy
+      sy   = rx(n)*sy+ry(n)*saux
+      xl   = h*xl
+    end do
+    wx = cc*sx
+    wy = cc*sy
   else
-    xh=y
-    yh=x
-    rx(1)=zero
-    ry(1)=zero
-    do 30 n=9,1,-1
-      tx=xh+real(n,fPrec)*rx(1)
-      ty=yh-real(n,fPrec)*ry(1)
-      tn=tx**2+ty**2
-      rx(1)=(half*tx)/tn
-      ry(1)=(half*ty)/tn
-30   continue
-    wx=cc*rx(1)
-    wy=cc*ry(1)
-  endif
-!      if(y.eq.0.) wx=exp(-x**2)
-  if(yy.lt.zero) then
-    wx=(two*exp_mb(y**2-x**2))*cos_mb((two*x)*y)-wx
-    wy=((-one*two)*exp_mb(y**2-x**2))*sin_mb((two*x)*y)-wy
-    if(xx.gt.zero) wy=-one*wy
+    xh = y
+    yh = x
+    rx(1) = zero
+    ry(1) = zero
+    do n=9,1,-1
+      tx    = xh+real(n,fPrec)*rx(1)
+      ty    = yh-real(n,fPrec)*ry(1)
+      tn    = tx**2+ty**2
+      rx(1) = (half*tx)/tn
+      ry(1) = (half*ty)/tn
+    end do
+    wx = cc*rx(1)
+    wy = cc*ry(1)
+  end if
+
+  if(yy < zero) then
+    wx = (two*exp_mb(y**2-x**2))*cos_mb((two*x)*y)-wx
+    wy = ((-one*two)*exp_mb(y**2-x**2))*sin_mb((two*x)*y)-wy
+    if(xx > zero) wy = -one*wy
   else
-    if(xx.lt.zero) wy=-one*wy
-  endif
+    if(xx < zero) wy = -one*wy
+  end if
+
 end subroutine errf
 
 end module mod_utils
