@@ -5,7 +5,7 @@
 !  Created: 2019-08-01
 !  Updated: 2019-08-02
 ! ================================================================================================ !
-module coll_jaw
+module coll_jawfit
 
   use floatPrecision
   use numerical_constants, only : zero, one
@@ -222,4 +222,4 @@ integer function jaw_getSliceCount(sliceID)
   jaw_getSliceCount = jaw_collData(sliceID)%nSlices
 end function jaw_getSliceCount
 
-end module coll_jaw
+end module coll_jawfit

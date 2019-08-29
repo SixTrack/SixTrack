@@ -2285,7 +2285,7 @@ subroutine collimate_do_collimator(stracki)
   use mod_common_da
   use numerical_constants, only : c5m4
   use coll_db
-  use coll_jaw
+  use coll_jawfit
   use coll_dist
   use mod_units
   use mathlib_bouncer

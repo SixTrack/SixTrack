@@ -659,7 +659,7 @@ subroutine cdb_setMasterJawFit(nSlices, sMin, sMax, rc1, rc2, jawFit, fitScale)
 
   use parpro
   use crcoall
-  use coll_jaw
+  use coll_jawfit
   use mod_common
   use mod_common_track
   use numerical_constants
