@@ -105,14 +105,22 @@ nCol = ceil(len(theCols)/2)
 theFig.clf()
 for aCol in theCols:
   iFig  += 1
-  dHist, binEdges   = np.histogram(theData[aCol], bins=nBins, density=True)
+
+  vMin = np.min(theData[aCol])
+  vMax = np.max(theData[aCol])
+  vStd = np.std(theData[aCol])
+  vMu  = np.mean(theData[aCol])
+  xLim = (-5*vStd+vMu, 5*vStd+vMu)
+  print("Column min, max, std, mean %-6s: %18.6f %18.6f %18.6f %18.6f" % (aCol,vMin,vMax,vStd,vMu))
+
+  dHist, binEdges   = np.histogram(theData[aCol], bins=nBins, density=True, range=xLim)
   binCentres        = (binEdges[:-1] + binEdges[1:])/2
 
   sFig1 = plt.subplot(nRow,nCol,iFig)
   plt.step(binCentres,dHist,where="mid")
   plt.title("Distribution of %s" % aCol)
 
-  print("Column min, max %-6s: %18.6f %18.6f" % (aCol,np.min(theData[aCol]),np.max(theData[aCol])))
+  plt.xlim(xLim)
 
 plt.subplots_adjust(left=0.05, right=0.95, top=0.95, bottom=0.05)
 if saveTo is not None:
