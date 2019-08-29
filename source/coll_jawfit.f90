@@ -3,7 +3,7 @@
 ! ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 !  V.K. Berglyd Olsen, BE-ABP-HSS
 !  Created: 2019-08-01
-!  Updated: 2019-08-02
+!  Updated: 2019-08-29
 ! ================================================================================================ !
 module coll_jawfit
 
@@ -72,7 +72,7 @@ end subroutine jaw_addJawFit
 !  V.K. Berglyd Olsen, BE-ABP-HSS
 !  Created: 2019-08-01
 !  Updated: 2019-08-02
-!  Compute the fit parameters for a given collimator using a stored fit model
+!  Compute the fit parameters for a given collimator using a stored fit model.
 !  Most of the fit code was extracted from the main collimation module.
 !  Original comments from original authors have been preserved.
 ! ================================================================================================ !
@@ -176,7 +176,7 @@ end subroutine jaw_computeFit
 !  V.K. Berglyd Olsen, BE-ABP-HSS
 !  Created: 2019-08-01
 !  Updated: 2019-08-02
-!  Return the adjusted length, aperture and offset for a specific collimator
+!  Return the adjusted length, aperture and offset for a specific collimator slice
 ! ================================================================================================ !
 subroutine jaw_getFitSliceValues(sliceID, iSlice, cLength, cAperture, cOffset, cTilt)
 
