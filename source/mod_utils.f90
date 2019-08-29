@@ -496,21 +496,28 @@ subroutine wzsub(x,y,u,v)
   use mathlib_bouncer
   use parpro
   use parbeam
-  implicit none
+
+  real(kind=fPrec), intent(out) :: x
+  real(kind=fPrec), intent(out) :: y
+  real(kind=fPrec), intent(out) :: u
+  real(kind=fPrec), intent(out) :: v
+
   integer k,mu,nu
-  real(kind=fPrec) a1,a2,b1,b2,d12i,d12r,d23i,d23r,d34i,d34r,p,q,qsq,r,simag,sreal,t,tdd13i,tdd13r, &
-    tdd24i,tdd24r,tdddi,tdddr,ti,tr,u,usum,usum3,v,vsum,vsum3,w1i,w1r,w2i,w2r,w3i,w3r,w4i,w4r,x,xh, &
-    xhrel,y,yh,yhrel
-  parameter ( a1 = 0.5124242248_fPrec, a2 = 0.0517653588_fPrec )
-  parameter ( b1 = 0.2752551286_fPrec, b2 = 2.7247448714_fPrec )
-  save
-!-----------------------------------------------------------------------
-  if ( x.ge.xcut .or. y.ge.ycut ) goto 1000
+  real(kind=fPrec) d12i,d12r,d23i,d23r,d34i,d34r,p,q,qsq,r,simag,sreal,t,tdd13i,tdd13r,tdd24i,      &
+    tdd24r,tdddi,tdddr,ti,tr,usum,usum3,vsum,vsum3,w1i,w1r,w2i,w2r,w3i,w3r,w4i,w4r,xh,xhrel,yh,yhrel
+
+  real(kind=fPrec), parameter :: a1 = 0.5124242248_fPrec
+  real(kind=fPrec), parameter :: a2 = 0.0517653588_fPrec
+  real(kind=fPrec), parameter :: b1 = 0.2752551286_fPrec
+  real(kind=fPrec), parameter :: b2 = 2.7247448714_fPrec
+
+  if(x >= xcut .or. y >= ycut) goto 10
+
   xh = hrecip*x
   yh = hrecip*y
   mu = int(xh)
   nu = int(yh)
-!  Compute divided differences.
+  ! Compute divided differences.
   k = 2 + mu + nu*kstep
   w4r = wtreal(k)
   w4i = wtimag(k)
@@ -539,7 +546,7 @@ subroutine wzsub(x,y,u,v)
   tdd13i = ti - tr
   tdddr = tdd13i - tdd24i
   tdddi = tdd24r - tdd13r
-!  Evaluate polynomial.
+  ! Evaluate polynomial.
   xhrel = xh - real(mu,fPrec)
   yhrel = yh - real(nu,fPrec)
   usum3 = half*( tdd13r + ( xhrel*tdddr - yhrel*tdddi ) )
@@ -551,35 +558,35 @@ subroutine wzsub(x,y,u,v)
   u = w1r + ( xhrel*usum - yhrel*vsum )
   v = w1i + ( xhrel*vsum + yhrel*usum )
   return
-!
-!  Two-term rational approximation to w(z) [Footnote to Table 7.9
-!  in "Handbook of Mathematical Functions (eds. M.Abramowitz &
-!  I.A.Stegun, Washington, 1966), but with additional digits in
-!  the constants]:
-!              u+i*v = i*z*( a1/(z**2-b1) + a2/(z**2-b2) ).
-!  Maximum absolute error:
-!        <1.E-6  for  x>=4.9  or  y>=4.4
-!        <1.E-7  for  x>=6.1  or  y>=5.7
-!        <1.E-8  for  x>=7.8  or  y>=7.5
-!
-1000 p=x**2-y**2
-  q=(2.d0*x)*y
-  qsq=q**2
-!  First term.
-  t=p-b1
-  r=a1/(t**2+qsq)
-  sreal=r*t
-  simag=(-one*r)*q
-!  Second term
-  t=p-b2
-  r=a2/(t**2+qsq)
-  sreal=sreal+r*t
-  simag=simag-r*q
-!  Multiply by i*z.
-  u=-one*(y*sreal+x*simag)
-  v=x*sreal-y*simag
-  return
-!
+
+10 continue
+  !  Two-term rational approximation to w(z) [Footnote to Table 7.9
+  !  in "Handbook of Mathematical Functions (eds. M.Abramowitz &
+  !  I.A.Stegun, Washington, 1966), but with additional digits in
+  !  the constants]:
+  !              u+i*v = i*z*( a1/(z**2-b1) + a2/(z**2-b2) ).
+  !  Maximum absolute error:
+  !        <1.E-6  for  x>=4.9  or  y>=4.4
+  !        <1.E-7  for  x>=6.1  or  y>=5.7
+  !        <1.E-8  for  x>=7.8  or  y>=7.5
+  !
+  p = x**2-y**2
+  q = (2.d0*x)*y
+  qsq = q**2
+  ! First term
+  t = p-b1
+  r = a1/(t**2+qsq)
+  sreal = r*t
+  simag = (-one*r)*q
+  ! Second term
+  t = p-b2
+  r = a2/(t**2+qsq)
+  sreal = sreal+r*t
+  simag = simag-r*q
+  ! Multiply by i*z.
+  u = -one*(y*sreal+x*simag)
+  v = x*sreal-y*simag
+
 end subroutine wzsub
 
 !  *********************************************************************
