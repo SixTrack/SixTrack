@@ -23,6 +23,7 @@ subroutine trauthck(nthinerr)
   use collimation
   use mod_time
   use mod_units
+  use mod_utils
 
   use crcoall
   use parpro
