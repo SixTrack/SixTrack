@@ -539,7 +539,7 @@ program maincr
 
       ! Initialize multipoles, combining settings from fort.2 with
       ! coefficients from MULT and random values from FLUC.
-      ! Used in program maincr and from initialize_element.
+      ! Used in program maincr and from initialise_element.
 
       if(abs(ek(ix)).le.pieni) cycle
       nmz=nmu(ix)

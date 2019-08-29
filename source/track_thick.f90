@@ -255,7 +255,7 @@ subroutine trauthck(nthinerr)
         ktrack(i) = 20
 #include "include/stra10.f90"
       end if
-    case (11) ! Multipole block (also in initialize_element)
+    case (11) ! Multipole block (also in initialise_element)
       r0=ek(ix)
       nmz=nmu(ix)
       if(abs(r0).le.pieni.or.nmz.eq.0) then
