@@ -444,6 +444,12 @@ subroutine geom_parseInputLineSTRU_MULT(inLine, iLine, iErr)
 
   bezs(geom_nStru) = trim(lnSplit(1))
   call chr_cast(lnSplit(3), elpos(geom_nStru), cErr)
+  if(elpos(geom_nStru) < elpos(geom_nStru-1)) then ! Note: elpos(0) does exist, and should be zero
+    write(lerr,"(a)") "GEOMETRY> ERROR Structure element '"//trim(bezs(geom_nStru))//&
+      "' cannot be positioned ahead of previous element"
+    iErr = .true.
+    return
+  end if
 
   singID = -1
   do j=1,mblo ! is it a BLOC?
