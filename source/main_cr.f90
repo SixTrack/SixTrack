@@ -70,7 +70,7 @@ program maincr
 
   use mod_dist
   use matrix_inv
-  
+
   use wire
   use mod_version
 #ifdef HASHLIB
@@ -79,8 +79,8 @@ program maincr
 
   implicit none
 
-  integer i,itiono,i2,i3,ia,ia2,iation,ib1,id,ie,ii,im,iposc,ix,izu,j,jj,k,kpz,kzz,l,ncorruo,ncrr,  &
-    nd,nd2,ndafi2,nerror,nlino,nlinoo,nmz,nthinerr
+  integer i,itiono,i2,i3,ia,ia2,iation,ib1,id,ie,ii,im,ip,iposc,ix,izu,j,jj,k,kpz,kzz,l,ncorruo,    &
+    ncrr,nd,nd2,ndafi2,nerror,nlino,nlinoo,nmz,nthinerr
   real(kind=fPrec) alf0s1,alf0s2,alf0s3,alf0x2,alf0x3,alf0z2,alf0z3,amp00,bet0s1,bet0s2,bet0s3,     &
     bet0x2,bet0x3,bet0z2,bet0z3,chi,coc,dam1,dchi,dp0,dp00,dp10,dpsic,dps0,dsign,gam0s1,gam0s2,     &
     gam0s3,gam0x1,gam0x2,gam0x3,gam0z1,gam0z2,gam0z3,phag,r0,r0a,rat0,sic,tasia56,tasiar16,tasiar26,&
@@ -962,13 +962,11 @@ program maincr
 ! ---------------------------------------------------------------------------- !
 
   do i=1,npart
-    pstop(i)  = .false.
-    nnumxv(i) = numl
-    numxv(i)  = numl
+    pstop(i) = .false.
+    numxv(i) = numl
   end do
   rat0 = rat
 
-  call part_setParticleID ! Must be set before reading DIST
   if(dist_enable) then
     ! DIST Block
     call dist_generateDist
@@ -976,6 +974,7 @@ program maincr
     ! Restart from fort.13
     call readFort13
     call part_updatePartEnergy(1,.false.)
+    call part_setParticleID
   else
     ! Generated from INIT Distribution Block
     do ia=1,napx,2
@@ -1047,6 +1046,7 @@ program maincr
       end if
     end do
     call part_applyClosedOrbit
+    call part_setParticleID
   end if
 
   do ia=1,napx,2
@@ -1320,8 +1320,8 @@ program maincr
 
   ! If CR we have to worry about turns printed in fort.6
   ! If lost should be OK, otherwise we need to use nnuml instead
-  ! of the numl in numxv/nnumxv???? Eric.
-  ! where we reset [n]numxv to nnuml UNLESS particle lost
+  ! of the numl in numxv???? Eric.
+  ! where we reset numxv to nnuml UNLESS particle lost
   ! Now we shall try using that fix at start of tracking
   write(lout,"(a)") str_divLine
   write(lout,"(a)") ""
@@ -1349,38 +1349,44 @@ program maincr
   write(lout,"(a)") "    PARTICLE SUMMARY:"
   write(lout,"(a)") ""
 
-  do ia=1,napxo,2
-    ie=ia+1
+  do ip=1,(napxo+1)/2
+    ia = pairMap(1,ip)
+    ie = pairMap(2,ip)
+
+    if(ia == 0 .or. ie == 0) then
+      write(lout,"(a,i0,a)") "MAINCR> WARNING Particle pair ",ip," is missing one or more particles"
+    end if
+
     napxto = napxto+numxv(ia)+numxv(ie)
 
     if(pstop(ia).and.pstop(ie)) then !-- BOTH PARTICLES LOST
-      write(lout,10000) ia,izu0,dpsv(ia),numxv(ia),abs(xv1(ia)),aperv(ia,1),abs(xv2(ia)),aperv(ia,2)
-      write(lout,10000) ie,izu0,dpsv(ia),numxv(ie),abs(xv1(ie)),aperv(ie,1),abs(xv2(ie)),aperv(ie,2)
+      write(lout,10000) partID(ia),izu0,dpsv(ia),numxv(ia),abs(xv1(ia)),aperv(1,ia),abs(xv2(ia)),aperv(2,ia)
+      write(lout,10000) partID(ie),izu0,dpsv(ia),numxv(ie),abs(xv1(ie)),aperv(1,ie),abs(xv2(ie)),aperv(2,ie)
     end if
 
     if(.not.pstop(ia).and.pstop(ie)) then !-- SECOND PARTICLE LOST
       if(st_quiet == 0) then
-        write(lout,10240) ia,izu0,dpsv(ia),numxv(ia)
+        write(lout,10240) partID(ia),izu0,dpsv(ia),numxv(ia)
       else if(st_quiet == 1) then
-        write(lout,10241) ia,izu0,dpsv(ia),numxv(ia)
+        write(lout,10241) partID(ia),izu0,dpsv(ia),numxv(ia)
       end if
-      write(lout,10000) ie,izu0,dpsv(ia),numxv(ie),abs(xv1(ie)),aperv(ie,1),abs(xv2(ie)),aperv(ie,2)
+      write(lout,10000) partID(ie),izu0,dpsv(ia),numxv(ie),abs(xv1(ie)),aperv(1,ie),abs(xv2(ie)),aperv(2,ie)
     end if
 
     if(pstop(ia).and..not.pstop(ie)) then !-- FIRST PARTICLE LOST
-      write(lout,10000) ia,izu0,dpsv(ia),numxv(ia),abs(xv1(ia)),aperv(ia,1),abs(xv2(ia)),aperv(ia,2)
+      write(lout,10000) partID(ia),izu0,dpsv(ia),numxv(ia),abs(xv1(ia)),aperv(1,ia),abs(xv2(ia)),aperv(2,ia)
       if(st_quiet == 0) then
-        write(lout,10240) ie,izu0,dpsv(ia),numxv(ie)
+        write(lout,10240) partID(ie),izu0,dpsv(ia),numxv(ie)
       else if(st_quiet == 1) then
-        write(lout,10241) ie,izu0,dpsv(ia),numxv(ie)
+        write(lout,10241) partID(ie),izu0,dpsv(ia),numxv(ie)
       end if
     end if
 
     if(.not.pstop(ia).and..not.pstop(ie)) then !-- BOTH PARTICLES STABLE
       if(st_quiet == 0) then
-        write(lout,10270) ia,ie,izu0,dpsv(ia),numxv(ia)
+        write(lout,10270) partID(ia),partID(ie),izu0,dpsv(ia),numxv(ia)
       else if(st_quiet == 1) then
-        write(lout,10271) ia,ie,izu0,dpsv(ia),numxv(ia)
+        write(lout,10271) partID(ia),partID(ie),izu0,dpsv(ia),numxv(ia)
       end if
     end if
 

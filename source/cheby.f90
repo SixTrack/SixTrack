@@ -26,7 +26,7 @@ module cheby
   real(kind=fPrec), allocatable, save :: cheby_offset_y(:)    ! ver. offset [mm] (optional)
   real(kind=fPrec), allocatable, save :: cheby_I(:)           ! actual powering of lens [A] (optional)
   real(kind=fPrec), allocatable, save :: cheby_scalingFact(:) ! scaling factor [] (computed internally)
-  
+
   ! show map
   integer,          allocatable, save :: cheby_iLens(:)       ! lens for which a map echo is requested
   character(len=:), allocatable, save :: cheby_mapFileName(:) ! file name
@@ -112,7 +112,7 @@ subroutine cheby_parseInputLine(inLine, iLine, iErr)
   character(len=*), intent(in)    :: inLine
   integer,          intent(in)    :: iLine
   logical,          intent(inout) :: iErr
-  
+
   character(len=:), allocatable   :: lnSplit(:)
   character(len=mStrLen) tmpch
   integer nSplit, iElem, j, chIdx, tmpi1
@@ -134,7 +134,7 @@ subroutine cheby_parseInputLine(inLine, iLine, iErr)
       iErr = .true.
       return
     end if
-   
+
     iElem = -1
     tmpch = trim(lnSplit(2))
     do j=1,nele
@@ -176,7 +176,7 @@ subroutine cheby_parseInputLine(inLine, iLine, iErr)
       call chr_cast(lnSplit(8),cheby_mapYmax(ncheby_mapEchoes),iErr)
       call chr_cast(lnSplit(9),cheby_mapNy  (ncheby_mapEchoes),iErr)
     end if
-    
+
     if(st_debug) then
       call sixin_echoVal("name",trim(bez(iElem)),                              "CHEBY",iLine)
       call sixin_echoVal("filename", trim(cheby_mapFileName(ncheby_mapEchoes)),"CHEBY",iLine)
@@ -187,15 +187,15 @@ subroutine cheby_parseInputLine(inLine, iLine, iErr)
       call sixin_echoVal("ymin [mm]",cheby_mapYmax(ncheby_mapEchoes),          "CHEBY",iLine)
       call sixin_echoVal("Ny     []",cheby_mapNy  (ncheby_mapEchoes),          "CHEBY",iLine)
     end if
-     
+
   case default
-  
+
     if(nSplit < 2) then
       write(lerr,"(a,i0)") "CHEBY> ERROR Expected at least 2 input parameters, got ",nSplit
       iErr = .true.
       return
     end if
-   
+
     iElem = -1
     tmpch = trim(lnSplit(1))
     do j=1,nele
@@ -209,7 +209,7 @@ subroutine cheby_parseInputLine(inLine, iLine, iErr)
       iErr = .true.
       return
     end if
-  
+
     if(kz(iElem) /= cheby_kz) then
       write(lerr,"(3(a,i0))") "CHEBY> ERROR Element type is kz(",iElem,") = ",kz(iElem)," != ",cheby_kz
       iErr = .true.
@@ -224,7 +224,7 @@ subroutine cheby_parseInputLine(inLine, iLine, iErr)
       iErr = .true.
       return
     end if
-  
+
     if(icheby(iElem) /= 0) then
       write(lerr,"(a)") "CHEBY> ERROR The element '"//trim(bez(iElem))//"' was defined twice."
       iErr = .true.
@@ -233,7 +233,7 @@ subroutine cheby_parseInputLine(inLine, iLine, iErr)
     ncheby = ncheby+1
     call cheby_expand_arrays_lenses(ncheby)
     icheby(iElem) = ncheby
-  
+
     ! File with Chebyshev polynomials
     tmpch = trim(lnSplit(2))
     ! Check if profile has already been requested:
@@ -252,7 +252,7 @@ subroutine cheby_parseInputLine(inLine, iLine, iErr)
       cheby_itable(icheby(iElem)) = ncheby_tables
       cheby_filename(tmpi1) = tmpch
     end if
-  
+
     ! Additional geometrical infos:
     if(nSplit >= 3) call chr_cast(lnSplit(3),cheby_r2(icheby(iElem)),iErr)
     if(nSplit >= 4) call chr_cast(lnSplit(4),cheby_r1(icheby(iElem)),iErr)
@@ -260,7 +260,7 @@ subroutine cheby_parseInputLine(inLine, iLine, iErr)
     if(nSplit >= 6) call chr_cast(lnSplit(6),cheby_offset_x(icheby(iElem)),iErr)
     if(nSplit >= 7) call chr_cast(lnSplit(7),cheby_offset_y(icheby(iElem)),iErr)
     if(nSplit >= 8) call chr_cast(lnSplit(8),cheby_I(icheby(iElem)),iErr)
-  
+
     if(st_debug) then
       call sixin_echoVal("name",    trim(bez(iElem)),                                   "CHEBY",iLine)
       call sixin_echoVal("filename",trim(cheby_filename(cheby_itable(icheby(iElem)))),  "CHEBY",iLine)
@@ -296,7 +296,7 @@ subroutine cheby_postInput
   integer ii, jj, kk, ncheb
   logical exist
   real(kind=fPrec) tmpFlt
-  
+
   ! Check that all chebyshev lenses in fort.2 have a corresponding declaration in fort.3
   ncheb=0
   do jj=1,nele
@@ -329,14 +329,14 @@ subroutine cheby_postInput
 
   ! finalise setting-up of chebyshev lenses
   do jj=1,ncheby
-     
+
     ! find name, to get ready for error messages
     do kk=1,nele
       if(kz(kk) == cheby_kz .and. icheby(kk) == jj ) then
         exit
       end if
     end do
-   
+
     ! some checks and further post-processing of declared lines
     if (cheby_r2(jj)<=zero) cheby_r2(jj)=cheby_refR(cheby_itable(jj))
     if (cheby_r1(jj)<=zero) cheby_r1(jj)=zero
@@ -350,18 +350,18 @@ subroutine cheby_postInput
       write(lerr,"(a)")      "CHEBY> ERROR R2 cannot be larger than domain of Chebyshev polynomials!"
       write(lerr,"(a,1pe22.15,a,1pe22.15)") "CHEBY>       R2 [mm]: ",cheby_r2(jj), &
            " - reference radius [mm]:",cheby_refR(cheby_itable(jj))
-      goto 10 
+      goto 10
     end if
     if (cheby_r1(jj)<zero) then
       write(lerr,"(a)")      "CHEBY> ERROR R1 cannot be lower than zero!"
-      goto 10 
+      goto 10
     end if
     if (cheby_I (jj)<=zero) then
       cheby_I (jj)=cheby_refI(cheby_itable(jj))
     else
       call cheby_setScaleKick(jj)
     end if
-   
+
     ! checks on maps
     do ii=1,ncheby_mapEchoes
       if ( cheby_iLens(ii) .eq. jj) then
@@ -375,12 +375,12 @@ subroutine cheby_postInput
           write(lerr,"(a)")                     "CHEBY> ERROR X-extremes for map coincide!"
           write(lerr,"(a,1pe22.15,a,1pe22.15)") "CHEBY>       xmin [mm]: ",cheby_mapXmin(ii), &
                                                           " - xmax [mm]: ",cheby_mapXmax(ii)
-          goto 10 
+          goto 10
         end if
         if (cheby_mapNx(ii)<1) then
           write(lerr,"(a)")    "CHEBY> ERROR wrong X-stepping for map!"
           write(lerr,"(a,i0)") "CHEBY>       must be >0 - got: ",cheby_mapNx(ii)
-          goto 10 
+          goto 10
         end if
         if (cheby_mapYmax(ii)<cheby_mapYmin(ii)) then
           ! swap
@@ -392,16 +392,16 @@ subroutine cheby_postInput
           write(lerr,"(a)")                     "CHEBY> ERROR Y-extremes for map coincide!"
           write(lerr,"(a,1pe22.15,a,1pe22.15)") "CHEBY>       ymin [mm]: ",cheby_mapYmin(ii), &
                                                           " - ymax [mm]: ",cheby_mapYmax(ii)
-          goto 10 
+          goto 10
         end if
         if (cheby_mapNy(ii)<1) then
           write(lerr,"(a)")    "CHEBY> ERROR wrong Y-stepping for map!"
           write(lerr,"(a,i0)") "CHEBY>       must be >0 - got: ",cheby_mapNy(ii)
-          goto 10 
+          goto 10
         end if
       end if
     end do
-      
+
     if(st_quiet < 2) then
       write(lout,"(a)") ''
       write(lout,"(a,i0,a)")       "CHEBY> status of chebyshev lens #",jj," - name: '"//trim(bez(kk))//"'"
@@ -428,13 +428,13 @@ subroutine cheby_postInput
       end do
     end if
   end do
- 
+
   return
 
 10 continue
    write(lout,"(a,i0,a)") "CHEBY>       concerned lens #", jj," - name: '"//trim(bez(kk))//"'"
    call prror
-   
+
 end subroutine cheby_postInput
 
 
@@ -611,7 +611,7 @@ subroutine cheby_kick(i,ix,n)
   integer, intent(in) :: i
   integer, intent(in) :: ix
   integer, intent(in) :: n
-  
+
   real(kind=fPrec) xx, yy, rr, dxp, dyp
   real(kind=fPrec) theta, radio, angle_rad
   integer          jj
@@ -630,7 +630,7 @@ subroutine cheby_kick(i,ix,n)
     ! check that particle is within the domain of chebyshev polynomials
     rr=sqrt(xx**2+yy**2)
     if (rr.gt.cheby_r1(icheby(ix)).and.rr.lt.cheby_r2(icheby(ix))) then ! rr<r1 || rr>=r2 -> no kick from lens
-      
+
       ! in case of non-zero tilt angle, rotate coordinates
       if (lrotate) then
         theta = atan2_mb(yy, xx)-angle_rad
@@ -647,12 +647,12 @@ subroutine cheby_kick(i,ix,n)
         dxp = radio * cos_mb(theta)
         dyp = radio * sin_mb(theta)
       end if
-     
+
       ! take into account scaling factor, Brho of beam and its relativistic beta,
       !    and magnetic rigidity and relativistic beta of particle being tracked
       dxp=(((dxp*cheby_scalingFact(icheby(ix)))/(brho*(clight*beta0)))*moidpsv(jj))*rvv(jj)
       dyp=(((dyp*cheby_scalingFact(icheby(ix)))/(brho*(clight*beta0)))*moidpsv(jj))*rvv(jj)
-      
+
       ! apply kicks
       yv1(jj)=yv1(jj)+dxp
       yv2(jj)=yv2(jj)+dyp
@@ -676,7 +676,7 @@ subroutine cheby_potentialMap(iLens,ix)
 
   integer, intent(in) :: iLens
   integer, intent(in) :: ix
-  
+
   real(kind=fPrec) xx, yy, rr, zz, dx, dy, xxr, yyr, xxn, yyn
   real(kind=fPrec) theta, radio, angle_rad
   integer          ii, jj, inside, fUnit
@@ -689,7 +689,7 @@ subroutine cheby_potentialMap(iLens,ix)
     write(lerr,"(a)") "CHEBY> ERROR Failed to open file."
     call prror
   end if
- 
+
   ! rotation angle
   lrotate = cheby_angle(iLens).ne.zero
   angle_rad = (cheby_angle(iLens)/c180e0)*pi
@@ -714,13 +714,13 @@ subroutine cheby_potentialMap(iLens,ix)
   write(fUnit,"('# ',a,1pe22.15)") "ymax              [mm]: ",cheby_mapYmax(iLens)
   write(fUnit,"('# ',a,i0)")       "Ny                  []: ",cheby_mapNy  (iLens)
   write(fUnit,"('# ',a)") "x [mm], y [mm], x_map [mm], y_map [mm], V [V m], inside [0:False,1:True]"
-  
+
   ! get map
   do jj=0,cheby_mapNy(iLens)
     yy=cheby_mapYmin(iLens)+(real(jj,fPrec)*dy) ! mesh coordinate
     if (jj==cheby_mapNy(iLens)) yy=cheby_mapYmax(iLens)
     yyr=yy-cheby_offset_y(iLens)  ! point in ref sys of Cheby map
-     
+
     do ii=0,cheby_mapNx(iLens)
       xx=cheby_mapXmin(iLens)+(real(ii,fPrec)*dx) ! mesh coordinate
       if (ii==cheby_mapNx(iLens)) xx=cheby_mapXmax(iLens)
@@ -743,12 +743,12 @@ subroutine cheby_potentialMap(iLens,ix)
       ! compute kick from cheby map
       call cheby_getPotential( xxn, yyn, zz, cheby_itable(iLens) )
       write(fUnit,'(5(1X,1pe22.15),1X,i0)') xx, yy, xxn, yyn, zz, inside
-        
+
     end do
   end do
 
   call f_freeUnit(fUnit)
-  
+
 end subroutine cheby_potentialMap
 
 
@@ -858,11 +858,11 @@ subroutine cheby_setScaleKick( iCheby )
   ! A. Mereghetti (CERN, BE-ABP-HSS)
   ! last modified: 05-03-2019
   ! compute scaling factor for chebyshev lenses
-  
+
   ! interface vars
   integer, intent(in) :: iCheby
   cheby_scalingFact(iCheby)=cheby_I(iCheby)/cheby_refI(cheby_itable(iCheby))
 
 end subroutine cheby_setScaleKick
-  
+
 end module cheby

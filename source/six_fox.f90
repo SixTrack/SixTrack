@@ -96,7 +96,7 @@ subroutine umlauda
   i4(9,2)=4
   i4(10,1)=4
   i4(10,2)=4
-  e0f=sqrt(e0**2-nucm0**2)                                             !hr05
+  e0f=sqrt(e0**2-nucm0**2)
   betr0=sqrt(one-(nucm0/e0)**2)
   ox=xxtr(1,1)
   oxp=yytr(1,1)
@@ -194,7 +194,7 @@ subroutine umlauda
       if(abs(emitz).le.pieni) then
         emitz=zero
       else
-        emitz=((sigz**2/emitz)*half)*c1e6                            !hr05
+        emitz=((sigz**2/emitz)*half)*c1e6
       endif
     endif
     jj(5)=1
@@ -689,19 +689,19 @@ subroutine umlauda
           sfac1=bbcu(ibb,1)+bbcu(ibb,2)
           sfac2=bbcu(ibb,1)-bbcu(ibb,2)
           sfac2s=one
-          if(sfac2.lt.zero) sfac2s=-one                            !hr08
-          sfac3=sqrt(sfac2**2+(four*bbcu(ibb,3))*bbcu(ibb,3))          !hr03
+          if(sfac2.lt.zero) sfac2s=-one
+          sfac3=sqrt(sfac2**2+(four*bbcu(ibb,3))*bbcu(ibb,3))
           if(sfac3 > sfac1) then
             write(lerr,"(a)") "UMLAUDA> ERROR 6D beam-beam with tilt not possible."
             call prror
           end if
-          sfac4=(sfac2s*sfac2)/sfac3                                   !hr03
-          sfac5=(((-one*sfac2s)*two)*bbcu(ibb,3))/sfac3                !hr03
-          sigman(1,ibb)=sqrt(((sfac1+sfac2*sfac4)+(two*bbcu(ibb,3))*sfac5)*half)    !hr03
-          sigman(2,ibb)=sqrt(((sfac1-sfac2*sfac4)-(two*bbcu(ibb,3))*sfac5)*half)    !hr03
+          sfac4=(sfac2s*sfac2)/sfac3
+          sfac5=(((-one*sfac2s)*two)*bbcu(ibb,3))/sfac3
+          sigman(1,ibb)=sqrt(((sfac1+sfac2*sfac4)+(two*bbcu(ibb,3))*sfac5)*half)
+          sigman(2,ibb)=sqrt(((sfac1-sfac2*sfac4)-(two*bbcu(ibb,3))*sfac5)*half)
           bbcu(ibb,11)=sqrt(half*(one+sfac4))
-          bbcu(ibb,12)=(-one*sfac2s)*sqrt(half*(one-sfac4))            !hr03
-          if(bbcu(ibb,3).lt.zero) bbcu(ibb,12)=-one*bbcu(ibb,12)       !hr03
+          bbcu(ibb,12)=(-one*sfac2s)*sqrt(half*(one-sfac4))
+          if(bbcu(ibb,3).lt.zero) bbcu(ibb,12)=-one*bbcu(ibb,12)
         else
           bbcu(ibb,11)=one
           sigman(1,ibb)=sqrt(bbcu(ibb,1))
@@ -716,7 +716,7 @@ subroutine umlauda
       goto 440
     endif
     if(kzz.eq.20.and.iqmodc.eq.4) goto 440
-    if(kzz.eq.20.and.parbe(ix,2).eq.zero) then                        !hr12
+    if(kzz.eq.20.and.parbe(ix,2).eq.zero) then
       if(nbeam.ge.1) then
         if(ilinc.eq.0) then
           clobeam(1,imbb(i))=dare(x(1))
@@ -737,12 +737,12 @@ subroutine umlauda
               crk=parbe(ix,5)*bbcu(imbb(i),11) + parbe(ix,6)*bbcu(imbb(i),12)
               cik=parbe(ix,6)*bbcu(imbb(i),11) - parbe(ix,5)*bbcu(imbb(i),12)
             endif
-            rho2b=crk**2+cik**2                                          !hr03
+            rho2b=crk**2+cik**2
             if(rho2b.gt.pieni) then
               if(abs(sigman(1,imbb(i))).lt.pieni) goto 9088
-              tkb=rho2b/((two*sigman(1,imbb(i)))*sigman(1,imbb(i)))        !hr03
-              beamoff4=(((crad*ptnfac(ix))*crk)/rho2b)*(one-exp_mb(-one*tkb)) !hr03
-              beamoff5=(((crad*ptnfac(ix))*cik)/rho2b)*(one-exp_mb(-one*tkb)) !hr03
+              tkb=rho2b/((two*sigman(1,imbb(i)))*sigman(1,imbb(i)))
+              beamoff4=(((crad*ptnfac(ix))*crk)/rho2b)*(one-exp_mb(-one*tkb))
+              beamoff5=(((crad*ptnfac(ix))*cik)/rho2b)*(one-exp_mb(-one*tkb))
             endif
           endif
 #include "include/beamcof.f90"
@@ -771,9 +771,9 @@ subroutine umlauda
         else if(sigman(1,imbb(i)).gt.sigman(2,imbb(i))) then
           if(ibeco.eq.1) then
             if(abs(sigman(1,imbb(i))).lt.pieni.or.abs(sigman(2,imbb(i))).lt.pieni) goto 9088
-            r2b=two*(sigman(1,imbb(i))**2-sigman(2,imbb(i))**2) !hr08
+            r2b=two*(sigman(1,imbb(i))**2-sigman(2,imbb(i))**2)
             rb=sqrt(r2b)
-            rkb=((crad*ptnfac(ix))*pisqrt)/rb                            !hr03
+            rkb=((crad*ptnfac(ix))*pisqrt)/rb
             if(ibbc.eq.0) then
               crk=parbe(ix,5)
               cik=parbe(ix,6)
@@ -785,17 +785,17 @@ subroutine umlauda
             zrb=abs(cik)/rb
             call errf(xrb,zrb,crxb,crzb)
             if(abs(sigman(1,imbb(i))).lt.pieni.or.abs(sigman(2,imbb(i))).lt.pieni) goto 9088
-            tkb=(crk**2/sigman(1,imbb(i))**2+cik**2/sigman(2,imbb(i))**2)*half  !hr03
-            xbb=(sigman(2,imbb(i))/sigman(1,imbb(i)))*xrb                !hr03
-            zbb=(sigman(1,imbb(i))/sigman(2,imbb(i)))*zrb                !hr03
+            tkb=(crk**2/sigman(1,imbb(i))**2+cik**2/sigman(2,imbb(i))**2)*half
+            xbb=(sigman(2,imbb(i))/sigman(1,imbb(i)))*xrb
+            zbb=(sigman(1,imbb(i))/sigman(2,imbb(i)))*zrb
             call errf(xbb,zbb,cbxb,cbzb)
             beamoff4=(rkb*(crzb-exp_mb(-one*tkb)*cbzb))*sign(one,crk)
             beamoff5=(rkb*(crxb-exp_mb(-one*tkb)*cbxb))*sign(one,cik)
           endif
           if(abs(sigman(1,imbb(i))).lt.pieni.or.abs(sigman(2,imbb(i))).lt.pieni) goto 9088
-          r2bf=two*(sigman(1,imbb(i))**2-sigman(2,imbb(i))**2) !hr08
+          r2bf=two*(sigman(1,imbb(i))**2-sigman(2,imbb(i))**2)
           rbf=sqrt(r2bf)
-          rkbf=((crad*ptnfac(ix))*pisqrt)/rbf                          !hr03
+          rkbf=((crad*ptnfac(ix))*pisqrt)/rbf
 #include "include/beamcof.f90"
 !FOX  XRBF=CRKVEBF/RBF ;
             if(dare(xrbf).lt.zero) then
@@ -834,9 +834,9 @@ subroutine umlauda
         else if(sigman(1,imbb(i)).lt.sigman(2,imbb(i))) then
           if(ibeco.eq.1) then
             if(abs(sigman(1,imbb(i))).lt.pieni.or.abs(sigman(2,imbb(i))).lt.pieni) goto 9088
-            r2b=two*(sigman(2,imbb(i))**2-sigman(1,imbb(i))**2)   !hr08
+            r2b=two*(sigman(2,imbb(i))**2-sigman(1,imbb(i))**2)
             rb=sqrt(r2b)
-            rkb=((crad*ptnfac(ix))*pisqrt)/rb                            !hr03
+            rkb=((crad*ptnfac(ix))*pisqrt)/rb
             if(ibbc.eq.0) then
               crk=parbe(ix,5)
               cik=parbe(ix,6)
@@ -848,17 +848,17 @@ subroutine umlauda
             zrb=abs(cik)/rb
             call errf(zrb,xrb,crzb,crxb)
             if(abs(sigman(1,imbb(i))).lt.pieni.or.abs(sigman(2,imbb(i))).lt.pieni) goto 9088
-            tkb=(crk**2/sigman(1,imbb(i))**2+cik**2/sigman(2,imbb(i))**2)*half  !hr03
-            xbb=(sigman(2,imbb(i))/sigman(1,imbb(i)))*xrb                !hr03
-            zbb=(sigman(1,imbb(i))/sigman(2,imbb(i)))*zrb                !hr03
+            tkb=(crk**2/sigman(1,imbb(i))**2+cik**2/sigman(2,imbb(i))**2)*half
+            xbb=(sigman(2,imbb(i))/sigman(1,imbb(i)))*xrb
+            zbb=(sigman(1,imbb(i))/sigman(2,imbb(i)))*zrb
             call errf(zbb,xbb,cbzb,cbxb)
             beamoff4=(rkb*(crzb-exp_mb(-one*tkb)*cbzb))*sign(one,crk)
             beamoff5=(rkb*(crxb-exp_mb(-one*tkb)*cbxb))*sign(one,cik)
           endif
           if(abs(sigman(1,imbb(i))).lt.pieni.or.abs(sigman(2,imbb(i))).lt.pieni) goto 9088
-          r2bf=two*(sigman(2,imbb(i))**2-sigman(1,imbb(i))**2) !hr08
+          r2bf=two*(sigman(2,imbb(i))**2-sigman(1,imbb(i))**2)
           rbf=sqrt(r2bf)
-          rkbf=((crad*ptnfac(ix))*pisqrt)/rbf                          !hr03
+          rkbf=((crad*ptnfac(ix))*pisqrt)/rbf
 #include "include/beamcof.f90"
 !FOX  XRBF=CRKVEBF/RBF ;
             if(dare(xrbf).lt.zero) then
@@ -899,7 +899,7 @@ subroutine umlauda
       endif
       goto 440
     endif
-    if(kzz.eq.20.and.parbe(ix,2).gt.zero) then                        !hr12
+    if(kzz.eq.20.and.parbe(ix,2).gt.zero) then
       if(ilinc.eq.0)then
         clobeam(1,imbb(i))=dare(x(1))
         clobeam(2,imbb(i))=dare(x(2))
@@ -1531,8 +1531,8 @@ subroutine umlauda
       call prror
     end if
     corr(2,1)=coefv2/det1
-    corr(2,2)=(-one*coefh2)/det1                                     !hr05
-    corr(3,1)=(-one*coefv1)/det1                                     !hr05
+    corr(2,2)=(-one*coefh2)/det1
+    corr(3,1)=(-one*coefv1)/det1
     corr(3,2)=coefh1/det1
   endif
   if(ichromc.eq.1) then
@@ -1555,8 +1555,8 @@ subroutine umlauda
       call prror
     end if
     corr(2,1)=coefv2/det1
-    corr(2,2)=(-one*coefh2)/det1                                     !hr05
-    corr(3,1)=(-one*coefv1)/det1                                     !hr05
+    corr(2,2)=(-one*coefh2)/det1
+    corr(3,1)=(-one*coefv1)/det1
     corr(3,2)=coefh1/det1
   endif
 470  continue
@@ -1776,7 +1776,7 @@ subroutine envada
         goto 70
       end if
       if(abs(ed(i)).le.pieni) goto 100
-      if(abs(ek(i)-ed(i)**2).le.pieni) goto 20                         !hr08
+      if(abs(ek(i)-ed(i)**2).le.pieni) goto 20
 !FOX  WF=ED(I)/DPSQ ;
 !FOX  FOK=FOKQ/DPD-WF*WF ;
 !FOX  AFOK=FOK ;
@@ -2260,14 +2260,14 @@ call comt_daStart
 !      if(dare(y).eq.0.) then
 !!FOX    WX=EXP(-X*X) ;
 !      endif
-  if(dare(yy).lt.0.d0) then                                          !hr05
+  if(dare(yy).lt.0.d0) then
 !FOX    WX=TWO*EXP(Y*Y-X*X)*COS(TWO*X*Y)-WX ;
 !FOX    WY=-TWO*EXP(Y*Y-X*X)*SIN(TWO*X*Y)-WY ;
-    if(dare(xx).gt.0.d0) then                                        !hr05
+    if(dare(xx).gt.0.d0) then
 !FOX      WY=-WY ;
     endif
   else
-    if(dare(xx).lt.0.d0) then                                        !hr05
+    if(dare(xx).lt.0.d0) then
 !FOX      WY=-WY ;
     endif
   endif
@@ -2623,7 +2623,7 @@ subroutine clorda(nn,idummy,am)
     do l=1,ndimf
       ll=2*l
       write(lout,10060) chp(l),cloc(ll-1),cloc(ll)
-      cor=cor+dc(ll-1)**2                                            !hr06
+      cor=cor+dc(ll-1)**2
     enddo
     cor=sqrt(cor)
     if(ii.eq.1.or.cor.lt.coro) then
@@ -2660,7 +2660,7 @@ subroutine clorda(nn,idummy,am)
     do l=1,ndimf
       ll=2*l
       write(lout,10060) chp(l),cloc(ll-1),cloc(ll)
-      cor=cor+dc(ll-1)**2                                            !hr06
+      cor=cor+dc(ll-1)**2
     enddo
     cor=sqrt(cor)
     if(cor.lt.coro) then
@@ -2723,7 +2723,7 @@ subroutine clorda(nn,idummy,am)
   do l=1,ndimf
     ll=2*l
     write(lout,10070) chp(l),cloc(ll-1),cloc(ll),chd(l),dc(ll-1),dc(ll)
-    cor=cor+dc(ll-1)**2                                              !hr06
+    cor=cor+dc(ll-1)**2
   enddo
   cor=sqrt(cor)
   write(lout,10080) ii,cor
