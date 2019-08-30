@@ -2167,6 +2167,7 @@ end subroutine synoda
 !   WX, WY    (REAL)    FUNCTION RESULT.                               *
 !----------------------------------------------------------------------*
 subroutine errff(xx,yy,wx,wy)
+
   use floatPrecision
   use mathlib_bouncer
   use numerical_constants
@@ -2177,14 +2178,17 @@ subroutine errff(xx,yy,wx,wy)
   use mod_common_track, only : xxtr,yytr,crois,comt_daStart,comt_daEnd
   use mod_common_da
   use mod_lie_dab, only : idao,iscrri,rscrri,iscrda
+
   implicit none
+
   integer n,n1,nc,nuu,nuu1,idaa
   real(kind=fPrec) dare,dum
   real(kind=fPrec), parameter :: cc   = 1.12837916709551_fPrec ! FIXME: Should use two/pisqrt
   real(kind=fPrec), parameter :: xlim = 5.33_fPrec
   real(kind=fPrec), parameter :: ylim = 4.29_fPrec
-  save
-!-----------------------------------------------------------------------
+
+  save ! The save keyword is needed in this routine
+
 !FOX  B D ;
 !FOX  D V DA EXT XX NORD NVAR ; D V DA EXT YY NORD NVAR ;
 !FOX  D V DA EXT WX NORD NVAR ; D V DA EXT WY NORD NVAR ;
@@ -2204,19 +2208,20 @@ subroutine errff(xx,yy,wx,wy)
 !FOX  D F RE DARE 1 ;
 !FOX  E D ;
 !FOX  1 if(1.eq.1) then
-call comt_daStart
-!-----------------------------------------------------------------------
+
+  call comt_daStart
+
 !FOX  X=XX ;
 !FOX  Y=YY ;
-  if(dare(x).lt.zero) then
+  if(dare(x) < zero) then
     write(lout,"(a)") "ERRFF> Problem in DA complex error function: dare(x) < 0"
 !FOX    X=-X ;
-  endif
-  if(dare(y).lt.zero) then
+  end if
+  if(dare(y) < zero) then
     write(lout,"(a)") "ERRFF> Problem in DA complex error function: dare(y) < 0"
 !FOX    Y=-Y ;
-  endif
-  if(dare(y).lt.ylim.and.dare(x).lt.xlim) then
+  end if
+  if(dare(y) < ylim .and. dare(x) < xlim) then
 !FOX    Q=(ONE-Y/YLIM)*SQRT(ONE-X*X/XLIM/XLIM) ;
 !FOX    DUM=3.2D0 ;
 !FOX    H=ONE/(DUM*Q) ;
@@ -2228,22 +2233,22 @@ call comt_daStart
     nuu1=nuu+1
 !FOX    RX(NUU1)=ZERO ;
 !FOX    RY(NUU1)=ZERO ;
-    do 10 n=nuu,1,-1
+    do n=nuu,1,-1
       n1=n+1
 !FOX      TX=XH+N*RX(N1) ;
 !FOX      TY=YH-N*RY(N1) ;
 !FOX      TN=TX*TX+TY*TY ;
 !FOX      RX(N)=HALF*TX/TN ;
 !FOX      RY(N)=HALF*TY/TN ;
-10   continue
+    end do
 !FOX    SX=ZERO ;
 !FOX    SY=ZERO ;
-    do 20 n=nc,1,-1
+    do n=nc,1,-1
 !FOX      SAUX=SX+XL ;
 !FOX      SX=RX(N)*SAUX-RY(N)*SY ;
 !FOX      SY=RX(N)*SY+RY(N)*SAUX ;
 !FOX      XL=H*XL ;
-20   continue
+    end do
 !FOX    WX=CC*SX ;
 !FOX    WY=CC*SY ;
   else
@@ -2251,34 +2256,34 @@ call comt_daStart
 !FOX    YH=X ;
 !FOX    RX(1)=ZERO ;
 !FOX    RY(1)=ZERO ;
-    do 30 n=9,1,-1
+    do n=9,1,-1
 !FOX      TX=XH+N*RX(1) ;
 !FOX      TY=YH-N*RY(1) ;
 !FOX      TN=TX*TX+TY*TY ;
 !FOX      RX(1)=HALF*TX/TN ;
 !FOX      RY(1)=HALF*TY/TN ;
-30   continue
+    end do
 !FOX    WX=CC*RX(1) ;
 !FOX    WY=CC*RY(1) ;
-  endif
+  end if
 !      if(dare(y).eq.0.) then
 !!FOX    WX=EXP(-X*X) ;
 !      endif
-  if(dare(yy).lt.0.d0) then
+  if(dare(yy) < zero) then
 !FOX    WX=TWO*EXP(Y*Y-X*X)*COS(TWO*X*Y)-WX ;
 !FOX    WY=-TWO*EXP(Y*Y-X*X)*SIN(TWO*X*Y)-WY ;
-    if(dare(xx).gt.0.d0) then
+    if(dare(xx) > zero) then
 !FOX      WY=-WY ;
-    endif
+    end if
   else
-    if(dare(xx).lt.0.d0) then
+    if(dare(xx) < zero) then
 !FOX      WY=-WY ;
-    endif
+    end if
   endif
 ! Do not remove or modify the comment below.
 !     DADAL AUTOMATIC INCLUSION
   call comt_daEnd
-  return
+
 end subroutine errff
 
 !-----------------------------------------------------------------------
