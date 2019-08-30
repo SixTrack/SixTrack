@@ -290,6 +290,7 @@ list(APPEND FORT90_LIB
   coll_crystal
   coll_db
   coll_dist
+  coll_jawfit
   collimation
   common_modules
   constants

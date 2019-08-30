@@ -439,16 +439,15 @@ subroutine trauthin(nthinerr)
   if (dynk_enabled) call dynk_pretrack
   call time_timeStamp(time_afterPreTrack)
 
-  if ((idp == 0 .or. ition == 0) .and. .not.do_coll) then !4D tracking (not collimat compatible)
+  if((idp == 0 .or. ition == 0) .and. .not.do_coll) then !4D tracking (not collimat compatible)
     write(lout,"(a)") ""
     write(lout,"(a)") "TRACKING> Calling thin4d subroutine"
     write(lout,"(a)") ""
     call thin4d(nthinerr)
   else !6D tracking
-    if(idp == 0 .or. ition == 0) then !Actually 4D, but collimation needs 6D so goto 6D.
+    if(do_coll .and. (idp == 0 .or. ition == 0)) then !Actually 4D, but collimation needs 6D so goto 6D.
       write(lout,"(a)") "TRACKING> WARNING Calling 6D tracking due to collimation! Would normally have called thin4d"
     endif
-
     hsy(3)=(c1m3*hsy(3))*real(ition,fPrec)
     do jj=1,nele
       if(abs(kz(jj)) == 12) then
