@@ -578,8 +578,10 @@ subroutine cdb_readDBSettings
           cdb_cSides(i) = iTemp
         end if
       end do
+      write(lout,"(a,i0,a)") "COLLDB> Collimator family '"//trim(lnSplit(2))//"' is set as onesided (",iTemp,")"
     else
       cdb_cSides(iColl) = iTemp
+      write(lout,"(a,i0,a)") "COLLDB> Collimator '"//trim(lnSplit(2))//"' is set as onesided (",iTemp,")"
     end if
 
   case default
