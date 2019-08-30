@@ -91,6 +91,8 @@ subroutine errf(xx, yy, wx, wy)
   real(kind=fPrec), intent(out) :: wx
   real(kind=fPrec), intent(out) :: wy
 
+! real(kind=fPrec), parameter :: cc   = 1.1283791670955126_fPrec ! FIXME: Should use two/pisqrt
+! real(kind=fPrec), parameter :: cc   = 1.12837916709551_fPrec ! FIXME: Should use two/pisqrt
   real(kind=fPrec), parameter :: cc   = two/pisqrt
   real(kind=fPrec), parameter :: xlim = 5.33_fPrec
   real(kind=fPrec), parameter :: ylim = 4.29_fPrec
