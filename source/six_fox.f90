@@ -2183,7 +2183,7 @@ subroutine errff(xx,yy,wx,wy)
 
   integer n,n1,nc,nuu,nuu1,idaa
   real(kind=fPrec) dare,dum
-  real(kind=fPrec), parameter :: cc   = 1.12837916709551_fPrec ! FIXME: Should use two/pisqrt
+  real(kind=fPrec), parameter :: cc   = two/pisqrt
   real(kind=fPrec), parameter :: xlim = 5.33_fPrec
   real(kind=fPrec), parameter :: ylim = 4.29_fPrec
 
