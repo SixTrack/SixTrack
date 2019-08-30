@@ -1111,14 +1111,12 @@ subroutine aperture_reportLoss(turn, i, ix)
 #else
       if(((partID(j).le.aperture_napxStart) .and. do_coll) .or. .not.do_coll) then
 #endif
-        pstop(partID(j))=.true.
-        ! Record for postpr
-        if(.not.limifound.or.kape(ix).eq.0) then
-          aperv(partID(j),1) = aper(1)
-          aperv(partID(j),2) = aper(2)
+        if(.not.limifound .or. kape(ix) == 0) then
+          aperv(1,j) = aper(1)
+          aperv(2,j) = aper(2)
         else
-          aperv(partID(j),1) = min(ape(1,ix),ape(3,ix))
-          aperv(partID(j),2) = min(ape(2,ix),ape(4,ix))
+          aperv(1,j) = min(ape(1,ix),ape(3,ix))
+          aperv(2,j) = min(ape(2,ix),ape(4,ix))
         end if
         xv1(j)   = xlos(1)
         xv2(j)   = xlos(2)
@@ -1127,8 +1125,10 @@ subroutine aperture_reportLoss(turn, i, ix)
         dpsv(j)  = dpsvlos
         ejv(j)   = ejvlos
         sigmv(j) = sigmvlos
-        numxv(partID(j))   = numx
-        nnumxv(partID(j))  = numx
+        numxv(j) = numx
+
+        ! Record for postpr
+        pstop(j) = .true.
 #ifdef FLUKA
       end if ! partID(j).le.aperture_napxStart
 #else
@@ -1322,14 +1322,14 @@ subroutine contour_FLUKA_markers()
 ! last modified: 22-05-2019
 ! check that aperture is well defined accross a Fluka insertion
   !-----------------------------------------------------------------------
-  
+
   use mod_fluka, only : FLUKA_ENTRY, FLUKA_EXIT, fluka_type, fluka_geo_index
   use parpro, only : nblo
   use mod_common, only : iu, ic
   use mod_common_track, only : ktrack
-  
+
   implicit none
-  
+
   ! temporary variables
   integer i1 , i2
   integer ix1, ix2
@@ -1355,7 +1355,7 @@ subroutine contour_FLUKA_markers()
     endif
     i1 = i1+1
   enddo
-     
+
 end subroutine contour_FLUKA_markers
 #endif
 
@@ -1390,7 +1390,7 @@ subroutine contour_aperture_markers( itElUp, itElDw, lInsUp )
 ! markers accross extremes of lattice structure?
   lAccrossLatticeExtremes=iElUp.gt.iElDw
 #ifdef DEBUG
-  write(lout,*) "check 00: il, iu, iuold, iElUp, iElDw, ic(iElUp)-nblo, ic(iElDw)-nblo", & 
+  write(lout,*) "check 00: il, iu, iuold, iElUp, iElDw, ic(iElUp)-nblo, ic(iElDw)-nblo", &
        il, iu, iuold, iElUp, iElDw, ic(iElUp)-nblo, ic(iElDw)-nblo
   call dumpMe
 #endif
@@ -1411,7 +1411,7 @@ subroutine contour_aperture_markers( itElUp, itElDw, lInsUp )
     end if
   end if
 #ifdef DEBUG
-  write(lout,*) "check 01: il, iu, iuold, iElUp, iElDw, ic(iElUp)-nblo, ic(iElDw)-nblo", & 
+  write(lout,*) "check 01: il, iu, iuold, iElUp, iElDw, ic(iElUp)-nblo, ic(iElDw)-nblo", &
        il, iu, iuold, iElUp, iElDw, ic(iElUp)-nblo, ic(iElDw)-nblo
   call dumpMe
 #endif
@@ -1652,7 +1652,7 @@ subroutine contour_aperture_marker( iEl, lInsUp )
       write(lerr,"(a)") "APER> ERROR in aperture auto assignment."
       call prror
     end if
-!   update bezs array, based    
+!   update bezs array, based
     bezs(iNew)=bez(ic(iNew)-nblo)
   end if
 
@@ -2072,7 +2072,7 @@ subroutine dumpMe
   character(len=mNameLen) tmpC, tmpD
   tmpC="name"
   tmpD="bezs(i)"
-  
+
   write(lout,"(a)") "APER> dumpMe -----------------------------------------------------------------------------"
   write(lout,"(a,2(a8,1x),2(a,1x),a15,1x,a8)") "APER> ","i","ix",tmpC,tmpD,"dcum(i)","kape(ix)"
   do i=1,iu

@@ -841,7 +841,7 @@ subroutine scatter_thin(iElem, ix, turn)
   integer          i, j, k
   integer          tmpSeed1, tmpSeed2
   logical          updateE, autoRatio, isDiff
-  integer          iLost, procID
+  integer          iLost, procID, fixedID
   real(kind=fPrec) t, dEE, dPP, theta, phi
   real(kind=fPrec) elemScale, sigmaTot, ratioTot, crossSection, scatterProb, targetDensity, scRatio, brRatio
 
@@ -950,7 +950,8 @@ subroutine scatter_thin(iElem, ix, turn)
     phi = (2*pi)*rndVals(k+2)
 
     ! If we're scaling the probability with DYNK, update the statistical weight
-    scatter_statScale(partID(j)) = scatter_statScale(partID(j)) / elemScale
+    fixedID = part_getOrigIndex(j)
+    scatter_statScale(fixedID) = scatter_statScale(fixedID) / elemScale
 
     ! Get event
     call scatter_generator_getEvent(idGen,j,t,theta,dEE,dPP,procID,iLost,isDiff)
@@ -991,12 +992,12 @@ subroutine scatter_thin(iElem, ix, turn)
       rRecords(5,nRecords) = dPP
       rRecords(6,nRecords) = targetDensity
       rRecords(7,nRecords) = scatterProb
-      rRecords(8,nRecords) = scatter_statScale(partID(j))
+      rRecords(8,nRecords) = scatter_statScale(fixedID)
     else
 #endif
       write(scatter_logFile,"(2(1x,i8),2(1x,a20),1x,a8,1x,i4,1x,f12.3,1x,f12.6,1x,f9.6,5(1x,1pe16.9))") &
         partID(j), turn, chr_rPadCut(bez(ix),20), chr_rPadCut(scatter_genList(idGen)%genName,20), scatter_procNames(procID), &
-        iLost, t, theta, phi, dEE, dPP, targetDensity, scatterProb, scatter_statScale(partID(j))
+        iLost, t, theta, phi, dEE, dPP, targetDensity, scatterProb, scatter_statScale(fixedID)
 #ifdef CR
       scatter_logFilePos = scatter_logFilePos + 1
 #endif

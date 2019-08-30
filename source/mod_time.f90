@@ -133,7 +133,7 @@ subroutine time_finalise
   nT   = real(numl,fPrec)
   nE   = real(mbloz,fPrec)
   nPT  = real(meta_nPartTurn,fPrec)
-  nPTE = nPT*nE
+  nPTE = real(meta_nPTurnEle,fPrec)
   if(nT > zero) then
     nP = nPT/nT
   else
@@ -316,8 +316,8 @@ subroutine time_crcheck(fileUnit, readErr)
 
 10 continue
   readErr = .true.
-  write(lout, "(a,i0,a)") "SIXTRACR> ERROR Reading C/R file fort.",fileUnit," in TIME"
-  write(crlog,"(a,i0,a)") "SIXTRACR> ERROR Reading C/R file fort.",fileUnit," in TIME"
+  write(lout, "(a,i0,a)") "SIXTRACR> ERROR Reading C/R file unit ",fileUnit," in TIME"
+  write(crlog,"(a,i0,a)") "SIXTRACR> ERROR Reading C/R file unit ",fileUnit," in TIME"
   flush(crlog)
 
 end subroutine time_crcheck
@@ -343,8 +343,8 @@ subroutine time_crpoint(fileUnit, writeErr)
 
 10 continue
   writeErr = .true.
-  write(lout, "(a,i0,a)") "SIXTRACR> ERROR Writing C/R file fort.",fileUnit," in TIME"
-  write(crlog,"(a,i0,a)") "SIXTRACR> ERROR Writing C/R file fort.",fileUnit," in TIME"
+  write(lout, "(a,i0,a)") "SIXTRACR> ERROR Writing C/R file unit ",fileUnit," in TIME"
+  write(crlog,"(a,i0,a)") "SIXTRACR> ERROR Writing C/R file unit ",fileUnit," in TIME"
   flush(crlog)
 
 end subroutine time_crpoint

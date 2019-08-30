@@ -47,7 +47,7 @@ module mod_fluka
 
   public :: check_coupling_integrity
   public :: check_coupling_start_point
-  
+
   ! HION variables that are only used for FLUKA
   ! ien0,ien1: ion energy entering/leaving the collimator
   real(kind=fPrec),    public :: ien0, ien1
@@ -810,11 +810,11 @@ contains
 subroutine fluka_close
 
      use crcoall
-     
+
      implicit none
-     
+
      integer fluka_con
-     
+
      write(lout,'(A)') 'FLUKA> call to fluka_close'
      if (fluka_enable) then
        if (fluka_last_sent_mess==FLUKA_EOB .and. fluka_last_rcvd_mess.eq.-1) then
@@ -843,7 +843,7 @@ subroutine fluka_close
          end if
          call fluka_end
        end if
-     end if 
+     end if
 1982 call fluka_mod_end
      flush(lout)
 !      flush(fluka_log_unit)
@@ -1077,7 +1077,7 @@ subroutine kernel_fluka_element( nturn, i, ix )
       fluka_i = i
       fluka_ix = ix
       fluka_nturn = nturn
-      
+
       if (fluka_debug) then
 !        where are we?
          write(fluka_log_unit,*)'# In fluka element of type ', fluka_type(fluka_ix)
@@ -1245,7 +1245,7 @@ subroutine kernel_fluka_entrance( nturn, i, ix )
           end if
         end if
       end do
-      
+
       if (fluka_debug) then
 !        where are we?
          write(fluka_log_unit,*)'# In fluka element of type ', fluka_type(ix)
@@ -1557,7 +1557,7 @@ subroutine check_coupling_start_point()
 !-----------------------------------------------------------------------
 !     A.Mereghetti, CERN BE-ABP-HSS
 !     last modified: 20-03-2019
-!     check that the lattice structure (after re-shiffle due to GO  
+!     check that the lattice structure (after re-shiffle due to GO
 !        statement) does not start inside a FLUKA insertion region
 !     NB: together with check_coupling_integrity, this subroutine is
 !           fundamental to verify that every entrance point has an exit

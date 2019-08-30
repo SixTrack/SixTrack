@@ -278,7 +278,7 @@ subroutine dist_generateDist
   case(1) ! Micrometre
     dist_beamEmit(3) = dist_beamEmit(3)*c1m6
   case(2) ! eV s
-    dist_beamEmit(3) = dist_beamEmit(3)*((clight*beta0)/((four*pi)*e0))
+    dist_beamEmit(3) = dist_beamEmit(3)*((clight*beta0)/((four*pi)*(e0*c1e6)))
   end select
   write(lout,"(a,1pe13.6,a)") "DIST> EMITTANCE X = ",dist_beamEmit(1)," m"
   write(lout,"(a,1pe13.6,a)") "DIST> EMITTANCE Y = ",dist_beamEmit(2)," m"
@@ -288,7 +288,7 @@ subroutine dist_generateDist
   if(dist_distLib) then
     call distlib_init(1)
     call distlib_setEnergyMass(e0, nucm0)
-    call distlib_setEmittance12(dist_beamEmit(1), dist_beamEmit(2))
+    call distlib_setEmittance12(dist_beamEmit(1)/gamma0, dist_beamEmit(2)/gamma0) ! DISTlib expects geometric emittance
     call distlib_setEmittance3(dist_beamEmit(3))
     select case(dist_normMethod)
     case(dist_normSIXTRACK, dist_normINPUT)
@@ -428,7 +428,7 @@ subroutine dist_parseInputLine(inLine, iLine, iErr)
   case("READ")
     if(nSplit /= 2 .and. nSplit /= 3) then
       write(lerr,"(a,i0)") "DIST> ERROR READ takes 1 or 2 arguments, got ",nSplit-1
-      write(lerr,"(a)")    "DIST>       READ filename [LIBDIST]"
+      write(lerr,"(a)")    "DIST>       READ filename [use_distlib]"
       iErr = .true.
       return
     end if
@@ -845,7 +845,7 @@ subroutine dist_parseColumn(fmtName, fErr, fmtID, fmtFac, fmtCol, isValid)
 
   select case(chr_toUpper(fmtBase))
 
-  case("OFF","SKIP")
+  case("SKIP")
     fmtID = dist_fmtNONE
   case("ID")
     fmtID = dist_fmtPartID
@@ -911,7 +911,7 @@ subroutine dist_parseColumn(fmtName, fErr, fmtID, fmtFac, fmtCol, isValid)
   case("DP/P0","DPP0","DELTA")
     fmtID  = dist_fmtDPP0
     fmtCol = 6
-  case("DE/P0","DEP0","PT")
+  case("PT")
     fmtID  = dist_fmtPT
     fmtCol = 6
   case("PSIGMA")
@@ -1010,7 +1010,7 @@ end subroutine dist_parseColumn
 !  Parse Multi-Column Formats
 !  V.K. Berglyd Olsen, BE-ABP-HSS
 !  Created: 2019-07-05
-!  Updated: 2019-07-10
+!  Updated: 2019-08-13
 ! ================================================================================================ !
 subroutine dist_setMultiColFormat(fmtName, isValid)
 
@@ -1362,7 +1362,7 @@ subroutine dist_readDist
 
 40 continue
   call f_close(fUnit)
-  write(lout,"(a,i0,a)") "DIST> Read ",nRead," particles from file '"//trim(dist_distFile)//"'"
+  write(lout,"(a,i0,a)") "DIST> Read ",dist_numPart," particles from file '"//trim(dist_distFile)//"'"
 
 end subroutine dist_readDist
 
@@ -1920,13 +1920,15 @@ end subroutine dist_normToPhysical
 ! ================================================================================================ !
 !  A. Mereghetti and D. Sinuela Pastor, for the FLUKA Team
 !  V.K. Berglyd Olsen, BE-ABP-HSS
-!  Updated: 2019-07-09
+!  Rewritten: 2019-07-09
+!  Updated:   2019-08-13
 ! ================================================================================================ !
 subroutine dist_finaliseDist
 
   use parpro
   use mod_pdgid
   use mod_common
+  use mod_particles
   use mod_common_main
   use mod_common_track
   use numerical_constants
@@ -1951,8 +1953,15 @@ subroutine dist_finaliseDist
     call prror
   end if
 
-  if(dist_readPartID .and. .not. dist_readParentID) then
-    parentID(1:napx) = partID(1:napx)
+  if(dist_readPartID) then
+    if(dist_readParentID .eqv. .false.) then
+      ! Particle parentID is not set, so we set its parentID to itself
+      parentID(1:napx) = partID(1:napx)
+    end if
+    call part_setPairID ! Set the pairID only
+  else
+    ! No IDs provided, so we set them to the default range 1:napx and compute their corresponding pairID
+    call part_setParticleID ! Set partID, parentID and pairID
   end if
 
   if(dist_readIonZ .and. .not. dist_readCharge) then

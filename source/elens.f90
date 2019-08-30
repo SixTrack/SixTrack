@@ -44,10 +44,10 @@ module elens
 #ifdef CR
   logical, save          :: elens_lAllowUpdate_CR(nelens)
 #endif
-  
+
   ! mapping to chebyshev polynomials
   integer, save          :: elens_iCheby(nelens)      ! mapping to the table with chebyshev coeffs
-  
+
   ! radial profile
   integer, save          :: elens_iRadial(nelens)     ! mapping to the radial profile
   real(kind=fPrec), save :: elens_radial_fr1(nelens)  ! value of f(R1) in case of radial profiles from file [0:1]
@@ -429,10 +429,10 @@ subroutine elens_postInput
     ! - report geometrical factor
     write(lout,"(a,i0,a,e22.15)") "ELENS> Geom. norm. fact. for elens #",j, &
          " named "//trim(bez(jj))//": ",elens_geo_norm(j)
-    
+
     ! Compute elens theta at R2, if requested by user
     call eLensTheta(j)
-    
+
   end do
 
 end subroutine elens_postInput
@@ -465,7 +465,7 @@ subroutine eLensTheta(j)
     !   apart from the case of elens_Ek is DYNK-ed
     gamma  = ((elens_Ek(j)*c1m3)/pmae)+one ! from kinetic energy
     elens_beta_e(j) = sqrt((one+one/gamma)*(one-one/gamma))
-    
+
     ! r2: from mm to m (c1m3)
     ! theta: from rad to mrad (c1e3)
     elens_theta_r2(j) = ((elens_len(j)*abs(elens_I(j)))/ &
@@ -475,9 +475,9 @@ subroutine eLensTheta(j)
     else
       elens_theta_r2(j) = elens_theta_r2(j)*(one/(elens_beta_e(j)*beta0)-one)
     end if
-    
+
     if ( elens_type(j)>=2 ) elens_theta_r2(j) = elens_theta_r2(j) * elens_geo_norm(j)
-    
+
     if(st_quiet < 2) then
       ! find name of elens
       do jj=1,nele
@@ -493,7 +493,7 @@ subroutine eLensTheta(j)
            elens_geo_norm(j)
     end if
   end if
- 
+
 end subroutine eLensTheta
 
 ! ================================================================================================ !

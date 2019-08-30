@@ -311,8 +311,8 @@ subroutine trauthin(nthinerr)
         r000   = r0*r00(irm(ix))
 
         do j=1,mmul
-          fake(1,j)=(bbiv(j,i)*r0a)/benkcc                           !hr01
-          fake(2,j)=(aaiv(j,i)*r0a)/benkcc                           !hr01
+          fake(1,j)=(bbiv(j,i)*r0a)/benkcc
+          fake(2,j)=(aaiv(j,i)*r0a)/benkcc
           r0a=r0a*r000
         end do
 
@@ -621,7 +621,7 @@ subroutine thin4d(nthinerr)
       ! No if(ktrack(i).eq.1) - a BLOC - is needed in thin tracking,
       ! as no dependency on ix in this case.
       ix=ic(i)-nblo ! ix = index of single element
-!Should this be inside "if ktrack .ne. 1"? (time)
+      meta_nPTurnEle = meta_nPTurnEle + napx
 
       if (ldumpfront) then
         call dump_lines(n,i,ix)
@@ -701,10 +701,10 @@ subroutine thin4d(nthinerr)
         ! store old particle coordinates
         if (lbacktracking) call aperture_saveLastCoordinates(i,ix,0)
         goto 630
-      case (3)  !Phase Trombone  
+      case (3)  !Phase Trombone
         irrtr=imtr(ix)
         do j=1,napx
-#include "include/trombone.f90" 
+#include "include/trombone.f90"
         enddo
       goto 620
       case (2,4,5,6,7,8,9,10)
@@ -1259,6 +1259,7 @@ subroutine thin6d(nthinerr)
       ! No if(ktrack(i).eq.1) - a BLOC - is needed in thin tracking,
       ! as no dependency on ix in this case.
       ix=ic(i)-nblo
+      meta_nPTurnEle = meta_nPTurnEle + napx
 
       ! Fringe Fields
       if(ffield_enabled .and. ix > 0) then
@@ -1468,16 +1469,16 @@ subroutine thin6d(nthinerr)
           else
             ejv(j)=ejv(j)+(hsy(1)*sin_mb(hsy(3)*sigmv(j)))*nqq(j)
           endif
-          ejfv(j)=sqrt(ejv(j)**2-nucm(j)**2)                               !hr01
+          ejfv(j)=sqrt(ejv(j)**2-nucm(j)**2)
           rvv(j)=(ejv(j)*e0f)/(e0*ejfv(j))
           dpsv(j) = (ejfv(j)*(nucm0/nucm(j))-e0f)/e0f
 !          dpsv(j)=(ejfv(j)-e0f)/e0f
           oidpsv(j)=one/(one+dpsv(j))
           moidpsv(j)=mtc(j)/(one+dpsv(j))
           omoidpsv(j)=c1e3*((one-mtc(j))*oidpsv(j))
-          dpsv1(j)=(dpsv(j)*c1e3)*oidpsv(j)                           !hr01
-          yv1(j)=(ejf0v(j)/ejfv(j))*yv1(j)                           !hr01
-          yv2(j)=(ejf0v(j)/ejfv(j))*yv2(j)                           !hr01
+          dpsv1(j)=(dpsv(j)*c1e3)*oidpsv(j)
+          yv1(j)=(ejf0v(j)/ejfv(j))*yv1(j)
+          yv2(j)=(ejf0v(j)/ejfv(j))*yv2(j)
         end do
         goto 640
       case (3)
@@ -2145,55 +2146,59 @@ end subroutine trackReport
 !  3 February 1999
 !-----------------------------------------------------------------------
 subroutine dist1
-  use floatPrecision
-  use mathlib_bouncer
-  use numerical_constants
-  use parpro
+
+  use crcoall
   use mod_common
   use mod_common_main
-  use mod_commons
-  use mod_common_track
-  use mod_common_da
+  use floatPrecision
+  use numerical_constants
+
   implicit none
-  integer ia,ib2,ib3,ie
+
+  integer ia,ib2,ib3,ie,ip
   real(kind=fPrec) dam1
-  save
-!-----------------------------------------------------------------------
-  do 20 ia=1,napx,2
-    if(.not.pstop(partID(ia)).and..not.pstop(partID(ia)+1).and.(mod(partID(ia),2).ne.0)) then
-      ie=ia+1
-      dam(ia)=zero
-      dam(ie)=zero
-      xau(1,1)= xv1(ia)
-      xau(1,2)= yv1(ia)
-      xau(1,3)= xv2(ia)
-      xau(1,4)= yv2(ia)
-      xau(1,5)=sigmv(ia)
-      xau(1,6)= dpsv(ia)
-      xau(2,1)= xv1(ie)
-      xau(2,2)= yv1(ie)
-      xau(2,3)= xv2(ie)
-      xau(2,4)= yv2(ie)
-      xau(2,5)=sigmv(ie)
-      xau(2,6)= dpsv(ie)
-      cloau(1)= clo6v(1)
-      cloau(2)=clop6v(1)
-      cloau(3)= clo6v(2)
-      cloau(4)=clop6v(2)
-      cloau(5)= clo6v(3)
-      cloau(6)=clop6v(3)
-      di0au(1)= di0xs
-      di0au(2)=dip0xs
-      di0au(3)= di0zs
-      di0au(4)=dip0zs
-      tau(:,:)=tasau(:,:)
+
+  do ip=1,(napxo+1)/2
+    ia = pairMap(1,ip)
+    ie = pairMap(2,ip)
+    if(ia == 0 .or. ie == 0) then
+      ! Check that the map does not contain a 0 index, which means something is wrong in the record keeping of lost particles
+      write(lerr,"(a,i0)") "WRITEBIN> ERROR The map of particle pairs is missing one or both particles for pair ",ip
+      call prror
+    end if
+    if(.not.pstop(ia) .and. .not.pstop(ie)) then
+      dam(ia)  = zero
+      dam(ie)  = zero
+      xau(1,1) = xv1(ia)
+      xau(1,2) = yv1(ia)
+      xau(1,3) = xv2(ia)
+      xau(1,4) = yv2(ia)
+      xau(1,5) = sigmv(ia)
+      xau(1,6) = dpsv(ia)
+      xau(2,1) = xv1(ie)
+      xau(2,2) = yv1(ie)
+      xau(2,3) = xv2(ie)
+      xau(2,4) = yv2(ie)
+      xau(2,5) = sigmv(ie)
+      xau(2,6) = dpsv(ie)
+      cloau(1) = clo6v(1)
+      cloau(2) = clop6v(1)
+      cloau(3) = clo6v(2)
+      cloau(4) = clop6v(2)
+      cloau(5) = clo6v(3)
+      cloau(6) = clop6v(3)
+      di0au(1) = di0xs
+      di0au(2) = dip0xs
+      di0au(3) = di0zs
+      di0au(4) = dip0zs
+      tau(:,:) = tasau(:,:)
 
       call distance(xau,cloau,di0au,tau,dam1)
-      dam(ia)=dam1
-      dam(ie)=dam1
-    endif
-20 continue
-  return
+      dam(ia) = dam1
+      dam(ie) = dam1
+    end if
+  end do
+
 end subroutine dist1
 
 !-----------------------------------------------------------------------

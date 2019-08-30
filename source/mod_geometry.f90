@@ -444,6 +444,12 @@ subroutine geom_parseInputLineSTRU_MULT(inLine, iLine, iErr)
 
   bezs(geom_nStru) = trim(lnSplit(1))
   call chr_cast(lnSplit(3), elpos(geom_nStru), cErr)
+  if(elpos(geom_nStru) < elpos(geom_nStru-1)) then ! Note: elpos(0) does exist, and should be zero
+    write(lerr,"(a)") "GEOMETRY> ERROR Structure element '"//trim(bezs(geom_nStru))//&
+      "' cannot be positioned ahead of previous element"
+    iErr = .true.
+    return
+  end if
 
   singID = -1
   do j=1,mblo ! is it a BLOC?
@@ -864,7 +870,7 @@ subroutine geom_reshuffleLattice
 ! bezs(1:iu)    = cshift(bezs(1:iu),    kanf-1)
   elpos(1:iu)   = cshift(elpos(1:iu),   kanf-1)
 
-  ! Do string arrays manually due to a gfrotran bug in at least 8.3
+  ! Do string arrays manually due to a gfortran bug in at least 8.3
   allocate(tmpC(kanf))
   tmpC(1:kanf-1)     = bezs(1:kanf-1)
   bezs(1:iu-kanf+1)  = bezs(kanf:iu)

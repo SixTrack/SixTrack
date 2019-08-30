@@ -320,7 +320,7 @@ module collimation
   real(kind=fPrec), save :: max_tmp, a_tmp1, a_tmp2, ldrift, mynex2, myney2, Nap1pos,Nap2pos,Nap1neg,Nap2neg
   real(kind=fPrec), save :: tiltOffsPos1,tiltOffsPos2,tiltOffsNeg1,tiltOffsNeg2
   real(kind=fPrec), save :: beamsize1, beamsize2,betax1,betax2,betay1,betay2, alphax1, alphax2,alphay1,alphay2,minAmpl
-  
+
   integer,          private, save :: nev
   integer,          private, save :: mat
   real(kind=fPrec), private, save :: length
@@ -1883,7 +1883,7 @@ subroutine collimate_start
 
 !++  Some initialization
   do i = 1, numeff
-    rsig(i) = (real(i,fPrec)/two - half) + five                           !hr08
+    rsig(i) = (real(i,fPrec)/two - half) + five
   end do
 
   dpopbins(1) = c1m4
@@ -3589,10 +3589,10 @@ subroutine collimate_end_sample(j)
   write(outlun,*) 'INFO>  Number of absorbed particles  : ', n_tot_absorbed
   write(outlun,*)
 
-  if(n_tot_absorbed.ne.0) then                                       !hr08
-    write(outlun,*) ' INFO>  Eff_r @  8 sigma    [e-4] : ', (neff(5)/real(n_tot_absorbed,fPrec))/c1m4              !hr08
-    write(outlun,*) ' INFO>  Eff_r @ 10 sigma    [e-4] : ', (neff(9)/real(n_tot_absorbed,fPrec))/c1m4              !hr08
-    write(outlun,*) ' INFO>  Eff_r @ 10-20 sigma [e-4] : ', ((neff(9)-neff(19))/(real(n_tot_absorbed,fPrec)))/c1m4 !hr08
+  if(n_tot_absorbed.ne.0) then
+    write(outlun,*) ' INFO>  Eff_r @  8 sigma    [e-4] : ', (neff(5)/real(n_tot_absorbed,fPrec))/c1m4
+    write(outlun,*) ' INFO>  Eff_r @ 10 sigma    [e-4] : ', (neff(9)/real(n_tot_absorbed,fPrec))/c1m4
+    write(outlun,*) ' INFO>  Eff_r @ 10-20 sigma [e-4] : ', ((neff(9)-neff(19))/(real(n_tot_absorbed,fPrec)))/c1m4
     write(outlun,*)
     write(outlun,*) neff(5)/real(n_tot_absorbed,fPrec), neff(9)/real(n_tot_absorbed,fPrec), &
  & (neff(9)-neff(19))/(real(n_tot_absorbed,fPrec)), ' !eff'
@@ -3863,18 +3863,18 @@ subroutine collimate_exit()
       "13=orbity 14=tdispx 15=tdispy 16=xbob 17=ybob 18=xpbob 19=ypbob"
 
     do i=1,iu
-       write(amplitude_unit,'(i4, (1x,a16), 17(1x,e20.13))')             &!hr08
-      &i, ename(i), sampl(i),                                            &!hr08
-      &sum_ax(i)/real(max(nampl(i),1),fPrec),                            &!hr08
-      &sqrt(abs((sqsum_ax(i)/real(max(nampl(i),1),fPrec))-               &!hr08
-      &(sum_ax(i)/real(max(nampl(i),1),fPrec))**2)),                     &!hr08
-      &sum_ay(i)/real(max(nampl(i),1),fPrec),                            &!hr08
-      &sqrt(abs((sqsum_ay(i)/real(max(nampl(i),1),fPrec))-               &!hr08
-      &(sum_ay(i)/real(max(nampl(i),1),fPrec))**2)),                     &!hr08
-      &talphax(i), talphay(i),                                           &!hr08
-      &tbetax(i), tbetay(i), torbx(i), torby(i),                         &!hr08
-      &tdispx(i), tdispy(i),                                             &!hr08
-      &xbob(i),ybob(i),xpbob(i),ypbob(i)                                  !hr08
+       write(amplitude_unit,'(i4, (1x,a16), 17(1x,e20.13))')             &
+      &i, ename(i), sampl(i),                                            &
+      &sum_ax(i)/real(max(nampl(i),1),fPrec),                            &
+      &sqrt(abs((sqsum_ax(i)/real(max(nampl(i),1),fPrec))-               &
+      &(sum_ax(i)/real(max(nampl(i),1),fPrec))**2)),                     &
+      &sum_ay(i)/real(max(nampl(i),1),fPrec),                            &
+      &sqrt(abs((sqsum_ay(i)/real(max(nampl(i),1),fPrec))-               &
+      &(sum_ay(i)/real(max(nampl(i),1),fPrec))**2)),                     &
+      &talphax(i), talphay(i),                                           &
+      &tbetax(i), tbetay(i), torbx(i), torby(i),                         &
+      &tdispx(i), tdispy(i),                                             &
+      &xbob(i),ybob(i),xpbob(i),ypbob(i)
     end do
 
     write(amplitude2_unit,"(a)") "# 1=ielem 2=name 3=s 4=ORBITX 5=orbity 6=tdispx 7=tdispy 8=xbob 9=ybob 10=xpbob 11=ypbob"
@@ -4809,12 +4809,12 @@ implicit none
     if ((onesided .and. x.lt.zero).and. ((icoll.ne.ipencil) .or. (iturn.ne.1))) goto 777
 
 !++  Now mirror at the horizontal axis for negative X offset
-    if(x.lt.zero) then                                             !hr09
+    if(x.lt.zero) then
       mirror = -one
       tiltangle = -one*c_tilt(2)
     end if
 
-    if(x.ge.zero) then                                             !hr09
+    if(x.ge.zero) then
       mirror = one
       tiltangle = c_tilt(1)
     end if
@@ -4830,11 +4830,11 @@ implicit none
 !
 !++  Shift with opening and offset
 !
-    x  = (x - c_aperture/two) - mirror*c_offset                    !hr09
+    x  = (x - c_aperture/two) - mirror*c_offset
 !
 !++  Include collimator tilt
 !
-    if(tiltangle.gt.zero) then                                    !hr09
+    if(tiltangle.gt.zero) then
       xp = xp - tiltangle
     end if
 
@@ -4863,7 +4863,7 @@ implicit none
       c_tilt(2) = zero
 
 !AUGUST2006: Standard pencil beam as implemented by GRD ------- TW
-      if(pencil_rmsx.eq.zero .and. pencil_rmsy.eq.zero) then     !hr09
+      if(pencil_rmsx.eq.zero .and. pencil_rmsy.eq.zero) then
         x  = pencil_dx(icoll)
         xp = zero
         z  = zero
@@ -4903,8 +4903,8 @@ implicit none
 !                        here pencil_rmsx is not gaussian!!!
 !            pencil_rmsy defines spread parallel to jaw surface
 
-      if(pencil_distr.eq.2 .and.(pencil_rmsx.ne.zero.or.pencil_rmsy.ne.zero )) then   !hr09
-        x  = pencil_dx(icoll) + pencil_rmsx*(real(rndm4(),fPrec)-half)                  !hr09
+      if(pencil_distr.eq.2 .and.(pencil_rmsx.ne.zero.or.pencil_rmsy.ne.zero )) then
+        x  = pencil_dx(icoll) + pencil_rmsx*(real(rndm4(),fPrec)-half)
 ! all generated particles are on the jaw now
         x  = sqrt(x**2)
         xp = zero
@@ -4930,7 +4930,7 @@ implicit none
 ! -- TW SEP07 if c_tilt is set to zero before entering pencil beam
 !             section the assigning of the tilt will result in
 !             assigning zeros
-      if(mirror.lt.zero) then                                     !hr09
+      if(mirror.lt.zero) then
 !!     tiltangle = -one*c_tilt(2)
         tiltangle = c_tilt(2)
       else
@@ -4982,11 +4982,11 @@ implicit none
 !
 !++  1) Check whether particle hits the collimator
     hit   = .false.
-    s     = zero                                                !hr09
-    keeps = zero                                                !hr09
+    s     = zero
+    keeps = zero
     zlm   = -one * length
 
-    if(x.ge.zero) then                                            !hr09
+    if(x.ge.zero) then
 
 !++  Particle hits collimator and we assume interaction length ZLM equal
 !++  to collimator length (what if it would leave collimator after
@@ -4994,7 +4994,7 @@ implicit none
       zlm = length
       impact(j) = x
       indiv(j) = xp
-    else if(xp.le.zero) then                                      !hr09
+    else if(xp.le.zero) then
 
 !++  Particle does not hit collimator. Interaction length ZLM is zero.
       zlm = zero
@@ -5019,7 +5019,7 @@ implicit none
 !++  First do the drift part
 ! DRIFT PART
     drift_length = length - zlm
-    if(drift_length.gt.zero) then                                 !hr09
+    if(drift_length.gt.zero) then
       if(iexact) then
         zpj = sqrt(one-xp**2-zp**2)
         x = x + drift_length*(xp/zpj)
@@ -5187,7 +5187,7 @@ implicit none
         if(dowrite_impact) then
           write(FLUKA_impacts_unit,'(i4,(1x,f6.3),(1x,f8.6),4(1x,e19.10),i2,2(1x,i7))') &
      &icoll,c_rotation,                                                 &
-     &sInt + sp + (real(j_slices,fPrec)-one) * c_length,                &!hr09
+     &sInt + sp + (real(j_slices,fPrec)-one) * c_length,                &
      &x_flk*c1e3, xp_flk*c1e3, y_flk*c1e3, yp_flk*c1e3,                 &
      &nabs,name(j),iturn
         end if
@@ -5228,10 +5228,10 @@ implicit none
     if(x.lt.99.0d-3) then
 
 !++  Include collimator tilt
-      if(tiltangle.gt.zero) then                                 !hr09
+      if(tiltangle.gt.zero) then
         x  = x  + tiltangle*c_length
         xp = xp + tiltangle
-      else if(tiltangle.lt.zero) then                             !hr09
+      else if(tiltangle.lt.zero) then
         x  = x + tiltangle*c_length
         xp = xp + tiltangle
         x  = x - sin_mb(tiltangle) * c_length
@@ -5240,7 +5240,7 @@ implicit none
 !++  Transform back to particle coordinates with opening and offset
       z00 = z
       x00 = x + mirror*c_offset
-      x = (x + c_aperture/two) + mirror*c_offset                   !hr09
+      x = (x + c_aperture/two) + mirror*c_offset
 
 !++  Now mirror at the horizontal axis for negative X offset
       x  = mirror * x
@@ -5268,7 +5268,7 @@ implicit none
 
       p_in(j) = (one + dpop) * p0
 !     SR, 30-08-2005: add the initial position of the slice
-      s_in(j) = sp + (real(j_slices,fPrec)-one) * c_length               !hr09
+      s_in(j) = sp + (real(j_slices,fPrec)-one) * c_length
 
     else
       x_in(j) = x
@@ -5281,7 +5281,7 @@ implicit none
 !c$$$             write(9996,'(i5,1x,i7,1x,i2,1x,i1,2(1x,f5.3),8(1x,e17.9))')  &
 !c$$$     &            name(j),iturn,icoll,nabs,                             &
 !c$$$     &            s_in(j),                                              &
-!c$$$     &            s+sp + (dble(j_slices)-1d0) * c_length,               &!hr09
+!c$$$     &            s+sp + (dble(j_slices)-1d0) * c_length,               &
 !c$$$     &            x_in(j),xp_in(j),y_in(j),yp_in(j),                    &
 !c$$$     &            x,xp,z,zp
 !c$$$          endif
@@ -5438,10 +5438,10 @@ real(kind=fPrec) function gettran(inter,xmat,p)
 ! inter=2: Nuclear Elastic, 3: pp Elastic, 4: Single Diffractive, 5:Coulomb
 #ifndef MERLINSCATTER
   if( inter.eq.2 ) then
-    gettran = (-one*log_mb(real(rndm4(),fPrec)))/bn(xmat)                  !hr09
+    gettran = (-one*log_mb(real(rndm4(),fPrec)))/bn(xmat)
 
   else if( inter .eq. 3 ) then
-    gettran = (-one*log_mb(real(rndm4(),fPrec)))/bpp                       !hr09
+    gettran = (-one*log_mb(real(rndm4(),fPrec)))/bpp
 
   else if( inter .eq. 4 ) then
     xm2 = exp_mb( real(rndm4(),fPrec) * xln15s )
@@ -5449,24 +5449,24 @@ real(kind=fPrec) function gettran(inter,xmat,p)
     if( xm2 .lt. two ) then
       bsd = two * bpp
     else if (( xm2 .ge. two ).and. ( xm2 .le. five )) then
-      bsd = ((106.0_fPrec-17.0_fPrec*xm2) *  bpp )/ 36.0_fPrec             !hr09
+      bsd = ((106.0_fPrec-17.0_fPrec*xm2) *  bpp )/ 36.0_fPrec
 !    else if ( xm2 .gt. five ) then
     else !makes the compiler more happy
-      bsd = (seven * bpp) / 12.0_fPrec                                     !hr09
+      bsd = (seven * bpp) / 12.0_fPrec
     end if
-      gettran = (-one*log_mb(real(rndm4(),fPrec)))/bsd                     !hr09
+      gettran = (-one*log_mb(real(rndm4(),fPrec)))/bsd
 
   else if( inter.eq.5 ) then
     length=1
     call funlux( cgen(1,mat), xran, length)
     truth=xran(1)
-    t=real(truth,fPrec)                                                    !hr09
+    t=real(truth,fPrec)
     gettran = t
   end if
 #else
 
   if( inter.eq.2 ) then
-    gettran = (-one*log_mb(real(rndm4(),fPrec)))/bn(xmat)                  !hr09
+    gettran = (-one*log_mb(real(rndm4(),fPrec)))/bn(xmat)
 
   else if( inter .eq. 3 ) then
     call merlinscatter_get_elastic_t(gettran)
@@ -5480,7 +5480,7 @@ real(kind=fPrec) function gettran(inter,xmat,p)
     length=1
     call funlux( cgen(1,mat) , xran, length)
     truth=xran(1)
-    t=real(truth,fPrec)                                                 !hr09
+    t=real(truth,fPrec)
     gettran = t
   end if
 
@@ -5503,13 +5503,13 @@ subroutine tetat(t,p,tx,tz)
   teta = sqrt(t)/p
 
 ! Generate sine and cosine of an angle uniform in [0,2pi](see RPP)
-10 va  =(two*real(rndm4(),fPrec))-one                                      !hr09
+10 va  =(two*real(rndm4(),fPrec))-one
   vb = real(rndm4(),fPrec)
   va2 = va**2
   vb2 = vb**2
   r2 = va2 + vb2
   if ( r2.gt.one) go to 10
-  tx = teta * ((two*va)*vb) / r2                                    !hr09
+  tx = teta * ((two*va)*vb) / r2
   tz = teta * (va2 - vb2) / r2
   return
 end subroutine tetat
@@ -5551,9 +5551,9 @@ subroutine scatin(plab)
   real(kind=fPrec) plab
   real(kind=fPrec) tlow,thigh
 
-  ecmsq = (two * pmap) * plab                                   !hr09
+  ecmsq = (two * pmap) * plab
 #ifndef MERLINSCATTER
-  xln15s=log_mb(0.15_fPrec*ecmsq)                                           !hr09
+  xln15s=log_mb(0.15_fPrec*ecmsq)
 
 !Claudia Fit from COMPETE collaboration points "arXiv:hep-ph/0206172v1 19Jun2002"
   pptot=0.041084_fPrec-0.0023302_fPrec*log_mb(ecmsq)+0.00031514_fPrec*log_mb(ecmsq)**2
@@ -5581,11 +5581,11 @@ subroutine scatin(plab)
 ! Compute cross-sections (CS) and probabilities + Interaction length
 ! Last two material treated below statement number 100
 
-  tlow=tlcut                                                   !hr09
+  tlow=tlcut
   do ma=1,nrmat
     mcurr=ma
 ! prepare for Rutherford differential distribution
-    thigh=hcut(ma)                                             !hr09
+    thigh=hcut(ma)
     call funlxp ( ruth , cgen(1,ma) ,tlow, thigh )
 
 ! freep: number of nucleons involved in single scattering
@@ -5599,17 +5599,17 @@ subroutine scatin(plab)
 ! correct TOT-CSec for energy dependence of qel
 ! TOT CS is here without a Coulomb contribution
     csect(0,ma) = csref(0,ma) + freep(ma) * (pptot - pptref)
-    bn(ma) = (bnref(ma) * csect(0,ma)) / csref(0,ma)                    !hr09
+    bn(ma) = (bnref(ma) * csect(0,ma)) / csref(0,ma)
 ! also correct inel-CS
-    csect(1,ma) = (csref(1,ma) * csect(0,ma)) / csref(0,ma)                !hr09
+    csect(1,ma) = (csref(1,ma) * csect(0,ma)) / csref(0,ma)
 !
 ! Nuclear Elastic is TOT-inel-qel ( see definition in RPP)
-    csect(2,ma) = ((csect(0,ma) - csect(1,ma)) - csect(3,ma)) - csect(4,ma)         !hr09
+    csect(2,ma) = ((csect(0,ma) - csect(1,ma)) - csect(3,ma)) - csect(4,ma)
     csect(5,ma) = csref(5,ma)
 ! Now add Coulomb
     csect(0,ma) = csect(0,ma) + csect(5,ma)
 ! Interaction length in meter
-  xintl(ma) = (c1m2*anuc(ma))/(((fnavo * rho(ma))*csect(0,ma))*1d-24) !hr09
+  xintl(ma) = (c1m2*anuc(ma))/(((fnavo * rho(ma))*csect(0,ma))*1d-24)
 
 ! Filling CProb with cumulated normalised Cross-sections
     do i=1,4
@@ -5719,7 +5719,7 @@ subroutine jaw(s,nabs,icoll,iturn,ipart,dowrite_impact)
 ! - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 !++  Get monte-carlo interaction length.
 
-10  zlm1=(-one*xintl(mat))*log_mb(real(rndm4(),fPrec))                          !hr09
+10  zlm1=(-one*xintl(mat))*log_mb(real(rndm4(),fPrec))
   nabs_tmp=0 !! type of interaction reset before following scattering process
   xpBef=xp ! save angles and momentum before scattering
   zpBef=zp
@@ -5732,7 +5732,7 @@ subroutine jaw(s,nabs,icoll,iturn,ipart,dowrite_impact)
   if(zlm1.gt.rlen) then
     zlm1=rlen
     call mcs(s)
-    s=(zlm-rlen)+s                                                    !hr09
+    s=(zlm-rlen)+s
 #ifndef MERLINSCATTER
     call calc_ion_loss(mat,p,rlen,m_dpodx)  ! DM routine to include tail
     p=p-m_dpodx*s
@@ -5768,7 +5768,7 @@ subroutine jaw(s,nabs,icoll,iturn,ipart,dowrite_impact)
 !++  reduce momentum (output as dpop) and return.
 !++  PARTICLE LEFT COLLIMATOR BEFORE ITS END.
   if(x.le.zero) then
-    s=(zlm-rlen)+s                                                    !hr09
+    s=(zlm-rlen)+s
 
 #ifndef MERLINSCATTER
     call calc_ion_loss(mat,p,rlen,m_dpodx)
@@ -5810,10 +5810,10 @@ subroutine jaw(s,nabs,icoll,iturn,ipart,dowrite_impact)
   xpInt=xp
   yInt=z
   ypInt=zp
-  sInt=(zlm-rlen)+zlm1                                                 !hr09
+  sInt=(zlm-rlen)+zlm1
 
   if(inter.eq.1) then
-    s=(zlm-rlen)+zlm1                                                 !hr09
+    s=(zlm-rlen)+zlm1
 
 #ifndef MERLINSCATTER
     call calc_ion_loss(mat,p,rlen,m_dpodx)
@@ -5867,7 +5867,7 @@ subroutine jaw(s,nabs,icoll,iturn,ipart,dowrite_impact)
   if(inter.eq.4) then
 
 !++ added update for s
-    s=(zlm-rlen)+zlm1                                                !hr09
+    s=(zlm-rlen)+zlm1
     xpsd=dxp
     zpsd=dzp
     psd=p1
@@ -5943,9 +5943,9 @@ subroutine mcs(s)
       theta=13.6d-3/(p0*(1.d0+dpop))      !Claudia added log part
       rad_len=radl(mat)                    !Claudia
 
-      x=(x/theta)/radl(mat)                                              !hr09
+      x=(x/theta)/radl(mat)
       xp=xp/theta
-      z=(z/theta)/radl(mat)                                              !hr09
+      z=(z/theta)/radl(mat)
       zp=zp/theta
       rlen0=zlm1/radl(mat)
       rlen=rlen0
@@ -5955,7 +5955,7 @@ subroutine mcs(s)
       if(s.lt.h) s=h
       call scamcs(x,xp,s,radl_mat)
       if(x.le.0.d0) then
-       s=(rlen0-rlen)+s                                                  !hr09
+       s=(rlen0-rlen)+s
        goto 20
       end if
       if(s+dh.ge.rlen) then
@@ -5966,9 +5966,9 @@ subroutine mcs(s)
       goto 10
 20    call scamcs(z,zp,s,radl_mat)
       s=s*radl(mat)
-      x=(x*theta)*radl(mat)                                              !hr09
+      x=(x*theta)*radl(mat)
       xp=xp*theta
-      z=(z*theta)*radl(mat)                                              !hr09
+      z=(z*theta)*radl(mat)
       zp=zp*theta
 end subroutine mcs
 
@@ -5991,10 +5991,10 @@ subroutine scamcs(xx,xxp,s,radl_mat)
 
 5 v1=2d0*real(rndm4(),fPrec)-1d0
   v2=2d0*real(rndm4(),fPrec)-1d0
-  r2=v1**2+v2**2                                                     !hr09
+  r2=v1**2+v2**2
   if(r2.ge.1.d0) goto 5
 
-  a=sqrt((-2.d0*log_mb(r2))/r2)                                         !hr09
+  a=sqrt((-2.d0*log_mb(r2))/r2)
   z1=v1*a
   z2=v2*a
   ss=sqrt(s)
@@ -6423,7 +6423,7 @@ subroutine funpct(func,ifunc,xlow,xhigh,xfcum,nlo,nbins,tftot,ierr)
 !
       ierr = 0
       if (tftot .le. 0.) go to 900
-      tpctil = tftot/real(nbins)                                         !hr09
+      tpctil = tftot/real(nbins)
       tz = tpctil/real(nz)
       tzmax = tz * 2.
       xfcum(nlo) = xlow
@@ -6445,14 +6445,14 @@ subroutine funpct(func,ifunc,xlow,xhigh,xfcum,nlo,nbins,tftot,ierr)
   350 x = x1 + xincr
       f = func(x)
       if (f .lt. 0.) go to 900
-      tincr = ((x-x1) * 0.5) * (f+f1)                                    !hr09
+      tincr = ((x-x1) * 0.5) * (f+f1)
       if (tincr .lt. tzmax) go to 370
       xincr = xincr * 0.5
       go to 350
   370 continue
       tcum = tcum + tincr
       if (tcum .ge. tpctil*0.99) go to 520
-      fminz = (tz*f)/ (tpctil-tcum)                                      !hr09
+      fminz = (tz*f)/ (tpctil-tcum)
       f1 = f
       x1 = x
   500 continue
@@ -6499,7 +6499,7 @@ subroutine funpct(func,ifunc,xlow,xhigh,xfcum,nlo,nbins,tftot,ierr)
       if(f .lt. 0.) goto 900
   600 continue
 !         END OF LOOP OVER BINS
-      x1 = xfcum((nlo+nbins)-1)                                          !hr09
+      x1 = xfcum((nlo+nbins)-1)
       x2 = xhigh
       call radapt(func,x1,x2,1,rteps,zero,tpart ,uncert)
       aberr = abs(tpart-tpctil)/tftot
@@ -6556,26 +6556,26 @@ subroutine funlux(array,xran,len)
              j = j1 + 101
              j = max(j,102)
              j = min(j,148)
-         p = (   x -gaps*real(j1-1)) * gapins                            !hr09
+         p = (   x -gaps*real(j1-1)) * gapins
          a = (p+1.0) * array(j+2) - (p-2.0)*array(j-1)
          b = (p-1.0) * array(j) - p * array(j+1)
-      xran(ibuf) = ((a*p)*(p-1.0))*0.16666667 + ((b*(p+1.))*(p-2.))*0.5  !hr09
+      xran(ibuf) = ((a*p)*(p-1.0))*0.16666667 + ((b*(p+1.))*(p-2.))*0.5
       else if (j .gt. 97)  then
          j1 = int((x-bright)*gapins)
              j = j1 + 151
              j = max(j,152)
              j = min(j,198)
-         p = ((x -bright) -gaps*(j1-1)) * gapins                         !hr09
+         p = ((x -bright) -gaps*(j1-1)) * gapins
          a = (p+1.0) * array(j+2) - (p-2.0)*array(j-1)
          b = (p-1.0) * array(j) - p * array(j+1)
-      xran(ibuf) = ((a*p)*(p-1.0))*0.16666667 + ((b*(p+1.))*(p-2.))*0.5  !hr09
+      xran(ibuf) = ((a*p)*(p-1.0))*0.16666667 + ((b*(p+1.))*(p-2.))*0.5
       else
 !      J = MAX(J,2)
 !      J = MIN(J,98)
-         p = (   x -gap*real(j-1)) * gapinv                              !hr09
+         p = (   x -gap*real(j-1)) * gapinv
          a = (p+1.) * array(j+2) - (p-2.)*array(j-1)
          b = (p-1.) * array(j) - p * array(j+1)
-      xran(ibuf) = ((a*p)*(p-1.))*0.16666667 + ((b*(p+1.))*(p-2.))*0.5   !hr09
+      xran(ibuf) = ((a*p)*(p-1.))*0.16666667 + ((b*(p+1.))*(p-2.))*0.5
       endif
   500 continue
       tftot = x
@@ -6610,7 +6610,7 @@ subroutine funlz(func,x2low,x2high,xlow,xhigh)
       do 30 logn= 1, 7
       nslice = 2**logn
       do 20 i= 1, nslice, 2
-      xmid = xlow + (real(i) * (xhigh-xlow)) / real(nslice)              !hr09
+      xmid = xlow + (real(i) * (xhigh-xlow)) / real(nslice)
       if (func(xmid) .gt. 0.)  go to 50
    20 continue
    30 continue
@@ -6695,15 +6695,15 @@ subroutine radapt(f,a,b,nseg,reltol,abstol,res,err)
        do 1 i = 1,nter
        call rgs56p(f,xlo(i),xhi(i),tval(i),te)
        ters(i)=te**2
-       tvals=tvals+tval(i)                                         !hr09
+       tvals=tvals+tval(i)
        terss=terss+ters(i)
     1  continue
-       root= sqrt(two*terss)                                      !hr09
+       root= sqrt(two*terss)
        go to 9
       endif
       nsegd=min(nseg,ndim)
     2 xhib=a
-      bin=(b-a)/real(nsegd,fPrec)                                              !hr09
+      bin=(b-a)/real(nsegd,fPrec)
       do 3 i = 1,nsegd
       xlo(i)=xhib
       xlob=xlo(i)
@@ -6715,13 +6715,13 @@ subroutine radapt(f,a,b,nseg,reltol,abstol,res,err)
     3 continue
       nter=nsegd
       do 4 iter = 1,ndim
-      tvals=tval(1)                                                !hr09
-      terss=ters(1)                                                !hr09
+      tvals=tval(1)
+      terss=ters(1)
       do 5 i = 2,nter
-      tvals=tvals+tval(i)                                          !hr09
-      terss=terss+ters(i)                                          !hr09
+      tvals=tvals+tval(i)
+      terss=terss+ters(i)
     5 continue
-      root=sqrt(two*terss)                                       !hr09
+      root=sqrt(two*terss)
 
       if(root .le. abstol .or. root .le. reltol*abs(tvals)) then
         goto 9
@@ -6746,7 +6746,7 @@ subroutine radapt(f,a,b,nseg,reltol,abstol,res,err)
       call rgs56p(f,xlo(nter),xhi(nter),tval(nter),te)
       ters(nter)=te**2
     4 continue
-    9 res=tvals                                                    !hr09
+    9 res=tvals
       err=root
       return
 end subroutine radapt
@@ -6782,13 +6782,13 @@ subroutine rgs56p(f,a,b,res,err)
   e5=zero
   e6=zero
   do i = 1,5
-    e5=e5+dble(w5(i)*f(a+rang*x5(i)))                                  !hr09
-    e6=e6+dble(w6(i)*f(a+rang*x6(i)))                                  !hr09
+    e5=e5+dble(w5(i)*f(a+rang*x5(i)))
+    e6=e6+dble(w6(i)*f(a+rang*x6(i)))
   end do
 
   e6=e6+dble(w6(6)*f(a+rang*x6(6)))
-  res=real((dble(hf)*(e6+e5))*dble(rang))                            !hr09
-  err=real(abs((e6-e5)*dble(rang)))                                  !hr09
+  res=real((dble(hf)*(e6+e5))*dble(rang))
+  err=real(abs((e6-e5)*dble(rang)))
   return
 end subroutine rgs56p
 

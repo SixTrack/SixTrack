@@ -14,19 +14,61 @@ module mod_particles
 contains
 
 ! ================================================================================================ !
+!  Set Initial Particle IDs
+! ~~~~~~~~~~~~~~~~~~~~~~~~~~
 !  V.K. Berglyd Olsen, BE-ABP-HSS
-!  Last modified: 2019-01-11
-!  Set the initial particle IDs (called before tracking, formerly in trauthin/trauthck)
+!  Created: 2019-01-11
+!  Updated: 2019-08-13
+!      Sets the default particle ID to run from 1 to npart, and each particle being its own parent,
+!  that is, it is a primary particle. The pairID signifies its original paired particle. Each pair
+!  must consist of one particle with an even ID and one with an odd ID.
 ! ================================================================================================ !
 subroutine part_setParticleID
   use parpro
   use mod_common_main
-  integer i
-  do i=1,npart
-    partID(i)   = i
-    parentID(i) = i
+  integer j
+  do j=1,npart
+    partID(j)   = j
+    parentID(j) = j
   end do
+  call part_setPairID
 end subroutine part_setParticleID
+
+! ================================================================================================ !
+!  Set Initial Pair IDs
+! ~~~~~~~~~~~~~~~~~~~~~~
+!  V.K. Berglyd Olsen, BE-ABP-HSS
+!  Created: 2019-08-13
+!  Updated: 2019-08-13
+!      This routine is called if the partID and parentID are already set, and pairID needs to be
+!  populated. Each particle has a pairID associated with it and whether it's the first or second
+!  particle of the pair.
+! ================================================================================================ !
+subroutine part_setPairID
+  use parpro
+  use mod_common_main
+  integer j
+  do j=1,npart
+    pairID(1,j) = (j+1)/2    ! The pairID of particle j
+    pairID(2,j) = 2-mod(j,2) ! Either particle 1 or 2 of the pair
+  end do
+  call updatePairMap
+end subroutine part_setPairID
+
+! ================================================================================================ !
+!  Get Original Particle Index
+! ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+!  V.K. Berglyd Olsen, BE-ABP-HSS
+!  Created: 2019-08-21
+!  Updated: 2019-08-21
+!      This function returns the original particle index based on its pairID. This is a substiture
+!  for the old reverse lookup map that is now used as a particle ID array.
+! ================================================================================================ !
+pure integer function part_getOrigIndex(j)
+  use mod_common_main, only : pairID
+  integer, intent(in) :: j
+  part_getOrigIndex = (pairID(1,j) - 1)*2 + pairID(2,j)
+end function part_getOrigIndex
 
 ! ================================================================================================ !
 !  V.K. Berglyd Olsen, BE-ABP-HSS
@@ -39,8 +81,6 @@ subroutine part_applyClosedOrbit
   use mod_commons
   use mod_common_track
   use mod_common_main
-
-  implicit none
 
   if(iclo6 == 2) then
     xv1(1:napx)   = xv1(1:napx)   +  clo6(1)
@@ -266,15 +306,15 @@ subroutine part_writeState(fileName, isText, withIons)
 
     write(fileUnit,"(a)") "#"
     if(withIons) then
-      write(fileUnit,"(a1,a7,1x,a8,2(1x,a4),9(1x,a24),3(1x,a4),1x,a11)") &
-        "#","partID","parentID","lost","prim","x","y","xp","yp","sigma","dp","p","e","mass","A","Z","Q","PDGid"
+      write(fileUnit,"(a1,a7,1x,a8,1x,a10,2(1x,a4),1x,a8,9(1x,a24),3(1x,a4),1x,a11)") &
+        "#","partID","parentID","pairID","lost","prim","turns","x","y","xp","yp","sigma","dp","p","e","mass","A","Z","Q","PDGid"
     else
-      write(fileUnit,"(a1,a7,1x,a8,2(1x,a4),8(1x,a24))") &
-        "#","partID","parentID","lost","prim","x","y","xp","yp","sigma","dp","p","e"
+      write(fileUnit,"(a1,a7,1x,a8,1x,a10,2(1x,a4),1x,a8,8(1x,a24))") &
+        "#","partID","parentID","pairID","lost","prim","turns","x","y","xp","yp","sigma","dp","p","e"
     end if
     do j=1,npart
       roundBuf = " "
-      isPrim = partID(j) <= napxo
+      isPrim = partID(j) == parentID(j)
       call chr_fromReal(xv1(j),  roundBuf(  2:25 ),17,3,rErr)
       call chr_fromReal(xv2(j),  roundBuf( 27:50 ),17,3,rErr)
       call chr_fromReal(yv1(j),  roundBuf( 52:75 ),17,3,rErr)
@@ -285,17 +325,17 @@ subroutine part_writeState(fileName, isText, withIons)
       call chr_fromReal(ejv(j),  roundBuf(177:200),17,3,rErr)
       if(withIons) then
         call chr_fromReal(nucm(j), roundBuf(202:225),17,3,rErr)
-        write(fileUnit, "(i8,1x,i8,2(1x,l4),a225,3(1x,i4),1x,i11)") &
-        partID(j),parentID(j),llostp(j),isPrim,roundBuf(1:225),naa(j),nzz(j),nqq(j),pdgid(j)
+        write(fileUnit, "(i8,1x,i8,1x,i8,a1,i1,2(1x,l4),1x,i8,a225,3(1x,i4),1x,i11)") &
+        partID(j),parentID(j),pairID(1,j),".",pairID(2,j),llostp(j),isPrim,numxv(j),roundBuf(1:225),naa(j),nzz(j),nqq(j),pdgid(j)
       else
-        write(fileUnit, "(i8,1x,i8,2(1x,l4),a200)") &
-          partID(j),parentID(j),llostp(j),isPrim,roundBuf(1:200)
+        write(fileUnit, "(i8,1x,i8,1x,i8,a1,i1,2(1x,l4),1x,i8,a200)") &
+          partID(j),parentID(j),pairID(1,j),".",pairID(2,j),llostp(j),isPrim,numxv(j),roundBuf(1:200)
       end if
     end do
   else
     ! Format
     ! Header: 440 bytes
-    ! Record:  80 bytes
+    ! Record:  96 bytes
     ! + Ions:  24 bytes
     call f_open(unit=fileUnit,file=fileName,formatted=.false.,mode="w",status="replace",access="stream")
     if(withIons) then
@@ -308,15 +348,15 @@ subroutine part_writeState(fileName, isText, withIons)
     write(fileUnit) clo(1),clop(1),clo(2),clop(2)                       ! 4x64bit
     write(fileUnit) clo6(1),clop6(1),clo6(2),clop6(2),clo6(3),clop6(3)  ! 6x64bit
     write(fileUnit) qwc(1),qwc(2),qwc(3)                                ! 3x64bit
-    write(fileUnit) tas(1,1:6)                                          ! 6x64bit
-    write(fileUnit) tas(2,1:6)                                          ! 6x64bit
-    write(fileUnit) tas(3,1:6)                                          ! 6x64bit
-    write(fileUnit) tas(4,1:6)                                          ! 6x64bit
-    write(fileUnit) tas(5,1:6)                                          ! 6x64bit
-    write(fileUnit) tas(6,1:6)                                          ! 6x64bit
+    write(fileUnit) tmpTas(1,1:6)                                       ! 6x64bit
+    write(fileUnit) tmpTas(2,1:6)                                       ! 6x64bit
+    write(fileUnit) tmpTas(3,1:6)                                       ! 6x64bit
+    write(fileUnit) tmpTas(4,1:6)                                       ! 6x64bit
+    write(fileUnit) tmpTas(5,1:6)                                       ! 6x64bit
+    write(fileUnit) tmpTas(6,1:6)                                       ! 6x64bit
     do j=1,npart
       ! These have to be set explicitly as ifort converts logical to integer differently than gfortran and nagfor
-      if(partID(j) <= napxo) then
+      if(partID(j) == parentID(j)) then
         iPrim = 1
       else
         iPrim = 0
@@ -326,12 +366,13 @@ subroutine part_writeState(fileName, isText, withIons)
       else
         iLost = 0
       end if
-      write(fileUnit) partID(j),parentID(j),iLost,iPrim       ! 4x32 bit
-      write(fileUnit) xv1(j),xv2(j),yv1(j),yv2(j)             ! 4x64 bit
-      write(fileUnit) sigmv(j),dpsv(j),ejfv(j),ejv(j)         ! 4x64 bit
+      write(fileUnit) partID(j),parentID(j),pairID(1,j),pairID(2,j) ! 4x32 bit
+      write(fileUnit) iLost,iPrim,numxv(j),0_int32                  ! 4x32 bit
+      write(fileUnit) xv1(j),xv2(j),yv1(j),yv2(j)                   ! 4x64 bit
+      write(fileUnit) sigmv(j),dpsv(j),ejfv(j),ejv(j)               ! 4x64 bit
       if(withIons) then
-        write(fileUnit) nucm(j),naa(j),nzz(j),nqq(j),pdgid(j) ! 64 bit + 3x16 + 32 bit
-        write(fileUnit) 0_int16, 0_int32                      ! Pad to nearest 64 bit
+        write(fileUnit) nucm(j),naa(j),nzz(j),nqq(j),pdgid(j)       ! 64 bit + 3x16 + 32 bit
+        write(fileUnit) 0_int16, 0_int32                            ! Pad to nearest 64 bit
       end if
     end do
   end if
