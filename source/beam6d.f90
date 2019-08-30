@@ -122,10 +122,11 @@ end subroutine boost
 ! ================================================================================================ !
 subroutine sbc(np,star,cphi,cphi2,nsli,f,ibtyp,ibb,bcu,track,ibbc,mtc)
 
+  use parpro
+  use mod_utils
   use floatPrecision
   use mathlib_bouncer
   use numerical_constants
-  use parpro
 
   implicit none
 
@@ -324,10 +325,12 @@ end subroutine boosti
 ! ================================================================================================ !
 subroutine bbf(sepx,sepy,sigxx,sigyy,bbfx,bbfy,bbgx,bbgy,ibtyp)
 
+  use parpro
+  use mod_utils
   use floatPrecision
   use mathlib_bouncer
   use numerical_constants
-  use parpro
+
   implicit none
 
   integer ibtyp

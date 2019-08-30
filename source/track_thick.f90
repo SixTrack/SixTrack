@@ -23,6 +23,7 @@ subroutine trauthck(nthinerr)
   use collimation
   use mod_time
   use mod_units
+  use mod_utils
 
   use crcoall
   use parpro
@@ -255,7 +256,7 @@ subroutine trauthck(nthinerr)
         ktrack(i) = 20
 #include "include/stra10.f90"
       end if
-    case (11) ! Multipole block (also in initialize_element)
+    case (11) ! Multipole block (also in initialise_element)
       r0=ek(ix)
       nmz=nmu(ix)
       if(abs(r0).le.pieni.or.nmz.eq.0) then
@@ -498,7 +499,7 @@ subroutine thck4d(nthinerr)
   use mod_common_da
   use elens
   use cheby, only : cheby_ktrack, cheby_kick
-  use utils
+  use mod_utils
   use wire
 #ifdef CR
   use checkpoint_restart
@@ -1153,7 +1154,7 @@ subroutine thck6d(nthinerr)
   use aperture
   use elens
   use cheby, only : cheby_ktrack, cheby_kick
-  use utils
+  use mod_utils
   use wire
 #ifdef CR
   use checkpoint_restart
