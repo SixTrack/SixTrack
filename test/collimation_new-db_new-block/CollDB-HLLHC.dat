@@ -79,3 +79,9 @@ tcth.6l1.b1                                                 tcth1 CuCD      1.00
 tctv.6l1.b1                                                 tctv1 CuCD      1.000000     90.000000      0.000000   1322.390717    361.810771
 tctxh.4l1.b1                                                tcth1 CuCD      1.000000      0.000000      0.000000   4673.449650   7076.790797
 tctpv.4l1.b1                                                tctv1 CuCD      1.000000     90.000000      0.000000   4761.459948   7383.238344
+#
+# Additional Collimator Settings
+SETTINGS
+ONESIDED tcdqa.a4r6.b1                                    1
+ONESIDED tcdqa.c4r6.b1                                    1
+ONESIDED tcdqa.b4r6.b1                                    1

@@ -1141,13 +1141,10 @@ subroutine collimate_parseInputLine(inLine, iLine, iErr)
     call chr_cast(lnSplit(2), rnd_seed, iErr)
 
   case("DO_ONESIDE")
-    if(nSplit /= 2) then
-      write(lerr,"(a,i0)") "COLL> ERROR DO_ONESIDE expects 1 value, got ",nSplit-1
-      write(lerr,"(a)")    "COLL>       DO_ONESIDE true|false"
-      iErr = .true.
-      return
-    end if
-    call chr_cast(lnSplit(2), do_oneside, iErr)
+    write(lerr,"(a)") "COLL> ERROR The new COLLIMATION block no longer supports the DO_ONESIDE flag"
+    write(lerr,"(a)") "COLL>       The feature has been moved the the collimator database"
+    iErr = .true.
+    return
 
   case("WRITE_DIST")
     if(nSplit /= 2) then
