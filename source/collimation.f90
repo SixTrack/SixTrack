@@ -220,7 +220,7 @@ module collimation
 
   real(kind=fPrec), save :: remitx_dist,remity_dist,remitx_collgap,remity_collgap
 
-  logical, save :: firstcoll,found,onesided
+  logical, save :: firstcoll,found
   integer rnd_lux,rnd_k1,rnd_k2
 
   integer, save :: myix,myktrack
@@ -592,7 +592,7 @@ end subroutine collimation_expand_arrays
 !  This routine is called once at the start of the simulation and can be used to do any initial
 !  configuration and/or file loading.
 ! ================================================================================================ !
-subroutine collimate_init()
+subroutine collimate_init
 
   use crcoall
   use parpro
@@ -888,6 +888,9 @@ subroutine collimate_init()
 
   ! Read collimator database
   call cdb_readCollDB
+
+  ! Treat onesided collimators
+  call cdb_setLHCOnesided(do_oneside)
 
   ! Then do any implementation specific initial loading
 #ifdef COLLIMATE_K2
@@ -2291,6 +2294,7 @@ subroutine collimate_do_collimator(stracki)
   real(kind=fPrec), intent(in) :: stracki
 
   integer j,jjj
+  logical onesided
 
 #ifdef G4COLLIMATION
   integer :: g4_lostc
@@ -2663,8 +2667,10 @@ subroutine collimate_do_collimator(stracki)
 !++  Do the collimation tracking
   enom_gev = myenom*c1m3
 
-!++  Allow primaries to be one-sided, if requested
-  if ((cdb_cNameUC(icoll)(1:3).eq.'TCP' .or. cdb_cNameUC(icoll)(1:3).eq.'COL') .and. do_oneside) then
+  ! Allow treatment of collimators as one-sided
+  if(cdb_cSides(icoll) == 1) then
+    onesided = .true.
+  else if(cdb_cSides(icoll) == 2) then
     onesided = .true.
   else
     onesided = .false.
@@ -2687,15 +2693,6 @@ subroutine collimate_do_collimator(stracki)
 !GRD let's also add the FLUKA possibility
      &              flukaname)
     else
-
-!GRD-SR, 09-02-2006
-!Force the treatment of the TCDQ equipment as a onsided collimator.
-!Both for Beam 1 and Beam 2, the TCDQ is at positive x side.
-!              if(cdb_cNameUC(icoll)(1:4).eq.'TCDQ' ) onesided = .true.
-! to treat all collimators onesided
-! -> only for worst case TCDQ studies
-      if(cdb_cNameUC(icoll)(1:4).eq.'TCDQ') onesided = .true.
-      if(cdb_cNameUC(icoll)(1:5).eq.'TCXRP') onesided = .true.
 
 !==> SLICE here is possible
 !

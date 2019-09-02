@@ -836,6 +836,10 @@ subroutine cdb_writeDB
 end subroutine cdb_writeDB
 
 ! ================================================================================================ !
+!  Compatibility Functions for old collimation code assuming LHC naming convention
+! ================================================================================================ !
+
+! ================================================================================================ !
 !  V.K. Berglyd Olsen, BE-ABP-HSS
 !  Created: 2019-03-19
 !  Updated: 2019-03-20
@@ -934,5 +938,30 @@ subroutine cdb_generateFamName(inElem, famName)
   end if
 
 end subroutine cdb_generateFamName
+
+! ================================================================================================ !
+!  V.K. Berglyd Olsen, BE-ABP-HSS
+!  Created: 2019-09-02
+!  Updated: 2019-09-02
+!  Checks for one sided collimators from old input block and DB using the COLL block flag and
+!  hardcoded onesided treatment for TCDQ and roman pots.
+! ================================================================================================ !
+subroutine cdb_setLHCOnesided(doOneSide)
+
+  use crcoall
+
+  logical, intent(in) :: doOneSide
+
+  integer i
+
+  do i=1,cdb_nColl
+    cdb_cSides(i) = 0
+    if(cdb_cNameUC(i)(1:3) == "TCP" .and. doOneSide .or. cdb_cNameUC(i)(1:4) == "TCDQ" .or. cdb_cNameUC(i)(1:5) == "TCXRP") then
+      cdb_cSides(i) = 1
+      write(lout,"(a)") "COLLDB> Collimator '"//trim(cdb_cName(i))//"' is treated as one sided"
+    end if
+  end do
+
+end subroutine cdb_setLHCOneSided
 
 end module coll_db
