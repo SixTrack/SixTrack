@@ -176,7 +176,7 @@ subroutine wwerf(x, y, wr, wi)
 
   xa = abs(x)
   ya = abs(y)
-  if(ya < c1 .and. xa > c2) then
+  if(ya < c1 .and. xa < c2) then
     zhr = ya+c4
     zhi = xa
     rr(37) = zero
