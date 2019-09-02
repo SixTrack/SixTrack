@@ -508,6 +508,17 @@ subroutine cdb_writeDB_newFromOld
     end if
   end do
 
+  write(dbNew,"(a)") "#"
+  write(dbNew,"(a)") "# Additional Collimator Settings"
+  write(dbNew,"(a)") "SETTINGS"
+
+  ! Onesided Collimators
+  do j=1,cdb_nColl
+    if(cdb_cSides(j) > 0) then
+      write(dbNew,"(a,1x,a48,1x,i1)") "ONESIDED",cdb_cName(j),cdb_cSides(j)
+    end if
+  end do
+
   flush(dbNew)
   call f_freeUnit(dbNew)
 
