@@ -169,17 +169,15 @@ subroutine wwerf(x, y, wr, wi)
   integer n
   real(kind=fPrec) rr(37),ri(37),sr0,sr,si,tr,ti,vi,vr,xa,xl,ya,zhi,zhr
 
-  real(kind=fPrec), parameter :: c1 = 74.0_fPrec/c1e1
-  real(kind=fPrec), parameter :: c2 = 83.0_fPrec/c1e1
-  real(kind=fPrec), parameter :: c3 = c1e1/32.0_fPrec
-  real(kind=fPrec), parameter :: c4 = 16.0_fPrec/c1e1
-  real(kind=fPrec), parameter :: c  = two/pisqrt
-  real(kind=fPrec), parameter :: p  = 46768052394588893.3825_fPrec
+  real(kind=fPrec), parameter :: xlim = 8.3_fPrec
+  real(kind=fPrec), parameter :: ylim = 7.4_fPrec
+  real(kind=fPrec), parameter :: c    = two/pisqrt
+  real(kind=fPrec), parameter :: p    = 4.67680523945888933825e16_fPrec
 
   xa = abs(x)
   ya = abs(y)
-  if(ya < c1 .and. xa > c2) then
-    zhr = ya+c4
+  if(ya < ylim .and. xa < xlim) then
+    zhr = ya + 1.6_fPrec
     zhi = xa
     rr(37) = zero
     ri(37) = zero
@@ -193,7 +191,7 @@ subroutine wwerf(x, y, wr, wi)
     sr = zero
     si = zero
     do n=33,1,-1
-      xl  = c3*xl
+      xl  = xl/3.2_fPrec
       sr0 = rr(n)*(sr+xl)-ri(n)*si
       si  = rr(n)*si+ri(n)*(sr+xl)
       sr  = sr0
@@ -218,7 +216,7 @@ subroutine wwerf(x, y, wr, wi)
     vr = exp_mb(-one*xa**2)
   end if
   if(y < zero) then
-    vr = (two*exp_mb(ya**2-xa**2))*cos_mb((two*xa)*ya)-vr
+    vr = ( two*exp_mb(ya**2-xa**2))*cos_mb((two*xa)*ya)-vr
     vi = (-two*exp_mb(ya**2-xa**2))*sin_mb((two*xa)*ya)-vi
     if(x > zero) vi = -one*vi
   else
