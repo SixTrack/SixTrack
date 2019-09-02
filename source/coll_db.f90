@@ -575,7 +575,7 @@ subroutine cdb_readDBSettings
     goto 30
   end if
   if(nSplit == 0) goto 10 ! Skip empty lines
-  
+
   ! Look up the target collimator or family
   iFam  = -1
   iColl = -1
@@ -601,7 +601,8 @@ subroutine cdb_readDBSettings
   ! Parse the keywords
   select case(lnSplit(1))
 
-  case("ONESIDED")
+  case("ONESIDED") ! Treatment of one-sided collimators
+
     if(nSplit /= 3) then
       write(lerr,"(a,i0)") "COLLDB> ERROR ONESIDED expects 2 values, got ",nSplit-1
       write(lerr,"(a)")    "COLLDB>       ONESIDED collname|famname 1|2"
@@ -615,14 +616,27 @@ subroutine cdb_readDBSettings
     if(isFam) then
       do i=1,cdb_nColl
         if(cdb_cFamily(iFam) == iFam) then
-          cdb_cSides(i) = iTemp
+          if(iTemp == 2) then
+            call cdb_rotateCollimator(i, pi)
+            write(lout,"(a,i0,a)") "COLLDB> Collimator family '"//trim(lnSplit(2))//"' is set as onesided and rotated (",iTemp,")"
+          else
+            write(lout,"(a,i0,a)") "COLLDB> Collimator family '"//trim(lnSplit(2))//"' is set as onesided (",iTemp,")"
+          end if
+          cdb_cSides(i) = 1
         end if
       end do
-      write(lout,"(a,i0,a)") "COLLDB> Collimator family '"//trim(lnSplit(2))//"' is set as onesided (",iTemp,")"
     else
-      cdb_cSides(iColl) = iTemp
-      write(lout,"(a,i0,a)") "COLLDB> Collimator '"//trim(lnSplit(2))//"' is set as onesided (",iTemp,")"
+      if(iTemp == 2) then
+        call cdb_rotateCollimator(iColl, pi)
+        write(lout,"(a,i0,a)") "COLLDB> Collimator '"//trim(lnSplit(2))//"' is set as onesided and rotated (",iTemp,")"
+      else
+        write(lout,"(a,i0,a)") "COLLDB> Collimator '"//trim(lnSplit(2))//"' is set as onesided (",iTemp,")"
+      end if
+      cdb_cSides(iColl) = 1
     end if
+
+
+  ! ============= !
 
   case default
     write(lerr,"(a)") "COLLDB> ERROR Unknown keyword '"//trim(lnSplit(1))//"' in SETTINGS section"
@@ -717,6 +731,29 @@ subroutine cdb_writeDB_HDF5
 
 end subroutine cdb_writeDB_HDF5
 #endif
+
+! ================================================================================================ !
+!  V.K. Berglyd Olsen, BE-ABP-HSS
+!  Created: 2019-09-02
+!  Updated: 2019-09-02
+!  Rotate a collimater by rAngle radians
+!  Note: does not check that zero <= rAngle <= twopi
+! ================================================================================================ !
+subroutine cdb_rotateCollimator(collID, rAngle)
+
+  use numerical_constants
+
+  integer,          intent(in) :: collID
+  real(kind=fPrec), intent(in) :: rAngle
+
+  cdb_cRotation(collID) = cdb_cRotation(collID) + rAngle
+  if(cdb_cRotation(collID) > twopi) then
+    cdb_cRotation(collID) = cdb_cRotation(collID) - twopi
+  else if(cdb_cRotation(collID) < zero) then
+    cdb_cRotation(collID) = cdb_cRotation(collID) + twopi
+  end if
+
+end subroutine cdb_rotateCollimator
 
 ! ================================================================================================ !
 !  V.K. Berglyd Olsen, BE-ABP-HSS
