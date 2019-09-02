@@ -354,7 +354,7 @@ end subroutine elens_parseInputDone
 subroutine elens_postInput
 
   use mathlib_bouncer
-  use utils
+  use mod_utils
   use mod_common, only : bez,kz,fort3
 
   integer j, jj, nlens

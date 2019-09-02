@@ -442,6 +442,7 @@ subroutine runda
   use mod_commond2
   use mod_lie_dab, only : idao,iscrri,rscrri,iscrda
   use mod_units
+  use mod_utils
   use mod_time
   use mod_fluc,    only : fluc_errAlign,fluc_writeFort4
 
