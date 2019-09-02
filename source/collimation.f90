@@ -886,11 +886,10 @@ subroutine collimate_init
   call f_requestUnit('CollPositions.dat', CollPositions_unit)
   open(unit=CollPositions_unit, file='CollPositions.dat')
 
-  ! Read collimator database
-  call cdb_readCollDB
-
-  ! Treat onesided collimators
-  call cdb_setLHCOnesided(do_oneside)
+  ! Collimator Database
+  call cdb_readCollDB                 ! Read the collimator DB
+  call cdb_setLHCOnesided(do_oneside) ! Set LHC onesided collimators
+  call cdb_writeDB_newFromOld         ! Write a copy of the db in new format, if provided in old format
 
   ! Then do any implementation specific initial loading
 #ifdef COLLIMATE_K2

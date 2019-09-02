@@ -355,7 +355,7 @@ subroutine cdb_readDB_oldFormat
   character(len=mInputLn) inLine
   character(len=cdb_fNameLen) famName
   logical cErr
-  integer j, dbUnit, dbNew, ioStat, iLine, famID
+  integer j, dbUnit, ioStat, iLine, famID
 
   cErr = .false.
 
@@ -363,19 +363,6 @@ subroutine cdb_readDB_oldFormat
 
   call f_requestUnit(cdb_fileName, dbUnit)
   call f_open(unit=dbUnit,file=cdb_fileName,formatted=.true.,mode="r",status="old")
-
-  call f_requestUnit(trim(cdb_fileName)//".new", dbNew)
-  call f_open(unit=dbNew,file=trim(cdb_fileName)//".new",formatted=.true.,mode="w",status="replace")
-
-  write(dbNew,"(a)") "# Automatically converted collimator DB from old format file '"//trim(cdb_fileName)//"'"
-  write(dbNew,"(a)") "# Families"
-  do j=1,cdb_nFam
-    write(dbNew,"(a,1x,a16,1x,f13.6)") "NSIG_FAM",cdb_famName(j),cdb_famNSig(j)
-  end do
-  write(dbNew,"(a)") "# Collimators"
-
-  write(dbNew,"(1a,a47,1x,a16,1x,a4,5(1x,a13))") "#",chr_rPad(" name",47),&
-    "opening","mat.","length[m]","angle[deg]","offset[m]","beta_x[m]","beta_y[m]"
 
   read(dbUnit,*,iostat=ioStat) inLine
   iLine = 1
@@ -458,22 +445,10 @@ subroutine cdb_readDB_oldFormat
       cdb_cNSig(j) = cdb_cNSigOrig(j)
     end if
     cdb_cFamily(j) = famID
-    if(famID > 0) then
-      write(dbNew,"(a48,1x,a16,1x,a4,5(1x,f13.6))") cdb_cName(j),&
-      chr_lPad(trim(famName),16),cdb_cMaterial(j),cdb_cLength(j),cdb_cRotation(j)/rad,&
-      cdb_cOffset(j),cdb_cBx(j),cdb_cBy(j)
-    else
-      write(dbNew,"(a48,1x,f16.3,1x,a4,5(1x,f13.6))") cdb_cName(j),&
-      cdb_cNSig(j),cdb_cMaterial(j),cdb_cLength(j),cdb_cRotation(j)/rad,&
-      cdb_cOffset(j),cdb_cBx(j),cdb_cBy(j)
-    end if
 
   end do
 
-  call f_close(dbUnit)
-
-  flush(dbNew)
-  call f_close(dbNew)
+  call f_freeUnit(dbUnit)
 
   return
 
@@ -482,6 +457,61 @@ subroutine cdb_readDB_oldFormat
   call prror
 
 end subroutine cdb_readDB_oldFormat
+
+! ================================================================================================ !
+!  V.K. Berglyd Olsen, BE-ABP-HSS
+!  Created: 2019-03-19
+!  Updated: 2019-09-02
+!  Write a copy of the old style DB in new DB format.
+! ================================================================================================ !
+subroutine cdb_writeDB_newFromOld
+
+  use crcoall
+  use string_tools
+  use mod_units
+  use numerical_constants
+
+  character(len=cdb_fNameLen) famName
+  integer j, dbNew
+
+  if(cdb_dbOld .eqv. .false.) then
+    ! Already have a new format DB
+    return
+  end if
+
+  write(lout,"(a)") "COLLDB> Converting old format DB to new format to file '"//trim(cdb_fileName)//".new'"
+
+  call f_requestUnit(trim(cdb_fileName)//".new", dbNew)
+  call f_open(unit=dbNew,file=trim(cdb_fileName)//".new",formatted=.true.,mode="w",status="replace")
+
+  write(dbNew,"(a)") "# Automatically converted collimator DB from old format file '"//trim(cdb_fileName)//"'"
+  write(dbNew,"(a)") "# Families"
+  do j=1,cdb_nFam
+    write(dbNew,"(a,1x,a16,1x,f13.6)") "NSIG_FAM",cdb_famName(j),cdb_famNSig(j)
+  end do
+  write(dbNew,"(a)") "#"
+  write(dbNew,"(a)") "# Collimators"
+
+  write(dbNew,"(1a,a47,1x,a16,1x,a4,5(1x,a13))") "#",chr_rPad(" name",47),&
+    "opening","mat.","length[m]","angle[deg]","offset[m]","beta_x[m]","beta_y[m]"
+
+  do j=1,cdb_nColl
+    if(cdb_cFamily(j) > 0) then
+      famName = cdb_famName(cdb_cFamily(j))
+      write(dbNew,"(a48,1x,a16,1x,a4,5(1x,f13.6))") cdb_cName(j),&
+      chr_lPad(trim(famName),16),cdb_cMaterial(j),cdb_cLength(j),cdb_cRotation(j)/rad,&
+      cdb_cOffset(j),cdb_cBx(j),cdb_cBy(j)
+    else
+      write(dbNew,"(a48,1x,f16.3,1x,a4,5(1x,f13.6))") cdb_cName(j),&
+      cdb_cNSig(j),cdb_cMaterial(j),cdb_cLength(j),cdb_cRotation(j)/rad,&
+      cdb_cOffset(j),cdb_cBx(j),cdb_cBy(j)
+    end if
+  end do
+
+  flush(dbNew)
+  call f_freeUnit(dbNew)
+
+end subroutine cdb_writeDB_newFromOld
 
 ! ================================================================================================ !
 !  V.K. Berglyd Olsen, BE-ABP-HSS
