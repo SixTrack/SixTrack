@@ -1821,9 +1821,7 @@ All values default to 0.
 
 \paragraph{One-Sided Collimators} \texttt{DO\_ONESIDE true|false}\\
 
-Switches on or off the collimator being one-sided.
-That is, only positive jaw.
-If the negative jaw is to be used, it is necessary to turn collimator by 180 degrees in the collimator database file.
+Switches on or off all TCPs being one-sided; only positive jaw.
 Default value is \texttt{false}.
 
 \paragraph{Beta-Beating} \texttt{BETA\_BEAT xbeat xbeat\_phase ybeat ybeat\_phase}\\
@@ -2127,7 +2125,7 @@ NEXT----------------------------------------------------------------------------
         \cline{2-4}
         & \texttt{NAME\_SEL}     & char    & Name as in the \texttt{fort.2} file of the collimator one wants a dedicated study. \\
         \cline{2-4}
-        & \texttt{DO\_ONESIDE}   & logical & Switches on/off the collimator being one-sided. Only positive jaw. If the negative jaw is to be used, it is necessary to turn collimator by 180 degrees in the collimator database file \texttt{CollDB\_V6.500\_[type]\_st.[beam].data}. \\
+        & \texttt{DO\_ONESIDE}   & logical & Switches on/off all TCPs being one-sided; only positive jaw. \\
         \cline{2-4}
         & \texttt{DOWRT\_IMPACT} & logical & Saves the impact parameters for each collimator. \\
         \cline{2-4}
