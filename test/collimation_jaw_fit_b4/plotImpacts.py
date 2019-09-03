@@ -38,7 +38,7 @@ def parseFirstImpacts(iFileName='FirstImpacts.dat'):
     print '...done - read %i lines.'%(len(data))
     return data
 
-def parseFlukaImpacts(iFileName='FLUKA_impacts_all.dat'):
+def parseFlukaImpacts(iFileName='FLUKA_impacts.dat'):
     print 'parsing file %s ...'%(iFileName)
     data=[]
     with open(iFileName,'r') as iFile:
@@ -98,7 +98,23 @@ def parseCollGaps(iFileName='collgaps.dat'):
     print ' ...acquired %i collimators'%(len(collData))
     return collData
 
-def plotFirstImpacts(iCols,lCols,fitProfileS,fitProfileY1,fitProfileY2,sixCurve,data):
+def parseCollDBtemp(iFileName='collimator-temp.db'):
+    print 'parsing file %s ...'%(iFileName)
+    collData=[]
+    with open(iFileName,'r') as iFile:
+        for line in iFile.readlines():
+            line=line.strip()
+            if (line.startswith('#')): 
+                # a new collimator
+                collData.append([])
+            else:
+                collData[-1].append(line)
+                if (len(collData[-1])>2):
+                    collData[-1][-1]=float(collData[-1][-1])
+    print ' ...acquired %i collimators'%(len(collData))
+    return collData
+
+def plotFirstImpacts(iCols,lCols,fitProfileS,fitProfileY1,fitProfileY2,sixCurves,data):
     plt.figure('First impacts',figsize=(16,16))
     iPlot=0
     for iCol,lCol,jCol in zip(iCols,lCols,range(len(lCols))):
@@ -128,12 +144,12 @@ def plotFirstImpacts(iCols,lCols,fitProfileS,fitProfileY1,fitProfileY2,sixCurve,
         iPlot+=1
         plt.subplot(len(iCols),3,iPlot)
         if ( iCol==9 ):
-            plt.plot(sixCurve[0],sixCurve[1],'ko-',label='6T fit')
-            plt.plot(sixCurve[0],sixCurve[2],'ko-')
-        plt.plot(fitProfileS[jCol],fitProfileY1[jCol],'g-',label='expected')
-        plt.plot(fitProfileS[jCol],fitProfileY2[jCol],'g-')
-        plt.plot(Ss_in,Hs_in,'ro',label='in')
-        plt.plot(Ss_out,Hs_out,'bo',label='out')
+            plt.plot(sixCurves[0],sixCurves[1],'ro-',label='6T fit-L')
+            plt.plot(sixCurves[0],sixCurves[2],'mo-',label='6T fit-R')
+        plt.plot(fitProfileS[jCol],fitProfileY1[jCol],'b-',label='expected-L')
+        plt.plot(fitProfileS[jCol],fitProfileY2[jCol],'c-',label='expected-R')
+        plt.plot(Ss_in,Hs_in,'go',label='in')
+        plt.plot(Ss_out,Hs_out,'yo',label='out')
         plt.xlabel(r's_{jaw} [m]')
         plt.ylabel(r'x_{jaw} [mm]')
         plt.title('iColl=%i - Cleaning plane'%(iCol))
@@ -143,8 +159,8 @@ def plotFirstImpacts(iCols,lCols,fitProfileS,fitProfileY1,fitProfileY2,sixCurve,
 
         iPlot+=1
         plt.subplot(len(iCols),3,iPlot)
-        plt.plot(Ss_in,Vs_in,'ro',label='in')
-        plt.plot(Ss_out,Vs_out,'bo',label='out')
+        plt.plot(Ss_in,Vs_in,'go',label='in')
+        plt.plot(Ss_out,Vs_out,'yo',label='out')
         plt.xlabel(r's_{jaw} [m]')
         plt.ylabel(r'y_{jaw} [mm]')
         plt.title('iColl=%i - Ortoghonal plane'%(iCol))
@@ -154,8 +170,8 @@ def plotFirstImpacts(iCols,lCols,fitProfileS,fitProfileY1,fitProfileY2,sixCurve,
 
         iPlot+=1
         plt.subplot(len(iCols),3,iPlot)
-        plt.plot(Hs_in,Vs_in,'ro',label='in')
-        plt.plot(Hs_out,Vs_out,'bo',label='out')
+        plt.plot(Hs_in,Vs_in,'go',label='in')
+        plt.plot(Hs_out,Vs_out,'yo',label='out')
         plt.xlabel(r'x_{jaw} [mm]')
         plt.ylabel(r'y_{jaw} [mm]')
         plt.title('iColl=%i - transverse plane'%(iCol))
@@ -165,8 +181,8 @@ def plotFirstImpacts(iCols,lCols,fitProfileS,fitProfileY1,fitProfileY2,sixCurve,
 
     plt.show()
 
-def plotFlukaImpacts(iCols,lCols,fitProfileS,fitProfileY1,fitProfileY2,sixCurve,data,skewAngles):
-    plt.figure('FLUKA impacts all',figsize=(16,16))
+def plotFlukaImpacts(iCols,lCols,fitProfileS,fitProfileY1,fitProfileY2,sixCurves,data,skewAngles):
+    plt.figure('FLUKA impacts',figsize=(16,16))
     iPlot=0
     for iCol,lCol,jCol,skewAngle in zip(iCols,lCols,range(len(lCols)),skewAngles):
         Ss=[]
@@ -185,11 +201,11 @@ def plotFlukaImpacts(iCols,lCols,fitProfileS,fitProfileY1,fitProfileY2,sixCurve,
         iPlot+=1
         plt.subplot(len(iCols),3,iPlot)
         if ( iCol==9 ):
-            plt.plot(sixCurve[0],sixCurve[1],'ko-',label='6T fit')
-            plt.plot(sixCurve[0],sixCurve[2],'ko-')
-        plt.plot(fitProfileS[jCol],fitProfileY1[jCol],'g-',label='expected')
-        plt.plot(fitProfileS[jCol],fitProfileY2[jCol],'g-')
-        plt.plot(Ss,Hs,'ro',label='impact')
+            plt.plot(sixCurves[0],sixCurves[1],'ro-',label='6T fit-L')
+            plt.plot(sixCurves[0],sixCurves[2],'mo-',label='6T fit-R')
+        plt.plot(fitProfileS[jCol],fitProfileY1[jCol],'b-',label='expected-L')
+        plt.plot(fitProfileS[jCol],fitProfileY2[jCol],'c-',label='expected-R')
+        plt.plot(Ss,Hs,'go',label='impact')
         plt.xlabel(r's_{jaw} [m]')
         plt.ylabel(r'x_{jaw} [mm]')
         plt.title('iColl=%i - Cleaning plane'%(iCol))
@@ -199,7 +215,7 @@ def plotFlukaImpacts(iCols,lCols,fitProfileS,fitProfileY1,fitProfileY2,sixCurve,
 
         iPlot+=1
         plt.subplot(len(iCols),3,iPlot)
-        plt.plot(Ss,Vs,'ro',label='impact')
+        plt.plot(Ss,Vs,'go',label='impact')
         plt.xlabel(r's_{jaw} [m]')
         plt.ylabel(r'y_{jaw} [mm]')
         plt.title('iColl=%i - Ortoghonal plane'%(iCol))
@@ -209,7 +225,7 @@ def plotFlukaImpacts(iCols,lCols,fitProfileS,fitProfileY1,fitProfileY2,sixCurve,
 
         iPlot+=1
         plt.subplot(len(iCols),3,iPlot)
-        plt.plot(Hs,Vs,'ro',label='impact')
+        plt.plot(Hs,Vs,'go',label='impact')
         plt.xlabel(r'x_{jaw} [mm]')
         plt.ylabel(r'y_{jaw} [mm]')
         plt.title('iColl=%i - transverse plane'%(iCol))
@@ -219,7 +235,7 @@ def plotFlukaImpacts(iCols,lCols,fitProfileS,fitProfileY1,fitProfileY2,sixCurve,
 
     plt.show()
 
-def plotJawProfiles(iCols,lCols,fitProfileS,fitProfileY1,fitProfileY2,sixCurve,data):
+def plotJawProfiles(iCols,lCols,fitProfileS,fitProfileY1,fitProfileY2,sixCurves,data):
     plt.figure('Jaw Profiles',figsize=(16,16))
     iPlot=0
     for iCol,lCol,jCol in zip(iCols,lCols,range(len(lCols))):
@@ -245,12 +261,12 @@ def plotJawProfiles(iCols,lCols,fitProfileS,fitProfileY1,fitProfileY2,sixCurve,d
         iPlot+=1
         plt.subplot(len(iCols),3,iPlot)
         if ( iCol==9 ):
-            plt.plot(sixCurve[0],sixCurve[1],'ko-',label='6T fit')
-            plt.plot(sixCurve[0],sixCurve[2],'ko-')
-        plt.plot(fitProfileS[jCol],fitProfileY1[jCol],'g-',label='expected')
-        plt.plot(fitProfileS[jCol],fitProfileY2[jCol],'g-')
-        plt.plot(Ss_in,Hs_in,'ro',label='in')
-        plt.plot(Ss_out,Hs_out,'bo',label='out')
+            plt.plot(sixCurves[0],sixCurves[1],'ro-',label='6T fit-L')
+            plt.plot(sixCurves[0],sixCurves[2],'mo-',label='6T fit-R')
+        plt.plot(fitProfileS[jCol],fitProfileY1[jCol],'b-',label='expected-L')
+        plt.plot(fitProfileS[jCol],fitProfileY2[jCol],'c-',label='expected-R')
+        plt.plot(Ss_in,Hs_in,'go',label='in')
+        plt.plot(Ss_out,Hs_out,'yo',label='out')
         plt.xlabel(r's_{jaw} [m]')
         plt.ylabel(r'x_{jaw} [mm]')
         plt.title('iColl=%i - Cleaning plane'%(iCol))
@@ -260,8 +276,8 @@ def plotJawProfiles(iCols,lCols,fitProfileS,fitProfileY1,fitProfileY2,sixCurve,d
 
         iPlot+=1
         plt.subplot(len(iCols),3,iPlot)
-        plt.plot(Ss_in,Vs_in,'ro',label='in')
-        plt.plot(Ss_out,Vs_out,'bo',label='out')
+        plt.plot(Ss_in,Vs_in,'go',label='in')
+        plt.plot(Ss_out,Vs_out,'yo',label='out')
         plt.xlabel(r's_{jaw} [m]')
         plt.ylabel(r'y_{jaw} [mm]')
         plt.title('iColl=%i - Ortoghonal plane'%(iCol))
@@ -271,8 +287,8 @@ def plotJawProfiles(iCols,lCols,fitProfileS,fitProfileY1,fitProfileY2,sixCurve,d
 
         iPlot+=1
         plt.subplot(len(iCols),3,iPlot)
-        plt.plot(Hs_in,Vs_in,'ro',label='in')
-        plt.plot(Hs_out,Vs_out,'bo',label='out')
+        plt.plot(Hs_in,Vs_in,'go',label='in')
+        plt.plot(Hs_out,Vs_out,'yo',label='out')
         plt.xlabel(r'x_{jaw} [mm]')
         plt.ylabel(r'y_{jaw} [mm]')
         plt.title('iColl=%i - transverse plane'%(iCol))
@@ -295,32 +311,52 @@ if ( __name__ == "__main__" ):
         [ 0., 1. ],
         [ 0., 1. ]
     ]
-    nPoints=50
+    nPoints=110
+    lDebug=False
     
     collData=parseCollGaps()
-    lCols=[] ; hGaps=[] ; skewAngles=[]
+    lCols=[] ; hGaps=[] ; skewAngles=[] ; tilt1=[] ; tilt2=[]
     for iCol in iCols:
         for collDatum in collData:
             if ( collDatum[0]==iCol ):
                 lCols.append(collDatum[7])
                 hGaps.append(collDatum[5])
                 skewAngles.append(collDatum[2])
+                tilt1.append(collDatum[10])
+                tilt2.append(collDatum[11])
                 break
+
+    collDBdata=parseCollDBtemp()
+    offSets=[]
+    for iCol in iCols:
+        offSets.append(collDBdata[iCol-1][4])
+
+    if (lDebug):
+        for iCol,jCol in zip(iCols,range(len(iCols))):
+            print iCol, lCols[jCol], hGaps[jCol], skewAngles[jCol], tilt1[jCol], tilt2[jCol], offSets[jCol]
             
     fitProfileS=[] ; fitProfileY1=[] ; fitProfileY2=[]
     for lCol,hGap,jCol in zip(lCols,hGaps,range(len(iCols))):
         Ss=[ float(ii)/nPoints*lCol for ii in range(nPoints+1) ]
-        Y1s=[  (fitProfile(s,fitParams[  2*jCol],lCol)+hGap)*1000 for s in Ss ]
-        Y2s=[ -(fitProfile(s,fitParams[1+2*jCol],lCol)+hGap)*1000 for s in Ss ]
+        if ( tilt1[jCol]>0 ):
+            Y1s=[ ( fitProfile(s,fitParams[  2*jCol],lCol)+hGap+tilt1[jCol]*(s     )+offSets[jCol])*1000 for s in Ss ]
+        else:
+            Y1s=[ ( fitProfile(s,fitParams[  2*jCol],lCol)+hGap+tilt1[jCol]*(s-lCol)+offSets[jCol])*1000 for s in Ss ]
+        if ( tilt2[jCol]>0 ):
+            Y2s=[ (-fitProfile(s,fitParams[1+2*jCol],lCol)-hGap+tilt2[jCol]*(s-lCol)+offSets[jCol])*1000 for s in Ss ]
+        else:
+            Y2s=[ (-fitProfile(s,fitParams[1+2*jCol],lCol)-hGap+tilt2[jCol]*(s     )+offSets[jCol])*1000 for s in Ss ]
         fitProfileS.append(Ss[:])
         fitProfileY1.append(Y1s[:])
         fitProfileY2.append(Y2s[:])
 
-    sixCurve=getFittingData()
+    sixCurves=getFittingData()
+    sixCurves[1]=[tmpPoint+offSets[0]*1000 for tmpPoint in sixCurves[1]]
+    sixCurves[2]=[tmpPoint+offSets[0]*1000 for tmpPoint in sixCurves[2]]
     
     data=parseFirstImpacts()
-    plotFirstImpacts(iCols,lCols,fitProfileS,fitProfileY1,fitProfileY2,sixCurve,data)
+    plotFirstImpacts(iCols,lCols,fitProfileS,fitProfileY1,fitProfileY2,sixCurves,data)
     data=parseFlukaImpacts()
-    plotFlukaImpacts(iCols,lCols,fitProfileS,fitProfileY1,fitProfileY2,sixCurve,data,skewAngles)
+    plotFlukaImpacts(iCols,lCols,fitProfileS,fitProfileY1,fitProfileY2,sixCurves,data,skewAngles)
     data=parseJawProfiles()
-    plotJawProfiles(iCols,lCols,fitProfileS,fitProfileY1,fitProfileY2,sixCurve,data)
+    plotJawProfiles(iCols,lCols,fitProfileS,fitProfileY1,fitProfileY2,sixCurves,data)
