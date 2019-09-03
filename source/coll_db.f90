@@ -1038,7 +1038,7 @@ subroutine cdb_setLHCOnesided(doOneSide)
 
   do i=1,cdb_nColl
     cdb_cSides(i) = 0
-    if(cdb_cNameUC(i)(1:3) == "TCP" .and. doOneSide .or. cdb_cNameUC(i)(1:4) == "TCDQ" .or. cdb_cNameUC(i)(1:5) == "TCXRP") then
+    if((cdb_cNameUC(i)(1:3) == "TCP" .and. doOneSide) .or. cdb_cNameUC(i)(1:4) == "TCDQ" .or. cdb_cNameUC(i)(1:5) == "TCXRP") then
       cdb_cSides(i) = 1
       write(lout,"(a)") "COLLDB> Collimator '"//trim(cdb_cName(i))//"' is treated as one sided"
     end if
