@@ -618,7 +618,7 @@ subroutine cdb_readDBSettings
         if(cdb_cFamily(iFam) == iFam) then
           if(iTemp == 2) then
             call cdb_rotateCollimator(i, pi)
-            write(lout,"(a,i0,a)") "COLLDB> Collimator family '"//trim(lnSplit(2))//"' is set as onesided and rotated (",iTemp,")"
+            write(lout,"(a,i0,a)") "COLLDB> Collimator family '"//trim(lnSplit(2))//"' is set as onesided and rotated by pi (",iTemp,")"
           else
             write(lout,"(a,i0,a)") "COLLDB> Collimator family '"//trim(lnSplit(2))//"' is set as onesided (",iTemp,")"
           end if
@@ -628,7 +628,7 @@ subroutine cdb_readDBSettings
     else
       if(iTemp == 2) then
         call cdb_rotateCollimator(iColl, pi)
-        write(lout,"(a,i0,a)") "COLLDB> Collimator '"//trim(lnSplit(2))//"' is set as onesided and rotated (",iTemp,")"
+        write(lout,"(a,i0,a)") "COLLDB> Collimator '"//trim(lnSplit(2))//"' is set as onesided and rotated by pi (",iTemp,")"
       else
         write(lout,"(a,i0,a)") "COLLDB> Collimator '"//trim(lnSplit(2))//"' is set as onesided (",iTemp,")"
       end if
