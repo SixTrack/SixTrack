@@ -1918,34 +1918,34 @@ All flags default to \texttt{false}.
 
 \subsection{The Collimator Database}\label{Sec:CollDB}
 
-Collimators require additional settings, which are povided in a dedicated collimator database.
+Collimators require specific settings, which are provided in a dedicated collimator database.
 The file is specified with the \texttt{COLLDB} keyword in the \texttt{COLL} block in \texttt{fort.3}.
 See Section~\ref{sec:coll:input}.
 
-Only the new database format is described in this section, but it is possible to load a file with the old file format.
-The old format has been deprecated due to having a single column of parameters that are hard to read and difficult to extend with new features.
-If an old database file is specified, a converted database is written with the same file name pluss an added extension \texttt{.new}.
+Only the new database format is described in this section, but it is possible to load a file with the old format.
+The old format has been deprecated due to having a single column of parameters that are not straight-forward to read (by humans) and difficult to extend with new features.
+If an old database file is specified, a converted database is written with the same file name plus an added extension \texttt{.new}.
 New features added to the collimation module will not be supported by the old format.
 
 \paragraph{Database Structure}~\\
 
-The database is split into two section.
-The first section lists all the collimators and their default parameters.
+The database is split into two sections.
+The first (main) section lists all the collimators and their default parameters.
 The second section, separated from the first by the keyword \texttt{SETTINGS}, contains additional settings for specific collimators or families of collimators.
-The second section is parsed following simular logic to the \texttt{fort.3} input block, but has a different set of keywords.
+The second section is parsed following similar logic to the \texttt{fort.3} input block, but has a different set of keywords.
 The second section is optional.
 
 \subsubsection{Main Database Section}
 
-The main section of the database consists of a list of collimator family descritions, followed by a list of collimators.
-The family description is optional, but it makes it easier to assign parameters to a group of collimators instead of specifying each one individually.
+The main section of the database consists of a list of collimator family declarations, followed by a list of collimators.
+The family declaration is optional, but it makes it easier to assign parameters to a group of collimators instead of specifying each one individually.
 In the main section, this is used to provide the default collimator opening.
 
 The collimator family settings are povided in exactly the same way as the \texttt{NISG\_FAM} keyword in the \texttt{COLL} block in \texttt{fort.3}.
 The keyword takes a family name and a collimator opening setting as input parameters.
 The settings in \texttt{fort.3} overrides the settings of the database.
 
-The collimator key settings are provided in a table of either 6 or 8 columnes.
+The collimator key settings are provided in a table of either 6 or 8 columns.
 The latter two columns are optional.
 The formats are as follows:
 
@@ -1955,8 +1955,8 @@ The formats are as follows:
     \texttt{opening}  & char/float & The family name as defined above, or if no family, the collimator opening in units of sigma. \\
     \texttt{material} & char(4)    & The material of the collimator. \\
     \texttt{length}   & float      & The length of the collimator in metres. \\
-    \texttt{angle}    & float      & The angle of the collimator in degrees. \\
-    \texttt{offset}   & float      & The offset of the collimator in metres. \\
+    \texttt{angle}    & float      & The skew angle (i.e. about the longitudinal axis) of the collimator in degrees. \\
+    \texttt{offset}   & float      & The offset of the collimator on the cleaning plane in metres. \\
     \texttt{beta\_x}  & float      & The Twiss $\beta_x$ of the collimator in metres (optional). \\
     \texttt{beta\_y}  & float      & The Twiss $\beta_y$ of the collimator in metres (optional). \\
 \end{tabular}
@@ -2002,8 +2002,8 @@ Currently, only one-sided collimators can be specified in this section.
 
 One-sided treatment of collimators can be achieved by setting this flag.
 The \texttt{name} can either be a collimator name or a family name.
-The last parameter specifies either jaw 1 or jaw 2.
-If jaw 2 is selected, the collimator is rotatet by 180 degrees as only the positive x side is treated when one-sided is enabled.
+The last parameter specifies either jaw 1 (i.e. at $x$>0 in the collimator reference system) or jaw 2 (i.e. at $x$<0 in the collimator reference system).
+If jaw 2 is selected, the collimator is rotated by 180 degrees as only the positive $x$ side is treated when one-sided is enabled.
 
 \paragraph{Example}~
 
@@ -2018,11 +2018,11 @@ ONESIDED tcdqa.b4r6.b1    1
 
 \subsection{Collimation with Geant4}
 
-It is possible to use the beam-material scattering physics engine from Geant4 with SixTrack.
-To do this, the G4COLLIMATION flag must be added at build time, with an appropriate Geant4 library exiting in your path.
+It is possible to use the particle-matter scattering physics of Geant4 within SixTrack.
+To do this, the G4COLLIMATION flag must be added at build time, with an appropriate Geant4 library existing in your path.
 Many standard collimation features are currently not implemented.
 Particle longitudinal dynamics are also not currently implemented.
-The \texttt{GNT4} block specified below must be used in addition to the standard collimation block. \index{GNT4} \index{Geant4}
+The \texttt{GNT4} block specified below must be used in addition to the standard collimation block in the standard \texttt{fort.3} file. \index{GNT4} \index{Geant4}
 
 \bigskip
 \begin{tabular}{@{}lp{0.8\linewidth}}
