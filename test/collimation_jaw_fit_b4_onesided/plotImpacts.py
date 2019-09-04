@@ -19,8 +19,14 @@ def fitProfile( x, fitParams, cLen ):
     return y*fitParams[-1]
 
 def rotateBy(xIn,yIn,skewAngle=0.0,direct=True):
-    xOut=xIn*math.cos(skewAngle)+math.sin(skewAngle)*yIn
-    yOut=yIn*math.cos(skewAngle)-math.sin(skewAngle)*xIn
+    if (type(xIn) is list and type(yIn) is list):
+        xOut=[]; yOut=[]
+        for tmpX,tmpY in zip(xIn,yIn):
+            xOut.append(tmpX*math.cos(skewAngle)+math.sin(skewAngle)*tmpY)
+            yOut.append(tmpY*math.cos(skewAngle)-math.sin(skewAngle)*tmpX)
+    else:
+        xOut=xIn*math.cos(skewAngle)+math.sin(skewAngle)*yIn
+        yOut=yIn*math.cos(skewAngle)-math.sin(skewAngle)*xIn
     return xOut,yOut
     
 def parseFirstImpacts(iFileName='FirstImpacts.dat'):
@@ -143,7 +149,7 @@ def plotFirstImpacts(iCols,lCols,fitProfileS,fitProfileY1,fitProfileY2,sixCurves
         
         iPlot+=1
         plt.subplot(len(iCols),3,iPlot)
-        if ( iCol==9 ):
+        if ( jCol==0 ):
             plt.plot(sixCurves[0],sixCurves[1],'ro-',label='6T fit-L')
             plt.plot(sixCurves[0],sixCurves[2],'mo-',label='6T fit-R')
         plt.plot(fitProfileS[jCol],fitProfileY1[jCol],'b-',label='expected-L')
@@ -193,42 +199,57 @@ def plotFlukaImpacts(iCols,lCols,fitProfileS,fitProfileY1,fitProfileY2,sixCurves
                 ss=datum[2]
                 xx=datum[3]
                 yy=datum[5]
-                xx,yy=rotateBy(xx,yy,skewAngle=skewAngle)
                 Ss.append(ss)
                 Hs.append(xx)
                 Vs.append(yy)
         
+        if ( jCol==0 ):
+            xx1,yy1=rotateBy(sixCurves[1],[0.0 for col in range(len(sixCurves[0]))],skewAngle=-skewAngle)
+            xx2,yy2=rotateBy(sixCurves[2],[0.0 for col in range(len(sixCurves[0]))],skewAngle=-skewAngle)
+        xp1,yp1=rotateBy(fitProfileY1[jCol],[0.0 for col in range(len(fitProfileS[jCol]))],skewAngle=-skewAngle)
+        xp2,yp2=rotateBy(fitProfileY2[jCol],[0.0 for col in range(len(fitProfileS[jCol]))],skewAngle=-skewAngle)
+            
         iPlot+=1
         plt.subplot(len(iCols),3,iPlot)
-        if ( iCol==9 ):
-            plt.plot(sixCurves[0],sixCurves[1],'ro-',label='6T fit-L')
-            plt.plot(sixCurves[0],sixCurves[2],'mo-',label='6T fit-R')
-        plt.plot(fitProfileS[jCol],fitProfileY1[jCol],'b-',label='expected-L')
-        plt.plot(fitProfileS[jCol],fitProfileY2[jCol],'c-',label='expected-R')
+        if ( jCol==0 ):
+            plt.plot(sixCurves[0],xx1,'ro-',label='6T fit-L')
+            plt.plot(sixCurves[0],xx2,'mo-',label='6T fit-R')
         plt.plot(Ss,Hs,'go',label='impact')
-        plt.xlabel(r's_{jaw} [m]')
-        plt.ylabel(r'x_{jaw} [mm]')
-        plt.title('iColl=%i - Cleaning plane'%(iCol))
+        plt.plot(fitProfileS[jCol],xp1,'b-',label='expected-L')
+        plt.plot(fitProfileS[jCol],xp2,'c-',label='expected-R')
+        plt.xlabel(r's [m]')
+        plt.ylabel(r'x [mm]')
+        plt.title('iColl=%i - x-s plane'%(iCol))
         plt.legend(loc='best',fontsize=10)
         plt.tight_layout()
         plt.grid()
 
         iPlot+=1
         plt.subplot(len(iCols),3,iPlot)
+        if ( jCol==0 ):
+            plt.plot(sixCurves[0],yy1,'ro-',label='6T fit-L')
+            plt.plot(sixCurves[0],yy2,'mo-',label='6T fit-R')
         plt.plot(Ss,Vs,'go',label='impact')
-        plt.xlabel(r's_{jaw} [m]')
-        plt.ylabel(r'y_{jaw} [mm]')
-        plt.title('iColl=%i - Ortoghonal plane'%(iCol))
+        plt.plot(fitProfileS[jCol],yp1,'b-',label='expected-L')
+        plt.plot(fitProfileS[jCol],yp2,'c-',label='expected-R')
+        plt.xlabel(r's [m]')
+        plt.ylabel(r'y [mm]')
+        plt.title('iColl=%i - y-s plane'%(iCol))
         plt.legend(loc='best',fontsize=10)
         plt.tight_layout()
         plt.grid()
 
         iPlot+=1
         plt.subplot(len(iCols),3,iPlot)
+        if ( jCol==0 ):
+            plt.plot(xx1,yy1,'ro-',label='6T fit-L')
+            plt.plot(xx2,yy2,'mo-',label='6T fit-R')
         plt.plot(Hs,Vs,'go',label='impact')
-        plt.xlabel(r'x_{jaw} [mm]')
-        plt.ylabel(r'y_{jaw} [mm]')
-        plt.title('iColl=%i - transverse plane'%(iCol))
+        plt.plot(xp1,yp1,'b-',label='expected-L')
+        plt.plot(xp2,yp2,'c-',label='expected-R')
+        plt.xlabel(r'x [mm]')
+        plt.ylabel(r'y [mm]')
+        plt.title('iColl=%i - x-y plane'%(iCol))
         plt.legend(loc='best',fontsize=10)
         plt.tight_layout()
         plt.grid()
@@ -260,7 +281,7 @@ def plotJawProfiles(iCols,lCols,fitProfileS,fitProfileY1,fitProfileY2,sixCurves,
         
         iPlot+=1
         plt.subplot(len(iCols),3,iPlot)
-        if ( iCol==9 ):
+        if ( jCol==0 ):
             plt.plot(sixCurves[0],sixCurves[1],'ro-',label='6T fit-L')
             plt.plot(sixCurves[0],sixCurves[2],'mo-',label='6T fit-R')
         plt.plot(fitProfileS[jCol],fitProfileY1[jCol],'b-',label='expected-L')
