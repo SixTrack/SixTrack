@@ -492,7 +492,7 @@ subroutine cdb_writeDB_newFromOld
   write(dbNew,"(a)") "# Collimators"
 
   write(dbNew,"(1a,a47,1x,a16,1x,a4,5(1x,a13))") "#",chr_rPad(" name",47),&
-    "opening","mat.","length[m]","angle[deg]","offset[m]","beta_x[m]","beta_y[m]"
+    "opening/fam","mat.","length[m]","angle[deg]","offset[m]","beta_x[m]","beta_y[m]"
 
   do j=1,cdb_nColl
     if(cdb_cFamily(j) > 0) then
@@ -745,9 +745,10 @@ subroutine cdb_rotateCollimator(collID, rAngle)
   real(kind=fPrec), intent(in) :: rAngle
 
   cdb_cRotation(collID) = cdb_cRotation(collID) + rAngle
-  if(cdb_cRotation(collID) > twopi) then
-    cdb_cRotation(collID) = cdb_cRotation(collID) - twopi
-  else if(cdb_cRotation(collID) < zero) then
+  if(cdb_cRotation(collID) >= twopi) then
+    cdb_cRotation(collID) = modulo(cdb_cRotation(collID), twopi)
+  end if
+  if(cdb_cRotation(collID) < zero) then
     cdb_cRotation(collID) = cdb_cRotation(collID) + twopi
   end if
 
