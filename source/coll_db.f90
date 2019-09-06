@@ -618,10 +618,10 @@ subroutine cdb_readDBSettings
         if(cdb_cFamily(iFam) == iFam) then
           if(iTemp == 2) then
             call cdb_rotateCollimator(i, pi)
-            write(lout,"(a,i0,a)") "COLLDB> Collimator family '"//trim(lnSplit(2))// &
-            "' is set as onesided and rotated by pi (",iTemp,")"
+            write(lout,"(a,i0,a)") "COLLDB> Collimator family '"//trim(lnSplit(2))//&
+              "' is set as one-sided and rotated by pi (",iTemp,")"
           else
-            write(lout,"(a,i0,a)") "COLLDB> Collimator family '"//trim(lnSplit(2))//"' is set as onesided (",iTemp,")"
+            write(lout,"(a,i0,a)") "COLLDB> Collimator family '"//trim(lnSplit(2))//"' is set as one-sided (",iTemp,")"
           end if
           cdb_cSides(i) = 1
         end if
@@ -629,16 +629,12 @@ subroutine cdb_readDBSettings
     else
       if(iTemp == 2) then
         call cdb_rotateCollimator(iColl, pi)
-        write(lout,"(a,i0,a)") "COLLDB> Collimator '"//trim(lnSplit(2))//" &
-        ' is set as onesided and rotated by pi (",iTemp,")"
+        write(lout,"(a,i0,a)") "COLLDB> Collimator '"//trim(lnSplit(2))//"' is set as one-sided and rotated by pi (",iTemp,")"
       else
-        write(lout,"(a,i0,a)") "COLLDB> Collimator '"//trim(lnSplit(2))//"' is set as onesided (",iTemp,")"
+        write(lout,"(a,i0,a)") "COLLDB> Collimator '"//trim(lnSplit(2))//"' is set as one-sided (",iTemp,")"
       end if
       cdb_cSides(iColl) = 1
     end if
-
-
-  ! ============= !
 
   case default
     write(lerr,"(a)") "COLLDB> ERROR Unknown keyword '"//trim(lnSplit(1))//"' in SETTINGS section"
@@ -1042,7 +1038,7 @@ subroutine cdb_setLHCOnesided(doOneSide)
     cdb_cSides(i) = 0
     if((cdb_cNameUC(i)(1:3) == "TCP" .and. doOneSide) .or. cdb_cNameUC(i)(1:4) == "TCDQ" .or. cdb_cNameUC(i)(1:5) == "TCXRP") then
       cdb_cSides(i) = 1
-      write(lout,"(a)") "COLLDB> Collimator '"//trim(cdb_cName(i))//"' is treated as one sided"
+      write(lout,"(a)") "COLLDB> Collimator '"//trim(cdb_cName(i))//"' is treated as one-sided"
     end if
   end do
 
