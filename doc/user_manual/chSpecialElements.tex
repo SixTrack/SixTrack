@@ -1799,7 +1799,7 @@ All values default to 0.
 \paragraph{One-Sided Collimators} \texttt{DO\_ONESIDE true|false}\\
 
 This feature has been removed.
-The collimators or collimator families that are to be treated as one-sided are now set in the collimator database.
+The collimators or collimator families that are to be treated as one-sided are now set in the collimator database file.
 See Section~\ref{Sec:CollDB}.
 
 \paragraph{Beta-Beating} \texttt{BETA\_BEAT xbeat xbeat\_phase ybeat ybeat\_phase}\\
@@ -1887,11 +1887,6 @@ This value defaults to 0.
 
 Deduce \texttt{SYSTILT} to \texttt{RMSTILT} instead of adding.
 This value defaults to \texttt{false}.
-
-% \paragraph{Cut Halo File (CERN Flag)} \texttt{CERN true|false}\\
-
-% Switches on or off whether to cut halo files in separate pieces, one per 64 particles.
-% This value defaults to \texttt{false}.
 
 \paragraph{Cut Sigmas} \texttt{SIGSECUT sigma\_xy sigma\_r}\\
 
@@ -2000,10 +1995,10 @@ Currently, only one-sided collimators can be specified in this section.
 
 \paragraph{One-Sided Collimators} \texttt{ONESIDED name 1|2}\\
 
-One-sided treatment of collimators can be achieved by setting this flag.
+One-sided treatment of collimators can be achieved by setting this flag.\index{one-sided collimator}
 The \texttt{name} can either be a collimator name or a family name.
 The last parameter specifies either jaw 1 (i.e. at $x$>0 in the collimator reference system) or jaw 2 (i.e. at $x$<0 in the collimator reference system).
-If jaw 2 is selected, the collimator is rotated by 180 degrees as only the positive $x$ side is treated when one-sided is enabled.
+If jaw 2 is selected, the collimator is rotated by 180 degrees, as only the positive $x$ side is treated when one-sided is enabled.
 
 \paragraph{Example}~
 
