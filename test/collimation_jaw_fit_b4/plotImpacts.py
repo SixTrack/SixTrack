@@ -59,7 +59,7 @@ def parseFlukaImpacts(iFileName='FLUKA_impacts.dat'):
     print '...done - read %i lines.'%(len(data))
     return data
 
-def parseJawProfiles(iFileName='JawProfiles.dat'):
+def parseJawProfiles(iFileName='jaw_profiles.dat'):
     print 'parsing file %s ...'%(iFileName)
     data=[]
     with open(iFileName,'r') as iFile:
