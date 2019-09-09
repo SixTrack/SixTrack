@@ -1822,13 +1822,13 @@ subroutine collimate_start
       call f_requestUnit('all_absorptions.dat', all_absorptions_unit)
       call f_requestUnit('Coll_Scatter.dat', coll_scatter_unit)
       call f_requestUnit('FirstImpacts.dat', FirstImpacts_unit)
-      call f_requestUnit('JawProfiles.dat', profiling_jaw_unit)
+      call f_requestUnit('jaw_profiles.dat', profiling_jaw_unit)
 
       open(unit=all_impacts_unit, file='all_impacts.dat') !was 46
       open(unit=all_absorptions_unit, file='all_absorptions.dat') !was 47
       open(unit=coll_scatter_unit, file='Coll_Scatter.dat') !was 3998
       open(unit=FirstImpacts_unit, file='FirstImpacts.dat') !was 39
-      open(unit=profiling_jaw_unit, file='JawProfiles.dat') !new
+      open(unit=profiling_jaw_unit, file='jaw_profiles.dat') !new
 
       if (firstrun) then
         write(all_impacts_unit,'(a)') '# 1=name 2=turn 3=s'
@@ -1837,7 +1837,8 @@ subroutine collimate_start
           "7=x_in(b!)[m], 8=xp_in, 9=y_in, 10=yp_in, 11=x_out [m], 12=xp_out, 13=y_out, 14=yp_out"
         write(coll_scatter_unit,"(a)") "# 1=icoll, 2=iturn, 3=np, 4=nabs (1:Nuclear-Inelastic,2:Nuclear-Elastic,3:pp-Elastic, "//&
           "4:Single-Diffractive,5:Coulomb), 5=dp, 6=dx', 7=dy'"
-        write(profiling_jaw_unit,"(a)") "# 1=icoll, 2=iturn, 3=np, 4=x, 5=xp, 6=y, 7=yp, 8=s, 9=[1:in,2:out,3:back]"
+        write(profiling_jaw_unit,'("#",3(a7,1x),5(a17,1x),a12)') &
+             "icoll", "iturn", "np", "x[m]", "xp[]", "y[m]", "yp[]", "s[m]", "[1:in,2:out]"
       end if ! if (firstrun) then
 #ifdef HDF5
     end if
@@ -2296,7 +2297,7 @@ subroutine collimate_do_collimator(stracki)
   real(kind=fPrec), intent(in) :: stracki
 
   integer j,jjj
-  logical, allocatable :: linside(:) !(npart)
+  logical linside(napx)
   real(kind=fPrec) x_Dump,xpDump,y_Dump,ypDump,s_Dump
 
 #ifdef G4COLLIMATION
@@ -2725,8 +2726,8 @@ subroutine collimate_do_collimator(stracki)
 !                  endif
 !CB
 
-      call alloc(linside, napx, .false., "linside")
-  
+      linside(1:napx)=.false.
+      
       if(n_slices.gt.1 .and. totals.gt.smin_slices .and. totals.lt.smax_slices .and. &
  &      (cdb_cNameUC(icoll)(1:4).eq.'TCSG' .or. cdb_cNameUC(icoll)(1:3).eq.'TCP' .or. cdb_cNameUC(icoll)(1:4).eq.'TCLA'.or. &
  &       cdb_cNameUC(icoll)(1:3).eq.'TCT' .or. cdb_cNameUC(icoll)(1:4).eq.'TCLI'.or. cdb_cNameUC(icoll)(1:4).eq.'TCL.'.or.  &
@@ -3116,13 +3117,12 @@ subroutine collimate_do_collimator(stracki)
                y_Dump=rcy (j)*cos_mb(c_rotation)-sin_mb(c_rotation)*rcx (j)
                ypDump=rcyp(j)*cos_mb(c_rotation)-sin_mb(c_rotation)*rcxp(j)
                s_Dump=c_length
-               write(profiling_jaw_unit,'(i2,1x,i7,1x,i5,5(1x,e17.9),1X,i1)') &
+               write(profiling_jaw_unit,'(3(1x,i7),5(1x,e17.9),1x,i1)') &
                     icoll,iturn,flukaname(j),x_Dump,xpDump,y_Dump,ypDump,s_Dump,2
             end if
          end do
       end if
     end if !if(cdb_cNameUC(icoll)(1:4).eq.'COLM') then
-    call dealloc(linside, "linside")
   end if !if (found) then
 end subroutine collimate_do_collimator
 
@@ -4669,7 +4669,7 @@ subroutine collimate2(c_material, c_length, c_rotation,           &
 
   use crcoall
   use parpro
-  use mod_common, only : iexact
+  use mod_common, only : iexact, napx
   use mathlib_bouncer
   use mod_ranlux
 #ifdef HDF5
@@ -4695,7 +4695,7 @@ implicit none
   integer, allocatable :: nabs_type(:) !(npart)
 !MAY2005
 
-  logical, allocatable :: linside(:) !(npart)
+  logical linside(napx)
   real(kind=fPrec), allocatable :: x_in(:) !(npart)
   real(kind=fPrec), allocatable :: xp_in(:) !(npart)
   real(kind=fPrec), allocatable :: y_in(:) !(npart)
@@ -5077,7 +5077,7 @@ implicit none
            y_Dump=z
            ypDump=zp
            s_Dump=sp+real(j_slices-1,fPrec)*c_length
-           write(profiling_jaw_unit,'(i2,1x,i7,1x,i5,5(1x,e17.9),1X,i1)') &
+           write(profiling_jaw_unit,'(3(1x,i7),5(1x,e17.9),1x,i1)') &
                   icoll,iturn,name(j),x_Dump,xpDump,y_Dump,ypDump,s_Dump,1
         end if
       end if
@@ -5267,7 +5267,7 @@ implicit none
            y_Dump=z
            ypDump=zp
            s_Dump=s+sp+real(j_slices-1,fPrec)*c_length
-           write(profiling_jaw_unit,'(i2,1x,i7,1x,i5,5(1x,e17.9),1X,i1)') &
+           write(profiling_jaw_unit,'(3(1x,i7),5(1x,e17.9),1x,i1)') &
                 icoll,iturn,name(j),x_Dump,xpDump,y_Dump,ypDump,s_Dump,2
         end if
         if(iexact) then
