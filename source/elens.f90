@@ -389,7 +389,7 @@ end subroutine elens_parseInputDone
 subroutine elens_postInput
 
   use mathlib_bouncer
-  use utils, only : polinterp
+  use mod_utils, only : polinterp
   use mod_common, only : bez,kz,fort3
 
   integer j, jj, nlens, jguess
@@ -466,10 +466,10 @@ subroutine elens_postInput
     ! - report geometrical factor
     write(lout,"(a,i0,a,e22.15)") "ELENS> Geom. norm. fact. for elens #",j, &
          " named "//trim(bez(jj))//": ",elens_geo_norm(j)
-    
+
     ! Compute elens theta at R2, if requested by user
     call eLensTheta(j)
-    
+
   end do
 
 end subroutine elens_postInput
@@ -489,7 +489,7 @@ subroutine eLensTheta(j)
   use mathlib_bouncer
   use numerical_constants, only : zero, one, two, pi, c1e3, c1m3, c1m6
   use physical_constants, only: clight, pmae, eps0
-  use mod_common, only : e0, betrel, brho, bez, kz, zz0
+  use mod_common, only : e0, beta0, brho, bez, kz, zz0
   use mod_settings, only : st_quiet
 
   implicit none
@@ -502,19 +502,19 @@ subroutine eLensTheta(j)
     !   apart from the case of elens_Ek is DYNK-ed
     gamma  = ((elens_Ek(j)*c1m3)/pmae)+one ! from kinetic energy
     elens_beta_e(j) = sqrt((one+one/gamma)*(one-one/gamma))
-    
+
     ! r2: from mm to m (c1m3)
     ! theta: from rad to mrad (c1e3)
     elens_theta_r2(j) = ((elens_len(j)*abs(elens_I(j)))/ &
          ((((two*pi)*((eps0*clight)*clight))*brho)*(elens_r2(j)*c1m3)))*c1e3
     if(elens_I(j) < zero) then
-      elens_theta_r2(j) = elens_theta_r2(j)*(one/(elens_beta_e(j)*betrel)+one)
+      elens_theta_r2(j) = elens_theta_r2(j)*(one/(elens_beta_e(j)*beta0)+one)
     else
-      elens_theta_r2(j) = elens_theta_r2(j)*(one/(elens_beta_e(j)*betrel)-one)
+      elens_theta_r2(j) = elens_theta_r2(j)*(one/(elens_beta_e(j)*beta0)-one)
     end if
-    
+
     if ( elens_type(j)>=2 ) elens_theta_r2(j) = elens_theta_r2(j) * elens_geo_norm(j)
-    
+
     if(st_quiet < 2) then
       ! find name of elens
       do jj=1,nele
@@ -530,7 +530,7 @@ subroutine eLensTheta(j)
            elens_geo_norm(j)
     end if
   end if
- 
+
 end subroutine eLensTheta
 
 ! ================================================================================================ !

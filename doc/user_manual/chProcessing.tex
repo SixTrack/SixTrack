@@ -27,7 +27,7 @@ The number of elements or blocks can be chosen.
     \texttt{ilin}        & integer & Logical switch to calculate the traditional linear optics calculation in 4D (\texttt{1 = ilin}) and with the DA approach 6D (\texttt{2 = ilin}). \\
     \texttt{ntco}        & integer & A switch to write out linear coupling parameters. \\
                          &         &  \texttt{ntco = 0}: no write-out. \\
-                         &         &  \texttt{ntco $\neq$ 0}: write-out of all linear coupled (4D) parameters including the coupling angle. These parameters (name, longitudinal position, the phase advances at that location, 4   $\beta$-, $\alpha$- and $\gamma$-functions, 4 angles for coordinates and momenta respectively, plus the coupling angle [rad]) are written in ascii format on file \texttt{fort.11}. This write-out happens every \texttt{ntco} turns. \\
+                         &         &  \texttt{ntco $\neq$ 0}: write-out of all linear coupled (4D) parameters including the coupling angle. These parameters (name, longitudinal position, the phase advances at that location, 4   $\beta$-, $\alpha$- and $\gamma$-functions, 4 angles for coordinates and momenta respectively, plus the coupling angle [rad]) are written in ascii format on file \texttt{linopt\_coupled.dat}. This write-out happens every \texttt{ntco} turns. \\
     \texttt{E\_I, E\_II} & floats  & The two eigen-emittances to be chosen to determine the coupling angle. They are typically set to be equal. \\
     \texttt{names}       & char    & For \texttt{nlin $\leq$ nele} element and block names the linear parameters are printed whenever they appear in the accelerator structure.
 \end{longtabu}
@@ -35,7 +35,7 @@ The number of elements or blocks can be chosen.
 \paragraph{Remarks}
 \begin{itemize}
     \item To make this block work the Tracking Parameter block (\ref{TraPar}) has to used as well.
-    \item When the \texttt{ELEMENT 0} option is used, a file \texttt{fort.34} is written with the longitudinal position, name, element type, multipole strength, $\beta$ functions and phase advances in the horizontal and vertical phase space respectively. This file is used as input for the \texttt{SODD} program~\cite{SODD} to calculate de-tuning and distortion terms in first and second order. A full program suite can be found at: /afs/cern.ch/group/si/slap/share/sodd
+    \item When the \texttt{ELEMENT 0} option is used, a file \texttt{linopt\_dump.dat} is written with the longitudinal position, name, element type, multipole strength, $\beta$ functions and phase advances in the horizontal and vertical phase space respectively. This file is used as input for the \texttt{SODD} program~\cite{SODD} to calculate de-tuning and distortion terms in first and second order. A full program suite can be found at: /afs/cern.ch/group/si/slap/share/sodd
     \item If the \texttt{BLOCK} option has been used, the tunes may be wrong by a multiple of 1/2. This option is not active in the DA part (\texttt{2 = ilin}), which also ignores the (\texttt{NTCO}) option.
 \end{itemize}
 

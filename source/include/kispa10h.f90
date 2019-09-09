@@ -2,9 +2,9 @@
 #ifndef TILT
   call detune(5,ekk,ep,beta,dtu,dtup,dfac)
   ekko=ekk
-  cxzyr=cxzr**2-cxzi**2                                          !hr08
+  cxzyr=cxzr**2-cxzi**2
   cxzyi=cxzr*cxzi+cxzi*cxzr
-  ekk=(36.0_fPrec*ekko)*cxzyr                                    !hr03
+  ekk=(36.0_fPrec*ekko)*cxzyr
   call detune(4,ekk,ep,beta,dtu,dtup,dfac)
   cxzyrr=cxzyr*cxzr-cxzyi*cxzi
   cxzyi=cxzyr*cxzi+cxzyi*cxzr
@@ -12,7 +12,7 @@
   cxzyrr=cxzyr*cxzr-cxzyi*cxzi
   cxzyi=cxzyr*cxzi+cxzyi*cxzr
   cxzyr=cxzyrr
-  ekk=(126.0_fPrec*ekko)*cxzyr                                   !hr03
+  ekk=(126.0_fPrec*ekko)*cxzyr
   call detune(3,ekk,ep,beta,dtu,dtup,dfac)
   cxzyrr=cxzyr*cxzr-cxzyi*cxzi
   cxzyi=cxzyr*cxzi+cxzyi*cxzr
@@ -20,10 +20,10 @@
   cxzyrr=cxzyr*cxzr-cxzyi*cxzi
   cxzyi=cxzyr*cxzi+cxzyi*cxzr
   cxzyr=cxzyrr
-  ekk=(84.0_fPrec*ekko)*cxzyr                                    !hr03
+  ekk=(84.0_fPrec*ekko)*cxzyr
   call detune(2,ekk,ep,beta,dtu,dtup,dfac)
 #else
-  tiltck=tiltc(k)**2-tilts(k)**2                                 !hr08
+  tiltck=tiltc(k)**2-tilts(k)**2
   tiltsk=two*tiltc(k)*tilts(k)
   tiltckuk=tiltck*tiltc(k)-tiltsk*tilts(k)
   tiltsk=tiltck*tilts(k)+tiltsk*tiltc(k)
@@ -54,7 +54,7 @@
   call detune(5,ekk,ep,beta,dtu,dtup,dfac)
   cxzyr=cxzr*cxzr-cxzi*cxzi
   cxzyi=cxzr*cxzi+cxzi*cxzr
-  ekk=(36.0_fPrec*ekko)*(tiltck8*cxzyr+tiltsk8*cxzyi)                  !hr03
+  ekk=(36.0_fPrec*ekko)*(tiltck8*cxzyr+tiltsk8*cxzyi)
   call detune(4,ekk,ep,beta,dtu,dtup,dfac)
   cxzyrr=cxzyr*cxzr-cxzyi*cxzi
   cxzyi=cxzyr*cxzi+cxzyi*cxzr
@@ -62,7 +62,7 @@
   cxzyrr=cxzyr*cxzr-cxzyi*cxzi
   cxzyi=cxzyr*cxzi+cxzyi*cxzr
   cxzyr=cxzyrr
-  ekk=(126.0_fPrec*ekko)*(tiltck6*cxzyr+tiltsk6*cxzyi)                 !hr03
+  ekk=(126.0_fPrec*ekko)*(tiltck6*cxzyr+tiltsk6*cxzyi)
   call detune(3,ekk,ep,beta,dtu,dtup,dfac)
   cxzyrr=cxzyr*cxzr-cxzyi*cxzi
   cxzyi=cxzyr*cxzi+cxzyi*cxzr
@@ -70,7 +70,7 @@
   cxzyrr=cxzyr*cxzr-cxzyi*cxzi
   cxzyi=cxzyr*cxzi+cxzyi*cxzr
   cxzyr=cxzyrr
-  ekk=(84.0_fPrec*ekko)*(tiltck4*cxzyr+tiltsk4*cxzyi)                  !hr03
+  ekk=(84.0_fPrec*ekko)*(tiltck4*cxzyr+tiltsk4*cxzyi)
   call detune(2,ekk,ep,beta,dtu,dtup,dfac)
 #endif
 ! end include/kispa10h.f90

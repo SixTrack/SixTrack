@@ -178,8 +178,7 @@ subroutine sbcf(star,cphi,cphi2,nsli,f,ibb,bcu,track,ibbc)
 !FOX    BCU(IBB,8)*SP*SP ;
 !FOX    DUM(4)=DUM(1)-DUM(2) ;
 !FOX    DUM(5)=DUM(4)*DUM(4)+FOUR*DUM(3)*DUM(3) ;
-  if(ibbc.eq.1.and.(abs(dare(dum(4))).gt.pieni.and.               &
-  &abs(dare(dum(5))).gt.pieni)) then
+  if(ibbc.eq.1.and.(abs(dare(dum(4))).gt.pieni.and.abs(dare(dum(5))).gt.pieni)) then
       ibbc1=1
 !FOX    DUM(5)=SQRT(DUM(5)) ;
   else
@@ -189,7 +188,7 @@ subroutine sbcf(star,cphi,cphi2,nsli,f,ibb,bcu,track,ibbc)
 !FOX    SEPY0=TRACK(3)+TRACK(4)*S-STAR(2,JSLI) ;
   if(ibbc1.eq.1) then
       sfac=one
-      if(dare(dum(4)).lt.zero) sfac=(-one*one)                       !hr05
+      if(dare(dum(4)).lt.zero) sfac=(-one*one)
 !FOX    DUM(6)=SFAC*DUM(4)/DUM(5) ;
 !FOX    DUM(7)=DUM(1)+DUM(2) ;
 !FOX    COSTH=HALF*(ONE+DUM(6)) ;

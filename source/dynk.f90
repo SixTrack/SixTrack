@@ -1987,7 +1987,7 @@ recursive real(kind=fPrec) function dynk_computeFUN(funNum, turn) result(retval)
   use mod_ranecu
   use numerical_constants, only : pi
   use string_tools
-  use utils
+  use mod_utils
 
   implicit none
 
@@ -2072,7 +2072,7 @@ recursive real(kind=fPrec) function dynk_computeFUN(funNum, turn) result(retval)
     call recuut(tmpseed1,tmpseed2)
     call recuin(dynk_iData(dynk_funcs(funNum,3)+3),dynk_iData(dynk_funcs(funNum,3)+4))
     ! Run generator for 1 value with current mcut
-    call ranecu(ranecu_rvec,1,dynk_iData(dynk_funcs(funNum,3)+2))
+    call ranecu(ranecu_rvec, 1, 1, real(dynk_iData(dynk_funcs(funNum,3)+2),kind=fPrec))
     ! Save our current seeds and load old seeds
     call recuut(dynk_iData(dynk_funcs(funNum,3)+3),dynk_iData(dynk_funcs(funNum,3)+4))
     call recuin(tmpseed1,tmpseed2)
@@ -2083,8 +2083,8 @@ recursive real(kind=fPrec) function dynk_computeFUN(funNum, turn) result(retval)
     ! Save old seeds and load our current seeds
     call recuut(tmpseed1,tmpseed2)
     call recuin(dynk_iData(dynk_funcs(funNum,3)+2),dynk_iData(dynk_funcs(funNum,3)+3))
-    ! Run generator for 1 value with mcut=-1
-    call ranecu( ranecu_rvec, 1, -1 )
+    ! Run generator for 1 value in uniform mode
+    call ranecu(ranecu_rvec, 1, 0)
     ! Save our current seeds and load old seeds
     call recuut(dynk_iData(dynk_funcs(funNum,3)+2),dynk_iData(dynk_funcs(funNum,3)+3))
     call recuin(tmpseed1,tmpseed2)
@@ -2094,14 +2094,14 @@ recursive real(kind=fPrec) function dynk_computeFUN(funNum, turn) result(retval)
     ! Save old seeds and load our current seeds
     call recuut(tmpseed1,tmpseed2)
     call recuin(dynk_iData(dynk_funcs(funNum,3)+2),dynk_iData(dynk_funcs(funNum,3)+3))
-    ! Run generator for 1 value with mcut=-1
-    call ranecu( ranecu_rvec, 1, -1 )
+    ! Run generator for 1 value in uniform mode
+    call ranecu(ranecu_rvec, 1, 0)
     ! Save our current seeds and load old seeds
     call recuut(dynk_iData(dynk_funcs(funNum,3)+2),dynk_iData(dynk_funcs(funNum,3)+3))
     call recuin(tmpseed1,tmpseed2)
     ! routine for switching element (orginially the electron lens) ON or OFF
     ! when random value is less than P, set ON, else OFF
-    if (ranecu_rvec(1) .lt. dynk_fData(dynk_funcs(funNum,4))) then
+    if(ranecu_rvec(1) .lt. dynk_fData(dynk_funcs(funNum,4))) then
       retval = 1.0
     else
       retval = 0.0
@@ -2340,7 +2340,7 @@ subroutine dynk_setvalue(element_name, att_name, newValue)
         else
           goto 100 ! ERROR
         end if
-        call initialize_element(ii, .false.)
+        call initialise_element(ii, .false.)
 
       case(11)
         im = irm(ii)
@@ -2378,21 +2378,21 @@ subroutine dynk_setvalue(element_name, att_name, newValue)
             goto 100 ! ERROR
           end if
         end if
-        call initialize_element(ii, .false.)
+        call initialise_element(ii, .false.)
 
       case(12)
         if(att_name == "voltage") then ! [MV]
           ed(ii) = newValue
         else if(att_name == "harmonic") then
           ek(ii) = newValue
-          el(ii) = dynk_elemData(ii,3) ! Need to reset el before calling initialize_element()
-          call initialize_element(ii, .false.)
+          el(ii) = dynk_elemData(ii,3) ! Need to reset el before calling initialise_element()
+          call initialise_element(ii, .false.)
         else if(att_name == "lag_angle") then ! [deg]
           el(ii) = newValue
-          ! Note: el is set to 0 in initialize_element and in daten.
+          ! Note: el is set to 0 in initialise_element and in daten.
           ! Calling initialize element on a cavity without setting el
           ! will set phasc = 0!
-          call initialize_element(ii, .false.)
+          call initialise_element(ii, .false.)
         else
           goto 100 ! ERROR
         end if
@@ -2437,7 +2437,7 @@ subroutine dynk_setvalue(element_name, att_name, newValue)
           else
             goto 100
           end if
-          call initialize_element(ii, .false.)
+          call initialise_element(ii, .false.)
         else
           goto 102
         end if
@@ -2449,11 +2449,11 @@ subroutine dynk_setvalue(element_name, att_name, newValue)
         else if(att_name == "frequency") then ! [MHz]
           ek(ii) = newValue
         else if(att_name == "phase") then ! [rad]
-          ! Note: el is set to 0 in initialize_element and in daten.
+          ! Note: el is set to 0 in initialise_element and in daten.
           ! Calling initialize element on a crab without setting el
           ! will set crabph = 0!
           el(ii) = newValue
-          call initialize_element(ii, .false.)
+          call initialise_element(ii, .false.)
         else
           goto 100 ! ERROR
         end if

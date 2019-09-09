@@ -44,7 +44,7 @@ module checkpoint_restart
 
   ! C/R Temp Variables and Arrays
   real(kind=fPrec),  private, save :: cre0
-  real(kind=fPrec),  private, save :: crbetrel
+  real(kind=fPrec),  private, save :: crbeta0
   real(kind=fPrec),  private, save :: crbrho
   real(kind=fPrec),  private, save :: crnucmda
 
@@ -78,9 +78,9 @@ module checkpoint_restart
   integer,          allocatable, public,  save :: binrecs(:)    ! ((npart+1)/2)
   integer,          allocatable, public,  save :: crbinrecs(:)  ! (npart+1)/2)
   integer,          allocatable, private, save :: crnumxv(:)    ! (npart)
-  integer,          allocatable, private, save :: crnnumxv(:)   ! (npart)
   integer,          allocatable, private, save :: crpartID(:)   ! (npart)
   integer,          allocatable, private, save :: crparentID(:) ! (npart)
+  integer,          allocatable, private, save :: crpairID(:,:) ! (2,npart)
 
   logical,          allocatable, private, save :: crpstop(:)    ! (npart)
   logical,          allocatable, private, save :: crllostp(:)   ! (npart)
@@ -133,9 +133,7 @@ subroutine cr_fileInit
       ! Name hardcoded in our boinc_unzip_.
       ! Either it is only the fort.* input data or it is a restart.
       call boincrf("Sixin.zip",fileName)
-#if defined(LIBARCHIVE)
-      call f_read_archive(trim(fileName),".")
-#elif defined(ZLIB)
+#ifdef ZLIB
       call minizip_unzip(trim(fileName),".",zErr,len_trim(fileName),1)
       if(zErr /= 0) then
         write(cr_errUnit,"(a)") "SIXTRACR> ERROR Could not extract 'Sixin.zip'"
@@ -187,30 +185,30 @@ subroutine cr_expand_arrays(npart_new)
   integer :: npair_new
   npair_new = npart_new/2 + 1
 
-  call alloc(crxv1,      npart_new,    zero,    "crxv1")
-  call alloc(crxv2,      npart_new,    zero,    "crxv2")
-  call alloc(cryv1,      npart_new,    zero,    "cryv1")
-  call alloc(cryv2,      npart_new,    zero,    "cryv2")
-  call alloc(crsigmv,    npart_new,    zero,    "crsigmv")
-  call alloc(crdpsv,     npart_new,    zero,    "crdpsv")
-  call alloc(crdpsv1,    npart_new,    zero,    "crdpsv1")
-  call alloc(crejv,      npart_new,    zero,    "crejv")
-  call alloc(crejfv,     npart_new,    zero,    "crejfv")
-  call alloc(crnucm,     npart_new,    nucm0,   "crnucm")
-  call alloc(crmtc,      npart_new,    one,     "crmtc")
-  call alloc(crnaa,      npart_new,    aa0,     "crnaa")
-  call alloc(crnzz,      npart_new,    zz0,     "crnzz")
-  call alloc(crnqq,      npart_new,    qq0,     "crnqq")
-  call alloc(crpdgid,    npart_new,    pdgid0,  "crpdgid")
-  call alloc(craperv,    npart_new, 2, zero,    "craperv")
-  call alloc(binrecs,    npair_new,    0,       "binrecs")
-  call alloc(crbinrecs,  npair_new,    0,       "crbinrecs")
-  call alloc(crnumxv,    npart_new,    0,       "crnumxv")
-  call alloc(crnnumxv,   npart_new,    0,       "crnnumxv")
-  call alloc(crpartID,   npart_new,    0,       "crpartID")
-  call alloc(crparentID, npart_new,    0,       "crparentID")
-  call alloc(crpstop,    npart_new,    .false., "crpstop")
-  call alloc(crllostp,   npart_new,    .false., "crllostp")
+  call alloc(crxv1,        npart_new, zero,    "crxv1")
+  call alloc(crxv2,        npart_new, zero,    "crxv2")
+  call alloc(cryv1,        npart_new, zero,    "cryv1")
+  call alloc(cryv2,        npart_new, zero,    "cryv2")
+  call alloc(crsigmv,      npart_new, zero,    "crsigmv")
+  call alloc(crdpsv,       npart_new, zero,    "crdpsv")
+  call alloc(crdpsv1,      npart_new, zero,    "crdpsv1")
+  call alloc(crejv,        npart_new, zero,    "crejv")
+  call alloc(crejfv,       npart_new, zero,    "crejfv")
+  call alloc(crnucm,       npart_new, nucm0,   "crnucm")
+  call alloc(crmtc,        npart_new, one,     "crmtc")
+  call alloc(crnaa,        npart_new, aa0,     "crnaa")
+  call alloc(crnzz,        npart_new, zz0,     "crnzz")
+  call alloc(crnqq,        npart_new, qq0,     "crnqq")
+  call alloc(crpdgid,      npart_new, pdgid0,  "crpdgid")
+  call alloc(craperv,   2, npart_new, zero,    "craperv")
+  call alloc(binrecs,      npair_new, 0,       "binrecs")
+  call alloc(crbinrecs,    npair_new, 0,       "crbinrecs")
+  call alloc(crnumxv,      npart_new, 0,       "crnumxv")
+  call alloc(crpartID,     npart_new, 0,       "crpartID")
+  call alloc(crparentID,   npart_new, 0,       "crparentID")
+  call alloc(crpairID,  2, npart_new, 0,       "crpairID")
+  call alloc(crpstop,      npart_new, .false., "crpstop")
+  call alloc(crllostp,     npart_new, .false., "crllostp")
 
   crnpart_old = npart_new
 
@@ -391,36 +389,35 @@ subroutine crcheck
 
     write(crlog,"(a)") "CR_CHECK>  * Tracking variables"
     flush(crlog)
-    read(cr_pntUnit(nPoint),iostat=ioStat) crnumlcr,crnuml,crsixrecs,crbinrec,cril,cr_time,crnapxo, &
-      crnapx,cre0,crbetrel,crbrho,crnucmda
+    read(cr_pntUnit(nPoint),iostat=ioStat) crnumlcr,crnuml,crsixrecs,crbinrec,cril,cr_time,crnapxo,&
+      crnapx,cre0,crbeta0,crbrho,crnucmda
     if(ioStat /= 0) cycle
 
     write(crlog,"(a)") "CR_CHECK>  * Particle arrays"
     flush(crlog)
     read(cr_pntUnit(nPoint),iostat=ioStat) &
-      (crbinrecs(j), j=1,(crnapxo+1)/2), &
-      (crnumxv(j),   j=1,crnapxo),       &
-      (crnnumxv(j),  j=1,crnapxo),       &
-      (crpartID(j),  j=1,crnapxo),       &
-      (crparentID(j),j=1,crnapxo),       &
-      (crpstop(j),   j=1,crnapxo),       &
-      (crxv1(j),     j=1,crnapxo),       &
-      (cryv1(j),     j=1,crnapxo),       &
-      (crxv2(j),     j=1,crnapxo),       &
-      (cryv2(j),     j=1,crnapxo),       &
-      (crsigmv(j),   j=1,crnapxo),       &
-      (crdpsv(j),    j=1,crnapxo),       &
-      (crdpsv1(j),   j=1,crnapxo),       &
-      (crejv(j),     j=1,crnapxo),       &
-      (crejfv(j),    j=1,crnapxo),       &
-      (crnucm(j),    j=1,crnapxo),       &
-      (crmtc(j),     j=1,crnapxo),       &
-      (crnaa(j),     j=1,crnapxo),       &
-      (crnzz(j),     j=1,crnapxo),       &
-      (crnqq(j),     j=1,crnapxo),       &
-      (crpdgid(j),   j=1,crnapxo),       &
-      (craperv(j,1), j=1,crnapxo),       &
-      (craperv(j,2), j=1,crnapxo),       &
+      (crbinrecs(j), j=1,(crnapxo+1)/2),   &
+      (crnumxv(j),   j=1,crnapxo),         &
+      (crpartID(j),  j=1,crnapxo),         &
+      (crparentID(j),j=1,crnapxo),         &
+      (crpairID(:,j),j=1,crnapxo),         &
+      (crpstop(j),   j=1,crnapxo),         &
+      (crxv1(j),     j=1,crnapxo),         &
+      (cryv1(j),     j=1,crnapxo),         &
+      (crxv2(j),     j=1,crnapxo),         &
+      (cryv2(j),     j=1,crnapxo),         &
+      (crsigmv(j),   j=1,crnapxo),         &
+      (crdpsv(j),    j=1,crnapxo),         &
+      (crdpsv1(j),   j=1,crnapxo),         &
+      (crejv(j),     j=1,crnapxo),         &
+      (crejfv(j),    j=1,crnapxo),         &
+      (crnucm(j),    j=1,crnapxo),         &
+      (crmtc(j),     j=1,crnapxo),         &
+      (crnaa(j),     j=1,crnapxo),         &
+      (crnzz(j),     j=1,crnapxo),         &
+      (crnqq(j),     j=1,crnapxo),         &
+      (crpdgid(j),   j=1,crnapxo),         &
+      (craperv(:,j), j=1,crnapxo),         &
       (crllostp(j),  j=1,crnapxo)
     if(ioStat /= 0) cycle
 
@@ -634,36 +631,35 @@ subroutine crpoint
       write(crlog,"(a)") "CR_POINT>  * Tracking variables"
       flush(crlog)
     end if
-    write(cr_pntUnit(nPoint),err=100) crnumlcr,numl,sixrecs,binrec,il,time3,napxo,napx,e0,betrel,brho,nucmda
+    write(cr_pntUnit(nPoint),err=100) crnumlcr,numl,sixrecs,binrec,il,time3,napxo,napx,e0,beta0,brho,nucmda
 
     if(st_debug) then
       write(crlog,"(a)") "CR_POINT>  * Particle arrays"
       flush(crlog)
     end if
     write(cr_pntUnit(nPoint),err=100) &
-      (binrecs(j), j=1,(napxo+1)/2), &
-      (numxv(j),   j=1,napxo),       &
-      (nnumxv(j),  j=1,napxo),       &
-      (partID(j),  j=1,napxo),       &
-      (parentID(j),j=1,napxo),       &
-      (pstop(j),   j=1,napxo),       &
-      (xv1(j),     j=1,napxo),       &
-      (yv1(j),     j=1,napxo),       &
-      (xv2(j),     j=1,napxo),       &
-      (yv2(j),     j=1,napxo),       &
-      (sigmv(j),   j=1,napxo),       &
-      (dpsv(j),    j=1,napxo),       &
-      (dpsv1(j),   j=1,napxo),       &
-      (ejv(j),     j=1,napxo),       &
-      (ejfv(j),    j=1,napxo),       &
-      (nucm(j),    j=1,napxo),       &
-      (mtc(j),     j=1,napxo),       &
-      (naa(j),     j=1,napxo),       &
-      (nzz(j),     j=1,napxo),       &
-      (nqq(j),     j=1,napxo),       &
-      (pdgid(j),   j=1,napxo),       &
-      (aperv(j,1), j=1,napxo),       &
-      (aperv(j,2), j=1,napxo),       &
+      (binrecs(j), j=1,(napxo+1)/2),  &
+      (numxv(j),   j=1,napxo),        &
+      (partID(j),  j=1,napxo),        &
+      (parentID(j),j=1,napxo),        &
+      (pairID(:,j),j=1,napxo),        &
+      (pstop(j),   j=1,napxo),        &
+      (xv1(j),     j=1,napxo),        &
+      (yv1(j),     j=1,napxo),        &
+      (xv2(j),     j=1,napxo),        &
+      (yv2(j),     j=1,napxo),        &
+      (sigmv(j),   j=1,napxo),        &
+      (dpsv(j),    j=1,napxo),        &
+      (dpsv1(j),   j=1,napxo),        &
+      (ejv(j),     j=1,napxo),        &
+      (ejfv(j),    j=1,napxo),        &
+      (nucm(j),    j=1,napxo),        &
+      (mtc(j),     j=1,napxo),        &
+      (naa(j),     j=1,napxo),        &
+      (nzz(j),     j=1,napxo),        &
+      (nqq(j),     j=1,napxo),        &
+      (pdgid(j),   j=1,napxo),        &
+      (aperv(:,j), j=1,napxo),        &
       (llostp(j),  j=1,napxo)
     flush(cr_pntUnit(nPoint))
 
@@ -781,7 +777,7 @@ subroutine crstart
   napx   = crnapx
   e0     = cre0
   e0f    = sqrt(e0**2-nucm0**2)
-  betrel = crbetrel
+  beta0  = crbeta0
   brho   = crbrho
   nucmda = crnucmda
 
@@ -795,6 +791,7 @@ subroutine crstart
 
   partID(1:napxo)   = crpartID(1:napxo)
   parentID(1:napxo) = crparentID(1:napxo)
+  pairID(:,1:napxo) = crpairID(:,1:napxo)
   pstop(1:napxo)    = crpstop(1:napxo)
   llostp(1:napxo)   = crllostp(1:napxo)
 
@@ -817,11 +814,9 @@ subroutine crstart
   pdgid(1:napxo)    = crpdgid(1:napxo)
 
   numxv(1:napxo)    = crnumxv(1:napxo)
-  nnumxv(1:napxo)   = crnnumxv(1:napxo)
   do j=1,napxo
     if(pstop(j) .eqv. .false.) then
-      numxv(j)  = numl
-      nnumxv(j) = numl
+      numxv(j) = numl
     end if
   end do
 
@@ -834,8 +829,11 @@ subroutine crstart
   ! Recompute the thick arrays
   if(ithick == 1) call synuthck
 
+  ! Recompute the map of particle pairs
+  call updatePairMap
+
   ! Aperture data
-  aperv(1:napxo,1:2) = craperv(1:napxo,1:2)
+  aperv(1:2,1:napxo) = craperv(1:2,1:napxo)
 
   ! Module data
   call meta_crstart

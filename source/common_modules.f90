@@ -73,12 +73,10 @@ module parbeam
   integer,          parameter :: ny   = 470
   integer,          parameter :: idim = (nx+2)*(ny+2)
 
-  ! common /wzcom1/
-  real(kind=fPrec), save :: hrecip
   integer,          save :: kstep
-
-  ! common /wzcom2/
-  real(kind=fPrec), save :: wtreal(idim),wtimag(idim)
+  real(kind=fPrec), save :: hrecip
+  real(kind=fPrec), save :: wtreal(idim)
+  real(kind=fPrec), save :: wtimag(idim)
 
   ! common /beam_exp/
   integer,          save :: beam_expflag      = 0       ! 0: Old BEAM block, 1: New BEAM::EXPERT
@@ -129,10 +127,7 @@ module mod_common
   implicit none
 
   ! Parameters
-  real(kind=fPrec),  parameter :: cc         = 1.12837916709551_fPrec ! Used in errf
-  real(kind=fPrec),  parameter :: xlim       = 5.33_fPrec             ! Used in errf
-  real(kind=fPrec),  parameter :: ylim       = 4.29_fPrec             ! Used in errf
-  real(kind=fPrec),  parameter :: eps_dcum   = c1m6                   ! Tolerance for machine length mismatch [m]
+  real(kind=fPrec),  parameter :: eps_dcum   = c1m6    ! Tolerance for machine length mismatch [m]
 
   ! Various Flags and Variables
   character(len=80), save      :: toptit(5)  = " "     ! DANGER: If the len changes, CRCHECK will break
@@ -325,8 +320,7 @@ module mod_common
   real(kind=fPrec), save :: emitx      = zero ! Horisontal emittance
   real(kind=fPrec), save :: emity      = zero ! Vertical emittance
   real(kind=fPrec), save :: emitz      = zero ! Longitudinal emittance
-  real(kind=fPrec), save :: gammar     = one  ! Gamma factor
-  real(kind=fPrec), save :: betrel     = zero ! Relativistic beta of beam
+  real(kind=fPrec), save :: gammar     = one  ! Inverse Lorentz factor
   real(kind=fPrec), save :: brho       = zero ! magnetic rigitidy of beam [Tm]
   integer,          save :: ibb6d      = 0    ! 6D beam-beam switch
   integer,          save :: nbeam      = 0    ! Beam-beam elements flag
@@ -353,6 +347,8 @@ module mod_common
   real(kind=fPrec),    save :: e0f     = zero ! Reference momentum [MeV/c]
   real(kind=fPrec),    save :: nucm0   = pmap ! Reference mass [MeV/c^2]
   real(kind=fPrec),    save :: nucmda  = pmap ! Reference mass [MeV/c^2] (DA)
+  real(kind=fPrec),    save :: gamma0  = one  ! Reference beam Lorentz factor
+  real(kind=fPrec),    save :: beta0   = zero ! Reference beam relativistic beta
   integer(kind=int16), save :: aa0     = 1    ! Reference nucleon number
   integer(kind=int16), save :: zz0     = 1    ! Reference charge multiplicity
   integer(kind=int16), save :: qq0     = 1    ! Reference charge
@@ -900,17 +896,22 @@ module mod_common_main
   real(kind=fPrec), allocatable, save :: nucm(:)       ! Particle mass
   real(kind=fPrec), allocatable, save :: mtc(:)        ! Mass-to-charge ratio
 
+  real(kind=fPrec), allocatable, save :: spin_x(:)     ! x component of the particle spin
+  real(kind=fPrec), allocatable, save :: spin_y(:)     ! y component of the particle spin
+  real(kind=fPrec), allocatable, save :: spin_z(:)     ! z component of the particle spin
+
   integer(kind=int16), allocatable, save :: nqq(:)     ! Particle charge
   integer(kind=int16), allocatable, save :: naa(:)     ! Ion atomic mass
   integer(kind=int16), allocatable, save :: nzz(:)     ! Ion atomic number
   integer(kind=int32), allocatable, save :: pdgid(:)   ! Particle PDGid
 
-  integer,          allocatable, save :: nnumxv(:)     ! Turn in which a particle was lost
   integer,          allocatable, save :: numxv(:)      ! Turn in which a particle was lost
 
   integer,          allocatable, save :: partID(:)     ! Particle ID
   integer,          allocatable, save :: parentID(:)   ! Particle parent ID in case of secondary particles
-  logical,          allocatable, save :: pstop(:)      ! Particle lost flag
+  integer,          allocatable, save :: pairID(:,:)   ! The original particle pair ID for a particle
+  integer,          allocatable, save :: pairMap(:,:)  ! A reverse map for pairID to index
+  logical,          allocatable, save :: pstop(:)      ! Particle lost flag (post-processing)
   logical,          allocatable, save :: llostp(:)     ! Particle lost flag
   real(kind=fPrec), allocatable, save :: aperv(:,:)    ! Aperture at loss
   integer,          allocatable, save :: iv(:)         ! Entry in the sequence where loss occured
@@ -932,6 +933,9 @@ subroutine mod_commonmn_expand_arrays(nblz_new,npart_new)
 
   integer :: nblz_prev  = -2
   integer :: npart_prev = -2
+  integer npair_new
+
+  npair_new = (npart_new+1)/2
 
   if(nblz_new /= nblz_prev) then
     call alloc(smiv,     nblz_new,     zero,    "smiv")
@@ -940,37 +944,41 @@ subroutine mod_commonmn_expand_arrays(nblz_new,npart_new)
   end if
 
   if(npart_new /= npart_prev) then
-    call alloc(xv1,      npart_new,    zero,    "xv1")
-    call alloc(yv1,      npart_new,    zero,    "yv1")
-    call alloc(xv2,      npart_new,    zero,    "xv2")
-    call alloc(yv2,      npart_new,    zero,    "yv2")
-    call alloc(sigmv,    npart_new,    zero,    "sigmv")
-    call alloc(dpsv,     npart_new,    zero,    "dpsv")
-    call alloc(ejv,      npart_new,    zero,    "ejv")
-    call alloc(ejfv,     npart_new,    zero,    "ejfv")
-    call alloc(dam,      npart_new,    zero,    "dam")
-    call alloc(rvv,      npart_new,    one,     "rvv")
-    call alloc(ejf0v,    npart_new,    zero,    "ejf0v")
-    call alloc(numxv,    npart_new,    0,       "numxv")
-    call alloc(nnumxv,   npart_new,    0,       "nnumxv")
-    call alloc(partID,   npart_new,    0,       "partID")
-    call alloc(parentID, npart_new,    0,       "parentID")
-    call alloc(pstop,    npart_new,    .false., "pstop")
-    call alloc(llostp,   npart_new,    .false., "llostp")
-    call alloc(dpd,      npart_new,    zero,    "dpd")
-    call alloc(dpsq,     npart_new,    zero,    "dpsq")
-    call alloc(oidpsv,   npart_new,    one,     "oidpsv")
-    call alloc(moidpsv,  npart_new,    one,     "moidpsv")
-    call alloc(omoidpsv, npart_new,    zero,    "omoidpsv")
-    call alloc(nucm,     npart_new,    zero,    "nucm")
-    call alloc(mtc,      npart_new,    nucm0,   "mtc")
-    call alloc(naa,      npart_new,    aa0,     "naa")
-    call alloc(nzz,      npart_new,    zz0,     "nzz")
-    call alloc(nqq,      npart_new,    qq0,     "nqq")
-    call alloc(pdgid,    npart_new,    pdgid0,  "pdgid")
-    call alloc(ampv,     npart_new,    zero,    "ampv")
-    call alloc(aperv,    npart_new, 2, zero,    "aperv")
-    call alloc(iv,       npart_new,    0,       "iv")
+    call alloc(xv1,        npart_new, zero,    "xv1")
+    call alloc(yv1,        npart_new, zero,    "yv1")
+    call alloc(xv2,        npart_new, zero,    "xv2")
+    call alloc(yv2,        npart_new, zero,    "yv2")
+    call alloc(sigmv,      npart_new, zero,    "sigmv")
+    call alloc(dpsv,       npart_new, zero,    "dpsv")
+    call alloc(ejv,        npart_new, zero,    "ejv")
+    call alloc(ejfv,       npart_new, zero,    "ejfv")
+    call alloc(dam,        npart_new, zero,    "dam")
+    call alloc(rvv,        npart_new, one,     "rvv")
+    call alloc(ejf0v,      npart_new, zero,    "ejf0v")
+    call alloc(numxv,      npart_new, 0,       "numxv")
+    call alloc(partID,     npart_new, 0,       "partID")
+    call alloc(parentID,   npart_new, 0,       "parentID")
+    call alloc(pairID,  2, npart_new, 0,       "pairID")
+    call alloc(pairMap, 2, npair_new, 0,       "pairMap")
+    call alloc(pstop,      npart_new, .false., "pstop")
+    call alloc(llostp,     npart_new, .false., "llostp")
+    call alloc(dpd,        npart_new, zero,    "dpd")
+    call alloc(dpsq,       npart_new, zero,    "dpsq")
+    call alloc(oidpsv,     npart_new, one,     "oidpsv")
+    call alloc(moidpsv,    npart_new, one,     "moidpsv")
+    call alloc(omoidpsv,   npart_new, zero,    "omoidpsv")
+    call alloc(nucm,       npart_new, zero,    "nucm")
+    call alloc(mtc,        npart_new, nucm0,   "mtc")
+    call alloc(spin_x,     npart_new, zero,    "spin_x")
+    call alloc(spin_y,     npart_new, zero,    "spin_y")
+    call alloc(spin_z,     npart_new, zero,    "spin_z")
+    call alloc(naa,        npart_new, aa0,     "naa")
+    call alloc(nzz,        npart_new, zz0,     "nzz")
+    call alloc(nqq,        npart_new, qq0,     "nqq")
+    call alloc(pdgid,      npart_new, pdgid0,  "pdgid")
+    call alloc(ampv,       npart_new, zero,    "ampv")
+    call alloc(aperv,   2, npart_new, zero,    "aperv")
+    call alloc(iv,         npart_new, 0,       "iv")
   end if
 
   nblz_prev  = nblz_new

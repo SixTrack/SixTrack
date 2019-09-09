@@ -1,7 +1,7 @@
 
 \chapter{Initial Conditions for Tracking} \label{InitCondTrack}
 
-For the study of non-linear system, the choice of initial conditions is of crucial importance.\index{initial conditions}
+For the study of non-linear systems, the choice of initial conditions is of crucial importance.\index{initial conditions}
 The input structure for the initial conditions was therefore organised in such a way as to allow for maximum flexibility.
 SixTrack is optimised to reach the largest possible number of turns.
 In order to derive the Lyapunov exponent\index{Lyapunov exponent}, and thereby to distinguish between regular and chaotic motion, the particle has a close by companion particle.
@@ -39,17 +39,17 @@ If you need this feature, please use the old input format.
 
 \bigskip
 \begin{tabular}{@{}llp{0.7\linewidth}}
-    \texttt{TRAC} & \texttt{ntwin} & Fixed to a value of 2.\\
+    \texttt{TRAC} & \texttt{ntwin}          & Fixed to a value of 2.\\
     \texttt{TRAC} & \texttt{idy(1), idy(2)} & Fixed to a value of 1.\\
-    \texttt{TRAC} & \texttt{idfor} & Fixed to a value of 1.\\
-    \texttt{TRAC} & \texttt{amp(1), amp0} & Fixed to a value of 0.\\
+    \texttt{TRAC} & \texttt{idfor}          & Fixed to a value of 1.\\
+    \texttt{TRAC} & \texttt{amp(1), amp0}   & Fixed to a value of 0.\\
 \end{tabular}
 
 \begin{center}
 \setlength\LTleft{0pt}
 \setlength\LTright{0pt}
 \begin{longtable}{@{\extracolsep{\fill}}|l|p{10cm}|l|}
-    \caption{Available arguents in the SIMU block.}
+    \caption{Available arguments in the SIMU block.}
     \label{Table:SIMU} \\*
     \hline
     \rowcolor{blue!30}
@@ -359,7 +359,7 @@ A fine tuning of the initial condition is done with \textit{Initial Coordinates}
         \end{itemize}
     \end{enumerate}
     \item A feature is installed for a prolongation of a run by using \texttt{idfor = 2} and reading the initial data from file \texttt{fort.13}. The end coordinates are now written to \texttt{fort.12} after each run. Intermediate coordinates are also written to \texttt{fort.12} in case the turn number \texttt{nwr(4)} is exceeded in the run. The user takes responsibility to transfer the required data from \texttt{fort.12} to \texttt{fort.13} if a prolongation is requested. This feature can be used to effectively read in a custom-made beam distribution. The format of the file is one line per pair of particles; the meaning of the columns is exactly that of the \textit{Initial Coordinates}\index{INIT} input block (see Sec.~\ref{IniCoo} and Tab.~\ref{T-IniCoo}).
-    \item As of version 5.0.3 the particle energy read from \texttt{fort.13} is re-calculated from the particle momentum offset to ensure these are consistent. The particle energy in \texttt{fort.13} is therefore ignored.
+    \item As of version 5.2 the particle momentum offset from \texttt{fort.13} is re-calculated from the particle energy to ensure these are consistent. The particle momentun offset in \texttt{fort.13} is therefore ignored.
     \item Some illogical combinations of parameters have been suppressed.
     \item The initial coordinates are calculated using a proper linear 6D transformation: \texttt{amp(1)} is still the maximum horizontal starting amplitude (excluding the dispersion contribution) from which the emittance of mode 1 $e_I$ is derived, \texttt{rat} (see~\ref{IniCoo}) is the ratio of $e_{II}/e_I$ of the emittances of the two modes. The momentum deviation $\frac{\Delta p}{p_{0,1}}$ is used to define a longitudinal amplitude. The 6 normalized coordinates read:
         \begin{enumerate}
@@ -496,7 +496,11 @@ The parameters needed for treating the synchrotron oscillation in a symplectic m
 
 % ================================================================================================================================ %
 \section{Tracking with Ions} \label{hions}
-The default tracking in SixTrack is for protons. In case tracking of ions is wanted the following input block should be used.
+
+The default tracking in SixTrack is for protons.
+In case tracking of ions is wanted the following input block should be used.\index{ion tracking}
+The \texttt{HION} block only specifies the reference particle.
+By default, all particles are initialised to the same values, but if multiple ion species are needed, these can be provided by an input file in the \texttt{DIST} block.
 
 \bigskip
 \begin{tabular}{@{}llp{0.7\linewidth}}
@@ -509,108 +513,708 @@ The default tracking in SixTrack is for protons. In case tracking of ions is wan
 
 \bigskip
 \begin{longtabu}{@{}llp{0.65\linewidth}}
-    \texttt{A}   & integer & Total number of nucleons (atomic mass number). \\
-    \texttt{Z}   & integer & Total number of protons. \\
-    \texttt{$m_a$}   & float   & Mass of the ion [GeV/$c^2$]. \\
-    \texttt{Q}   & integer & Electrical charge.
+    \texttt{A}     & integer & Total number of nucleons (atomic mass number). \\
+    \texttt{Z}     & integer & Total number of protons. \\
+    \texttt{$m_a$} & float   & Mass of the ion [GeV/$c^2$]. \\
+    \texttt{Q}     & integer & Electrical charge.
 \end{longtabu}
 
 % ================================================================================================================================ %
-\section{Initial Distibution from an ASCII file} \label{distBlock}
-In addition to \texttt{fort.13} (see \emph{Tracking Parameters} input block, Sec.~\ref{TraPar}), it is possible to read a beam distribution from a plain ASCII file via the \texttt{DIST} block.
-With respect to using \texttt{fort.13}, which basically specifies just the six particle coordinates for each pair of particles, the \texttt{DIST} block allows the user to specify further properties of the particles, like charge or mass, necessary in case of species different than the synchronous one.
-There is also the possibility to echo the parsed information into a plain ASCII file.
-The echo of the distribution takes place after all the arrays for longitudinal motion have been updated and after the closed orbit is applied, if requested by the user.
+\section{Initial Distribution} \label{distBlock}
+
+The \texttt{DIST} block adds the ability to read a beam distribution from file, or generate it internally in SixTrack.\index{DIST}\index{initial distribution}
+The file format is very flexible and can be specified column-wise with the \texttt{FORMAT} keyword to support many file layouts.
+It is also possible to specify the unit of the data in the input file, within a limited range.
+If no format is specified, the \texttt{DIST} block falls back to the fixed 14 column format read by the original simple \texttt{DIST} block prior to version 5.3.1 (see Table~\ref{tab:distReadFileColumns}).
 
 \bigskip
-\begin{tabular}{@{}llp{0.7\linewidth}}
+\begin{tabular}{@{}lp{0.7\linewidth}}
     \textbf{Keyword}    & \texttt{DIST}\index{DIST} \\
     \textbf{Data lines} & Variable \\
-    \textbf{Format}     & pairs of \texttt{keyword : value}
+    \textbf{Format}     & Keyword/value
 \end{tabular}
 
-\paragraph{Format Description}~
+\paragraph{Format Description}~\\
 
-Table~\ref{tab:distKeys} reports the available keywords and meaning of necessary values. The user has to specify the file from which the code should read the distribution; in case the user wants the echo of the read distribution, they need to specify a name as well.
+There are several approaches available for initiating the beam distribution.
+It can be read in its entirety from a file, selecting a set of many available conventions for describing the particle coordinates, ion values and meta data.
+For a small number of particles, the coordinates can be set directly in the \texttt{DIST} block as well.
 
-Table~\ref{tab:distReadFileColumns} shows the format of the ASCII file from where the beam distribution is read, along with meaning of columns and units when necessary.
-All particles must be listed, one per line.
-No header is required.
-Similarly, Tab.~\ref{tab:distEchoFileColumns} shows the format of the ASCII file where the read beam distribution is echoed, along with meaning of columns and units when necessary.
-As for the file for reading the distribution, one particle per line is dumped.
-A header is dumped as well.
+The \texttt{DIST} block is linked to the external \texttt{DISTlib} library for beam distributions, and the filled particle coordinates can be passed on to this library for further processing, like applying the T-matrix (see Section~\ref{Sec:TMatrix}).
+In the future, more features will be added to this library, and made available through the \texttt{DIST} block interface.
 
+Table~\ref{Table:DIST} lists the currently available keywords of the \texttt{DIST} block.
+Table~\ref{Table:DIST_FORMAT} lists all the column formats the block supports.
+Table~\ref{Table:DIST_FILL} lists all the available fill methods for populating the particle arrays without having to read from file.
 
-\bigskip
+For an overview of the definitions used for the particle tracking variables in SixTrack, see Section~\ref{Sec:PartArrays}.
+
+\paragraph{Default Behaviour}~\\
+
+Since there are multiple ways to set the particle coordinates, a few default behaviours and precedences have been coded into the parsing.
+
+\begin{itemize}
+    \item All particle coordinates are initially set to 0, with the exception of particle energy, which defaults to the reference energy. That is, the particle $\delta$ momentum is 0.
+    \item The particle mass and ion parameters also default to those of the reference particle.
+    \item The particle ID, if not provided, is set as a range from 1 to the number of particles as specified in the \texttt{TRAC} or \texttt{SIMU} block.
+    \item The particle parent ID is set to equal that of its ID. This is the correct way to indicate that a particle is a primary particle.
+\end{itemize}
+
+It is only possible to set each particle coordinate using one method.
+If conflicting methods are selected in the \texttt{FORMAT} keyword and in \texttt{FILL} methods, an error will be raised.
+Since SixTrack uses multiple arrays for different values related to the particle energy, these are calculated after initialisation from the input format chosen.
+
+The default normalisation method is to use the internal T-matrix in SixTrack (see Section~\ref{Sec:TMatrix}).
+Alternatively, Twiss and dispersion can be set in the block, or a new T-matrix provided.
+These will then take precedence over the internal matrix.
+
+All emittances default to 0, so if these are not set, the normalisation will also return arrays of zeros.
+
 \begin{center}
-\begin{longtable}{|c|c|l|}%{|p{2.0cm} | p{1.2cm} | p{1.0cm} | p{9.0cm}|}
-    %Note: \\* (with the star) used to inhibit page breaks in the middle of groups of the same type
-    \caption{Keywords and values available in the \texttt{DIST} block. Keywords are listed in alphabetical order.}
-    \label{tab:distKeys} \\*
+\setlength\LTleft{0pt}
+\setlength\LTright{0pt}
+\begin{longtable}{@{\extracolsep{\fill}}|l|p{10cm}|l|}
+    \caption{Available keyword/value sets in the DIST block.}
+    \label{Table:DIST} \\*
     \hline
     \rowcolor{blue!30}
-    keyword & argument & description \\*
+    \textbf{Keyword} & \textbf{Argument(s)} & \textbf{Default} \\*
     \hline
     \endfirsthead
-    \texttt{ECHO} & \multicolumn{2}{l|}{to echo the read distribution.} \\*
-                  & filename & ASCII file where the echo of the distribution should be saved \\*
+
+    \hline
+    \rowcolor{blue!30}
+    \textbf{Keyword} & \textbf{Argument(s)} & \textbf{Default} \\*
+    \endhead
+
+    \rowcolor{gray!15}
+    \multicolumn{3}{|c|}{(The table continues on the next page)}\\*
+    \hline
+    \endfoot
+
+    \hline
+    \endlastfoot
+
+    \rowcolor{blue!15}
+    \multicolumn{3}{|c|}{\textbf{Input, Output and Format}}\\*
     \hline
 
-    \texttt{LOAD} & \multicolumn{2}{l|}{to read the desired distribution.} \\*
-                  & filename & ASCII file from where the code will read the desired distribution \\*
+    \rowcolor{gray!15}
+    \texttt{FORMAT} & \texttt{[list\_of\_columns]} & \texttt{OLD\_DIST}\\*
     \hline
+    \multicolumn{3}{|>{\raggedright}p{\textwidth}|}{%
+        A list of column formats for the input. The available column values are listed in Table~\ref{Table:DIST_FORMAT}. This format is applied to either the input file or to particles specified directly in the \texttt{DIST} block. The number format columns must match the file columns or particle entries. If no format is specified, the parser assumes it will receive a 14 column file matching the format described in Table~\ref{tab:distReadFileColumns}.
+    } \\*
+    \hline
+
+    \rowcolor{gray!15}
+    \texttt{READ} & \texttt{filename(char) [use\_distlib(flag)]} & \\*
+    \hline
+    \multicolumn{3}{|>{\raggedright}p{\textwidth}|}{%
+        The filename of the file to read. An optional logical flag sets whether the filename is passed on to the external DISTlib, in which case the file must conform to the DISTlib file format. This is not covered here. If the file contains more particles than requested in the \texttt{TRAC} or \texttt{SIMU} block, the remaining particles will be ignored. If the file contains less particles, an error will be raised.
+    } \\*
+    \hline
+
+    \rowcolor{gray!15}
+    \texttt{PARTICLE} & \texttt{[list\_of\_values]} & \\*
+    \hline
+    \multicolumn{3}{|>{\raggedright}p{\textwidth}|}{%
+        A list of values to be parsed as a particle. This requires a format to be specified. It provides the option to add particles to the simulation without having to use the \texttt{INIT} block or a distribution file. Although not intended for initialising a large number of particles, there is no limit on how many times this keyword can be used.
+    } \\*
+    \hline
+
+    \rowcolor{gray!15}
+    \texttt{ECHO} & \texttt{[filename]} & \texttt{echo\_distribution.dat}\\*
+    \hline
+    \multicolumn{3}{|>{\raggedright}p{\textwidth}|}{%
+        Echos the distribution back to a file. The format of the file is described in Table~\ref{tab:distEchoFileColumns}. This keyword is kept for legacy support, but a much more detailed file is written by the \texttt{INITIALSTATE} keyword in the \texttt{SETTINGS} block.
+    } \\*
+    \hline
+
+    \rowcolor{blue!15}
+    \multicolumn{3}{|c|}{\textbf{Beam Parameters}}\\*
+    \hline
+
+    \rowcolor{gray!15}
+    \texttt{EMITTANCE} & \texttt{emit1[mm mrad] emit2[mm mrad]} & \texttt{0.0 0.0}\\*
+    \hline
+    \multicolumn{3}{|>{\raggedright}p{\textwidth}|}{%
+        The transverse beam emittance values in units of mm mrad.
+    } \\*
+    \hline
+
+    \rowcolor{gray!15}
+    \texttt{LONGEMIT} & \texttt{emit3 unit[eVs|um]} & \texttt{0.0}\\*
+    \hline
+    \multicolumn{3}{|>{\raggedright}p{\textwidth}|}{%
+        Longitudinal emittance and its unit. The emittance can either be provided in $\mu$m or in eVs.
+    } \\*
+    \hline
+
+    \rowcolor{gray!15}
+    \texttt{TWISS} & \texttt{betaX[m] alphaX[1] betaY[m] alphaY[1]} & \texttt{1.0 0.0 1.0 0.0}\\*
+    \hline
+    \multicolumn{3}{|>{\raggedright}p{\textwidth}|}{%
+        The horizontal and vertical twiss parameters.
+    } \\*
+    \hline
+
+    \rowcolor{gray!15}
+    \texttt{DISPERSION} & \texttt{dx dpx dy dpy} & \texttt{0.0 0.0 0.0 0.0}\\*
+    \hline
+    \multicolumn{3}{|>{\raggedright}p{\textwidth}|}{%
+        Beam dispersion
+    } \\*
+    \hline
+
+    \rowcolor{gray!15}
+    \texttt{TMATRIX} & \texttt{val1 val2 val3 val4 val5 val6} & \\*
+    \hline
+    \multicolumn{3}{|>{\raggedright}p{\textwidth}|}{%
+        Specify the $6 \times 6$ normalisation matrix in its entirety. The keyword needs to be repeated 6 times, once for each row.
+    } \\*
+    \hline
+
+    \rowcolor{blue!15}
+    \multicolumn{3}{|c|}{\textbf{Internal Generator}}\\*
+    \hline
+
+    \rowcolor{gray!15}
+    \texttt{FILL} & \texttt{[list\_of\_parameters]} & \\*
+    \hline
+    \multicolumn{3}{|>{\raggedright}p{\textwidth}|}{%
+        The different columns can also be filled by a set of fill functions controlled with this keyword. The settings provided by this keyword are applied after the file is read or the arrays are populated by the \texttt{PARTICLES} keyword. The \texttt{FILL} feature can therefore be used to overwrite the data read from the file. The various fill methods available are listed in Table~\ref{Table:DIST_FILL}.
+    } \\*
+    \hline
+
+    \rowcolor{gray!15}
+    \texttt{SEED} & \texttt{seed(int)} & \\*
+    \hline
+    \multicolumn{3}{|>{\raggedright}p{\textwidth}|}{%
+        Provide a seed for the random number generator. This seed will only be used by the \texttt{DIST} block, and does not affect random numbers generated in other parts of SixTrack. If one of the \texttt{FILL} keywords uses a random number generator, a seed must be provided.
+    } \\*
+    \hline
+
 \end{longtable}
 \end{center}
 
-\begin{minipage}[t]{0.45\textwidth}
-  \begin{center}
-    \begin{longtable}{|l|l|}%{|p{2.0cm} | p{1.2cm} | p{1.0cm} | p{9.0cm}|}
-      %Note: \\* (with the star) used to inhibit page breaks in the middle of groups of the same type
-      \caption{Format of the ASCII file containing the distribution to be read by the \texttt{DIST} block.}
-      \label{tab:distReadFileColumns} \\*
-      \hline
-      \rowcolor{blue!30}
-      \# & Description \\*
-      \hline
-      \endfirsthead
-      1  & particle id (not actually used) \\*
-      2  & parent particle id (not actually used) \\*
-      3  & statistical weight (not actually used) \\*
-      4  & $x$ [m] \\*
-      5  & $y$ [m] \\*
-      6  & (unused) \\*
-      7  & $x'$ [] \\*
-      8  & $y'$ [] \\*
-      9  & (unused) \\*
-      10 & mass number \\*
-      11 & atomic number \\*
-      12 & mass [GeV/c$^2$] \\*
-      13 & linear momentum [GeV/c] \\*
-      14 & time lag [s] \\*
-      \hline
-    \end{longtable}
-  \end{center}
-\end{minipage}
-\hfill
-\begin{minipage}[t]{0.45\textwidth}
-  \begin{center}
-    \begin{longtable}{|l|l|}%{|p{2.0cm} | p{1.2cm} | p{1.0cm} | p{9.0cm}|}
-      %Note: \\* (with the star) used to inhibit page breaks in the middle of groups of the same type
-      \caption{Format of the ASCII file where the distribution read by the \texttt{DIST} block is echoed.}
-      \label{tab:distEchoFileColumns} \\*
-      \hline
-      \rowcolor{blue!30}
-      \# & Description \\*
-      \hline
-      \endfirsthead
-      1  & \texttt{xv1} [mm]   \\*
-      2  & \texttt{xv1} [mrad] \\*
-      3  & \texttt{xv1} [mm]   \\*
-      4  & \texttt{xv1} [mrad] \\*
-      5  & \texttt{sigmv} [mm] \\*
-      6  & \texttt{ejfv} [MeV/c] \\*
-      \hline
-    \end{longtable}
-  \end{center}
-\end{minipage}
+\subsection{Column Formats}
+
+The \texttt{FORMAT} keyword allows the user to specify their own file format by providing a list of columns it contains.
+The available formats and how they are converted to internal SixTrack particle coordinates are listed in Table~\ref{Table:DIST_FORMAT}.
+
+Each column can optionally take a unit in square brackets, appended to the column name itself with no space in between.
+The available units are also listed in the table for the column formats that support units.
+If no unit in square brackets is provided, the parser defaults to the internal SixTrack units which are mm, mrad and MeV.
+
+For units of energy $c=1$ such that for instance MeV, MeV/c and MeV/c$^2$ are equivalent.
+The parser accepts the following notation: \texttt{MeV}, \texttt{MeV/c}, \texttt{MeV/c\^{}2}, and \texttt{MeV/c**2}.
+Units are not case sensitive.
+
+For units of length, the parser accepts the character \texttt{u} as an alternative to $\mu$.
+
+\paragraph{Multi-Column Formats}~\\
+
+To avoid the need for specifiying common combinations of columns, a set of multi-column keywords are also available.
+They are translated directly into a group of columns in a pre-defined order.
+using these keywords does not prevent the user from adding more columns to extend the format.
+
+Note, however, that conflicting columns cannot be provided.
+Only one column for each of the 6 particle coordinates is allowed at the same time.
+If the file contains multiple columns for the same coordinate, the columns not in use can be disabled with the \texttt{SKIP} flag.
+
+For backwards compatibility with the old \texttt{DIST} block, a format that matches the old 14 colum file is also provided.
+For the recent addition of charge and PDGID, these columns must be added to this format.
+If no format is specified, the default is the old 14 column format described in Table~\ref{tab:distReadFileColumns}.
+
+\paragraph{Example}~\\
+
+Below is an example of a \texttt{DIST} block using a 7-column input file with the length unit in millimetres.
+
+\begin{cverbatim}
+DIST
+  FORMAT ID X[mm] PX Y[mm] PY ZETA[mm] DELTA
+  READ   partDist.dat
+NEXT
+\end{cverbatim}
+
+\begin{center}
+\setlength\LTleft{0pt}
+\setlength\LTright{0pt}
+\begin{longtable}{@{\extracolsep{\fill}}|p{10cm}|l|}
+    \caption{Available column formats in the DIST block.}
+    \label{Table:DIST_FORMAT} \\*
+    \hline
+    \rowcolor{blue!30}
+    \textbf{Column Name} & \textbf{Units} \\*
+    \hline
+    \endfirsthead
+
+    \hline
+    \rowcolor{blue!30}
+    \textbf{Column Name} & \textbf{Units} \\*
+    \endhead
+
+    \rowcolor{gray!15}
+    \multicolumn{2}{|c|}{(The table continues on the next page)}\\*
+    \hline
+    \endfoot
+
+    \hline
+    \endlastfoot
+
+    \rowcolor{blue!15}
+    \multicolumn{2}{|c|}{\textbf{Meta Columns}}\\*
+    \hline
+
+    \rowcolor{gray!15}
+    \texttt{SKIP} & N/A\\*
+    \hline
+    \multicolumn{2}{|>{\raggedright}p{\textwidth}|}{%
+        Disables the column in the file, that is, during parsing, the column is skipped.
+    } \\*
+    \hline
+
+    \rowcolor{gray!15}
+    \texttt{ID} & N/A\\*
+    \hline
+    \multicolumn{2}{|>{\raggedright}p{\textwidth}|}{%
+        The particle ID. Currently, this number must be in the range 1 to number of particles in the simulation, and they must be unique. There is no restriction on the order.
+    } \\*
+    \hline
+
+    \rowcolor{gray!15}
+    \texttt{PARENT} & N/A\\*
+    \hline
+    \multicolumn{2}{|>{\raggedright}p{\textwidth}|}{%
+        The particle's parent ID. If the parent ID is the same as the particle ID, the particle is considerd a primary particle.
+    } \\*
+    \hline
+
+    \rowcolor{blue!15}
+    \multicolumn{2}{|c|}{\textbf{Transverse Coordinates}}\\*
+    \hline
+
+    \rowcolor{gray!15}
+    \texttt{X, Y} & m or mm\\*
+    \hline
+    \multicolumn{2}{|>{\raggedright}p{\textwidth}|}{%
+        The particle coordinate in the horizontal and vertical plane, respectively. These are the internal values used for tracking in SixTrack, and are read in as provides.
+    } \\*
+    \hline
+
+    \rowcolor{gray!15}
+    \texttt{XP, YP} & [1] \\*
+    \hline
+    \multicolumn{2}{|>{\raggedright}p{\textwidth}|}{%
+        The particle transverse momentum ratio relative to its total momentum, $p_x/p \approx x^\prime$, $p_y/p \approx y^\prime$. These are the internal values used for tracking in SixTrack, and are read in as provides.
+    } \\*
+    \hline
+
+    \rowcolor{gray!15}
+    \texttt{PX, PY} & eV, keV, MeV, GeV or TeV \\*
+    \hline
+    \multicolumn{2}{|>{\raggedright}p{\textwidth}|}{%
+        The particle transverse momentum. These values will be converted to SixTrack internal values.
+    } \\*
+    \hline
+
+    \rowcolor{gray!15}
+    \texttt{PX/P0, PXP0, PY/P0, PYP0} & [1] \\*
+    \hline
+    \multicolumn{2}{|>{\raggedright}p{\textwidth}|}{%
+        The particle transverse momentum relative to the reference momentum, $p_x/p_0$, $p_y/p_0$. The slash in the column name is optional. These values will be converted to SixTrack internal values.
+    } \\*
+    \hline
+
+    \rowcolor{blue!15}
+    \multicolumn{2}{|c|}{\textbf{Longitudinal Position}}\\*
+    \hline
+
+    \rowcolor{gray!15}
+    \texttt{SIGMA} & m or mm \\*
+    \hline
+    \multicolumn{2}{|>{\raggedright}p{\textwidth}|}{%
+        The particle offset relative to the reference particle, $\sigma$. This is the internal value used for tracking in SixTrack, and is read in as provided.
+    } \\*
+    \hline
+
+    \rowcolor{gray!15}
+    \texttt{ZETA} & m or mm \\*
+    \hline
+    \multicolumn{2}{|>{\raggedright}p{\textwidth}|}{%
+        The particle offset relative to the reference particle, with relative velocity correction, $\zeta = \frac{\beta_0}{\beta}\sigma$. This value will be converted to SixTrack internal value \texttt{SIGMA} ($\sigma$).
+    } \\*
+    \hline
+
+    \rowcolor{gray!15}
+    \texttt{DT} & ps, ns, $\mu$s, ms or s \\*
+    \hline
+    \multicolumn{2}{|>{\raggedright}p{\textwidth}|}{%
+        The particle time delay, $\sigma = -\beta_0 \cdot \mathrm{d}t \cdot c$. This value will be converted to SixTrack internal value.
+    } \\*
+    \hline
+
+    \rowcolor{blue!15}
+    \multicolumn{2}{|c|}{\textbf{Energy and Momentum}}\\*
+    \hline
+
+    \rowcolor{gray!15}
+    \texttt{E, P} & eV, keV, MeV, GeV or TeV \\*
+    \hline
+    \multicolumn{2}{|>{\raggedright}p{\textwidth}|}{%
+        The particle total energy or momentum, respectively. These are values used by SixTrack for tracking. Only one can be set, and the other is computed from the first.
+    } \\*
+    \hline
+
+    \rowcolor{gray!15}
+    \texttt{DE/E0, DEE0} & [1] \\*
+    \hline
+    \multicolumn{2}{|>{\raggedright}p{\textwidth}|}{%
+        The particle total energy relative to reference energy, $\Delta E / E_0$. This is converted to SixTrack internal value $E$ after input.
+    } \\*
+    \hline
+
+    \rowcolor{gray!15}
+    \texttt{DP/P0, DPP0, DELTA} & [1] \\*
+    \hline
+    \multicolumn{2}{|>{\raggedright}p{\textwidth}|}{%
+        The particle total momentum relative to reference momentum, $\Delta P / P_0$. This is a value used by SixTrack for tracking. If provided as input, particle total energy and momentum is calculated from this value.
+    } \\*
+    \hline
+
+    \rowcolor{gray!15}
+    \texttt{PT} & [1] \\*
+    \hline
+    \multicolumn{2}{|>{\raggedright}p{\textwidth}|}{%
+        The particle total momentum relative to reference energy, $\Delta E / P_0 c$. This is converted to SixTrack internal value $E$ after input.
+    } \\*
+    \hline
+
+    \rowcolor{gray!15}
+    \texttt{PSIGMA} & [1] \\*
+    \hline
+    \multicolumn{2}{|>{\raggedright}p{\textwidth}|}{%
+        The particle total momentum relative to reference energy and relativistic velocity, $\Delta E / \beta_0 P_0 c$. This is converted to SixTrack internal value $E$ after input.
+    } \\*
+    \hline
+
+    \rowcolor{blue!15}
+    \multicolumn{2}{|c|}{\textbf{Normalised Coordinates}}\\*
+    \hline
+
+    \rowcolor{gray!15}
+    \texttt{XN, YN, ZN, PXN, PYN, PZN} & N/A \\*
+    \hline
+    \multicolumn{2}{|>{\raggedright}p{\textwidth}|}{%
+        The six coordinates in nurmalised coordinates in units of $\sqrt{m}$. These are transformed by the beam parameters given in the \texttt{DIST} block after input.
+    } \\*
+    \hline
+
+    \rowcolor{gray!15}
+    \texttt{JX, JY, JZ, PHIX, PHIY, PHIZ} & N/A \\*
+    \hline
+    \multicolumn{2}{|>{\raggedright}p{\textwidth}|}{%
+        NOT YET IMPLEMENTED!
+        The six coordinates in action coordinates. These are transformed by the beam parameters given in the \texttt{DIST} block after input.
+    } \\*
+    \hline
+
+    \rowcolor{blue!15}
+    \multicolumn{2}{|c|}{\textbf{Ion Parameters}}\\*
+    \hline
+
+    \rowcolor{gray!15}
+    \texttt{MASS, M} & eV, keV, MeV, GeV or TeV \\*
+    \hline
+    \multicolumn{2}{|>{\raggedright}p{\textwidth}|}{%
+        The mass of the particle. The default value is the reference particle mass set in the \texttt{SIMU}, \texttt{SYNC} or \texttt{HION} block.
+    } \\*
+    \hline
+
+    \rowcolor{gray!15}
+    \texttt{CHARGE, Q} & N/A \\*
+    \hline
+    \multicolumn{2}{|>{\raggedright}p{\textwidth}|}{%
+        The charge of the particle in units of elementary charge. The default value is the reference particle mass set in the \texttt{SIMU} or \texttt{HION} block.
+    } \\*
+    \hline
+
+    \rowcolor{gray!15}
+    \texttt{ION\_A, ION\_Z} & N/A \\*
+    \hline
+    \multicolumn{2}{|>{\raggedright}p{\textwidth}|}{%
+        The ion A and Z values (atomic mass and atomic charge). The default value is the reference particle mass set in the \texttt{SIMU} or \texttt{HION} block. Both columns must be provided if one of them is.
+    } \\*
+    \hline
+
+    \rowcolor{gray!15}
+    \texttt{PDGID} & N/A \\*
+    \hline
+    \multicolumn{2}{|>{\raggedright}p{\textwidth}|}{%
+        The Particle Data Group ID of the particle. If it is not provided, it is either calculated from A and Z if given, or set to that of the reference particle in the \texttt{SIMU} or \texttt{HION} block.
+    } \\*
+    \hline
+
+    \rowcolor{blue!15}
+    \multicolumn{2}{|c|}{\textbf{Spin Vector}}\\*
+    \hline
+
+    \rowcolor{gray!15}
+    \texttt{SX, SY, SZ} & N/A \\*
+    \hline
+    \multicolumn{2}{|>{\raggedright}p{\textwidth}|}{%
+        The three components of the particle spin vector. This information is currently not used for tracking, but is available for future additions to SixTrack.
+    } \\*
+    \hline
+
+    \rowcolor{blue!15}
+    \multicolumn{2}{|c|}{\textbf{Multi-Columns Keywords}}\\*
+    \hline
+
+    \rowcolor{gray!15}
+    \texttt{4D} & N/A \\*
+    \hline
+    \multicolumn{2}{|>{\raggedright}p{\textwidth}|}{%
+        Equivalent to setting \texttt{X PX Y PY} with default units.
+    } \\*
+    \hline
+
+    \rowcolor{gray!15}
+    \texttt{6D} & N/A \\*
+    \hline
+    \multicolumn{2}{|>{\raggedright}p{\textwidth}|}{%
+        Equivalent to setting \texttt{X PX Y PY ZETA DELTA} with default units.
+    } \\*
+    \hline
+
+    \rowcolor{gray!15}
+    \texttt{NORM} & N/A \\*
+    \hline
+    \multicolumn{2}{|>{\raggedright}p{\textwidth}|}{%
+        Equivalent to setting \texttt{XN PXN YN PYN ZN PZN}.
+    } \\*
+    \hline
+
+    \rowcolor{gray!15}
+    \texttt{ACTION} & N/A \\*
+    \hline
+    \multicolumn{2}{|>{\raggedright}p{\textwidth}|}{%
+        Equivalent to setting \texttt{JX PHIX JY PHIY JZ PHIZ}.
+    } \\*
+    \hline
+
+    \rowcolor{gray!15}
+    \texttt{IONS} & N/A \\*
+    \hline
+    \multicolumn{2}{|>{\raggedright}p{\textwidth}|}{%
+        Equivalent to setting \texttt{MASS CHARGE ION\_A ION\_Z PDGID} with mass in units GeV.
+    } \\*
+    \hline
+
+    \rowcolor{gray!15}
+    \texttt{SPIN} & N/A \\*
+    \hline
+    \multicolumn{2}{|>{\raggedright}p{\textwidth}|}{%
+        Equivalent to setting \texttt{SX SY SZ}.
+    } \\*
+    \hline
+
+    \rowcolor{gray!15}
+    \texttt{OLD\_DIST} & N/A \\*
+    \hline
+    \multicolumn{2}{|>{\raggedright}p{\textwidth}|}{%
+        Gives the old file format as described in Table~\ref{tab:distReadFileColumns}. That is, it's equivalent to \texttt{ID PARENT SKIP X[M] Y[M] SKIP XP[RAD] YP[RAD] SKIP ION\_A ION\_Z MASS[GEV] P[GEV] DT}.
+    } \\*
+    \hline
+
+\end{longtable}
+\end{center}
+
+\subsection{Filling the Columns}
+
+The \texttt{FILL} keyword allows the user to fill the particle arrays with values generated based on a set of parameters.
+These can be both pseudo-random distributions, value ranges, or fixed values.
+
+The fills are processed \emph{after} particles are read from file or from direct \texttt{PARTICLE} declarations in the \texttt{DIST} block.
+This makes it possible to overwrite certain values after reading from file.
+The \texttt{FILL} feature can also be used to populate the arrays from scratch, which can be useful for filling the normalised arrays (see example below).
+
+The different fill methods are listed in Table~\ref{Table:DIST_FILL}.
+
+Note that the \texttt{PARENT} column cannot be filled.
+The \texttt{SPIN} columns are also currently disbaled with this feature.
+
+Also note that the \texttt{FILL} methods cannot create corrolated distributions.
+This can be achieved by using the normalised column formats, which triggers a normalisation after they have been filled.
+
+\bigskip
+\noindent The general format for this feature is:
+\begin{cverbatim}
+FILL column method param1 ... paramN [firstIDX lastIDX]
+\end{cverbatim}
+
+\begin{tabular}{@{}lp{0.8\linewidth}}
+    \texttt{FILL}     & The keyword selecting this feature. \\
+    \texttt{column}   & The target column format. Must be one of the columns described in Table~\ref{Table:DIST_FORMAT}. \\
+    \texttt{method}   & The fill method. Must be one of the methods described in Table~\ref{Table:DIST_FILL}. \\
+    \texttt{params}   & The fill method parameters. These vary from method to method. See Table~\ref{Table:DIST_FILL}. \\
+    \texttt{firstIDX} & Optional: The first paricle index for this fill method. Defaults to particle 1. \\
+    \texttt{lastIDX}  & Optional: The last paricle index for this fill method, where -1 indicates the last particle as request in the \texttt{SIMU} or \texttt{TRAC} block. Defaults to particle -1.
+\end{tabular}
+
+\paragraph{Example}~\\
+
+The example below fills the normalised coordinate arrays with Gaussian distributions with a sigma cut, and fills the particle ID and ion columns.
+Writing to the normalised coordinate arrays in this manner triggers the normalisation routine to be called, here defaulting to use the internal T-matrix since no \texttt{TWISS} or \texttt{TMATRIX} keywords are set.
+
+\begin{cverbatim}
+DIST
+  EMITTANCE 2.5 2.5
+  SEED 12
+  FILL ID     COUNT  1   1
+  FILL XN     GAUSS  1.0 0.0 5.0
+  FILL PXN    GAUSS  1.0 0.0 5.0
+  FILL YN     GAUSS  1.0 0.0 5.0
+  FILL PYN    GAUSS  1.0 0.0 5.0
+  FILL ZN     GAUSS  0.8 0.0 3.0
+  FILL PZN    GAUSS  0.5 0.0 3.0
+  FILL ION_A  INT    1
+  FILL ION_Z  INT    1
+  FILL CHARGE INT    1
+  FILL MASS   FLOAT  938.272046
+NEXT
+\end{cverbatim}
+
+\begin{center}
+\setlength\LTleft{0pt}
+\setlength\LTright{0pt}
+\begin{longtable}{@{\extracolsep{\fill}}|p{3cm}|l|}
+    \caption{Available fill methods in the DIST block.}
+    \label{Table:DIST_FILL} \\*
+    \hline
+    \rowcolor{blue!30}
+    \textbf{Method} & \textbf{Argumnent(s)} \\*
+    \hline
+    \endfirsthead
+
+    \hline
+    \rowcolor{blue!30}
+    \textbf{Method} & \textbf{Argumnent(s)} \\*
+    \endhead
+
+    \rowcolor{gray!15}
+    \multicolumn{2}{|c|}{(The table continues on the next page)}\\*
+    \hline
+    \endfoot
+
+    \hline
+    \endlastfoot
+
+    \rowcolor{gray!15}
+    \texttt{INT} & \texttt{value [first last]} \\*
+    \hline
+    \multicolumn{2}{|>{\raggedright}p{\textwidth}|}{%
+        Sets all values to a fixed integer.
+        Can be used with column formats \texttt{ION\_A}, \texttt{ION\_Z}, \texttt{CHARGE} and \texttt{PDGID}.
+    } \\*
+    \hline
+
+    \rowcolor{gray!15}
+    \texttt{FLOAT} & \texttt{value [first last]} \\*
+    \hline
+    \multicolumn{2}{|>{\raggedright}p{\textwidth}|}{%
+        Sets all values to a fixed floating point value.
+        Can be used with all floating point column formats.
+    } \\*
+    \hline
+
+    \rowcolor{gray!15}
+    \texttt{GAUSS} & \texttt{sigma mu [cut] [first last]} \\*
+    \hline
+    \multicolumn{2}{|>{\raggedright}p{\textwidth}|}{%
+        Generates a normal random distribution with width \texttt{sigma} and offset \texttt{mu}, with an optional sigma \texttt{cut}.
+        Can be used with all floating point column formats except \texttt{MASS}.
+    } \\*
+    \hline
+
+    \rowcolor{gray!15}
+    \texttt{UNIFORM} & \texttt{lower upper [first last]} \\*
+    \hline
+    \multicolumn{2}{|>{\raggedright}p{\textwidth}|}{%
+        Generates a uniform random distribution between the values \texttt{lower} and \texttt{upper}.
+        Can be used with all floating point column formats except \texttt{MASS}.
+    } \\*
+    \hline
+
+    \rowcolor{gray!15}
+    \texttt{LINEAR} & \texttt{lower upper [first last]} \\*
+    \hline
+    \multicolumn{2}{|>{\raggedright}p{\textwidth}|}{%
+        Fills the array with floating point values ranging between the values \texttt{lower} and \texttt{upper} in equal steps.
+        Can be used with all floating point column formats except \texttt{MASS}.
+    } \\*
+    \hline
+
+    \rowcolor{gray!15}
+    \texttt{COUNT} & \texttt{start step [first last]} \\*
+    \hline
+    \multicolumn{2}{|>{\raggedright}p{\textwidth}|}{%
+        Fills the array with integer values starting from \texttt{start}, with a given \texttt{step}.
+        Can be used with column format \texttt{ID}.
+    } \\*
+    \hline
+
+\end{longtable}
+\end{center}
+
+\subsection{Support for the Old DIST Format}
+
+Tables~\ref{tab:distReadFileColumns} and~\ref{tab:distEchoFileColumns} describe the old input file and echo file for the \texttt{DIST} block.
+These formats are still supported for backwards compatibility.
+
+\begin{center}
+\begin{longtable}{|l|l|}%{|p{2.0cm} | p{1.2cm} | p{1.0cm} | p{9.0cm}|}
+    \caption{Format of the ASCII file containing the distribution to be read by the \texttt{DIST} block.}
+    \label{tab:distReadFileColumns} \\*
+    \hline
+    \rowcolor{blue!30}
+    \# & Description \\*
+    \hline
+    \endfirsthead
+    1  & particle id \\*
+    2  & parent particle id \\*
+    3  & statistical weight (unused) \\*
+    4  & $x$ [m] \\*
+    5  & $y$ [m] \\*
+    6  & $z$ (unused) \\*
+    7  & $x'$ [1e-3] \\*
+    8  & $y'$ [1e-3] \\*
+    9  & $z'$ (unused) \\*
+    10 & mass number \\*
+    11 & atomic number \\*
+    12 & mass [GeV/c$^2$] \\*
+    13 & linear momentum [GeV/c] \\*
+    14 & time lag [s] \\*
+    \hline
+\end{longtable}
+\end{center}
+\begin{center}
+\begin{longtable}{|l|l|l|}
+    \caption{The format of the ASCII file where the distribution read by the \texttt{DIST} block is echoed. See also Table~\ref{tab:sixtrackunits} in \texttt{DUMP} for a more detailed description of the variables.}
+    \label{tab:distEchoFileColumns} \\*
+    \hline
+    \rowcolor{blue!30}
+    \# & Variable & Unit\\*
+    \hline
+    \endfirsthead
+    1  & \texttt{xv1}   & [mm]    \\*
+    2  & \texttt{yv1}   & [1e-3]  \\*
+    3  & \texttt{xv2}   & [mm]    \\*
+    4  & \texttt{yv2}   & [1e-3]  \\*
+    5  & \texttt{sigmv} & [mm]    \\*
+    6  & \texttt{ejfv}  & [MeV/c] \\*
+    \hline
+\end{longtable}
+\end{center}
 
