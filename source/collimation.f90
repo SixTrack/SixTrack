@@ -430,6 +430,7 @@ module collimation
   integer, private, save :: survival_unit, collgaps_unit, collimator_temp_db_unit
   integer, private, save :: impact_unit, tracks2_unit, pencilbeam_distr_unit, coll_ellipse_unit, all_impacts_unit
   integer, private, save :: FLUKA_impacts_unit, FLUKA_impacts_all_unit, coll_scatter_unit, FirstImpacts_unit, RHIClosses_unit
+  integer, private, save :: profiling_jaw_unit
   integer, private, save :: twisslike_unit, sigmasettings_unit, distsec_unit, efficiency_unit, efficiency_dpop_unit
   integer, private, save :: coll_summary_unit, amplitude_unit, amplitude2_unit, betafunctions_unit, orbitchecking_unit
   integer, private, save :: CollPositions_unit, all_absorptions_unit, efficiency_2d_unit
@@ -1820,11 +1821,13 @@ subroutine collimate_start
       call f_requestUnit('all_absorptions.dat', all_absorptions_unit)
       call f_requestUnit('Coll_Scatter.dat', coll_scatter_unit)
       call f_requestUnit('FirstImpacts.dat', FirstImpacts_unit)
+      call f_requestUnit('jaw_profiles.dat', profiling_jaw_unit)
 
       open(unit=all_impacts_unit, file='all_impacts.dat') !was 46
       open(unit=all_absorptions_unit, file='all_absorptions.dat') !was 47
       open(unit=coll_scatter_unit, file='Coll_Scatter.dat') !was 3998
       open(unit=FirstImpacts_unit, file='FirstImpacts.dat') !was 39
+      open(unit=profiling_jaw_unit, file='jaw_profiles.dat') !new
 
       if (firstrun) then
         write(all_impacts_unit,'(a)') '# 1=name 2=turn 3=s'
@@ -1833,6 +1836,8 @@ subroutine collimate_start
           "7=x_in(b!)[m], 8=xp_in, 9=y_in, 10=yp_in, 11=x_out [m], 12=xp_out, 13=y_out, 14=yp_out"
         write(coll_scatter_unit,"(a)") "# 1=icoll, 2=iturn, 3=np, 4=nabs (1:Nuclear-Inelastic,2:Nuclear-Elastic,3:pp-Elastic, "//&
           "4:Single-Diffractive,5:Coulomb), 5=dp, 6=dx', 7=dy'"
+        write(profiling_jaw_unit,'("#",3(a7,1x),5(a17,1x),a12)') &
+             "icoll", "iturn", "np", "x[m]", "xp[]", "y[m]", "yp[]", "s[m]", "[1:in,2:out]"
       end if ! if (firstrun) then
 #ifdef HDF5
     end if
@@ -2280,6 +2285,7 @@ subroutine collimate_do_collimator(stracki)
   use mod_units
   use mathlib_bouncer
   use string_tools, only : chr_rpad, chr_lpad
+  use mod_alloc
 
 #ifdef ROOT
   use root_output
@@ -2290,6 +2296,8 @@ subroutine collimate_do_collimator(stracki)
   real(kind=fPrec), intent(in) :: stracki
 
   integer j,jjj
+  logical linside(napx)
+  real(kind=fPrec) x_Dump,xpDump,y_Dump,ypDump,s_Dump
   logical onesided
 
 #ifdef G4COLLIMATION
@@ -2671,7 +2679,7 @@ subroutine collimate_do_collimator(stracki)
   else
     onesided = .false.
   end if
-
+ 
 !GRD HERE IS THE MAJOR CHANGE TO THE CODE: IN ORDER TO TRACK PROPERLY THE
 !GRD SPECIAL RHIC PRIMARY COLLIMATOR, IMPLEMENTATION OF A DEDICATED ROUTINE
   if(found) then
@@ -2711,6 +2719,8 @@ subroutine collimate_do_collimator(stracki)
 !                  endif
 !CB
 
+      linside(1:napx)=.false.
+      
       if(n_slices.gt.1 .and. totals.gt.smin_slices .and. totals.lt.smax_slices .and. &
  &      (cdb_cNameUC(icoll)(1:4).eq.'TCSG' .or. cdb_cNameUC(icoll)(1:3).eq.'TCP' .or. cdb_cNameUC(icoll)(1:4).eq.'TCLA'.or. &
  &       cdb_cNameUC(icoll)(1:3).eq.'TCT' .or. cdb_cNameUC(icoll)(1:4).eq.'TCLI'.or. cdb_cNameUC(icoll)(1:4).eq.'TCL.'.or.  &
@@ -2807,8 +2817,9 @@ subroutine collimate_do_collimator(stracki)
 !!      account the azimuthal angle of the collimator)
         if(firstrun) then
           write(lout,*) 'Slicing collimator ',cdb_cNameUC(icoll)
-           do jjj=1,n_slices
-             write(lout,*) x_sl(jjj), y1_sl(jjj), y2_sl(jjj), angle1(jjj), angle2(jjj), db_tilt(icoll,1), db_tilt(icoll,2)
+           do jjj=1,n_slices+1
+             write(lout,*) 'Fit point #', jjj, x_sl(jjj), y1_sl(jjj), y2_sl(jjj), angle1(jjj), &
+                   angle2(jjj), db_tilt(icoll,1), db_tilt(icoll,2)
            end do
         end if
 !
@@ -2912,7 +2923,7 @@ subroutine collimate_do_collimator(stracki)
      &                    part_impact, part_indiv,                      &
      &                    part_linteract, onesided, flukaname,          &
      &                    secondary,                                    &
-     &                    jjj, nabs_type)
+     &                    jjj, nabs_type, linside)
         end do !do jjj=1,n_slices
       else !if(n_slices.gt.one .and. totals.gt.smin_slices .and. totals.lt.smax_slices .and.
 !     Treatment of non-sliced collimators
@@ -3086,9 +3097,24 @@ subroutine collimate_do_collimator(stracki)
      &                 part_hit_pos,part_hit_turn,                      &
      &                 part_abs_pos, part_abs_turn,                     &
      &                 part_impact, part_indiv, part_linteract,         &
-     &                 onesided, flukaname, secondary, 1, nabs_type)
+     &                 onesided, flukaname, secondary, 1, nabs_type,    &
+     &                 linside)
 #endif
       end if !if (n_slices.gt.one .and.
+      if(dowrite_impact) then
+         ! update writeout of jaw profiles
+         do j = 1, napx
+            if ( linside(j).and.sqrt(rcx(j)**2+rcy(j)**2).lt.99.0d-3 ) then
+               x_Dump=rcx (j)*cos_mb(c_rotation)+sin_mb(c_rotation)*rcy (j)
+               xpDump=rcxp(j)*cos_mb(c_rotation)+sin_mb(c_rotation)*rcyp(j)
+               y_Dump=rcy (j)*cos_mb(c_rotation)-sin_mb(c_rotation)*rcx (j)
+               ypDump=rcyp(j)*cos_mb(c_rotation)-sin_mb(c_rotation)*rcxp(j)
+               s_Dump=c_length
+               write(profiling_jaw_unit,'(3(1x,i7),5(1x,e17.9),1x,i1)') &
+                    icoll,iturn,flukaname(j),x_Dump,xpDump,y_Dump,ypDump,s_Dump,2
+            end if
+         end do
+      end if
     end if !if(cdb_cNameUC(icoll)(1:4).eq.'COLM') then
   end if !if (found) then
 end subroutine collimate_do_collimator
@@ -3840,6 +3866,7 @@ subroutine collimate_exit()
     close(FLUKA_impacts_all_unit)
     close(coll_scatter_unit)
     close(FirstImpacts_unit)
+    close(profiling_jaw_unit)
   endif
 
   call f_requestUnit('amplitude.dat', amplitude_unit)
@@ -4631,11 +4658,11 @@ subroutine collimate2(c_material, c_length, c_rotation,           &
      &     lhit_pos, lhit_turn,                                         &
      &     part_abs_pos_local, part_abs_turn_local,                     &
      &     impact, indiv, lint, onesided,name,                          &
-     &     flagsec, j_slices, nabs_type)
+     &     flagsec, j_slices, nabs_type, linside)
 
   use crcoall
   use parpro
-  use mod_common, only : iexact
+  use mod_common, only : iexact, napx
   use mathlib_bouncer
   use mod_ranlux
 #ifdef HDF5
@@ -4661,6 +4688,7 @@ implicit none
   integer, allocatable :: nabs_type(:) !(npart)
 !MAY2005
 
+  logical linside(napx)
   real(kind=fPrec), allocatable :: x_in(:) !(npart)
   real(kind=fPrec), allocatable :: xp_in(:) !(npart)
   real(kind=fPrec), allocatable :: y_in(:) !(npart)
@@ -4686,6 +4714,7 @@ implicit none
 !
 
   real(kind=fPrec) x_flk,xp_flk,y_flk,yp_flk,zpj
+  real(kind=fPrec) x_Dump,xpDump,y_Dump,ypDump,s_Dump
 
   real(kind=fPrec) s_impact
   integer flagsec(npart)
@@ -5028,6 +5057,23 @@ implicit none
 !++  Now do the scattering part
 !
     if (zlm.gt.zero) then
+      if(.not.linside(j)) then
+        ! first time particle hits collimator: entering jaw
+        linside(j)=.true.
+        if(dowrite_impact) then
+           if ( tiltangle.gt.zero ) then
+              x_Dump=(x+c_aperture/two+tiltangle*sp)*mirror+c_offset
+           else
+              x_Dump=(x+c_aperture/two+tiltangle*(sp-c_length))*mirror+c_offset
+           end if
+           xpDump=(xp+tiltangle)*mirror
+           y_Dump=z
+           ypDump=zp
+           s_Dump=sp+real(j_slices-1,fPrec)*c_length
+           write(profiling_jaw_unit,'(3(1x,i7),5(1x,e17.9),1x,i1)') &
+                  icoll,iturn,name(j),x_Dump,xpDump,y_Dump,ypDump,s_Dump,1
+        end if
+      end if
 !JUNE2005
       s_impact = sp
 !JUNE2005
@@ -5203,6 +5249,20 @@ implicit none
     if(nabs.ne.1 .and. zlm.gt.zero) then
       drift_length = (length-(s+sp))
       if(drift_length.gt.c1m15) then
+        linside(j)=.false.
+        if(dowrite_impact) then
+           if ( tiltangle.gt.zero ) then
+              x_Dump=(x+c_aperture/two+tiltangle*(s+sp))*mirror+c_offset
+           else
+              x_Dump=(x+c_aperture/two+tiltangle*(s+sp-c_length))*mirror+c_offset
+           end if
+           xpDump=(xp+tiltangle)*mirror
+           y_Dump=z
+           ypDump=zp
+           s_Dump=s+sp+real(j_slices-1,fPrec)*c_length
+           write(profiling_jaw_unit,'(3(1x,i7),5(1x,e17.9),1x,i1)') &
+                icoll,iturn,name(j),x_Dump,xpDump,y_Dump,ypDump,s_Dump,2
+        end if
         if(iexact) then
           zpj = sqrt(one-xp**2-zp**2)
           x   = x + drift_length*(xp/zpj)

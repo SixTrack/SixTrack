@@ -190,6 +190,9 @@ if(NOT CR)
     collimation_dist_5
     collimation_dist_6
     collimation_dist_radial
+    collimation_jaw_fit_b4
+    collimation_jaw_fit_b4_offsets_tilts
+    collimation_jaw_fit_b4_onesided
     collimation_k2
     collimation_new-db_new-block
     collimation_old-db_new-block
@@ -252,6 +255,9 @@ set(TESTS_NOFORT10
   collimation_dist_5
   collimation_dist_6
   collimation_dist_radial
+  collimation_jaw_fit_b4
+  collimation_jaw_fit_b4_offsets_tilts
+  collimation_jaw_fit_b4_onesided
   collimation_k2
   collimation_new-db_new-block
   collimation_old-db_new-block
@@ -322,6 +328,9 @@ set(TESTS_NO_STF_FORT90
   collimation_dist_5
   collimation_dist_6
   collimation_dist_radial
+  collimation_jaw_fit_b4
+  collimation_jaw_fit_b4_offsets_tilts
+  collimation_jaw_fit_b4_onesided
   collimation_k2
   collimation_new-db_new-block
   collimation_old-db_new-block
@@ -592,6 +601,9 @@ set(FAST_TESTS
   collimation_dist_5
   collimation_dist_6
   collimation_dist_radial
+  collimation_jaw_fit_b4
+  collimation_jaw_fit_b4_offsets_tilts
+  collimation_jaw_fit_b4_onesided
   collimation_new-db_new-block
   collimation_old-db_old-block
   collimation_old-db_old-block
