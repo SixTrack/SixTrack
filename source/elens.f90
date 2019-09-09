@@ -552,7 +552,7 @@ subroutine parseRadialProfile(ifile)
   use mod_settings
   use string_tools
   use mod_units
-  use utils, only: checkArray
+  use mod_utils, only: checkArray
 
   implicit none
 
@@ -652,7 +652,7 @@ subroutine integrateRadialProfile(ifile)
   use numerical_constants
   use physical_constants
   use crcoall
-  use utils, only: polintegrate
+  use mod_utils, only: polintegrate
   use mod_alloc, only: alloc, dealloc
   use mod_settings, only: st_quiet
 
@@ -727,11 +727,11 @@ end subroutine normaliseRadialProfile
 ! ================================================================================================ !
 subroutine elens_kick(i,ix,n)
 
-  use mod_common, only : betrel, napx
+  use mod_common, only : beta0, napx
   use mod_common_main, only : xv1, xv2, yv1, yv2, moidpsv, rvv
   use mathlib_bouncer
   use numerical_constants, only : zero, one
-  use utils, only : polinterp
+  use mod_utils, only : polinterp
 
   implicit none
   
@@ -791,9 +791,9 @@ subroutine elens_kick(i,ix,n)
       frr = (((elens_theta_r2(ielens(ix))*elens_r2(ielens(ix)))/rr)*frr)*moidpsv(jj)
       if(elens_lThetaR2(ielens(ix))) then
         if(elens_I(ielens(ix)) < zero) then
-          frr = frr*((rvv(jj)+elens_beta_e(ielens(ix))*betrel)/(one+elens_beta_e(ielens(ix))*betrel))
+          frr = frr*((rvv(jj)+elens_beta_e(ielens(ix))*beta0)/(one+elens_beta_e(ielens(ix))*beta0))
         else
-          frr = frr*((rvv(jj)-elens_beta_e(ielens(ix))*betrel)/(one-elens_beta_e(ielens(ix))*betrel))
+          frr = frr*((rvv(jj)-elens_beta_e(ielens(ix))*beta0)/(one-elens_beta_e(ielens(ix))*beta0))
         end if
       endif
       yv1(jj)=yv1(jj)-(frr*xx)/rr
@@ -808,11 +808,11 @@ end subroutine elens_kick
 ! ================================================================================================ !
 subroutine elens_kick_fox(i,ix)
 
-  use mod_common, only : betrel, mtcda
+  use mod_common, only : beta0, mtcda
   use crcoall, only : lout
   use mod_common_main
   use numerical_constants, only : zero, one
-  use utils, only : huntBin, polcof
+  use mod_utils, only : huntBin, polcof
   use mod_lie_dab, only : lnv, idao, rscrri, iscrda
   use mod_common_track, only : comt_daStart, comt_daEnd
   use mod_common_da
@@ -835,7 +835,7 @@ subroutine elens_kick_fox(i,ix)
 !FOX  D V DA INT XI NORD NVAR ; D V DA INT YI  NORD NVAR ;
 !FOX  D V DA INT RR NORD NVAR ; D V DA INT FRR NORD NVAR ;
 !FOX  D V RE INT XCLO ; D V RE INT YCLO ;
-!FOX  D V RE INT BETREL ;
+!FOX  D V RE INT BETA0 ;
 !FOX  D V RE INT ELE_R1 ; D V RE INT ELE_R2 ;
 !FOX  D V RE INT ELEFR1 ;
 !FOX  D V RE INT ELENOR ;
@@ -946,9 +946,9 @@ subroutine elens_kick_fox(i,ix)
     write(lout,'(a)')'ELENS> ELENS_KICK_FOX radial kick 02'
     if(elens_lThetaR2(ielens(ix))) then
       if(elens_I(ielens(ix)) < zero) then
-!FOX    FRR=FRR*((RV+ELEBET*BETREL)/(ONE+ELEBET*BETREL)) ;
+!FOX    FRR=FRR*((RV+ELEBET*BETA0)/(ONE+ELEBET*BETA0)) ;
       else
-!FOX    FRR=FRR*((RV-ELEBET*BETREL)/(ONE-ELEBET*BETREL)) ;
+!FOX    FRR=FRR*((RV-ELEBET*BETA0)/(ONE-ELEBET*BETA0)) ;
       end if
     endif
     write(lout,'(a)')'ELENS> ELENS_KICK_FOX radial kick 03'
