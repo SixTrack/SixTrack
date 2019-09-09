@@ -1788,7 +1788,7 @@ subroutine collimate_openFiles
     write(coll_impactUnit,"(a)") "# impact divergence"
     write(coll_flukImpUnit,"(a)") "# 1=icoll 2=c_rotation 3=s 4=x 5=xp 6=y 7=yp 8=nabs 9=np 10=turn"
     write(coll_flukImpAllUnit,"(a)") "# 1=icoll 2=c_rotation 3=s 4=x 5=xp 6=y 7=yp 8=nabs 9=np 10=turn"
-    write(coll_jawProfileUnit,"(a1,1x,a5,2(a7,1x),5(a17,1x),a12)") "#", "icoll", "iturn", "np", "x[m]", "xp[]", "y[m]", "yp[]",&
+    write(coll_jawProfileUnit,"(a1,1x,a6,1x,2(a7,1x),5(a17,1x),a12)") "#", "icoll", "iturn", "np", "x[m]", "xp[]", "y[m]", "yp[]",&
       "s[m]", "[1:in,2:out]"
   end if
 
