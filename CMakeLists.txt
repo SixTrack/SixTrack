@@ -289,6 +289,7 @@ list(APPEND FORT90_LIB
   close
   coll_db
   coll_dist
+  coll_jawfit
   collimation
   common_modules
   constants
