@@ -3627,7 +3627,6 @@ subroutine collimate_exit()
 
   call f_close(outlun)
   call f_close(coll_gapsUnit)
-  call f_close(coll_jawProfileUnit)
 
   if(dowritetracks) then
     call f_close(coll_tracksUnit)
@@ -3647,6 +3646,7 @@ subroutine collimate_exit()
     call f_close(coll_flukImpAllUnit)
     call f_close(coll_scatterUnit)
     call f_close(coll_fstImpactUnit)
+    call f_close(coll_jawProfileUnit)
   end if
 
   call f_requestUnit('amplitude.dat', amplitude_unit)
