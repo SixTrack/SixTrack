@@ -568,7 +568,7 @@ subroutine parseRadialProfile(ifile)
     end if
     elens_radial_profile_nPoints(ifile) = ii
     elens_radial_profile_R(ii,ifile) = tmpR
-    elens_radial_profile_J(ii,ifile) = tmpJ
+    elens_radial_profile_J(ii,ifile) = tmpJ/1d2
   end if
 
   goto 10
@@ -612,22 +612,35 @@ subroutine integrateRadialProfile(ifile)
   use numerical_constants
   use physical_constants
   use crcoall
+  use mod_settings, only : st_quiet
 
   implicit none
 
   integer, intent(in) :: ifile
 
   integer ii
-  real(kind=fPrec) tmpTot
+  real(kind=fPrec) tmpTot, tmpOld
 
   write(lout,"(a)") "ELENS> Normalising radial profile described in "//trim(elens_radial_filename(ifile))
+  write(lout,*) "ELENS> pippo ",elens_radial_profile_J(0,ifile)
   tmpTot=zero
+  tmpOld=elens_radial_profile_J(0,ifile)
   do ii=1,elens_radial_profile_nPoints(ifile)
-    tmpTot=tmpTot+((elens_radial_profile_J(ii,ifile)*pi)* &
+    tmpTot=tmpTot+(((elens_radial_profile_J(ii,ifile)+tmpOld)/2d0*pi)* &
          ( elens_radial_profile_R(ii,ifile)-elens_radial_profile_R(ii-1,ifile) ))* &
          ( elens_radial_profile_R(ii,ifile)+elens_radial_profile_R(ii-1,ifile) )
+    tmpOld=elens_radial_profile_J(ii,ifile)
     elens_radial_profile_J(ii,ifile)=tmpTot
   end do
+  if(st_quiet < 2) then
+    write(lout,"(a,i0)") "ELENS> Integrated radial profile read from file "//&
+      trim(elens_radial_filename(ifile))//" - #",ifile
+    do ii=0,elens_radial_profile_nPoints(ifile)
+      if(elens_radial_profile_J(ii,ifile)/= zero) then
+        write(lout,"((a,i4),2(a,1pe22.15))") "ELENS> ",ii,",",elens_radial_profile_R(ii,ifile),",",elens_radial_profile_J(ii,ifile)
+      end if
+    end do
+  end if
   write(lout,"(a,e22.15)") "ELENS> Total current in radial profile [A]: ", &
          elens_radial_profile_J(elens_radial_profile_nPoints(ifile),ifile)
 
