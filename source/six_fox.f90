@@ -7,21 +7,20 @@ subroutine umlauda
   use physical_constants
   use numerical_constants
   use mathlib_bouncer
-  use dump, only : dumpclo, dumptas, dumptasinv, ldump
+  use dump, only : ldump, dump_setTasMatrix
   use crcoall
   use string_tools
   use mod_units
+  use mod_utils
   use parpro
   use parbeam, only : beam_expflag,beam_expfile_open
   use mod_common
-  use mod_common_main, only : e0f
   use mod_commons
-  use mod_common_track, only : xxtr,yytr,issss,tasm,comt_daStart,comt_daEnd
+  use mod_common_track, only : xxtr,yytr,crois,tasm,comt_daStart,comt_daEnd
   use mod_common_da
   use mod_commond2
   use cheby, only : cheby_lFox, icheby, cheby_kz, cheby_kick_fox
   use wire
-  use mod_hions
   use mod_lie_dab, only : idao,iscrri,rscrri,iscrda
 
   implicit none
@@ -32,16 +31,13 @@ subroutine umlauda
     coefh1,cik,coefh2,coefv1,coefv2,crk,crxb,crzb,cx,dare,det1,dpdav,dps1,dps11,dummy,ed1,ed2,ox,   &
     oxp,oxp1,oz,ozp,ozp1,r0,r2b,r2bf,rb,rbf,rho2b,rkb,rkbf,scikveb,scrkveb,sfac1,sfac2,sfac2s,sfac3,&
     sfac4,sfac5,sigm1,sigmdac,startco,sx,tas,tkb,tl,x2pi,xbb,xrb,xs,zbb,zrb,zs,crabfreq,crabpht,    &
-    crabpht2,crabpht3,crabpht4
+    crabpht2,crabpht3,crabpht4,temp_angle,tan_t,sin_t,cos_t
   integer damap(6),damapi(6),damap1(6),aa2(6),aa2r(6),a1(6),a1r(6),xy(6),df(6),jj(100),i4(10,2)
   real(kind=fPrec) zfeld1(100),zfeld2(100),dpdav2(6),rrad(3),rdd(6,6),dicu(20),angnoe(3),angp(2,6), &
     phi(3),dphi(3),b1(3),b2(3),b3(3),al1(3),al2(3),al3(3),g1(3),g2(3),g3(3),d(3),dp(3),c(3),cp(3),  &
-    au(6,6),aui(2)
+    au(6,6),aui(2),tasData(6,6),cloData(6)
   common/daele/alda,asda,aldaq,asdaq,smida,xx,yy,dpda,dpda1,sigmda,ej1,ejf1,rv
   character(len=mNameLen) typ
-#ifdef BOINC
-  character(len=256) filename
-#endif
   integer expertUnit
 
 ! For treatment and/or conversion of BEAM parameters in/to the new format
@@ -102,7 +98,7 @@ subroutine umlauda
   i4(9,2)=4
   i4(10,1)=4
   i4(10,2)=4
-  e0f=sqrt(e0**2-nucm0**2)                                             !hr05
+  e0f=sqrt(e0**2-nucm0**2)
   betr0=sqrt(one-(nucm0/e0)**2)
   ox=xxtr(1,1)
   oxp=yytr(1,1)
@@ -128,8 +124,8 @@ subroutine umlauda
     endif
   endif
   if(ichromc.eq.1) then
-    ed1=ed(issss(1))
-    ed2=ed(issss(2))
+    ed1=ed(crois(1))
+    ed2=ed(crois(2))
   endif
   call davar(x(1),ox,1)
   oxp1=oxp*(one+dps1)
@@ -180,7 +176,7 @@ subroutine umlauda
     mfile=18
 !Eric
     rewind mfile
-    rewind 111
+    rewind 26
 !ERIC HERE
     call daread(damap,nvar,mfile,one)
     call mapnorm(damap,f,aa2,a1,xy,h,nord1)
@@ -200,7 +196,7 @@ subroutine umlauda
       if(abs(emitz).le.pieni) then
         emitz=zero
       else
-        emitz=((sigz**2/emitz)*half)*c1e6                            !hr05
+        emitz=((sigz**2/emitz)*half)*c1e6
       endif
     endif
     jj(5)=1
@@ -333,7 +329,7 @@ subroutine umlauda
     if(ix.gt.nblo) goto 50
     if(ix <= 0) then
       write(lerr,"(a)") "UMLAUDA> ERROR Inverted linear blocks not allowed."
-      call prror(-1)
+      call prror
     endif
 #include "include/dalin1.f90"
           ipch=0
@@ -396,7 +392,7 @@ subroutine umlauda
 #include "include/dalin5.f90"
           endif
         else
-          if(iexact.eq.1) then
+          if(iexact) then
 !-----------------------------------------------------------------------
 !  EXACT DRIFT
 !-----------------------------------------------------------------------
@@ -435,7 +431,7 @@ subroutine umlauda
     if(abs(dare(x(1))) > aint(aper(1)) .or. abs(dare(x(2))) > aint(aper(2))) then
       write(lout,10120)j,i,dare(x(1)),aper(1),dare(x(2)),aper(2),ix,kz(ix),bez(ix)
       write(lerr,"(a)") "UMLAUDA> ERROR Unstable closed orbit in DA calculation."
-      call prror(-1)
+      call prror
     end if
     kpz=abs(kp(ix))
     if(kpz.ge.0 .and. kpz.lt.6) goto 80
@@ -471,7 +467,7 @@ subroutine umlauda
       wire_num_aux = wire_num_aux+1
       if(wire_num_aux.gt.wire_max) then
         write(lerr,"(2(a,i0))") "UMLAUDA> ERROR Maximum number of wires exceeded. Max is ",wire_max,", got ",wire_num_aux
-        call prror(-1)
+        call prror
       endif
       wire_num(i) = wire_num_aux
 !FOX  YP(1)=Y(1)*(ONE+DPDA)/MTCDA ;
@@ -533,7 +529,7 @@ subroutine umlauda
         ibb=ibb+1
         if(ibb > nbb) then
           write(lerr,"(a,i0)") "UMLAUDA> ERROR Maximum element number for beam-beam with coupling exceeded: nbb = ",nbb
-          call prror(-1)
+          call prror
         end if
         imbb(i)=ibb
 !FOX  YP(1)=Y(1)*(ONE+DPDA)/MTCDA ;
@@ -644,17 +640,12 @@ subroutine umlauda
           endif
         else
            write(lerr,"(a,i0,a)") "UMLAUDA> ERROR beam_expflag was ",beam_expflag,", expected 0 or 1. This is a BUG!"
-           call prror(-1)
+           call prror
         end if
 
         if (.not.beam_expfile_open) then
           call f_requestUnit("beam_expert.txt",expertUnit)
-#ifdef BOINC
-          call boincrf("beam_expert.txt",filename)
-          open(expertUnit,file=filename,status="replace",action="write")
-#else
-          open(expertUnit,file="beam_expert.txt",status="replace",action="write")
-#endif
+          call f_open(unit=expertUnit,file="beam_expert.txt",formatted=.true.,mode="w",status="replace")
           beam_expfile_open = .true.
           !This line will be a comment if copy-pasted into fort.3
           write(expertUnit,"(a,g13.6,a,g13.6,a,g13.6,a)") "/ ******* USING emitx=",emitx,", emity=",emity,", emitz=",emitz," ******"
@@ -700,19 +691,19 @@ subroutine umlauda
           sfac1=bbcu(ibb,1)+bbcu(ibb,2)
           sfac2=bbcu(ibb,1)-bbcu(ibb,2)
           sfac2s=one
-          if(sfac2.lt.zero) sfac2s=-one                            !hr08
-          sfac3=sqrt(sfac2**2+(four*bbcu(ibb,3))*bbcu(ibb,3))          !hr03
+          if(sfac2.lt.zero) sfac2s=-one
+          sfac3=sqrt(sfac2**2+(four*bbcu(ibb,3))*bbcu(ibb,3))
           if(sfac3 > sfac1) then
             write(lerr,"(a)") "UMLAUDA> ERROR 6D beam-beam with tilt not possible."
-            call prror(-1)
+            call prror
           end if
-          sfac4=(sfac2s*sfac2)/sfac3                                   !hr03
-          sfac5=(((-one*sfac2s)*two)*bbcu(ibb,3))/sfac3                !hr03
-          sigman(1,ibb)=sqrt(((sfac1+sfac2*sfac4)+(two*bbcu(ibb,3))*sfac5)*half)    !hr03
-          sigman(2,ibb)=sqrt(((sfac1-sfac2*sfac4)-(two*bbcu(ibb,3))*sfac5)*half)    !hr03
+          sfac4=(sfac2s*sfac2)/sfac3
+          sfac5=(((-one*sfac2s)*two)*bbcu(ibb,3))/sfac3
+          sigman(1,ibb)=sqrt(((sfac1+sfac2*sfac4)+(two*bbcu(ibb,3))*sfac5)*half)
+          sigman(2,ibb)=sqrt(((sfac1-sfac2*sfac4)-(two*bbcu(ibb,3))*sfac5)*half)
           bbcu(ibb,11)=sqrt(half*(one+sfac4))
-          bbcu(ibb,12)=(-one*sfac2s)*sqrt(half*(one-sfac4))            !hr03
-          if(bbcu(ibb,3).lt.zero) bbcu(ibb,12)=-one*bbcu(ibb,12)       !hr03
+          bbcu(ibb,12)=(-one*sfac2s)*sqrt(half*(one-sfac4))
+          if(bbcu(ibb,3).lt.zero) bbcu(ibb,12)=-one*bbcu(ibb,12)
         else
           bbcu(ibb,11)=one
           sigman(1,ibb)=sqrt(bbcu(ibb,1))
@@ -727,7 +718,7 @@ subroutine umlauda
       goto 440
     endif
     if(kzz.eq.20.and.iqmodc.eq.4) goto 440
-    if(kzz.eq.20.and.parbe(ix,2).eq.zero) then                        !hr12
+    if(kzz.eq.20.and.parbe(ix,2).eq.zero) then
       if(nbeam.ge.1) then
         if(ilinc.eq.0) then
           clobeam(1,imbb(i))=dare(x(1))
@@ -748,12 +739,12 @@ subroutine umlauda
               crk=parbe(ix,5)*bbcu(imbb(i),11) + parbe(ix,6)*bbcu(imbb(i),12)
               cik=parbe(ix,6)*bbcu(imbb(i),11) - parbe(ix,5)*bbcu(imbb(i),12)
             endif
-            rho2b=crk**2+cik**2                                          !hr03
+            rho2b=crk**2+cik**2
             if(rho2b.gt.pieni) then
               if(abs(sigman(1,imbb(i))).lt.pieni) goto 9088
-              tkb=rho2b/((two*sigman(1,imbb(i)))*sigman(1,imbb(i)))        !hr03
-              beamoff4=(((crad*ptnfac(ix))*crk)/rho2b)*(one-exp_mb(-one*tkb)) !hr03
-              beamoff5=(((crad*ptnfac(ix))*cik)/rho2b)*(one-exp_mb(-one*tkb)) !hr03
+              tkb=rho2b/((two*sigman(1,imbb(i)))*sigman(1,imbb(i)))
+              beamoff4=(((crad*ptnfac(ix))*crk)/rho2b)*(one-exp_mb(-one*tkb))
+              beamoff5=(((crad*ptnfac(ix))*cik)/rho2b)*(one-exp_mb(-one*tkb))
             endif
           endif
 #include "include/beamcof.f90"
@@ -782,9 +773,9 @@ subroutine umlauda
         else if(sigman(1,imbb(i)).gt.sigman(2,imbb(i))) then
           if(ibeco.eq.1) then
             if(abs(sigman(1,imbb(i))).lt.pieni.or.abs(sigman(2,imbb(i))).lt.pieni) goto 9088
-            r2b=two*(sigman(1,imbb(i))**2-sigman(2,imbb(i))**2) !hr08
+            r2b=two*(sigman(1,imbb(i))**2-sigman(2,imbb(i))**2)
             rb=sqrt(r2b)
-            rkb=((crad*ptnfac(ix))*pisqrt)/rb                            !hr03
+            rkb=((crad*ptnfac(ix))*pisqrt)/rb
             if(ibbc.eq.0) then
               crk=parbe(ix,5)
               cik=parbe(ix,6)
@@ -796,17 +787,17 @@ subroutine umlauda
             zrb=abs(cik)/rb
             call errf(xrb,zrb,crxb,crzb)
             if(abs(sigman(1,imbb(i))).lt.pieni.or.abs(sigman(2,imbb(i))).lt.pieni) goto 9088
-            tkb=(crk**2/sigman(1,imbb(i))**2+cik**2/sigman(2,imbb(i))**2)*half  !hr03
-            xbb=(sigman(2,imbb(i))/sigman(1,imbb(i)))*xrb                !hr03
-            zbb=(sigman(1,imbb(i))/sigman(2,imbb(i)))*zrb                !hr03
+            tkb=(crk**2/sigman(1,imbb(i))**2+cik**2/sigman(2,imbb(i))**2)*half
+            xbb=(sigman(2,imbb(i))/sigman(1,imbb(i)))*xrb
+            zbb=(sigman(1,imbb(i))/sigman(2,imbb(i)))*zrb
             call errf(xbb,zbb,cbxb,cbzb)
             beamoff4=(rkb*(crzb-exp_mb(-one*tkb)*cbzb))*sign(one,crk)
             beamoff5=(rkb*(crxb-exp_mb(-one*tkb)*cbxb))*sign(one,cik)
           endif
           if(abs(sigman(1,imbb(i))).lt.pieni.or.abs(sigman(2,imbb(i))).lt.pieni) goto 9088
-          r2bf=two*(sigman(1,imbb(i))**2-sigman(2,imbb(i))**2) !hr08
+          r2bf=two*(sigman(1,imbb(i))**2-sigman(2,imbb(i))**2)
           rbf=sqrt(r2bf)
-          rkbf=((crad*ptnfac(ix))*pisqrt)/rbf                          !hr03
+          rkbf=((crad*ptnfac(ix))*pisqrt)/rbf
 #include "include/beamcof.f90"
 !FOX  XRBF=CRKVEBF/RBF ;
             if(dare(xrbf).lt.zero) then
@@ -845,9 +836,9 @@ subroutine umlauda
         else if(sigman(1,imbb(i)).lt.sigman(2,imbb(i))) then
           if(ibeco.eq.1) then
             if(abs(sigman(1,imbb(i))).lt.pieni.or.abs(sigman(2,imbb(i))).lt.pieni) goto 9088
-            r2b=two*(sigman(2,imbb(i))**2-sigman(1,imbb(i))**2)   !hr08
+            r2b=two*(sigman(2,imbb(i))**2-sigman(1,imbb(i))**2)
             rb=sqrt(r2b)
-            rkb=((crad*ptnfac(ix))*pisqrt)/rb                            !hr03
+            rkb=((crad*ptnfac(ix))*pisqrt)/rb
             if(ibbc.eq.0) then
               crk=parbe(ix,5)
               cik=parbe(ix,6)
@@ -859,17 +850,17 @@ subroutine umlauda
             zrb=abs(cik)/rb
             call errf(zrb,xrb,crzb,crxb)
             if(abs(sigman(1,imbb(i))).lt.pieni.or.abs(sigman(2,imbb(i))).lt.pieni) goto 9088
-            tkb=(crk**2/sigman(1,imbb(i))**2+cik**2/sigman(2,imbb(i))**2)*half  !hr03
-            xbb=(sigman(2,imbb(i))/sigman(1,imbb(i)))*xrb                !hr03
-            zbb=(sigman(1,imbb(i))/sigman(2,imbb(i)))*zrb                !hr03
+            tkb=(crk**2/sigman(1,imbb(i))**2+cik**2/sigman(2,imbb(i))**2)*half
+            xbb=(sigman(2,imbb(i))/sigman(1,imbb(i)))*xrb
+            zbb=(sigman(1,imbb(i))/sigman(2,imbb(i)))*zrb
             call errf(zbb,xbb,cbzb,cbxb)
             beamoff4=(rkb*(crzb-exp_mb(-one*tkb)*cbzb))*sign(one,crk)
             beamoff5=(rkb*(crxb-exp_mb(-one*tkb)*cbxb))*sign(one,cik)
           endif
           if(abs(sigman(1,imbb(i))).lt.pieni.or.abs(sigman(2,imbb(i))).lt.pieni) goto 9088
-          r2bf=two*(sigman(2,imbb(i))**2-sigman(1,imbb(i))**2) !hr08
+          r2bf=two*(sigman(2,imbb(i))**2-sigman(1,imbb(i))**2)
           rbf=sqrt(r2bf)
-          rkbf=((crad*ptnfac(ix))*pisqrt)/rbf                          !hr03
+          rkbf=((crad*ptnfac(ix))*pisqrt)/rbf
 #include "include/beamcof.f90"
 !FOX  XRBF=CRKVEBF/RBF ;
             if(dare(xrbf).lt.zero) then
@@ -910,7 +901,7 @@ subroutine umlauda
       endif
       goto 440
     endif
-    if(kzz.eq.20.and.parbe(ix,2).gt.zero) then                        !hr12
+    if(kzz.eq.20.and.parbe(ix,2).gt.zero) then
       if(ilinc.eq.0)then
         clobeam(1,imbb(i))=dare(x(1))
         clobeam(2,imbb(i))=dare(x(2))
@@ -929,11 +920,27 @@ subroutine umlauda
 #include "include/rfmulti_fox.f90"
       goto 440
     endif
+    if(kzz.eq.43) then
+      temp_angle = ed(ix)
+#include "include/xrot_fox.f90"
+      goto 440
+    endif
+    if(kzz.eq.44) then
+      temp_angle = ed(ix)
+#include "include/yrot_fox.f90"
+      goto 440
+    endif
+    if(kzz.eq.45) then
+      temp_angle = ed(ix)
+#include "include/srot_fox.f90"
+      goto 440
+    endif
+
 
 
 
     if(kzz.eq.23) then
-!FOX  CRABAMP=ED(IX)*ZZ0 ;
+!FOX  CRABAMP=ED(IX)*QQ0 ;
 
       crabfreq=ek(ix)*c1e3
       crabpht=crabph(ix)
@@ -964,7 +971,7 @@ subroutine umlauda
       goto 440
   endif
     if(kzz.eq.-23) then
-!FOX  CRABAMP=ED(IX)*ZZ0 ;
+!FOX  CRABAMP=ED(IX)*QQ0 ;
         crabfreq=ek(ix)*c1e3
         crabpht=crabph(ix)
 !FOX  KCRABDA=(SIGMDA/(CLIGHT*(E0F/E0))
@@ -993,15 +1000,13 @@ subroutine umlauda
     if(kzz.eq.26) then
         ! JBG bypass this element if 4D/5D case
         if(iclo6.eq.0) then
-!                write(*,*)'Bypassing RF mult 4D or 5D case'
             goto 440
         endif
       xs=xsi(i) ! JBG change of variables for misal calculations
       zs=zsi(i)
 #include "include/alignf.f90"
-!FOX  CRABAMP2=ED(IX)*ZZ0 ;
+!FOX  CRABAMP2=ED(IX)*QQ0 ;
 
-!       write(*,*) crabamp, EJF1, EJF0,clight, "HELLO"
     crabfreq=ek(ix)*c1e3 !JBG Input in MHz changed to kHz
     crabpht2=crabph2(ix)
 !FOX  KCRABDA=(SIGMDA/(CLIGHT*(E0F/E0))
@@ -1030,13 +1035,12 @@ subroutine umlauda
       if(kzz.eq.-26) then
         ! JBG bypass this element if 4D/5D case
         if(iclo6.eq.0) then
-!                write(*,*)'Bypassing RF mult 4D or 5D case'
             goto 440
         endif
       xs=xsi(i) ! JBG change of variables for misal calculations
       zs=zsi(i)
 #include "include/alignf.f90"
-!FOX  CRABAMP2=ED(IX)*ZZ0 ;
+!FOX  CRABAMP2=ED(IX)*QQ0 ;
           crabfreq=ek(ix)*c1e3
           crabpht2=crabph2(ix)
 !FOX  KCRABDA=(SIGMDA/(CLIGHT*(E0F/E0))
@@ -1064,13 +1068,12 @@ subroutine umlauda
       if(kzz.eq.27) then
         ! JBG bypass this element if 4D/5D case
         if(iclo6.eq.0) then
-!                write(*,*)'Bypassing RF mult 4D or 5D case'
             goto 440
         endif
       xs=xsi(i)
       zs=zsi(i)
 #include "include/alignf.f90"
-!FOX  CRABAMP3=ED(IX)*ZZ0 ;
+!FOX  CRABAMP3=ED(IX)*QQ0 ;
           crabfreq=ek(ix)*c1e3
           crabpht3=crabph3(ix)
 !FOX  KCRABDA=(SIGMDA/(CLIGHT*(E0F/E0))
@@ -1099,13 +1102,12 @@ subroutine umlauda
       if(kzz.eq.-27) then
         ! JBG bypass this element if 4D/5D case
         if(iclo6.eq.0) then
-!                write(*,*)'Bypassing RF mult 4D or 5D case'
             goto 440
         endif
       xs=xsi(i)
       zs=zsi(i)
 #include "include/alignf.f90"
-!FOX  CRABAMP3=ED(IX)*ZZ0 ;
+!FOX  CRABAMP3=ED(IX)*QQ0 ;
           crabfreq=ek(ix)*c1e3
           crabpht3=crabph3(ix)
 !FOX  KCRABDA=(SIGMDA/(CLIGHT*(E0F/E0))
@@ -1133,13 +1135,12 @@ subroutine umlauda
       if(kzz.eq.28) then
         ! JBG bypass this element if 4D/5D case
         if(iclo6.eq.0) then
-!                write(*,*)'Bypassing RF mult 4D or 5D case'
             goto 440
         endif
       xs=xsi(i)
       zs=zsi(i)
 #include "include/alignf.f90"
-!FOX  CRABAMP4=ED(IX)*ZZ0 ;
+!FOX  CRABAMP4=ED(IX)*QQ0 ;
           crabfreq=ek(ix)*c1e3
           crabpht4=crabph4(ix)
 !FOX  KCRABDA=(SIGMDA/(CLIGHT*(E0F/E0))
@@ -1172,13 +1173,12 @@ subroutine umlauda
       if(kzz.eq.-28) then
         ! JBG bypass this element if 4D/5D case
         if(iclo6.eq.0) then
-!                write(*,*)'Bypassing RF mult 4D or 5D case'
             goto 440
         endif
       xs=xsi(i)
       zs=zsi(i)
 #include "include/alignf.f90"
-!FOX  CRABAMP4=ED(IX)*ZZ0 ;
+!FOX  CRABAMP4=ED(IX)*QQ0 ;
           crabfreq=ek(ix)*c1e3
           crabpht4=crabph4(ix)
 !FOX  KCRABDA=(SIGMDA/(CLIGHT*(E0F/E0))
@@ -1223,9 +1223,9 @@ subroutine umlauda
       endif
     endif
     if(ichromc.eq.1) then
-      if(ix.eq.issss(1).or.iratioe(ix).eq.issss(1)) then
+      if(ix.eq.crois(1).or.iratioe(ix).eq.crois(1)) then
         ipch=1
-      else if(ix.eq.issss(2).or.iratioe(ix).eq.issss(2)) then
+      else if(ix.eq.crois(2).or.iratioe(ix).eq.crois(2)) then
         ipch=2
       endif
     endif
@@ -1490,7 +1490,7 @@ subroutine umlauda
   if(iqmodc.eq.2.or.iqmodc.eq.4.or.ilin.ge.2) then
     rewind 18
 !Eric
-    rewind 111
+    rewind 26
     call daprid(damap,1,nvar,18)
   endif
 !--now do the output
@@ -1533,11 +1533,11 @@ subroutine umlauda
     det1=coefh1*coefv2-coefv1*coefh2
     if(abs(det1) <= pieni) then
       write(lerr,"(a)") "UMLAUDA> ERROR Quadrupoles are not suited to adjust the tunes."
-      call prror(-1)
+      call prror
     end if
     corr(2,1)=coefv2/det1
-    corr(2,2)=(-one*coefh2)/det1                                     !hr05
-    corr(3,1)=(-one*coefv1)/det1                                     !hr05
+    corr(2,2)=(-one*coefh2)/det1
+    corr(3,1)=(-one*coefv1)/det1
     corr(3,2)=coefh1/det1
   endif
   if(ichromc.eq.1) then
@@ -1557,11 +1557,11 @@ subroutine umlauda
     det1=coefh1*coefv2-coefv1*coefh2
     if(abs(det1) <= pieni) then
       write(lerr,"(a)") "UMLAUDA> ERROR Sextupoles are not suited to adjust the chromaticity."
-      call prror(-1)
+      call prror
     end if
     corr(2,1)=coefv2/det1
-    corr(2,2)=(-one*coefh2)/det1                                     !hr05
-    corr(3,1)=(-one*coefv1)/det1                                     !hr05
+    corr(2,2)=(-one*coefh2)/det1
+    corr(3,1)=(-one*coefv1)/det1
     corr(3,2)=coefh1/det1
   endif
 470  continue
@@ -1578,13 +1578,14 @@ subroutine umlauda
   call dadal(xy,6)
   call dadal(h,1)
   call dadal(df,6)
+! Do not remove or modify the comment below.
 !     DADAL AUTOMATIC INCLUSION
   call comt_daEnd
   return
 
 9088 continue
   write(lerr,"(a)") "UMLAUDA> ERROR Either normalized emittances or the resulting sigma values equal to zero for beam-beam/"
-  call prror(-1)
+  call prror
   return
 !-----------------------------------------------------------------------
 10000 format(/t5 ,'---- ENTRY ',i1,'D LINOPT ----')
@@ -1780,7 +1781,7 @@ subroutine envada
         goto 70
       end if
       if(abs(ed(i)).le.pieni) goto 100
-      if(abs(ek(i)-ed(i)**2).le.pieni) goto 20                         !hr08
+      if(abs(ek(i)-ed(i)**2).le.pieni) goto 20
 !FOX  WF=ED(I)/DPSQ ;
 !FOX  FOK=FOKQ/DPD-WF*WF ;
 !FOX  AFOK=FOK ;
@@ -2009,7 +2010,8 @@ subroutine envada
         end do
       end do
     end do
-    ! DADAL AUTOMATIC INCLUSION
+! Do not remove or modify the comment below.
+!     DADAL AUTOMATIC INCLUSION
 
   return
 
@@ -2107,6 +2109,7 @@ subroutine envquad(i,ipch)
 !FOX  ASDAQ(IH,6)=-RV*(EL(I)+ALDAQ(IH,1)*ALDAQ(IH,2))/C4E3 ;
   if(ih.eq.1) goto 20
 100 continue
+! Do not remove or modify the comment below.
 !     DADAL AUTOMATIC INCLUSION
   return
 end subroutine envquad
@@ -2121,11 +2124,9 @@ subroutine synoda
   use numerical_constants
   use parpro
   use mod_common
-  use mod_common_main, only : e0f
   use mod_commons
   use mod_common_track
   use mod_common_da
-  use mod_hions
   use mod_lie_dab, only : idao,iscrri,rscrri,iscrda
   implicit none
   integer ix,idaa,ikz
@@ -2140,17 +2141,17 @@ subroutine synoda
 !FOX  D V RE EXT PHASC NELE ;  D V RE INT NUCMDA ;
 !FOX  D V RE INT C1E3 ; D V RE INT ONE ; D V IN INT IKZ ;
 !FOX  D V IN EXT NELE ; D V IN INT ITION ; D V IN INT IX ;
-!FOX  E D ; D V RE INT NUCM0 ; D V RE INT MTCDA ; D V RE INT ZZ0 ;
+!FOX  E D ; D V RE INT NUCM0 ; D V RE INT MTCDA ; D V RE INT QQ0 ;
 !FOX  1 if(1.eq.1) then
 !-----------------------------------------------------------------------
   ix=ixcav
 
   if(abs(kz(ix)) == 12) then
     ikz = sign(1,kz(ix))
-!FOX  EJ1=EJ1+ED(IX)*ZZ0*SIN(HSYC(IX)*SIGMDA/C1E3*
+!FOX  EJ1=EJ1+ED(IX)*QQ0*SIN(HSYC(IX)*SIGMDA/C1E3*
 !FOX  IKZ+PHASC(IX)) ;
   else
-!FOX  EJ1=EJ1+HSY(1)*ZZ0*SIN(HSY(3)*SIGMDA/C1E3*ITION+PHAS) ;
+!FOX  EJ1=EJ1+HSY(1)*QQ0*SIN(HSY(3)*SIGMDA/C1E3*ITION+PHAS) ;
   endif
 !FOX  EJF1=SQRT(EJ1*EJ1-NUCMDA*NUCMDA) ;
 !FOX  DPDA1=(EJF1-E0F)/E0F*C1E3 ;
@@ -2177,12 +2178,15 @@ subroutine errff(xx,yy,wx,wy)
   use parpro
   use mod_common
   use mod_commons
-  use mod_common_track, only : xxtr,yytr,issss,comt_daStart,comt_daEnd
+  use mod_common_track, only : xxtr,yytr,crois,comt_daStart,comt_daEnd
   use mod_common_da
   use mod_lie_dab, only : idao,iscrri,rscrri,iscrda
   implicit none
   integer n,n1,nc,nuu,nuu1,idaa
   real(kind=fPrec) dare,dum
+  real(kind=fPrec), parameter :: cc   = 1.12837916709551_fPrec ! FIXME: Should use two/pisqrt
+  real(kind=fPrec), parameter :: xlim = 5.33_fPrec
+  real(kind=fPrec), parameter :: ylim = 4.29_fPrec
   save
 !-----------------------------------------------------------------------
 !FOX  B D ;
@@ -2264,17 +2268,18 @@ call comt_daStart
 !      if(dare(y).eq.0.) then
 !!FOX    WX=EXP(-X*X) ;
 !      endif
-  if(dare(yy).lt.0.d0) then                                          !hr05
+  if(dare(yy).lt.0.d0) then
 !FOX    WX=TWO*EXP(Y*Y-X*X)*COS(TWO*X*Y)-WX ;
 !FOX    WY=-TWO*EXP(Y*Y-X*X)*SIN(TWO*X*Y)-WY ;
-    if(dare(xx).gt.0.d0) then                                        !hr05
+    if(dare(xx).gt.0.d0) then
 !FOX      WY=-WY ;
     endif
   else
-    if(dare(xx).lt.0.d0) then                                        !hr05
+    if(dare(xx).lt.0.d0) then
 !FOX      WY=-WY ;
     endif
   endif
+! Do not remove or modify the comment below.
 !     DADAL AUTOMATIC INCLUSION
   call comt_daEnd
   return
@@ -2319,10 +2324,9 @@ subroutine wireda(ix,i)
   use parpro
   use mod_common
   use mod_commons
-  use mod_common_track, only : xxtr,yytr,issss,comt_daStart,comt_daEnd
+  use mod_common_track, only : xxtr,yytr,crois,comt_daStart,comt_daEnd
   use mod_common_da
   use wire
-  use mod_hions
   use mod_lie_dab, only : idao,rscrri,iscrda
   implicit none
   integer ix,idaa,i
@@ -2374,7 +2378,7 @@ call comt_daStart
   &'ERROR: in wirekick -  wire_flagco defined in WIRE block must ',  &
   &'be either 1 or -1!','bez(',ix,') = ',bez(ix),                    &
   &'wire_flagco(',ix,') = ',wire_flagco(ix)
-    call prror(-1)
+    call prror
   endif
 
 !FOX  YY(1)=YY(1)*C1M3;
@@ -2496,6 +2500,7 @@ call comt_daStart
 !FOX  YY(1)=YY(1)*C1E3;
 !FOX  YY(2)=YY(2)*C1E3;
 
+! Do not remove or modify the comment below.
 !     DADAL AUTOMATIC INCLUSION
   call comt_daEnd
 end subroutine wireda
@@ -2626,7 +2631,7 @@ subroutine clorda(nn,idummy,am)
     do l=1,ndimf
       ll=2*l
       write(lout,10060) chp(l),cloc(ll-1),cloc(ll)
-      cor=cor+dc(ll-1)**2                                            !hr06
+      cor=cor+dc(ll-1)**2
     enddo
     cor=sqrt(cor)
     if(ii.eq.1.or.cor.lt.coro) then
@@ -2663,7 +2668,7 @@ subroutine clorda(nn,idummy,am)
     do l=1,ndimf
       ll=2*l
       write(lout,10060) chp(l),cloc(ll-1),cloc(ll)
-      cor=cor+dc(ll-1)**2                                            !hr06
+      cor=cor+dc(ll-1)**2
     enddo
     cor=sqrt(cor)
     if(cor.lt.coro) then
@@ -2726,7 +2731,7 @@ subroutine clorda(nn,idummy,am)
   do l=1,ndimf
     ll=2*l
     write(lout,10070) chp(l),cloc(ll-1),cloc(ll),chd(l),dc(ll-1),dc(ll)
-    cor=cor+dc(ll-1)**2                                              !hr06
+    cor=cor+dc(ll-1)**2
   enddo
   cor=sqrt(cor)
   write(lout,10080) ii,cor
@@ -2774,55 +2779,56 @@ end subroutine clorda
 !           note: inversion method copied from subroutine postpr        *
 !-----------------------------------------------------------------------*
 subroutine invert_tas(fma_tas_inv,fma_tas)
+
   use floatPrecision
   use numerical_constants
   use matrix_inv
   use mod_common_track
   use crcoall
+
   implicit none
 
-  integer :: i,j            !iterators
-  real(kind=fPrec), dimension(6,6), intent(inout) :: fma_tas !tas = normalisation matrix
-  real(kind=fPrec), dimension(6,6), intent(out) :: fma_tas_inv !inverse of tas
-  integer ierro                   !error messages
-!     dummy variables
-  real(kind=fPrec), dimension(6,6) :: tdummy !dummy variable for transposing the matrix
-  integer, dimension(6) :: idummy !for matrix inversion
+  real(kind=fPrec), intent(inout) :: fma_tas(6,6) !tas = normalisation matrix
+  real(kind=fPrec), intent(out)   :: fma_tas_inv(6,6) !inverse of tas
+
+  real(kind=fPrec) tdummy(6,6)
+  integer ierro,i,j,idummy(6)
+
 !     units: [mm,mrad,mm,mrad,mm,1]
 !     invert matrix
 !     - set values close to 1 equal to 1
   do i=1,6
-      do j=1,6
-        fma_tas_inv(i,j)=fma_tas(j,i)
-      enddo
-  enddo
+    do j=1,6
+      fma_tas_inv(i,j)=fma_tas(j,i)
+    end do
+  end do
 
-  if(abs(fma_tas_inv(1,1)).le.pieni.and.abs(fma_tas_inv(2,2)).le.pieni) then
+  if(abs(fma_tas_inv(1,1)) <= pieni.and.abs(fma_tas_inv(2,2)) <= pieni) then
     fma_tas_inv(1,1)=one
     fma_tas_inv(2,2)=one
-  endif
-  if(abs(fma_tas_inv(3,3)).le.pieni.and.abs(fma_tas_inv(4,4)).le.pieni) then
+  end if
+  if(abs(fma_tas_inv(3,3)) <= pieni.and.abs(fma_tas_inv(4,4)) <= pieni) then
     fma_tas_inv(3,3)=one
     fma_tas_inv(4,4)=one
-  endif
-  if(abs(fma_tas_inv(5,5)).le.pieni.and.abs(fma_tas_inv(6,6)).le.pieni) then
+  end if
+  if(abs(fma_tas_inv(5,5)) <= pieni.and.abs(fma_tas_inv(6,6)) <= pieni) then
     fma_tas_inv(5,5)=one
     fma_tas_inv(6,6)=one
-  endif
+  end if
 
 !     - invert: dinv returns the transposed matrix
   call dinv(6,fma_tas_inv,6,idummy,ierro)
-  if (ierro.ne.0) then
-      write(lout,*) "Error in INVERT_TAS - Matrix inversion failed!"
-      write(lout,*) "Subroutine DINV returned ierro=",ierro
-      call prror(-1)
-  endif
+  if(ierro /= 0) then
+    write(lerr,"(a,i0)") "INVERT_TAS> ERROR Matrix inversion failed. Subroutine DINV returned ierro ",ierro
+    call prror
+  end if
 
 !     - transpose fma_tas_inv
   tdummy=fma_tas_inv
   do i=1,6
     do j=1,6
       fma_tas_inv(i,j)=tdummy(j,i)
-    enddo
-  enddo
+    end do
+  end do
+
 end subroutine invert_tas

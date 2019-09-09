@@ -1,6 +1,0 @@
-coll_summary.dat
-collgaps.dat
-scatter_log.dat
-scatter_summary.dat
-final_state.dat
-hash.md5

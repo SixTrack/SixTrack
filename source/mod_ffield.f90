@@ -679,13 +679,13 @@ contains
 !        Ldpsv2   = oidpsv(ffj)*oidpsv(ffj);
 
 !  <<<<<<< IN
-  	!   - Initial repositionning (AntiDrift)
+    !   - Initial repositionning (AntiDrift)
         x_tp=x-(LoutQ*oidpsv(ffj))*px;
         y_tp=y-(LoutQ*oidpsv(ffj))*py;
         x=x_tp;   y=y_tp;
 !  <<<<<<< IN
 
-  	!   - Compute Fringe Field using asymplectic Map (Lie2)
+    !   - Compute Fringe Field using asymplectic Map (Lie2)
         call ffTable(iFile)%Lie2(x,px,y,py,zb,oidpsv(ffj))
 
 !  <<<<<<< IN

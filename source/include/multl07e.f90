@@ -1,6 +1,6 @@
 ! start include/multl07e.f90
-tiltck=tiltc(k)**2-tilts(k)**2                                   !hr03
-tiltsk=(two*tiltc(k))*tilts(k)                                   !hr03
+tiltck=tiltc(k)**2-tilts(k)**2
+tiltsk=(two*tiltc(k))*tilts(k)
 qu1=tiltck*qu-tiltsk*qv
 qv=tiltck*qv+tiltsk*qu
 qu=qu1

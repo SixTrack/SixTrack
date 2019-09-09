@@ -44,10 +44,10 @@ module elens
 #ifdef CR
   logical, save          :: elens_lAllowUpdate_CR(nelens)
 #endif
-  
+
   ! mapping to chebyshev polynomials
   integer, save          :: elens_iCheby(nelens)      ! mapping to the table with chebyshev coeffs
-  
+
   ! radial profile
   integer, save          :: elens_iRadial(nelens)     ! mapping to the radial profile
   real(kind=fPrec), save :: elens_radial_fr1(nelens)  ! value of f(R1) in case of radial profiles from file [0:1]
@@ -271,8 +271,8 @@ subroutine elens_parseInputLine(inLine, iLine, iErr)
     iErr = .true.
     return
   end if
-  if(elens_r1(ielens(iElem)) <= zero) then
-    write(lerr,"(a)") "ELENS> ERROR R1<=0!"
+  if(elens_r1(ielens(iElem)) < zero) then
+    write(lerr,"(a)") "ELENS> ERROR R1<0!"
     iErr = .true.
     return
   end if
@@ -343,7 +343,7 @@ subroutine elens_parseInputDone(iErr)
         end if
       end do
       ! report error
-      write(lout,"(a)") "ELENS> ERROR Type of elens not declared in "//trim(fort3)//" for element '"//trim(bez(kk))//"'"
+      write(lerr,"(a)") "ELENS> ERROR Type of elens not declared in "//trim(fort3)//" for element '"//trim(bez(kk))//"'"
       iErr = .true.
       return
     end if
@@ -354,7 +354,7 @@ end subroutine elens_parseInputDone
 subroutine elens_postInput
 
   use mathlib_bouncer
-  use utils
+  use mod_utils
   use mod_common, only : bez,kz,fort3
 
   integer j, jj, nlens
@@ -365,12 +365,12 @@ subroutine elens_postInput
   do jj=1,nele
     if(kz(jj)==29) then
       if (ielens(jj).eq.0) then
-        write(lout,"(a,i0,a)") "ELENS> ERROR single element ",jj," named '"//trim(bez(jj))//"'"
-        write(lout,"(a)")      "ELENS>       does not have a corresponding line in ELEN block in "//trim(fort3)
+        write(lerr,"(a,i0,a)") "ELENS> ERROR single element ",jj," named '"//trim(bez(jj))//"'"
+        write(lerr,"(a)")      "ELENS>       does not have a corresponding line in ELEN block in "//trim(fort3)
         call prror
       elseif ( elens_type(ielens(jj))==0 ) then
-        write(lout,"(a,i0,a)") "ELENS> ERROR single element ",jj," named '"//trim(bez(jj))//"'"
-        write(lout,"(a)")      "ELENS>       had not been assigned a type"
+        write(lerr,"(a,i0,a)") "ELENS> ERROR single element ",jj," named '"//trim(bez(jj))//"'"
+        write(lerr,"(a)")      "ELENS>       had not been assigned a type"
         call prror
       else
         nlens=nlens+1
@@ -378,8 +378,8 @@ subroutine elens_postInput
     end if
   end do
   if ( nlens.ne.melens ) then
-    write(lout,"(a,i0)") "ELENS> ERROR number of elenses declared in ELEN block in "//trim(fort3)//" ",melens
-    write(lout,"(a,i0)") "ELENS>       is not the same as the total number of elenses in lattice ",nlens
+    write(lerr,"(a,i0)") "ELENS> ERROR number of elenses declared in ELEN block in "//trim(fort3)//" ",melens
+    write(lerr,"(a,i0)") "ELENS>       is not the same as the total number of elenses in lattice ",nlens
     call prror
   end if
 
@@ -429,10 +429,10 @@ subroutine elens_postInput
     ! - report geometrical factor
     write(lout,"(a,i0,a,e22.15)") "ELENS> Geom. norm. fact. for elens #",j, &
          " named "//trim(bez(jj))//": ",elens_geo_norm(j)
-    
+
     ! Compute elens theta at R2, if requested by user
     call eLensTheta(j)
-    
+
   end do
 
 end subroutine elens_postInput
@@ -452,8 +452,7 @@ subroutine eLensTheta(j)
   use mathlib_bouncer
   use numerical_constants, only : zero, one, two, pi, c1e3, c1m3, c1m6
   use physical_constants, only: clight, pmae, eps0
-  use mod_hions, only : zz0
-  use mod_common, only : e0, betrel, brho, bez, kz
+  use mod_common, only : e0, beta0, brho, bez, kz, zz0
   use mod_settings, only : st_quiet
 
   implicit none
@@ -466,19 +465,19 @@ subroutine eLensTheta(j)
     !   apart from the case of elens_Ek is DYNK-ed
     gamma  = ((elens_Ek(j)*c1m3)/pmae)+one ! from kinetic energy
     elens_beta_e(j) = sqrt((one+one/gamma)*(one-one/gamma))
-    
+
     ! r2: from mm to m (c1m3)
     ! theta: from rad to mrad (c1e3)
     elens_theta_r2(j) = ((elens_len(j)*abs(elens_I(j)))/ &
          ((((two*pi)*((eps0*clight)*clight))*brho)*(elens_r2(j)*c1m3)))*c1e3
     if(elens_I(j) < zero) then
-      elens_theta_r2(j) = elens_theta_r2(j)*(one/(elens_beta_e(j)*betrel)+one)
+      elens_theta_r2(j) = elens_theta_r2(j)*(one/(elens_beta_e(j)*beta0)+one)
     else
-      elens_theta_r2(j) = elens_theta_r2(j)*(one/(elens_beta_e(j)*betrel)-one)
+      elens_theta_r2(j) = elens_theta_r2(j)*(one/(elens_beta_e(j)*beta0)-one)
     end if
-    
+
     if ( elens_type(j)>=2 ) elens_theta_r2(j) = elens_theta_r2(j) * elens_geo_norm(j)
-    
+
     if(st_quiet < 2) then
       ! find name of elens
       do jj=1,nele
@@ -494,7 +493,7 @@ subroutine eLensTheta(j)
            elens_geo_norm(j)
     end if
   end if
- 
+
 end subroutine eLensTheta
 
 ! ================================================================================================ !
@@ -576,7 +575,7 @@ subroutine parseRadialProfile(ifile)
 
 20 continue
 
-  call f_close(fUnit)
+  call f_freeUnit(fUnit)
   write(lout,"(a,i0,a)") "ELENS> ...acquired ",elens_radial_profile_nPoints(ifile),"points."
 
   if(st_quiet < 2) then
@@ -593,7 +592,7 @@ subroutine parseRadialProfile(ifile)
 
 30 continue
   write(lerr,"(a,i0,a)") "ELENS> ERROR ",iErr," while parsing file "//trim(elens_radial_filename(ifile))
-  call prror(-1)
+  call prror
 
 end subroutine parseRadialProfile
 
@@ -662,7 +661,7 @@ end subroutine normaliseRadialProfile
 
 #ifdef CR
 subroutine elens_crcheck(fileUnit,readErr)
-  implicit none
+
   integer, intent(in)  :: fileUnit
   logical, intent(out) :: readErr
 
@@ -675,37 +674,36 @@ subroutine elens_crcheck(fileUnit,readErr)
 
 10 continue
 
-  write(lout,"(a,i0)") "READERR in elens_crcheck; fileUnit = ",fileUnit
-  write(93,  "(a,i0)") "READERR in elens_crcheck; fileUnit = ",fileUnit
+  write(lout, "(a,i0,a)") "CR_CHECK> ERROR Reading C/R file fort.",fileUnit," in ELENS"
+  write(crlog,"(a,i0,a)") "CR_CHECK> ERROR Reading C/R file fort.",fileUnit," in ELENS"
+  flush(crlog)
   readErr = .true.
 
 end subroutine elens_crcheck
 
-subroutine elens_crpoint(fileUnit, writeErr,iErro)
-  implicit none
+subroutine elens_crpoint(fileUnit, writeErr)
 
-  integer, intent(in)    :: fileUnit
-  logical, intent(inout) :: writeErr
-  integer, intent(inout) :: iErro
+  integer, intent(in)  :: fileUnit
+  logical, intent(out) :: writeErr
 
   integer j
 
-  write(fileunit,err=10,iostat=iErro) (elens_lAllowUpdate(j), j=1, nelens)
-  endfile(fileunit,iostat=iErro)
-  backspace(fileunit,iostat=iErro)
+  write(fileunit,err=10) (elens_lAllowUpdate(j), j=1, nelens)
+  flush(fileunit)
 
   writeErr = .false.
   return
 
 10 continue
 
+  write(lout, "(a,i0,a)") "CR_POINT> ERROR Writing C/R file fort.",fileUnit," in ELENS"
+  write(crlog,"(a,i0,a)") "CR_POINT> ERROR Writing C/R file fort.",fileUnit," in ELENS"
+  flush(crlog)
   writeErr = .true.
-  return
 
 end subroutine elens_crpoint
 
 subroutine elens_crstart
-  implicit none
   elens_lAllowUpdate(1:nelens) = elens_lAllowUpdate_CR(1:nelens)
 end subroutine elens_crstart
 

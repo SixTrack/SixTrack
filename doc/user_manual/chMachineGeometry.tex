@@ -1,4 +1,3 @@
-
 \chapter{Machine Geometry} \label{MaGe}
 
 % ================================================================================================================================ %
@@ -399,9 +398,9 @@ How to use the RF multipoles (from MAD-X to SixTrack):\\
 \noindent\textbf{2\textsuperscript{nd} order multipole (quadrupole):}\\
 \noindent In the MAD-X script write:
 \begin{ctverbatim}
-MULT.1, KNL=\{0,-0.06*1e-3\}, PNL=\{0, 0.25\};
+MULT.1, KNL=\{0,-0.06*1e-3/brho\}, PNL=\{0, 0.25\};
 \end{ctverbatim}
-where \texttt{-0.06*1e-3} is the $b_2$ value in units of $\mathrm{Tm/m}^{n-1}$.\\
+where \texttt{-0.06*1e-3} is the $b_2$ value in units of $\mathrm{1/m}^{n-1}$.\\
 This gives the following single element in \texttt{fort.2}:
 \begin{ctverbatim}
 mult.1q  26  6.00000000e-05  400.00000000e+00  -1.570796327e+00  0.00000000e+00  0.00000000e+00  0.00000000e+00
@@ -410,9 +409,9 @@ mult.1q  26  6.00000000e-05  400.00000000e+00  -1.570796327e+00  0.00000000e+00 
 \noindent\textbf{3\textsuperscript{rd} order multipole (sextupole):}\\
 \noindent In the MAD-X script write:
 \begin{ctverbatim}
-MULT.1, FREQ=400., KNL=\{0,0,1159.*1e-3\}, PNL=\{0,0,0.25\};
+MULT.1, FREQ=400., KNL=\{0,0,1159.*1e-3/brho\}, PNL=\{0,0,0.25\};
 \end{ctverbatim}
-where \texttt{1159.*1e-3} is the $b_3$ value in units of $\mathrm{Tm/m}^{n-1}$.\\
+where \texttt{1159.*1e-3} is the $b_3$ value in units of $\mathrm{1/m}^{n-1}$.\\
 This gives the following single element in \texttt{fort.2}:
 \begin{ctverbatim}
 mult.1s  27 -5.79500000e-01  4.00000000e+02  -1.570796327e+00  0.00000000e+00  0.00000000e+00  0.00000000e+00
@@ -421,16 +420,16 @@ mult.1s  27 -5.79500000e-01  4.00000000e+02  -1.570796327e+00  0.00000000e+00  0
 \noindent\textbf{4\textsuperscript{th} order multipole (octupole):}\\
 \noindent In  the MAD-X script write:
 \begin{ctverbatim}
-MULT.1, FREQ=400., KNL=\{0,0,0,-4.*1e-3\}, PNL=\{0,0,0,0.25\};
+MULT.1, FREQ=400., KNL=\{0,0,0,-4.*1e-3/brho\}, PNL=\{0,0,0,0.25\};
 \end{ctverbatim}
-where \texttt{-4.*1e-3} is the $b_4$ value in units of $\mathrm{Tm/m}^{n-1}$.\\
+where \texttt{-4.*1e-3} is the $b_4$ value in units of $\mathrm{1/m}^{n-1}$.\\
 This gives the following single element in \texttt{fort.2}:
 \begin{ctverbatim}
 mult.1o  28  6.666666667e-04  4.00000000e+02  -1.570796327e+00  0.00000000e+00  0.00000000e+00  0.00000000e+00
 \end{ctverbatim}
 
 \bigskip
-\noindent The values of $b_2$, $b_3$, and $b_4$ used in the above examples were taken from Table II of paper~\cite{RFmultsPaper}.
+\noindent The values of $b_2$, $b_3$, and $b_4$ used in the above examples were taken from Table II of paper~\cite{RFmultsPaper} and normalized by the beam rigidity.
 
 The effect of these multipoles was checked on a beam of particles with $x=x^{\prime}=y^{\prime}=0$, and $y= 1, 2, \text{ and } 3~\mathrm{mm}$, with different $z$ positions.
 The effect on $y'$ was linear, quadratic and cubic with $y$ when using $b_2$, $b_3$, or $b_4$, respectively, as expected.
@@ -489,8 +488,45 @@ This element dumps the coordinates of the 1st particle to the file with name ``B
 The file contains 7 columns: $x$,$x'$, $y$,$y'$, $ct$,$\delta p/p$ and $E$.
 Usual SixTrack units are used.
 Any number of \texttt{BPM} elements can be used but the names must differ.
+% ================================================================================================================================ %
+\subsection{X-Rotation} \label{x-rotation}
 
+\paragraph{Format} \texttt{name type angle}
 
+\bigskip
+\begin{tabular}{@{}lp{0.8\linewidth}}
+    \texttt{name}  & May contain up to 47 characters. \\
+    \texttt{type}  & 43 \\
+    \texttt{angle} & The rotation angle in radians.  
+\end{tabular}
+\paragraph{Remarks}
+A positive angle rotates the reference system in the clockwise direction.
+% ================================================================================================================================ %
+\subsection{Y-Rotation} \label{y-rotation}
+
+\paragraph{Format} \texttt{name type angle}
+
+\bigskip
+\begin{tabular}{@{}lp{0.8\linewidth}}
+    \texttt{name}  & May contain up to 47 characters. \\
+    \texttt{type}  & 44 \\
+    \texttt{angle} & The rotation angle in radians.  
+\end{tabular}
+\paragraph{Remarks}
+A positive angle rotates the reference system in the clockwise direction.
+% ================================================================================================================================ %
+\subsection{S-Rotation} \label{s-rotation}
+
+\paragraph{Format} \texttt{name type angle}
+
+\bigskip
+\begin{tabular}{@{}lp{0.8\linewidth}}
+    \texttt{name}  & May contain up to 47 characters. \\
+    \texttt{type}  & 45 \\
+    \texttt{angle} & The rotation angle in radians.  
+\end{tabular}
+\paragraph{Remarks}
+A positive angle rotates the reference system in the clockwise direction.
 % ================================================================================================================================ %
 \section{Block Definitions} \label{BloDef}
 

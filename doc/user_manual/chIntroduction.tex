@@ -1,13 +1,13 @@
 
 \chapter{Introduction} \label{Intro}
 
-The Single Particle Tracking Code SixTrack is optimised to carry two particles~\footnote{Two particles are needed for the detection of  chaotic behaviour.} through an accelerator structure over a large number of turns.
+The Single Particle Tracking Code SixTrack is optimised to carry two particles~\footnote{Two particles are needed for the detection of chaotic behaviour.} through an accelerator structure over a large number of turns.
 It is an offspring of RACETRACK~\cite{RACETRACK}\index{RACETRACK} written by Albin Wrulich.
-The input structure has been changed as little as possible so that slightly modified RACETRACK input files, or those of other offsprings like FASTRAC \cite{FASTRAC} can be read.
+The input structure is based on RACETRACK, but has been significantly enhanced in SixTrack 4 and 5.
 
 \paragraph{The main features of SixTrack are:}~
 \begin{enumerate}
-    \item Treatment of the full six-dimensional motion including synchrotron motion in a symplectic manner \cite{Ripken85}. The energy can be ramped at the same time considering the relativistic change of the velocity \cite{Ripken87}.
+    \item Treatment of the full six-dimensional motion including synchrotron motion in a symplectic manner~\cite{Ripken85}. The energy can be ramped at the same time considering the relativistic change of the velocity~\cite{Ripken87}.
     \item Detection of the onset of chaotic motion and thereby the long term dynamic aperture by evaluating the Lyapunov exponent.
     \item Post processing procedure allowing:
     \begin{itemize}
@@ -42,7 +42,8 @@ To use the power of the Differential Algebra\index{SixDA}, for instance to calcu
 It must be mentioned that in the linear thin lens version dipoles have to be treated in a special way.
 See section~\ref{MulBlo} for details.
 
-To convert MAD-X files into SixTrack input, a special conversion program $mad\_6t$~\cite{CONVERTOR} has been developed (see also~\ref{MADT}).
+To convert MAD-X files into SixTrack input, a special conversion command exists the MAD-X.
+See the MAD-X documentation for further details.
 
 The following subroutines are taken from various packages:
 
@@ -68,8 +69,7 @@ The following subroutines are taken from various packages:
 \end{table}
 
 All versions can be downloaded from the web.
-The project webpage is found at \url{http://sixtrack.web.cern.ch/},
-  and primary source repository is located at \url{https://github.com/SixTrack/SixTrack}.
+The project webpage is found at \url{http://sixtrack.web.cern.ch/}, and primary source repository is located at \url{https://github.com/SixTrack/SixTrack}.
 Older versions can be found at \url{http://cern.ch/Frank.Schmidt/Source}.
 
 In case of problems, please see the CERN SixTrack egroups ``sixtrack-users'' and ``sixtrack-developers''.
@@ -77,11 +77,11 @@ If these are not accessible to you, you are welcome to contact the coordinators:
 Our contact details are available from the CERN phonebook.
 
 If you think you have found a defect in the program, please create a report on the issue tracker\index{SixTrack bug reports} at \url{https://github.com/SixTrack/SixTrack/issues}.
-Note that for this to be usefull, you need to describe what the program is doing, what you expected it to do, and an example which demonstrates the unwanted behaviour.
-Plase also look through the issues that are already listed, and see if it has already been reported.
+Note that for this to be useful, you need to describe what the program is doing, what you expected it to do, and an example which demonstrates the unwanted behaviour.
+Please also look through the issues that are already listed to see if it has already been reported.
 If so, you are welcome to add a comment to the issue, which may influence its priority and give additional and useful information to the developers.
 
-The most up to date version of the documentation can always be found on the GitHub repository mentioned above.\index{SixTrack source}
+The most up to date version of the documentation can always be found on the SixTrack website, and the latest features will be in the documentation in the source on GitHub.\index{SixTrack documentation}
 Additionally, various older documentation can be found at \url{http://cern.ch/Frank.Schmidt/Documentation/doc.html}.
 
 % ================================================================================================================================ %
@@ -98,8 +98,8 @@ Following, is a short historical overview of how the versions of SixTrack have e
         The beam--beam kick \`a la Bassetti and Erskine~\cite{BasErs} has been included together with the 6D part by Hirata et al.~\cite{Hirata}.
         Moreover, this 6D part has been upgraded to include the full 6D linear coupling~\cite{ripbeam}.
         Lastly, the LBL DA package has replaced the original one by Berz, and all operations needed to set up the accelerator structure are now performed with the help of Forest's LieLib package~\cite{DALIE}.
-    \item \textbf{Version 4}
-        \todo[inline]{Add stuff}
+    % \item \textbf{Version 4}
+    %     \todo[inline]{Add stuff}
     \item \textbf{Version 5}
         Machine size and particle numbers are no longer defined by compiler flags but allocated dynamically based on the input files.
         Merges the Collimation version of SixTrack into the main code.
@@ -114,18 +114,15 @@ Following, is a short historical overview of how the versions of SixTrack have e
 
 For a more detailed list of changes, see \texttt{CHANGELOG.md} in the repository.
 
-% Formerly in Chapter: Conclusions
-Programs with large input structures like SixTrack tend to be far from perfect, even though a cumbersome chase for program bugs and a lot of polishing on the input structure has been performed.
-Plenty of comments and suggestions are therefore needed to further improve the program.
-
 % ================================================================================================================================ %
 \section{SixTrack Input Structure}
 
 The SixTrack input is line oriented.\index{SixTrack input}\index{fort.3}
 Each line is treated as one string of input in which a certain sequence of numbers and character strings is expected to be found.
 The numbers and character strings must be separated by at least one blank space.
-Floating point numbers can be given in any format, but must be distinguishable from integer numbers.
+Floating point numbers can be given in multiple formats, see below for further details.
 Comments can be added starting with the character ``!''.\index{comment lines}
+SixTrack 5 also supports in-line comments, older versions do not.
 Empty lines and lines starting with the comment character will be ignored and are not counted towards the line number requirement that apply to many of the input blocks.
 For beckwards compatibility, lines starting with a slash ``/'' in the first column will also be ignored by the program.
 
@@ -134,29 +131,36 @@ For detailed questions concerning rounding errors, calculation of the Lyapunov e
 % ================================================================================================================================ %
 \subsection{Input Format} \label{sec:informat}
 
-The input format used in SixTrack has been inherited from RACETRACK.
-This system makes it easy to read input and allows easy change and addition of input blocks.
+The input format used in SixTrack has been inherited from RACETRACK, but significantly extended in version 4 and 5 to shift to a keyword/value style format.
+Many of the older input blocks still use the old format, or support both RACETRACK and keyword/value types arguments.
 
 The idea of the input format is to use a sequence of input blocks, each block with a specific keyword in the first line.\index{input blocks}
 The block is terminated by the keyword \texttt{NEXT} in the last line.\index{NEXT}
 The input data goes in the lines in between.
 The keyword \texttt{ENDE} ends the input sequence, and anything after this keyword is ignored.\index{ENDE}
 This system makes it easy to read input and allows easy change and addition of input blocks.
-Values inside a block can be indented, but the opening ang closing keywords cannot.
-In some blocks more than 4 space indentation signify a line continuation of the previous line.
+
+Values inside a block can be indented, but the opening and closing keywords cannot.
+In some blocks, more than 4 space indentation signify a line continuation of the previous line.
 It is therefore advisable to keep indentation at less than 5 spaces to avoid unpredictable results.
+
+In blocks using a keyword/value format, the keywords are in general case sensitive, and should be provided in upper case.
+Values are as a rule not case sensitive, but there are some exceptions.
+Please consult the documentation of the relevant block for further details.
 
 From version 5, SixTrack enforces the proper closing of input blocks, which in the past have been somewhat inconsistent.
 This does not apply to the first line, which contains the flag to determine which file to read the lattice from.
 If a \texttt{NEXT} keyword is added after this, an error is raised.
-Multiple occurences of the same input block is, as a general rule, not allowed and will cause an error.
+Multiple occurrences of the same input block is, as a general rule, not allowed and will cause an error.
 However, there are a few exceptions.
 String input variables can be wrapped in either single or double quotes.
 SixTrack will also accept strings without quotes, provided they do not contain tabs, spaces or the comment character.
 
-Input errors will provide a descriptive error message, the line number and file in which the error was encountered, and a printout of the line where the error was found.
+Input errors in \texttt{fort.3} will provide a descriptive error message, the line number and file in which the error was encountered, and a printout of the line where the error was found.
+Errors in other input files may be less descriptive.
+
 A new \texttt{SETTINGS} block has been added in SixTrack 5 where a \texttt{DEBUG} flag can be added.\index{DEBUG}
-When this flag is set, most values read from the file will be printed back with the value it was converted to internally in SixTrack, and if it was modified, what it was changed to.
+When this flag is set, most values read from the main input file will be printed back with the value it was converted to internally in SixTrack, and if it was modified, what it was changed to.
 
 In the following chapters, the input structure of SixTrack is discussed in detail.
 To facilitate the use of the program, a list of default values in Appendix~\ref{Default}, the input and output files are described in Appendix~\ref{Files}, and a description of the data structure of the binary data files in Appendix~\ref{Header}.
@@ -167,8 +171,8 @@ To facilitate the use of the program, a list of default values in Appendix~\ref{
 \paragraph{Integers} must be entered as plain integers.
 \paragraph{Floats} can be entered as integers (converted during parsing) and standard Fortran floats.\\
 Examples \texttt{1, 1.0, 1.0e3, 1e3, 1.0d3, 1d3, 1.0q3, 1q3}.
-\paragraph{Strings} can be entered with both single and double quotes, and without quotes if the string contains no spaces or comment characters.
-\paragraph{Flags} accept the following entries: \texttt{.true./.false.}, \texttt{true/false}, \texttt{yes/no}, \texttt{on/off}, and \texttt{1/0}. These are not case sensitive.
+\paragraph{Strings} can be entered with both single and double quotes, and without quotes if the string contains no tabs, spaces or comment characters.
+\paragraph{Flags} accept the following values: \texttt{.true./.false.}, \texttt{true/false}, \texttt{yes/no}, \texttt{on/off}, and \texttt{1/0}. These are not case sensitive.
 
 % ================================================================================================================================ %
 \subsection{Command Line Arguments} \label{sec:cmdarg}

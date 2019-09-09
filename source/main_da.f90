@@ -1,30 +1,27 @@
 ! ================================================================================================ !
 !
 !  SIXTRACK
-! =========
+! ==========
 !  SIXDIMENSIONAL PARTICLE-TRACKING
 !
 !  DIFFERENTIAL ALGEBRA INCLUDED
 !  ONE TURN MAP
 !  NO POSTPROCESSING FORSEEN
+!  NO CHECKPOINT/RESTART
 !
 !  DEVELOPPED FROM <RACETRACK> A. WRULICH (DESY 84-026)
-! ================================================================================================ !
-!  USED DISKS:
 !
-!  GEOMETRY AND STRENGTH OF THE ACCELERATOR : UNIT  2
-!  TRACKING PARAMETER                       : UNIT  3
-!  NORMAL PRINTOUT                          : UNIT  6
-!  TRACKING DATA                            : UNIT  8
 ! ================================================================================================ !
 program mainda
+
+  use, intrinsic :: iso_fortran_env, only : output_unit
 
   use floatPrecision
   use numerical_constants
   use mathlib_bouncer
-  use, intrinsic :: iso_fortran_env, only : output_unit
   use crcoall
   use parpro
+  use mod_linopt
   use mod_common
   use mod_commons
   use mod_common_track
@@ -36,16 +33,16 @@ program mainda
   use mod_fluc,     only : fluc_randomReport, fluc_errAlign, fluc_errZFZ
   use read_write,   only : readFort33
   use mod_geometry, only : geom_reshuffleLattice
-  use sixtrack_input, only : sixin_commandLine
+  use sixtrack_input
   use mod_version
 
   implicit none
 
   integer i,iation,itiono,idate,im,itime,ix,izu,j,k,kpz,kzz,l,ll,ncorruo,ndim,nlino,nlinoo,nmz
   real(kind=fPrec) alf0s1,alf0s2,alf0s3,alf0x2,alf0x3,alf0z2,alf0z3,amp00,bet0s1,bet0s2,bet0s3,     &
-    bet0x2,bet0x3,bet0z2,bet0z3,clo0,clop0,dp0,dp10,e0f,eps,epsa,gam0s1,gam0s2,gam0s3,gam0x1,gam0x2,&
-    gam0x3,gam0z1,gam0z2,gam0z3,phag,qw,qwc,r0,r0a,rv,&
-    tas,tas16,tas26,tas36,tas46,tas56,tas61,tas62,tas63,tas64,tas65
+    bet0x2,bet0x3,bet0z2,bet0z3,clo0,clop0,dp0,dp10,eps,epsa,gam0s1,gam0s2,gam0s3,gam0x1,gam0x2,    &
+    gam0x3,gam0z1,gam0z2,gam0z3,phag,qw,qwc,r0,r0a,rv,tas,tas16,tas26,tas36,tas46,tas56,tas61,tas62,&
+    tas63,tas64,tas65
 
   character(len=8)  cdate,ctime ! Note: Keep in sync with maincr. If the len changes, CRCHECK will break.
   dimension qw(2),qwc(3),clo0(2),clop0(2)
@@ -69,9 +66,6 @@ program mainda
 #ifdef TILT
   featList = featList//" TILT"
 #endif
-#ifdef FAST
-  featList = featList//" FAST"
-#endif
 #ifdef STF
   featList = featList//" STF"
 #endif
@@ -83,13 +77,6 @@ program mainda
   featList = featList//" FIO"
 #endif
 
-  ! Set to nonzero before calling abend in case of error.
-  ! If prror is called, it will be set internally.
-  errout = 0
-
-#ifndef CR
-  lout=output_unit
-#endif
   call f_initUnits
   call meta_initialise ! The meta data file.
   call time_initialise ! The time data file. Need to be as early as possible as it sets cpu time 0.
@@ -98,19 +85,17 @@ program mainda
 
   ! Open files
   fErr = .false.
-  call f_open(unit=12,file="fort.12",formatted=.true.,mode="w", err=fErr)
-  call f_open(unit=17,file="fort.17",formatted=.true.,mode="rw",err=fErr) ! DA Files
-  call f_open(unit=18,file="fort.18",formatted=.true.,mode="rw",err=fErr) ! DA Files
-  call f_open(unit=19,file="fort.19",formatted=.true.,mode="rw",err=fErr) ! DA Files
-  call f_open(unit=20,file="fort.20",formatted=.true.,mode="rw",err=fErr) ! DA Files
-  call f_open(unit=21,file="fort.21",formatted=.true.,mode="rw",err=fErr) ! DA Files
-  call f_open(unit=22,file="fort.22",formatted=.true.,mode="rw",err=fErr) ! DA Files
-  call f_open(unit=23,file="fort.23",formatted=.true.,mode="rw",err=fErr) ! DA Files
-  call f_open(unit=24,file="fort.24",formatted=.true.,mode="rw",err=fErr) ! DA Files
-  call f_open(unit=25,file="fort.25",formatted=.true.,mode="rw",err=fErr) ! DA Files
-
-  call f_open(unit=110,file="fort.110",formatted=.false.,mode="w", err=fErr)
-  call f_open(unit=111,file="fort.111",formatted=.false.,mode="rw",err=fErr)
+  call f_open(unit=12,file="fort.12",formatted=.true., mode="w", err=fErr)
+  call f_open(unit=17,file="fort.17",formatted=.true., mode="rw",err=fErr) ! DA Files
+  call f_open(unit=18,file="fort.18",formatted=.true., mode="rw",err=fErr) ! DA Files
+  call f_open(unit=19,file="fort.19",formatted=.true., mode="rw",err=fErr) ! DA Files
+  call f_open(unit=20,file="fort.20",formatted=.true., mode="rw",err=fErr) ! DA Files
+  call f_open(unit=21,file="fort.21",formatted=.true., mode="rw",err=fErr) ! DA Files
+  call f_open(unit=22,file="fort.22",formatted=.true., mode="rw",err=fErr) ! DA Files
+  call f_open(unit=23,file="fort.23",formatted=.true., mode="rw",err=fErr) ! DA Files
+  call f_open(unit=24,file="fort.24",formatted=.true., mode="rw",err=fErr) ! DA Files
+  call f_open(unit=25,file="fort.25",formatted=.true., mode="rw",err=fErr) ! DA Files
+  call f_open(unit=26,file="fort.26",formatted=.false.,mode="rw",err=fErr) ! DA Files
 
   call time_timeStamp(time_afterFileUnits)
 
@@ -131,6 +116,7 @@ program mainda
   write(lout,"(a)") "    Start Time:   "//timeStamp
   write(lout,"(a)") ""
   write(lout,"(a)") str_divLine
+  units_beQuiet = .false. ! Allow mod_units to write to lout now
 
   call meta_write("SixTrackDAVersion", trim(version))
   call meta_write("ReleaseDate",       trim(moddate))
@@ -153,7 +139,7 @@ program mainda
   if (ithick.eq.1) call allocate_thickarrays
   if(nord <= 0 .or. nvar <= 0) then
     write(lerr,"(a)") "MAINDA> ERROR Order and number of variables have to be larger than 0 to calculate a differential algebra map"
-    call prror(-1)
+    call prror
   end if
   if(ithick.eq.1) write(lout,10020)
   if(ithick.eq.0) write(lout,10030)
@@ -180,7 +166,7 @@ program mainda
   call corrorb
   if(irmod2.eq.1) call rmod(dp1)
   if(iqmod.ne.0) call qmod0
-  if(ichrom.eq.1.or.ichrom.eq.3) call chroma
+  if(ichrom == 1 .or. ichrom == 3) call chroma
   if(iskew.ne.0) call decoup
   dp0=dp1
 
@@ -203,7 +189,7 @@ program mainda
         nlin=nlin+1
         if(nlin.gt.nele) then
           write(lerr,"(a)") "MAINDA> ERROR Too many elements for linear optics write-out"
-          call prror(-1)
+          call prror
         end if
         bezl(nlin)=bez(i)
       end if
@@ -255,9 +241,9 @@ program mainda
 
       do k=1,nmz
         izu=izu+1
-        aaiv(k,i)=(ed(ix)*(ak0(im,k)+zfz(izu)*aka(im,k)))/r0a         !hr08
+        aaiv(k,i)=(ed(ix)*(ak0(im,k)+zfz(izu)*aka(im,k)))/r0a
         izu=izu+1
-        bbiv(k,i)=(ed(ix)*(bk0(im,k)+zfz(izu)*bka(im,k)))/r0a         !hr08
+        bbiv(k,i)=(ed(ix)*(bk0(im,k)+zfz(izu)*bka(im,k)))/r0a
         r0a=r0a*r0
       end do
 
@@ -277,16 +263,20 @@ program mainda
   dp1=dp10
   if(idp /= 1 .or. iation /= 1) iclo6 = 0
   if(iclo6 == 1 .or. iclo6 == 2) then
-    if(iclo6r == 0) then
+    if(sixin_simuFort33) then
+      if(sixin_simuInitClorb) then
+        clo6(1:3)  = sixin_simuSetClorb([1,3,5])
+        clop6(1:3) = sixin_simuSetClorb([2,4,6])
+      else
+        call readFort33
+      end if
+    else
       clo6(1)  = clo(1)
       clop6(1) = clop(1)
       clo6(2)  = clo(2)
       clop6(2) = clop(2)
       clo6(3)  = zero
       clop6(3) = zero
-    else
-      write(lout,"(a)") "MAINDA> Reading closed orbit guess from fort.33"
-      call readFort33
     end if
     call clorb(zero)
     call betalf(zero,qw)
@@ -351,40 +341,40 @@ program mainda
   tas63=tas(6,3)*c1e3
   tas64=tas(6,4)*c1e3
   tas65=tas(6,5)*c1e3
-  bet0(1)=tas(1,1)**2+tas(1,2)**2                                    !hr08
-  bet0x2 =tas(1,3)**2+tas(1,4)**2                                    !hr08
-  bet0x3 =tas(1,5)**2+tas16**2                                       !hr08
-  gam0x1 =tas(2,1)**2+tas(2,2)**2                                    !hr08
-  gam0x2 =tas(2,3)**2+tas(2,4)**2                                    !hr08
-  gam0x3 =tas(2,5)**2+tas26**2                                       !hr08
-  alf0(1)=-one*(tas(1,1)*tas(2,1)+tas(1,2)*tas(2,2))                 !hr08
-  alf0x2 =-one*(tas(1,3)*tas(2,3)+tas(1,4)*tas(2,4))                 !hr08
-  alf0x3 =-one*(tas(1,5)*tas(2,5)+tas16*tas26)                       !hr08
-  bet0(2)=tas(3,3)**2+tas(3,4)**2                                    !hr08
-  bet0z2 =tas(3,1)**2+tas(3,2)**2                                    !hr08
-  bet0z3 =tas(3,5)**2+tas36**2                                       !hr08
-  gam0z1 =tas(4,3)**2+tas(4,4)**2                                    !hr08
-  gam0z2 =tas(4,1)**2+tas(4,2)**2                                    !hr08
-  gam0z3 =tas(4,5)**2+tas46**2                                       !hr08
-  alf0(2)=-one*(tas(3,3)*tas(4,3)+tas(3,4)*tas(4,4))                 !hr08
-  alf0z2 =-one*(tas(3,1)*tas(4,1)+tas(3,2)*tas(4,2))                 !hr08
-  alf0z3 =-one*(tas(3,5)*tas(4,5)+tas36*tas46)                       !hr08
-  bet0s1 =tas(5,5)**2+tas56**2                                       !hr08
-  bet0s2 =tas(5,1)**2+tas(5,2)**2                                    !hr08
-  bet0s3 =tas(5,3)**2+tas(5,4)**2                                    !hr08
-  gam0s1 =tas65**2+tas(6,6)**2                                       !hr08
-  gam0s2 =tas61**2+tas62**2                                          !hr08
-  gam0s3 =tas63**2+tas64**2                                          !hr08
-  alf0s1 =-one*(tas(5,5)*tas65+tas56*tas(6,6))                       !hr08
-  alf0s2 =-one*(tas(5,1)*tas61+tas(5,2)*tas62)                       !hr08
-  alf0s3 =-one*(tas(5,3)*tas63+tas(5,4)*tas64)                       !hr08
+  bet0(1)=tas(1,1)**2+tas(1,2)**2
+  bet0x2 =tas(1,3)**2+tas(1,4)**2
+  bet0x3 =tas(1,5)**2+tas16**2
+  gam0x1 =tas(2,1)**2+tas(2,2)**2
+  gam0x2 =tas(2,3)**2+tas(2,4)**2
+  gam0x3 =tas(2,5)**2+tas26**2
+  alf0(1)=-one*(tas(1,1)*tas(2,1)+tas(1,2)*tas(2,2))
+  alf0x2 =-one*(tas(1,3)*tas(2,3)+tas(1,4)*tas(2,4))
+  alf0x3 =-one*(tas(1,5)*tas(2,5)+tas16*tas26)
+  bet0(2)=tas(3,3)**2+tas(3,4)**2
+  bet0z2 =tas(3,1)**2+tas(3,2)**2
+  bet0z3 =tas(3,5)**2+tas36**2
+  gam0z1 =tas(4,3)**2+tas(4,4)**2
+  gam0z2 =tas(4,1)**2+tas(4,2)**2
+  gam0z3 =tas(4,5)**2+tas46**2
+  alf0(2)=-one*(tas(3,3)*tas(4,3)+tas(3,4)*tas(4,4))
+  alf0z2 =-one*(tas(3,1)*tas(4,1)+tas(3,2)*tas(4,2))
+  alf0z3 =-one*(tas(3,5)*tas(4,5)+tas36*tas46)
+  bet0s1 =tas(5,5)**2+tas56**2
+  bet0s2 =tas(5,1)**2+tas(5,2)**2
+  bet0s3 =tas(5,3)**2+tas(5,4)**2
+  gam0s1 =tas65**2+tas(6,6)**2
+  gam0s2 =tas61**2+tas62**2
+  gam0s3 =tas63**2+tas64**2
+  alf0s1 =-one*(tas(5,5)*tas65+tas56*tas(6,6))
+  alf0s2 =-one*(tas(5,1)*tas61+tas(5,2)*tas62)
+  alf0s3 =-one*(tas(5,3)*tas63+tas(5,4)*tas64)
   if(ierro.eq.0) goto 90
   write(lout,10200) dp1
   goto 160
 
 90 continue
   write(lout,10040)
-  phag=(phas*c180e0)/pi                                               !hr08
+  phag=(phas*c180e0)/pi
   if((idp.eq.0).or.(abs(phas).le.pieni.and.ition.eq.0)) then
     write(lout,10140) qwc(1),clo(1),clop(1),bet0(1),alf0(1),gam0x1,bet0x2,alf0x2,gam0x2,qwc(2),&
       clo(2),clop(2),bet0(2),alf0(2),gam0z1,bet0z2,alf0z2,gam0z2
@@ -431,12 +421,12 @@ program mainda
     dps(2) = dps(2) + clop6(3)
   end if
   do l=1,2
-    epsa(l)=amp(l)**2/bet0(l)                                        !hr08
+    epsa(l)=amp(l)**2/bet0(l)
     eps(l)=epsa(l)*c1e6
-    x(1,l)=x(1,l)+(clo(l)*real(idz(l),fPrec))*real(1-idfor,fPrec)                !hr08
-    y(1,l)=y(1,l)+(clop(l)*real(idz(l),fPrec))*real(1-idfor,fPrec)               !hr08
+    x(1,l)=x(1,l)+(clo(l)*real(idz(l),fPrec))*real(1-idfor,fPrec)
+    y(1,l)=y(1,l)+(clop(l)*real(idz(l),fPrec))*real(1-idfor,fPrec)
   end do
-  e0f=sqrt(e0**2-pma**2)                                             !hr08
+  e0f=sqrt(e0**2-pma**2)
   if(iclo6.eq.0) then
     write(lout,10080) clo(1),clop(1),clo(2),clop(2),idz(1),idz(2),iver, idfor,iclo6,ition
   else
@@ -445,12 +435,12 @@ program mainda
   if(idfor.eq.1.and.iclo6.ne.2) goto 110
   ejf(1)=e0f*(one+dps(1))
   ejf(2)=e0f*(one+dps(2))
-  ej(1)=sqrt(ejf(1)**2+pma**2)                                       !hr08
-  ej(2)=sqrt(ejf(2)**2+pma**2)                                       !hr08
+  ej(1)=sqrt(ejf(1)**2+pma**2)
+  ej(2)=sqrt(ejf(2)**2+pma**2)
   goto 120
 110 continue
-  ejf(1)=sqrt(ej(1)**2-pma**2)                                       !hr08
-  ejf(2)=sqrt(ej(2)**2-pma**2)                                       !hr08
+  ejf(1)=sqrt(ej(1)**2-pma**2)
+  ejf(2)=sqrt(ej(2)**2-pma**2)
 120 continue
   write(lout,10060) x(1,1),y(1,1),x(1,2),y(1,2),sigm(1),dps(1), x(2,1),y(2,1),x(2,2),y(2,2),sigm(2),dps(2),e0,ej(1),ej(2)
   write(lout,10010) amp,epsa
@@ -460,7 +450,7 @@ program mainda
     if(ithick == 1) call envars(1,dps(1),rv)
   else
     write(lerr,"(a)") "MAINDA> ERROR Zero or negative energy does not make much sense."
-    call prror(-1)
+    call prror
   end if
   if(numl.eq.0.or.numlr.ne.0) then
     write(lout,10070)
@@ -493,11 +483,7 @@ program mainda
   call time_finalise
   call meta_finalise
   call closeUnits
-#ifdef CR
-  call abend('                                                  ')
-#else
   stop
-#endif
 
 10010 format(/t10,'UNCOUPLED AMPLITUDES AND EMITTANCES:',&
              /t10,'AMPLITUDE-X = ',f15.3,10x,'AMPLITUDE-Y = ',f15.3, '  MM',&

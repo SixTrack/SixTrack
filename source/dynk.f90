@@ -8,11 +8,8 @@ module dynk
 
   use floatPrecision
   use mathlib_bouncer
-  use mod_hions
   use numerical_constants, only : zero, one, two, c1e3
   use parpro, only : nele
-  use mod_alloc
-  use string_tools
 
   implicit none
 
@@ -21,7 +18,6 @@ module dynk
   logical, public,  save :: dynk_debug        = .false. ! Print debug messages in main output
   logical, public,  save :: dynk_noDynkSets   = .false. ! Disable writing dynksets.dat?
   integer, private, save :: dynk_fileUnit     = -1      ! The file unit for dynksets.dat
-  integer, private, save :: dynk_fileUnitFUN  = -1      ! File unit for parseFUN files
 
   character(len=12), parameter :: dynk_fileName = "dynksets.dat"
 
@@ -94,11 +90,13 @@ module dynk
 contains
 
 subroutine dynk_allocate_arrays
+  use mod_alloc
   call alloc(dynk_izuIndex,nele,0,     "dynk_izuIndex")
   call alloc(dynk_elemData,nele,3,zero,"dynk_elemData")
 end subroutine dynk_allocate_arrays
 
 subroutine dynk_expand_arrays(nele_new)
+  use mod_alloc
   integer, intent(in) :: nele_new
   call alloc(dynk_izuIndex,nele_new,0,     "dynk_izuIndex")
   call alloc(dynk_elemData,nele_new,3,zero,"dynk_elemData")
@@ -110,8 +108,10 @@ end subroutine dynk_expand_arrays
 ! =================================================================================================
 subroutine dynk_allocate
 
+  use parpro
   use crcoall
   use mod_units
+  use mod_alloc
 
   ! Setting inital allocations
   ! These values are increased if needed when dynk_checkspace is called
@@ -134,8 +134,7 @@ subroutine dynk_allocate
   call alloc(dynk_sets,                dynk_maxSets,4, 0,    "dynk_sets")
 
   ! Set file units for I/O files
-  call f_requestUnit(dynk_fileName,     dynk_fileUnit)
-  call f_requestUnit("dynk_parseFUN_IO",dynk_fileUnitFUN)
+  call f_requestUnit(dynk_fileName,dynk_fileUnit)
 
 end subroutine dynk_allocate
 
@@ -146,9 +145,8 @@ end subroutine dynk_allocate
 ! =================================================================================================
 subroutine dynk_parseInputLine(inLine,iErr)
 
+  use crcoall
   use string_tools
-
-  implicit none
 
   character(len=*), intent(in)    :: inLine
   logical,          intent(inout) :: iErr
@@ -210,17 +208,18 @@ end subroutine dynk_parseInputLine
 ! =================================================================================================
 subroutine dynk_parseFUN(inLine, iErr)
 
+  use parpro
   use crcoall
   use mod_units
-
-  implicit none
+  use mod_alloc
+  use string_tools
 
   character(len=*), intent(in)    :: inLine
   logical,          intent(inout) :: iErr
 
   character(len=:), allocatable :: lnSplit(:), lnFile(:)
   character(len=mInputLn)       :: fLine
-  integer nSplit, nFile
+  integer nSplit, nFile, tmpUnit
   logical spErr, cErr, fErr
 
   ! Temp variables
@@ -320,14 +319,15 @@ subroutine dynk_parseFUN(inLine, iErr)
     dynk_ncData = dynk_ncData+1
 
     ! Open the file
-    inquire(unit=dynk_fileUnitFUN,opened=isOpen)
+    call f_requestUnit(dynk_cData(dynk_ncData),tmpUnit)
+    inquire(unit=tmpUnit,opened=isOpen)
     if(isOpen) then
       write(lerr,"(a)") "DYNK> ERROR FUN:FILE ould not open file '"//trim(dynk_cData(dynk_ncData))//"'"
       iErr = .true.
       return
     end if
 
-    call f_open(unit=dynk_fileUnitFUN,file=dynk_cData(dynk_ncData),formatted=.true.,mode="r",status="old",err=fErr)
+    call f_open(unit=tmpUnit,file=dynk_cData(dynk_ncData),formatted=.true.,mode="r",status="old",err=fErr)
     if(fErr) then
       write(lerr,"(a)") "DYNK> ERROR FUN:FILE ould not open file '"//trim(dynk_cData(dynk_ncData))//"'"
       iErr = .true.
@@ -337,16 +337,16 @@ subroutine dynk_parseFUN(inLine, iErr)
     ! Count number of lines and allocate space
     nLines = 0
     do
-      read(dynk_fileUnitFUN,"(a)",iostat=ioStat)
+      read(tmpUnit,"(a)",iostat=ioStat)
       if(ioStat /= 0) exit
       nLines = nLines + 1
     end do
-    rewind(dynk_fileUnitFUN)
+    rewind(tmpUnit)
     call dynk_checkspace(0,nLines,0)
 
     ii = 0 ! Number of data lines read
     do
-      read(dynk_fileUnitFUN,"(a)",iostat=ioStat) fLine
+      read(tmpUnit,"(a)",iostat=ioStat) fLine
       if(ioStat /= 0) exit
 
       call chr_split(fLine,lnFile,nFile,spErr)
@@ -376,7 +376,7 @@ subroutine dynk_parseFUN(inLine, iErr)
       dynk_fData(dynk_nfData) = y
     end do
     dynk_funcs(dynk_nFuncs,5) = ii
-    call f_close(dynk_fileUnitFUN)
+    call f_freeUnit(tmpUnit)
 
   ! END CASE FILE
 
@@ -405,14 +405,15 @@ subroutine dynk_parseFUN(inLine, iErr)
     dynk_ncData = dynk_ncData+1
 
     ! Open the file
-    inquire(unit=dynk_fileUnitFUN, opened=isOpen)
+    call f_requestUnit(dynk_cData(dynk_ncData),tmpUnit)
+    inquire(unit=tmpUnit, opened=isOpen)
     if(isOpen) then
       write(lerr,"(a)") "DYNK> ERROR FUN:FILELIN Could not open file '"//trim(dynk_cData(dynk_ncData))//"'"
       iErr = .true.
       return
     end if
 
-    call f_open(unit=dynk_fileUnitFUN,file=dynk_cData(dynk_ncData),formatted=.true.,mode="r",status="old",err=fErr)
+    call f_open(unit=tmpUnit,file=dynk_cData(dynk_ncData),formatted=.true.,mode="r",status="old",err=fErr)
     if(fErr) then
       write(lerr,"(a)") "DYNK> ERROR FUN:FILELIN Could not open file '"//trim(dynk_cData(dynk_ncData))//"'"
       iErr = .true.
@@ -422,7 +423,7 @@ subroutine dynk_parseFUN(inLine, iErr)
     ! Find the size of the file
     ii = 0 ! Number of data lines read
     do
-      read(dynk_fileUnitFUN,"(a)",iostat=ioStat) fLine
+      read(tmpUnit,"(a)",iostat=ioStat) fLine
       if(ioStat /= 0) exit
 
       call chr_split(fLine,lnFile,nFile,spErr)
@@ -450,13 +451,13 @@ subroutine dynk_parseFUN(inLine, iErr)
       ii = ii+1
     end do
     t = ii
-    rewind(dynk_fileUnitFUN)
+    rewind(tmpUnit)
 
     call dynk_checkspace(0,2*t,0)
     ! Read the file
     ii = 0
     do
-      read(dynk_fileUnitFUN,"(a)",iostat=ioStat) fLine
+      read(tmpUnit,"(a)",iostat=ioStat) fLine
       if(ioStat /= 0) then ! EOF
         if(ii /= t) then
           write(lerr,"(a)")       "DYNK> ERROR FUN:FILELIN Unexpected when reading file '"//trim(dynk_cData(dynk_ncData))//"'"
@@ -490,7 +491,7 @@ subroutine dynk_parseFUN(inLine, iErr)
 
     dynk_nfData = dynk_nfData + 2*t
     dynk_funcs(dynk_nFuncs,5) = t
-    call f_close(dynk_fileUnitFUN)
+    call f_freeUnit(tmpUnit)
 
   ! END CASE FILELIN
 
@@ -583,8 +584,8 @@ subroutine dynk_parseFUN(inLine, iErr)
       end if
 
       ! DYNK PIPE does not support the CR version, so BOINC support (call boincrf()) isn't needed
-      open(unit=dynk_iData(dynk_niData),file=dynk_cData(dynk_ncData-2),action="read",iostat=ioStat,status="old")
-      if(ioStat /= 0) then
+      call f_open(unit=dynk_iData(dynk_niData),file=dynk_cData(dynk_ncData-2),formatted=.true.,mode="r",err=fErr,status="old")
+      if(fErr) then
         write(lerr,"(a,i0)") "DYNK> ERROR FUN:PIPE Could not open file '"//trim(dynk_cData(dynk_ncData-2))//"' stat = ",ioStat
         iErr = .true.
         return
@@ -604,8 +605,8 @@ subroutine dynk_parseFUN(inLine, iErr)
       end if
 
       ! DYNK PIPE does not support the CR version, so BOINC support (call boincrf()) isn't needed
-      open(unit=dynk_iData(dynk_niData+1),file=dynk_cData(dynk_ncData-1),action="write",iostat=ioStat,status="old")
-      if(ioStat /= 0) then
+      call f_open(unit=dynk_iData(dynk_niData+1),file=dynk_cData(dynk_ncData-1),formatted=.true.,mode="w",err=fErr,status="old")
+      if(fErr) then
         write(lerr,"(a)") "DYNK> ERROR FUN:PIPE Could not open file '"//trim(dynk_cData(dynk_ncData-1))//"' stat = ",ioStat
         iErr = .true.
         return
@@ -822,13 +823,14 @@ subroutine dynk_parseFUN(inLine, iErr)
     dynk_cData(dynk_ncData) = trim(lnSplit(5)) ! FILE NAME
 
     ! Read the file
-    inquire(unit=dynk_fileUnitFUN, opened=isOpen)
+    call f_requestUnit(dynk_cData(dynk_ncData),tmpUnit)
+    inquire(unit=tmpUnit, opened=isOpen)
     if(isOpen) then
       write(lerr,"(a)") "DYNK> ERROR FUN:FIR/IIR Could not open file '"//trim(dynk_cData(dynk_ncData))//"'"
       iErr = .true.
       return
     end if
-    call f_open(unit=dynk_fileUnitFUN,file=dynk_cData(dynk_ncData),formatted=.true.,mode="r",status="old",err=fErr)
+    call f_open(unit=tmpUnit,file=dynk_cData(dynk_ncData),formatted=.true.,mode="r",status="old",err=fErr)
     if(fErr) then
       write(lerr,"(a,i0)") "DYNK> ERROR FUN:FIR/IIR Could not open file '"//trim(dynk_cData(dynk_ncData))//"', stat = ",ioStat
       iErr = .true.
@@ -837,9 +839,9 @@ subroutine dynk_parseFUN(inLine, iErr)
 
     do ii=0, dynk_funcs(dynk_nFuncs,4)
       ! Reading the FIR/IIR file without CRLIBM
-      read(dynk_fileUnitFUN,"(a)",iostat=ioStat) fLine
+      read(tmpUnit,"(a)",iostat=ioStat) fLine
       if(ioStat /= 0) then ! EOF
-        write(lerr,"(a)") "DYNK> ERROR FUN:FIR/IIR Unexpected when reading file '"//trim(dynk_cData(dynk_ncData))//"'"
+        write(lerr,"(a)") "DYNK> ERROR FUN:FIR/IIR Unexpected EOF when reading file '"//trim(dynk_cData(dynk_ncData))//"'"
         iErr = .true.
         return
       end if
@@ -897,7 +899,7 @@ subroutine dynk_parseFUN(inLine, iErr)
         dynk_fData(dynk_nfData) = u ! y_init[n-i]  (Not really needed anymore, but fixing allignment is painfull)
       end if
     end do
-    call f_close(dynk_fileUnitFUN)
+    call f_freeUnit(tmpUnit)
 
   ! END CASES FIR & IIR
 
@@ -1364,7 +1366,6 @@ end subroutine dynk_parseFUN
 subroutine dynk_checkargs(nActual, nExpected, correctSyntax)
 
   use crcoall
-  implicit none
 
   integer,          intent(in) :: nActual
   integer,          intent(in) :: nExpected
@@ -1387,10 +1388,10 @@ end subroutine dynk_checkargs
 ! ================================================================================================ !
 subroutine dynk_checkspace(iReq,fReq,cReq)
 
+  use parpro
   use crcoall
+  use mod_alloc
   use numerical_constants
-
-  implicit none
 
   integer, intent(in) :: iReq
   integer, intent(in) :: fReq
@@ -1436,10 +1437,10 @@ end subroutine dynk_checkspace
 ! ================================================================================================ !
 subroutine dynk_parseSET(inLine, iErr)
 
+  use parpro
   use crcoall
   use mod_alloc
-
-  implicit none
+  use string_tools
 
   character(len=*), intent(in)    :: inLine
   logical,          intent(inout) :: iErr
@@ -1567,7 +1568,7 @@ end function dynk_findFUNindex
 ! ================================================================================================ !
 integer function dynk_findSETindex(elementName, attName, startFrom)
 
-  implicit none
+  use parpro
 
   character(mStrLen), intent(in) :: elementName
   character(mStrLen), intent(in) :: attName
@@ -1593,8 +1594,8 @@ end function dynk_findSETindex
 ! ================================================================================================ !
 subroutine dynk_inputSanityCheck
 
+  use parpro
   use crcoall
-  implicit none
 
   integer ii, jj
   integer biggestTurn ! Used as a replacement for ending turn -1 (infinity)
@@ -1985,7 +1986,8 @@ recursive real(kind=fPrec) function dynk_computeFUN(funNum, turn) result(retval)
   use mod_common
   use mod_ranecu
   use numerical_constants, only : pi
-  use utils
+  use string_tools
+  use mod_utils
 
   implicit none
 
@@ -2070,7 +2072,7 @@ recursive real(kind=fPrec) function dynk_computeFUN(funNum, turn) result(retval)
     call recuut(tmpseed1,tmpseed2)
     call recuin(dynk_iData(dynk_funcs(funNum,3)+3),dynk_iData(dynk_funcs(funNum,3)+4))
     ! Run generator for 1 value with current mcut
-    call ranecu(ranecu_rvec,1,dynk_iData(dynk_funcs(funNum,3)+2))
+    call ranecu(ranecu_rvec, 1, 1, real(dynk_iData(dynk_funcs(funNum,3)+2),kind=fPrec))
     ! Save our current seeds and load old seeds
     call recuut(dynk_iData(dynk_funcs(funNum,3)+3),dynk_iData(dynk_funcs(funNum,3)+4))
     call recuin(tmpseed1,tmpseed2)
@@ -2081,8 +2083,8 @@ recursive real(kind=fPrec) function dynk_computeFUN(funNum, turn) result(retval)
     ! Save old seeds and load our current seeds
     call recuut(tmpseed1,tmpseed2)
     call recuin(dynk_iData(dynk_funcs(funNum,3)+2),dynk_iData(dynk_funcs(funNum,3)+3))
-    ! Run generator for 1 value with mcut=-1
-    call ranecu( ranecu_rvec, 1, -1 )
+    ! Run generator for 1 value in uniform mode
+    call ranecu(ranecu_rvec, 1, 0)
     ! Save our current seeds and load old seeds
     call recuut(dynk_iData(dynk_funcs(funNum,3)+2),dynk_iData(dynk_funcs(funNum,3)+3))
     call recuin(tmpseed1,tmpseed2)
@@ -2092,14 +2094,14 @@ recursive real(kind=fPrec) function dynk_computeFUN(funNum, turn) result(retval)
     ! Save old seeds and load our current seeds
     call recuut(tmpseed1,tmpseed2)
     call recuin(dynk_iData(dynk_funcs(funNum,3)+2),dynk_iData(dynk_funcs(funNum,3)+3))
-    ! Run generator for 1 value with mcut=-1
-    call ranecu( ranecu_rvec, 1, -1 )
+    ! Run generator for 1 value in uniform mode
+    call ranecu(ranecu_rvec, 1, 0)
     ! Save our current seeds and load old seeds
     call recuut(dynk_iData(dynk_funcs(funNum,3)+2),dynk_iData(dynk_funcs(funNum,3)+3))
     call recuin(tmpseed1,tmpseed2)
     ! routine for switching element (orginially the electron lens) ON or OFF
     ! when random value is less than P, set ON, else OFF
-    if (ranecu_rvec(1) .lt. dynk_fData(dynk_funcs(funNum,4))) then
+    if(ranecu_rvec(1) .lt. dynk_fData(dynk_funcs(funNum,4))) then
       retval = 1.0
     else
       retval = 0.0
@@ -2273,6 +2275,7 @@ subroutine dynk_setvalue(element_name, att_name, newValue)
   use mod_common_track
   use mod_common_main
   use mod_particles
+  use string_tools
 
   use elens
   use cheby
@@ -2336,7 +2339,7 @@ subroutine dynk_setvalue(element_name, att_name, newValue)
         else
           goto 100 ! ERROR
         end if
-        call initialize_element(ii, .false.)
+        call initialise_element(ii, .false.)
 
       case(11)
         im = irm(ii)
@@ -2374,21 +2377,21 @@ subroutine dynk_setvalue(element_name, att_name, newValue)
             goto 100 ! ERROR
           end if
         end if
-        call initialize_element(ii, .false.)
+        call initialise_element(ii, .false.)
 
       case(12)
         if(att_name == "voltage") then ! [MV]
           ed(ii) = newValue
         else if(att_name == "harmonic") then
           ek(ii) = newValue
-          el(ii) = dynk_elemData(ii,3) ! Need to reset el before calling initialize_element()
-          call initialize_element(ii, .false.)
+          el(ii) = dynk_elemData(ii,3) ! Need to reset el before calling initialise_element()
+          call initialise_element(ii, .false.)
         else if(att_name == "lag_angle") then ! [deg]
           el(ii) = newValue
-          ! Note: el is set to 0 in initialize_element and in daten.
+          ! Note: el is set to 0 in initialise_element and in daten.
           ! Calling initialize element on a cavity without setting el
           ! will set phasc = 0!
-          call initialize_element(ii, .false.)
+          call initialise_element(ii, .false.)
         else
           goto 100 ! ERROR
         end if
@@ -2433,7 +2436,7 @@ subroutine dynk_setvalue(element_name, att_name, newValue)
           else
             goto 100
           end if
-          call initialize_element(ii, .false.)
+          call initialise_element(ii, .false.)
         else
           goto 102
         end if
@@ -2445,11 +2448,11 @@ subroutine dynk_setvalue(element_name, att_name, newValue)
         else if(att_name == "frequency") then ! [MHz]
           ek(ii) = newValue
         else if(att_name == "phase") then ! [rad]
-          ! Note: el is set to 0 in initialize_element and in daten.
+          ! Note: el is set to 0 in initialise_element and in daten.
           ! Calling initialize element on a crab without setting el
           ! will set crabph = 0!
           el(ii) = newValue
-          call initialize_element(ii, .false.)
+          call initialise_element(ii, .false.)
         else
           goto 100 ! ERROR
         end if
@@ -2557,8 +2560,7 @@ real(kind=fPrec) function dynk_getvalue(element_name, att_name)
   use elens
   use cheby
   use parbeam, only : beam_expflag
-
-  implicit none
+  use string_tools
 
   character(mStrLen), intent(in) :: element_name, att_name
 
@@ -2877,7 +2879,9 @@ end subroutine dynk_closeFiles
 ! ================================================================================================ !
 subroutine dynk_crcheck_readdata(fileunit,readerr)
 
+  use parpro
   use crcoall
+  use mod_alloc
 
   implicit none
 
@@ -2900,10 +2904,10 @@ subroutine dynk_crcheck_readdata(fileunit,readerr)
   return
 
 100 continue
-
-  write(lout,"(a,i0)") "READERR in scatter_crcheck; fileunit=",fileunit
-  write(93,*)          "READERR in scatter_crcheck; fileunit=",fileunit
   readerr=.true.
+  write(lout, "(a,i0,a)") "CR_CHECK> ERROR Reading C/R file fort.",fileUnit," in DYNK"
+  write(crlog,"(a,i0,a)") "CR_CHECK> ERROR Reading C/R file fort.",fileUnit," in DYNK"
+  flush(crlog)
 
 end subroutine dynk_crcheck_readdata
 
@@ -2924,11 +2928,11 @@ subroutine dynk_crcheck_positionFiles
   character(len=mInputLn) aRecord
 
   inquire(unit=dynk_fileUnit, opened=isOpen)
-  if (isOpen) then
-    write(93,"(a)")      "SIXTRACR> CRCHECK FAILED while repositioning '"//dynk_fileName//"'"
-    write(93,"(a,i0,a)") "SIXTRACR>       UNIT ",dynk_fileUnit," already in use!"
-    flush(93)
-    write(lout,"(a)") "SIXTRACR> CRCHECK failure positioning '"//dynk_fileName//"'"
+  if(isOpen) then
+    write(crlog,"(a)")      "CR_CHECK> ERROR Failed while repositioning '"//dynk_fileName//"'"
+    write(crlog,"(a,i0,a)") "CR_CHECK>       Unit ",dynk_fileUnit," already in use!"
+    flush(crlog)
+    write(lerr,"(a)") "CR_CHECK> ERROR Failed positioning '"//dynk_fileName//"'"
     call prror
   end if
 
@@ -2945,24 +2949,22 @@ subroutine dynk_crcheck_positionFiles
     call f_close(dynk_fileUnit)
     call f_open(unit=dynk_fileUnit,file=dynk_fileName,formatted=.true.,mode="w+",status="old")
 
-    write(93,"(2(a,i0))") "SIXTRACR> CRCHECK sucessfully repositioned '"//dynk_fileName//"', "// &
+    write(crlog,"(2(a,i0))") "CR_CHECK> Sucessfully repositioned '"//dynk_fileName//"', "// &
       "dynk_filePos = ",dynk_filePos,", dynk_filePosCR = ",dynk_filePosCR
-    flush(93)
+    flush(crlog)
   else
-    write(93,"(a,i0)") "SIXTRACR> CRCHECK did not attempt repositioning "// &
-      "of '"//dynk_fileName//"', dynk_filePosCR = ",dynk_filePosCR
-    write(93,"(a)")    "SIXTRACR> If anything has been written to the file, "// &
-      "it will be correctly truncated in dynk_apply on the first turn."
-    flush(93)
+    write(crlog,"(a,i0)") "CR_CHECK> Did not attempt repositioning of '"//dynk_fileName//"', dynk_filePosCR = ",dynk_filePosCR
+    write(crlog,"(a)")    "CR_CHECK> If anything was written to the file, it will be truncated in dynk_apply on the first turn."
+    flush(crlog)
   end if
 
   return
 
 110 continue
-  write(93,"(2(a,i0))") "SIXTRACR> ERROR in CRCHECK while reading '"//dynk_fileName//"', "//&
+  write(crlog,"(2(a,i0))") "CR_CHECK> ERROR While reading '"//dynk_fileName//"', "//&
     "dynk_filePos = ",dynk_filePos,", dynk_filePosCR = ",dynk_filePosCR
-  flush(93)
-  write(lout,"(a)") "SIXTRACR> CRCHECK failure positioning '"//dynk_fileName//"'"
+  flush(crlog)
+  write(lerr,"(a)") "CR_CHECK> ERROR CRCHECK failure positioning '"//dynk_fileName//"'"
   call prror
 
 end subroutine dynk_crcheck_positionFiles
@@ -2972,29 +2974,32 @@ end subroutine dynk_crcheck_positionFiles
 !  Last modified: 2018-05-28
 !  - Called from CRPOINT; write checkpoint data to fort.95/96
 ! ================================================================================================ !
-subroutine dynk_crpoint(fileunit,fileerror,ierro)
+subroutine dynk_crpoint(fileunit,fileerror)
 
-  implicit none
+  use crcoall
 
-  integer, intent(in)    :: fileunit
-  logical, intent(inout) :: fileerror
-  integer, intent(inout) :: ierro
+  integer, intent(in)  :: fileunit
+  logical, intent(out) :: fileerror
 
   integer j
 
   !Note: dynk_fSets_cr is set in global `crpoint` routine, in order to avoid
   ! that it is filled twice (requiring loop over all dynk_fsets_unique and call to dynk_getvalue)
-  write(fileunit,err=100,iostat=ierro) dynk_filePos, dynk_niData, dynk_nfData, dynk_ncData
-  write(fileunit,err=100,iostat=ierro) &
+  write(fileunit,err=100) dynk_filePos, dynk_niData, dynk_nfData, dynk_ncData
+  write(fileunit,err=100) &
       (dynk_iData(j),j=1,dynk_niData), (dynk_fData(j),j=1,dynk_nfData), &
       (dynk_cData(j),j=1,dynk_ncData), (dynk_fSets_cr(j),j=1,dynk_maxSets)
-  endfile (fileunit,iostat=ierro)
-  backspace (fileunit,iostat=ierro)
+  flush(fileunit)
 
+  fileerror = .false.
   return
 
 100 continue
-    fileerror=.true.
+  fileerror = .true.
+  write(lout, "(a,i0,a)") "CR_POINT> ERROR Writing C/R file fort.",fileUnit," in DYNK"
+  write(crlog,"(a,i0,a)") "CR_POINT> ERROR Writing C/R file fort.",fileUnit," in DYNK"
+  flush(crlog)
+
 end subroutine dynk_crpoint
 
 ! ================================================================================================ !
@@ -3005,7 +3010,8 @@ end subroutine dynk_crpoint
 ! ================================================================================================ !
 subroutine dynk_crstart
 
-  implicit none
+  use parpro
+  use mod_alloc
 
   integer j
 

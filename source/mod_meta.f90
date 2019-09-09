@@ -7,18 +7,20 @@
 module mod_meta
 
   use floatPrecision
+  use, intrinsic :: iso_fortran_env, only : int64
 
   implicit none
 
-  character(len=12), parameter     :: meta_fileName = "sim_meta.dat"
-  integer,           private, save :: meta_fileUnit
-  logical,           public,  save :: meta_isActive = .false.
+  character(len=12),   parameter     :: meta_fileName = "sim_meta.dat"
+  integer,             private, save :: meta_fileUnit
+  logical,             public,  save :: meta_isActive = .false.
 
   ! Collected MetaData
-  integer,           public,  save :: meta_nPartInit = 0   ! Initial number of particles
-  integer,           public,  save :: meta_nPartTurn = 0   ! Counted in tracking routines
-  integer,           public,  save :: meta_nRestarts = 0   ! Number of C/Rs
-  real(kind=fPrec),  public,  save :: meta_sympCheck = 0.0 ! Symplecticity check
+  integer,             public,  save :: meta_nPartInit = 0   ! Initial number of particles
+  integer,             public,  save :: meta_nPartTurn = 0   ! Particle-turns: Counted in tracking routines
+  integer(kind=int64), public,  save :: meta_nPTurnEle = 0   ! Particle-turn-eklements: Counted in tracking routines
+  integer,             public,  save :: meta_nRestarts = 0   ! Number of C/Rs
+  real(kind=fPrec),    public,  save :: meta_sympCheck = 0.0 ! Symplecticity check
 
   ! Meta Write Interface
   interface meta_write
@@ -42,8 +44,9 @@ module mod_meta
   private :: meta_write_log
 
 #ifdef CR
-  integer, public,  save :: meta_nRestarts_CR = 0
-  integer, private, save :: meta_nPartTurn_CR = 0
+  integer,             public,  save :: meta_nRestarts_CR = 0
+  integer,             private, save :: meta_nPartTurn_CR = 0
+  integer(kind=int64), private, save :: meta_nPTurnEle_CR = 0
 #endif
 
 contains
@@ -86,13 +89,14 @@ subroutine meta_finalise
   call f_requestUnit("crkillswitch.tmp",tmpUnit)
   inquire(file="crkillswitch.tmp",exist=fExist)
   if(fExist) then
-    open(tmpUnit,file="crkillswitch.tmp",form="unformatted",access="stream",status="old",action="read")
+    call f_open(unit=tmpUnit,file="crkillswitch.tmp",formatted=.false.,mode="r",access="stream",status="old")
     read(tmpUnit) nCRKills1,nCRKills2
-    close(tmpUnit)
+    call f_close(tmpUnit)
   end if
 
   call meta_write("SymplecticityDeviation",   meta_sympCheck)
   call meta_write("NumParticleTurns",         meta_nPartTurn)
+  call meta_write("NumParticleTurnsElement",  meta_nPTurnEle)
   call meta_write("AvgParticlesPerTurn",      real(meta_nPartTurn,fPrec)/numl, "f15.3")
   call meta_write("CR_RestartCount",          meta_nRestarts)
   call meta_write("CR_KillSwitchCount",       nCRKills2)
@@ -275,42 +279,45 @@ subroutine meta_crcheck(fileUnit, readErr)
   integer, intent(in)  :: fileUnit
   logical, intent(out) :: readErr
 
-  read(fileUnit, err=10, end=10) meta_nRestarts_CR, meta_nPartTurn_CR
+  read(fileUnit, err=10, end=10) meta_nRestarts_CR, meta_nPartTurn_CR, meta_nPTurnEle_CR
 
   readErr = .false.
   return
 
 10 continue
-  write(lerr,"(a,i0)") "META> ERROR Reading in meta_crcheck from fileUnit #",fileUnit
-  write(93,  "(a,i0)") "META> ERROR Reading in meta_crcheck from fileUnit #",fileUnit
   readErr = .true.
+  write(lout, "(a,i0,a)") "SIXTRACR> ERROR Reading C/R file unit ",fileUnit," in META"
+  write(crlog,"(a,i0,a)") "SIXTRACR> ERROR Reading C/R file unit ",fileUnit," in META"
+  flush(crlog)
 
 end subroutine meta_crcheck
 
-subroutine meta_crpoint(fileUnit, writeErr, iErro)
+subroutine meta_crpoint(fileUnit, writeErr)
 
   use crcoall
 
-  integer, intent(in)    :: fileUnit
-  logical, intent(inout) :: writeErr
-  integer, intent(inout) :: iErro
+  integer, intent(in)  :: fileUnit
+  logical, intent(out) :: writeErr
 
-  write(fileunit,err=10,iostat=iErro) meta_nRestarts, meta_nPartTurn
-  endfile(fileUnit,iostat=iErro)
-  backspace(fileUnit,iostat=iErro)
+  write(fileunit,err=10) meta_nRestarts, meta_nPartTurn, meta_nPTurnEle
+  flush(fileUnit)
+
+  writeErr = .false.
 
   return
 
 10 continue
-  write(lerr,"(a,i0)") "META> ERROR Writing in meta_crpoint to fileUnit #",fileUnit
-  write(93,  "(a,i0)") "META> ERROR Writing in meta_crpoint to fileUnit #",fileUnit
   writeErr = .true.
+  write(lout, "(a,i0,a)") "SIXTRACR> ERROR Writing C/R file unit ",fileUnit," in META"
+  write(crlog,"(a,i0,a)") "SIXTRACR> ERROR Writing C/R file unit ",fileUnit," in META"
+  flush(crlog)
 
 end subroutine meta_crpoint
 
 subroutine meta_crstart
   meta_nRestarts = meta_nRestarts_CR + 1 ! Restore previous value, and increment
   meta_nPartTurn = meta_nPartTurn_CR
+  meta_nPTurnEle = meta_nPTurnEle_CR
 end subroutine meta_crstart
 #endif
 

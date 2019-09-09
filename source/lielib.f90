@@ -48,7 +48,7 @@ subroutine lieinit(no1,nv1,nd1,ndpt1,iref1,nis)
               ndt=nd2
               if(ndpt.ne.nd2-1) then
                 write(lout,*) ' LETHAL ERROR IN LIEINIT'
-                call prror(-1)
+                call prror
               endif
             endif
        endif
@@ -71,17 +71,17 @@ subroutine lieinit(no1,nv1,nd1,ndpt1,iref1,nis)
         xintex(i)=zero
       enddo
 
-      xintex(          0)=       1.000000000000000_fPrec                     !hr11
-      xintex(          1)=  5.000000000000000e-001_fPrec                       !hr11
-      xintex(          2)=  8.333333333333334e-002_fPrec                       !hr11
-      xintex(          3)=  0.000000000000000e+000_fPrec                       !hr11
-      xintex(          4)= -1.388888888888898e-003_fPrec                       !hr11
-      xintex(          5)=  0.000000000000000e+000_fPrec                       !hr11
-      xintex(          6)=  3.306878306878064e-005_fPrec                       !hr11
+      xintex(          0)=       1.000000000000000_fPrec
+      xintex(          1)=  5.000000000000000e-001_fPrec
+      xintex(          2)=  8.333333333333334e-002_fPrec
+      xintex(          3)=  0.000000000000000e+000_fPrec
+      xintex(          4)= -1.388888888888898e-003_fPrec
+      xintex(          5)=  0.000000000000000e+000_fPrec
+      xintex(          6)=  3.306878306878064e-005_fPrec
       xintex(          7)= zero
-      xintex(          8)= -8.267195767165669e-007_fPrec                       !hr11
+      xintex(          8)= -8.267195767165669e-007_fPrec
       xintex(          9)=  zero
-      xintex(         10)=  4.592886537931051e-008_fPrec                       !hr11
+      xintex(         10)=  4.592886537931051e-008_fPrec
       return
 end subroutine lieinit
 
@@ -199,11 +199,11 @@ subroutine etallnom(x,n,nom)
       integer x(*),i1(4),i2(4)
       character(len=10) nom
 
-      do  i=1,abs(n)                                                    !hr11
+      do  i=1,abs(n)
         x(i)=0
       end do
 
-      call daallno(x,abs(n),nom)                                         !hr11
+      call daallno(x,abs(n),nom)
 
       if(n.lt.0) then
         call liepeek(i1,i2)
@@ -1456,7 +1456,6 @@ subroutine flofacg(xy,h,epsone)
       call dacmud(h,-one,t)
       call expflod(t,xy,x,eps,nrmax)
       call dalind(x,one,v,-one,t)
-! write(20,*) "$$$$$$$$$$$$$$",k,"$$$$$$$$$$$$$$$$$$$$"
 ! call daprid(t,1,1,20)
        if(xn.lt.epsone) then
             if(idpr.ge.0) write(lout,*) "xn quadratic",xn
@@ -1643,7 +1642,7 @@ subroutine mapnormf(x,ft,a2,a1,xy,h,nord,isi)
         rads(itu)=zero
       enddo
       jtune=isi
-      x2pii=(one/atan_mb(one))/eight                                    !hr11
+      x2pii=(one/atan_mb(one))/eight
       x2pi=atan_mb(one)*eight
       call dacopd(x,xy)
 ! goto fix point in the parameters + pt to order nord>=1
@@ -1666,7 +1665,6 @@ subroutine mapnormf(x,ft,a2,a1,xy,h,nord,isi)
       call initpert(st,angle,radn)
       call simil(a2i,xy,a2,xy)
       call dacopd(xy,a2i)
-!        write(6,*) 'Entering orderflo'
       call orderflo(h,ft,xy,angle,radn)
       do ij=1,nd-ndc
         p(ij)=angle(ij)
@@ -1757,7 +1755,7 @@ subroutine gofix(xy,a1,a1i,nord)
           call dacmu(w(2*i-1),-one,v(2*i) )
         enddo
 
-        xic=real((-1)**(ndt),fPrec)                                            !hr11
+        xic=real((-1)**(ndt),fPrec)
 
         do i=1,nd2-ndc2
           call damul(v(i),rel(i),x(1))
@@ -1835,7 +1833,6 @@ subroutine orderflo(h,ft,x,ang,ra)
       call facflod(h,x,v,2,k-1,-one,-1)
 ! EXTRACTING K TH DEGREE OF V ----> W
       call taked(v,k,w)
-!  write(16,*) "$$$$$$$$  K  $$$$$$$$$$", k
 ! W = EXP(B5) + ...
        call dacopd(w,b5)
 !      CALL INTD(W,B5,-1.D0)
@@ -1951,18 +1948,18 @@ real(kind=fPrec) function xgam(j)
           jj(i)=jj(i)+(-1)**iflow
           jp(i)=jp(i)-1
         endif
-        ic=ic+abs(jj(i))                                                 !hr11
+        ic=ic+abs(jj(i))
       enddo
 
       do i=1,nd-ndc
         ad=((dsta(i)*real(jj(i),fPrec))*angle(i)-real(jp(i),fPrec)*radn(i))+ad
-        as=(sta(i)*real(jj(i),fPrec))*angle(i)+as                              !hr11
+        as=(sta(i)*real(jj(i),fPrec))*angle(i)+as
       enddo
 
       exh=exp_mb(ad/two)
       ex=exh**2
-      ans=(four*ex)*(sinh_mb(ad/two)**2+sin_mb(as/two)**2)             !hr11
-      xgam=(two*(ex*sin_mb(as/two)**2-exh*sinh_mb(ad/two)))/ans       !hr11
+      ans=(four*ex)*(sinh_mb(ad/two)**2+sin_mb(as/two)**2)
+      xgam=(two*(ex*sin_mb(as/two)**2-exh*sinh_mb(ad/two)))/ans
 
       return
 end function xgam
@@ -1995,13 +1992,13 @@ real(kind=fPrec) function xgbm(j)
 
       do i=1,nd-ndc
         ad=((dsta(i)*real(jj(i),fPrec))*angle(i)-real(jp(i),fPrec)*radn(i))+ad
-        as=(sta(i)*real(jj(i),fPrec))*angle(i)+as                              !hr11
+        as=(sta(i)*real(jj(i),fPrec))*angle(i)+as
       enddo
 
       exh=exp_mb(ad/two)
       ex=exh**2
-      ans=(four*ex)*(sinh_mb(ad/two)**2+sin_mb(as/two)**2)             !hr11
-      xgbm=(sin_mb(as)*ex)/ans                                           !hr11
+      ans=(four*ex)*(sinh_mb(ad/two)**2+sin_mb(as/two)**2)
+      xgbm=(sin_mb(as)*ex)/ans
 
       return
 end function xgbm
@@ -2181,7 +2178,7 @@ subroutine h2pluflo(h,ang,ra)
 
       do i=1,nd-ndc
         j(2*i-1)=1
-        r1=-one*ang(i)                                                   !hr11
+        r1=-one*ang(i)
 !-----
         call dapok(h(2*i),j,r1)
 
@@ -2202,7 +2199,7 @@ subroutine h2pluflo(h,ang,ra)
         call dapok(h(ndt),j,ang(nd))
       elseif(ndpt.eq.nd2) then
         j(ndpt)=1
-        call dapok(h(ndt),j,-one*ang(nd))                                !hr11
+        call dapok(h(ndt),j,-one*ang(nd))
       endif
       return
 end subroutine h2pluflo
@@ -2227,7 +2224,7 @@ subroutine rotflo(ro,ang,ra)
         if(ista(i).eq.0) then
           call hyper(ang(i),ch,sh)
           co(i)=ch*xx
-          si(i)=(-one*sh)*xx                                             !hr11
+          si(i)=(-one*sh)*xx
         else
           co(i)=cos_mb(ang(i))*xx
           si(i)=sin_mb(ang(i))*xx
@@ -2237,7 +2234,7 @@ subroutine rotflo(ro,ang,ra)
         if(ista(i).eq.0)then
           sim=si(i)
         else
-          sim=-one*si(i)                                                 !hr11
+          sim=-one*si(i)
         endif
         j(2*i-1)=1
         call dapok(ro(2*i-1),j,co(i))
@@ -2282,7 +2279,7 @@ subroutine rotiflo(roi,ang,ra)
 
       call daclrd(roi)
       do i=1,nd-ndc
-        xx=exp_mb(-one*ra(i))                                            !hr11
+        xx=exp_mb(-one*ra(i))
         if(ista(i).eq.0) then
           call hyper(ang(i),ch,sh)
           co(i)=ch*xx
@@ -2296,15 +2293,15 @@ subroutine rotiflo(roi,ang,ra)
         if(ista(i).eq.0)then
           sim=si(i)
         else
-          sim=-one*si(i)                                                 !hr11
+          sim=-one*si(i)
         endif
         j(2*i-1)=1
         call dapok(roi(2*i-1),j,co(i))
-        simv=-one*sim                                                    !hr11
+        simv=-one*sim
         call dapok(roi(2*i),j,simv)
         j(2*i-1)=0
         j(2*i)=1
-        simv=-one*si(i)                                                  !hr11
+        simv=-one*si(i)
         call dapok(roi(2*i),j,co(i))
         call dapok(roi(2*i-1),j,simv)
         j(2*i)=0
@@ -2595,25 +2592,25 @@ subroutine midbflo(c,a2,a2i,q,a,st)
 
       call mapflol(sa,sai,cr,cm,st)
       do i=1,nd-ndc
-        if(st(i)+c1m3.gt.one) then                                   !hr11
-          a(i)=sqrt(cr(2*i-1,2*i-1)**2+cr(2*i-1,2*i)**2)                 !hr11
+        if(st(i)+c1m3.gt.one) then
+          a(i)=sqrt(cr(2*i-1,2*i-1)**2+cr(2*i-1,2*i)**2)
           q(i)=acos_mb(cr(2*i-1,2*i-1)/a(i))
           a(i)=log_mb(a(i))
           if(cr(2*i-1,2*i).lt.zero) q(i)=x2pi-q(i)
         else
-          a(i)=sqrt(cr(2*i-1,2*i-1)**2-cr(2*i-1,2*i)**2)                 !hr11
+          a(i)=sqrt(cr(2*i-1,2*i-1)**2-cr(2*i-1,2*i)**2)
           ch=cr(2*i-1,2*i-1)/a(i)
           shm=cr(2*i-1,2*i)/a(i)
 !       CH=CH+DSQRT(CH**2-1.D0)
 !       q(i)=DLOG(CH)
-          q(i)=-one*log_mb(ch+shm)                                       !hr11
+          q(i)=-one*log_mb(ch+shm)
 !       IF(cr(2*i-1,2*i).gt.0.d0) Q(I)=-Q(I)
           a(i)=log_mb(a(i))
         endif
       enddo
 
       if(ndc.eq.0) then
-        if(st(3)+c1m3.gt.one.and.nd.eq.3.and.q(nd).gt.half)             &!hr11
+        if(st(3)+c1m3.gt.one.and.nd.eq.3.and.q(nd).gt.half)             &
      &q(3)=q(3)-x2pi
       else
         q(nd)=cr(ndt,ndpt)
@@ -2687,10 +2684,10 @@ subroutine mapflol(sa,sai,cr,cm,st)
       call mulnd2(xj,w)
       call mulnd2(cr,w)
       if(idpr.ge.0.or.idpr.eq.-102) then
-        write(lout,*) 'Check of the symplectic condition on the linear part'
+        write(lout,"(a)") "LIELIB> Check of the symplectic condition on the linear part:"
         xsu=zero
         do i=1,nd2
-          write(lout,'(6(2x,g23.16))') ( w(i,j), j = 1, nd2 )
+          write(lout,"(3x,6(1x,1pe17.10))") (w(i,j), j=1, nd2)
           do j=1,nd2
             xsu=xsu+abs(w(i,j))
           enddo
@@ -2904,11 +2901,6 @@ subroutine movearou(rt)
       ic=0
       xrold=1000000000.0_fPrec
       call movemul(rt,s,rto,xr)
-! write(6,*) xr,xrold
-!  do i=1,6
-!       write(6,'(6(1x,1pe12.5))') (RTO(i,j),j=1,6)
-!  enddo
-!  PAUSE
       if(xr.lt.xrold) then
         xrold=xr
       endif
@@ -3034,7 +3026,7 @@ subroutine initpert(st,ang,ra)
       if(nres.ge.nreso) then
        write(lout,*) ' NRESO IN LIELIB TOO SMALL '
        write(lout,'(a)') "ERROR 999 in initpert"
-       call prror(-1)
+       call prror
       endif
       elseif(iref.eq.0) then
       nres=0
@@ -4042,7 +4034,6 @@ subroutine sympl3(m)
             qp = qp + m(lq,jq)*m(kp,jp) - m(lq,jp)*m(kp,jq)
             pp = pp + m(lp,jq)*m(kp,jp) - m(lp,jp)*m(kp,jq)
   300     continue
-!         write(6,*) qq,pq,qp,pp
           do 400 i=1,2*n
             m(kq,i) = m(kq,i) - qq*m(lp,i) + pq*m(lq,i)
             m(kp,i) = m(kp,i) - qp*m(lp,i) + pp*m(lq,i)
@@ -4053,7 +4044,6 @@ subroutine sympl3(m)
           jq = jp-1
           qp = qp + m(kq,jq)*m(kp,jp) - m(kq,jp)*m(kp,jq)
   500   continue
-!       write(6,*) qp
         do 600 i=1,2*n
           m(kp,i) = m(kp,i)/qp
   600   continue

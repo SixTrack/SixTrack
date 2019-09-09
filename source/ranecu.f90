@@ -32,29 +32,34 @@ module mod_ranecu
 
 contains
 
-! Generate LEN random numbers into RVEC
-!  If mcut ==  0, generate normal distributed random numbers
-!  If mcut  >  0, generate normal distributed random numbers r <= mcut
-!  If mcut == -1, generate uniformly distributed random numbers
-subroutine ranecu(rvec,len,mcut)
+! Generate LEN random numbers into RVEC with optional sigma cut if normal
+!   mode 0 : Generate uniformly distributed random numbers
+!   mode 1 : Generate normal distributed random numbers
+subroutine ranecu(rvec, len, mode, cut)
 
   use crcoall
   use floatPrecision
   use mathlib_bouncer
   use numerical_constants
-  implicit none
 
-  real(kind=fPrec), intent(out), dimension(*) :: rvec
-  integer, intent(in) :: len, mcut
+  real(kind=fPrec),           intent(out) :: rvec(*)
+  integer,                    intent(in)  :: len
+  integer,                    intent(in)  :: mode
+  real(kind=fPrec), optional, intent(in)  :: cut
 
-  integer i,iz,j,k
-  real(kind=fPrec) rvec0
-  real(kind=fPrec), dimension(2) :: r
+  real(kind=fPrec) rvec0, r(2), docut
+  integer i, iz, j, k
 
-  i=1
+  if(present(cut)) then
+    docut = cut
+  else
+    docut = zero
+  end if
+
+  i = 1
   rvec0 = zero
-  if(mcut < -1) then
-    write(lerr,"(a,i0)") "RANECU> ERROR mcut must be greater or equal to -1, got ", mcut
+  if(mode /= 0 .and. mode /= 1) then
+    write(lerr,"(a,i0)") "RANECU> ERROR mode must be 0 (uniform) or 1 (normal), got ", mode
     call prror
   end if
 
@@ -71,19 +76,19 @@ subroutine ranecu(rvec,len,mcut)
     r(j) = real(iz,fPrec)*4.656613e-10_fPrec
   end do
 
-  if (mcut >= 0) then ! mcut = -1 => Generate uniform numbers!
+  if(mode == 1) then
     ! Convert r(1), r(2) from U(0,1) -> rvec0 as Gaussian with cutoff mcut (#sigmas):
-    rvec0 = sqrt(((-one*two)*log_mb(r(1))))*cos_mb((two*pi)*r(2))
-  else if (mcut == -1) then
+    rvec0 = sqrt((-one*two)*log_mb(r(1))) * cos_mb(twopi*r(2))
+  else
     rvec0 = r(1)
   end if
 
-  if(abs(rvec0) <= real(mcut,fPrec) .or. mcut == 0 .or. mcut == -1) then
+  if(mode == 0 .or. docut <= zero .or. abs(rvec0) <= docut) then
     rvec(i) = rvec0
-    i=i+1
+    i = i + 1
   end if
+
   if(i <= len) goto 10
-  return
 
 end subroutine ranecu
 
@@ -97,7 +102,7 @@ subroutine recuinit(is1,is2)
 
   if(is1 < 1 .or. is1 > 2147483562) then
     write(lerr,"(a,i0)") "RANECU> ERROR Seed 1 must be an integer in the range 1 to 2147483562, got ", is1
-    call prror(-1)
+    call prror
   else
     iseed1 = is1
   end if
@@ -105,7 +110,7 @@ subroutine recuinit(is1,is2)
   if(present(is2)) then
     if(is2 < 1 .or. is2 > 2147483398) then
       write(lerr,"(a,i0)") "RANECU> ERROR Seed 2 must be an integer in the range 1 to 2147483398, got ", is2
-      call prror(-1)
+      call prror
     else
       iseed2 = is2
     end if

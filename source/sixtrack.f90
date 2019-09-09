@@ -23,20 +23,20 @@ subroutine daten
   use string_tools
   use mod_alloc
   use mod_units
+  use mod_linopt
 
   use mod_dist,  only : dist_enable, dist_parseInputLine
   use scatter,   only : scatter_active,scatter_debug,scatter_parseInputLine
   use dynk,      only : dynk_enabled,dynk_debug,dynk_dumpdata,dynk_inputsanitycheck,dynk_allocate,dynk_parseInputLine
   use fma,       only : fma_parseInputLine, fma_allocate
   use dump,      only : dump_parseInputLine,dump_parseInputDone
-  use zipf,      only : zipf_parseInputLine,zipf_parseInputDone
+  use zipf,      only : zipf_parseInputLine
   use bdex,      only : bdex_parseInputLine,bdex_parseInputDone
   use mod_fluc,  only : fluc_parseInputLine,fluc_readInputs
   use wire,      only : wire_parseInputLine,wire_parseInputDone
   use elens,     only : elens_parseInputLine,elens_parseInputDone,elens_postInput
   use cheby,     only : cheby_parseInputLine,cheby_parseInputDone,cheby_postInput
   use aperture
-  use mod_hions
 #ifdef HASHLIB
   use mod_hash
 #endif
@@ -50,6 +50,11 @@ subroutine daten
 #ifdef ROOT
   use root_output
 #endif
+
+#ifdef G4COLLIMATION
+  use geant4
+#endif
+
   use collimation
 #ifdef PYTHIA
   use mod_pythia
@@ -57,7 +62,7 @@ subroutine daten
 
   implicit none
 
-  character(len=mInputLn) inLine, pLines(5)
+  character(len=mInputLn) inLine, pLines2(5), pLines3(5)
   character(len=mNameLen) ic0(10)
   character(len=60)       iHead
   character(len=8)        cPad
@@ -90,7 +95,8 @@ subroutine daten
   nGeom       = 0
   lineNo2     = 0
   lineNo3     = 0
-  pLines(:)   = " "
+  pLines2(:)  = " "
+  pLines3(:)  = " "
 
 ! ================================================================================================ !
 !  READ FORT.3 HEADER
@@ -108,8 +114,8 @@ subroutine daten
     write(lerr,"(a)") "INPUT> ERROR Could not read from "//trim(fort3)
     call prror
   end if
-  pLines(5) = cCheck//cPad//iHead
-  lineNo3 = lineNo3+1
+  pLines3(5) = cCheck//cPad//iHead
+  lineNo3    = lineNo3+1
   if(cCheck(1:1) == "/") goto 90
   if(cCheck(1:1) == "!") goto 90
 
@@ -177,12 +183,14 @@ subroutine daten
     call prror
   end if
 
-  ! Keep the last few lines for error output, but only fort fort.3
+  ! Keep the last few lines for error output
+  if(nUnit == 2) then
+    pLines2(1:4) = pLines2(2:5)
+    pLines2(5)   = inLine
+  end if
   if(nUnit == 3) then
-    do i=1,4
-      pLines(i) = pLines(i+1)
-    end do
-    pLines(5) = inLine
+    pLines3(1:4) = pLines3(2:5)
+    pLines3(5)   = inLine
   end if
 
   if(len_trim(inLine) == 0) goto 110 ! Empty line, ignore
@@ -324,6 +332,17 @@ subroutine daten
       if(inErr) goto 9999
     end if
 
+  case("SIMU") ! Simulation Block
+    if(openBlock) then
+      sixin_hasSIMU = .true.
+    elseif(closeBlock) then
+      call sixin_parseInputDoneSIMU(inErr)
+      if(inErr) goto 9999
+    else
+      call sixin_parseInputLineSIMU(inLine,blockLine,inErr)
+      if(inErr) goto 9999
+    end if
+
   case("DISP") ! Displacement of Elements Block
     if(openBlock) then
       continue
@@ -336,7 +355,7 @@ subroutine daten
 
   case("INIT") ! Initial Coordinates
     if(openBlock) then
-      continue
+      sixin_hasINIT = .true.
     elseif(closeBlock) then
       dp1 = exz(1,6)
     else
@@ -346,7 +365,7 @@ subroutine daten
 
   case("TRAC") ! Tracking Parameters
     if(openBlock) then
-      continue
+      sixin_hasTRAC = .true.
     elseif(closeBlock) then
       continue
     else
@@ -390,7 +409,7 @@ subroutine daten
     elseif(closeBlock) then
       continue
     else
-      call sixin_parseInputLineLINE(inLine,blockLine,inErr)
+      call linopt_parseInputLine(inLine,blockLine,inErr)
       if(inErr) goto 9999
     end if
 
@@ -734,9 +753,9 @@ subroutine daten
     if(openBlock) then
       continue
     elseif(closeBlock) then
-      has_hion = .true.
+      sixin_hasHION = .true.
     else
-      call hions_parseInputLine(inLine,blockLine,inErr)
+      call sixin_parseInputLineHION(inLine,blockLine,inErr)
       if(inErr) goto 9999
     end if
 
@@ -744,7 +763,7 @@ subroutine daten
     if(openBlock) then
       continue
     elseif(closeBlock) then
-      call zipf_parseInputDone
+      continue
     else
       call zipf_parseInputline(inLine,inErr)
       if(inErr) goto 9999
@@ -820,6 +839,21 @@ subroutine daten
   end if
 #endif
 
+  case("GNT4") ! Geant4 Input Block
+#ifndef G4COLLIMATION
+    write(lerr,"(a)") "INPUT> ERROR SixTrack was not compiled with the G4COLLIMATION flag."
+    goto 9999
+#else
+  if(openBlock) then
+    continue
+  elseif(closeBlock) then
+    call geant4_parseInputDone
+  else
+    call geant4_parseInputLine(inLine,inErr)
+    if(inErr) goto 9999
+  end if
+#endif
+
   case default ! Unknown Block, Time to Panic
     write(lerr,"(a)") "INPUT> ERROR Unknown block '"//currBlock//"' encountered. Check your input file."
     goto 9999
@@ -861,42 +895,92 @@ subroutine daten
       call prror
     end if
 
-    call hions_postInput
+    if(sixin_hionSet .eqv. .false.) then
+      ! If we don't have the HION block, we need to set some variables - default to the proton values
+      zz0    = 1
+      aa0    = 1
+      qq0    = 1
+      pdgid0 = 2212
+      nucm0  = pma
+      write(lout,"(a)")        "ENDE> No HION block found. Defaulting to the proton values: "
+      write(lout,"(a,i0)")     "ENDE>  * Z = ",zz0
+      write(lout,"(a,i0)")     "ENDE>  * A = ",aa0
+      write(lout,"(a,e22.15)") "ENDE>  * M = ",nucm0
+      write(lout,"(a,i0)")     "ENDE>  * Q = ",qq0
+    end if
+
+    ! Init arrays
+    mtc(:)      = one
+    naa(:)      = aa0
+    nzz(:)      = zz0
+    nqq(:)      = qq0
+    pdgid(:)    = pdgid0
+    nucm(:)     = nucm0
+    moidpsv(:)  = one
+    omoidpsv(:) = zero
+
     gammar = nucm0/e0
-    betrel = sqrt((one+gammar)*(one-gammar))
-    e0f = sqrt(e0**2-nucm0**2)
-    brho   = (e0f/(clight*c1m6))/zz0
+    gamma0 = e0/nucm0
+    beta0  = sqrt((one+gammar)*(one-gammar))
+    e0f    = sqrt(e0**2-nucm0**2)
+    brho   = (e0f/(clight*c1m6))/qq0
 
     if(nbeam >= 1) then
       parbe14 = (((((-one*crad)*partnum)/four)/pi)/sixin_emitNX)*c1e6
     end if
-    crad   = (((two*crad)*partnum)*gammar)*c1e6
-    emitx  = sixin_emitNX*gammar
-    emity  = sixin_emitNY*gammar
+    crad  = (((two*crad)*partnum)*gammar)*c1e6
+    emitx = sixin_emitNX*gammar
+    emity = sixin_emitNY*gammar
 
     if(do_coll) then
       call collimate_postInput(gammar)
-    endif
+    end if
 
-    !Check for incompatible flags
-    if (ipos == 1) then
+    ! Check for incompatible flags
+    if(ipos == 1) then
       if (do_coll) then
-        write(lerr,'(a)') "ENDE> ERROR COLLimation block and POSTprocessing block are not compatible."
-        call prror(-1)
+        write(lerr,"(a)") "ENDE> ERROR COLLimation block and POSTprocessing block are not compatible."
+        call prror
       endif
 
-      if (scatter_active) then
-        write(lerr,'(a)') "ENDE> ERROR SCATTER block and POSTprocessing block are not compatible."
-        call prror(-1)
+      if(scatter_active) then
+        write(lerr,"(a)") "ENDE> ERROR SCATTER block and POSTprocessing block are not compatible."
+        call prror
       endif
 #ifdef FLUKA
       if (fluka_enable) then
-        write(lerr,'(a)') "ENDE> ERROR FLUKA block and POSTprocessing block are not compatible."
-        call prror(-1)
+        write(lerr,"(a)") "ENDE> ERROR FLUKA block and POSTprocessing block are not compatible."
+        call prror
       endif
 #endif
     endif
 
+  end if
+
+  if(sixin_hasSIMU) then
+    call sixin_postInputSIMU(inErr)
+    if(inErr) call prror
+  end if
+
+  ! This check used to be in DIFF block parsing, but is safer to have here
+  if(iclo6 == 1 .or. iclo6 == 2) nsix = 0
+
+  ! If no write frequency set on track files, default to the number of turns + 1
+  if(nwri == 0) then
+    nwri = numl + numlr + 1
+  end if
+
+  if(sixin_hasSIMU .and. sixin_hasTRAC) then
+    write(lerr,"(a)") "ENDE> ERROR Cannot have both a TRAC block and a SIMU block at the same time"
+    call prror
+  end if
+  if(sixin_hasSIMU .and. sixin_hasINIT) then
+    write(lerr,"(a)") "ENDE> ERROR Cannot have both a INIT block and a SIMU block at the same time"
+    call prror
+  end if
+  if(sixin_hasSIMU .and. sixin_hasHION) then
+    write(lerr,"(a)") "ENDE> ERROR Cannot have both a HION block and a SIMU block at the same time"
+    call prror
   end if
 
   call elens_postInput
@@ -924,13 +1008,13 @@ subroutine daten
         write(lerr,"(3(a,i5))") "ENDE> ERROR Requested ",int(parbe(j,2))," slices for 6D beam-beam element"//&
           " #",j," named '"//trim(bez(j))//"', maximum is mbea = ",mbea
         parbe(j,2) = real(mbea,fPrec)
-        call prror(-1) ! Treat this warning as an error
+        call prror
       end if
     end do
   end if
 
   call ffield_mod_link(inErr)
-  if(inErr) goto 9999
+  if(inErr) call prror
 
   ! Done with checks. Write the report
   call sixin_blockReport
@@ -1197,8 +1281,17 @@ subroutine daten
 9999 continue
   if(nUnit == 2) then
     write(lerr,"(a)")      ""
-    write(lerr,"(a)")      " ERROR in "//trim(fort2)
-    write(lerr,"(a,i0,a)") " Line ",lineNo2,": '"//trim(adjustl(inLine))//"'"
+    write(lerr,"(a,i0)")   " ERROR in "//trim(fort2)//" on line ",lineNo2
+    write(lerr,"(a)")      "========O"//repeat("=",91)
+    do i=1,5
+      if(lineNo2-5+i <= 0) cycle
+      if(i == 5) then
+        write(lerr,"(a,i5,a)") ">>",lineNo2-5+i," | "//trim(pLines2(i))
+      else
+        write(lerr,"(a,i5,a)") "  ",lineNo2-5+i," | "//trim(pLines2(i))
+      end if
+    end do
+    write(lerr,"(a)")      "========O"//repeat("=",91)
   else
     write(lerr,"(a)")      ""
     write(lerr,"(a,i0)")   " ERROR in "//trim(fort3)//" on line ",lineNo3
@@ -1206,9 +1299,9 @@ subroutine daten
     do i=1,5
       if(lineNo3-5+i <= 0) cycle
       if(i == 5) then
-        write(lerr,"(a,i5,a)") ">>",lineNo3-5+i," | "//trim(pLines(i))
+        write(lerr,"(a,i5,a)") ">>",lineNo3-5+i," | "//trim(pLines3(i))
       else
-        write(lerr,"(a,i5,a)") "  ",lineNo3-5+i," | "//trim(pLines(i))
+        write(lerr,"(a,i5,a)") "  ",lineNo3-5+i," | "//trim(pLines3(i))
       end if
     end do
     write(lerr,"(a)")      "========O"//repeat("=",91)
@@ -1217,947 +1310,6 @@ subroutine daten
   return
 
 end subroutine daten
-
-! ================================================================================================ !
-! purpose:                                                             *
-!   modification of wwerf, real(kind=fPrec) complex error function,    *
-!   written at cern by k. koelbig.                                     *
-!   taken from mad8                                                    *
-! input:                                                               *
-!   xx, yy    (real)    argument to cerf.                              *
-! output:                                                              *
-!   wx, wy    (real)    function result.                               *
-! ================================================================================================ !
-subroutine errf(xx,yy,wx,wy)
-  ! real(kind=fPrec) version.
-  use floatPrecision
-  use numerical_constants
-  use mathlib_bouncer
-  use mod_common, only : cc,xlim,ylim
-  implicit none
-
-  integer n,nc,nu
-  real(kind=fPrec) h,q,rx,ry,saux,sx,sy,tn,tx,ty,wx,wy,x,xh,xl,xx,y,yh,yy
-  dimension rx(33),ry(33)
-  save
-!-----------------------------------------------------------------------
-  x=abs(xx)
-  y=abs(yy)
-  if(y.lt.ylim.and.x.lt.xlim) then
-    q=(one-y/ylim)*sqrt(one-(x/xlim)**2)
-    h=one/(3.2_fPrec*q)
-    nc=7+int(23.0_fPrec*q)                                               !hr05
-!       xl=h**(1-nc)
-    xl=exp_mb((1-nc)*log_mb(h))                                      !yil11
-    xh=y+half/h
-    yh=x
-    nu=10+int(21.0_fPrec*q)
-    rx(nu+1)=zero
-    ry(nu+1)=zero
-    do 10 n=nu,1,-1
-      tx=xh+real(n,fPrec)*rx(n+1)                                          !hr05
-      ty=yh-real(n,fPrec)*ry(n+1)                                          !hr05
-      tn=tx**2+ty**2                                                 !hr05
-      rx(n)=(half*tx)/tn                                            !hr05
-      ry(n)=(half*ty)/tn                                            !hr05
-10   continue
-    sx=zero
-    sy=zero
-    do 20 n=nc,1,-1
-      saux=sx+xl
-      sx=rx(n)*saux-ry(n)*sy
-      sy=rx(n)*sy+ry(n)*saux
-      xl=h*xl
-20   continue
-    wx=cc*sx
-    wy=cc*sy
-  else
-    xh=y
-    yh=x
-    rx(1)=zero
-    ry(1)=zero
-    do 30 n=9,1,-1
-      tx=xh+real(n,fPrec)*rx(1)                                            !hr05
-      ty=yh-real(n,fPrec)*ry(1)                                            !hr05
-      tn=tx**2+ty**2                                                 !hr05
-      rx(1)=(half*tx)/tn                                            !hr05
-      ry(1)=(half*ty)/tn                                            !hr05
-30   continue
-    wx=cc*rx(1)
-    wy=cc*ry(1)
-  endif
-!      if(y.eq.0.) wx=exp(-x**2)
-  if(yy.lt.zero) then
-    wx=(two*exp_mb(y**2-x**2))*cos_mb((two*x)*y)-wx                  !hr05
-    wy=((-one*two)*exp_mb(y**2-x**2))*sin_mb((two*x)*y)-wy           !hr05
-    if(xx.gt.zero) wy=-one*wy                                        !hr05
-  else
-    if(xx.lt.zero) wy=-one*wy
-  endif
-end subroutine errf
-
-! ================================================================================================ !
-!  subroutine wzsubv
-!
-!  This subroutine sets u=real(w(z)) and v=imag(w(z)), where z=x+i*y and
-!  where w(z) is the complex error function defined by formula 7.1.3 in
-!  "Handbook of Mathematical functions [eds. M.Abramowitz & I.A.Stegun,
-!  Washington, 1966].  The absolute error of the computed value is less
-!  than 1E-8.
-!
-!  *** Note.  Subroutine WZSET must have been called before this sub-
-!  routine can be used.
-!
-!  For (x,y) inside the rectangle with opposite corners (xcut,0) and
-!  (0,ycut), where xcut and ycut have been set by WZSET, an interpo-
-!  lation formula is used.  For (x,y) outside this rectangle, a two-
-!  term rational approximation is used.
-!
-!  (G.A.Erskine, 29.09.1997)
-!
-!  Vectorised for up to 64 argument values by E.McIntosh, 30.10.1997.
-!  Much impoved using short vector buffers Eric 1st May, 2014.
-!
-!  Third-order divided-difference interpolation over the corners of a
-!  square [e.g. formula (2.5.1) in "Introduction to Numerical Analysis"
-!  (F.B.Hildebrand New York, 1957), but with complex nodes and
-!  function values].
-!
-!  In the interpolation formula the corners of the grid square contain-
-!  ing (x,y) are numbered (0,0)=3, (h,0)=4, (h,h)=1, (0,h)=2.
-!  Identifiers d, dd and ddd denote divided-differences of orders 1, 2
-!  and 3 respectively, and a preceding 't' indicates twice the value.
-!
-!
-!  Two-term rational approximation to w(z) [Footnote to Table 7.9
-!  in "Handbook of Mathematical Functions (eds. M.Abramowitz &
-!  I.A.Stegun, Washington, 1966), but with additional digits in
-!  the constants]:
-!              u+i*v = i*z*( a1/(z**2-b1) + a2/(z**2-b2) ).
-!  Maximum absolute error:
-!        <1.E-6  for  x>=4.9  or  y>=4.4
-!        <1.E-7  for  x>=6.1  or  y>=5.7
-!        <1.E-8  for  x>=7.8  or  y>=7.5
-!
-! ================================================================================================ !
-subroutine wzsubv(n,vx,vy,vu,vv)
-
-  use parpro, only : npart
-  use floatPrecision
-  use numerical_constants
-  implicit none
-
-  dimension vx(*),vy(*),vu(*),vv(*)
-  integer i,j,k,n,vmu,vnu
-  real(kind=fPrec) a1,a2,b1,b2,vd12i,vd12r,vd23i,vd23r,vd34i,vd34r,vp,vq,vqsq,vr,vsimag,vsreal,vt,  &
-    vtdd13i,vtdd13r,vtdd24i,vtdd24r,vtdddi,vtdddr,vti,vtr,vu,vusum,vusum3,vv,vvsum,vvsum3,vw1i,vw1r,&
-    vw2i,vw2r,vw3i,vw3r,vw4i,vw4r,vx,vxh,vxhrel,vy,vyh,vyhrel
-  integer idim,kstep,nx,ny
-  real(kind=fPrec) h,hrecip,wtimag,wtreal,xcut,ycut
-  parameter ( xcut = 7.77_fPrec, ycut = 7.46_fPrec )
-  parameter ( h = one/63.0_fPrec )
-  parameter ( nx = 490, ny = 470 )
-  parameter ( idim = (nx+2)*(ny+2) )
-  common /wzcom1/ hrecip, kstep
-  common /wzcom2/ wtreal(idim), wtimag(idim)
-  parameter ( a1 = 0.5124242248_fPrec, a2 = 0.0517653588_fPrec )
-  parameter ( b1 = 0.2752551286_fPrec, b2 = 2.7247448714_fPrec )
-  real(kind=fPrec) xm,xx,yy
-  parameter (xm=1e16_fPrec)
-!     temporary arrays to facilitate vectorisation
-  integer in,out,ins,outs
-  dimension ins(npart),outs(npart)
-!-----------------------------------------------------------------------
-  save
-  in=0
-  out=0
-  do i=1,n
-    if (vx(i).ge.xcut.or.vy(i).ge.ycut) then
-      out=out+1
-      outs(out)=i
-      if (out.eq.npart) then
-!     everything outside the rectangle so approximate
-!     write (*,*) 'ALL outside'
-!     write (*,*) 'i=',i
-        do j=1,out
-          xx=vx(outs(j))
-          yy=vy(outs(j))
-          if (xx.ge.xm) xx=xm
-          if (yy.ge.xm) yy=xm
-          vp=xx**2-yy**2
-          vq=(two*xx)*yy
-          vqsq=vq**2
-          !  First term.
-          vt=vp-b1
-          vr=a1/(vt**2+vqsq)
-          vsreal=vr*vt
-          vsimag=-vr*vq
-          !  Second term
-          vt=vp-b2
-          vr=a2/(vt**2+vqsq)
-          vsreal=vsreal+vr*vt
-          vsimag=vsimag-vr*vq
-          !  Multiply by i*z.
-          vu(outs(j))=-(yy*vsreal+xx*vsimag)
-          vv(outs(j))=xx*vsreal-yy*vsimag
-        enddo
-        out=0
-      endif
-    else
-      in=in+1
-      ins(in)=i
-      if (in.eq.npart) then
-!     everything inside the square, so interpolate
-!     write (*,*) 'ALL inside'
-        do j=1,in
-          vxh = hrecip*vx(ins(j))
-          vyh = hrecip*vy(ins(j))
-          vmu = int(vxh)
-          vnu = int(vyh)
-!  Compute divided differences.
-          k = 2 + vmu + vnu*kstep
-          vw4r = wtreal(k)
-          vw4i = wtimag(k)
-          k = k - 1
-          vw3r = wtreal(k)
-          vw3i = wtimag(k)
-          vd34r = vw4r - vw3r
-          vd34i = vw4i - vw3i
-          k = k + kstep
-          vw2r = wtreal(k)
-          vw2i = wtimag(k)
-          vd23r = vw2i - vw3i
-          vd23i = vw3r - vw2r
-          vtr = vd23r - vd34r
-          vti = vd23i - vd34i
-          vtdd24r = vti - vtr
-          vtdd24i = -one* ( vtr + vti )                             !hr05
-          k = k + 1
-          vw1r = wtreal(k)
-          vw1i = wtimag(k)
-          vd12r = vw1r - vw2r
-          vd12i = vw1i - vw2i
-          vtr = vd12r - vd23r
-          vti = vd12i - vd23i
-          vtdd13r = vtr + vti
-          vtdd13i = vti - vtr
-          vtdddr = vtdd13i - vtdd24i
-          vtdddi = vtdd24r - vtdd13r
-!  Evaluate polynomial.
-          vxhrel = vxh - real(vmu,fPrec)
-          vyhrel = vyh - real(vnu,fPrec)
-          vusum3=half*(vtdd13r+(vxhrel*vtdddr-vyhrel*vtdddi))
-          vvsum3=half*(vtdd13i+(vxhrel*vtdddi+vyhrel*vtdddr))
-          vyhrel = vyhrel - one
-          vusum=vd12r+(vxhrel*vusum3-vyhrel*vvsum3)
-          vvsum=vd12i+(vxhrel*vvsum3+vyhrel*vusum3)
-          vxhrel = vxhrel - one
-          vu(ins(j))=vw1r+(vxhrel*vusum-vyhrel*vvsum)
-          vv(ins(j))=vw1i+(vxhrel*vvsum+vyhrel*vusum)
-        enddo
-        in=0
-      endif
-    endif
-  enddo
-!     everything outside the rectangle so approximate
-!     write (*,*) 'ALL outside'
-!     write (*,*) 'i=',i
-  do j=1,out
-    xx=vx(outs(j))
-    yy=vy(outs(j))
-    if (xx.ge.xm) xx=xm
-    if (yy.ge.xm) yy=xm
-    vp=xx**2-yy**2
-    vq=(two*xx)*yy
-    vqsq=vq**2
-!  First term.
-    vt=vp-b1
-    vr=a1/(vt**2+vqsq)
-    vsreal=vr*vt
-    vsimag=-vr*vq
-!  Second term
-    vt=vp-b2
-    vr=a2/(vt**2+vqsq)
-    vsreal=vsreal+vr*vt
-    vsimag=vsimag-vr*vq
-!  Multiply by i*z.
-    vu(outs(j))=-(yy*vsreal+xx*vsimag)
-    vv(outs(j))=xx*vsreal-yy*vsimag
-  enddo
-!     everything inside the square, so interpolate
-!     write (*,*) 'ALL inside'
-  do j=1,in
-    vxh = hrecip*vx(ins(j))
-    vyh = hrecip*vy(ins(j))
-    vmu = int(vxh)
-    vnu = int(vyh)
-!  Compute divided differences.
-    k = 2 + vmu + vnu*kstep
-    vw4r = wtreal(k)
-    vw4i = wtimag(k)
-    k = k - 1
-    vw3r = wtreal(k)
-    vw3i = wtimag(k)
-    vd34r = vw4r - vw3r
-    vd34i = vw4i - vw3i
-    k = k + kstep
-    vw2r = wtreal(k)
-    vw2i = wtimag(k)
-    vd23r = vw2i - vw3i
-    vd23i = vw3r - vw2r
-    vtr = vd23r - vd34r
-    vti = vd23i - vd34i
-    vtdd24r = vti - vtr
-    vtdd24i = -one* ( vtr + vti )                             !hr05
-    k = k + 1
-    vw1r = wtreal(k)
-    vw1i = wtimag(k)
-    vd12r = vw1r - vw2r
-    vd12i = vw1i - vw2i
-    vtr = vd12r - vd23r
-    vti = vd12i - vd23i
-    vtdd13r = vtr + vti
-    vtdd13i = vti - vtr
-    vtdddr = vtdd13i - vtdd24i
-    vtdddi = vtdd24r - vtdd13r
-!  Evaluate polynomial.
-    vxhrel = vxh - real(vmu,fPrec)
-    vyhrel = vyh - real(vnu,fPrec)
-    vusum3=half*(vtdd13r+(vxhrel*vtdddr-vyhrel*vtdddi))
-    vvsum3=half*(vtdd13i+(vxhrel*vtdddi+vyhrel*vtdddr))
-    vyhrel = vyhrel - one
-    vusum=vd12r+(vxhrel*vusum3-vyhrel*vvsum3)
-    vvsum=vd12i+(vxhrel*vvsum3+vyhrel*vusum3)
-    vxhrel = vxhrel - one
-    vu(ins(j))=vw1r+(vxhrel*vusum-vyhrel*vvsum)
-    vv(ins(j))=vw1i+(vxhrel*vvsum+vyhrel*vusum)
-  enddo
-  return
-end subroutine wzsubv
-
-! ================================================================================================ !
-!  subroutine wzsub
-!
-!  This subroutine sets u=real(w(z)) and v=imag(w(z)), where z=x+i*y and
-!  where w(z) is the complex error function defined by formula 7.1.3 in
-!  "Handbook of Mathematical functions [eds. M.Abramowitz & I.A.Stegun,
-!  Washington, 1966].  The absolute error of the computed value is less
-!  than 1E-8.
-!
-!  *** Note.  Subroutine WZSET must have been called before this sub-
-!  routine can be used.
-!
-!  For (x,y) inside the rectangle with opposite corners (xcut,0) and
-!  (0,ycut), where xcut and ycut have been set by WZSET, an interpo-
-!  lation formula is used.  For (x,y) outside this rectangle, a two-
-!  term rational approximation is used.
-!
-!  (G.A.Erskine, 29.09.1997)
-!
-!
-!  Third-order divided-difference interpolation over the corners of a
-!  square [e.g. formula (2.5.1) in "Introduction to Numerical Analysis"
-!  (F.B.Hildebrand New York, 1957), but with complex nodes and
-!  function values].
-!
-!  In the interpolation formula the corners of the grid square contain-
-!  ing (x,y) are numbered (0,0)=3, (h,0)=4, (h,h)=1, (0,h)=2.
-!  Identifiers d, dd and ddd denote divided-differences of orders 1, 2
-!  and 3 respectively, and a preceding 't' indicates twice the value.
-!
-! ================================================================================================ !
-subroutine wzsub(x,y,u,v)
-
-  use floatPrecision
-  use numerical_constants
-  use mathlib_bouncer
-  use parpro
-  use parbeam
-  implicit none
-  integer k,mu,nu
-  real(kind=fPrec) a1,a2,b1,b2,d12i,d12r,d23i,d23r,d34i,d34r,p,q,qsq,r,simag,sreal,t,tdd13i,tdd13r, &
-    tdd24i,tdd24r,tdddi,tdddr,ti,tr,u,usum,usum3,v,vsum,vsum3,w1i,w1r,w2i,w2r,w3i,w3r,w4i,w4r,x,xh, &
-    xhrel,y,yh,yhrel
-  parameter ( a1 = 0.5124242248_fPrec, a2 = 0.0517653588_fPrec )
-  parameter ( b1 = 0.2752551286_fPrec, b2 = 2.7247448714_fPrec )
-  save
-!-----------------------------------------------------------------------
-  if ( x.ge.xcut .or. y.ge.ycut ) goto 1000
-  xh = hrecip*x
-  yh = hrecip*y
-  mu = int(xh)
-  nu = int(yh)
-!  Compute divided differences.
-  k = 2 + mu + nu*kstep
-  w4r = wtreal(k)
-  w4i = wtimag(k)
-  k = k - 1
-  w3r = wtreal(k)
-  w3i = wtimag(k)
-  d34r = w4r - w3r
-  d34i = w4i - w3i
-  k = k + kstep
-  w2r = wtreal(k)
-  w2i = wtimag(k)
-  d23r = w2i - w3i
-  d23i = w3r - w2r
-  tr = d23r - d34r
-  ti = d23i - d34i
-  tdd24r = ti - tr
-  tdd24i = -one* ( tr + ti )                                         !hr05
-  k = k + 1
-  w1r = wtreal(k)
-  w1i = wtimag(k)
-  d12r = w1r - w2r
-  d12i = w1i - w2i
-  tr = d12r - d23r
-  ti = d12i - d23i
-  tdd13r = tr + ti
-  tdd13i = ti - tr
-  tdddr = tdd13i - tdd24i
-  tdddi = tdd24r - tdd13r
-!  Evaluate polynomial.
-  xhrel = xh - real(mu,fPrec)
-  yhrel = yh - real(nu,fPrec)
-  usum3 = half*( tdd13r + ( xhrel*tdddr - yhrel*tdddi ) )
-  vsum3 = half*( tdd13i + ( xhrel*tdddi + yhrel*tdddr ) )
-  yhrel = yhrel - one
-  usum = d12r + ( xhrel*usum3 - yhrel*vsum3 )
-  vsum = d12i + ( xhrel*vsum3 + yhrel*usum3 )
-  xhrel = xhrel - one
-  u = w1r + ( xhrel*usum - yhrel*vsum )
-  v = w1i + ( xhrel*vsum + yhrel*usum )
-  return
-!
-!  Two-term rational approximation to w(z) [Footnote to Table 7.9
-!  in "Handbook of Mathematical Functions (eds. M.Abramowitz &
-!  I.A.Stegun, Washington, 1966), but with additional digits in
-!  the constants]:
-!              u+i*v = i*z*( a1/(z**2-b1) + a2/(z**2-b2) ).
-!  Maximum absolute error:
-!        <1.E-6  for  x>=4.9  or  y>=4.4
-!        <1.E-7  for  x>=6.1  or  y>=5.7
-!        <1.E-8  for  x>=7.8  or  y>=7.5
-!
-1000 p=x**2-y**2
-  q=(2.d0*x)*y                                                       !hr05
-  qsq=q**2
-!  First term.
-  t=p-b1
-  r=a1/(t**2+qsq)
-  sreal=r*t
-  simag=(-one*r)*q                                                   !hr05
-!  Second term
-  t=p-b2
-  r=a2/(t**2+qsq)
-  sreal=sreal+r*t
-  simag=simag-r*q
-!  Multiply by i*z.
-  u=-one*(y*sreal+x*simag)                                           !hr05
-  v=x*sreal-y*simag
-  return
-!
-end subroutine wzsub
-
-! ================================================================================================ !
-! K. Sjobak, A. Santamaria, BE-ABP-HSS
-! Created: 2016-12-23
-! Updated: 2019-04-12
-! Initialize a lattice element with index elIdx,
-! such as done when reading fort.2 (GEOM) and in DYNK.
-!
-! Never delete an element from the lattice, even if it is not making a kick.
-! If the element is not recognized, do nothing (for now).
-! If trying to initialize an element (not lfirst) which is disabled, print an error and exit.
-! ================================================================================================ !
-subroutine initialize_element(ix,lfirst)
-
-  use crcoall
-  use floatPrecision
-  use mathlib_bouncer
-  use numerical_constants
-
-  use parpro
-  use parbeam
-  use mod_hions
-  use mod_common
-  use mod_common_main
-  use mod_common_track
-
-  use cheby, only : cheby_kz
-  use dynk,  only : dynk_elemData, dynk_izuIndex
-
-  implicit none
-
-  integer, intent(in) :: ix
-  logical, intent(in) :: lfirst
-
-  integer i,m,k,im,nmz,izu,ibb,ii,j,nbeaux(nbb)
-  real(kind=fPrec) r0,r0a,bkitemp,sfac1,sfac2,sfac2s,sfac3,sfac4,sfac5,crkveb_d,cikveb_d,rho2b_d,   &
-    tkb_d,r2b_d,rb_d,rkb_d,xrb_d,zrb_d,cbxb_d,cbzb_d,crxb_d,crzb_d,xbb_d,zbb_d,napx0
-  real(kind=fPrec) crkveb(npart),cikveb(npart),rho2b(npart),tkb(npart),r2b(npart),rb(npart),        &
-    rkb(npart),xrb(npart),zrb(npart),xbb(npart),zbb(npart),crxb(npart),crzb(npart),cbxb(npart),     &
-    cbzb(npart)
-
-  ! Nonlinear Elements
-  if(abs(kz(ix)) >= 1 .and. abs(kz(ix)) <= 10) then
-    if(.not.lfirst) then
-      do i=1,iu
-        if(ic(i)-nblo == ix) then
-          if(ktrack(i) == 31) goto 100 !ERROR
-          sm(ix)  = ed(ix)          ! Also done in envar() which is called from clorb()
-          smiv(i) = sm(ix)+smizf(i) ! Also done in program maincr
-          smi(i)  = smiv(i)         ! Also done in program maincr
-          select case(abs(kz(ix)))
-          case(1)
-#include "include/stra01.f90"
-          case(2)
-#include "include/stra02.f90"
-          case(3)
-#include "include/stra03.f90"
-          case(4)
-#include "include/stra04.f90"
-          case(5)
-#include "include/stra05.f90"
-          case(6)
-#include "include/stra06.f90"
-          case(7)
-#include "include/stra07.f90"
-          case(8)
-#include "include/stra08.f90"
-          case(9)
-#include "include/stra09.f90"
-          case(10)
-#include "include/stra10.f90"
-          end select
-        end if
-      end do
-    end if
-
-  ! Multipoles
-  elseif(kz(ix) == 11) then
-    if(lfirst) then
-      if(abs(el(ix)+one) <= pieni) then
-        dki(ix,1) = ed(ix)
-        dki(ix,3) = ek(ix)
-        ed(ix) = one
-        ek(ix) = one
-        el(ix) = zero
-      else if(abs(el(ix)+two) <= pieni) then
-        dki(ix,2) = ed(ix)
-        dki(ix,3) = ek(ix)
-        ed(ix) = one
-        ek(ix) = one
-        el(ix) = zero
-      end if
-    else
-      do i=1,iu
-        if(ic(i)-nblo == ix) then
-          nmz = nmu(ix)
-          im  = irm(ix)
-          do k=1,nmz
-            aaiv(k,i) = scalemu(im)*(ak0(im,k)+amultip(k,i)*aka(im,k))
-            bbiv(k,i) = scalemu(im)*(bk0(im,k)+bmultip(k,i)*bka(im,k))
-          end do
-        end if
-      end do
-    end if
-
-  ! Cavities (ktrack = 2 for thin)
-  elseif(abs(kz(ix)) == 12) then
-    dynk_elemData(ix,3) = el(ix)
-    phasc(ix) = el(ix)*rad
-    el(ix) = zero
-    if(lfirst) then
-      if(abs(ed(ix)) > pieni .and. abs(ek(ix)) > pieni) then
-        ncy2   = ncy2 + 1
-        kp(ix) = 6
-      end if
-    else
-      hsyc(ix) = ((twopi)*ek(ix))/tlen                             ! SYNC block
-      hsyc(ix) = (c1m3*hsyc(ix)) * real(sign(1,kz(ix)),kind=fPrec) ! trauthin/trauthck
-    end if
-
-  ! Wire
-  else if(kz(ix) == 15) then
-    ed(ix) = zero
-    ek(ix) = zero
-    el(ix) = zero
-
-  ! BEAM-BEAM
-  elseif(kz(ix) == 20) then
-
-    if(lfirst) then
-      ptnfac(ix)  = el(ix)
-      el(ix)      = zero
-      parbe(ix,5) = ed(ix)
-      ed(ix)      = zero
-      parbe(ix,6) = ek(ix)
-      ek(ix)      = zero
-    end if
-    ! This is to inialize all the beam-beam element before the tracking (or to update it for DYNK).
-    if(.not.lfirst) then
-      do i=1,iu
-        if(ic(i)-nblo == ix) then
-          ibb = imbb(i)
-          if(parbe(ix,2) > zero) then
-            if(beam_expflag == 1) then
-              bbcu(ibb,1)  = parbe(ix,7)
-              bbcu(ibb,4)  = parbe(ix,8)
-              bbcu(ibb,6)  = parbe(ix,9)
-              bbcu(ibb,2)  = parbe(ix,10)
-              bbcu(ibb,9)  = parbe(ix,11)
-              bbcu(ibb,10) = parbe(ix,12)
-              bbcu(ibb,3)  = parbe(ix,13)
-              bbcu(ibb,5)  = parbe(ix,14)
-              bbcu(ibb,7)  = parbe(ix,15)
-              bbcu(ibb,8)  = parbe(ix,16)
-              do ii=1,10
-                bbcu(ibb,ii) = bbcu(ibb,ii)*c1m6
-              end do
-            end if
-            ktrack(i)   = 44
-            parbe(ix,4) = (((-one*crad)*ptnfac(ix))*half)*c1m6
-            if(ibeco == 1) then
-              track6d(1,1) = parbe(ix,5)*c1m3
-              track6d(2,1) = zero
-              track6d(3,1) = parbe(ix,6)*c1m3
-              track6d(4,1) = zero
-              track6d(5,1) = zero
-              track6d(6,1) = zero
-              napx0 = napx
-              napx  = 1
-              call beamint(napx,track6d,parbe,sigz,bbcu,imbb(i),ix,ibtyp,ibbc, mtc)
-              beamoff(1,imbb(i)) = track6d(1,1)*c1e3
-              beamoff(2,imbb(i)) = track6d(3,1)*c1e3
-              beamoff(3,imbb(i)) = track6d(5,1)*c1e3
-              beamoff(4,imbb(i)) = track6d(2,1)*c1e3
-              beamoff(5,imbb(i)) = track6d(4,1)*c1e3
-              beamoff(6,imbb(i)) = track6d(6,1)
-              napx = napx0
-            end if
-
-          else if(parbe(ix,2) == zero) then
-            if(beam_expflag == 1) then
-              bbcu(ibb,1) = parbe(ix,1)
-              bbcu(ibb,2) = parbe(ix,3)
-              bbcu(ibb,3) = parbe(ix,13)
-            end if
-            if(ibbc == 1) then
-              sfac1  = bbcu(ibb,1)+bbcu(ibb,2)
-              sfac2  = bbcu(ibb,1)-bbcu(ibb,2)
-              sfac2s = one
-              if(sfac2 < zero) sfac2s = -one
-              sfac3 = sqrt(sfac2**2+(four*bbcu(ibb,3))*bbcu(ibb,3))
-              if(sfac3 > sfac1) then
-                write(lerr,"(a)") "BEAMBEAM> ERROR 6D beam-beam with tilt not possible."
-                call prror
-              end if
-              sfac4 = (sfac2s*sfac2)/sfac3
-              sfac5 = (((-one*sfac2s)*two)*bbcu(ibb,3))/sfac3
-              sigman(1,ibb) = sqrt(((sfac1+sfac2*sfac4)+(two*bbcu(ibb,3))*sfac5)*half)
-              sigman(2,ibb) = sqrt(((sfac1-sfac2*sfac4)-(two*bbcu(ibb,3))*sfac5)*half)
-              bbcu(ibb,11)  = sqrt(half*(one+sfac4))
-              bbcu(ibb,12)  = (-one*sfac2s)*sqrt(half*(one-sfac4))
-              if(bbcu(ibb,3) < zero) bbcu(ibb,12) = -one*bbcu(ibb,12)
-            else
-              bbcu(ibb,11)  = one
-              sigman(1,ibb) = sqrt(bbcu(ibb,1))
-              sigman(2,ibb) = sqrt(bbcu(ibb,2))
-            end if
-
-            ! Round beam
-            nbeaux(imbb(i)) = 0
-            if(sigman(1,imbb(i)) == sigman(2,imbb(i))) then
-              if(nbeaux(imbb(i)) == 2 .or. nbeaux(imbb(i)) == 3) then
-                write(lerr,"(a)") "BEAMBEAM> ERROR At each interaction point the beam must be either "//&
-                  "round or elliptical for all particles"
-                call prror
-              else
-                nbeaux(imbb(i)) = 1
-                sigman2(1,imbb(i)) = sigman(1,imbb(i))**2
-              end if
-            end if
-
-            ! Elliptic beam x>z
-            if(sigman(1,imbb(i)) > sigman(2,imbb(i))) then
-              if(nbeaux(imbb(i)) == 1 .or. nbeaux(imbb(i)) == 3) then
-                write(lerr,"(a)") "BEAMBEAM> ERROR At each interaction point the beam must be either "//&
-                  "round or elliptical for all particles"
-                call prror
-              else
-                nbeaux(imbb(i)) = 2
-                ktrack(i)       = 42
-                sigman2(1,imbb(i)) = sigman(1,imbb(i))**2
-                sigman2(2,imbb(i)) = sigman(2,imbb(i))**2
-                sigmanq(1,imbb(i)) = sigman(1,imbb(i))/sigman(2,imbb(i))
-                sigmanq(2,imbb(i)) = sigman(2,imbb(i))/sigman(1,imbb(i))
-              end if
-            end if
-
-            ! Elliptic beam z>x
-            if(sigman(1,imbb(i)) < sigman(2,imbb(i))) then
-              if(nbeaux(imbb(i)) == 1 .or. nbeaux(imbb(i)) == 2) then
-                write(lerr,"(a)") "BEAMBEAM> ERROR At each interaction point the beam must be either "//&
-                  "round or elliptical for all particles"
-                call prror
-              else
-                nbeaux(imbb(i)) = 3
-                ktrack(i)       = 43
-                sigman2(1,imbb(i)) = sigman(1,imbb(i))**2
-                sigman2(2,imbb(i)) = sigman(2,imbb(i))**2
-                sigmanq(1,imbb(i)) = sigman(1,imbb(i))/sigman(2,imbb(i))
-                sigmanq(2,imbb(i)) = sigman(2,imbb(i))/sigman(1,imbb(i))
-              end if
-            end if
-
-            strack(i) = crad*ptnfac(ix)
-            if(ibbc.eq.0) then
-              crkveb_d = parbe(ix,5)
-              cikveb_d = parbe(ix,6)
-            else
-              crkveb_d = parbe(ix,5)*bbcu(imbb(i),11)+parbe(ix,6)*bbcu(imbb(i),12)
-              cikveb_d = parbe(ix,6)*bbcu(imbb(i),11)-parbe(ix,5)*bbcu(imbb(i),12)
-            end if
-
-            if(nbeaux(imbb(i)) == 1) then
-              ktrack(i) = 41
-              if(ibeco == 1) then
-                rho2b_d = crkveb_d**2+cikveb_d**2
-                tkb_d   = rho2b_d/(two*sigman2(1,imbb(i)))
-                beamoff(4,imbb(i)) = ((strack(i)*crkveb_d)/rho2b_d)*(one-exp_mb(-one*tkb_d))
-                beamoff(5,imbb(i)) = ((strack(i)*cikveb_d)/rho2b_d)*(one-exp_mb(-one*tkb_d))
-              end if
-            end if
-
-            if(ktrack(i) == 42) then
-              if(ibeco == 1) then
-                r2b_d = two*(sigman2(1,imbb(i))-sigman2(2,imbb(i)))
-                rb_d  = sqrt(r2b_d)
-                rkb_d = (strack(i)*pisqrt)/rb_d
-                xrb_d = abs(crkveb_d)/rb_d
-                zrb_d = abs(cikveb_d)/rb_d
-                if(ibtyp == 0) then
-                  call errf(xrb_d,zrb_d,crxb_d,crzb_d)
-                  tkb_d = (crkveb_d**2/sigman2(1,imbb(i))+cikveb_d**2/sigman2(2,imbb(i)))*half
-                  xbb_d = sigmanq(2,imbb(i))*xrb_d
-                  zbb_d = sigmanq(1,imbb(i))*zrb_d
-                  call errf(xbb_d,zbb_d,cbxb_d,cbzb_d)
-                else if(ibtyp == 1) then
-                  tkb_d = (crkveb_d**2/sigman2(1,imbb(i))+cikveb_d**2/sigman2(2,imbb(i)))*half
-                  xbb_d = sigmanq(2,imbb(i))*xrb_d
-                  zbb_d = sigmanq(1,imbb(i))*zrb_d
-                else
-                  tkb_d = zero ! -Wmaybe-uninitialized
-                end if
-              else
-                rkb_d = zero ! -Wmaybe-uninitialized
-                tkb_d = zero ! -Wmaybe-uninitialized
-              end if
-              beamoff(4,imbb(i))=(rkb_d*(crzb_d-exp_mb(-one*tkb_d)*cbzb_d))*sign(one,crkveb_d)
-              beamoff(5,imbb(i))=(rkb_d*(crxb_d-exp_mb(-one*tkb_d)*cbxb_d))*sign(one,cikveb_d)
-            end if
-
-            if(ktrack(i) == 43) then
-              if(ibeco == 1) then
-                r2b_d = two*(sigman2(2,imbb(i))-sigman2(1,imbb(i)))
-                rb_d  = sqrt(r2b_d)
-                rkb_d = (strack(i)*pisqrt)/rb_d
-                xrb_d = abs(crkveb_d)/rb_d
-                zrb_d = abs(cikveb_d)/rb_d
-                if(ibtyp == 0) then
-                  call errf(zrb_d,xrb_d,crzb_d,crxb_d)
-                  tkb_d = (crkveb_d**2/sigman2(1,imbb(i))+cikveb_d**2/sigman2(2,imbb(i)))*half
-                  xbb_d = sigmanq(2,imbb(i))*xrb_d
-                  zbb_d = sigmanq(1,imbb(i))*zrb_d
-                  call errf(zbb_d,xbb_d,cbzb_d,cbxb_d)
-                else if(ibtyp == 1) then
-                  tkb_d = (crkveb_d**2/sigman2(1,imbb(i))+cikveb_d**2/sigman2(2,imbb(i)))*half
-                  xbb_d = sigmanq(2,imbb(i))*xrb_d
-                  zbb_d = sigmanq(1,imbb(i))*zrb_d
-                else
-                  tkb_d = zero ! -Wmaybe-uninitialized
-                end if
-              else
-                rkb_d = zero ! -Wmaybe-uninitialized
-                tkb_d = zero ! -Wmaybe-uninitialized
-              end if
-              beamoff(4,imbb(i)) = (rkb_d*(crzb_d-exp_mb(-one*tkb_d)*cbzb_d))*sign(one,crkveb_d)
-              beamoff(5,imbb(i)) = (rkb_d*(crxb_d-exp_mb(-one*tkb_d)*cbxb_d))*sign(one,cikveb_d)
-            end if
-          end if
-        end if
-      end do
-    end if
-
-  ! Crab Cavities
-  ! Note: If setting something else than el(),
-  ! DON'T call initialize_element on a crab, it will reset the phase to 0.
-  elseif(abs(kz(ix)) == 23) then
-    crabph(ix) = el(ix)
-    el(ix)     = zero
-
-  ! CC Mult kick order 2
-  elseif(abs(kz(ix)) == 26) then
-    crabph2(ix) = el(ix)
-    el(ix)      = zero
-
-  ! CC Mult kick order 3
-  elseif(abs(kz(ix)) == 27) then
-    crabph3(ix) = el(ix)
-    el(ix)      = zero
-
-  ! CC Mult kick order 4
-  else if(abs(kz(ix)) == 28) then
-    crabph4(ix) = el(ix)
-    el(ix)      = zero
-
-  ! e-lens
-  else if(kz(ix) == 29) then
-    ed(ix) = zero
-    ek(ix) = zero
-    el(ix) = zero
-
-  ! Chebyshev lens
-  else if(kz(ix) == cheby_kz) then
-    ed(ix) = zero
-    ek(ix) = zero
-    el(ix) = zero
-  end if
-
-  return
-
-  ! Error handlers
-100 continue
-  write(lerr,"(a,i0)") "INITELEM> ERROR Tried to set the strength of an element which is disabled. bez = ", bez(ix)
-  call prror
-
-end subroutine initialize_element
-
-subroutine wzset
-!  *********************************************************************
-!
-!  This subroutine must be called before subroutine WZSUB can be used to
-!  compute values of the complex error function w(z).
-!
-!  Parameters xcut and ycut specify the opposite corners (xcut,0) and
-!  (0,ycut) of the rectangle inside which interpolation is to be used
-!  by subroutine WZSUB.
-!
-!  Parameter h is the side of the squares of the interpolation grid.
-!
-!  Parameters nx and ny must be set to the nearest integers to xcut/h
-!  and ycut/h respectively (or to larger values).
-!
-!  Calls MYWWERF new version of (CERN library) WWERF (C335)
-!
-!  (G.A.Erskine, 29.09.1995)
-!
-!  *********************************************************************
-      use floatPrecision
-      use mathlib_bouncer
-      use numerical_constants
-      use parpro
-      use parbeam
-      implicit none
-      integer i,j,k
-      real(kind=fPrec) wi,wr,x,y
-      save
-!-----------------------------------------------------------------------
-      hrecip = one/h
-      kstep = nx+2
-      k = 0
-      do 2 j=0,ny+1
-         do 1 i=0,nx+1
-            k = k+1
-            x=real(i,fPrec)*h                                                  !hr05
-            y=real(j,fPrec)*h                                                  !hr05
-            call mywwerf(x,y,wr,wi)
-            wtreal(k)=wr
-            wtimag(k)=wi
- 1       continue
- 2    continue
-end subroutine wzset
-
-subroutine mywwerf(x,y,wr,wi)
-      use floatPrecision
-      use mathlib_bouncer
-      use numerical_constants
-      implicit none
-      integer n
-      real(kind=fPrec) c,c1,c2,c3,c4,hf,p,rr,ri,sr0,sr,si,tr,ti,vi,vr,  &
-     &wi,wr,x,xa,xl,y,ya,zhi,zhr,z1,z10
-      parameter (z1=one,hf=z1/two,z10=c1e1)
-      parameter (c1=74.0_fPrec/z10,c2=83.0_fPrec/z10)
-      parameter (c3=z10/32.0_fPrec,c4=16.0_fPrec/z10)
-!     parameter (c=1.12837916709551257d0,p=(2d0*c4)**33)
-      parameter (c=1.12837916709551257_fPrec)
-      parameter (p=46768052394588893.3825_fPrec)
-      dimension rr(37),ri(37)
-      save
-!-----------------------------------------------------------------------
-      xa=abs(x)
-      ya=abs(y)
-      if(ya.lt.c1.and.xa.lt.c2) then
-!        zh=dcmplx(ya+c4,xa)
-        zhr=ya+c4
-        zhi=xa
-        rr(37)=zero
-        ri(37)=zero
-        do n=36,1,-1
-!          t=zh+n*dconjg(r(n+1))
-          tr=zhr+real(n,fPrec)*rr(n+1)                                         !hr05
-          ti=zhi-real(n,fPrec)*ri(n+1)                                         !hr05
-!          r(n)=hf*t/(dreal(t)**2+dimag(t)**2)
-          rr(n)=(hf*tr)/(tr**2+ti**2)                                    !hr05
-          ri(n)=(hf*ti)/(tr**2+ti**2)                                    !hr05
-        enddo
-        xl=p
-        sr=zero
-        si=zero
-        do n=33,1,-1
-          xl=c3*xl
-!          s=r(n)*(s+xl)
-          sr0=rr(n)*(sr+xl)-ri(n)*si
-          si=rr(n)*si+ri(n)*(sr+xl)
-          sr=sr0
-        enddo
-!        v=c*s
-        vr=c*sr
-        vi=c*si
-      else
-        zhr=ya
-        zhi=xa
-        rr(1)=zero
-        ri(1)=zero
-        do n=9,1,-1
-!          t=zh+n*dconjg(r(1))
-          tr=zhr+real(n,fPrec)*rr(1)                                           !hr05
-          ti=zhi-real(n,fPrec)*ri(1)                                           !hr05
-!          r(1)=hf*t/(dreal(t)**2+dimag(t)**2)
-          rr(1)=(hf*tr)/(tr**2+ti**2)                                    !hr05
-          ri(1)=(hf*ti)/(tr**2+ti**2)                                    !hr05
-        enddo
-!        v=c*r(1)
-        vr=c*rr(1)
-        vi=c*ri(1)
-      endif
-      if(ya.eq.zero) then                                                 !hr05
-!        v=dcmplx(exp(-xa**2),dimag(v))
-        vr=exp_mb(-one*xa**2)                                            !hr05
-      endif
-      if(y.lt.zero) then
-!        v=2*exp(-dcmplx(xa,ya)**2)-v
-        vr=(two*exp_mb(ya**2-xa**2))*cos_mb((two*xa)*ya)-vr              !hr05
-        vi=(-two*exp_mb(ya**2-xa**2))*sin_mb((two*xa)*ya)-vi             !hr05
-        if(x.gt.zero) vi=-one*vi                                          !hr05
-      else
-        if(x.lt.zero) vi=-one*vi                                          !hr05
-      endif
-      wr=vr
-      wi=vi
-      return
-end subroutine mywwerf
 
 !-----------------------------------------------------------------------
 !  CALCULATION OF : MOMENTUM-DEPENDING ELEMENT-MATRICES AND
@@ -2201,9 +1353,9 @@ subroutine envars(j,dpp,rv)
         al(2,l,j,i) = el(i)
         al(3,l,j,i) = zero
         al(4,l,j,i) = one
-        as(6,l,j,i) = ((-one*rv)*al(2,l,j,i))/c2e3 ! hr05
+        as(6,l,j,i) = ((-one*rv)*al(2,l,j,i))/c2e3
       end do
-      as(1,1,j,i) = (el(i)*(one-rv))*c1e3          ! hr05
+      as(1,1,j,i) = (el(i)*(one-rv))*c1e3
 
     case (2,5)
       ! 2: RECTANGULAR MAGNET HORIZONTAL
@@ -2213,16 +1365,16 @@ subroutine envars(j,dpp,rv)
       else
         ih = 2
       end if
-      fok=(el(i)*ed(i))/dpsq                                           !hr05
+      fok=(el(i)*ed(i))/dpsq
       if(abs(fok).le.pieni) then
         do l=1,2
           al(1,l,j,i) = one
           al(2,l,j,i) = el(i)
           al(3,l,j,i) = zero
           al(4,l,j,i) = one
-          as(6,l,j,i) = ((-one*rv)*al(2,l,j,i))/c2e3 ! hr05
+          as(6,l,j,i) = ((-one*rv)*al(2,l,j,i))/c2e3
         end do
-        as(1,1,j,i) = (el(i)*(one-rv))*c1e3          ! hr05
+        as(1,1,j,i) = (el(i)*(one-rv))*c1e3
         cycle
       end if
       rho=(one/ed(i))*dpsq
@@ -2233,23 +1385,23 @@ subroutine envars(j,dpp,rv)
       al(2,ih,j,i)=rho*si
       al(3,ih,j,i)=zero
       al(4,ih,j,i)=one
-      al(5,ih,j,i)=((-one*dpp)*((rho*(one-co))/dpsq))*c1e3             !hr05
-      al(6,ih,j,i)=((-one*dpp)*((two*tan_mb(fok*half))/dpsq))*c1e3     !hr05
+      al(5,ih,j,i)=((-one*dpp)*((rho*(one-co))/dpsq))*c1e3
+      al(6,ih,j,i)=((-one*dpp)*((two*tan_mb(fok*half))/dpsq))*c1e3
       sm1=cos_mb(fok)
       sm2=sin_mb(fok)*rho
-      sm3=(-one*sin_mb(fok))/rho                                       !hr05
-      sm5=((-one*rho)*dpsq)*(one-sm1)                                  !hr05
-      sm6=((-one*sm2)*dpsq)/rho                                        !hr05
+      sm3=(-one*sin_mb(fok))/rho
+      sm5=((-one*rho)*dpsq)*(one-sm1)
+      sm6=((-one*sm2)*dpsq)/rho
       sm12=el(i)-sm1*sm2
       sm23=sm2*sm3
-      as3=(-one*rv)*(((dpp*rho)/(two*dpsq))*sm23+sm5)                  !hr05
-      as4=((-one*rv)*sm23)/c2e3                                        !hr05
-      as6=((-one*rv)*(el(i)+sm1*sm2))/c4e3                             !hr05
-      as(1,ih,j,i)=(el(i)*(one-rv)-rv*((dpp**2/(four*dpd))*sm12+dpp*(el(i)-sm2)))*c1e3 !hr05
-      as(2,ih,j,i)=fok1*as3-rv*((dpp/((two*rho)*dpsq))*sm12+sm6)       !hr05
+      as3=(-one*rv)*(((dpp*rho)/(two*dpsq))*sm23+sm5)
+      as4=((-one*rv)*sm23)/c2e3
+      as6=((-one*rv)*(el(i)+sm1*sm2))/c4e3
+      as(1,ih,j,i)=(el(i)*(one-rv)-rv*((dpp**2/(four*dpd))*sm12+dpp*(el(i)-sm2)))*c1e3
+      as(2,ih,j,i)=fok1*as3-rv*((dpp/((two*rho)*dpsq))*sm12+sm6)
       as(3,ih,j,i)=as3
-      as(4,ih,j,i)=as4+(two*as6)*fok1                                  !hr05
-      as(5,ih,j,i)=(as6*fok1*2+fok1*as4)-(rv*sm12)/(c4e3*rho**2)       !hr05
+      as(4,ih,j,i)=as4+(two*as6)*fok1
+      as(5,ih,j,i)=(as6*fok1*2+fok1*as4)-(rv*sm12)/(c4e3*rho**2)
       as(6,ih,j,i)=as6
       ! VERTIKAL
       ih=ih+1
@@ -2258,11 +1410,11 @@ subroutine envars(j,dpp,rv)
       gl=el(i)*g
       al(1,ih,j,i)=one-gl
       al(2,ih,j,i)=el(i)
-      al(3,ih,j,i)=(-one*g)*(two-gl)                                   !hr05
+      al(3,ih,j,i)=(-one*g)*(two-gl)
       al(4,ih,j,i)=al(1,ih,j,i)
-      as6=((-one*rv)*al(2,ih,j,i))/c2e3                                !hr05
-      as(4,ih,j,i)=((-one*two)*as6)*fok1                               !hr05
-      as(5,ih,j,i)=as6*fok1**2                                         !hr05
+      as6=((-one*rv)*al(2,ih,j,i))/c2e3
+      as(4,ih,j,i)=((-one*two)*as6)*fok1
+      as(5,ih,j,i)=as6*fok1**2
       as(6,ih,j,i)=as6
 
     case (3)
@@ -2276,9 +1428,9 @@ subroutine envars(j,dpp,rv)
           al(2,l,j,i) = el(i)
           al(3,l,j,i) = zero
           al(4,l,j,i) = one
-          as(6,l,j,i) = ((-one*rv)*al(2,l,j,i))/c2e3 ! hr05
+          as(6,l,j,i) = ((-one*rv)*al(2,l,j,i))/c2e3
         end do
-        as(1,1,j,i) = (el(i)*(one-rv))*c1e3          ! hr05
+        as(1,1,j,i) = (el(i)*(one-rv))*c1e3
         cycle
       end if
       ih=0
@@ -2289,12 +1441,12 @@ subroutine envars(j,dpp,rv)
       al(1,ih,j,i)=cos_mb(fi)
       hi1=sin_mb(fi)
       al(2,ih,j,i)=hi1/hi
-      al(3,ih,j,i)=(-one*hi1)*hi                                       !hr05
+      al(3,ih,j,i)=(-one*hi1)*hi
       al(4,ih,j,i)=al(1,ih,j,i)
-      as(1,ih,j,i)=(el(i)*(one-rv))*c1e3                               !hr05
-      as(4,ih,j,i)=(((-one*rv)*al(2,ih,j,i))*al(3,ih,j,i))/c2e3        !hr05
-      as(5,ih,j,i)=(((-one*rv)*(el(i)-al(1,ih,j,i)*al(2,ih,j,i)))*aek)/c4e3 !hr05
-      as(6,ih,j,i)=((-one*rv)*(el(i)+al(1,ih,j,i)*al(2,ih,j,i)))/c4e3  !hr05
+      as(1,ih,j,i)=(el(i)*(one-rv))*c1e3
+      as(4,ih,j,i)=(((-one*rv)*al(2,ih,j,i))*al(3,ih,j,i))/c2e3
+      as(5,ih,j,i)=(((-one*rv)*(el(i)-al(1,ih,j,i)*al(2,ih,j,i)))*aek)/c4e3
+      as(6,ih,j,i)=((-one*rv)*(el(i)+al(1,ih,j,i)*al(2,ih,j,i)))/c4e3
       if(ih.eq.2) cycle
       !--DEFOCUSSING
 110   ih=ih+1
@@ -2306,9 +1458,9 @@ subroutine envars(j,dpp,rv)
       al(2,ih,j,i)=hs/hi
       al(3,ih,j,i)=hs*hi
       al(4,ih,j,i)=hc
-      as(4,ih,j,i)=(((-one*rv)*al(2,ih,j,i))*al(3,ih,j,i))/c2e3        !hr05
-      as(5,ih,j,i)=((rv*(el(i)-al(1,ih,j,i)*al(2,ih,j,i)))*aek)/c4e3   !hr05
-      as(6,ih,j,i)=((-one*rv)*(el(i)+al(1,ih,j,i)*al(2,ih,j,i)))/c4e3  !hr05
+      as(4,ih,j,i)=(((-one*rv)*al(2,ih,j,i))*al(3,ih,j,i))/c2e3
+      as(5,ih,j,i)=((rv*(el(i)-al(1,ih,j,i)*al(2,ih,j,i)))*aek)/c4e3
+      as(6,ih,j,i)=((-one*rv)*(el(i)+al(1,ih,j,i)*al(2,ih,j,i)))/c4e3
       if(ih.eq.1) goto 100
 
     case (4)
@@ -2319,37 +1471,37 @@ subroutine envars(j,dpp,rv)
       else
         ih = 2
       end if
-      fok=(el(i)*ed(i))/dpsq                                           !hr05
+      fok=(el(i)*ed(i))/dpsq
       if(abs(fok).le.pieni) then
         do l=1,2
           al(1,l,j,i) = one
           al(2,l,j,i) = el(i)
           al(3,l,j,i) = zero
           al(4,l,j,i) = one
-          as(6,l,j,i) = ((-one*rv)*al(2,l,j,i))/c2e3 ! hr05
+          as(6,l,j,i) = ((-one*rv)*al(2,l,j,i))/c2e3
         end do
-        as(1,1,j,i) = (el(i)*(one-rv))*c1e3          ! hr05
+        as(1,1,j,i) = (el(i)*(one-rv))*c1e3
         cycle
       end if
       rho=(one/ed(i))*dpsq
       si=sin_mb(fok)
       co=cos_mb(fok)
-      rhoc=(rho*(one-co))/dpsq                                         !hr05
+      rhoc=(rho*(one-co))/dpsq
       siq=si/dpsq
       al(1,ih,j,i)=co
       al(2,ih,j,i)=rho*si
-      al(3,ih,j,i)=(-one*si)/rho                                       !hr05
+      al(3,ih,j,i)=(-one*si)/rho
       al(4,ih,j,i)=co
-      al(5,ih,j,i)=((-one*dpp)*rhoc)*c1e3                              !hr05
-      al(6,ih,j,i)=((-one*dpp)*siq)*c1e3                               !hr05
+      al(5,ih,j,i)=((-one*dpp)*rhoc)*c1e3
+      al(6,ih,j,i)=((-one*dpp)*siq)*c1e3
       sm12=el(i)-al(1,ih,j,i)*al(2,ih,j,i)
       sm23=al(2,ih,j,i)*al(3,ih,j,i)
-      as(1,ih,j,i)=(el(i)*(one-rv)-rv*((dpp**2/(four*dpd))*sm12+dpp*(el(i)-al(2,ih,j,i))))*c1e3 !hr05
-      as(2,ih,j,i)=(-one*rv)*((dpp/((two*rho)*dpsq))*sm12-dpd*siq)     !hr05
-      as(3,ih,j,i)=(-one*rv)*(((dpp*rho)/(two*dpsq))*sm23-dpd*rhoc)    !hr05
-      as(4,ih,j,i)=((-one*rv)*sm23)/c2e3                               !hr05
-      as(5,ih,j,i)=((-one*rv)*sm12)/(c4e3*rho**2)                      !hr05
-      as(6,ih,j,i)=((-one*rv)*(el(i)+al(1,ih,j,i)*al(2,ih,j,i)))/c4e3  !hr05
+      as(1,ih,j,i)=(el(i)*(one-rv)-rv*((dpp**2/(four*dpd))*sm12+dpp*(el(i)-al(2,ih,j,i))))*c1e3
+      as(2,ih,j,i)=(-one*rv)*((dpp/((two*rho)*dpsq))*sm12-dpd*siq)
+      as(3,ih,j,i)=(-one*rv)*(((dpp*rho)/(two*dpsq))*sm23-dpd*rhoc)
+      as(4,ih,j,i)=((-one*rv)*sm23)/c2e3
+      as(5,ih,j,i)=((-one*rv)*sm12)/(c4e3*rho**2)
+      as(6,ih,j,i)=((-one*rv)*(el(i)+al(1,ih,j,i)*al(2,ih,j,i)))/c4e3
       ! VERTIKAL
       ih=ih+1
       if(ih.gt.2) ih=1
@@ -2357,7 +1509,7 @@ subroutine envars(j,dpp,rv)
       al(2,ih,j,i)=el(i)
       al(3,ih,j,i)=zero
       al(4,ih,j,i)=one
-      as(6,ih,j,i)=((-one*rv)*al(2,ih,j,i))/c2e3                       !hr05
+      as(6,ih,j,i)=((-one*rv)*al(2,ih,j,i))/c2e3
 
     case (7,8)
       ! 7: COMBINED FUNCTION MAGNET HORIZONTAL
@@ -2367,20 +1519,20 @@ subroutine envars(j,dpp,rv)
         fokq = ek(i)
       else
         ih   = 1
-        fokq = -one*ek(i) ! hr05
+        fokq = -one*ek(i)
       end if
       ! FOCUSSING
       wf=ed(i)/dpsq
-      fok=fokq/(dpd)-wf**2                                             !hr05
+      fok=fokq/(dpd)-wf**2
       if(abs(fok).le.pieni) then
         do l=1,2
           al(1,l,j,i) = one
           al(2,l,j,i) = el(i)
           al(3,l,j,i) = zero
           al(4,l,j,i) = one
-          as(6,l,j,i) = ((-one*rv)*al(2,l,j,i))/c2e3 ! hr05
+          as(6,l,j,i) = ((-one*rv)*al(2,l,j,i))/c2e3
         end do
-        as(1,1,j,i) = (el(i)*(one-rv))*c1e3          ! hr05
+        as(1,1,j,i) = (el(i)*(one-rv))*c1e3
         cycle
       end if
       afok=abs(fok)
@@ -2390,22 +1542,22 @@ subroutine envars(j,dpp,rv)
 140   ih=ih+1
       si=sin_mb(fi)
       co=cos_mb(fi)
-      wfa=((wf/afok)*(one-co))/dpsq                                    !hr05
-      wfhi=((wf/hi)*si)/dpsq                                           !hr05
+      wfa=((wf/afok)*(one-co))/dpsq
+      wfhi=((wf/hi)*si)/dpsq
       al(1,ih,j,i)=co
       al(2,ih,j,i)=si/hi
-      al(3,ih,j,i)=(-one*si)*hi                                        !hr05
+      al(3,ih,j,i)=(-one*si)*hi
       al(4,ih,j,i)=co
-      al(5,ih,j,i)=((-one*wfa)*dpp)*c1e3                               !hr05
-      al(6,ih,j,i)=((-one*wfhi)*dpp)*c1e3                              !hr05
+      al(5,ih,j,i)=((-one*wfa)*dpp)*c1e3
+      al(6,ih,j,i)=((-one*wfhi)*dpp)*c1e3
       sm12=el(i)-al(1,ih,j,i)*al(2,ih,j,i)
       sm23=al(2,ih,j,i)*al(3,ih,j,i)
-      as(1,ih,j,i)=(el(i)*(one-rv)-((rv*((dpp**2/(four*dpd))*sm12+dpp*(el(i)-al(2,ih,j,i))))/afok)*wf**2)*c1e3 !hr05
-      as(2,ih,j,i)=(-one*rv)*(((dpp*wf)/(two*dpsq))*sm12-dpd*wfhi)     !hr05
-      as(3,ih,j,i)=(-one*rv)*(((((dpp*half)/afok)/dpd)*ed(i))*sm23-dpd*wfa) !hr05
-      as(4,ih,j,i)=((-one*rv)*sm23)/c2e3                               !hr05
-      as(5,ih,j,i)=(((-one*rv)*sm12)*afok)/c4e3                        !hr05
-      as(6,ih,j,i)=((-one*rv)*(el(i)+al(1,ih,j,i)*al(2,ih,j,i)))/c4e3  !hr05
+      as(1,ih,j,i)=(el(i)*(one-rv)-((rv*((dpp**2/(four*dpd))*sm12+dpp*(el(i)-al(2,ih,j,i))))/afok)*wf**2)*c1e3
+      as(2,ih,j,i)=(-one*rv)*(((dpp*wf)/(two*dpsq))*sm12-dpd*wfhi)
+      as(3,ih,j,i)=(-one*rv)*(((((dpp*half)/afok)/dpd)*ed(i))*sm23-dpd*wfa)
+      as(4,ih,j,i)=((-one*rv)*sm23)/c2e3
+      as(5,ih,j,i)=(((-one*rv)*sm12)*afok)/c4e3
+      as(6,ih,j,i)=((-one*rv)*(el(i)+al(1,ih,j,i)*al(2,ih,j,i)))/c4e3
       ih=ih+1
       if(ih.gt.2) ih=1
       aek=abs(ek(i)/dpd)
@@ -2421,9 +1573,9 @@ subroutine envars(j,dpp,rv)
       al(2,ih,j,i)=hs/hi
 150   al(3,ih,j,i)=hs*hi
       al(4,ih,j,i)=hc
-      as(4,ih,j,i)=(((-one*rv)*al(2,ih,j,i))*al(3,ih,j,i))/c2e3        !hr05
-      as(5,ih,j,i)=((rv*(el(i)-al(1,ih,j,i)*al(2,ih,j,i)))*aek)/c4e3   !hr05
-      as(6,ih,j,i)=((-one*rv)*(el(i)+al(1,ih,j,i)*al(2,ih,j,i)))/c4e3  !hr05
+      as(4,ih,j,i)=(((-one*rv)*al(2,ih,j,i))*al(3,ih,j,i))/c2e3
+      as(5,ih,j,i)=((rv*(el(i)-al(1,ih,j,i)*al(2,ih,j,i)))*aek)/c4e3
+      as(6,ih,j,i)=((-one*rv)*(el(i)+al(1,ih,j,i)*al(2,ih,j,i)))/c4e3
       cycle
       ! DEFOCUSSING
 160   ih=ih+1
@@ -2435,18 +1587,18 @@ subroutine envars(j,dpp,rv)
       al(2,ih,j,i)=hs/hi
       al(3,ih,j,i)=hs*hi
       al(4,ih,j,i)=hc
-      wfa=((wf/afok)*(one-hc))/dpsq                                    !hr05
-      wfhi=((wf/hi)*hs)/dpsq                                           !hr05
-      al(5,ih,j,i)= (wfa*dpp)*c1e3                                     !hr05
-      al(6,ih,j,i)=((-one*wfhi)*dpp)*c1e3                              !hr05
+      wfa=((wf/afok)*(one-hc))/dpsq
+      wfhi=((wf/hi)*hs)/dpsq
+      al(5,ih,j,i)= (wfa*dpp)*c1e3
+      al(6,ih,j,i)=((-one*wfhi)*dpp)*c1e3
       sm12=el(i)-al(1,ih,j,i)*al(2,ih,j,i)
       sm23=al(2,ih,j,i)*al(3,ih,j,i)
-      as(1,ih,j,i)=(((rv*((dpp**2/(four*dpd))*sm12+dpp*(el(i)-al(2,ih,j,i))))/afok)*wf**2+el(i)*(one-rv))*c1e3 !hr05
-      as(2,ih,j,i)=(-one*rv)*(((dpp*wf)/(two*dpsq))*sm12-dpd*wfhi)     !hr05
-      as(3,ih,j,i)=rv*(((((dpp*half)/afok)/dpd)*ed(i))*sm23-dpd*wfa)   !hr05
-      as(4,ih,j,i)=((-one*rv)*sm23)/c2e3                               !hr05
-      as(5,ih,j,i)=((rv*sm12)*afok)/c4e3                               !hr05
-      as(6,ih,j,i)=((-one*rv)*(el(i)+al(1,ih,j,i)*al(2,ih,j,i)))/c4e3  !hr05
+      as(1,ih,j,i)=(((rv*((dpp**2/(four*dpd))*sm12+dpp*(el(i)-al(2,ih,j,i))))/afok)*wf**2+el(i)*(one-rv))*c1e3
+      as(2,ih,j,i)=(-one*rv)*(((dpp*wf)/(two*dpsq))*sm12-dpd*wfhi)
+      as(3,ih,j,i)=rv*(((((dpp*half)/afok)/dpd)*ed(i))*sm23-dpd*wfa)
+      as(4,ih,j,i)=((-one*rv)*sm23)/c2e3
+      as(5,ih,j,i)=((rv*sm12)*afok)/c4e3
+      as(6,ih,j,i)=((-one*rv)*(el(i)+al(1,ih,j,i)*al(2,ih,j,i)))/c4e3
       ih=ih+1
       if(ih.gt.2) ih=1
       aek=abs(ek(i)/dpd)
@@ -2456,23 +1608,23 @@ subroutine envars(j,dpp,rv)
       co=cos_mb(fi)
       al(1,ih,j,i)=co
       al(2,ih,j,i)=si/hi
-      al(3,ih,j,i)=(-one*si)*hi                                        !hr05
+      al(3,ih,j,i)=(-one*si)*hi
       al(4,ih,j,i)=co
-      as(4,ih,j,i)=(((-one*rv)*al(2,ih,j,i))*al(3,ih,j,i))/c2e3        !hr05
-      as(5,ih,j,i)=(((-one*rv)*(el(i)-al(1,ih,j,i)*al(2,ih,j,i)))*aek)/c4e3 !hr05
-      as(6,ih,j,i)=((-one*rv)*(el(i)+al(1,ih,j,i)*al(2,ih,j,i)))/c4e3  !hr05
+      as(4,ih,j,i)=(((-one*rv)*al(2,ih,j,i))*al(3,ih,j,i))/c2e3
+      as(5,ih,j,i)=(((-one*rv)*(el(i)-al(1,ih,j,i)*al(2,ih,j,i)))*aek)/c4e3
+      as(6,ih,j,i)=((-one*rv)*(el(i)+al(1,ih,j,i)*al(2,ih,j,i)))/c4e3
 
     case (9)
       ! EDGE FOCUSSING
       rhoi=ed(i)/dpsq
-      fok=rhoi*tan_mb((el(i)*rhoi)*half)                               !hr05
+      fok=rhoi*tan_mb((el(i)*rhoi)*half)
       al(1,1,j,i)=one
       al(2,1,j,i)=zero
       al(3,1,j,i)=fok
       al(4,1,j,i)=one
       al(1,2,j,i)=one
       al(2,2,j,i)=zero
-      al(3,2,j,i)=-one*fok                                             !hr05
+      al(3,2,j,i)=-one*fok
       al(4,2,j,i)=one
 
     end select
@@ -2532,8 +1684,8 @@ subroutine distance(x,clo,di0,t,dam)
    20   continue
 
         if(its6d.eq.1) then
-          x(i,2)=x(i,2)/((one+x(i,6))+clo(6))                            !hr06
-          x(i,4)=x(i,4)/((one+x(i,6))+clo(6))                            !hr06
+          x(i,2)=x(i,2)/((one+x(i,6))+clo(6))
+          x(i,4)=x(i,4)/((one+x(i,6))+clo(6))
         endif
 
         do 40 iq=1,6
@@ -2564,7 +1716,7 @@ subroutine distance(x,clo,di0,t,dam)
           phi(i)=zero
         endif
    80 continue
-      dam=sqrt((phi(1)**2+phi(2)**2+phi(3)**2)/real(idam,fPrec))/pi            !hr06
+      dam=sqrt((phi(1)**2+phi(2)**2+phi(3)**2)/real(idam,fPrec))/pi
 !-----------------------------------------------------------------------
       return
 end subroutine distance
@@ -2581,6 +1733,7 @@ subroutine betalf(dpp,qw)
       use mod_common
       use mod_commons
       use mod_common_track
+      use crcoall
       implicit none
       integer i,j
       real(kind=fPrec) am,det,detb,detc,dpp,egwg1,egwg2,f0,f1,f2,fak1,  &
@@ -2599,19 +1752,22 @@ subroutine betalf(dpp,qw)
      &-(am(1,4)-am(3,2))*(am(2,3)-am(4,1))
       f0=spa-spd
       f1=spa+spd
-      f2=f0**2+four*det                                                  !hr06
-      if(f2 .lt. zero) goto 160
+      f2=f0**2+four*det
+      if(f2 .lt. zero) then
+        write(lerr,'(a,F12.5, a, F12.5, a, F12.5)') 'ERROR in betalf() - f2 < 0: ',  f2, ' f0: ', f0, ' det: ', det
+        goto 160
+      end if
       f2=sqrt(f2)
-      if(f0.lt.zero) goto 30                                              !hr06
-      if(f0.ge.zero) goto 20                                              !hr06
+      if(f0.lt.zero) goto 30
+      if(f0.ge.zero) goto 20
    20 egwg1=(f1+f2)*half
       egwg2=(f1-f2)*half
       goto 40
    30 egwg1=(f1-f2)*half
       egwg2=(f1+f2)*half
    40 continue
-      f1=egwg1**2-four                                                   !hr06
-      f2=egwg2**2-four                                                   !hr06
+      f1=egwg1**2-four
+      f2=egwg2**2-four
       rca1=f1
       yca1=zero
       rca2=f2
@@ -2619,43 +1775,46 @@ subroutine betalf(dpp,qw)
       if (rca1.ge.0) then
         rca1=sqrt(rca1)
       else
-        yca1=sqrt(-one*rca1)                                             !hr06
+        yca1=sqrt(-one*rca1)
         rca1=zero
       endif
       if (rca2.ge.0) then
         rca2=sqrt(rca2)
       else
-        yca2=sqrt(-one*rca2)                                             !hr06
+        yca2=sqrt(-one*rca2)
         rca2=zero
       endif
       rclam1=(egwg1+rca1)*half
       yclam1=yca1*half
       rclam2=(egwg2+rca2)*half
       yclam2=yca2*half
-      if(egwg1**2 .ge. four) goto 160                                    !hr06
-      if(egwg2**2 .ge. four) goto 160                                    !hr06
+      if(egwg1**2 .ge. four) then
+        write(lerr,'(a,F12.5,a,F12.5,a,F12.5,a,F12.5,a,F12.5,a,F12.5)') 'ERROR in betalf() - egwg1**2 > 4: ',&
+        egwg1**2, ' f0: ', spa-spd, ' f1: ', spa+spd, ' f2: ', f0**2+four*det, ' spa: ', spa, ' spd: ', spd
+        write(lerr,'(a,F12.5)') 'ERROR in betalf() - am: ',  am
+        goto 160
+      end if
+      if(egwg2**2 .ge. four) then
+        write(lerr,'(a,F12.5)') 'ERROR in betalf() - egwg2**2 > 4: ',  egwg2**2
+        goto 160
+      end if
    50 continue
       detb=am(1,3)*am(2,4)-am(1,4)*am(2,3)
       detc=am(3,1)*am(4,2)-am(3,2)*am(4,1)
       fak1=spd-egwg1
       if(abs(fak1).gt.pieni) then
-        rcw1(1)=am(1,2)-(am(1,3)*am(3,2)+am(1,4)*am(4,2))/fak1           !hr06
+        rcw1(1)=am(1,2)-(am(1,3)*am(3,2)+am(1,4)*am(4,2))/fak1
         ycw1(1)=zero
-        rcw1(2)=((am(1,3)*am(3,1)+am(1,4)*am(4,1))+detb)/fak1-(am(1,1)  &!hr06
-     &-rclam1)                                                           !hr06
+        rcw1(2)=((am(1,3)*am(3,1)+am(1,4)*am(4,1))+detb)/fak1-(am(1,1)-rclam1)
         ycw1(2)=yclam1
-      rcw1(3)=-one*((am(3,1)+am(2,4))*rcw1(1)+(am(3,2)-am(1,4))*rcw1(2))&!hr06
-     &/fak1                                                              !hr06
-      ycw1(3)=-one*((am(3,1)+am(2,4))*ycw1(1)+(am(3,2)-am(1,4))*ycw1(2))&!hr06
-     &/fak1                                                              !hr06
-      rcw1(4)=-one*((am(4,1)-am(2,3))*rcw1(1)+(am(4,2)+am(1,3))*rcw1(2))&!hr06
-     &/fak1                                                              !hr06
-      ycw1(4)=-one*((am(4,1)-am(2,3))*ycw1(1)+(am(4,2)+am(1,3))*ycw1(2))&!hr06
-     &/fak1                                                              !hr06
+        rcw1(3)=-one*((am(3,1)+am(2,4))*rcw1(1)+(am(3,2)-am(1,4))*rcw1(2))/fak1
+        ycw1(3)=-one*((am(3,1)+am(2,4))*ycw1(1)+(am(3,2)-am(1,4))*ycw1(2))/fak1
+        rcw1(4)=-one*((am(4,1)-am(2,3))*rcw1(1)+(am(4,2)+am(1,3))*rcw1(2))/fak1
+        ycw1(4)=-one*((am(4,1)-am(2,3))*ycw1(1)+(am(4,2)+am(1,3))*ycw1(2))/fak1
       else
         rcw1(1)=am(1,2)
         ycw1(1)=zero
-        rcw1(2)=rclam1-am(1,1)                                           !hr06
+        rcw1(2)=rclam1-am(1,1)
         ycw1(2)=yclam1
         rcw1(3)=zero
         ycw1(3)=zero
@@ -2664,23 +1823,18 @@ subroutine betalf(dpp,qw)
       endif
       fak2=spa-egwg2
       if(abs(fak2).gt.pieni) then
-        rcw2(3)=am(3,4)-(am(3,1)*am(1,4)+am(3,2)*am(2,4))/fak2           !hr06
+        rcw2(3)=am(3,4)-(am(3,1)*am(1,4)+am(3,2)*am(2,4))/fak2
         ycw2(3)=zero
-        rcw2(4)=((am(3,1)*am(1,3)+am(3,2)*am(2,3))+detc)/fak2-(am(3,3)  &!hr06
-     &-rclam2)                                                           !hr06
+        rcw2(4)=((am(3,1)*am(1,3)+am(3,2)*am(2,3))+detc)/fak2-(am(3,3)-rclam2)
         ycw2(4)=yclam2
-      rcw2(1)=-one*((am(1,3)+am(4,2))*rcw2(3)+(am(1,4)-am(3,2))*rcw2(4))&!hr06
-     &/fak2                                                              !hr06
-      ycw2(1)=-one*((am(1,3)+am(4,2))*ycw2(3)+(am(1,4)-am(3,2))*ycw2(4))&!hr06
-     &/fak2                                                              !hr06
-      rcw2(2)=-one*((am(2,3)-am(4,1))*rcw2(3)+(am(2,4)+am(3,1))*rcw2(4))&!hr06
-     &/fak2                                                              !hr06
-      ycw2(2)=-one*((am(2,3)-am(4,1))*ycw2(3)+(am(2,4)+am(3,1))*ycw2(4))&!hr06
-     &/fak2                                                              !hr06
+        rcw2(1)=-one*((am(1,3)+am(4,2))*rcw2(3)+(am(1,4)-am(3,2))*rcw2(4))/fak2
+        ycw2(1)=-one*((am(1,3)+am(4,2))*ycw2(3)+(am(1,4)-am(3,2))*ycw2(4))/fak2
+        rcw2(2)=-one*((am(2,3)-am(4,1))*rcw2(3)+(am(2,4)+am(3,1))*rcw2(4))/fak2
+        ycw2(2)=-one*((am(2,3)-am(4,1))*ycw2(3)+(am(2,4)+am(3,1))*ycw2(4))/fak2
       else
         rcw2(3)=am(3,4)
         ycw2(3)=zero
-        rcw2(4)=rclam2-am(3,3)                                           !hr06
+        rcw2(4)=rclam2-am(3,3)
         ycw2(4)=yclam2
         rcw2(1)=zero
         ycw2(1)=zero
@@ -2697,15 +1851,18 @@ subroutine betalf(dpp,qw)
    60 continue
 
 !--NORMALISATION OF EIGENVALUES
-      rn1=((ta(1,1)*ta(2,2)-ta(2,1)*ta(1,2))                            &!hr06
-     &+ta(3,1)*ta(4,2))-ta(4,1)*ta(3,2)                                  !hr06
-      if(rn1.lt.zero) goto 70                                             !hr06
-      if(rn1.eq.zero) goto 160                                            !hr06
-      if(rn1.gt.zero) goto 90                                             !hr06
-   70 yclam1=-one*yclam1                                                 !hr06
+      rn1=((ta(1,1)*ta(2,2)-ta(2,1)*ta(1,2))                            &
+     &+ta(3,1)*ta(4,2))-ta(4,1)*ta(3,2)
+      if(rn1.lt.zero) goto 70
+      if(rn1.eq.zero) then
+        write(lerr,'(a,F12.5)') 'ERROR in betalf() - rn1 = 0: ', rn1
+        goto 160
+      end if
+      if(rn1.gt.zero) goto 90
+   70 yclam1=-one*yclam1
 
       do i=1,4
-        ta(i,2)=-one*ta(i,2)                                               !hr06
+        ta(i,2)=-one*ta(i,2)
       end do
 
    90 sqrn=sqrt(abs(rn1))
@@ -2715,15 +1872,18 @@ subroutine betalf(dpp,qw)
         ta(i,2)=ta(i,2)/sqrn
       end do
 
-      rn2=((ta(1,3)*ta(2,4)-ta(2,3)*ta(1,4))                            &!hr06
-     &+ta(3,3)*ta(4,4))-ta(4,3)*ta(3,4)                                  !hr06
-      if(rn2.lt.zero) goto 110                                           !hr06
-      if(rn2.eq.zero) goto 160                                           !hr06
-      if(rn2.gt.zero) goto 130                                           !hr06
-  110 yclam2=-one*yclam2                                                 !hr06
+      rn2=((ta(1,3)*ta(2,4)-ta(2,3)*ta(1,4))                            &
+     &+ta(3,3)*ta(4,4))-ta(4,3)*ta(3,4)
+      if(rn2.lt.zero) goto 110
+      if(rn2.eq.zero) then
+        write(lerr,'(a,F12.5)') 'ERROR in betalf() - rn2 = 0: ', rn2
+        goto 160
+      end if
+      if(rn2.gt.zero) goto 130
+  110 yclam2=-one*yclam2
 
       do i=1,4
-        ta(i,4)=-one*ta(i,4)                                               !hr06
+        ta(i,4)=-one*ta(i,4)
       end do
 
   130 sqrn=sqrt(abs(rn2))
@@ -2739,14 +1899,14 @@ subroutine betalf(dpp,qw)
 !-----------------------------------------------------------------------
 !  OPTICAL PARAMETERS AT THE STARTING POINT
 !-----------------------------------------------------------------------
-      betx(1)=ta(1,1)**2+ta(1,2)**2                                      !hr06
-      alfx(1)=-one*(ta(1,1)*ta(2,1)+ta(1,2)*ta(2,2))                     !hr06
-      betx(2)=ta(1,3)**2+ta(1,4)**2                                      !hr06
-      alfx(2)=-one*(ta(1,3)*ta(2,3)+ta(1,4)*ta(2,4))                     !hr06
-      betz(1)=ta(3,1)**2+ta(3,2)**2                                      !hr06
-      alfz(1)=-one*(ta(3,1)*ta(4,1)+ta(3,2)*ta(4,2))                     !hr06
-      betz(2)=ta(3,3)**2+ta(3,4)**2                                      !hr06
-      alfz(2)=-one*(ta(3,3)*ta(4,3)+ta(3,4)*ta(4,4))                     !hr06
+      betx(1)=ta(1,1)**2+ta(1,2)**2
+      alfx(1)=-one*(ta(1,1)*ta(2,1)+ta(1,2)*ta(2,2))
+      betx(2)=ta(1,3)**2+ta(1,4)**2
+      alfx(2)=-one*(ta(1,3)*ta(2,3)+ta(1,4)*ta(2,4))
+      betz(1)=ta(3,1)**2+ta(3,2)**2
+      alfz(1)=-one*(ta(3,1)*ta(4,1)+ta(3,2)*ta(4,2))
+      betz(2)=ta(3,3)**2+ta(3,4)**2
+      alfz(2)=-one*(ta(3,3)*ta(4,3)+ta(3,4)*ta(4,4))
       bet0(1)=betx(1)
       alf0(1)=alfx(1)
       bet0(2)=betz(2)
@@ -2809,10 +1969,10 @@ subroutine block
             g(j,l,2)=g(j-1,l,2)*a(n,l,1)+g(j-1,l,4)*a(n,l,2)
             g(j,l,3)=g(j-1,l,1)*a(n,l,3)+g(j-1,l,3)*a(n,l,4)
             g(j,l,4)=g(j-1,l,2)*a(n,l,3)+g(j-1,l,4)*a(n,l,4)
-            h(j,l,5)=(h(j-1,l,5)*a(i,l,1)+h(j-1,l,6)*a(i,l,2))+a(i,l,5)  !hr06
-            h(j,l,6)=(h(j-1,l,5)*a(i,l,3)+h(j-1,l,6)*a(i,l,4))+a(i,l,6)  !hr06
-            g(j,l,5)=(g(j-1,l,5)*a(n,l,1)+g(j-1,l,6)*a(n,l,2))+a(n,l,5)  !hr06
-            g(j,l,6)=(g(j-1,l,5)*a(n,l,3)+g(j-1,l,6)*a(n,l,4))+a(n,l,6)  !hr06
+            h(j,l,5)=(h(j-1,l,5)*a(i,l,1)+h(j-1,l,6)*a(i,l,2))+a(i,l,5)
+            h(j,l,6)=(h(j-1,l,5)*a(i,l,3)+h(j-1,l,6)*a(i,l,4))+a(i,l,6)
+            g(j,l,5)=(g(j-1,l,5)*a(n,l,1)+g(j-1,l,6)*a(n,l,2))+a(n,l,5)
+            g(j,l,6)=(g(j-1,l,5)*a(n,l,3)+g(j-1,l,6)*a(n,l,4))+a(n,l,6)
           end do
         end do
 
@@ -2872,14 +2032,10 @@ subroutine blockdis(aeg,bl1eg,bl2eg)
             g(j,l,2)=g(j-1,l,2)*aeg(n,l,1)+g(j-1,l,4)*aeg(n,l,2)
             g(j,l,3)=g(j-1,l,1)*aeg(n,l,3)+g(j-1,l,3)*aeg(n,l,4)
             g(j,l,4)=g(j-1,l,2)*aeg(n,l,3)+g(j-1,l,4)*aeg(n,l,4)
-            h(j,l,5)=(h(j-1,l,5)*aeg(i,l,1)+h(j-1,l,6)*aeg(i,l,2))+aeg  &!hr06
-     &(i,l,5)                                                            !hr06
-            h(j,l,6)=(h(j-1,l,5)*aeg(i,l,3)+h(j-1,l,6)*aeg(i,l,4))+aeg  &!hr06
-     &(i,l,6)                                                            !hr06
-            g(j,l,5)=(g(j-1,l,5)*aeg(n,l,1)+g(j-1,l,6)*aeg(n,l,2))+aeg  &!hr06
-     &(n,l,5)                                                            !hr06
-            g(j,l,6)=(g(j-1,l,5)*aeg(n,l,3)+g(j-1,l,6)*aeg(n,l,4))+aeg  &!hr06
-     &(n,l,6)                                                            !hr06
+            h(j,l,5)=(h(j-1,l,5)*aeg(i,l,1)+h(j-1,l,6)*aeg(i,l,2))+aeg(i,l,5)
+            h(j,l,6)=(h(j-1,l,5)*aeg(i,l,3)+h(j-1,l,6)*aeg(i,l,4))+aeg(i,l,6)
+            g(j,l,5)=(g(j-1,l,5)*aeg(n,l,1)+g(j-1,l,6)*aeg(n,l,2))+aeg(n,l,5)
+            g(j,l,6)=(g(j-1,l,5)*aeg(n,l,3)+g(j-1,l,6)*aeg(n,l,4))+aeg(n,l,6)
           end do
         end do
 
@@ -2944,34 +2100,34 @@ subroutine chroma
           suxy=zero
           suzy=zero
           do 30 l=1,2
-            isl=is(l)
+            isl=crois(l)
             if(kz(isl).ne.3) then
               write(lerr,"(a)") "CHROMA> ERROR Element specified for chromaticity correction is not a sextupole."
-              call prror(-1)
+              call prror
             end if
             ed(isl)=ed(isl)+dsm(l,ii)
             if(kp(isl).eq.5) call combel(isl)
    30     continue
           do 40 n=1,5
-            dpp=de2*real(3-n,fPrec)                                            !hr06
+            dpp=de2*real(3-n,fPrec)
             call clorb(dpp)
             if(ierro.gt.0) then
               write(lerr,"(a)") "CHROMA> ERROR Unstable closed orbit during chromaticity correction."
-              call prror(-1)
+              call prror
             end if
             call phasad(dpp,qwc)
             if(ierro.gt.0) then
               write(lerr,"(a)") "CHROMA> ERROR No optical solution during chromaticity correction."
-              call prror(-1)
+              call prror
             end if
             ox=qwc(1)
             oz=qwc(2)
-            su2=su2+dpp**2                                               !hr06
+            su2=su2+dpp**2
             suxy=suxy+ox*dpp
             suzy=suzy+oz*dpp
    40     continue
           do 50 l=1,2
-            isl=is(l)
+            isl=crois(l)
             ed(isl)=ed(isl)-dsm(l,ii)
             if(kp(isl).eq.5) call combel(isl)
    50     continue
@@ -2986,16 +2142,16 @@ subroutine chroma
             zi(l)=(sens(2,l+1)-sens(2,1))/dsm0
           end do
 
-          cor=sqrt(cro0(1)**2+cro0(2)**2)                                !hr06
+          cor=sqrt(cro0(1)**2+cro0(2)**2)
           if(jj.eq.1.or.cor.lt.coro) then
             coro=cor
             det=xi(1)*zi(2)-zi(1)*xi(2)
-            dm(1)=(cro0(2)*xi(2)-cro0(1)*zi(2))/det                      !hr06
-            dm(2)=(cro0(1)*zi(1)-cro0(2)*xi(1))/det                      !hr06
+            dm(1)=(cro0(2)*xi(2)-cro0(1)*zi(2))/det
+            dm(2)=(cro0(1)*zi(1)-cro0(2)*xi(1))/det
 
             do l=1,2
-              sm0(l)=ed(is(l))
-              isl=is(l)
+              sm0(l)=ed(crois(l))
+              isl=crois(l)
               ed(isl)=ed(isl)+dm(l)
               if(kp(isl).eq.5) call combel(isl)
             end do
@@ -3007,8 +2163,7 @@ subroutine chroma
         write(lout,10020) sens(1,1),sens(1,4),sens(2,1),sens(2,4)
         chromc(1)=sens(1,4)*c1m3
         chromc(2)=sens(2,4)*c1m3
-        write(lout,10030) sm0(1),ed(is(1)),bez(is(1)), sm0(2),ed(is(2)),&
-     &bez(is(2))
+        write(lout,10030) sm0(1),ed(crois(1)),bez(crois(1)),sm0(2),ed(crois(2)),bez(crois(2))
         write(lout,10040) xi,zi
         write(lout,10010)
         if(abs(sens(1,4)-cro(1)).lt.dech.and.abs(sens(2,4)-cro(2))      &
@@ -3064,8 +2219,8 @@ subroutine chromda
 #include "include/beamcou.f90"
       endif
       ncorru=ncorruo
-      iq1=is(1)
-      iq2=is(2)
+      iq1=crois(1)
+      iq2=crois(2)
       edcor(1)=ed(iq1)
       edcor(2)=ed(iq2)
       edcor1=edcor(1)
@@ -3080,13 +2235,13 @@ subroutine chromda
         call mydaini(2,4,7,2,5,1)
         dq1=corr(1,1)-cro(1)*c1m3
         dq2=corr(1,2)-cro(2)*c1m3
-        if(ncorr.eq.1) cor=c1e3*sqrt(dq1**2+dq2**2)                      !hr06
+        if(ncorr.eq.1) cor=c1e3*sqrt(dq1**2+dq2**2)
         if(cor.gt.dech) then
-          cor=c1e3*sqrt(dq1**2+dq2**2)                                   !hr06
+          cor=c1e3*sqrt(dq1**2+dq2**2)
           if(ncorr.eq.1.or.cor.lt.coro) then
             coro=cor
-            ed(iq1)=(ed(iq1)-corr(2,1)*dq1)-corr(2,2)*dq2                !hr06
-            ed(iq2)=(ed(iq2)-corr(3,1)*dq1)-corr(3,2)*dq2                !hr06
+            ed(iq1)=(ed(iq1)-corr(2,1)*dq1)-corr(2,2)*dq2
+            ed(iq2)=(ed(iq2)-corr(3,1)*dq1)-corr(3,2)*dq2
             do icht=1,iu
               ix=ic(icht)
               if(ix.gt.nblo) then
@@ -3101,15 +2256,11 @@ subroutine chromda
             edcor(1)=ed(iq1)
             edcor(2)=ed(iq2)
             if(ncorr.eq.1) then
-              write(lout,10010) cro(1),corr(1,1)*c1e3,cro(2),           &
-     &corr(1,2)*c1e3,ncorr-1,cor
-              write(lout,10030) edcor1,ed(iq1),bez(iq1),edcor2,ed(iq2), &
-     &bez(iq2)
+              write(lout,10010) cro(1),corr(1,1)*c1e3,cro(2),corr(1,2)*c1e3,ncorr-1,cor
+              write(lout,10030) edcor1,ed(iq1),bez(iq1),edcor2,ed(iq2),bez(iq2)
             else
-              write(lout,10020) cro(1),corr(1,1)*c1e3,cro(2),           &
-     &corr(1,2)*c1e3,ncorr-1,cor
-              write(lout,10030) edcor1,ed(iq1),bez(iq1),edcor2,ed(iq2), &
-     &bez(iq2)
+              write(lout,10020) cro(1),corr(1,1)*c1e3,cro(2),corr(1,2)*c1e3,ncorr-1,cor
+              write(lout,10030) edcor1,ed(iq1),bez(iq1),edcor2,ed(iq2),bez(iq2)
             endif
           else
             write(lout,10040) ncorr-1
@@ -3125,11 +2276,9 @@ subroutine chromda
       chromc(2)=corr(1,2)
       if(ncorr.eq.itcro+1) write(lout,10060) itcro
       if(ncorr.eq.1) then
-        write(lout,10010) cro(1),corr(1,1)*c1e3,cro(2),                 &
-     &corr(1,2)*c1e3,ncorr-1,cor
+        write(lout,10010) cro(1),corr(1,1)*c1e3,cro(2),corr(1,2)*c1e3,ncorr-1,cor
       else
-        write(lout,10020) cro(1),corr(1,1)*c1e3,cro(2),corr(1,2)*c1e3,  &
-     &ncorr-1,cor
+        write(lout,10020) cro(1),corr(1,1)*c1e3,cro(2),corr(1,2)*c1e3,ncorr-1,cor
       endif
       write(lout,10030) edcor1,ed(iq1),bez(iq1),edcor2,ed(iq2),bez(iq2)
 !-----------------------------------------------------------------------
@@ -3174,8 +2323,7 @@ subroutine clorb(dpp)
 
       implicit none
       integer ierr,ii,l,ll
-      real(kind=fPrec) am,cor,dclo,dclop,dcx,dcxp,dcz,dczp,det,dpp,dx,  &
-     &dy,x0,x1,y0,y1
+      real(kind=fPrec) am,cor,dclo,dclop,dcx,dcxp,dcz,dczp,det,dpp,dx,dy,x0,x1,y0,y1
       dimension x1(2),y1(2),x0(2),y0(2)
       dimension dclo(2),dclop(2)
       dimension dx(2),dy(2),am(4,4)
@@ -3197,8 +2345,7 @@ subroutine clorb(dpp)
         dcxp=abs(dy(1))
         dcz=abs(dx(2))
         dczp=abs(dy(2))
-        if(dcx.le.dma.and.dcz.le.dma.and.dcxp.le.dmap.and.dczp.le.dmap) &
-     &goto 50
+        if(dcx.le.dma.and.dcz.le.dma.and.dcxp.le.dmap.and.dczp.le.dmap) goto 50
 
         do l=1,2
           x(1,l)=clo(l)
@@ -3213,7 +2360,7 @@ subroutine clorb(dpp)
           ll=2*l
           x1(l)=x(1,l)
           y1(l)=y(1,l)
-          det=(two-am(ll-1,ll-1))-am(ll,ll)                              !hr06
+          det=(two-am(ll-1,ll-1))-am(ll,ll)
           dx(l)=x0(l)-x1(l)
           dy(l)=y0(l)-y1(l)
           dclo(l)=(dx(l)*(am(ll,ll)-one)-dy(l)*am(ll-1,ll))/det
@@ -3223,7 +2370,7 @@ subroutine clorb(dpp)
    30   continue
    40 continue
       if(ncorru.ne.1) write(lout,10000) itco
-   50 cor=c1e3*sqrt(dcx**2+dcz**2)                                       !hr06
+   50 cor=c1e3*sqrt(dcx**2+dcz**2)
       if(st_print .and. ncorru /= 1) then
         write(lout,10010) dpp,clo(1),clop(1),clo(2),clop(2),ii,cor
       endif
@@ -3260,8 +2407,8 @@ subroutine clorb2(dpp)
       do 10 l=1,2
         clo(l)=dpp*di0(l)
         clop(l)=dpp*dip0(l)
-        dx(l)=c1e6                                                        !hr06
-        dy(l)=c1e6                                                        !hr06
+        dx(l)=c1e6
+        dy(l)=c1e6
    10 continue
 
       call envar(dpp)
@@ -3269,7 +2416,7 @@ subroutine clorb2(dpp)
       ierro=ierr
       if(ierro /= 0) then
         write(lerr,"(a)") "CLORB> ERROR No convergence in rmod."
-        call prror(-1)
+        call prror
       end if
 
       do 40 ii=1,itco
@@ -3277,8 +2424,7 @@ subroutine clorb2(dpp)
         dcxp=abs(dy(1))
         dcz=abs(dx(2))
         dczp=abs(dy(2))
-        if(dcx.le.dma.and.dcz.le.dma.and.dcxp.le.dmap.and.dczp.le.dmap) &
-     &return
+        if(dcx.le.dma.and.dcz.le.dma.and.dcxp.le.dmap.and.dczp.le.dmap) return
 
         do l=1,2
           x(1,l)=clo(l)
@@ -3291,7 +2437,7 @@ subroutine clorb2(dpp)
 
         if(ierro /= 0) then
           write(lerr,"(a)") "CLORB> ERROR No convergence in rmod."
-          call prror(-1)
+          call prror
         end if
 
         do 30 l=1,2
@@ -3336,7 +2482,7 @@ subroutine combel(iql)
           if(ico.eq.0) goto 10
           if(kz(ico0).ne.kz(ico)) then
             write(lerr,"(a)") "COMBEL> ERROR Elements of different types are combined in data block combination of elements."
-            call prror(-1)
+            call prror
           end if
           if(abs(el(ico0)).gt.pieni) then
             if(abs(el(ico)).gt.pieni) then
@@ -3428,21 +2574,21 @@ subroutine envar(dpp)
                 a(i,1,2) = rho*si
                 a(i,1,3) = zero
                 a(i,1,4) = one
-                a(i,1,5) = ((-one*rho)*(one-co))/dpsq         ! hr06
-                a(i,1,6) = ((-one*two)*tan_mb(fok*half))/dpsq ! hr06
+                a(i,1,5) = ((-one*rho)*(one-co))/dpsq
+                a(i,1,6) = ((-one*two)*tan_mb(fok*half))/dpsq
                 ! VERTICAL
                 a(i,2,1) = one-gl
                 a(i,2,2) = el(i)
-                a(i,2,3) = (-one*g)*(two-gl) ! hr06
+                a(i,2,3) = (-one*g)*(two-gl)
                 a(i,2,4) = a(i,2,1)
             case (4)
                 ! HORIZONTAL
                 a(i,1,1) = co
                 a(i,1,2) = rho*si
-                a(i,1,3) = (-one*si)/rho              ! hr06
+                a(i,1,3) = (-one*si)/rho
                 a(i,1,4) = co
-                a(i,1,5) = ((-one*rho)*(one-co))/dpsq ! hr06
-                a(i,1,6) = (-one*si)/dpsq             ! hr06
+                a(i,1,5) = ((-one*rho)*(one-co))/dpsq
+                a(i,1,6) = (-one*si)/dpsq
                 ! VERTICAL
                 a(i,2,1) = one
                 a(i,2,2) = el(i)
@@ -3454,21 +2600,21 @@ subroutine envar(dpp)
                 a(i,2,2) = rho*si
                 a(i,2,3) = zero
                 a(i,2,4) = one
-                a(i,2,5) = ((-one*rho)*(one-co))/dpsq         ! hr06
-                a(i,2,6) = ((-one*two)*tan_mb(fok*half))/dpsq ! hr06
+                a(i,2,5) = ((-one*rho)*(one-co))/dpsq
+                a(i,2,6) = ((-one*two)*tan_mb(fok*half))/dpsq
                 ! VERTIKAL
                 a(i,1,1) = one-gl
                 a(i,1,2) = el(i)
-                a(i,1,3) = (-one*g)*(two-gl) ! hr06
+                a(i,1,3) = (-one*g)*(two-gl)
                 a(i,1,4) = a(i,1,1)
             case (6)
                 ! HORIZONTAL
                 a(i,2,1) = co
                 a(i,2,2) = rho*si
-                a(i,2,3) = (-one*si)/rho              ! hr06
+                a(i,2,3) = (-one*si)/rho
                 a(i,2,4) = co
-                a(i,2,5) = ((-one*rho)*(one-co))/dpsq ! hr06
-                a(i,2,6) = (-one*si)/dpsq             ! hr06
+                a(i,2,5) = ((-one*rho)*(one-co))/dpsq
+                a(i,2,6) = (-one*si)/dpsq
                 ! VERTIKAL
                 a(i,1,1) = one
                 a(i,1,2) = el(i)
@@ -3495,7 +2641,7 @@ subroutine envar(dpp)
             a(i,ih,1) = cos_mb(fi)
             hi1 = sin_mb(fi)
             a(i,ih,2) = hi1/hi
-            a(i,ih,3) = (-one*hi1)*hi  ! hr06
+            a(i,ih,3) = (-one*hi1)*hi
             a(i,ih,4) = a(i,ih,1)
             if(ih.eq.2) cycle
             !--DEFOCUSSING
@@ -3518,10 +2664,10 @@ subroutine envar(dpp)
                 fokq = ek(i)
             else
                 ih   = 1
-                fokq = -one*ek(i) ! hr06
+                fokq = -one*ek(i)
             end if
             wf  = ed(i)/dpsq
-            fok = fokq/dpd-wf**2  ! hr06
+            fok = fokq/dpd-wf**2
             if(abs(fok).le.pieni) then
                 do l=1,2
                     a(i,l,1) = one
@@ -3540,10 +2686,10 @@ subroutine envar(dpp)
             co = cos_mb(fi)
             a(i,ih,1) = co
             a(i,ih,2) = si/hi
-            a(i,ih,3) = (-one*si)*hi                     ! hr06
+            a(i,ih,3) = (-one*si)*hi
             a(i,ih,4) = co
-            a(i,ih,5) = (((-one*wf)/afok)*(one-co))/dpsq ! hr06
-            a(i,ih,6) = (((-one*wf)/hi)*si)/dpsq         ! hr06
+            a(i,ih,5) = (((-one*wf)/afok)*(one-co))/dpsq
+            a(i,ih,6) = (((-one*wf)/hi)*si)/dpsq
             ih = ih+1
             if(ih.gt.2) ih = 1
             hi = sqrt(abs(ek(i)/dpd))
@@ -3569,8 +2715,8 @@ subroutine envar(dpp)
             a(i,ih,2) = hs/hi
             a(i,ih,3) = hs*hi
             a(i,ih,4) = hc
-            a(i,ih,5) = ((wf/afok)*(one-hc))/dpsq ! hr06
-            a(i,ih,6) = (((-one*wf)/hi)*hs)/dpsq  ! hr06
+            a(i,ih,5) = ((wf/afok)*(one-hc))/dpsq
+            a(i,ih,6) = (((-one*wf)/hi)*hs)/dpsq
             ih = ih+1
             if(ih.gt.2) ih = 1
             hi = sqrt(abs(ek(i)/dpd))
@@ -3579,19 +2725,19 @@ subroutine envar(dpp)
             co = cos_mb(fi)
             a(i,ih,1) = co
             a(i,ih,2) = si/hi
-            a(i,ih,3) = (-one*si)*hi ! hr06
+            a(i,ih,3) = (-one*si)*hi
             a(i,ih,4) = co
 
         case (9) ! EDGE FOCUSSING
             rhoi = ed(i)/dpsq
-            fok  = rhoi*tan_mb((el(i)*rhoi)*half) ! hr06
+            fok  = rhoi*tan_mb((el(i)*rhoi)*half)
             a(i,1,1) = one
             a(i,1,2) = zero
             a(i,1,3) = fok
             a(i,1,4) = one
             a(i,2,1) = one
             a(i,2,2) = zero
-            a(i,2,3) = -one*fok ! hr06
+            a(i,2,3) = -one*fok
             a(i,2,4) = one
 
         end select
@@ -3664,23 +2810,23 @@ subroutine envardis(dpp,aeg,bl1eg,bl2eg)
                 aeg(i,1,2) = rho*si
                 aeg(i,1,3) = zero
                 aeg(i,1,4) = one
-                aeg(i,1,5) = ((-one*rho)*(one-co))/dpsq         ! hr06
-                aeg(i,1,6) = ((-one*two)*tan_mb(fok*half))/dpsq ! hr06
+                aeg(i,1,5) = ((-one*rho)*(one-co))/dpsq
+                aeg(i,1,6) = ((-one*two)*tan_mb(fok*half))/dpsq
                 ! VERTICAL
                 g  = tan_mb(fok*half)/rho
                 gl = el(i)*g
                 aeg(i,2,1) = one-gl
                 aeg(i,2,2) = el(i)
-                aeg(i,2,3) = (-one*g)*(two-gl)                  ! hr06
+                aeg(i,2,3) = (-one*g)*(two-gl)
                 aeg(i,2,4) = aeg(i,2,1)
             case (4)
                 ! HORIZONTAL
                 aeg(i,1,1)=co
                 aeg(i,1,2)=rho*si
-                aeg(i,1,3)=(-one*si)/rho                        ! hr06
+                aeg(i,1,3)=(-one*si)/rho
                 aeg(i,1,4)=co
-                aeg(i,1,5)=((-one*rho)*(one-co))/dpsq           ! hr06
-                aeg(i,1,6)=(-one*si)/dpsq                       ! hr06
+                aeg(i,1,5)=((-one*rho)*(one-co))/dpsq
+                aeg(i,1,6)=(-one*si)/dpsq
                 ! VERTICAL
                 aeg(i,2,1)=one
                 aeg(i,2,2)=el(i)
@@ -3692,23 +2838,23 @@ subroutine envardis(dpp,aeg,bl1eg,bl2eg)
                 aeg(i,2,2) = rho*si
                 aeg(i,2,3) = zero
                 aeg(i,2,4) = one
-                aeg(i,2,5) = ((-one*rho)*(one-co))/dpsq         ! hr06
-                aeg(i,2,6) = ((-one*two)*tan_mb(fok*half))/dpsq ! hr06
+                aeg(i,2,5) = ((-one*rho)*(one-co))/dpsq
+                aeg(i,2,6) = ((-one*two)*tan_mb(fok*half))/dpsq
                 ! VERTICAL
                 g  = tan_mb(fok*half)/rho
                 gl = el(i)*g
                 aeg(i,1,1) = one-gl
                 aeg(i,1,2) = el(i)
-                aeg(i,1,3) = (-one*g)*(two-gl)                  ! hr06
+                aeg(i,1,3) = (-one*g)*(two-gl)
                 aeg(i,1,4) = aeg(i,1,1)
             case (6)
                 ! HORIZONTAL
                 aeg(i,2,1)=co
                 aeg(i,2,2)=rho*si
-                aeg(i,2,3)=(-one*si)/rho                        ! hr06
+                aeg(i,2,3)=(-one*si)/rho
                 aeg(i,2,4)=co
-                aeg(i,2,5)=((-one*rho)*(one-co))/dpsq           ! hr06
-                aeg(i,2,6)=(-one*si)/dpsq                       ! hr06
+                aeg(i,2,5)=((-one*rho)*(one-co))/dpsq
+                aeg(i,2,6)=(-one*si)/dpsq
                 ! VERTICAL
                 aeg(i,1,1)=one
                 aeg(i,1,2)=el(i)
@@ -3736,7 +2882,7 @@ subroutine envardis(dpp,aeg,bl1eg,bl2eg)
             aeg(i,ih,1) = cos_mb(fi)
             hi1 = sin_mb(fi)
             aeg(i,ih,2) = hi1/hi
-            aeg(i,ih,3) = (-one*hi1)*hi ! hr06
+            aeg(i,ih,3) = (-one*hi1)*hi
             aeg(i,ih,4) = aeg(i,ih,1)
             if(ih.eq.2) cycle
             ! DEFOCUSSING
@@ -3759,10 +2905,10 @@ subroutine envardis(dpp,aeg,bl1eg,bl2eg)
                 fokq = ek(i)
             else
                 ih   = 1
-                fokq = -one*ek(i)      ! hr06
+                fokq = -one*ek(i)
             end if
             wf  = ed(i)/dpsq
-            fok = fokq/dpd-wf**2       ! hr06
+            fok = fokq/dpd-wf**2
             if(abs(fok).le.pieni) then
                 do l=1,2
                     aeg(i,l,1) = one
@@ -3781,10 +2927,10 @@ subroutine envardis(dpp,aeg,bl1eg,bl2eg)
             co = cos_mb(fi)
             aeg(i,ih,1) = co
             aeg(i,ih,2) = si/hi
-            aeg(i,ih,3) = (-one*si)*hi                      ! hr06
+            aeg(i,ih,3) = (-one*si)*hi
             aeg(i,ih,4) = co
-            aeg(i,ih,5) = (((-one*wf)/afok)*(one-co))/dpsq  ! hr06
-            aeg(i,ih,6) = (((-one*wf)/hi)*si)/dpsq          ! hr06
+            aeg(i,ih,5) = (((-one*wf)/afok)*(one-co))/dpsq
+            aeg(i,ih,6) = (((-one*wf)/hi)*si)/dpsq
             ih = ih+1
             if(ih.gt.2) ih=1
             hi = sqrt(abs(ek(i)/dpd))
@@ -3809,8 +2955,8 @@ subroutine envardis(dpp,aeg,bl1eg,bl2eg)
             aeg(i,ih,2) = hs/hi
             aeg(i,ih,3) = hs*hi
             aeg(i,ih,4) = hc
-            aeg(i,ih,5) = ((wf/afok)*(one-hc))/dpsq ! hr06
-            aeg(i,ih,6) = (((-one*wf)/hi)*hs)/dpsq  ! hr06
+            aeg(i,ih,5) = ((wf/afok)*(one-hc))/dpsq
+            aeg(i,ih,6) = (((-one*wf)/hi)*hs)/dpsq
             ih = ih+1
             if(ih.gt.2) ih = 1
             hi = sqrt(abs(ek(i)/dpd))
@@ -3819,12 +2965,12 @@ subroutine envardis(dpp,aeg,bl1eg,bl2eg)
             co = cos_mb(fi)
             aeg(i,ih,1) = co
             aeg(i,ih,2) = si/hi
-            aeg(i,ih,3) = (-one*si)*hi              ! hr06
+            aeg(i,ih,3) = (-one*si)*hi
             aeg(i,ih,4) = co
 
         case (9) ! EDGE FOCUSSING
             rhoi = ed(i)/dpsq
-            fok  = rhoi*tan_mb((el(i)*rhoi)*half) ! hr06
+            fok  = rhoi*tan_mb((el(i)*rhoi)*half)
             aeg(i,1,1) = one
             aeg(i,1,2) = zero
             aeg(i,1,3) = fok
@@ -3840,1184 +2986,6 @@ subroutine envardis(dpp,aeg,bl1eg,bl2eg)
     return
 
 end subroutine envardis
-
-!-----------------------------------------------------------------------
-!  LINEAR PARAMETERS AT THE POSITION OF EVERY ELEMENT OR BLOCK
-!-----------------------------------------------------------------------
-subroutine linopt(dpp)
-
-  use floatPrecision
-  use numerical_constants
-  use mathlib_bouncer
-  use crcoall
-  use parpro
-  use mod_units
-  use mod_common
-  use mod_commons
-  use mod_common_track
-
-#ifdef ROOT
-  use root_output
-#endif
-
-#ifdef HDF5
-  use hdf5_output
-  use hdf5_linopt
-#endif
-
-  use collimation
-
-  implicit none
-
-  integer i,iiii,im,ium,ix,izu,j,jj,jk,jm,k,kpz,kzz,l,l1,ll,nmz,nr,dj
-  real(kind=fPrec) aa,aeg,alfa,bb,benkr,beta,bexi,bezii,bl1eg,bl2eg,ci,cikve,clo0,clop0,cr,crkve, &
-    crkveuk,di00,dip00,dphi,dpp,dpp1,dppi,dpr,dyy1,dyy2,ekk,etl,phi,phibf,pie,puf,qu,qv,qw,qwc,r0,&
-    r0a,t,xl,xs,zl,zs,quz,qvz
-#ifdef TILT
-  real(kind=fPrec) dyy11,qu1,tiltck,tiltsk
-#endif
-  character(len=mNameLen) idum
-
-  dimension t(6,4)
-  dimension beta(2),alfa(2),phibf(2),phi(2)
-  dimension clo0(2),clop0(2),di00(2),dip00(2),qw(2),qwc(3)
-  dimension aa(mmul),bb(mmul),dpr(6)
-  dimension cr(mmul),ci(mmul)
-  dimension aeg(nele,2,6),bl1eg(nblo,2,6),bl2eg(nblo,2,6)
-  data dpr/6*zero/
-  save
-!-----------------------------------------------------------------------
-
-      nhmoni=0
-      nvmoni=0
-      nhcorr=0
-      nvcorr=0
-      ium=6
-      pie=two*pi
-
-      if(ncorru.eq.0) then
-        write(lout,10010)
-        write(lout,10000)
-      endif
-
-      do i=1,ium
-        dpr(i)=zero
-      end do
-
-      do i=1,ium
-        do j=1,4
-          t(i,j)=zero
-        end do
-      end do
-
-      do i=1,2
-        beta(i)=zero
-        alfa(i)=zero
-        phibf(i)=zero
-        phi(i)=zero
-        clo0(i)=zero
-        clop0(i)=zero
-        di00(i)=zero
-        dip00(i)=zero
-        qw(i)=zero
-        qwc(i)=zero
-      end do
-
-      qwc(3)=zero
-
-      do i=1,mmul
-        aa(i)=zero
-        bb(i)=zero
-        cr(i)=zero
-        ci(i)=zero
-      end do
-
-      etl=zero
-      dpr(1)=dpp*c1e3
-      dpr(6)=one
-      dpp1=dpp+ded
-      call clorb(dpp1)
-
-      do l=1,2
-        clo0(l)=clo(l)
-        clop0(l)=clop(l)
-      end do
-
-      call clorb(dpp)
-
-      do l=1,2
-        ll=2*l
-        di0(l)=(clo0(l)-clo(l))/ded
-        dip0(l)=(clop0(l)-clop(l))/ded
-        t(6,ll-1)=di0(l)
-        t(6,ll)=dip0(l)
-      end do
-
-      if(ncorru.eq.0) then
-        call f_open(unit=34,file="fort.34",formatted=.true.,mode="w")
-        write(lout,10010)
-        write(lout,10050) (di0(l),dip0(l),l=1,2)
-      endif
-
-      call betalf(dpp,qw)
-      call phasad(dpp,qwc)
-
-      if(ierro /= 0) then
-        write(lerr,"(a)") "LINOPT> ERROR No optical solution."
-        call prror(-1)
-      end if
-      if(ncorru.eq.0) write(lout,10040) dpp,qwc(1),qwc(2)
-
-      call envar(dpp)
-
-      if(ithick.eq.1) call envardis(dpp1,aeg,bl1eg,bl2eg)
-
-!--STARTVALUES OF THE TRAJECTORIES
-      do l=1,2
-        ll=2*l
-        t(1,ll-1)=clo(l)
-        t(1,ll)=clop(l)
-      end do
-
-      do i=1,4
-        do j=1,4
-          t(i+1,j)=ta(j,i)
-          t(i+1,j)=ta(j,i)
-        end do
-      end do
-
-      if(ncorru.eq.0 .and. iprint.eq.1) then
-        write(lout,10010)
-        write(lout,10030)
-        write(lout,10020)
-        write(lout,10010)
-      endif
-
-!--START OF THE MACHINE
-      idum='START'
-      nr=0
-      call writelin(nr,idum,etl,phi,t,1,.false.,0)
-      if(ntco.ne.0) then
-        if(mod(nr,ntco).eq.0) call cpltwis(idum,t,etl,phi)
-      endif
-
-#ifdef ROOT
-      if(root_flag .and. root_Optics.eq.1) then
-        call OpticsRootWrite()
-      end if
-#endif
-
-!--STRUCTURE ELEMENT LOOP
-      if(nt.le.0.or.nt.gt.iu) nt=iu
-      izu=0
-#ifdef HDF5
-      if(h5_writeOptics) call h5lin_init
-#endif
-
-      STRUCTLOOP: do k=1,nt
-        ix=ic(k)
-        if(ix.gt.nblo) goto 220 !Not a BLOCK
-        if(ithick.eq.1.and.iprint.eq.1) goto 160
-
-        jj=0 !initial idx
-        dj=1 !step
-
-        if (ix.le.0) then
-           ix=-1*ix             !hr13
-           jj=mel(ix)+1         !initial idx
-           dj=-1                !step
-        endif
-        jm=mel(ix)
-!-- Loop over elements inside the block
-        do 150 j=1,jm
-          jj=jj+dj       ! Subelement index of current sub=element
-          jk=mtyp(ix,jj) ! Single-element index of the current sub-element
-          if(ithick.eq.1.and.kz(jk).ne.0) goto 120
-          if(ithick.eq.0.and.kz(jk).ne.0) then
-            etl=etl+el(jk)
-
-!c$$$            nr=nr+1
-!c$$$            call writelin(nr,bez(jk),etl,phi,t,ix,.true.,k)
-!c$$$            if(ntco.ne.0) then
-!c$$$              if(mod(nr,ntco).eq.0) call cpltwis(bez(jk),t,etl,phi)
-!c$$$            endif
-
-            write(lerr,"(a)") "LINOPT> ERROR In block '"//trim(bezb(ix))//"': found a thick non-drift element '"//&
-              trim(bez(jk))//"' while ithick=1. This should not be possible!"
-            call prror(-1)
-            cycle STRUCTLOOP
-          endif
-
-!--IN BLOCK: PURE DRIFTLENGTH (above: If ITHICK=1 and kz!=0, goto 120->MAGNETELEMENT)
-          etl=etl+el(jk)
-
-          do l=1,2
-            ll=2*l
-            if(abs(t(ll,ll-1)).gt.pieni) then
-              phibf(l)=atan_mb(t(ll+1,ll-1)/t(ll,ll-1))
-            else
-              phibf(l)=pi2
-            endif
-            do i=1,ium
-              t(i,ll-1)=t(i,ll-1)+t(i,ll)*(el(jk))
-            end do
-          end do
-
-          do l=1,2
-            ll=2*l
-            if(abs(t(ll,ll-1)).gt.pieni) then
-              dphi=atan_mb(t(ll+1,ll-1)/t(ll,ll-1))-phibf(l)
-            else
-              dphi=pi2-phibf(l)
-            endif
-            if((-one*dphi).gt.pieni) dphi=dphi+pi                        !hr06
-            phi(l)=phi(l)+dphi/pie
-          end do
-
-          nr=nr+1
-          call writelin(nr,bez(jk),etl,phi,t,ix,.true.,k)
-          if(ntco.ne.0) then
-            if(mod(nr,ntco).eq.0) call cpltwis(bez(jk),t,etl, phi)
-          endif
-#ifdef ROOT
-      if(root_flag .and. root_Optics.eq.1) then
-        call OpticsRootWrite()
-      end if
-#endif
-
-          goto 150
-
-!--IN BLOCK: MAGNETELEMENT
-  120     continue
-          if(kz(jk).ne.8) etl=etl+el(jk)
-          do l=1,2
-            ll=2*l
-
-            if(abs(t(ll,ll-1)).gt.pieni) then
-              phibf(l)=atan_mb(t(ll+1,ll-1)/t(ll,ll-1))
-            else
-              phibf(l)=zero
-            endif
-
-            puf=t(6,ll-1)
-         t(6,ll-1)=(((((aeg(jk,l,1)*(t(1,ll-1)+puf*ded)+ aeg(jk,l,2)*(t &!hr06
-     &(1,ll)+t(6,ll)*ded))+aeg(jk,l,5)*dpp1*c1e3)- a(jk,l,1)*t          &!hr06
-     &(1,ll-1))-a(jk,l,2)*t(1,ll))- a(jk,l,5)*dpr(1))/ded                !hr06
-           t(6,ll)=(((((aeg(jk,l,3)*(t(1,ll-1)+puf*ded)+ aeg(jk,l,4)*(t &!hr06
-     &(1,ll)+t(6,ll)*ded))+aeg(jk,l,6)*dpp1*c1e3)- a(jk,l,3)*t          &!hr06
-     &(1,ll-1))-a(jk,l,4)*t(1,ll))- a(jk,l,6)*dpr(1))/ded                !hr06
-
-            do i=1,ium-1
-              puf=t(i,ll-1)
-            t(i,ll-1)=(puf*a(jk,l,1)+t(i,ll)*a(jk,l,2))+dpr(i)*a(jk,l,5) !hr06
-            t(i,ll)=(puf*a(jk,l,3)+t(i,ll)*a(jk,l,4))+dpr(i)*a(jk,l,6)   !hr06
-            enddo
-          enddo
-
-          do l=1,2
-            ll=2*l
-
-            if(abs(t(ll,ll-1)).gt.pieni) then
-              dphi=atan_mb(t(ll+1,ll-1)/t(ll,ll-1))-phibf(l)
-            else
-              dphi=-one*phibf(l)                                         !hr06
-            endif
-
-            if(kz(jk).ne.8.and.-one*dphi.gt.pieni) dphi=dphi+pi          !hr06
-            phi(l)=phi(l)+dphi/pie
-          enddo
-
-          nr=nr+1
-          call writelin(nr,bez(jk),etl,phi,t,ix,.true.,k)
-          if(ntco.ne.0) then
-            if(mod(nr,ntco).eq.0) call cpltwis(bez(jk),t,etl, phi)
-          endif
-#ifdef ROOT
-          if(root_flag .and. root_Optics.eq.1) then
-            call OpticsRootWrite()
-          end if
-#endif
-
-  150   continue !End of loop over elements inside block
-
-        nr=nr+1
-        call writelin(nr,bezb(ix),etl,phi,t,ix,.true.,k)
-        if(ntco.ne.0) then
-          if(mod(nr,ntco).eq.0) call cpltwis(bezb(ix),t,etl,phi)
-        endif
-#ifdef ROOT
-        if(root_flag .and. root_Optics.eq.1) then
-          call OpticsRootWrite()
-        end if
-#endif
-
-        cycle STRUCTLOOP
-
-!--BETACALCULATION FOR SERIES OF BLOCKS (ix.ge.nblo.and.ithick.eq.1.and.iprint.eq.1)
-  160   continue !if ithick=1 and iprint=1:
-        if(ix.le.0) goto 190
-!--REGULAR RUN THROUGH BLOCKS
-        etl=etl+elbe(ix)
-
-        do l=1,2
-          ll=2*l
-
-          if(abs(t(ll,ll-1)).gt.pieni) then
-            phibf(l)=atan_mb(t(ll+1,ll-1)/t(ll,ll-1))
-          else
-            phibf(l)=zero
-          endif
-
-          puf=t(6,ll-1)
-      t(6,ll-1)=(((((bl1eg(ix,l,1)*(t(1,ll-1)+puf*ded)+ bl1eg(ix,l,2)*(t&!hr06
-     &(1,ll)+t(6,ll)*ded))+ bl1eg(ix,l,5)*dpp1*c1e3)- bl1(ix,l,1)*t     &!hr06
-     &(1,ll-1))-bl1(ix,l,2)*t(1,ll))- bl1(ix,l,5)*dpr(1))/ded            !hr06
-      t(6,ll)=(((((bl1eg(ix,l,3)*(t(1,ll-1)+puf*ded)+ bl1eg(ix,l,4)*(t  &!hr06
-     &(1,ll)+t(6,ll)*ded))+ bl1eg(ix,l,6)*dpp1*c1e3)- bl1(ix,l,3)*t     &!hr06
-     &(1,ll-1))-bl1(ix,l,4)*t(1,ll))- bl1(ix,l,6)*dpr(1))/ded            !hr06
-
-          do i=1,ium-1
-            puf=t(i,ll-1)
-            t(i,ll-1)=(bl1(ix,l,1)*puf+bl1(ix,l,2)*t(i,ll))+dpr(i)*bl1  &!hr06
-     &(ix,l,5)                                                           !hr06
-        t(i,ll)=(bl1(ix,l,3)*puf+bl1(ix,l,4)*t(i,ll))+dpr(i)*bl1(ix,l,6) !hr06
-          end do
-        end do
-
-        do l=1,2
-          ll=2*l
-          if(abs(t(ll,ll-1)).gt.pieni) then
-            dphi=atan_mb(t(ll+1,ll-1)/t(ll,ll-1))-phibf(l)
-          else
-            dphi=-one*phibf(l)                                           !hr06
-          endif
-          if(-one*dphi.gt.pieni) dphi=dphi+pi                            !hr06
-          phi(l)=phi(l)+dphi/pie
-        end do
-
-        nr=nr+1
-        call writelin(nr,bezb(ix),etl,phi,t,ix,.true.,k)
-        if(ntco.ne.0) then
-          if(mod(nr,ntco).eq.0) call cpltwis(bezb(ix),t,etl,phi)
-        endif
-#ifdef ROOT
-        if(root_flag .and. root_Optics.eq.1) then
-          call OpticsRootWrite()
-        end if
-#endif
-
-        cycle STRUCTLOOP
-
-!--REVERSE RUN THROUGH BLOCKS (ix.le.0)
-  190   ix=-ix
-        etl=etl+elbe(ix)
-        do l=1,2
-          ll=2*l
-
-          if(abs(t(ll,ll-1)).gt.pieni) then
-            phibf(l)=atan_mb(t(ll+1,ll-1)/t(ll,ll-1))
-          else
-            phibf(l)=zero
-          endif
-
-          puf=t(6,ll-1)
-      t(6,ll-1)=(((((bl2eg(ix,l,1)*(t(1,ll-1)+puf*ded)+ bl2eg(ix,l,2)*(t&!hr06
-     &(1,ll)+t(6,ll)*ded))+ bl2eg(ix,l,5)*dpp1*c1e3)- bl2(ix,l,1)*t     &!hr06
-     &(1,ll-1))-bl2(ix,l,2)*t(1,ll))- bl2(ix,l,5)*dpr(1))/ded            !hr06
-      t(6,ll)=(((((bl2eg(ix,l,3)*(t(1,ll-1)+puf*ded)+ bl2eg(ix,l,4)*(t  &!hr06
-     &(1,ll)+t(6,ll)*ded))+ bl2eg(ix,l,6)*dpp1*c1e3)- bl2(ix,l,3)*t     &!hr06
-     &(1,ll-1))-bl2(ix,l,4)*t(1,ll))- bl2(ix,l,6)*dpr(1))/ded            !hr06
-
-          do i=1,ium-1
-            puf=t(i,ll-1)
-            t(i,ll-1)=(bl2(ix,l,1)*puf+bl2(ix,l,2)*t(i,ll))+dpr(i)*bl2  &!hr06
-     &(ix,l,5)                                                           !hr06
-        t(i,ll)=(bl2(ix,l,3)*puf+bl2(ix,l,4)*t(i,ll))+dpr(i)*bl2(ix,l,6) !hr06
-          end do
-        end do
-
-        do l=1,2
-          ll=2*l
-
-          if(abs(t(ll,ll-1)).gt.pieni) then
-            dphi=atan_mb(t(ll+1,ll-1)/t(ll,ll-1))-phibf(l)
-          else
-            dphi=-phibf(l)
-          endif
-
-          if(-one*dphi.gt.pieni) dphi=dphi+pi                            !hr06
-          phi(l)=phi(l)+dphi/pie
-        end do
-
-        nr=nr+1
-        call writelin(nr,bezb(ix),etl,phi,t,ix,.true.,k)
-        if(ntco.ne.0) then
-          if(mod(nr,ntco).eq.0) call cpltwis(bezb(ix),t,etl,phi)
-        endif
-#ifdef ROOT
-        if(root_flag .and. root_Optics.eq.1) then
-          call OpticsRootWrite()
-        end if
-#endif
-
-        cycle STRUCTLOOP
-
-!--NOT A BLOCK / Nonlinear insertion
-  220   ix=ix-nblo
-        qu=zero
-        qv=zero
-        dyy1=zero
-        dyy2=zero
-        kpz=kp(ix)
-        kzz=kz(ix)
-
- ! Cavity
-        if( kpz.eq.6 .or.  abs(kzz).eq.12 ) then
-          nr=nr+1
-          call writelin(nr,bez(ix),etl,phi,t,ix,.false.,k)
-          if(ntco.ne.0) then
-            if(mod(nr,ntco).eq.0) call cpltwis(bez(ix),t,etl,phi)
-          endif
-#ifdef ROOT
-          if(root_flag .and. root_Optics.eq.1) then
-            call OpticsRootWrite()
-          end if
-#endif
-
-          cycle STRUCTLOOP
-        endif
-
-        !Beam Beam element .and. fort.3 has BB block
-        if(kzz.eq.20.and.nbeam.ge.1) then
-          nbeam=k
-          nr=nr+1
-          call writelin(nr,bez(ix),etl,phi,t,ix,.false.,k)
-          if(ntco.ne.0) then
-            if(mod(nr,ntco).eq.0) call cpltwis(bez(ix),t,etl,phi)
-          endif
-#ifdef ROOT
-          if(root_flag .and. root_Optics.eq.1) then
-            call OpticsRootWrite()
-          end if
-#endif
-          cycle STRUCTLOOP
-        endif
-        ! if kzz==22, starts a do over l; Update t matrix
-        if(kzz == 22) then
-          do l=1,2
-            ll=2*l
-            if(abs(t(ll,ll-1)).gt.pieni) then
-              phibf(l)=atan_mb(t(ll+1,ll-1)/t(ll,ll-1))
-            else
-              phibf(l)=zero
-            end if
-            do i=1,ium
-              puf=t(i,ll-1)
-              t(i,ll-1)=(puf*rrtr(imtr(ix),ll-1,ll-1)+t(i,ll)*rrtr(imtr(ix),ll-1,ll))+dpr(i)*rrtr(imtr(ix),ll-1,6)
-              t(i,ll)=(puf*rrtr(imtr(ix),ll,ll-1)+t(i,ll)*rrtr(imtr(ix),ll,ll))+dpr(i)*rrtr(imtr(ix),ll,6)
-            end do
-            t(1,ll-1)=t(1,ll-1)+cotr(imtr(ix),ll-1)
-            t(1,ll)=t(1,ll)+cotr(imtr(ix),ll)
-            if(abs(t(ll,ll-1)) > pieni) then
-              dphi=atan_mb(t(ll+1,ll-1)/t(ll,ll-1))-phibf(l)
-            else
-              dphi=-one*phibf(l)
-            end if
-            if(-one*dphi.gt.pieni) dphi=dphi+pi
-            phi(l)=phi(l)+dphi/pie
-          enddo
-        endif
-
-!+if collimat.or.bnlelens
-        ! Marker, beam-beam, phase-trombone, crab cavity (incl. multipole), or wire
-        if(kzz.eq.0.or.kzz.eq.20.or.kzz.eq.22                           &
-     &     .or.abs(kzz).eq.23.or.abs(kzz).eq.26                         &
-     &     .or.abs(kzz).eq.27.or.abs(kzz).eq.28                         &
-     &     .or.abs(kzz).eq.15) then
-
-          nr=nr+1
-          call writelin(nr,bez(ix),etl,phi,t,ix,.false.,k)
-          if(ntco.ne.0) then
-            if(mod(nr,ntco).eq.0) call cpltwis(bez(ix),t,etl,phi)
-          endif
-#ifdef ROOT
-          if(root_flag .and. root_Optics.eq.1) then
-            call OpticsRootWrite()
-          end if
-#endif
-          cycle STRUCTLOOP
-        endif
-!+ei
-!+if .not.collimat.and..not.bnlelens
-!        ! Marker, beam-beam or phase-trombone -> next element
-!        if(kzz.eq.0.or.kzz.eq.20.or.kzz.eq.22) then
-!           cycle STRUCTLOOP
-!        endif
-!        ! Wire -> next element
-!        if(abs(kzz).eq.15) then
-!           cycle STRUCTLOOP
-!        endif
-!        ! RF CC Multipoles -> next element
-!        if (abs(kzz).eq.23.or.abs(kzz).eq.26.or.                        &
-!     &       abs(kzz).eq.27.or.abs(kzz).eq.28) then
-!           cycle STRUCTLOOP
-!        endif
-!+ei
-
-        ! Update the matrix etc. for supported blocks
-        dyy1=zero
-        dyy2=zero
-        if(iorg.lt.0) mzu(k)=izu
-        izu=mzu(k)+1
-        ekk=(sm(ix)+zfz(izu)*ek(ix))/(one+dpp)
-        izu=izu+1
-        xs=xpl(ix)+zfz(izu)*xrms(ix)
-        izu=izu+1
-        zs=zpl(ix)+zfz(izu)*zrms(ix)
-#include "include/alignl.f90"
-
-      if (kzz .ge. 0) then
-        select case(kzz)
-
-        case (1)
-!--HORIZONTAL DIPOLE
-           ekk=ekk*c1e3
-#include "include/kickl01h.f90"
-#include "include/kickq01h.f90"
-!--NORMAL QUADRUPOLE
-        case(2)
-#include "include/kicklxxh.f90"
-#include "include/kickq02h.f90"
-!--   NORMAL SEXTUPOLE
-        case(3)
-           ekk=ekk*c1m3
-#include "include/kickq03h.f90"
-#include "include/kicksho.f90"
-#include "include/kicklxxh.f90"
-!--NORMAL OCTUPOLE
-        case(4)
-           ekk=ekk*c1m6
-#include "include/kicksho.f90"
-#include "include/kickq04h.f90"
-#include "include/kicksho.f90"
-#include "include/kicklxxh.f90"
-!--NORMAL DECAPOLE
-        case(5)
-           ekk=ekk*c1m9
-#include "include/kicksho.f90"
-#include "include/kicksho.f90"
-#include "include/kickq05h.f90"
-#include "include/kicksho.f90"
-#include "include/kicklxxh.f90"
-!--NORMAL DODECAPOLE
-        case(6)
-           ekk=ekk*c1m12
-#include "include/kicksho.f90"
-#include "include/kicksho.f90"
-#include "include/kicksho.f90"
-#include "include/kickq06h.f90"
-#include "include/kicksho.f90"
-#include "include/kicklxxh.f90"
-!--NORMAL 14-POLE
-        case(7)
-           ekk=ekk*c1m15
-#include "include/kicksho.f90"
-#include "include/kicksho.f90"
-#include "include/kicksho.f90"
-#include "include/kicksho.f90"
-#include "include/kickq07h.f90"
-#include "include/kicksho.f90"
-#include "include/kicklxxh.f90"
-!--NORMAL 16-POLE
-        case(8)
-           ekk=ekk*c1m18
-#include "include/kicksho.f90"
-#include "include/kicksho.f90"
-#include "include/kicksho.f90"
-#include "include/kicksho.f90"
-#include "include/kicksho.f90"
-#include "include/kickq08h.f90"
-#include "include/kicksho.f90"
-#include "include/kicklxxh.f90"
-!--NORMAL 18-POLE
-        case(9)
-           ekk=ekk*c1m21
-#include "include/kicksho.f90"
-#include "include/kicksho.f90"
-#include "include/kicksho.f90"
-#include "include/kicksho.f90"
-#include "include/kicksho.f90"
-#include "include/kicksho.f90"
-#include "include/kickq09h.f90"
-#include "include/kicksho.f90"
-#include "include/kicklxxh.f90"
-!--NORMAL 20-POLE
-        case(10)
-           ekk=ekk*c1m24
-#include "include/kicksho.f90"
-#include "include/kicksho.f90"
-#include "include/kicksho.f90"
-#include "include/kicksho.f90"
-#include "include/kicksho.f90"
-#include "include/kicksho.f90"
-#include "include/kicksho.f90"
-#include "include/kickq10h.f90"
-#include "include/kicksho.f90"
-#include "include/kicklxxh.f90"
-!--Multipole block
-        case(11)
-        r0=ek(ix)
-        if(abs(dki(ix,1)).gt.pieni) then
-          if(abs(dki(ix,3)).gt.pieni) then
-#include "include/multl01.f90"
-#include "include/multl08.f90"
-            do 340 i=2,ium
-#include "include/multl02.f90"
-  340       continue
-          else
-#include "include/multl03.f90"
-#include "include/multl09.f90"
-          endif
-        endif
-        if(abs(dki(ix,2)).gt.pieni) then
-          if(abs(dki(ix,3)).gt.pieni) then
-#include "include/multl04.f90"
-#include "include/multl10.f90"
-            do 350 i=2,ium
-#include "include/multl05.f90"
-  350       continue
-          else
-#include "include/multl06.f90"
-#include "include/multl11.f90"
-          endif
-        endif
-        if(abs(r0).le.pieni) then
-           cycle STRUCTLOOP
-        endif
-        nmz=nmu(ix)
-        if(nmz.eq.0) then
-          izu=izu+2*mmul
-
-          nr=nr+1
-          call writelin(nr,bez(ix),etl,phi,t,ix,.false.,k)
-          if(ntco.ne.0) then
-            if(mod(nr,ntco).eq.0) call cpltwis(bez(ix),t,etl,phi)
-          endif
-#ifdef ROOT
-          if(root_flag .and. root_Optics.eq.1) then
-            call OpticsRootWrite()
-          end if
-#endif
-
-          cycle STRUCTLOOP
-        endif
-        im=irm(ix)
-        r0a=one
-        benkr=ed(ix)/(one+dpp)
-        do 360 l=1,nmz
-#include "include/multl07a.f90"
-  360   continue
-        if(nmz.ge.2) then
-#include "include/multl07b.f90"
-          do 365 l=3,nmz
-#include "include/multl07c.f90"
-  365     continue
-        else
-#include "include/multl07d.f90"
-        endif
-#ifdef TILT
-#include "include/multl07e.f90"
-#endif
-        izu=izu+2*mmul-2*nmz
-
-!--Skipped elements
-        case(12,13,14,15,16,17,18,19,20,21,22,23)
-           cycle STRUCTLOOP
-
-!--DIPEDGE ELEMENT
-        case(24)
-#include "include/kickldpe.f90"
-#include "include/kickqdpe.f90"
-!--solenoid
-        case(25)
-#include "include/kicklso1.f90"
-#include "include/kickqso1.f90"
-
-!--Skipped elements
-        case(26,27,28)
-           cycle STRUCTLOOP
-
-!--Unrecognized element (incl. cav with kp.ne.6 for non-collimat/bnlelens)
-        case default
-           nr=nr+1
-           call writelin(nr,bez(ix),etl,phi,t,ix,.false.,k)
-           if(ntco.ne.0) then
-              if(mod(nr,ntco).eq.0) call cpltwis(bez(ix),t,etl,phi)
-           endif
-#ifdef ROOT
-           if(root_flag .and. root_Optics.eq.1) then
-             call OpticsRootWrite()
-           end if
-#endif
-           cycle STRUCTLOOP
-        end select
-
-
-!--SKEW ELEMENTS
-        else if(kzz .lt. 0) then
-           kzz=-kzz             !Make it positive
-           select case(kzz)
-           case(1)
-!--VERTICAL DIPOLE
-              ekk=ekk*c1e3
-#include "include/kickl01v.f90"
-#include "include/kickq01v.f90"
-!--SKEW QUADRUPOLE
-           case(2)
-#include "include/kicklxxv.f90"
-#include "include/kickq02v.f90"
-!--SKEW SEXTUPOLE
-           case(3)
-              ekk=ekk*c1m3
-#include "include/kickq03v.f90"
-#include "include/kicksho.f90"
-#include "include/kicklxxv.f90"
-!--SKEW OCTUPOLE
-           case(4)
-              ekk=ekk*c1m6
-#include "include/kicksho.f90"
-#include "include/kickq04v.f90"
-#include "include/kicksho.f90"
-#include "include/kicklxxv.f90"
-!--SKEW DECAPOLE
-           case(5)
-              ekk=ekk*c1m9
-#include "include/kicksho.f90"
-#include "include/kicksho.f90"
-#include "include/kickq05v.f90"
-#include "include/kicksho.f90"
-#include "include/kicklxxv.f90"
-!--SKEW DODECAPOLE
-           case(6)
-              ekk=ekk*c1m12
-#include "include/kicksho.f90"
-#include "include/kicksho.f90"
-#include "include/kicksho.f90"
-#include "include/kickq06v.f90"
-#include "include/kicksho.f90"
-#include "include/kicklxxv.f90"
-!--SKEW 14-POLE
-           case(7)
-              ekk=ekk*c1m15
-#include "include/kicksho.f90"
-#include "include/kicksho.f90"
-#include "include/kicksho.f90"
-#include "include/kicksho.f90"
-#include "include/kickq07v.f90"
-#include "include/kicksho.f90"
-#include "include/kicklxxv.f90"
-!--SKEW 16-POLE
-           case(8)
-              ekk=ekk*c1m18
-#include "include/kicksho.f90"
-#include "include/kicksho.f90"
-#include "include/kicksho.f90"
-#include "include/kicksho.f90"
-#include "include/kicksho.f90"
-#include "include/kickq08v.f90"
-#include "include/kicksho.f90"
-#include "include/kicklxxv.f90"
-!--SKEW 18-POLE
-           case(9)
-              ekk=ekk*c1m21
-#include "include/kicksho.f90"
-#include "include/kicksho.f90"
-#include "include/kicksho.f90"
-#include "include/kicksho.f90"
-#include "include/kicksho.f90"
-#include "include/kicksho.f90"
-#include "include/kickq09v.f90"
-#include "include/kicksho.f90"
-#include "include/kicklxxv.f90"
-!--SKEW 20-POLE
-           case(10)
-              ekk=ekk*c1m24
-#include "include/kicksho.f90"
-#include "include/kicksho.f90"
-#include "include/kicksho.f90"
-#include "include/kicksho.f90"
-#include "include/kicksho.f90"
-#include "include/kicksho.f90"
-#include "include/kicksho.f90"
-#include "include/kickq10v.f90"
-#include "include/kicksho.f90"
-#include "include/kicklxxv.f90"
-
-!     Unrecognized skew element (including kzz=-12,kp.ne.6 for non-collimat/bnlelens)
-           case default
-              nr=nr+1
-              call writelin(nr,bez(ix),etl,phi,t,ix,.false.,k)
-              if(ntco.ne.0) then
-                 if(mod(nr,ntco).eq.0) call cpltwis(bez(ix),t,etl,phi)
-              endif
-#ifdef ROOT
-              if(root_flag .and. root_Optics.eq.1) then
-                call OpticsRootWrite()
-              end if
-#endif
-              cycle STRUCTLOOP
-           end select
-        endif
-
-        !Done processing an element: go here!
-        t(6,2)=t(6,2)-dyy1/(one+dpp)
-        t(6,4)=t(6,4)-dyy2/(one+dpp)
-        t(1,2)=t(1,2)+dyy1
-        t(1,4)=t(1,4)+dyy2
-        do i=2,ium
-          if(kzz.eq.24) then
-            t(i,2)=(t(i,2)+t(i,1)*qu)-qv*t(i,3)                          !hr06
-            t(i,4)=(t(i,4)-t(i,3)*quz)-qvz*t(i,1)                        !hr06
-!Contains elseif statements
-#include "include/phas1so1.f90"
-#include "include/phas2so1.f90"
-#include "include/phas3so1.f90"
-          else
-            t(i,4)=(t(i,4)-t(i,3)*qu)-qv*t(i,1)                          !hr06
-            t(i,2)=(t(i,2)+t(i,1)*qu)-qv*t(i,3)                          !hr06
-          endif
-        end do
-        bexi=t(2,1)**2+t(3,1)**2                                         !hr06
-        bezii=t(4,3)**2+t(5,3)**2                                        !hr06
-        if(ncorru.eq.0) then
-           if(kz(ix).eq.11) then
-              if(abs(aa(2)).gt.pieni.and.nmz.gt.1) then
-                 write(34,10070) etl,bez(ix),-2,aa(2),bexi,bezii,phi
-              endif
-              do iiii=3,nmz
-                 if(abs(bb(iiii)).gt.pieni) then
-                    write(34,10070) etl,bez(ix),iiii,bb(iiii),bexi,bezii,phi
-                 endif
-                 if(abs(aa(iiii)).gt.pieni) then
-                    write(34,10070) etl,bez(ix),-iiii,aa(iiii),bexi,bezii,phi
-                 endif
-              enddo
-           elseif(abs(ekk).gt.pieni.and.abs(kz(ix)).ge.3) then
-              write(34,10070) etl,bez(ix),kz(ix),ekk,bexi,bezii,phi
-           elseif(abs(ekk).gt.pieni.and.kz(ix).eq.-2) then
-              write(34,10070) etl,bez(ix),kz(ix),ekk,bexi,bezii,phi
-           endif
-        endif
-
-        nr=nr+1
-        call writelin(nr,bez(ix),etl,phi,t,ix,.false.,k)
-        if(ntco.ne.0) then
-          if(mod(nr,ntco).eq.0) call cpltwis(bez(ix),t,etl,phi)
-        endif
-#ifdef ROOT
-        if(root_flag .and. root_Optics.eq.1) then
-          call OpticsRootWrite()
-        end if
-#endif
-
-      end do STRUCTLOOP ! END LOOP OVER ELEMENTS
-
-#ifdef HDF5
-      if(h5_writeOptics) call h5lin_saveData
-#endif
-
-      call clorb(ded)
-      do 510 l=1,2
-        clo0(l)=clo(l)
-        clop0(l)=clop(l)
-  510 continue
-      call clorb(zero)
-      do 520 l=1,2
-        ll=2*l
-        di0(l)=(clo0(l)-clo(l))/ded
-        dip0(l)=(clop0(l)-clop(l))/ded
-  520 continue
-      iiii=100
-      idum='END'
-      bexi=t(2,1)**2+t(3,1)**2                                           !hr06
-      bezii=t(4,3)**2+t(5,3)**2                                          !hr06
-      if(ncorru.eq.0) write(34,10070) etl,idum,iiii,zero,bexi,bezii,phi
-      if(ncorru.eq.0) write(lout,10060)
-!-----------------------------------------------------------------------
-      return
-10000 format(t5 ,'---- ENTRY LINOPT ----')
-10010 format(132('-'))
-10020 format('  NR     TYP      L-TOTAL    P     PHI          ',        &
-     &'BETA         ALFA         GAMMA        DIS        DISP         ',&
-     &'CLO        CLOP'/ 1x,                                            &
-     &'                    (M)           (2*PI)        ',               &
-     &'(M)          (RAD)         (M)         (M)        (RAD)        ',&
-     &'(MM)       (MRAD)')
-10030 format('  LINEAR OPTICS CALCULATION WITH PRINTOUT ',              &
-     &'AFTER EACH BLOCK'/                                               &
-     &'   A T T E N T I O N : BETATRON PHASE CALCULATION MIGHT BE WRONG'&
-     &,' BY A MULTIPLE OF 0.5 FOR EACH LARGE BLOCK'/)
-10040 format(/10x,'RELATIVE ENERGY DEVIATION  ',t40,f23.16/ 10x,         &
-     &'TUNES -HORIZONTAL',t40,f23.16/ 10x,'      -VERTICAL  ',t40,f23.16/)
-10050 format(t8,'  PLANE          DISP(MM)                 DISP(MRAD)'/ &
-     &t6,'      X  ',2(f20.12,6x)/t10,'  Y  ',2(f20.12,6x)/)
-10060 format(//131('-')//)
-10070 format(1x,1pg21.14,1x,a,1x,i4,5(1x,1pg21.14))
-end subroutine linopt
-
-!-----------------------------------------------------------------------
-!  WRITE OUT LINEAR OPTICS PARAMETERS AND IF COLLIMATION, SAVE STUFF.
-!-----------------------------------------------------------------------
-subroutine writelin(nr,typ,tl,p1,t,ixwl,isBLOC,ielem)
-  use floatPrecision
-  use numerical_constants
-  use mathlib_bouncer
-  use crcoall
-  use parpro
-  use mod_settings
-  use mod_common
-  use mod_commons
-  use mod_common_track
-
-#ifdef ROOT
-  use iso_c_binding, only: C_NULL_CHAR
-  use root_output
-#endif
-
-#ifdef HDF5
-  use hdf5_output
-  use hdf5_linopt
-#endif
-
-  use collimation
-
-  implicit none
-
-  integer i,iwrite,ixwl,l,ll,nr
-  real(kind=fPrec) al1,al2,b1,b2,c,cp,d,dp,g1,g2,p1,t,tl
-  character(len=mNameLen) typ
-  ! isBLOC.eq.TRUE if ixwl currently refers to a BLOC index, FALSE if it is a SINGLE ELEMENT index
-  logical isBLOC
-  dimension p1(2),t(6,4),b1(2),b2(2),al1(2),al2(2),g1(2),g2(2)
-  dimension d(2),dp(2),c(2),cp(2)
-  integer ielem
-
-#ifdef HDF5
-    real(kind=fPrec) hdf5Data(17)
-#endif
-
-  save
-!-----------------------------------------------------------------------
-  iwrite=0
-  if(nlin.eq.0) then
-    iwrite=1
-  else
-    do i=1,nlin
-      if(typ.eq.bezl(i)) iwrite=1
-    end do
-  end if
-  if(iwrite.eq.1) then
-    do l=1,2
-      ll=2*l
-      b1(l)=t(ll,ll-1)**2+t(ll+1,ll-1)**2                            !hr06
-      b2(l)=t(6-ll,ll-1)**2+t(7-ll,ll-1)**2                          !hr06
-      al1(l)=-one*(t(ll,ll-1)*t(ll,ll)+t(ll+1,ll-1)*t(ll+1,ll))      !hr06
-      al2(l)=-one*(t(6-ll,ll-1)*t(6-ll,ll)+t(7-ll,ll-1)*t(7-ll,ll))  !hr06
-      g1(l)=t(ll,ll)**2+t(ll+1,ll)**2                                !hr06
-      g2(l)=t(6-ll,ll)**2+t(7-ll,ll)**2                              !hr06
-      d(l)=t(6,ll-1)*c1m3
-      dp(l)=t(6,ll)*c1m3
-      c(l)=t(1,ll-1)
-      cp(l)=t(1,ll)
-    end do
-
-#ifdef ROOT
-    if(root_flag .and. root_Optics.eq.1) then
-      call OpticsRootWriteLin(nr, typ // C_NULL_CHAR,len(typ),tl,c(1),cp(1),c(2),cp(2),&
-        b1(1),b1(2),al1(1),al1(2),d(1),d(2),dp(1),dp(2))
-    end if
-#endif
-#ifdef HDF5
-  if(h5_writeOptics) then
-      hdf5Data(:) = (/tl,&
-        p1(1),b1(1),al1(1),g1(1),d(1),dp(1),c(1),cp(1),&
-        p1(2),b1(2),al1(2),g1(2),d(2),dp(2),c(2),cp(2)/)
-      call h5lin_writeLine(nr, typ, hdf5Data)
-    end if
-#endif
-
-    if (do_coll) then
-      tbetax(max(ielem,1))  = b1(1)
-      tbetay(max(ielem,1))  = b1(2)
-      talphax(max(ielem,1)) = al1(1)
-      talphay(max(ielem,1)) = al1(2)
-      torbx(max(ielem,1))   = c(1)
-      torbxp(max(ielem,1))  = cp(1)
-      torby(max(ielem,1))   = c(2)
-      torbyp(max(ielem,1))  = cp(2)
-      tdispx(max(ielem,1))  = d(1)
-      tdispy(max(ielem,1))  = d(2)
-    endif
-
-    if(ncorru == 0) then
-      if(st_quiet == 0) then
-        write(lout,10000) nr,typ(:8),tl,p1(1),b1(1),al1(1),g1(1),d(1),dp(1),c(1),cp(1)
-        write(lout,10010) b2(1),al2(1),g2(1)
-        write(lout,10030) typ(9:16)
-        write(lout,10020) p1(2),b1(2),al1(2),g1(2),d(2),dp(2),c(2),cp(2)
-        write(lout,10010) b2(2),al2(2),g2(2)
-        write(lout,10040)
-      end if
-    else
-      if(.not.isBLOC) then
-        if(kp(ixwl).eq.3) then
-          nhmoni=nhmoni+1
-          betam(nhmoni,1)=b1(1)
-          pam(nhmoni,1)=(p1(1)*two)*pi
-          bclorb(nhmoni,1)=c(1)
-        else if(kp(ixwl).eq.4) then
-          nhcorr=nhcorr+1
-          betac(nhcorr,1)=b1(1)
-          pac(nhcorr,1)=(p1(1)*two)*pi
-        else if(kp(ixwl).eq.-3) then
-          nvmoni=nvmoni+1
-          betam(nvmoni,2)=b1(2)
-          pam(nvmoni,2)=(p1(2)*two)*pi
-          bclorb(nvmoni,2)=c(2)
-        else if(kp(ixwl).eq.-4) then
-          nvcorr=nvcorr+1
-          betac(nvcorr,2)=b1(2)
-          pac(nvcorr,2)=(p1(2)*two)*pi
-        end if
-      end if
-    end if
-  end if
-!-----------------------------------------------------------------------
-  return
-10010 format('|',6x,'|',8x,'|',12x,'|',1x,'|',12x,'|',f12.6,'|', f13.7,'|',f11.6,'|',11x,'|',11x,'|',11x,'|',11x,'|')
-10020 format('|',6x,'|',8x,'|',12x,'|','Y','|',f12.7,'|',f12.6,'|', f13.7,'|',f11.6,'|',f11.7,'|',f11.7,'|',f11.7,'|',f11.7,'|')
-10040 format(132('-'))
-10000 format('|',i6,'|',a8,'|',f12.5,'|','X','|',f12.7,'|',f12.6,'|',f13.7,'|',f11.6,'|',f11.7,'|',f11.7,'|',f11.7,'|',f11.7,'|')
-10030 format('|',6x,'|',a8,'|',12x,'|',102('-'))
-end subroutine writelin
-
-subroutine cpltwis(typ,t,etl,phi)
-!-----------------------------------------------------------------------
-!  CALCULATES COUPLED TWISS PARAMETERS AROUND THE RING AND ALSO THE
-!  ANGLE OF THE MAJOR AXIS OF A ELLIPSE IN THE X-Y PROJECTION WITH
-!  THE X-AXIS. THE 4-D ELLIPSOID IS GIVEN BY THE BOUNDARY OF A
-!  DISTRIBUTION OF PARTICLES WITH MAXIMUM EMITANCE OF MODE I AND II,
-!  EUI AND EUII RESPECTIVELY.
-!  BINARY PRINT ON FILE 11 OF 22 VALUES :
-!  POSITION [M],
-!  BET(1-4), ALF(1-4), GAM(1-4), COOR-PHI(1-4), COOR-PRIME-PHI(1-4),
-!  COUUANGL
-!-----------------------------------------------------------------------
-      use floatPrecision
-#ifdef ROOT
-      use root_output
-#endif
-      use numerical_constants
-      use mathlib_bouncer
-      use parpro
-      use mod_common
-      use mod_commons
-      use mod_common_track
-      use mod_units
-      implicit none
-      integer i,iwrite
-      logical :: open11 = .false.
-      real(kind=fPrec) alxi,alxii,alzi,alzii,bexi,bexii,bezi,bezii,     &
-     &couuang,etl,gaxi,gaxii,gazi,gazii,phi,phxi,phxii,phxpi,phxpii,    &
-     &phzi,phzii,phzpi,phzpii,t
-      character(len=mNameLen) typ
-      dimension t(6,4),phi(2)
-      save
-!-----------------------------------------------------------------------
-      iwrite=0
-      if(nlin.eq.0) then
-        iwrite=1
-      else
-        do 10 i=1,nlin
-          if(typ.eq.bezl(i)) iwrite=1
-   10   continue
-      endif
-      if(iwrite.eq.1) then
-        bexi=t(2,1)**2+t(3,1)**2                                         !hr06
-        bexii=t(4,1)**2+t(5,1)**2                                        !hr06
-        bezi=t(2,3)**2+t(3,3)**2                                         !hr06
-        bezii=t(4,3)**2+t(5,3)**2                                        !hr06
-        alxi=-one*(t(2,1)*t(2,2)+t(3,1)*t(3,2))                          !hr06
-        alxii=-one*(t(4,1)*t(4,2)+t(5,1)*t(5,2))                         !hr06
-        alzi=-one*(t(2,3)*t(2,4)+t(3,3)*t(3,4))                          !hr06
-        alzii=-one*(t(4,3)*t(4,4)+t(5,3)*t(5,4))                         !hr06
-        gaxi=t(2,2)**2+t(3,2)**2                                         !hr06
-        gaxii=t(4,2)**2+t(5,2)**2                                        !hr06
-        gazi=t(2,4)**2+t(3,4)**2                                         !hr06
-        gazii=t(4,4)**2+t(5,4)**2                                        !hr06
-        if(abs(t(2,1)).gt.pieni) phxi=atan2_mb(t(3,1),t(2,1))
-        if(abs(t(4,1)).gt.pieni) phxii=atan2_mb(t(5,1),t(4,1))
-        if(abs(t(4,1)).gt.pieni) phxii=atan2_mb(t(5,1),t(4,1))
-        if(abs(t(2,3)).gt.pieni) phzi=atan2_mb(t(3,3),t(2,3))
-        if(abs(t(4,3)).gt.pieni) phzii=atan2_mb(t(5,3),t(4,3))
-        if(abs(t(2,2)).gt.pieni) phxpi=atan2_mb(t(3,2),t(2,2))
-        if(abs(t(4,2)).gt.pieni) phxpii=atan2_mb(t(5,2),t(4,2))
-        if(abs(t(2,4)).gt.pieni) phzpi=atan2_mb(t(3,4),t(2,4))
-        if(abs(t(4,4)).gt.pieni) phzpii=atan2_mb(t(5,4),t(4,4))
-        if(abs(t(2,1)).le.pieni) phxi=pi*half
-        if(abs(t(4,1)).le.pieni) then
-          if(bexii.gt.pieni) phxii=pi*half
-          if(bexii.le.pieni) phxii=zero
-        endif
-        if(abs(t(2,3)).le.pieni) then
-          if(bezi.gt.pieni) phzi=pi*half
-          if(bezi.le.pieni) phzi=zero
-        endif
-        if(abs(t(4,3)).le.pieni) phzii=pi*half
-        if(abs(t(2,2)).le.pieni) phxpi=pi*half
-        if(abs(t(4,2)).le.pieni) then
-          if(gaxii.gt.pieni) phxpii=pi*half
-          if(gaxii.le.pieni) phxpii=zero
-        endif
-        if(abs(t(2,4)).le.pieni) then
-          if(gazi.gt.pieni) phzpi=pi*half
-          if(gazi.le.pieni) phzpi=zero
-        endif
-        if(abs(t(4,4)).le.pieni) phzpii=pi*half
-        if(abs(eui*(bexi-bezi)+euii*(bexii-bezii)).gt.pieni) then
-          couuang=half*atan_mb((two*((eui*sqrt(bexi*bezi))*             &!hr06
-     &cos_mb(phxi-phzi)+                                                &!hr06
-     &(euii*sqrt(bexii*bezii))*cos_mb(phxii-phzii)))/ (eui*(bexi-bezi)  &!hr06
-     &+euii*(bexii-bezii)))                                              !hr06
-        else
-          couuang=zero
-        endif
-        if(open11 .eqv. .false.) then
-          ! Note: Description above says binary file, but the file has been opened as ascii since at least 4.x
-          call f_open(unit=11,file="fort.11",formatted=.true.,mode="w")
-          open11 = .true.
-        end if
-        write(11,*) typ,etl,phi,bexi,bexii,bezi,bezii, alxi,alxii,alzi, &
-     &alzii, gaxi,gaxii,gazi,gazii,phxi,phxii,phzi,phzii, phxpi,        &
-     &phxpii,phzpi,phzpii,couuang,t(6,1),t(6,2),t(6,3),t(6,4),t(1,1),   &
-     &t(1,2),t(1,3),t(1,4)
-
-#ifdef ROOT
-      if(root_flag .and. root_Optics.eq.1) then
-        call OpticsRootWriteCpl(phi(1), phi(2),bexi,bexii,bezi,bezii,       &
- &                                  alxi,alxii,alzi,alzii,       &
- &                                  gaxi,gaxii,gazi,gazii,       &
- &                                  phxi,phxii,phzi,phzii,       &
- &                                  phxpi,phxpii,phzpi,phzpii,   &
- &                                  couuang,                     &
- &                                  t(6,1),t(6,2),t(6,3),t(6,4), &
- &                                  t(1,1),t(1,2),t(1,3),t(1,4))
-      end if
-#endif
-
-      endif
-      return
-end subroutine cpltwis
 
 subroutine loesd (rmat, vec,dimakt,dimtot,kod)
 !-----------------------------------------------------------------------
@@ -5130,31 +3098,35 @@ subroutine matrix(dpp,am)
       return
 end subroutine matrix
 
-subroutine corrorb
 !-----------------------------------------------------------------------
 !  CORRECTION OF CLOSED ORBIT FIRST (MOST EFFECTIV CORRECTOR STRATEGY
 !  USING MICADO), THEN
 !  SCALING OF DIPOLE-ERRORS FOR RMS-VALUES OF THE CLOSED ORBIT
 !-----------------------------------------------------------------------
-      use floatPrecision
-      use numerical_constants
-      use mathlib_bouncer
-      use crcoall
-      use parpro
-      use mod_units
-      use mod_common
-      use mod_commons
-      use mod_common_track
-      implicit none
-      integer i,icflag,ihflag,ii,ij,im,iprinto,ivflag,j,k,kpz,kzz,l,nlino,ntcoo,nto,nx
-      real(kind=fPrec) ar(nmon1,ncor1)
-      real(kind=fPrec) b(nmon1),orbr(nmon1),xinc(ncor1)
-      real(kind=fPrec) rmsx,ptpx,rmsz,ptpz,rzero,rzero1
-      real(kind=fPrec) clo0,clop0,hfac,qwc1,vfac
-      character(len=mNameLen) bezlo(nele)
-      dimension clo0(2),clop0(2)
-      dimension qwc1(3),nx(ncor1)
-      save
+subroutine corrorb
+
+  use floatPrecision
+  use numerical_constants
+  use mathlib_bouncer
+  use crcoall
+  use parpro
+  use mod_units
+  use mod_linopt
+  use mod_common
+  use mod_commons
+  use mod_common_track
+
+  implicit none
+
+  integer i,icflag,ihflag,ii,ij,im,iprinto,ivflag,j,k,kpz,kzz,l,nlino,ntcoo,nto,nx
+  real(kind=fPrec) ar(nmon1,ncor1)
+  real(kind=fPrec) b(nmon1),orbr(nmon1),xinc(ncor1)
+  real(kind=fPrec) rmsx,ptpx,rmsz,ptpz,rzero,rzero1
+  real(kind=fPrec) clo0,clop0,hfac,qwc1,vfac
+  character(len=mNameLen) bezlo(nele)
+  dimension clo0(2),clop0(2)
+  dimension qwc1(3),nx(ncor1)
+  save
 !-----------------------------------------------------------------------
       rzero=zero
       rzero1=zero
@@ -5169,7 +3141,7 @@ subroutine corrorb
       if(ierro.gt.0) then
         write(lerr,"(a)") "CLORB> ERROR Unstable closed orbit during initial dispersion calculation."
         write(lerr,"(a)") "CLORB>       Instability occurred for small relative energy deviation."
-        call prror(-1)
+        call prror
       end if
 
       do l=1,2
@@ -5180,7 +3152,7 @@ subroutine corrorb
       call clorb(zero)
       if(ierro.gt.0) then
         write(lerr,"(a)") "CLORB> ERROR Unstable closed orbit for zero energy deviation."
-        call prror(-1)
+        call prror
       end if
 
       do l=1,2
@@ -5205,7 +3177,7 @@ subroutine corrorb
 
       if(ncorru == 0) then
         write(lerr,"(a)") "CLORB> ERROR Number of orbit correctors is zero."
-        call prror(-1)
+        call prror
       else
         if(ncorrep.le.0) then
           write(lout,10010) ncorru,sigma0(1),sigma0(2)
@@ -5234,8 +3206,7 @@ subroutine corrorb
       nlin=0
 
       do i=1,il
-        if(kp(i).eq.3.or.kp(i).eq.4.or. kp(i).eq.-3.or.kp(i).eq.-4) bezl&
-     &(i)=bez(i)
+        if(kp(i).eq.3.or.kp(i).eq.4.or. kp(i).eq.-3.or.kp(i).eq.-4) bezl(i)=bez(i)
         nlin=nlin+1
       end do
 
@@ -5276,8 +3247,7 @@ subroutine corrorb
         do i=1,nhmoni
           b(i)=bclorb(i,1)
           do j=1,nhcorr
-      ar(i,j)=((sqrt(betam(i,1)*betac(j,1))*cos_mb(abs(pam(i,1)-pac     &!hr06
-     &(j,1))-qwc1(1)*pi))*c1e3)/(two*sin_mb(qwc1(1)*pi))                 !hr06
+            ar(i,j)=((sqrt(betam(i,1)*betac(j,1))*cos_mb(abs(pam(i,1)-pac(j,1))-qwc1(1)*pi))*c1e3)/(two*sin_mb(qwc1(1)*pi))
           end do
         end do
 
@@ -5288,10 +3258,9 @@ subroutine corrorb
 
 !-- VERTICAL PLANE HERE
         do i=1,nvmoni
-          b(i)=bclorb(i,2)                                               !hr06
+          b(i)=bclorb(i,2)
           do j=1,nvcorr
-      ar(i,j)=((sqrt(betam(i,2)*betac(j,2))*cos_mb(abs(pam(i,2)-pac     &!hr06
-     &(j,2))-qwc1(2)*pi))*c1e3)/(two*sin_mb(qwc1(2)*pi))                 !hr06
+            ar(i,j)=((sqrt(betam(i,2)*betac(j,2))*cos_mb(abs(pam(i,2)-pac(j,2))-qwc1(2)*pi))*c1e3)/(two*sin_mb(qwc1(2)*pi))
           end do
         end do
 
@@ -5342,13 +3311,13 @@ subroutine corrorb
 
 !-- GET LAST VALUES AFTER CORRECTION
       do 120 i=1,nhmoni
-        b(i)=bclorb(i,1)                                                 !hr06
+        b(i)=bclorb(i,1)
   120 continue
 
       call calrms(b,nhmoni,rmsx,ptpx)
 
       do 130 i=1,nvmoni
-        b(i)=bclorb(i,2)                                                 !hr06
+        b(i)=bclorb(i,2)
   130 continue
 
       call calrms(b,nvmoni,rmsz,ptpz)
@@ -5363,8 +3332,8 @@ subroutine corrorb
       if(sigma0(1).gt.pieni.or.sigma0(2).gt.pieni) then
         do 180 ii=1,itco
           write(lout,10140)
-          hfac=sigma0(1)/rmsx                                            !hr06
-          vfac=sigma0(2)/rmsz                                            !hr06
+          hfac=sigma0(1)/rmsx
+          vfac=sigma0(2)/rmsz
           do 150 i=1,il
             kzz=kz(i)
             kpz=kp(i)
@@ -5387,13 +3356,13 @@ subroutine corrorb
           call linopt(zero)
 
           do 160 i=1,nhmoni
-            b(i)=bclorb(i,1)                                             !hr06
+            b(i)=bclorb(i,1)
   160     continue
 
           call calrms(b,nhmoni,rmsx,ptpx)
 
           do 170 i=1,nvmoni
-            b(i)=bclorb(i,2)                                             !hr06
+            b(i)=bclorb(i,2)
   170     continue
 
           call calrms(b,nvmoni,rmsz,ptpz)
@@ -5401,9 +3370,7 @@ subroutine corrorb
           write(lout,10150) ii,rmsx,rmsz
           write(lout,10160) ii,ptpx,ptpz
           write(lout,"(a)") ""
-          if(abs(real(rmsx,fPrec)-sigma0(1)).lt.dsi.and.                      &!hr06
-     &       abs(real(rmsz,fPrec)-sigma0(2)).lt.dsi)                          &!hr06
-     &goto 190
+          if(abs(real(rmsx,fPrec)-sigma0(1)).lt.dsi.and.abs(real(rmsz,fPrec)-sigma0(2)).lt.dsi) goto 190
   180   continue
       endif
 
@@ -5509,17 +3476,15 @@ subroutine putorb(xinc,nx,npflag)
         if(kzz.eq.15) goto 60
         if(iorg.lt.0) mzu(i)=izu
         izu=mzu(i)+1
-        if(kpz.eq.4.and.kzz.eq.1.and.npflag.eq.1.or.                    &
-     &kpz.eq.-4.and.kzz.eq.-1.and.npflag.eq.2) then
+        if(kpz.eq.4.and.kzz.eq.1.and.npflag.eq.1.or.kpz.eq.-4.and.kzz.eq.-1.and.npflag.eq.2) then
           kcorr=kcorr+1
           do 10 j=1,ncorru
             if(nx(j).eq.kcorr) then
               kcorru=kcorru+1
               ckickold=sm(ix)+zfz(izu)*ek(ix)
-              zfz(izu)=zfz(izu)+real(xinc(j),fPrec)/ek(ix)                     !hr06
+              zfz(izu)=zfz(izu)+real(xinc(j),fPrec)/ek(ix)
               ckicknew=sm(ix)+zfz(izu)*ek(ix)
-              write(lout,10000) kcorru,kcorr,bez(ix), ckickold*c1e3,    &
-     &ckicknew*c1e3
+              write(lout,10000) kcorru,kcorr,bez(ix),ckickold*c1e3,ckicknew*c1e3
             endif
    10     continue
         endif
@@ -5543,11 +3508,9 @@ subroutine putorb(xinc,nx,npflag)
                 if(nx(j).eq.kcorr) then
                   kcorru=kcorru+1
                   ckickold=ed(ix)*(ak0(im,k)+zfz(izu)* aka(im,k))/r0a
-           zfz(izu)=zfz(izu)+(c1e3*(real(xinc(j),fPrec)/(r0a*ed(ix))-ak0&!hr06
-     &(im,k)))/aka(im,k)                                                 !hr06
-                  ckicknew=(ed(ix)*(ak0(im,k)+zfz(izu)* aka(im,k)))/r0a  !hr06
-                  write(lout,10000) kcorru,kcorr,bez(ix), ckickold,     &
-     &ckicknew
+                  zfz(izu)=zfz(izu)+(c1e3*(real(xinc(j),fPrec)/(r0a*ed(ix))-ak0(im,k)))/aka(im,k)
+                  ckicknew=(ed(ix)*(ak0(im,k)+zfz(izu)* aka(im,k)))/r0a
+                  write(lout,10000) kcorru,kcorr,bez(ix),ckickold,ckicknew
                 endif
    30         continue
             endif
@@ -5557,12 +3520,10 @@ subroutine putorb(xinc,nx,npflag)
               do 40, j=1,ncorru
                 if(nx(j).eq.kcorr) then
                   kcorru=kcorru+1
-                  ckickold=(ed(ix)*(bk0(im,k)+zfz(izu)* bka(im,k)))/r0a  !hr06
-           zfz(izu)=zfz(izu)+(c1e3*(real(xinc(j),fPrec)/(r0a*ed(ix))-bk0&!hr06
-     &(im,k)))/bka(im,k)                                                 !hr06
-                  ckicknew=(ed(ix)*(bk0(im,k)+zfz(izu)* bka(im,k)))/r0a  !hr06
-                  write(lout,10000) kcorru,kcorr,bez(ix), ckickold,     &
-     &ckicknew
+                  ckickold=(ed(ix)*(bk0(im,k)+zfz(izu)* bka(im,k)))/r0a
+                  zfz(izu)=zfz(izu)+(c1e3*(real(xinc(j),fPrec)/(r0a*ed(ix))-bk0(im,k)))/bka(im,k)
+                  ckicknew=(ed(ix)*(bk0(im,k)+zfz(izu)* bka(im,k)))/r0a
+                  write(lout,10000) kcorru,kcorr,bez(ix),ckickold,ckicknew
                 endif
    40         continue
             endif
@@ -5572,8 +3533,7 @@ subroutine putorb(xinc,nx,npflag)
    60 continue
 !-----------------------------------------------------------------------
       return
-10000 format(t5,i4,i4,' ',a16,'  OLD: ',d14.7,' MRAD   NEW: ' ,d14.7,   &
-     &' MRAD')
+10000 format(t5,i4,i4,' ',a16,'  OLD: ',d14.7,' MRAD   NEW: ' ,d14.7,' MRAD')
 end subroutine putorb
 
 subroutine orbinit
@@ -5654,8 +3614,7 @@ subroutine htls(a,b,m,n,x,ipiv,r,iter,rms,ptp)
       use mathlib_bouncer
       use crcoall
       implicit none
-      integer i,iii,ij1,ip,ipiv,iter,j,j1,k,k2,k3,ki,kk,kpiv,m,n,ncor1, &
-     &nmon1
+      integer i,iii,ij1,ip,ipiv,iter,j,j1,k,k2,k3,ki,kk,kpiv,m,n,ncor1,nmon1
       real(kind=fPrec) a,b,piv,pivt,ptop,r,rho,rmss,x,xiter,xptp,xrms
       real(kind=fPrec) rms,ptp
       real(kind=fPrec) g,h,sig,beta
@@ -5681,8 +3640,8 @@ subroutine htls(a,b,m,n,x,ipiv,r,iter,rms,ptp)
 
       do k=1,n
         ipiv(k)=k
-        h=zero                                                           !hr06
-        g=zero                                                           !hr06
+        h=zero
+        g=zero
 
         do i=1,m
           h=h+a(i,k)*a(i,k)
@@ -5691,7 +3650,7 @@ subroutine htls(a,b,m,n,x,ipiv,r,iter,rms,ptp)
 
         rho(k)=h
         rho(k2) = g
-        pivt = g**2/h                                                    !hr06
+        pivt = g**2/h
         if(pivt-piv.le.0) goto 40
         if(pivt-piv.gt.0) goto 30
    30   piv = pivt
@@ -5727,7 +3686,7 @@ subroutine htls(a,b,m,n,x,ipiv,r,iter,rms,ptp)
 
 ! --- on garde SIGMA dans RHO(N+K)
         j=n+k
-        rho(j)=-one*sig                                                  !hr06
+        rho(j)=-one*sig
         ip=ipiv(kpiv)
         ipiv(kpiv)=ipiv(k)
         ipiv(k)=ip
@@ -5745,7 +3704,7 @@ subroutine htls(a,b,m,n,x,ipiv,r,iter,rms,ptp)
 
         rho(k)=sqrt(piv)
         if(k.eq.n) goto 90
-        piv=zero                                                          !hr06
+        piv=zero
         kpiv = k + 1
         j1 = kpiv
         k2=n + j1
@@ -5762,7 +3721,7 @@ subroutine htls(a,b,m,n,x,ipiv,r,iter,rms,ptp)
           rho(j)=h
           g=rho(k2)-(a(k,j))*(b(k))
           rho(k2) = g
-          pivt = g**2/h                                                  !hr06
+          pivt = g**2/h
           if(pivt.lt.piv)goto 80
           kpiv=j
           piv=pivt
@@ -5789,7 +3748,7 @@ subroutine htls(a,b,m,n,x,ipiv,r,iter,rms,ptp)
           r(iii) = b(iii)
         end do
         do iii= 1,k
-          x(iii) =-one*x(iii)                                           !hr06
+          x(iii) =-one*x(iii)
         end do
 
 ! --- calcul du vecteur residuel dans HTRL
@@ -6052,7 +4011,7 @@ subroutine ord
         if(kzz.eq.11.and.abs(ek(ix)).gt.pieni) izu=izu+2*mmul
         if(izu > nran) then
           write(lerr,"(a,i0,a)") "ORD> ERROR The random number: ",nran," for the initial structure is too small."
-          call prror(-1)
+          call prror
         end if
         if(izu > nzfz) then
           call fluc_moreRandomness
@@ -6065,7 +4024,7 @@ subroutine ord
             jra(i,1)=j
             if(kz(j) == 0 .or. kz(j) == 20 .or. kz(j) == 22) then
               write(lerr,"(a)") "ORD> ERROR Elements that need random numbers have a kz not equal to 0, 20 or 22."
-              call prror(-1)
+              call prror
             end if
             jra(i,2)=kz(j)
           endif
@@ -6073,7 +4032,7 @@ subroutine ord
             jra(i,3)=j
             if(kz(j) == 0 .or. kz(j) == 20 .or. kz(j) == 22) then
               write(lerr,"(a)") "ORD> ERROR Elements that need random numbers have a kz not equal to 0, 20 or 22."
-              call prror(-1)
+              call prror
             end if
             jra(i,4)=kz(j)
           endif
@@ -6091,7 +4050,7 @@ subroutine ord
         if(kzz1 == 11 .and. (kzz2 /= 11 .and. kzz2 /= 0)) then
           write(lerr,"(a)") "ORD> ERROR To use the same random numbers for 2 elements, the inserted element "//&
             "must not need more of such numbers than the reference element."
-          call prror(-1)
+          call prror
         end if
       end do
       do i=1,iu
@@ -6116,7 +4075,7 @@ subroutine ord
           inz(j)=inz(j)+1
           if(inz(j) > mran) then
             write(lerr,"(a,i0,a)") "ORD> ERROR Not more than ",mran," of each type of inserted elements can be used."
-            call prror(-1)
+            call prror
           end if
           ! map position of errors for present element in lattice structure
           mzu(i)=jra(j,5)
@@ -6132,7 +4091,7 @@ subroutine ord
         if(kzz.eq.11.and.abs(ek(ix)).gt.pieni) izu=izu+2*mmul
         if(izu > nran) then
           write(lerr,"(a,i0,a)") "ORD> ERROR The random number: ",nran," for the initial structure is too small."
-          call prror(-1)
+          call prror
         end if
       end do
     endif
@@ -6151,7 +4110,7 @@ subroutine ord
       ! why just checking? shouldn't we map on mzu(i)?
       if(izu > nran) then
         write(lerr,"(a,i0,a)") "ORD> ERROR The random number: ",nran," for the initial structure is too small."
-        call prror(-1)
+        call prror
       end if
       if(izu > nzfz) then
         call fluc_moreRandomness
@@ -6220,8 +4179,8 @@ subroutine phasad(dpp,qwc)
   use mod_common_track
   implicit none
   integer i,ikpv,im,ium,ix,izu,j,jj,jk,jm,k,kpv,kpz,kzz,l,l1,ll,nmz,dj
-  real(kind=fPrec) aa,alfa,bb,benkr,beta,ci,cikve,cr,crkve,crkveuk,dphi,dpp,dppi,dpr,&
-                   dyy1,dyy2,ekk,phi,phibf,pie,puf,qu,qv,qw,qwc,qxsa,qxse,r0,r0a,t,xl,xs,zl,zs,quz,qvz
+  real(kind=fPrec) aa,alfa,bb,benkr,beta,ci,cikve,cr,crkve,crkveuk,dphi,dpp,dppi,dpr,dyy1,dyy2,ekk, &
+    phi,phibf,pie,puf,qu,qv,qw,qwc,qxsa,qxse,r0,r0a,t,xl,xs,zl,zs,quz,qvz
 #ifdef TILT
   real(kind=fPrec) dyy11,qu1,tiltck,tiltsk
 #endif
@@ -6272,7 +4231,7 @@ subroutine phasad(dpp,qwc)
       call betalf(dpp,qw)
       if(ierro /= 0) then
         write(lerr,"(a)") "PHASAD> ERROR No optical solution."
-        call prror(-1)
+        call prror
       end if
       call envar(dpp)
 
@@ -6329,8 +4288,8 @@ subroutine phasad(dpp,qwc)
 
           do l=1,2
             ll=2*l
-            beta(l)=t(ll,ll-1)**2+t(ll+1,ll-1)**2                        !hr06
-            alfa(l)=-one*(t(ll,ll-1)*t(ll,ll)+t(ll+1,ll-1)*t(ll+1,ll))   !hr06
+            beta(l)=t(ll,ll-1)**2+t(ll+1,ll-1)**2
+            alfa(l)=-one*(t(ll,ll-1)*t(ll,ll)+t(ll+1,ll-1)*t(ll+1,ll))
 
             if(abs(t(ll,ll-1)).gt.pieni) then
               dphi=atan_mb(t(ll+1,ll-1)/t(ll,ll-1))-phibf(l)
@@ -6338,7 +4297,7 @@ subroutine phasad(dpp,qwc)
               dphi=pi2-phibf(l)
             endif
 
-            if(-one*dphi.gt.pieni) dphi=dphi+pi                          !hr06
+            if(-one*dphi.gt.pieni) dphi=dphi+pi
             phi(l)=phi(l)+dphi/pie
           end do
 
@@ -6354,20 +4313,20 @@ subroutine phasad(dpp,qwc)
             endif
             do i=1,ium
               puf=t(i,ll-1)
-            t(i,ll-1)=(puf*a(jk,l,1)+t(i,ll)*a(jk,l,2))+dpr(i)*a(jk,l,5) !hr06
-            t(i,ll)=(puf*a(jk,l,3)+t(i,ll)*a(jk,l,4))+dpr(i)*a(jk,l,6)   !hr06
+            t(i,ll-1)=(puf*a(jk,l,1)+t(i,ll)*a(jk,l,2))+dpr(i)*a(jk,l,5)
+            t(i,ll)=(puf*a(jk,l,3)+t(i,ll)*a(jk,l,4))+dpr(i)*a(jk,l,6)
             enddo
           enddo
           do l=1,2
             ll=2*l
-            beta(l)=t(ll,ll-1)**2+t(ll+1,ll-1)**2                        !hr06
-            alfa(l)=-one*(t(ll,ll-1)*t(ll,ll)+t(ll+1,ll-1)*t(ll+1,ll))   !hr06
+            beta(l)=t(ll,ll-1)**2+t(ll+1,ll-1)**2
+            alfa(l)=-one*(t(ll,ll-1)*t(ll,ll)+t(ll+1,ll-1)*t(ll+1,ll))
             if(abs(t(ll,ll-1)).gt.pieni) then
               dphi=atan_mb(t(ll+1,ll-1)/t(ll,ll-1))-phibf(l)
             else
-              dphi=-one*phibf(l)                                         !hr06
+              dphi=-one*phibf(l)
             endif
-            if(kz(jk).ne.8.and.-one*dphi.gt.pieni) dphi=dphi+pi          !hr06
+            if(kz(jk).ne.8.and.-one*dphi.gt.pieni) dphi=dphi+pi
             phi(l)=phi(l)+dphi/pie
           enddo
   130   continue
@@ -6416,9 +4375,6 @@ subroutine phasad(dpp,qwc)
         end if
         if(kzz.eq.0.or.kzz.eq.20.or.kzz.eq.22) goto 450
         if(kzz.eq.15) goto 450
-! JBG RF CC Multipoles to 450
-!        if(kzz.eq.26.or.kzz.eq.27.or.kzz.eq.28) write(*,*)'out'
-!        if(kzz.eq.26.or.kzz.eq.27.or.kzz.eq.28) goto 450
         dyy1=zero
         dyy2=zero
         if(iorg.lt.0) mzu(k)=izu
@@ -6672,20 +4628,19 @@ subroutine phasad(dpp,qwc)
       t(1,4)=t(1,4)+dyy2
       do i=2,ium
         if(kzz.eq.24) then
-          t(i,2)=(t(i,2)+t(i,1)*qu)-qv*t(i,3)                          !hr06
-          t(i,4)=(t(i,4)-t(i,3)*quz)-qvz*t(i,1)                        !hr06
-#include "include/phas1so1.f90"
-#include "include/phas2so1.f90"
-#include "include/phas3so1.f90"
+          t(i,2)=(t(i,2)+t(i,1)*qu)-qv*t(i,3)
+          t(i,4)=(t(i,4)-t(i,3)*quz)-qvz*t(i,1)
+        elseif(kzz.eq.25) then !--solenoid
+#include "include/phassolenoid.f90"
         else
-          t(i,2)=(t(i,2)+t(i,1)*qu)-qv*t(i,3)                          !hr06
-          t(i,4)=(t(i,4)-t(i,3)*qu)-qv*t(i,1)                          !hr06
+          t(i,2)=(t(i,2)+t(i,1)*qu)-qv*t(i,3)
+          t(i,4)=(t(i,4)-t(i,3)*qu)-qv*t(i,1)
         end if
       end do
 
       do l=1,2
         ll=2*l
-        alfa(l)=-one*(t(ll,ll-1)*t(ll,ll)+t(ll+1,ll-1)*t(ll+1,ll))       !hr06
+        alfa(l)=-one*(t(ll,ll-1)*t(ll,ll)+t(ll+1,ll-1)*t(ll+1,ll))
       end do
 
   450 continue
@@ -6694,7 +4649,7 @@ subroutine phasad(dpp,qwc)
       if(qxse.ge.qxsa) then
         qwc(3)=qxse-qxsa
       else
-        qwc(3)=(phi(1)+qxse)-qxsa                                        !hr06
+        qwc(3)=(phi(1)+qxse)-qxsa
       endif
 !-----------------------------------------------------------------------
   return
@@ -6716,7 +4671,7 @@ subroutine qmod0
       implicit none
       integer i,ierr,ii,iq1,iq2,iq3,iql,j,l,n,nite
       real(kind=fPrec) a11,a12,a13,a21,a22,a23,a31,a32,a33,aa,aa1,bb,   &
-     &dpp,dq1,dq2,dq3,qwc,qx,qz,sens,sm0,sqx,sqxh,sqz
+        dpp,dq1,dq2,dq3,qwc,qx,qz,sens,sm0,sqx,sqxh,sqz
       dimension sens(3,5),aa(3,3),bb(3),qx(3),qz(3),sm0(3),qwc(3)
       dimension aa1(2,2)
       save
@@ -6753,7 +4708,7 @@ subroutine qmod0
       iq2=iq(2)
       if(kz(iq1).ne.2.or.kz(iq2).ne.2) then
         write(lerr,"(a)") "QMOD> ERROR Element is not a quadrupole."
-        call prror(-1)
+        call prror
       end if
 
       if (abs(el(iq1)).le.pieni.or.abs(el(iq2)).le.pieni) then
@@ -6773,7 +4728,7 @@ subroutine qmod0
         iq3=iq(3)
         if(kz(iq3).ne.2) then
           write(lerr,"(a)") "QMOD> ERROR Element is not a quadrupole."
-          call prror(-1)
+          call prror
         end if
         if (abs(el(iq3)).le.pieni) then
           sm0(3)=ed(iq3)
@@ -6789,7 +4744,7 @@ subroutine qmod0
       call clorb(dpp)
       if(ierro.gt.0) then
         write(lerr,"(a)") "QMOD> ERROR Unstable closed orbit during tune variation."
-        call prror(-1)
+        call prror
       end if
       call phasad(dpp,qwc)
       sens(1,5)=qwc(1)
@@ -6815,7 +4770,7 @@ subroutine qmod0
           call clorb(dpp)
           if(ierro.gt.0) then
             write(lerr,"(a)") "QMOD> ERROR Unstable closed orbit during tune variation."
-            call prror(-1)
+            call prror
           end if
           call phasad(dpp,qwc)
           sens(1,n+1)=qwc(1)
@@ -6869,7 +4824,7 @@ subroutine qmod0
         endif
         if(ierr == 1) then
           write(lerr,"(a)") "QMOD> ERROR Problems during matrix-inversion."
-          call prror(-1)
+          call prror
         end if
         do 50 l=1,nite
           iql=iq(l)
@@ -6883,7 +4838,7 @@ subroutine qmod0
         call clorb(dpp)
         if(ierro.gt.0) then
           write(lerr,"(a)") "QMOD> ERROR Unstable closed orbit during tune variation."
-          call prror(-1)
+          call prror
         end if
         call phasad(dpp,qwc)
         sens(1,5)=qwc(1)
@@ -6892,22 +4847,18 @@ subroutine qmod0
           sens(3,5)=qwc(3)
           write(lout,10020) qw0(1),qwc(1),qw0(2),qwc(2),qw0(3),qwc(3)
           if (abs(el(iq1)).le.pieni) then
-            write(lout,10040) sm0(1),ed(iq1),bez(iq1),sm0(2),ed(iq2),bez&
-     &(iq2),sm0(3),ed(iq3),bez(iq3)
+            write(lout,10040) sm0(1),ed(iq1),bez(iq1),sm0(2),ed(iq2),bez(iq2),sm0(3),ed(iq3),bez(iq3)
           else
-            write(lout,10040) sm0(1),ek(iq1),bez(iq1),sm0(2),ek(iq2),bez&
-     &(iq2),sm0(3),ek(iq3),bez(iq3)
+            write(lout,10040) sm0(1),ek(iq1),bez(iq1),sm0(2),ek(iq2),bez(iq2),sm0(3),ek(iq3),bez(iq3)
           endif
           write(lout,10080) sqx,sqz,sqxh
           write(lout,10060) a11,a12,a13,a21,a22,a23,a31,a32,a33
         else
           write(lout,10030) qw0(1),qwc(1),qw0(2),qwc(2)
           if (abs(el(iq1)).le.pieni) then
-            write(lout,10050) sm0(1),ed(iq1),bez(iq1),sm0(2),ed(iq2),bez&
-     &(iq2)
+            write(lout,10050) sm0(1),ed(iq1),bez(iq1),sm0(2),ed(iq2),bez(iq2)
           else
-            write(lout,10050) sm0(1),ek(iq1),bez(iq1),sm0(2),ek(iq2),bez&
-     &(iq2)
+            write(lout,10050) sm0(1),ek(iq1),bez(iq1),sm0(2),ek(iq2),bez(iq2)
           endif
           write(lout,10090) sqx,sqz
           write(lout,10070) a11,a12,a21,a22
@@ -7039,24 +4990,24 @@ subroutine qmodda(mm,qwc)
           iqmodc=1
           call mydaini(2,3,ndh,mm,nd2,1)
           do i=1,mm
-            qwc(i)=real(intwq(i),fPrec)+corr(1,i)                              !hr06
+            qwc(i)=real(intwq(i),fPrec)+corr(1,i)
           enddo
           dq1=qwc(1)-qw0(1)
           dq2=qwc(2)-qw0(2)
-          if(ncorr.eq.1) cor=sqrt(dq1**2+dq2**2)                         !hr06
+          if(ncorr.eq.1) cor=sqrt(dq1**2+dq2**2)
           if(abs(dq1).gt.dqq.or.abs(dq2).gt.dqq) then
-            cor=sqrt(dq1**2+dq2**2)                                      !hr06
+            cor=sqrt(dq1**2+dq2**2)
             if(ncorr.eq.1.or.cor.lt.coro) then
               coro=cor
               if(el(iq(1)).le.pieni) then
-                ed(iq(1))=(ed(iq(1))-corr(2,1)*dq1)-corr(2,2)*dq2        !hr06
+                ed(iq(1))=(ed(iq(1))-corr(2,1)*dq1)-corr(2,2)*dq2
               else
-                ek(iq(1))=(ek(iq(1))-corr(2,1)*dq1)-corr(2,2)*dq2        !hr06
+                ek(iq(1))=(ek(iq(1))-corr(2,1)*dq1)-corr(2,2)*dq2
               endif
               if(el(iq(2)).le.pieni) then
-                ed(iq(2))=(ed(iq(2))-corr(3,1)*dq1)-corr(3,2)*dq2        !hr06
+                ed(iq(2))=(ed(iq(2))-corr(3,1)*dq1)-corr(3,2)*dq2
               else
-                ek(iq(2))=(ek(iq(2))-corr(3,1)*dq1)-corr(3,2)*dq2        !hr06
+                ek(iq(2))=(ek(iq(2))-corr(3,1)*dq1)-corr(3,2)*dq2
               endif
               do ncrr=1,iu
                 ix=ic(ncrr)
@@ -7080,26 +5031,18 @@ subroutine qmodda(mm,qwc)
                 edcor(2)=ek(iq(2))
               endif
               if(ncorr.eq.1) then
-                write(lout,10020) nd2,qw0(1),qwc(1),qw0(2),qwc(2),      &
-     &ncorr-1,                                                          &
-     &cor
+                write(lout,10020) nd2,qw0(1),qwc(1),qw0(2),qwc(2),ncorr-1,cor
               else
-                write(lout,10030) nd2,qw0(1),qwc(1),qw0(2),qwc(2),      &
-     &ncorr-1,                                                          &
-     &cor
+                write(lout,10030) nd2,qw0(1),qwc(1),qw0(2),qwc(2),ncorr-1,cor
               endif
               if(el(iq(1)).le.pieni.and.el(iq(2)).le.pieni) then
-                write(lout,10040) edcor1,ed(iq(1)),bez(iq(1)),edcor2,   &
-     &ed(iq(2)),bez(iq(2))
+                write(lout,10040) edcor1,ed(iq(1)),bez(iq(1)),edcor2,ed(iq(2)),bez(iq(2))
               elseif(el(iq(1)).le.pieni.and.el(iq(2)).gt.pieni) then
-                write(lout,10040) edcor1,ed(iq(1)),bez(iq(1)),edcor2,   &
-     &ek(iq(2)),bez(iq(2))
+                write(lout,10040) edcor1,ed(iq(1)),bez(iq(1)),edcor2,ek(iq(2)),bez(iq(2))
               elseif(el(iq(1)).gt.pieni.and.el(iq(2)).le.pieni) then
-                write(lout,10040) edcor1,ek(iq(1)),bez(iq(1)),edcor2,   &
-     &ed(iq(2)),bez(iq(2))
+                write(lout,10040) edcor1,ek(iq(1)),bez(iq(1)),edcor2,ed(iq(2)),bez(iq(2))
               else
-                write(lout,10040) edcor1,ek(iq(1)),bez(iq(1)),edcor2,   &
-     &ek(iq(2)),bez(iq(2))
+                write(lout,10040) edcor1,ek(iq(1)),bez(iq(1)),edcor2,ek(iq(2)),bez(iq(2))
               endif
             else
               write(lout,10050) nd2,ncorr-1
@@ -7113,7 +5056,7 @@ subroutine qmodda(mm,qwc)
           iqmodc=3
           call mydaini(2,2,nd2,mm,nd2,1)
           do i=1,mm
-            qwc(i)=real(intwq(i),fPrec)+wxys(i)                                !hr06
+            qwc(i)=real(intwq(i),fPrec)+wxys(i)
           enddo
           goto 1
         endif
@@ -7130,7 +5073,7 @@ subroutine qmodda(mm,qwc)
         iqmodc=3
         call mydaini(2,2,nd2,mm,nd2,1)
         do i=1,mm
-          qwc(i)=real(intwq(i),fPrec)+wxys(i)                                  !hr06
+          qwc(i)=real(intwq(i),fPrec)+wxys(i)
         enddo
         if(ncorr.eq.itqv+1) write(lout,10070) nd2,itqv
         if(ncorr.eq.1) then
@@ -7139,17 +5082,13 @@ subroutine qmodda(mm,qwc)
           write(lout,10030) nd2,qw0(1),qwc(1),qw0(2),qwc(2),ncorr-1,cor
         endif
         if(el(iq(1)).le.pieni.and.el(iq(2)).le.pieni) then
-          write(lout,10040)edcor1,ed(iq(1)),bez(iq(1)),edcor2,ed(iq(2)),&
-     &bez(iq(2))
+          write(lout,10040)edcor1,ed(iq(1)),bez(iq(1)),edcor2,ed(iq(2)),bez(iq(2))
         elseif(el(iq(1)).le.pieni.and.el(iq(2)).gt.pieni) then
-          write(lout,10040)edcor1,ed(iq(1)),bez(iq(1)),edcor2,ek(iq(2)),&
-     &bez(iq(2))
+          write(lout,10040)edcor1,ed(iq(1)),bez(iq(1)),edcor2,ek(iq(2)),bez(iq(2))
         elseif(el(iq(1)).gt.pieni.and.el(iq(2)).le.pieni) then
-          write(lout,10040)edcor1,ek(iq(1)),bez(iq(1)),edcor2,ed(iq(2)),&
-     &bez(iq(2))
+          write(lout,10040)edcor1,ek(iq(1)),bez(iq(1)),edcor2,ed(iq(2)),bez(iq(2))
         else
-          write(lout,10040)edcor1,ek(iq(1)),bez(iq(1)),edcor2,ek(iq(2)),&
-     &bez(iq(2))
+          write(lout,10040)edcor1,ek(iq(1)),bez(iq(1)),edcor2,ek(iq(2)),bez(iq(2))
         endif
       endif
       ncorru=ncorruo
@@ -7227,8 +5166,8 @@ subroutine umlauf(dpp,ium,ierr)
       do kx=1,2
         if(ithick.eq.1) then
           puf=x(j,kx)
-          x(j,kx)=(bl1(ix,kx,1)*puf+bl1(ix,kx,2)*y(j,kx))+dpr(j)*bl1(ix,kx,5) !hr06
-          y(j,kx)=(bl1(ix,kx,3)*puf+bl1(ix,kx,4)*y(j,kx))+dpr(j)*bl1(ix,kx,6) !hr06
+          x(j,kx)=(bl1(ix,kx,1)*puf+bl1(ix,kx,2)*y(j,kx))+dpr(j)*bl1(ix,kx,5)
+          y(j,kx)=(bl1(ix,kx,3)*puf+bl1(ix,kx,4)*y(j,kx))+dpr(j)*bl1(ix,kx,6)
         else
           x(j,kx)=x(j,kx)+bl1(ix,kx,2)*y(j,kx)
         end if
@@ -7241,8 +5180,8 @@ subroutine umlauf(dpp,ium,ierr)
       do kx=1,2
         if(ithick.eq.1) then
           puf=x(j,kx)
-          x(j,kx)=(bl2(ix,kx,1)*puf+bl2(ix,kx,2)*y(j,kx))+dpr(j)*bl2(ix,kx,5) !hr06
-          y(j,kx)=(bl2(ix,kx,3)*puf+bl2(ix,kx,4)*y(j,kx))+dpr(j)*bl2(ix,kx,6) !hr06
+          x(j,kx)=(bl2(ix,kx,1)*puf+bl2(ix,kx,2)*y(j,kx))+dpr(j)*bl2(ix,kx,5)
+          y(j,kx)=(bl2(ix,kx,3)*puf+bl2(ix,kx,4)*y(j,kx))+dpr(j)*bl2(ix,kx,6)
         else
           x(j,kx)=x(j,kx)+bl2(ix,kx,2)*y(j,kx)
         end if
@@ -7262,7 +5201,7 @@ subroutine umlauf(dpp,ium,ierr)
     if(abs(x(1,1)).lt.aper(1).and.abs(x(1,2)).lt.aper(2)) goto 70
     ierr=1
     write(lout,"(a)") "UMLAUF> Error amplitudes exceed the maximum values."
-    call prror(-1)
+    call prror
     return
 
 70  continue
@@ -7278,9 +5217,6 @@ subroutine umlauf(dpp,ium,ierr)
     end if
     if(kzz.eq.0.or.kzz.eq.20.or.kzz.eq.22) goto 350
     if(kzz.eq.15) goto 350
-! JBG RF CC Multipoles to 350
-!        if(kzz.eq.26.or.kzz.eq.27.or.kzz.eq.28) write(*,*)'out'
-!        if(kzz.eq.26.or.kzz.eq.27.or.kzz.eq.28) goto 350
     if(iorg.lt.0) mzu(k)=izu
     izu=mzu(k)+1
     ekk=(sm(ix)+zfz(izu)*ek(ix))/(one+dpp)
@@ -7584,20 +5520,20 @@ subroutine umlauf(dpp,ium,ierr)
 330 continue
     do j=2,ium
       if(kzz.eq.24) then
-        y(j,1)=(y(j,1)+x(j,1)*qu)-qv*x(j,2)                          !hr06
-        y(j,2)=(y(j,2)-x(j,2)*quz)-qvz*x(j,1)                        !hr06
+        y(j,1)=(y(j,1)+x(j,1)*qu)-qv*x(j,2)
+        y(j,2)=(y(j,2)-x(j,2)*quz)-qvz*x(j,1)
       elseif(kzz.eq.25) then
-        crkve=y(j,1)-(x(j,1)*qu)*qv                                  !hr06
-        cikve=y(j,2)-(x(j,2)*qu)*qv                                  !hr06
-        y(j,1)=crkve*cos_mb(qv)+cikve*sin_mb(qv)                     !hr09
-        y(j,2)=cikve*cos_mb(qv)-crkve*sin_mb(qv)                     !hr09
-        crkve=x(j,1)*cos_mb(qv)+x(j,2)*sin_mb(qv)                    !hr09
-        cikve=x(j,2)*cos_mb(qv)-x(j,1)*sin_mb(qv)                    !hr09
+        crkve=y(j,1)-(x(j,1)*qu)*qv
+        cikve=y(j,2)-(x(j,2)*qu)*qv
+        y(j,1)=crkve*cos_mb(qv)+cikve*sin_mb(qv)
+        y(j,2)=cikve*cos_mb(qv)-crkve*sin_mb(qv)
+        crkve=x(j,1)*cos_mb(qv)+x(j,2)*sin_mb(qv)
+        cikve=x(j,2)*cos_mb(qv)-x(j,1)*sin_mb(qv)
         x(j,1)=crkve
         x(j,2)=cikve
       else
-        y(j,1)=(y(j,1)+x(j,1)*qu)-qv*x(j,2)                          !hr06
-        y(j,2)=(y(j,2)-x(j,2)*qu)-qv*x(j,1)                          !hr06
+        y(j,1)=(y(j,1)+x(j,1)*qu)-qv*x(j,2)
+        y(j,2)=(y(j,2)-x(j,2)*qu)-qv*x(j,1)
       endif
     end do
 350 continue
@@ -7713,7 +5649,7 @@ subroutine resex(dpp)
 
       if(ierro /= 0) then
         write(lerr,"(a)") "RESEX> ERROR No optical solution."
-        call prror(-1)
+        call prror
       end if
       call envar(dpp)
 
@@ -7734,8 +5670,8 @@ subroutine resex(dpp)
       end do
 
 !--EP=EMITTANCE IN PI*MM*MRAD
-      ep(1)=tam1**2/beta(1)                                              !hr06
-      ep(2)=tam2**2/beta(2)                                              !hr06
+      ep(1)=tam1**2/beta(1)
+      ep(2)=tam2**2/beta(2)
 
 !--SINGLE TURN BLOCKLOOP
       izu=0
@@ -7778,8 +5714,8 @@ subroutine resex(dpp)
 
           do l=1,2
             ll=2*l
-            beta(l)=t(ll,ll-1)**2+t(ll+1,ll-1)**2                        !hr06
-            alfa(l)=-one*(t(ll,ll-1)*t(ll,ll)+t(ll+1,ll-1)*t(ll+1,ll))   !hr06
+            beta(l)=t(ll,ll-1)**2+t(ll+1,ll-1)**2
+            alfa(l)=-one*(t(ll,ll-1)*t(ll,ll)+t(ll+1,ll-1)*t(ll+1,ll))
             if(abs(t(ll,ll-1)).gt.pieni) then
               dphi=atan_mb(t(ll+1,ll-1)/t(ll,ll-1))-phibf(l)
             else
@@ -7802,14 +5738,14 @@ subroutine resex(dpp)
             endif
             do i=1,ium
               puf=t(i,ll-1)
-            t(i,ll-1)=(puf*a(jk,l,1)+t(i,ll)*a(jk,l,2))+dpr(i)*a(jk,l,5) !hr06
-            t(i,ll)=(puf*a(jk,l,3)+t(i,ll)*a(jk,l,4))+dpr(i)*a(jk,l,6)   !hr06
+            t(i,ll-1)=(puf*a(jk,l,1)+t(i,ll)*a(jk,l,2))+dpr(i)*a(jk,l,5)
+            t(i,ll)=(puf*a(jk,l,3)+t(i,ll)*a(jk,l,4))+dpr(i)*a(jk,l,6)
             enddo
           enddo
           do l=1,2
             ll=2*l
-            beta(l)=t(ll,ll-1)**2+t(ll+1,ll-1)**2                        !hr06
-            alfa(l)=-one*(t(ll,ll-1)*t(ll,ll)+t(ll+1,ll-1)*t(ll+1,ll))   !hr06
+            beta(l)=t(ll,ll-1)**2+t(ll+1,ll-1)**2
+            alfa(l)=-one*(t(ll,ll-1)*t(ll,ll)+t(ll+1,ll-1)*t(ll+1,ll))
             if(abs(t(ll,ll-1)).gt.pieni) then
               dphi=atan_mb(t(ll+1,ll-1)/t(ll,ll-1))-phibf(l)
             else
@@ -8005,19 +5941,18 @@ subroutine resex(dpp)
         t(1,4)=t(1,4)+dyy2
         do 490 i=2,ium
           if(kzz.eq.24) then
-            t(i,2)=(t(i,2)+t(i,1)*qu)-qv*t(i,3)                          !hr06
-            t(i,4)=(t(i,4)-t(i,3)*quz)-qvz*t(i,1)                        !hr06
-#include "include/phas1so1.f90"
-#include "include/phas2so1.f90"
-#include "include/phas3so1.f90"
+            t(i,2)=(t(i,2)+t(i,1)*qu)-qv*t(i,3)
+            t(i,4)=(t(i,4)-t(i,3)*quz)-qvz*t(i,1)
+          elseif(kzz.eq.25) then !--solenoid
+#include "include/phassolenoid.f90"
           else
-            t(i,2)=(t(i,2)+t(i,1)*qu)-qv*t(i,3)                          !hr06
-            t(i,4)=(t(i,4)-t(i,3)*qu)-qv*t(i,1)                          !hr06
+            t(i,2)=(t(i,2)+t(i,1)*qu)-qv*t(i,3)
+            t(i,4)=(t(i,4)-t(i,3)*qu)-qv*t(i,1)
           endif
   490   continue
         do l=1,2
           ll=2*l
-          alfa(l)=-one*(t(ll,ll-1)*t(ll,ll)+t(ll+1,ll-1)*t(ll+1,ll))     !hr06
+          alfa(l)=-one*(t(ll,ll-1)*t(ll,ll)+t(ll+1,ll-1)*t(ll+1,ll))
         end do
         if(mpe.gt.9.or.(mpe.eq.9.and.nmz.le.1)) goto 770
         if(mpe.lt.nta) goto 770
@@ -8030,7 +5965,7 @@ subroutine resex(dpp)
 !-----------------------------------------------------------------------
         do l=2,nmz
           l1=l-1
-          ab2(2)=ab2(2)+real(l1,fPrec)*(aa(l)*cr(l1)-bb(l)*ci(l1))               !hr06
+          ab2(2)=ab2(2)+real(l1,fPrec)*(aa(l)*cr(l1)-bb(l)*ci(l1))
         end do
 
   520   b1=beta(1)
@@ -8050,8 +5985,8 @@ subroutine resex(dpp)
         l2=1
         do l=3,nmz
           l1=l-2
-          ab1(3)=ab1(3)+real(l2,fPrec)*(aa(l)*ci(l1)+bb(l)*cr(l1))             !hr06
-          ab2(3)=ab2(3)+real(l2,fPrec)*(aa(l)*cr(l1)-bb(l)*ci(l1))             !hr06
+          ab1(3)=ab1(3)+real(l2,fPrec)*(aa(l)*ci(l1)+bb(l)*cr(l1))
+          ab2(3)=ab2(3)+real(l2,fPrec)*(aa(l)*cr(l1)-bb(l)*ci(l1))
           l2=l2*l/l1
         end do
 
@@ -8069,13 +6004,13 @@ subroutine resex(dpp)
         l2=1
         do l=4,nmz
           l1=l-3
-          ab1(4)=ab1(4)+real(l2,fPrec)*(aa(l)*ci(l1)+bb(l)*cr(l1))             !hr06
-          ab2(4)=ab2(4)+real(l2,fPrec)*(aa(l)*cr(l1)-bb(l)*ci(l1))             !hr06
+          ab1(4)=ab1(4)+real(l2,fPrec)*(aa(l)*ci(l1)+bb(l)*cr(l1))
+          ab2(4)=ab2(4)+real(l2,fPrec)*(aa(l)*cr(l1)-bb(l)*ci(l1))
           l2=l2*l/l1
         end do
 
-  560   b(5,1)=b1**2                                                     !hr06
-        b(1,5)=b2**2                                                     !hr06
+  560   b(5,1)=b1**2
+        b(1,5)=b2**2
         b(4,2)=b(3,2)*sb1
         b(2,4)=b(2,3)*sb2
         b(3,3)=b1*b2
@@ -8089,8 +6024,8 @@ subroutine resex(dpp)
         l2=1
         do l=5,nmz
           l1=l-4
-          ab1(5)=ab1(5)+real(l2,fPrec)*(aa(l)*ci(l1)+bb(l)*cr(l1))             !hr06
-          ab2(5)=ab2(5)+real(l2,fPrec)*(aa(l)*cr(l1)-bb(l)*ci(l1))             !hr06
+          ab1(5)=ab1(5)+real(l2,fPrec)*(aa(l)*ci(l1)+bb(l)*cr(l1))
+          ab2(5)=ab2(5)+real(l2,fPrec)*(aa(l)*cr(l1)-bb(l)*ci(l1))
           l2=l2*l/l1
         end do
 
@@ -8110,8 +6045,8 @@ subroutine resex(dpp)
         l2=1
         do l=6,nmz
           l1=l-5
-          ab1(6)=ab1(6)+real(l2,fPrec)*(aa(l)*ci(l1)+bb(l)*cr(l1))             !hr06
-          ab2(6)=ab2(6)+real(l2,fPrec)*(aa(l)*cr(l1)-bb(l)*ci(l1))             !hr06
+          ab1(6)=ab1(6)+real(l2,fPrec)*(aa(l)*ci(l1)+bb(l)*cr(l1))
+          ab2(6)=ab2(6)+real(l2,fPrec)*(aa(l)*cr(l1)-bb(l)*ci(l1))
           l2=l2*l/l1
         end do
 
@@ -8132,8 +6067,8 @@ subroutine resex(dpp)
         l2=1
         do l=7,nmz
           l1=l-6
-          ab1(7)=ab1(7)+real(l2,fPrec)*(aa(l)*ci(l1)+bb(l)*cr(l1))             !hr06
-          ab2(7)=ab2(7)+real(l2,fPrec)*(aa(l)*cr(l1)-bb(l)*ci(l1))             !hr06
+          ab1(7)=ab1(7)+real(l2,fPrec)*(aa(l)*ci(l1)+bb(l)*cr(l1))
+          ab2(7)=ab2(7)+real(l2,fPrec)*(aa(l)*cr(l1)-bb(l)*ci(l1))
           l2=l2*l/l1
         end do
 
@@ -8154,8 +6089,8 @@ subroutine resex(dpp)
         l2=1
         do l=8,nmz
           l1=l-7
-          ab1(8)=ab1(8)+real(l2,fPrec)*(aa(l)*ci(l1)+bb(l)*cr(l1))             !hr06
-          ab2(8)=ab2(8)+real(l2,fPrec)*(aa(l)*cr(l1)-bb(l)*ci(l1))             !hr06
+          ab1(8)=ab1(8)+real(l2,fPrec)*(aa(l)*ci(l1)+bb(l)*cr(l1))
+          ab2(8)=ab2(8)+real(l2,fPrec)*(aa(l)*cr(l1)-bb(l)*ci(l1))
           l2=l2*l/l1
         end do
 
@@ -8176,8 +6111,8 @@ subroutine resex(dpp)
         l2=1
         do l=9,nmz
           l1=l-8
-          ab1(9)=ab1(9)+real(l2,fPrec)*(aa(l)*ci(l1)+bb(l)*cr(l1))             !hr06
-          ab2(9)=ab2(9)+real(l2,fPrec)*(aa(l)*cr(l1)-bb(l)*ci(l1))             !hr06
+          ab1(9)=ab1(9)+real(l2,fPrec)*(aa(l)*ci(l1)+bb(l)*cr(l1))
+          ab2(9)=ab2(9)+real(l2,fPrec)*(aa(l)*cr(l1)-bb(l)*ci(l1))
           l2=l2*l/l1
         end do
 
@@ -8198,7 +6133,7 @@ subroutine resex(dpp)
             n2=nv-np
             nn2=abs(n2)
             nn1=np-nn2
-            re1=real(nn1,fPrec)*qxt+real(n2,fPrec)*qzt                   !hr06
+            re1=real(nn1,fPrec)*qxt+real(n2,fPrec)*qzt
             ipt=0
 
             do ii=1,nre
@@ -8208,10 +6143,10 @@ subroutine resex(dpp)
             ip(np,nv)=int(re1+half)+ipt
             if(-one*re1.gt.pieni) ip(np,nv)=-int(abs(re1)+half)-ipt
 !--RE=DISTANCE FROM THE RESONANCE
-            re(np,nv)=re1-real(ip(np,nv),fPrec)                          !hr06
+            re(np,nv)=re1-real(ip(np,nv),fPrec)
             res=re(np,nv)/radi
-           chy(np,nv)=cos_mb((real(nn1,fPrec)*phi(1)+real(n2,fPrec)*phi(2))-res*etl) !hr06
-           shy(np,nv)=sin_mb((real(nn1,fPrec)*phi(1)+real(n2,fPrec)*phi(2))-res*etl) !hr06
+           chy(np,nv)=cos_mb((real(nn1,fPrec)*phi(1)+real(n2,fPrec)*phi(2))-res*etl)
+           shy(np,nv)=sin_mb((real(nn1,fPrec)*phi(1)+real(n2,fPrec)*phi(2))-res*etl)
   690     continue
   700   continue
         do 760 np=nta,mpe
@@ -8224,18 +6159,18 @@ subroutine resex(dpp)
               nn2=abs(nv-np2)
               nv1=np2-nn2+(i-1)*2+1
               nv2=np-nv1+2
-              rn2=real(nn2,fPrec)*half                                    !hr06
+              rn2=real(nn2,fPrec)*half
 !--EVENESS OF N2
               mm=0
               gerad=rn2-aint(rn2)
               if(abs(gerad).le.pieni) mm=1
 !--MM=0 =>N2 UNEVEN, MM=1 => N2 EVEN
               if (mm.eq.0) goto 720
-              btc=(ab1(np)*b(nv1,nv2))*chy(np2,nv)                       !hr06
-              bts=(ab1(np)*b(nv1,nv2))*shy(np2,nv)                       !hr06
+              btc=(ab1(np)*b(nv1,nv2))*chy(np2,nv)
+              bts=(ab1(np)*b(nv1,nv2))*shy(np2,nv)
               goto 730
-  720         btc=(ab2(np)*b(nv1,nv2))*chy(np2,nv)                       !hr06
-              bts=(ab2(np)*b(nv1,nv2))*shy(np2,nv)                       !hr06
+  720         btc=(ab2(np)*b(nv1,nv2))*chy(np2,nv)
+              bts=(ab2(np)*b(nv1,nv2))*shy(np2,nv)
   730         rtc(np2,nv,np,i)=rtc(np2,nv,np,i)+btc
               rts(np2,nv,np,i)=rts(np2,nv,np,i)+bts
   740       continue
@@ -8254,7 +6189,7 @@ subroutine resex(dpp)
       eb=ep(2)
       e(3,1)=one/eb
       e(1,3)=one/ea
-      e(2,2)=(one/seb)/sea                                               !hr06
+      e(2,2)=(one/seb)/sea
       nnf(4)=6
       nz2(3)=4
       e(4,1)=sea/eb
@@ -8301,8 +6236,8 @@ subroutine resex(dpp)
       e(1,9)=e(1,8)*seb
       e(8,2)=e(7,2)*sea
       e(2,8)=e(2,7)*seb
-      e(7,3)=ea**2                                                       !hr06
-      e(3,7)=eb**2                                                       !hr06
+      e(7,3)=ea**2
+      e(3,7)=eb**2
       e(6,4)=e(5,4)*sea
       e(4,6)=e(4,5)*seb
       e(5,5)=ea*eb
@@ -8319,7 +6254,7 @@ subroutine resex(dpp)
       e(6,5)=e(5,5)*sea
       e(5,6)=e(5,5)*seb
       do 810 np=nta,nte
-        vdt1=real(nnf(np),fPrec)/(real(nz2(np),fPrec)*pi)                            !hr06
+        vdt1=real(nnf(np),fPrec)/(real(nz2(np),fPrec)*pi)
         np2=np
         nkk=0
   780   nkk=nkk+1
@@ -8336,9 +6271,9 @@ subroutine resex(dpp)
             nf1=nn1+i
             nf3=nkk-i+1
             nf4=nf3+nn2
-      vdt2=(vdt1*e(nv1,nv2))/real(((nnf(nf1)*nnf(i))*nnf(nf3))*nnf(nf4),fPrec) !hr06
-            vdt3=real(nn2,fPrec)*ea+real(nn1,fPrec)*eb                         !hr06
-            if(n2.ge.0) vdt3=real(n2*nv21,fPrec)*ea+real(nn1*nv11,fPrec)*eb    !hr06
+      vdt2=(vdt1*e(nv1,nv2))/real(((nnf(nf1)*nnf(i))*nnf(nf3))*nnf(nf4),fPrec)
+            vdt3=real(nn2,fPrec)*ea+real(nn1,fPrec)*eb
+            if(n2.ge.0) vdt3=real(n2*nv21,fPrec)*ea+real(nn1*nv11,fPrec)*eb
             rtc(np2,nv,np,i)=rtc(np2,nv,np,i)*vdt2*vdt3
             rts(np2,nv,np,i)=rts(np2,nv,np,i)*vdt2*vdt3
   790     continue
@@ -8364,14 +6299,14 @@ subroutine resex(dpp)
         i2=2*i
         i1=i2-1
         n=nrr(i)+npp
-        dtr(i1)=rtc(npp,n,npp,1)+(min(1)*(rtc(npp,n,m2,2)-              &!hr06
-     &rtc(npp,n,m2,1))+min(2)*((rtc(npp,n,m4,1)-rtc(npp,n,m4,2))+rtc    &!hr06
-     &(npp,n,m4,3)))+min(3)*(((rtc(npp,n,m6,2)-rtc(npp,n,m6,1))-rtc     &!hr06
-     &(npp,n,m6,3))+ rtc(npp,n,m6,4))                                    !hr06
-        dtr(i2)=rts(npp,n,npp,1)+(min(1)*(rts(npp,n,m2,2)-              &!hr06
-     &rts(npp,n,m2,1))+min(2)*((rts(npp,n,m4,1)-rts(npp,n,m4,2))+rts    &!hr06
-     &(npp,n,m4,3)))+min(3)*(((rts(npp,n,m6,2)-rts(npp,n,m6,1))-rts     &!hr06
-     &(npp,n,m6,3))+rts(npp,n,m6,4))                                     !hr06
+        dtr(i1)=rtc(npp,n,npp,1)+(min(1)*(rtc(npp,n,m2,2)-              &
+     &rtc(npp,n,m2,1))+min(2)*((rtc(npp,n,m4,1)-rtc(npp,n,m4,2))+rtc    &
+     &(npp,n,m4,3)))+min(3)*(((rtc(npp,n,m6,2)-rtc(npp,n,m6,1))-rtc     &
+     &(npp,n,m6,3))+ rtc(npp,n,m6,4))
+        dtr(i2)=rts(npp,n,npp,1)+(min(1)*(rts(npp,n,m2,2)-              &
+     &rts(npp,n,m2,1))+min(2)*((rts(npp,n,m4,1)-rts(npp,n,m4,2))+rts    &
+     &(npp,n,m4,3)))+min(3)*(((rts(npp,n,m6,2)-rts(npp,n,m6,1))-rts     &
+     &(npp,n,m6,3))+rts(npp,n,m6,4))
   850 continue
   return
 end subroutine resex
@@ -8468,7 +6403,7 @@ subroutine rmod(dppr)
       se11=zero
       se12=zero
       do 80 n=1,5
-        dpp=de2*real(3-n,fPrec)                                                !hr06
+        dpp=de2*real(3-n,fPrec)
         call clorb2(dpp)
         call phasad(dpp,qwc)
         ox=qwc(1)
@@ -8532,7 +6467,7 @@ subroutine rmod(dppr)
           se11=zero
           se12=zero
           do 130 n=1,5
-            dpp=de2*real(3-n,fPrec)                                            !hr06
+            dpp=de2*real(3-n,fPrec)
             call clorb2(dpp)
             call phasad(dpp,qwc)
             ox=qwc(1)
@@ -8567,7 +6502,7 @@ subroutine rmod(dppr)
         call loesd(aa,bb,j2,10,ierr)
         if(ierr == 1) then
           write(lerr,"(a)") "RMOD> ERROR Problems during matrix-inversion."
-          call prror(-1)
+          call prror
         end if
         do 170 i=1,j2
           if(i.eq.jj1.or.i.eq.jj2) then
@@ -8593,7 +6528,7 @@ subroutine rmod(dppr)
         se11=zero
         se12=zero
         do 200 n=1,5
-          dpp=de2*real(3-n,fPrec)                                              !hr06
+          dpp=de2*real(3-n,fPrec)
           call clorb2(dpp)
           call phasad(dpp,qwc)
           ox=qwc(1)
@@ -8626,33 +6561,26 @@ subroutine rmod(dppr)
         end do
 
   240   write(lout,10100)
-        write(lout,10110)bez(irr(1)),sn(1),ed(irr(1)),bez(irr(2)),sn(2),&
-     &ed(irr(2))
+        write(lout,10110)bez(irr(1)),sn(1),ed(irr(1)),bez(irr(2)),sn(2),ed(irr(2))
         if(nre.eq.1) goto 260
 
         do i=2,nre
           i2=2*i
           i1=i2-1
-        write(lout,10110)bez(irr(i1)),sn(i1),ed(irr(i1)),bez(irr(i2)),sn&
-     &(i2), ed(irr(i2))
+        write(lout,10110)bez(irr(i1)),sn(i1),ed(irr(i1)),bez(irr(i2)),sn(i2), ed(irr(i2))
         end do
 
   260   write(lout,10070)
   270   if(nch.eq.0) goto 280
         write(lout,10120) sen(j3),ss(j3),sen(j4),ss(j4)
-        write(lout,10110)bez(irr(j3)),sn(j3),ed(irr(j3)),bez(irr(j4)),sn&
-     &(j4), ed(irr(j4))
+        write(lout,10110)bez(irr(j3)),sn(j3),ed(irr(j3)),bez(irr(j4)),sn(j4), ed(irr(j4))
         write(lout,10070)
   280   if(nqc.eq.0) goto 290
         write(lout,10130) qw0(1),qwc(1),qw0(2),qwc(2)
         if (abs(el(irr(j1))).le.pieni) then
-          write(lout,10140) sn(j1),ed(irr(j1)),irr(j1),sn(j2),          &
-     &ed(irr(j2)),                                                      &
-     &irr(j2)
+          write(lout,10140) sn(j1),ed(irr(j1)),irr(j1),sn(j2),ed(irr(j2)),irr(j2)
         else
-          write(lout,10140) sn(j1),ek(irr(j1)),irr(j1),sn(j2),          &
-     &ek(irr(j2)),                                                      &
-     &irr(j2)
+          write(lout,10140) sn(j1),ek(irr(j1)),irr(j1),sn(j2),ek(irr(j2)),irr(j2)
         endif
 
   290   do i=1,j2
@@ -8832,13 +6760,13 @@ subroutine subre(dpp)
       dfac(1)=one
       dfac(2)=one
       dfac(3)=two
-      dfac(4)=six                                                        !hr13
-      dfac(5)=24.0                                                       !hr13
-      dfac(6)=120.0_fPrec                                                !hr13
-      dfac(7)=720.0_fPrec                                                !hr13
-      dfac(8)=5040.0_fPrec                                               !hr13
-      dfac(9)=40320.0_fPrec                                              !hr13
-      dfac(10)=362880.0_fPrec                                            !hr13
+      dfac(4)=six
+      dfac(5)=24.0
+      dfac(6)=120.0_fPrec
+      dfac(7)=720.0_fPrec
+      dfac(8)=5040.0_fPrec
+      dfac(9)=40320.0_fPrec
+      dfac(10)=362880.0_fPrec
       if(ipt.eq.1) ipl=3
 
       do 940 ipcc=1,ipl
@@ -8953,7 +6881,7 @@ subroutine subre(dpp)
         call phasad(dpp,qwc)
         if(ierro /= 0) then
           write(lerr,"(a)") "SUBRE> ERROR No optical solution."
-          call prror(-1)
+          call prror
         end if
         write(lout,10070) dpp,qwc(1),qwc(2)
         call envar(dpp)
@@ -8979,12 +6907,11 @@ subroutine subre(dpp)
         write(lout,10030)
         write(lout,10040)
         write(lout,10030)
-        write(lout,10010) nr,'START   ',zero,zero,(beta(l),alfa(l),phi(l),&
-                          di0(l),dip0(l),clo0(l),clop0(l),l=1,2)
+        write(lout,10010) nr,'START   ',zero,zero,(beta(l),alfa(l),phi(l),di0(l),dip0(l),clo0(l),clop0(l),l=1,2)
 
 !--EP=EMITTANCE IN PI*MM*MRAD
-        ep(1)=tam1**2/beta(1)                                            !hr06
-        ep(2)=tam2**2/beta(2)                                            !hr06
+        ep(1)=tam1**2/beta(1)
+        ep(2)=tam2**2/beta(2)
         write(lout,10050) tam1,ep(1),tam2,ep(2)
         write(lout,10030)
 
@@ -9029,8 +6956,8 @@ subroutine subre(dpp)
 
             do l=1,2
               ll=2*l
-              beta(l)=t(ll,ll-1)**2+t(ll+1,ll-1)**2                      !hr06
-              alfa(l)=-one*(t(ll,ll-1)*t(ll,ll)+t(ll+1,ll-1)*t(ll+1,ll)) !hr06
+              beta(l)=t(ll,ll-1)**2+t(ll+1,ll-1)**2
+              alfa(l)=-one*(t(ll,ll-1)*t(ll,ll)+t(ll+1,ll-1)*t(ll+1,ll))
               clo0(l)=t(1,ll-1)
               clop0(l)=t(1,ll)
 
@@ -9040,7 +6967,7 @@ subroutine subre(dpp)
                 dphi=pi2-phibf(l)
               endif
 
-              if(-one*dphi.gt.pieni) dphi=dphi+pi                        !hr06
+              if(-one*dphi.gt.pieni) dphi=dphi+pi
               phi(l)=phi(l)+dphi/pie
             end do
 
@@ -9060,13 +6987,13 @@ subroutine subre(dpp)
               do i=1,ium
                 puf=t(i,ll-1)
                 t(i,ll-1)=(puf*a(jk,l,1)+t(i,ll)*a(jk,l,2))+dpr(i)*a(jk,l,5)
-                t(i,ll)=(puf*a(jk,l,3)+t(i,ll)*a(jk,l,4))+dpr(i)*a(jk,l,6) !hr06
+                t(i,ll)=(puf*a(jk,l,3)+t(i,ll)*a(jk,l,4))+dpr(i)*a(jk,l,6)
               enddo
             enddo
             do l=1,2
               ll=2*l
-              beta(l)=t(ll,ll-1)**2+t(ll+1,ll-1)**2                      !hr06
-              alfa(l)=-one*(t(ll,ll-1)*t(ll,ll)+t(ll+1,ll-1)*t(ll+1,ll)) !hr06
+              beta(l)=t(ll,ll-1)**2+t(ll+1,ll-1)**2
+              alfa(l)=-one*(t(ll,ll-1)*t(ll,ll)+t(ll+1,ll-1)*t(ll+1,ll))
               clo0(l)=t(1,ll-1)
               clop0(l)=t(1,ll)
               if(abs(t(ll,ll-1)).gt.pieni) then
@@ -9298,20 +7225,19 @@ subroutine subre(dpp)
           t(1,4)=t(1,4)+dyy2
           do i=2,ium
             if(kzz.eq.24) then
-              t(i,2)=(t(i,2)+t(i,1)*qu)-qv*t(i,3)                          !hr06
-              t(i,4)=(t(i,4)-t(i,3)*quz)-qvz*t(i,1)                        !hr06
-#include "include/phas1so1.f90"
-#include "include/phas2so1.f90"
-#include "include/phas3so1.f90"
+              t(i,2)=(t(i,2)+t(i,1)*qu)-qv*t(i,3)
+              t(i,4)=(t(i,4)-t(i,3)*quz)-qvz*t(i,1)
+            elseif(kzz.eq.25) then !--solenoid
+#include "include/phassolenoid.f90"
             else
-              t(i,2)=(t(i,2)+t(i,1)*qu)-qv*t(i,3)                          !hr06
-              t(i,4)=(t(i,4)-t(i,3)*qu)-qv*t(i,1)                          !hr06
+              t(i,2)=(t(i,2)+t(i,1)*qu)-qv*t(i,3)
+              t(i,4)=(t(i,4)-t(i,3)*qu)-qv*t(i,1)
             end if
           end do
 
           do l=1,2
             ll=2*l
-            alfa(l)=-one*(t(ll,ll-1)*t(ll,ll)+t(ll+1,ll-1)*t(ll+1,ll))   !hr06
+            alfa(l)=-one*(t(ll,ll-1)*t(ll,ll)+t(ll+1,ll-1)*t(ll+1,ll))
             clop0(l)=t(1,ll)
           end do
 
@@ -9326,7 +7252,7 @@ subroutine subre(dpp)
 !-----------------------------------------------------------------------
           do l=2,nmz
             l1=l-1
-            ab2(2)=ab2(2)+real(l1,fPrec)*(aa(l)*cr(l1)-bb(l)*ci(l1))             !hr06
+            ab2(2)=ab2(2)+real(l1,fPrec)*(aa(l)*cr(l1)-bb(l)*ci(l1))
           end do
 
   550     b1=beta(1)
@@ -9346,8 +7272,8 @@ subroutine subre(dpp)
           l2=1
           do l=3,nmz
             l1=l-2
-            ab1(3)=ab1(3)+real(l2,fPrec)*(aa(l)*ci(l1)+bb(l)*cr(l1))           !hr06
-            ab2(3)=ab2(3)+real(l2,fPrec)*(aa(l)*cr(l1)-bb(l)*ci(l1))           !hr06
+            ab1(3)=ab1(3)+real(l2,fPrec)*(aa(l)*ci(l1)+bb(l)*cr(l1))
+            ab2(3)=ab2(3)+real(l2,fPrec)*(aa(l)*cr(l1)-bb(l)*ci(l1))
             l2=l2*l/l1
           end do
 
@@ -9365,13 +7291,13 @@ subroutine subre(dpp)
           l2=1
           do l=4,nmz
             l1=l-3
-            ab1(4)=ab1(4)+real(l2,fPrec)*(aa(l)*ci(l1)+bb(l)*cr(l1))     !hr06
-            ab2(4)=ab2(4)+real(l2,fPrec)*(aa(l)*cr(l1)-bb(l)*ci(l1))     !hr06
+            ab1(4)=ab1(4)+real(l2,fPrec)*(aa(l)*ci(l1)+bb(l)*cr(l1))
+            ab2(4)=ab2(4)+real(l2,fPrec)*(aa(l)*cr(l1)-bb(l)*ci(l1))
             l2=l2*l/l1
           end do
 
-  590     b(5,1)=b1**2                                                   !hr06
-          b(1,5)=b2**2                                                   !hr06
+  590     b(5,1)=b1**2
+          b(1,5)=b2**2
           b(4,2)=b(3,2)*sb1
           b(2,4)=b(2,3)*sb2
           b(3,3)=b1*b2
@@ -9385,8 +7311,8 @@ subroutine subre(dpp)
           l2=1
           do l=5,nmz
             l1=l-4
-            ab1(5)=ab1(5)+real(l2,fPrec)*(aa(l)*ci(l1)+bb(l)*cr(l1))    !hr06
-            ab2(5)=ab2(5)+real(l2,fPrec)*(aa(l)*cr(l1)-bb(l)*ci(l1))    !hr06
+            ab1(5)=ab1(5)+real(l2,fPrec)*(aa(l)*ci(l1)+bb(l)*cr(l1))
+            ab2(5)=ab2(5)+real(l2,fPrec)*(aa(l)*cr(l1)-bb(l)*ci(l1))
             l2=l2*l/l1
           end do
 
@@ -9406,8 +7332,8 @@ subroutine subre(dpp)
           l2=1
           do l=6,nmz
             l1=l-5
-            ab1(6)=ab1(6)+real(l2,fPrec)*(aa(l)*ci(l1)+bb(l)*cr(l1))    !hr06
-            ab2(6)=ab2(6)+real(l2,fPrec)*(aa(l)*cr(l1)-bb(l)*ci(l1))    !hr06
+            ab1(6)=ab1(6)+real(l2,fPrec)*(aa(l)*ci(l1)+bb(l)*cr(l1))
+            ab2(6)=ab2(6)+real(l2,fPrec)*(aa(l)*cr(l1)-bb(l)*ci(l1))
             l2=l2*l/l1
           end do
 
@@ -9428,8 +7354,8 @@ subroutine subre(dpp)
           l2=1
           do l=7,nmz
             l1=l-6
-            ab1(7)=ab1(7)+real(l2,fPrec)*(aa(l)*ci(l1)+bb(l)*cr(l1))    !hr06
-            ab2(7)=ab2(7)+real(l2,fPrec)*(aa(l)*cr(l1)-bb(l)*ci(l1))    !hr06
+            ab1(7)=ab1(7)+real(l2,fPrec)*(aa(l)*ci(l1)+bb(l)*cr(l1))
+            ab2(7)=ab2(7)+real(l2,fPrec)*(aa(l)*cr(l1)-bb(l)*ci(l1))
             l2=l2*l/l1
           end do
 
@@ -9451,8 +7377,8 @@ subroutine subre(dpp)
           l2=1
           do l=8,nmz
             l1=l-7
-            ab1(8)=ab1(8)+real(l2,fPrec)*(aa(l)*ci(l1)+bb(l)*cr(l1))    !hr06
-            ab2(8)=ab2(8)+real(l2,fPrec)*(aa(l)*cr(l1)-bb(l)*ci(l1))    !hr06
+            ab1(8)=ab1(8)+real(l2,fPrec)*(aa(l)*ci(l1)+bb(l)*cr(l1))
+            ab2(8)=ab2(8)+real(l2,fPrec)*(aa(l)*cr(l1)-bb(l)*ci(l1))
             l2=l2*l/l1
           end do
 
@@ -9474,8 +7400,8 @@ subroutine subre(dpp)
           l2=1
           do l=9,nmz
             l1=l-8
-            ab1(9)=ab1(9)+real(l2,fPrec)*(aa(l)*ci(l1)+bb(l)*cr(l1))     !hr06
-            ab2(9)=ab2(9)+real(l2,fPrec)*(aa(l)*cr(l1)-bb(l)*ci(l1))     !hr06
+            ab1(9)=ab1(9)+real(l2,fPrec)*(aa(l)*ci(l1)+bb(l)*cr(l1))
+            ab2(9)=ab2(9)+real(l2,fPrec)*(aa(l)*cr(l1)-bb(l)*ci(l1))
             l2=l2*l/l1
           end do
 
@@ -9496,14 +7422,14 @@ subroutine subre(dpp)
               n2=nv-np
               nn2=abs(n2)
               nn1=np-nn2
-              re1=real(nn1,fPrec)*qxt+real(n2,fPrec)*qzt                             !hr06
+              re1=real(nn1,fPrec)*qxt+real(n2,fPrec)*qzt
               ip(np,nv)=int(re1+half)+ipc
               if(-one*re1.gt.pieni) ip(np,nv)=-int(abs(re1)+half)-ipc
 !--RE=DISTANCE FROM THE RESONANCE
               re(np,nv)=re1-real(ip(np,nv),fPrec)
               res=re(np,nv)/radi
-          chy(np,nv)=cos_mb((real(nn1,fPrec)*pie*phi(1)+real(n2,fPrec)*pie*phi(2))-res*etl) !hr06
-          shy(np,nv)=sin_mb((real(nn1,fPrec)*pie*phi(1)+real(n2,fPrec)*pie*phi(2))-res*etl) !hr06
+          chy(np,nv)=cos_mb((real(nn1,fPrec)*pie*phi(1)+real(n2,fPrec)*pie*phi(2))-res*etl)
+          shy(np,nv)=sin_mb((real(nn1,fPrec)*pie*phi(1)+real(n2,fPrec)*pie*phi(2))-res*etl)
   710       continue
   720     continue
           do 780 np=nta,mpe
@@ -9516,7 +7442,7 @@ subroutine subre(dpp)
                 nn2=abs(nv-np2)
                 nv1=np2-nn2+(i-1)*2+1
                 nv2=np-nv1+2
-                rn2=real(nn2,fPrec)*half                                            !hr06
+                rn2=real(nn2,fPrec)*half
 !--EVENESS OF N2
                 mm=0
                 gerad=rn2-aint(rn2)
@@ -9547,7 +7473,7 @@ subroutine subre(dpp)
         eb=ep(2)
         e(3,1)=one/eb
         e(1,3)=one/ea
-        e(2,2)=(one/seb)/sea                                             !hr06
+        e(2,2)=(one/seb)/sea
         nnf(4)=6
         nz2(3)=4
         e(4,1)=sea/eb
@@ -9594,8 +7520,8 @@ subroutine subre(dpp)
         e(1,9)=e(1,8)*seb
         e(8,2)=e(7,2)*sea
         e(2,8)=e(2,7)*seb
-        e(7,3)=ea**2                                                     !hr06
-        e(3,7)=eb**2                                                     !hr06
+        e(7,3)=ea**2
+        e(3,7)=eb**2
         e(6,4)=e(5,4)*sea
         e(4,6)=e(4,5)*seb
         e(5,5)=ea*eb
@@ -9639,7 +7565,7 @@ subroutine subre(dpp)
         do 880 np=nta,nte
           write(lout,10080) np
           write(lout,10030)
-          vdt1=real(nnf(np),fPrec)/(real(nz2(np),fPrec)*pi)               !hr06
+          vdt1=real(nnf(np),fPrec)/(real(nz2(np),fPrec)*pi)
           np2=np
           nkk=0
           write(lout,10090) np
@@ -9652,17 +7578,17 @@ subroutine subre(dpp)
               n2=nv-np2
               nn2=abs(n2)
               nn1=np2-nn2
-              nv1=(nn1+(i-1)*2)+1                                        !hr06
-              nv2=(np-nv1)+2                                             !hr06
+              nv1=(nn1+(i-1)*2)+1
+              nv2=(np-nv1)+2
               nv11=nv1-1
               nv21=nv2-1
               nf1=nn1+i
               nf3=nkk-i+1
               nf4=nf3+nn2
-              vdt2=vdt1*e(nv1,nv2)/real(nnf(nf1)*nnf(i)*nnf(nf3)*nnf(nf4),fPrec) !hr06
-              vdt3=real(nn2,fPrec)*ea+real(nn1,fPrec)*eb                 !hr06
+              vdt2=vdt1*e(nv1,nv2)/real(nnf(nf1)*nnf(i)*nnf(nf3)*nnf(nf4),fPrec)
+              vdt3=real(nn2,fPrec)*ea+real(nn1,fPrec)*eb
               vdt4=vdt3
-              if(n2.ge.0) vdt3=real(n2*nv21,fPrec)*ea + real(nn1*nv11,fPrec)*eb  !hr06
+              if(n2.ge.0) vdt3=real(n2*nv21,fPrec)*ea + real(nn1*nv11,fPrec)*eb
               rtc(np2,nv,np,i)=rtc(np2,nv,np,i)*vdt2*vdt3
               rts(np2,nv,np,i)=rts(np2,nv,np,i)*vdt2*vdt3
   840       continue
@@ -9672,11 +7598,11 @@ subroutine subre(dpp)
             rc=zero
             rs=zero
             do 860 i=1,nkk
-              rc=rc+real(mis,fPrec)*rtc(np2,nv,np,i)                     !hr06
-              rs=rs+real(mis,fPrec)*rts(np2,nv,np,i)                     !hr06
+              rc=rc+real(mis,fPrec)*rtc(np2,nv,np,i)
+              rs=rs+real(mis,fPrec)*rts(np2,nv,np,i)
               mis=-mis
   860       continue
-            sdel2=sqrt(rc**2+rs**2)                                      !hr06
+            sdel2=sqrt(rc**2+rs**2)
             n22=nv-np2
             write(lout,10140) n22,ip(np2,nv),ipc,rc,rs,re(np2,nv),sdel2
   870     continue
@@ -9695,8 +7621,8 @@ subroutine subre(dpp)
             min1=-1
   890       min2=min1
             do 900 i=1,nkk
-             rtc(np,nv,np,1)=rtc(np,nv,np,1)+real(min2,fPrec)*rtc(np,nv,nph,i) !hr06
-             rts(np,nv,np,1)=rts(np,nv,np,1)+real(min2,fPrec)*rts(np,nv,nph,i) !hr06
+             rtc(np,nv,np,1)=rtc(np,nv,np,1)+real(min2,fPrec)*rtc(np,nv,nph,i)
+             rts(np,nv,np,1)=rts(np,nv,np,1)+real(min2,fPrec)*rts(np,nv,nph,i)
               min2=-min2
   900       continue
             nph=nph+2
@@ -9706,7 +7632,7 @@ subroutine subre(dpp)
             goto 890
   910       cc_r=rtc(np,nv,np,1)
             ss=rts(np,nv,np,1)
-            sdel=sqrt(cc_r**2+ss**2)                                       !hr06
+            sdel=sqrt(cc_r**2+ss**2)
             write(lout,10140) n2,ip(np,nv),ipc,cc_r,ss,re(np,nv),sdel
   920     continue
   930   continue
@@ -9926,7 +7852,7 @@ subroutine subsea(dpp)
       call betalf(dpp,qw)
       if(ierro /= 0) then
         write(lerr,"(a)") "SUBSEA> ERROR No optical solution."
-        call prror(-1)
+        call prror
       end if
       call envar(dpp)
 
@@ -9947,8 +7873,8 @@ subroutine subsea(dpp)
       end do
 
 !--EP=EMITTANCE IN PI*MM*MRAD
-      ep(1)=tam1**2/beta(1)                                              !hr06
-      ep(2)=tam2**2/beta(2)                                              !hr06
+      ep(1)=tam1**2/beta(1)
+      ep(2)=tam2**2/beta(2)
 
 !--SINGLE TURN BLOCKLOOP
       izu=0
@@ -9992,8 +7918,8 @@ subroutine subsea(dpp)
 
           do l=1,2
             ll=2*l
-            beta(l)=t(ll,ll-1)**2+t(ll+1,ll-1)**2                        !hr06
-            alfa(l)=-one*(t(ll,ll-1)*t(ll,ll)+t(ll+1,ll-1)*t(ll+1,ll))   !hr06
+            beta(l)=t(ll,ll-1)**2+t(ll+1,ll-1)**2
+            alfa(l)=-one*(t(ll,ll-1)*t(ll,ll)+t(ll+1,ll-1)*t(ll+1,ll))
 
             if(abs(t(ll,ll-1)).gt.pieni) then
               dphi=atan_mb(t(ll+1,ll-1)/t(ll,ll-1))-phibf(l)
@@ -10001,7 +7927,7 @@ subroutine subsea(dpp)
               dphi=pi2-phibf(l)
             endif
 
-            if(-one*dphi.gt.pieni) dphi=dphi+pi                          !hr06
+            if(-one*dphi.gt.pieni) dphi=dphi+pi
             phi(l)=phi(l)+dphi
           end do
 
@@ -10019,20 +7945,20 @@ subroutine subsea(dpp)
             endif
             do i=1,ium
               puf=t(i,ll-1)
-            t(i,ll-1)=(puf*a(jk,l,1)+t(i,ll)*a(jk,l,2))+dpr(i)*a(jk,l,5) !hr06
-            t(i,ll)=(puf*a(jk,l,3)+t(i,ll)*a(jk,l,4))+dpr(i)*a(jk,l,6)   !hr06
+            t(i,ll-1)=(puf*a(jk,l,1)+t(i,ll)*a(jk,l,2))+dpr(i)*a(jk,l,5)
+            t(i,ll)=(puf*a(jk,l,3)+t(i,ll)*a(jk,l,4))+dpr(i)*a(jk,l,6)
             enddo
           enddo
           do l=1,2
             ll=2*l
-            beta(l)=t(ll,ll-1)**2+t(ll+1,ll-1)**2                        !hr06
-            alfa(l)=-one*(t(ll,ll-1)*t(ll,ll)+t(ll+1,ll-1)*t(ll+1,ll))   !hr06
+            beta(l)=t(ll,ll-1)**2+t(ll+1,ll-1)**2
+            alfa(l)=-one*(t(ll,ll-1)*t(ll,ll)+t(ll+1,ll-1)*t(ll+1,ll))
             if(abs(t(ll,ll-1)).gt.pieni) then
               dphi=atan_mb(t(ll+1,ll-1)/t(ll,ll-1))-phibf(l)
             else
               dphi=-phibf(l)
             endif
-            if(kz(jk).ne.8.and.-one*dphi.gt.pieni) dphi=dphi+pi          !hr06
+            if(kz(jk).ne.8.and.-one*dphi.gt.pieni) dphi=dphi+pi
             phi(l)=phi(l)+dphi
           enddo
   200   continue
@@ -10174,7 +8100,7 @@ subroutine subsea(dpp)
 #ifdef TILT
 #include "include/multl07e.f90"
 #endif
-        izu=(izu+2*mmul)-2*nmz                                           !hr06
+        izu=(izu+2*mmul)-2*nmz
       case (12,13,14,15,16,17,18,19,20,21,22,23)
         goto 740
       case (24) ! DIPEDGE ELEMENT
@@ -10225,19 +8151,18 @@ subroutine subsea(dpp)
       t(1,4)=t(1,4)+dyy2
       do i=2,ium
         if(kzz.eq.24) then
-          t(i,2)=(t(i,2)+t(i,1)*qu)-qv*t(i,3)                          !hr06
-          t(i,4)=(t(i,4)-t(i,3)*quz)-qvz*t(i,1)                        !hr06
-#include "include/phas1so1.f90"
-#include "include/phas2so1.f90"
-#include "include/phas3so1.f90"
+          t(i,2)=(t(i,2)+t(i,1)*qu)-qv*t(i,3)
+          t(i,4)=(t(i,4)-t(i,3)*quz)-qvz*t(i,1)
+        elseif(kzz.eq.25) then !--solenoid
+#include "include/phassolenoid.f90"
         else
-          t(i,2)=(t(i,2)+t(i,1)*qu)-qv*t(i,3)                          !hr06
-          t(i,4)=(t(i,4)-t(i,3)*qu)-qv*t(i,1)                          !hr06
+          t(i,2)=(t(i,2)+t(i,1)*qu)-qv*t(i,3)
+          t(i,4)=(t(i,4)-t(i,3)*qu)-qv*t(i,1)
         end if
       end do
       do l=1,2
         ll=2*l
-        alfa(l)=-one*(t(ll,ll-1)*t(ll,ll)+t(ll+1,ll-1)*t(ll+1,ll))     !hr06
+        alfa(l)=-one*(t(ll,ll-1)*t(ll,ll)+t(ll+1,ll-1)*t(ll+1,ll))
       end do
       if(mpe.gt.9.or.(mpe.eq.9.and.nmz.le.1)) goto 740
       if(mpe.lt.nta) goto 740
@@ -10250,7 +8175,7 @@ subroutine subsea(dpp)
 !-----------------------------------------------------------------------
         do l=2,nmz
           l1=l-1
-          ab2(2)=ab2(2)+real(l1,fPrec)*(aa(l)*cr(l1)-bb(l)*ci(l1))               !hr06
+          ab2(2)=ab2(2)+real(l1,fPrec)*(aa(l)*cr(l1)-bb(l)*ci(l1))
         end do
 
   500   b1=beta(1)
@@ -10271,8 +8196,8 @@ subroutine subsea(dpp)
         l2=1
         do l=3,nmz
           l1=l-2
-          ab1(3)=ab1(3)+real(l2,fPrec)*(aa(l)*ci(l1)+bb(l)*cr(l1))             !hr06
-          ab2(3)=ab2(3)+real(l2,fPrec)*(aa(l)*cr(l1)-bb(l)*ci(l1))             !hr06
+          ab1(3)=ab1(3)+real(l2,fPrec)*(aa(l)*ci(l1)+bb(l)*cr(l1))
+          ab2(3)=ab2(3)+real(l2,fPrec)*(aa(l)*cr(l1)-bb(l)*ci(l1))
           l2=l2*l/l1
         end do
 
@@ -10282,8 +8207,7 @@ subroutine subsea(dpp)
         b(2,3)=b2*sb1
         if(nta.gt.4) goto 540
         if(mpe.eq.3.or.(mpe.eq.9.and.nmz.le.3)) goto 650
-        if(mx.eq.2.or.mx.eq.3.or.mx.eq.4 .or.mx.eq.5.or.mx.eq.6.or.mx.eq&
-     &.7) goto 540
+        if(mx.eq.2.or.mx.eq.3.or.mx.eq.4 .or.mx.eq.5.or.mx.eq.6.or.mx.eq.7) goto 540
 
 !-----------------------------------------------------------------------
 !  REGULAR-OCTUPOLE;MULTIPOLES UP TO 9-TH ORDER
@@ -10291,20 +8215,19 @@ subroutine subsea(dpp)
         l2=1
         do l=4,nmz
           l1=l-3
-          ab1(4)=ab1(4)+real(l2,fPrec)*(aa(l)*ci(l1)+bb(l)*cr(l1))             !hr06
-          ab2(4)=ab2(4)+real(l2,fPrec)*(aa(l)*cr(l1)-bb(l)*ci(l1))             !hr06
+          ab1(4)=ab1(4)+real(l2,fPrec)*(aa(l)*ci(l1)+bb(l)*cr(l1))
+          ab2(4)=ab2(4)+real(l2,fPrec)*(aa(l)*cr(l1)-bb(l)*ci(l1))
           l2=l2*l/l1
         end do
 
-  540   b(5,1)=b1**2                                                     !hr06
-        b(1,5)=b2**2                                                     !hr06
+  540   b(5,1)=b1**2
+        b(1,5)=b2**2
         b(4,2)=b(3,2)*sb1
         b(2,4)=b(2,3)*sb2
         b(3,3)=b1*b2
         if(nta.gt.5) goto 560
         if(mpe.eq.4.or.(mpe.eq.9.and.nmz.le.4)) goto 650
-        if(mx.eq.3.or.mx.eq.4 .or.mx.eq.5.or.mx.eq.6.or.mx.eq.7)        &
-     &goto 560
+        if(mx.eq.3.or.mx.eq.4 .or.mx.eq.5.or.mx.eq.6.or.mx.eq.7) goto 560
 
 !-----------------------------------------------------------------------
 !  REGULAR-DEKAPOLE;MULTIPOLES UP TO 9-TH ORDER
@@ -10312,8 +8235,8 @@ subroutine subsea(dpp)
         l2=1
         do l=5,nmz
           l1=l-4
-          ab1(5)=ab1(5)+real(l2,fPrec)*(aa(l)*ci(l1)+bb(l)*cr(l1))             !hr06
-          ab2(5)=ab2(5)+real(l2,fPrec)*(aa(l)*cr(l1)-bb(l)*ci(l1))             !hr06
+          ab1(5)=ab1(5)+real(l2,fPrec)*(aa(l)*ci(l1)+bb(l)*cr(l1))
+          ab2(5)=ab2(5)+real(l2,fPrec)*(aa(l)*cr(l1)-bb(l)*ci(l1))
           l2=l2*l/l1
         end do
 
@@ -10333,8 +8256,8 @@ subroutine subsea(dpp)
         l2=1
         do l=6,nmz
           l1=l-5
-          ab1(6)=ab1(6)+real(l2,fPrec)*(aa(l)*ci(l1)+bb(l)*cr(l1))             !hr06
-          ab2(6)=ab2(6)+real(l2,fPrec)*(aa(l)*cr(l1)-bb(l)*ci(l1))             !hr06
+          ab1(6)=ab1(6)+real(l2,fPrec)*(aa(l)*ci(l1)+bb(l)*cr(l1))
+          ab2(6)=ab2(6)+real(l2,fPrec)*(aa(l)*cr(l1)-bb(l)*ci(l1))
           l2=l2*l/l1
         end do
 
@@ -10355,8 +8278,8 @@ subroutine subsea(dpp)
         l2=1
         do l=7,nmz
           l1=l-6
-          ab1(7)=ab1(7)+real(l2,fPrec)*(aa(l)*ci(l1)+bb(l)*cr(l1))             !hr06
-          ab2(7)=ab2(7)+real(l2,fPrec)*(aa(l)*cr(l1)-bb(l)*ci(l1))             !hr06
+          ab1(7)=ab1(7)+real(l2,fPrec)*(aa(l)*ci(l1)+bb(l)*cr(l1))
+          ab2(7)=ab2(7)+real(l2,fPrec)*(aa(l)*cr(l1)-bb(l)*ci(l1))
           l2=l2*l/l1
         end do
 
@@ -10378,8 +8301,8 @@ subroutine subsea(dpp)
         l2=1
         do l=8,nmz
           l1=l-7
-          ab1(8)=ab1(8)+real(l2,fPrec)*(aa(l)*ci(l1)+bb(l)*cr(l1))             !hr06
-          ab2(8)=ab2(8)+real(l2,fPrec)*(aa(l)*cr(l1)-bb(l)*ci(l1))             !hr06
+          ab1(8)=ab1(8)+real(l2,fPrec)*(aa(l)*ci(l1)+bb(l)*cr(l1))
+          ab2(8)=ab2(8)+real(l2,fPrec)*(aa(l)*cr(l1)-bb(l)*ci(l1))
           l2=l2*l/l1
         end do
 
@@ -10401,8 +8324,8 @@ subroutine subsea(dpp)
         l2=1
         do l=9,nmz
           l1=l-8
-          ab1(9)=ab1(9)+real(l2,fPrec)*(aa(l)*ci(l1)+bb(l)*cr(l1))             !hr06
-          ab2(9)=ab2(9)+real(l2,fPrec)*(aa(l)*cr(l1)-bb(l)*ci(l1))             !hr06
+          ab1(9)=ab1(9)+real(l2,fPrec)*(aa(l)*ci(l1)+bb(l)*cr(l1))
+          ab2(9)=ab2(9)+real(l2,fPrec)*(aa(l)*cr(l1)-bb(l)*ci(l1))
          l2=l2*l/l1
         end do
 
@@ -10423,16 +8346,14 @@ subroutine subsea(dpp)
             n2=nv-np
             nn2=abs(n2)
             nn1=np-nn2
-            re1=real(nn1,fPrec)*qxt+real(n2,fPrec)*qzt                               !hr06
+            re1=real(nn1,fPrec)*qxt+real(n2,fPrec)*qzt
             ip(np,nv)=int(re1+half)+ipt
-            if(-one*re1.gt.pieni) ip(np,nv)=-int(abs(re1)+half)-ipt      !hr06
+            if(-one*re1.gt.pieni) ip(np,nv)=-int(abs(re1)+half)-ipt
 !--RE=DISTANCE FROM THE RESONANCE
-            re(np,nv)=re1-real(ip(np,nv),fPrec)                          !hr06
+            re(np,nv)=re1-real(ip(np,nv),fPrec)
             res=re(np,nv)/radi
-           chy(np,nv)=cos_mb((real(nn1,fPrec)*phi(1)+real(n2,fPrec)*    &
-     &phi(2))-res*etl) !hr06
-           shy(np,nv)=sin_mb((real(nn1,fPrec)*phi(1)+real(n2,fPrec)*    &
-     &phi(2))-res*etl) !hr06
+           chy(np,nv)=cos_mb((real(nn1,fPrec)*phi(1)+real(n2,fPrec)*phi(2))-res*etl)
+           shy(np,nv)=sin_mb((real(nn1,fPrec)*phi(1)+real(n2,fPrec)*phi(2))-res*etl)
   660     continue
   670   continue
         do 730 np=nta,mpe
@@ -10445,18 +8366,18 @@ subroutine subsea(dpp)
               nn2=abs(nv-np2)
               nv1=np2-nn2+(i-1)*2+1
               nv2=np-nv1+2
-              rn2=real(nn2,fPrec)*half                                   !hr06
+              rn2=real(nn2,fPrec)*half
 !--EVENESS OF N2
               mm=0
               gerad=rn2-aint(rn2)
               if(abs(gerad).le.pieni) mm=1
 !--MM=0 =>N2 UNEVEN, MM=1 => N2 EVEN
               if (mm.eq.0) goto 690
-              btc=(ab1(np)*b(nv1,nv2))*chy(np2,nv)                       !hr06
-              bts=(ab1(np)*b(nv1,nv2))*shy(np2,nv)                       !hr06
+              btc=(ab1(np)*b(nv1,nv2))*chy(np2,nv)
+              bts=(ab1(np)*b(nv1,nv2))*shy(np2,nv)
               goto 700
-  690         btc=(ab2(np)*b(nv1,nv2))*chy(np2,nv)                       !hr06
-              bts=(ab2(np)*b(nv1,nv2))*shy(np2,nv)                       !hr06
+  690         btc=(ab2(np)*b(nv1,nv2))*chy(np2,nv)
+              bts=(ab2(np)*b(nv1,nv2))*shy(np2,nv)
   700         rtc(np2,nv,np,i)=rtc(np2,nv,np,i)+btc
               rts(np2,nv,np,i)=rts(np2,nv,np,i)+bts
   710       continue
@@ -10475,7 +8396,7 @@ subroutine subsea(dpp)
       eb=ep(2)
       e(3,1)=one/eb
       e(1,3)=one/ea
-      e(2,2)=(one/seb)/sea                                               !hr06
+      e(2,2)=(one/seb)/sea
       nnf(4)=6
       nz2(3)=4
       e(4,1)=sea/eb
@@ -10522,8 +8443,8 @@ subroutine subsea(dpp)
       e(1,9)=e(1,8)*seb
       e(8,2)=e(7,2)*sea
       e(2,8)=e(2,7)*seb
-      e(7,3)=ea**2                                                       !hr06
-      e(3,7)=eb**2                                                       !hr06
+      e(7,3)=ea**2
+      e(3,7)=eb**2
       e(6,4)=e(5,4)*sea
       e(4,6)=e(4,5)*seb
       e(5,5)=ea*eb
@@ -10540,7 +8461,7 @@ subroutine subsea(dpp)
       e(6,5)=e(5,5)*sea
       e(5,6)=e(5,5)*seb
       do 780 np=nta,nte
-        vdt1=real(nnf(np),fPrec)/(real(nz2(np),fPrec)*pi)                            !hr06
+        vdt1=real(nnf(np),fPrec)/(real(nz2(np),fPrec)*pi)
         np2=np
         nkk=0
   750   nkk=nkk+1
@@ -10557,11 +8478,10 @@ subroutine subsea(dpp)
             nf1=nn1+i
             nf3=nkk-i+1
             nf4=nf3+nn2
-            vdt2=vdt1*e(nv1,nv2)/                                       &
-     &real(nnf(nf1)*nnf(i)*nnf(nf3)*nnf(nf4),fPrec) !hr06
-            vdt3=real(nn2,fPrec)*ea+real(nn1,fPrec)*eb                               !hr06
+            vdt2=vdt1*e(nv1,nv2)/real(nnf(nf1)*nnf(i)*nnf(nf3)*nnf(nf4),fPrec)
+            vdt3=real(nn2,fPrec)*ea+real(nn1,fPrec)*eb
             if(n2.ge.0) then
-              vdt3=real(n2*nv21,fPrec)*ea+real(nn1*nv11,fPrec)*eb          !hr06
+              vdt3=real(n2*nv21,fPrec)*ea+real(nn1*nv11,fPrec)*eb
             end if
             rtc(np2,nv,np,i)=rtc(np2,nv,np,i)*vdt2*vdt3
             rts(np2,nv,np,i)=rts(np2,nv,np,i)*vdt2*vdt3
@@ -10681,7 +8601,7 @@ subroutine decoup
         endif
         if(ierr == 1) then
           write(lerr,"(a)") "DECOUP> ERROR Problems during matrix-inversion."
-          call prror(-1)
+          call prror
         end if
         do 50 i=1,6
           if(iskew.eq.2.and.i.gt.4) goto 50
@@ -10707,21 +8627,16 @@ subroutine decoup
           ss(6)=qwc(2)
         endif
         write(lout,10010)
-        write(lout,10020) no,sen(1),ss(1),sen(2),ss(2),sen(3),ss(3), sen&
-     &(4),ss(4)
-        write(lout,10030) bez(nskew(1)),sn(1),ed(nskew(1)),             &
-     &bez(nskew(2)),sn                                                  &
-     &(2),ed(nskew(2)),bez(nskew(3)),sn(3),ed(nskew(3)), bez            &
-     &(nskew(4)),sn(4),ed(nskew(4))
+        write(lout,10020) no,sen(1),ss(1),sen(2),ss(2),sen(3),ss(3),sen(4),ss(4)
+        write(lout,10030) bez(nskew(1)),sn(1),ed(nskew(1)),bez(nskew(2)),sn(2), &
+          ed(nskew(2)),bez(nskew(3)),sn(3),ed(nskew(3)),bez(nskew(4)),sn(4),ed(nskew(4))
         if(iskew.eq.1) then
           write(lout,10010)
           write(lout,10040) qwsk(1),qwc(1),qwsk(2),qwc(2)
           if (abs(el(nskew(5))).le.pieni) then
-            write(lout,10060) sn(5),ed(nskew(5)),nskew(5),sn(6),ed      &
-     &(nskew(6)), nskew(6)
+            write(lout,10060) sn(5),ed(nskew(5)),nskew(5),sn(6),ed(nskew(6)),nskew(6)
           else
-            write(lout,10060) sn(5),ek(nskew(5)),nskew(5),sn(6),ek      &
-     &(nskew(6)), nskew(6)
+            write(lout,10060) sn(5),ek(nskew(5)),nskew(5),sn(6),ek(nskew(6)),nskew(6)
           endif
         else if(iskew.eq.2) then
           write(lout,10010)

@@ -294,7 +294,7 @@ contains
     use numerical_constants, only : zero, c1e12, c1m12
     use crcoall,             only : lout, lerr
     use parpro,              only : mInputLn
-    use mod_units,           only : f_open, f_close
+    use mod_units,           only : f_open, f_freeUnit
     use string_tools,        only : chr_split, chr_cast
 
     implicit none
@@ -378,7 +378,7 @@ contains
 
     ! Close file
     ! ---------------------------------------------------------------------------------------------- !
-    call f_close(lun)
+    call f_freeUnit(lun)
 
   end subroutine ReadExpMax
 
@@ -509,7 +509,7 @@ contains
           enddo
         endif
 
-        if (CoefSave.eqv..False.) then ! Create new coef
+        if (CoefSave.eqv..false.) then ! Create new coef
           tpij_Ax(1,tlinex,sline)=expx
           tpij_Ax(2,tlinex,sline)=expy
           tpTAx(tlinex,sline)=tpTAx(tlinex,sline) + ax
@@ -531,7 +531,7 @@ contains
           enddo
         endif
 
-        if (CoefSave.eqv..False.) then ! Create new coef
+        if (CoefSave.eqv..false.) then ! Create new coef
           tpij_Ay(1,tliney,sline)=expx
           tpij_Ay(2,tliney,sline)=expy
           tpTAy(tliney,sline)=tpTAy(tliney,sline) + ay
@@ -553,7 +553,7 @@ contains
           enddo
         endif
 
-        if (CoefSave.eqv..False.) then ! Create new coef
+        if (CoefSave.eqv..false.) then ! Create new coef
           tpij_Az(1,tlinez,sline)=expx
           tpij_Az(2,tlinez,sline)=expy
           tpTAz(tlinez,sline)=tpTAz(tlinez,sline) + az
@@ -820,13 +820,13 @@ contains
 
     ! Check size vectors xpow and ypow   (Prevent SIGFPE)
     ! ---------------------------------------------------------------------------------------------- !
-    log_tmp=abs(log10_mb(x))
+    log_tmp=abs(log10_mb(abs(x)))
     if (log_tmp*(this%n)>230) then
       this%max_i=230/log_tmp-1
     else
       this%max_i=this%n
     endif
-    log_tmp=abs(log10_mb(y))
+    log_tmp=abs(log10_mb(abs(y)))
     if (log_tmp*(this%m)>230) then
       this%max_j=230/log_tmp-1
     else

@@ -23,6 +23,7 @@ subroutine trauthck(nthinerr)
   use collimation
   use mod_time
   use mod_units
+  use mod_utils
 
   use crcoall
   use parpro
@@ -255,7 +256,7 @@ subroutine trauthck(nthinerr)
         ktrack(i) = 20
 #include "include/stra10.f90"
       end if
-    case (11) ! Multipole block (also in initialize_element)
+    case (11) ! Multipole block (also in initialise_element)
       r0=ek(ix)
       nmz=nmu(ix)
       if(abs(r0).le.pieni.or.nmz.eq.0) then
@@ -310,8 +311,8 @@ subroutine trauthck(nthinerr)
         r0a=one
         r000=r0*r00(irm(ix))
         do j=1,mmul
-          fake(1,j)=(bbiv(j,i)*r0a)/benkcc                           !hr01
-          fake(2,j)=(aaiv(j,i)*r0a)/benkcc                           !hr01
+          fake(1,j)=(bbiv(j,i)*r0a)/benkcc
+          fake(2,j)=(aaiv(j,i)*r0a)/benkcc
           r0a=r0a*r000
         end do
 
@@ -425,43 +426,37 @@ subroutine trauthck(nthinerr)
 290 continue ! Label is still needed as it is referenced in some of the ca blocks
 
   do j=1,napx
-    dpsv1(j)=(dpsv(j)*c1e3)/(one+dpsv(j))                            !hr01
+    dpsv1(j)=(dpsv(j)*c1e3)/(one+dpsv(j))
   end do
-  nwri=nwr(3)
-  if(nwri.eq.0) nwri=numl+numlr+1
-    ! A.Mereghetti, for the FLUKA Team
-    ! last modified: 17-07-2013
-    ! save original kicks
-    ! always in main code
-    if (dynk_enabled) call dynk_pretrack
-    call time_timeStamp(time_afterPreTrack)
 
-    if(idp.eq.0.or.ition.eq.0) then
-      write(lout,"(a)") ""
-      write(lout,"(a)") "TRACKING> Calling thck4d subroutine"
-      write(lout,"(a)") ""
-      call thck4d(nthinerr)
-    else
-      hsy(3)=(c1m3*hsy(3))*real(ition,fPrec)                                 !hr01
+  if (dynk_enabled) call dynk_pretrack
+  call time_timeStamp(time_afterPreTrack)
 
-      do jj=1,nele
-        if(abs(kz(jj)) == 12) then
-          hsyc(jj) = (c1m3*hsyc(jj)) * real(sign(1,kz(jj)),kind=fPrec)
-        end if
-      end do
+  if(idp == 0 .or. ition == 0) then
+    write(lout,"(a)") ""
+    write(lout,"(a)") "TRACKING> Calling thck4d subroutine"
+    write(lout,"(a)") ""
+    call thck4d(nthinerr)
+  else
+    hsy(3)=(c1m3*hsy(3))*real(ition,fPrec)
 
-      if(abs(phas).ge.pieni) then
-        write(lerr,"(a)") "TRACKING> ERROR thck6dua no longer supported. Please use DYNK instead."
-        call prror(-1)
-      else
-        write(lout,"(a)") ""
-        write(lout,"(a)") "TRACKING> Calling thck6d subroutine"
-        write(lout,"(a)") ""
-        call thck6d(nthinerr)
+    do jj=1,nele
+      if(abs(kz(jj)) == 12) then
+        hsyc(jj) = (c1m3*hsyc(jj)) * real(sign(1,kz(jj)),kind=fPrec)
       end if
-    end if
+    end do
 
-  return
+    if(abs(phas) >= pieni) then
+      write(lerr,"(a)") "TRACKING> ERROR thck6dua no longer supported. Please use DYNK instead."
+      call prror
+    else
+      write(lout,"(a)") ""
+      write(lout,"(a)") "TRACKING> Calling thck6d subroutine"
+      write(lout,"(a)") ""
+      call thck6d(nthinerr)
+    end if
+  end if
+
 end subroutine trauthck
 
 !-----------------------------------------------------------------------
@@ -494,7 +489,6 @@ subroutine thck4d(nthinerr)
 
   use mod_settings
   use mod_meta
-  use mod_hions
   use postprocessing, only : writebin
   use crcoall
   use parpro
@@ -505,19 +499,23 @@ subroutine thck4d(nthinerr)
   use mod_common_da
   use elens
   use cheby, only : cheby_ktrack, cheby_kick
-  use utils
+  use mod_utils
   use wire
 #ifdef CR
   use checkpoint_restart
 #endif
+#ifdef BOINC
+  use mod_boinc
+#endif
+
   implicit none
 
   integer i,idz1,idz2,irrtr,ix,j,jb,jmel,jx,k,n,nmz,nthinerr,xory,nac,nfree,nramp1,nplato,nramp2,   &
-    turnrep,kxxa
+    turnrep,kxxa,nfirst
   real(kind=fPrec) cccc,cikve,crkve,crkveuk,puxve,puxve1,puxve2,puzve1,puzve2,puzve,r0,xlvj,yv1j,   &
     yv2j,zlvj,acdipamp,qd,acphase, acdipamp2,acdipamp1,crabamp,crabfreq,kcrab,RTWO,NNORM,l,cur,dx,  &
     dy,tx,ty,embl,chi,xi,yi,dxi,dyi,rrelens,frrelens,xelens,yelens,onedp,fppsig,costh_temp,         &
-    sinth_temp,pxf,pyf,r_temp,z_temp,sigf,q_temp
+    sinth_temp,pxf,pyf,r_temp,z_temp,sigf,q_temp,xlv,zlv
 
   logical llost
   real(kind=fPrec) crkveb(npart),cikveb(npart),rho2b(npart),tkb(npart),r2b(npart),rb(npart),        &
@@ -555,49 +553,36 @@ subroutine thck4d(nthinerr)
   end if
 
 #ifdef CR
-  if(restart) then
+  if(cr_restart) then
     call crstart
-    write(93,"(2(a,i0))") "SIXTRACR> Thick 4D restart numlcr = ",numlcr,", numl = ",numl
-    ! and now reset numl to do only numlmax turns
+    write(crlog,"(2(a,i0))") "TRACKING> Thick 4D restarting on turn ",cr_numl," / ",numl
   end if
-  nnuml=min((numlcr/numlmax+1)*numlmax,numl)
-  write(93,"(3(a,i0))") "SIXTRACR> numlmax = ",numlmax," DO ",numlcr,", ",nnuml
-  ! and reset [n]numxv unless particle is lost
-  ! TRYing Eric (and removing postpr fixes).
-  if (nnuml.ne.numl) then
-    do j=1,napx
-      if (numxv(j).eq.numl) numxv(j)=nnuml
-      if (nnumxv(j).eq.numl) nnumxv(j)=nnuml
-    end do
-  end if
-  do 490 n=numlcr,nnuml
+  nnuml  = numl
+  nfirst = cr_numl
 #else
-  do 490 n=1,numl
+  nfirst = 1
 #endif
+  do 490 n=nfirst,numl
     if(st_quiet < 3) then
       if(mod(n,turnrep) == 0) then
         call trackReport(n)
       end if
     end if
     meta_nPartTurn = meta_nPartTurn + napx
-#ifdef BOINC
-!   call boinc_sixtrack_progress(n,numl)
-    call boinc_fraction_done(dble(n)/dble(numl))
-    continue
-!   call graphic_progress(n,numl)
-#endif
-  numx=n-1
+    numx=n-1
 
 #ifndef FLUKA
-    if(mod(numx,nwri).eq.0) call writebin(nthinerr)
-    if(nthinerr.ne.0) return
+    if(mod(numx,nwri) == 0) call writebin(nthinerr)
+    if(nthinerr /= 0) return
 #endif
 
 #ifdef CR
-    !  does not call CRPOINT if restart=.true.
-    !  (and note that writebin does nothing if restart=.true.
-    if(mod(numx,numlcp).eq.0) call callcrp()
-    restart=.false.
+#ifdef BOINC
+    call boinc_turn(n)
+#else
+    if(mod(numx,numlcp) == 0) call crpoint
+#endif
+    cr_restart = .false.
     if(st_killswitch) call cr_killSwitch(n)
 #endif
 
@@ -616,11 +601,12 @@ subroutine thck4d(nthinerr)
         ix=ic(i)
       else
         ix=ic(i)-nblo
+        meta_nPTurnEle = meta_nPTurnEle + napx
 
         if(ldumpfront) then
           write(lout,"(a)") "TRACKING> DUMP/FRONT not yet supported on thick elements "//&
             "due to lack of test cases. Please contact developers!"
-          call prror(-1)
+          call prror
         end if
 
       end if
@@ -650,7 +636,7 @@ subroutine thck4d(nthinerr)
               goto 475
             else if(fluka_type(ix).eq.FLUKA_EXIT) then
               fluka_inside = .false.
-              call kernel_fluka_exit( n, i, ix )
+              call kernel_fluka_exit
               ! A.Mereghetti and P.Garcia Ortega, for the FLUKA Team
               ! last modified: 07-03-2018
               ! store old particle coordinates
@@ -675,7 +661,7 @@ subroutine thck4d(nthinerr)
             if (bdex_enable) then
                !TODO - if you have a test case, please contact developers!
                write(lout,"(a)") "BDEX> BDEX only available for thin6d"
-               call prror(-1)
+               call prror
             endif
 
 !----------count=43
@@ -693,12 +679,12 @@ subroutine thck4d(nthinerr)
           do j=1,napx
             puxve=xv1(j)
             puzve=yv1(j)
-            xv1(j)=bl1v(1,1,j,ix)*puxve+bl1v(2,1,j,ix)*puzve+((real(idz1,fPrec)*bl1v(5,1,j,ix))*dpsv(j))*c1e3 !hr01
-            yv1(j)=bl1v(3,1,j,ix)*puxve+bl1v(4,1,j,ix)*puzve+((real(idz1,fPrec)*bl1v(6,1,j,ix))*dpsv(j))*c1e3 !hr01
+            xv1(j)=bl1v(1,1,j,ix)*puxve+bl1v(2,1,j,ix)*puzve+((real(idz1,fPrec)*bl1v(5,1,j,ix))*dpsv(j))*c1e3
+            yv1(j)=bl1v(3,1,j,ix)*puxve+bl1v(4,1,j,ix)*puzve+((real(idz1,fPrec)*bl1v(6,1,j,ix))*dpsv(j))*c1e3
             puxve=xv2(j)
             puzve=yv2(j)
-            xv2(j)=bl1v(1,2,j,ix)*puxve+bl1v(2,2,j,ix)*puzve+((real(idz2,fPrec)*bl1v(5,2,j,ix))*dpsv(j))*c1e3 !hr01
-            yv2(j)=bl1v(3,2,j,ix)*puxve+bl1v(4,2,j,ix)*puzve+((real(idz2,fPrec)*bl1v(6,2,j,ix))*dpsv(j))*c1e3 !hr01
+            xv2(j)=bl1v(1,2,j,ix)*puxve+bl1v(2,2,j,ix)*puzve+((real(idz2,fPrec)*bl1v(5,2,j,ix))*dpsv(j))*c1e3
+            yv2(j)=bl1v(3,2,j,ix)*puxve+bl1v(4,2,j,ix)*puzve+((real(idz2,fPrec)*bl1v(6,2,j,ix))*dpsv(j))*c1e3
           end do
         end if
         goto 480
@@ -1125,8 +1111,6 @@ subroutine thck4d(nthinerr)
 
 490 continue
 
-  return
-
 end subroutine thck4d
 
 !-----------------------------------------------------------------------
@@ -1159,7 +1143,6 @@ subroutine thck6d(nthinerr)
 
   use mod_meta
   use mod_settings
-  use mod_hions
   use postprocessing, only : writebin
   use crcoall
   use parpro
@@ -1171,20 +1154,23 @@ subroutine thck6d(nthinerr)
   use aperture
   use elens
   use cheby, only : cheby_ktrack, cheby_kick
-  use utils
+  use mod_utils
   use wire
 #ifdef CR
   use checkpoint_restart
+#endif
+#ifdef BOINC
+  use mod_boinc
 #endif
 
   implicit none
 
   integer i,idz1,idz2,irrtr,ix,j,jb,jmel,jx,k,n,nmz,nthinerr,xory,nac,nfree,nramp1,nplato,nramp2,   &
-    turnrep,kxxa
+    turnrep,kxxa,nfirst
   real(kind=fPrec) cccc,cikve,crkve,crkveuk,puxve1,puxve2,puzve1,puzve2,r0,xlvj,yv1j,yv2j,zlvj,     &
     acdipamp,qd,acphase,acdipamp2,acdipamp1,crabamp,crabfreq,kcrab,RTWO,NNORM,l,cur,dx,dy,tx,ty,    &
     embl,chi,xi,yi,dxi,dyi,rrelens,frrelens,xelens,yelens,onedp,fppsig,costh_temp,sinth_temp,pxf,   &
-    pyf,r_temp,z_temp,sigf,q_temp,pttemp
+    pyf,r_temp,z_temp,sigf,q_temp,pttemp,xlv,zlv
   logical llost
   real(kind=fPrec) crkveb(npart),cikveb(npart),rho2b(npart),tkb(npart),r2b(npart),rb(npart),        &
     rkb(npart),xrb(npart),zrb(npart),xbb(npart),zbb(npart),crxb(npart),crzb(npart),cbxb(npart),     &
@@ -1230,51 +1216,36 @@ subroutine thck6d(nthinerr)
 
 ! Now the outer loop over turns
 #ifdef CR
-  if (restart) then
+  if(cr_restart) then
     call crstart
-    write(93,"(2(a,i0))") "SIXTRACR> Thick 6D restart numlcr = ",numlcr,", numl = ",numl
-! and now reset numl to do only numlmax turns
+    write(crlog,"(2(a,i0))") "TRACKING> Thick 6D restarting on turn ",cr_numl," / ",numl
   end if
-  nnuml=min((numlcr/numlmax+1)*numlmax,numl)
-  write(93,"(3(a,i0))") "SIXTRACR> numlmax = ",numlmax," DO ",numlcr,", ",nnuml
-! and reset [n]numxv unless particle is lost
-! TRYing Eric (and removing postpr fixes).
-  if (nnuml.ne.numl) then
-    do j=1,napx
-      if (numxv(j).eq.numl) numxv(j)=nnuml
-      if (nnumxv(j).eq.numl) nnumxv(j)=nnuml
-    end do
-  end if
-  do 510 n=numlcr,nnuml
+  nnuml  = numl
+  nfirst = cr_numl
+#else
+  nfirst = 1
 #endif
-#ifndef CR
-  do 510 n=1,numl
-#endif
+  do 510 n=nfirst,numl
     if(st_quiet < 3) then
       if(mod(n,turnrep) == 0) then
         call trackReport(n)
       end if
     end if
     meta_nPartTurn = meta_nPartTurn + napx
-! To do a dump and abend
-#ifdef BOINC
-!   call boinc_sixtrack_progress(n,numl)
-    call boinc_fraction_done(dble(n)/dble(numl))
-    continue
-!   call graphic_progress(n,numl)
-#endif
     numx=n-1
 
 #ifndef FLUKA
-    if(mod(numx,nwri).eq.0) call writebin(nthinerr)
-    if(nthinerr.ne.0) return
+    if(mod(numx,nwri) == 0) call writebin(nthinerr)
+    if(nthinerr /= 0) return
 #endif
 
 #ifdef CR
-!  does not call CRPOINT if restart=.true.
-!  (and note that writebin does nothing if restart=.true.
-    if(mod(numx,numlcp).eq.0) call callcrp()
-    restart=.false.
+#ifdef BOINC
+    call boinc_turn(n)
+#else
+    if(mod(numx,numlcp) == 0) call crpoint
+#endif
+    cr_restart = .false.
     if(st_killswitch) call cr_killSwitch(n)
 #endif
 
@@ -1293,6 +1264,7 @@ subroutine thck6d(nthinerr)
       else
         ix=ic(i)-nblo
       end if
+      meta_nPTurnEle = meta_nPTurnEle + napx
 
       if (ldumpfront) then
         write(lerr,"(a)") "DUMP> ERROR FRONT not yet supported on thick elements due to lack of test cases. "//&
@@ -1324,7 +1296,7 @@ subroutine thck6d(nthinerr)
               goto 495
             else if(fluka_type(ix).eq.FLUKA_EXIT) then
               fluka_inside = .false.
-              call kernel_fluka_exit( n, i, ix )
+              call kernel_fluka_exit
               ! Re-compute transport matrices of linear elements, according to momentum of surviving/new particles
               recompute_linear_matrices = .true.
               ! A.Mereghetti and P.Garcia Ortega, for the FLUKA Team
@@ -1368,19 +1340,19 @@ subroutine thck6d(nthinerr)
           ejf0v(j)=ejfv(j)
           if(abs(dppoff).gt.pieni) sigmv(j)=sigmv(j)-sigmoff(i)
           if(abs(kz(ix)) == 12) then
-            ejv(j)=ejv(j)+(ed(ix)*sin_mb(hsyc(ix)*sigmv(j)+phasc(ix)))*nzz(j)
+            ejv(j)=ejv(j)+(ed(ix)*sin_mb(hsyc(ix)*sigmv(j)+phasc(ix)))*nqq(j)
           else
-            ejv(j)=ejv(j)+(hsy(1)*sin_mb(hsy(3)*sigmv(j)))*nzz(j)
+            ejv(j)=ejv(j)+(hsy(1)*sin_mb(hsy(3)*sigmv(j)))*nqq(j)
           end if
-          ejfv(j)=sqrt(ejv(j)**2-nucm(j)**2)                             !hr01
+          ejfv(j)=sqrt(ejv(j)**2-nucm(j)**2)
           rvv(j)=(ejv(j)*e0f)/(e0*ejfv(j))
           dpsv(j)=(ejfv(j)-e0f)/e0f
           oidpsv(j)=one/(one+dpsv(j))
           moidpsv(j)=mtc(j)/(one+dpsv(j))
           omoidpsv(j)=c1e3*((one-mtc(j))*oidpsv(j))
-          dpsv1(j)=(dpsv(j)*c1e3)*oidpsv(j)                          !hr01
-          yv1(j)=(ejf0v(j)/ejfv(j))*yv1(j)                         !hr01
-          yv2(j)=(ejf0v(j)/ejfv(j))*yv2(j)                         !hr01
+          dpsv1(j)=(dpsv(j)*c1e3)*oidpsv(j)
+          yv1(j)=(ejf0v(j)/ejfv(j))*yv1(j)
+          yv2(j)=(ejf0v(j)/ejfv(j))*yv2(j)
         end do
         call synuthck
         goto 490
@@ -1879,13 +1851,10 @@ subroutine synuthck
   implicit none
   integer ih1,ih2,j,kz1,l
   real(kind=fPrec) fokm,fok,fok1,rho,si,co,sm1,sm2,sm3,sm12,sm23,as3,as4,as6,g,gl,rhoc,siq,aek,hi,  &
-    fi,hi1,hp,hm,hc,hs,wf,afok,wfa,wfhi,rhoi
+    fi,hi1,hp,hm,hc,hs,wf,afok,wfa,wfhi,rhoi,fokq
 
   save
 
-#ifdef CR
-  sythckcr=.true.
-#endif
   do j=1,napx
     dpd(j)  = one+dpsv(j)
     dpsq(j) = sqrt(dpd(j))
@@ -1997,7 +1966,7 @@ subroutine synuthck
 !  FOCUSSING
 !-----------------------------------------------------------------------
 80   do j=1,napx
-        fok = ekv(j,l)*oidpsv(j)
+        fok = ek(l)*oidpsv(j)
         aek = abs(fok)
         hi  = sqrt(aek)
         fi  = el(l)*hi
@@ -2070,22 +2039,18 @@ subroutine synuthck
 !  FOCUSSING
 !-----------------------------------------------------------------------
 100   if(kz1 == 7) then
-        do j=1,napx
-          fokqv(j) = ekv(j,l)
-        end do
-        ih1 = 1
-        ih2 = 2
+        fokq = ek(l)
+        ih1  = 1
+        ih2  = 2
       else
 !  COMBINED FUNCTION MAGNET VERTICAL
-        do j=1,napx
-          fokqv(j) = -ekv(j,l)
-        end do
-        ih1 = 2
-        ih2 = 1
+        fokq = -ek(l)
+        ih1  = 2
+        ih2  = 1
       end if
       do j=1,napx
         wf   = ed(l)/dpsq(j)
-        fok  = fokqv(j)/dpd(j)-wf**2
+        fok  = fokq/dpd(j)-wf**2
         afok = abs(fok)
         hi   = sqrt(afok)
         fi   = hi*el(l)
@@ -2116,7 +2081,7 @@ subroutine synuthck
           as(5,ih1,j,l) = (((-one*rvv(j))*sm12)*afok)/c4e3
           as(6,ih1,j,l) = ((-one*rvv(j))*(el(l)+al(1,ih1,j,l)*al(2,ih1,j,l)))/c4e3
 
-          aek = abs(ekv(j,l)/dpd(j))
+          aek = abs(ek(l)/dpd(j))
           hi  = sqrt(aek)
           fi  = hi*el(l)
           hp  = exp_mb(fi)
@@ -2157,7 +2122,7 @@ subroutine synuthck
           as(5,ih1,j,l) = ((rvv(j)*sm12)*afok)/c4e3
           as(6,ih1,j,l) = ((-one*rvv(j))*(el(l)+al(1,ih1,j,l)*al(2,ih1,j,l)))/c4e3
 
-          aek = abs(ekv(j,l)/dpd(j))
+          aek = abs(ek(l)/dpd(j))
           hi  = sqrt(aek)
           fi  = hi*el(l)
           si  = sin_mb(fi)
@@ -2166,7 +2131,7 @@ subroutine synuthck
           al(2,ih2,j,l) = si/hi
           al(3,ih2,j,l) = (-one*si)*hi
           al(4,ih2,j,l) = co
-          as(4,ih2,j,l) = (((-one*rvv(j))*al(2,ih2,j,l))*al(3,ih2,j,l))/c2e3 !hr01
+          as(4,ih2,j,l) = (((-one*rvv(j))*al(2,ih2,j,l))*al(3,ih2,j,l))/c2e3
           as(5,ih2,j,l) = (((-one*rvv(j))*(el(l)-al(1,ih2,j,l)*al(2,ih2,j,l)))*aek)/c4e3
           as(6,ih2,j,l) = ((-one*rvv(j))*(el(l)+al(1,ih2,j,l)*al(2,ih2,j,l)))/c4e3
         end if
@@ -2178,7 +2143,7 @@ subroutine synuthck
 !-----------------------------------------------------------------------
 140   do j=1,napx
         rhoi = ed(l)/dpsq(j)
-        fok  = rhoi*tan_mb((el(l)*rhoi)*half)                  !hr01
+        fok  = rhoi*tan_mb((el(l)*rhoi)*half)
         al(3,1,j,l) = fok
         al(3,2,j,l) = -fok
       end do
@@ -2192,9 +2157,9 @@ subroutine synuthck
 !  DRIFTLENGTH
 !-----------------------------------------------------------------------
 20  do j=1,napx
-      as(6,1,j,l) = ((-one*rvv(j))*el(l))/c2e3                         !hr01
+      as(6,1,j,l) = ((-one*rvv(j))*el(l))/c2e3
       as(6,2,j,l) = as(6,1,j,l)
-      as(1,1,j,l) = (el(l)*(one-rvv(j)))*c1e3                          !hr01
+      as(1,1,j,l) = (el(l)*(one-rvv(j)))*c1e3
     end do
 160 continue
 !---------------------------------------  END OF 'ENVARS' (2)

@@ -41,11 +41,6 @@
 #include <windows.h>
 #endif
 
-#ifdef LIBARCHIVE
-#include <sys/stat.h>
-#include <dirent.h>
-#include "libArchive_wrapper.h"
-#endif
 
 #ifndef WIN32
 void *pthread_kill_sixtrack(void*);
@@ -91,15 +86,15 @@ struct KillInfo {
 * It then performs checks on the output
 * Currently we check fort.10 and fort.90
 * Arguments:
-* 1: Path to Sixtrack binary to run
-* 2: Path to checkf10 binary to run
-* 3: Path to read90 binary to run
-* 4: bool to check fort.10
-* 5: bool to check fort.90
-* 6: bool for STF enabled
-* 7: Number of files to expect in Sixout.zip (0 means no Sixout.zip)
-* 8: CR enabled
-* 9: CR kill time
+* 1:  Path to Sixtrack binary to run
+* 2:  Path to checkf10 binary to run
+* 3:  Path to read90 binary to run
+* 4:  bool to check fort.10
+* 5:  bool to check fort.90
+* 6:  bool for STF enabled
+* 7:  Not in use (formerly files in Sixout.zip)
+* 8:  CR enabled
+* 9:  CR kill time
 * 10: Path to readDump3 binary to run
 * 11: Name of files (comma-separated list) in extra_checks that is a dump format 3/8 (binary) or NONE
 * 12: Minimum number of sucessfull checkpointed restarts to pass the test [int]
@@ -136,25 +131,19 @@ int main(int argc, char* argv[])
     //How long to wait in seconds before killing the CR run
     std::vector<int> KillTimes;
     int KillTime = 0;
+    int passCount = 0;
 
     bool fort6 = false;
     bool fort10 = false;
     bool fort90 = false;
     bool STF = false;
     bool extrachecks = false; //Returned from PerformExtraChecks
-    int  sixoutzip = 0;
 
     bool fort10fail = false;
     bool fort90fail = false;
     bool STFfail = false;
     bool ExtraChecksfail = false;
-    bool sixoutzipfail = false;
     bool crRestartFail = false;
-
-#ifdef LIBARCHIVE
-    const char* const tmpdir = "sixoutzip_tmpdir";
-    const char* const sixoutzip_fname = "Sixout.zip";
-#endif
 
     if(atoi(argv[4]) != 0) {
         fort10 = true;
@@ -166,9 +155,6 @@ int main(int argc, char* argv[])
 
     if(atoi(argv[6]) != 0) {
         STF = true;
-    }
-    if(atoi(argv[7]) != 0) {
-        sixoutzip = atoi(argv[7]);
     }
 
     if(atoi(argv[8]) != 0) {
@@ -562,140 +548,22 @@ int main(int argc, char* argv[])
 
     //Look at extra_checks.txt
     ExtraChecksfail = PerformExtraChecks(extrachecks, argv[10],argv[11]);
-
-    //Look at sixout.zip
-#ifdef LIBARCHIVE
-    if (sixoutzip) {
-        PrettyDivider("CHECKING sixout.zip");
-
-        //(Re-)create tmpdir folder
-        struct stat st;
-        int status;
-        if (stat(tmpdir, &st) == 0) {
-            if ( ! S_ISDIR(st.st_mode) ) {
-                std::cerr << "ERROR: " << tmpdir << " exists, but is not a directory. Strange?!?" << std::endl;
-                exit(EXIT_FAILURE);
-            }
-            std::cout << "  Folder '" << tmpdir << "' exits, deleting contents." << std::endl;
-
-            // From http://stackoverflow.com/questions/11007494/how-to-delete-all-files-in-a-folder-but-not-delete-the-folder-using-nix-standar
-
-            // These are data types defined in the "dirent" header
-            DIR *theFolder = opendir(tmpdir);
-            struct dirent *next_file;
-            char filepath[256];
-
-            while ( (next_file = readdir(theFolder)) != NULL ) {
-                // build the path for each file in the folder
-                int snprintf_err = snprintf(filepath, 256, "%s/%s", tmpdir, next_file->d_name);
-                if (snprintf_err >= 256 || snprintf_err < 0) {
-                    std::cout << "ERROR: in snprintf while building the path for deleting a file" << std::endl;
-                    exit(EXIT_FAILURE);
-                }
-                remove(filepath);
-            }
-            closedir(theFolder);
-            std::cout << std::endl;
-        }
-        else {
-            std::cout << "  Creating folder '" << tmpdir << "' ..." << std::endl;
-#if defined(_WIN32)
-            status = not CreateDirectory(tmpdir,NULL);
-#else
-            status = mkdir(tmpdir,S_IRWXU);
-#endif
-            if (status) {
-                std::cerr << "ERROR: Something went wrong when creating '" << tmpdir << "'. Sorry!" << std::endl;
-                exit(EXIT_FAILURE);
-            }
-            std::cout << std::endl;
-        }
-
-        //List content
-        //list_archive(sixoutzip_fname);
-        const int archive_nfiles_max = 256;
-        int archive_nfiles = archive_nfiles_max;
-        const int archive_buffsize = 100;
-        char** archive_buff = new char*[archive_nfiles];
-        for (int i = 0; i< archive_nfiles_max; i++) {
-            archive_buff[i] = new char[archive_buffsize];
-        }
-        std::cout << "  Calling list_archive_get..." << std::endl;
-        list_archive_get(sixoutzip_fname,archive_buff,&archive_nfiles,archive_buffsize);
-
-        std::cout << "  Got " << archive_nfiles << " files:" << std::endl;
-        for (int i = 0; i< archive_nfiles; i++) {
-            std::cout << "  File #" << i << ": '" << archive_buff[i] << "'" << std::endl;
-        }
-        if (archive_nfiles != sixoutzip) {
-            std::cout << "  WARNING: Expected " << sixoutzip << " files in '"
-                      << sixoutzip_fname << "', got " << archive_nfiles << std::endl;
-            sixoutzipfail = true;
-        }
-        else {
-            std::cout << "  The number of files in the archive '"
-                      << sixoutzip_fname << "' MATCHES the expected number "
-                      << archive_nfiles << std::endl;
-        }
-
-        //Unzip!
-        std::cout << "  Calling read_archive..." << std::endl;
-        read_archive(sixoutzip_fname,tmpdir);
-
-        for (int i = 0; i< archive_nfiles; i++) {
-            char* FileNameZip = new char[strlen(tmpdir)+1+archive_buffsize];
-
-            // Insert the right path separator
-            int snprintf_err = 0;
-#ifdef WIN32
-            snprintf_err = snprintf(FileNameZip,archive_buffsize+1+strlen(tmpdir),"%s\\%s",tmpdir,archive_buff[i]);
-#else
-            snprintf_err = snprintf(FileNameZip,archive_buffsize+1+strlen(tmpdir),"%s/%s",tmpdir,archive_buff[i]);
-#endif
-            if (snprintf_err >= (archive_buffsize+1+strlen(tmpdir)) || snprintf_err < 0) {
-                std::cerr << "ERROR: In snprintf, while building the path for unzipped file."
-                          << std::endl;
-                std::cerr << "snprintf_err = " << snprintf_err
-                          << ", buffsize=" << (archive_buffsize+1+strlen(tmpdir)) << std::endl;
-                exit(EXIT_FAILURE);
-            }
-
-#ifdef WIN32
-            //Strip out \r characters from windows new lines
-            size_t CRcount = StripCR(FileNameZip);
-            std::cout << "  Removed " << CRcount << " windows \\r entries from '"
-                      << FileNameZip << "'." << std::endl;
-#endif
-
-            bool ThisTest = !FileComparison(FileNameZip, std::string(archive_buff[i]) + ".canonical");
-            if(ThisTest) {
-                std::cerr << "  WARNING: Test of zipped file '" << FileNameZip << "' failed!" << std::endl;
-                sixoutzipfail = true;
-            }
-            else {
-                std::cout << "  Test of zipped file '" << FileNameZip << "' MATCHES" << std::endl;
-            }
-        }
-
-        //Cleanup memory
-        for (int i = 0; i< archive_nfiles_max; i++) {
-            delete[] archive_buff[i];
-        }
-        delete[] archive_buff;
-        std::cout << std::endl;
-    }
-#endif
     PrettyDivider("CHECKS SUMMARY");
     if(fort10)      CheckPrint("fort.10",!fort10fail);
     if(fort90)      CheckPrint("fort.90",!fort90fail);
     if(STF)         CheckPrint("singletrackfile.dat",!STFfail);
     if(extrachecks) CheckPrint("Extra Checks",!ExtraChecksfail);
-#ifdef LIBARCHIVE
-    if(sixoutzip)   CheckPrint(sixoutzip_fname,!sixoutzipfail);
-#endif
+    if(fort10      && !fort10fail)      passCount++;
+    if(fort90      && !fort90fail)      passCount++;
+    if(STF         && !STFfail)         passCount++;
+    if(extrachecks && !ExtraChecksfail) passCount++;
     if(CRon && atoi(argv[12]) > 0) {
         CheckPrint("CR Number of Restarts",!crRestartFail);
+        if(!crRestartFail) passCount++;
     }
+    std::stringstream numPassed;
+    numPassed << "Checks Passed: " << passCount << " > 0";
+    CheckPrint(numPassed.str(), passCount > 0);
     std::cout << std::endl;
 
     PrettyDivider("EXIT");
@@ -704,7 +572,7 @@ int main(int argc, char* argv[])
     //or together any fail bits.
     //If all tests pass this will return 0 (good)
     //if not we get something else out (bad)
-    return (fort10fail || fort90fail || STFfail || ExtraChecksfail || sixoutzipfail || crRestartFail);
+    return (fort10fail || fort90fail || STFfail || ExtraChecksfail || crRestartFail || (passCount == 0));
 }
 
 /**
@@ -1446,10 +1314,10 @@ void UnlinkCRFiles() {
     unlinkFiles.push_back("fort.6");
     unlinkFiles.push_back("fort.10");
     unlinkFiles.push_back("fort.90");
-    unlinkFiles.push_back("fort.93");
-    unlinkFiles.push_back("fort.95");
-    unlinkFiles.push_back("fort.96");
-
+    unlinkFiles.push_back("cr_boinc.log");
+    unlinkFiles.push_back("cr_status.log");
+    unlinkFiles.push_back("crpoint_pri.bin");
+    unlinkFiles.push_back("crpoint_sec.bin");
     unlinkFiles.push_back("crrestartme.tmp");
     unlinkFiles.push_back("crkillswitch.tmp");
 

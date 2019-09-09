@@ -177,6 +177,7 @@ subroutine daini(no,nv,iunit)
       use mod_lie_dab, only : idao,iscrda,iscrri,rscrri,allvec,eps,epsmac,nda,ndamaxi,nst,nomax,nvmax,  &
         nmmax,nocut,lfi,idall,i1,i2,ie1,ie2,ieo,ia1,ia2,lda,lst,lea,lia,lno,lnv
       use crcoall
+      use mod_units
       implicit none
       integer i,ibase,ic1,ic2,icmax,io1,io2,iout,iunit,j,jd,jj,jjj,jjjj,jl,js,k,n,nn,no,nv
       integer iall(1)
@@ -196,9 +197,6 @@ subroutine daini(no,nv,iunit)
 
       character(len=10) aa
       dimension n(lnv+1),k(0:lnv),j(lnv),jj(lnv)
-#ifdef BOINC
-      character(len=256) filename
-#endif
 
       if(eps.le.zero) eps=1.e-38_fPrec ! Why is this not pieni?
 !      if(EPS.le.0.d0) eps=1.d-90
@@ -248,7 +246,7 @@ subroutine daini(no,nv,iunit)
 
       ibase = no+1
       js    = nv/2
-      if(real(ibase,fPrec)**((nv+1)/2).gt.real(lia,fPrec)) then          !hr10
+      if(real(ibase,fPrec)**((nv+1)/2).gt.real(lia,fPrec)) then
          write(lout,*) 'ERROR, NO = ',no,', NV = ',nv,' TOO LARGE FOR',' LIA = ',lia
          call dadeb(31,'ERR DAINI ',1)
       endif
@@ -388,37 +386,20 @@ subroutine daini(no,nv,iunit)
 
       write(lout,*)'ARRAY SETUP DONE, BEGIN PRINTING'
 
-      iout = 32
-#ifdef BOINC
-      call boincrf('DAINI.DAT',filename)
-#ifdef FIO
-      open(iout,file=filename,status='new',round='nearest')
-#else
-      open(iout,file=filename,status='new')
-#endif
-#else
-#ifdef FIO
-      open(iout,file='DAINI.DAT',status='NEW',round='nearest')
-#else
-      open(iout,file='DAINI.DAT',status='NEW')
-#endif
-#endif
-!CRAY OPEN(IOUT,FILE='DAINI',STATUS='UNKNOWN',FORM='FORMATTED')          *CRAY
-!CRAY REWIND IOUT                                                        *CRAY
-
-      write(iout,'(/A/A/)') ' ARRAYS I1 THROUGH I20, IE1,IE2,IEO',' **********************************'
+      call f_open(unit=32,file="daini.dat",formatted=.true.,mode="rw",status="new")
+      write(32,'(/A/A/)') ' ARRAYS I1 THROUGH I20, IE1,IE2,IEO',' **********************************'
       do i=1,nmmax
         call dancd(ie1(i),ie2(i),jj)
-        write(iout,'(1X,I5,2X,4(5I2,1X),3I6)') i,(jj(jjjj),jjjj=1,lnv),ie1(i),ie2(i),ieo(i)
+        write(32,'(1X,I5,2X,4(5I2,1X),3I6)') i,(jj(jjjj),jjjj=1,lnv),ie1(i),ie2(i),ieo(i)
       end do
 
-      write(iout,'(/A/A/)') ' ARRAYS IA1,IA2',' **************'
+      write(32,'(/A/A/)') ' ARRAYS IA1,IA2',' **************'
 
       do i=0,icmax
-        write(iout,'(3I10)') i,ia1(i),ia2(i)
+        write(32,'(3I10)') i,ia1(i),ia2(i)
       end do
+      call f_close(32)
 
-      return
 end subroutine daini
 
 subroutine daexter
@@ -752,13 +733,8 @@ subroutine dadal(idal,l)
           call dadeb(31,'ERR DADAL ',1)
         endif
         if(idal(i).eq.nda) then
-!       deallocate
           nst = idapo(nda) - 1
           nda = nda - 1
-!        else
-!        write(6,'(a10)')daname(i)
-!        write(6,*)' etienne',idal(i),nda
-!        write(6,*) sqrt(-1.d0)
         endif
 
         allvec(idal(i)) = .false.
@@ -815,7 +791,7 @@ subroutine davar(ina,ckon,i)
 
       if(i.gt.(nvmax+1)/2) then
         ic1 = 0
-        ic2 = ibase**((i-(nvmax+1)/2)-1)                                 !hr10
+        ic2 = ibase**((i-(nvmax+1)/2)-1)
       else
         ic1 = ibase**(i-1)
         ic2 = 0
@@ -965,7 +941,7 @@ subroutine dapek(ina,jj,cjj)
       call dainf(ina,inoa,inva,ipoa,ilma,illa)
 
       if(illa.eq.0) then   ! etienne shit
-        cjj = zero                                                        !hr10
+        cjj = zero
        return
       endif
       jj1 = 1
@@ -1025,7 +1001,7 @@ subroutine dapek(ina,jj,cjj)
       icz = ia1(i1(iz))+ia2(i2(iz))
 
       if(illa.eq.0) then
-         cjj = zero                                                       !hr10
+         cjj = zero
          return
       elseif(ic.eq.icu) then
          cjj = cc(iu)
@@ -1034,7 +1010,7 @@ subroutine dapek(ina,jj,cjj)
          cjj = cc(iz)
          return
       elseif(ic.lt.icu.or.ic.gt.icz) then
-         cjj = zero                                                       !hr10
+         cjj = zero
          return
       endif
 
@@ -1049,7 +1025,7 @@ subroutine dapek(ina,jj,cjj)
       i = (iu+iz)/2
 
 !     if(ia1(i1(i))+ia2(i2(i)) - ic) 20,30,40
-      mchk=(ia1(i1(i))+ia2(i2(i))) - ic                                  !hr10
+      mchk=(ia1(i1(i))+ia2(i2(i))) - ic
       if(mchk.lt.0) goto 20
       if(mchk.eq.0) goto 30
       if(mchk.gt.0) goto 40
@@ -1116,12 +1092,6 @@ subroutine dapok(ina,jj,cjj)
 !     DETERMINE IF MONOMIAL TO BE POKED CONFORMS WITH INOA, INVA,NOCUT
 !     ****************************************************************
 !
-!      IF(ICO.GT.INOA.OR.ICV.GT.INVA) THEN
-!         write(6,*)'ERROR IN DAPOK, MONOMIAL NOT ALLOWED FOR ',A
-!         CALL DADEB(31,'ERR DAPOK ',1)
-!      ENDIF
-!      IF(ICO.GT.NOCUT) RETURN
-
       if(illa.ne.0) then ! etienne shit
       iu = ipoa
       iz = ipoa + illa - 1
@@ -1167,7 +1137,7 @@ subroutine dapok(ina,jj,cjj)
       i = (iu+iz)/2
 
 !      if(ia1(i1(i))+ia2(i2(i)) - ic) 20,30,40
-      mchk=(ia1(i1(i))+ia2(i2(i))) - ic                                  !hr10
+      mchk=(ia1(i1(i))+ia2(i2(i))) - ic
       if(mchk.lt.0) goto 20
       if(mchk.eq.0) goto 30
       if(mchk.gt.0) goto 40
@@ -1279,7 +1249,7 @@ subroutine dacop(ina,inb)
 
  100  continue
 
-      idall(inb) = (ib - ipob) + 1                                       !hr10
+      idall(inb) = (ib - ipob) + 1
       if(idall(inb).gt.idalm(inb)) then
          write(lout,*)'ERROR IN DACOP'
          call dadeb(31,'ERR DACOP ',1)
@@ -1555,7 +1525,6 @@ subroutine daexc(ina,ckon,inb)
 !     THIS SUBROUTINE EXPONENTIATES INE WITH THE CONSTANT CKON
 !
 !-----------------------------------------------------------------------------1
-!        write(6,*) "daexc"
 
       if(ina.eq.inb) then
         call dainf(inc,inoc,invc,ipoc,ilmc,illc)
@@ -1599,7 +1568,7 @@ subroutine daexct(ina,ckon,inb)
         call dacmu(inb,ckon,idaexc(1))
         call dafun('EXP   ',idaexc(1),inb)
       else
-        xic=abs(ckon-real(int(ckon),fPrec))                               !hr10
+        xic=abs(ckon-real(int(ckon),fPrec))
         if(xic.gt.eps) then
           call dafun('LOG   ',ina,inb)
           call dacmu(inb,ckon,idaexc(1))
@@ -1830,7 +1799,7 @@ subroutine dasqrt(ina,inc)
 
       if(inva+invc.eq.0) then
          do i=0,illa-1
-           cc(ipoc+i) = cc(ipoa+i)**2                                      !hr10
+           cc(ipoc+i) = cc(ipoa+i)**2
          end do
 
          idall(inc) = idall(ina)
@@ -1847,7 +1816,7 @@ subroutine dasqrt(ina,inc)
       if(nomax.eq.1) then
          minv = min(inva,invc)
          ccipoa = cc(ipoa)
-         cc(ipoc) = ccipoa**2                                            !hr10
+         cc(ipoc) = ccipoa**2
 
          do i=1,minv
            cc(ipoc+i) = two*ccipoa*cc(ipoa+i)
@@ -1902,7 +1871,7 @@ subroutine dasqrt(ina,inc)
           ccia = cc(ia)
 
           ic = ia2(i2ia+i2ia) + ia1(i1ia+i1ia)
-          cc(ic) = cc(ic) + ccia**2                                          !hr10
+          cc(ic) = cc(ic) + ccia**2
           ccia = ccia + ccia
 
           do noib = noia,nom-noia
@@ -2104,7 +2073,7 @@ subroutine dacmut(ina,ckon,inb)
 
  100  continue
 
-      idall(inb) = (ib-ipob)+1                                           !hr10
+      idall(inb) = (ib-ipob)+1
       if(idall(inb).gt.idalm(inb)) then
         write(lout,*)'ERROR IN DACMU '
         call dadeb(31,'ERR DACMU ',1)
@@ -2279,9 +2248,9 @@ subroutine dalint(ina,afac,inb,bfac,inc)
       ia = ipoa
       ib = ipob
       ic = ipoc - 1
-      iamax = (ipoa+illa)-1                                              !hr10
-      ibmax = (ipob+illb)-1                                              !hr10
-      icmax = (ipoc+ilmc)-1                                              !hr10
+      iamax = (ipoa+illa)-1
+      ibmax = (ipob+illb)-1
+      icmax = (ipoc+ilmc)-1
       ja = ia1(i1(ia)) + ia2(i2(ia))
       jb = ia1(i1(ib)) + ia2(i2(ib))
 
@@ -2396,7 +2365,7 @@ subroutine dalint(ina,afac,inb,bfac,inc)
       i2(ic) = i2(is)
   60  continue
 
-      idall(inc) = (ic - ipoc) + 1                                       !hr10
+      idall(inc) = (ic - ipoc) + 1
 
       if(idall(inc).gt.idalm(inc)) then
         write(lout,*)'ERROR IN DALIN, RESULT HAS TOO MANY TERMS '
@@ -2515,7 +2484,7 @@ subroutine dafunt(cf,ina,inc)
 !
       if(cf.eq.'INV ') then
 !        1/(A0+P) = 1/A0*(1-(P/A0)+(P/A0)**2-...)
-         if(a0.eq.zero) then                                              !hr10
+         if(a0.eq.zero) then
             write(lout,1000) cf,ina,a0
             call dadeb(31,'ERR DAFUN ',1)
             lfun = 0
@@ -2528,30 +2497,30 @@ subroutine dafunt(cf,ina,inc)
 
       elseif(cf.eq.'SQRT') then
 !        SQRT(A0+P) = SQRT(A0)*(1+1/2(P/A0)-1/8*(P/A0)**2+...)
-         if(a0.le.zero) then                                              !hr10
+         if(a0.le.zero) then
             write(lout,1000) cf,ina,a0
             call dadeb(31,'ERR DAFUN ',1)
             lfun = 0
             return
          endif
-         ra = sqrt(a0)                                                   !hr10
+         ra = sqrt(a0)
          xf(0) = ra
          do i=1,no
-           xf(i) = (((-one*xf(i-1))/a0)/real(2*i,fPrec))*real(2*i-3,fPrec) !hr10
+           xf(i) = (((-one*xf(i-1))/a0)/real(2*i,fPrec))*real(2*i-3,fPrec)
          end do
 
       elseif(cf.eq.'ISRT') then
 !        1/SQRT(A0+P) = 1/SQRT(A0)*(1-1/2(P/A0)+3/8*(P/A0)**2-...)
-         if(a0.le.zero) then                                              !hr10
+         if(a0.le.zero) then
             write(lout,1000) cf,ina,a0
             call dadeb(31,'ERR DAFUN ',1)
             lfun = 0
             return
          endif
-         era = one/sqrt(a0)                                             !hr10
+         era = one/sqrt(a0)
          xf(0) = era
          do i=1,no
-           xf(i) = (((-one*xf(i-1))/a0)/real(2*i,fPrec))*real(2*i-1,fPrec) !hr10
+           xf(i) = (((-one*xf(i-1))/a0)/real(2*i,fPrec))*real(2*i-1,fPrec)
          end do
 
       elseif(cf.eq.'EXP ') then
@@ -2564,7 +2533,7 @@ subroutine dafunt(cf,ina,inc)
 
       elseif(cf.eq.'LOG ') then
 !        LOG(A0+P) = LOG(A0) + (P/A0) - 1/2*(P/A0)**2 + 1/3*(P/A0)**3 - ...)
-         if(a0.le.zero) then                                              !hr10
+         if(a0.le.zero) then
             write(lout,1000) cf,ina,a0
             call dadeb(31,'ERR DAFUN ',1)
             lfun = 0
@@ -2574,7 +2543,7 @@ subroutine dafunt(cf,ina,inc)
          xf(0) = ea
          xf(1) = one/a0
          do i=2,no
-           xf(i) = (((-one*xf(i-1))/a0)/real(i,fPrec))*real((i-1),fPrec)                !hr10
+           xf(i) = (((-one*xf(i-1))/a0)/real(i,fPrec))*real((i-1),fPrec)
          end do
 
       elseif(cf.eq.'SIN ') then
@@ -2584,7 +2553,7 @@ subroutine dafunt(cf,ina,inc)
          xf(0) = sa
          xf(1) = ca
          do i=2,no
-           xf(i) = (-one*xf(i-2))/real(i*(i-1),fPrec)                       !hr10
+           xf(i) = (-one*xf(i-2))/real(i*(i-1),fPrec)
          end do
 
       elseif(cf.eq.'COS ') then
@@ -2592,14 +2561,14 @@ subroutine dafunt(cf,ina,inc)
          sa  = sin_mb(a0)
          ca  = cos_mb(a0)
          xf(0) = ca
-         xf(1) = -one*sa                                                 !hr10
+         xf(1) = -one*sa
          do i=2,no
-           xf(i) = (-one*xf(i-2))/real(i*(i-1),fPrec)                      !hr10
+           xf(i) = (-one*xf(i-2))/real(i*(i-1),fPrec)
          end do
 
       elseif(cf.eq.'SIRX') then
 !        SIN(SQRT(P))/SQRT(P) = 1 - P/3! + P**2/5! - P**3/7! + ...
-         if(a0.ne.zero) then                                              !hr10
+         if(a0.ne.zero) then
             write(lout,1000) cf,ina,a0
             call dadeb(31,'ERR DAFUN ',1)
             lfun = 0
@@ -2607,12 +2576,12 @@ subroutine dafunt(cf,ina,inc)
          endif
          xf(0)=one
          do i=1,no
-           xf(i) = (-one*xf(i-1))/real((2*i)*(2*i+1),fPrec)                !hr10
+           xf(i) = (-one*xf(i-1))/real((2*i)*(2*i+1),fPrec)
          end do
 
       elseif(cf.eq.'CORX') then
 !        COS(SQRT(P)) = 1 - P/2! + P**2/4! - P**3/6! + ...
-         if(a0.ne.zero) then                                              !hr10
+         if(a0.ne.zero) then
             write(lout,1000) cf,ina,a0
             call dadeb(31,'ERR DAFUN ',1)
             lfun = 0
@@ -2620,12 +2589,12 @@ subroutine dafunt(cf,ina,inc)
          endif
          xf(0)=one
          do i=1,no
-           xf(i) = (-one*xf(i-1))/real((2*i)*(2*i-1),fPrec)                !hr10
+           xf(i) = (-one*xf(i-1))/real((2*i)*(2*i-1),fPrec)
          end do
 
       elseif(cf.eq.'SIDX') then
 !        SIN(P)/P = 1 - P**2/3! + P**4/5! - P**6/7! + ...
-         if(a0.ne.zero) then                                              !hr10
+         if(a0.ne.zero) then
             write(lout,1000) cf,ina,a0
             call dadeb(31,'ERR DAFUN ',1)
             lfun = 0
@@ -2634,7 +2603,7 @@ subroutine dafunt(cf,ina,inc)
          xf(0)=one
          xf(1)=zero
          do i=2,no
-           xf(i) = (-one*xf(i-2))/real(i*(i+1),fPrec)                      !hr10
+           xf(i) = (-one*xf(i-2))/real(i*(i+1),fPrec)
          end do
 
       elseif(cf.eq.'TAN ') then
@@ -2647,12 +2616,12 @@ subroutine dafunt(cf,ina,inc)
          sa  = sin_mb(a0)
          ca  = cos_mb(a0)
          xf(0) = sa/ca
-         xf(1) = (one/ca)/ca                                            !hr10
+         xf(1) = (one/ca)/ca
          xf(2) = ((((two*sa)/ca)/ca)/ca)/two
-         xf(3) = (((((two*ca**2+six*sa**2)/ca)/ca)/ca)/ca)/six          !hr10
-         xf(4) = ((((((16.0_fPrec*sa+eight*sa**3)/ca)/ca)/ca)/ca)/ca)/24.0_fPrec    !hr10
+         xf(3) = (((((two*ca**2+six*sa**2)/ca)/ca)/ca)/ca)/six
+         xf(4) = ((((((16.0_fPrec*sa+eight*sa**3)/ca)/ca)/ca)/ca)/ca)/24.0_fPrec
          xf(5) = (((((((((16.0_fPrec*ca**2+(24.0_fPrec*ca**2)*sa**2)+80.0_fPrec*sa**2)+40.0_fPrec*sa**4)/ca)/ca)/ca)/ca)/ca)/ca)/&
-     &120.0_fPrec !hr10
+     &120.0_fPrec
          if(no.gt.5) then
             write(lout,*)'ERROR IN DAFUN, ',cf, ' ONLY UP TO NO = 5'
             call dadeb(31,'ERR DAFUN ',1)
@@ -2673,11 +2642,11 @@ subroutine dafunt(cf,ina,inc)
          ca  = cos_mb(a0)
          xf(0) = ca/sa
          xf(1) = (-one/sa)/sa
-         xf(2) = ((((two*ca)/sa)/sa)/sa)/two                           !hr10
-         xf(3) = (((((-one*(two*sa**2+six*ca**2))/sa)/sa)/sa)/sa)/six    !hr10
-         xf(4) = ((((((16.0_fPrec*ca+eight*ca**3)/sa)/sa)/sa)/sa)/sa)/24.0_fPrec !hr10
+         xf(2) = ((((two*ca)/sa)/sa)/sa)/two
+         xf(3) = (((((-one*(two*sa**2+six*ca**2))/sa)/sa)/sa)/sa)/six
+         xf(4) = ((((((16.0_fPrec*ca+eight*ca**3)/sa)/sa)/sa)/sa)/sa)/24.0_fPrec
          xf(5) = (((((((-one*(((16.0_fPrec*sa**2+(24.0_fPrec*sa**2)*ca**2)+80.0_fPrec*ca**2)+ 40.0_fPrec*ca**4))/sa)/sa)/sa)/sa)/&
-     &sa)/sa)/120.0_fPrec         !hr10
+     &sa)/sa)/120.0_fPrec
 
          if(no.gt.5) then
             write(lout,*)'ERROR IN DAFUN, ',cf, ' ONLY UP TO NO = 5'
@@ -2698,15 +2667,15 @@ subroutine dafunt(cf,ina,inc)
          xf(0) = asin_mb(a0)
 !hr10 This code is not tested so leave **(-0.5d0) as it is.
 !hr10 lf95 opt 1 gives a different result to opt 0 so should be changed to SQRT.
-!        xf(1) = (1.d0-a0**2)**(-0.5d0)                                  !hr10
+!        xf(1) = (1.d0-a0**2)**(-0.5d0)
          xf(1) = sqrt(one-a0*a0)                                        !eric
-!        xf(2) = (a0*xf(1)**3.d0)/2.d0                                   !hr10
+!        xf(2) = (a0*xf(1)**3.d0)/2.d0
          xf(2) = (a0*(xf(1)*xf(1)*xf(1)))/two                            !eric
-!        xf(3) = ((1.d0+2.d0*a0**2)*xf(1)**5.d0)/6.d0                    !hr10
+!        xf(3) = ((1.d0+2.d0*a0**2)*xf(1)**5.d0)/6.d0
          xf(3) = ((one+two*(a0*a0))*(xf(1)*xf(1)*xf(1)*xf(1)*xf(1)))/six                   !eric
-!        xf(4) = ((9.d0*a0+6.d0*a0**3)*xf(1)**7.d0)/24.d0                !hr10
+!        xf(4) = ((9.d0*a0+6.d0*a0**3)*xf(1)**7.d0)/24.d0
          xf(4) = ((nine*a0+six*(a0*a0*a0))*(xf(1)*xf(1)*xf(1)*xf(1)*xf(1)*xf(1)*xf(1)))/24.0_fPrec !eric
-!        xf(5) = ((9.d0+72.d0*a0**2+24.d0*a0**4)*xf(1)**9.d0)/120.d0     !hr10
+!        xf(5) = ((9.d0+72.d0*a0**2+24.d0*a0**4)*xf(1)**9.d0)/120.d0
          xf(5) = ((nine+72.0_fPrec*(a0*a0)+24.0_fPrec*(a0*a0*a0*a0))*(xf(1)*xf(1)*xf(1)*xf(1)*xf(1)*xf(1)*xf(1)*xf(1)*xf(1)))    &
      &/120.0_fPrec !eric
          if(no.gt.5) then
@@ -2727,12 +2696,12 @@ subroutine dafunt(cf,ina,inc)
          xf(0) =  acos_mb(a0)
 !hr10 This code is not tested so leave **(-0.5d0) as it is.
 !hr10 lf95 opt 1 gives a different result to opt 0 so should be changed to SQRT.
-         scr =  (one-a0**2)**(-half)                                   !hr10
+         scr =  (one-a0**2)**(-half)
          xf(1) =  -one*scr
-         xf(2) = ((-one*a0)*scr**three)/two                              !hr10
-         xf(3) = ((-one*(one+two*a0**2))*scr**five)/six               !hr10
-         xf(4) = ((-one*(nine*a0+six*a0**3))*scr**seven)/24.0_fPrec           !hr10
-         xf(5) =((-one*(nine+72.0_fPrec*a0**2+24.0_fPrec*a0**4))*scr**nine)/120.0_fPrec !hr10
+         xf(2) = ((-one*a0)*scr**three)/two
+         xf(3) = ((-one*(one+two*a0**2))*scr**five)/six
+         xf(4) = ((-one*(nine*a0+six*a0**3))*scr**seven)/24.0_fPrec
+         xf(5) =((-one*(nine+72.0_fPrec*a0**2+24.0_fPrec*a0**4))*scr**nine)/120.0_fPrec
          if(no.gt.5) then
             write(lout,*)'ERROR IN DAFUN, ',cf, ' ONLY UP TO NO = 5'
             call dadeb(31,'ERR DAFUN ',1)
@@ -3356,7 +3325,6 @@ subroutine mtree(mb,ib,mc,ic)
 
       call dapok(ichk(1),jj,-one)
 
-!     write(6,*)'JL,JV = ',JL,JV(JL)
       do 210 i=1,ib
       call dapek(mb(i),jj,bbijj)
       i1(idapo(mc(i))+nterm-1) = jl
@@ -3391,42 +3359,6 @@ subroutine mtree(mb,ib,mc,ic)
 
       return
       end
-
-
-subroutine ppushpri(mc,ic,mf,jc,line)
-      use floatPrecision
-      use mod_lie_dab, only : cc,idapo,idall,i1,i2
-      implicit none
-      integer i,ic,iv,jc,jl,jv,mc,mf
-
-      dimension mc(*)
-      character(len=20) line
-      if(mf.le.0) return
-      write(mf,*) 0,0,jc+1,0,line
-
-      do i=1,ic
-        jc=1+jc
-        write(mf,*) jc,jl,jv,cc(idapo(mc(i)))
-      end do
-
-!     xf(i) = cc(idapo(mc(i)))
-!      xm(1) = 1.d0
-      do i=1,idall(mc(1))-1
-        jl = i1(idapo(mc(1))+i)
-        jv = i2(idapo(mc(1))+i)
-!       xx = xm(jl)*xi(jv)
-!       xm(jl+1) = xx
-
-        do iv=1,ic
-          jc=1+jc
-          write(mf,*) jc,jl,jv,cc(idapo(mc(iv))+i)
-!         xf(iv) = xf(iv) + cc(idapo(mc(iv))+i) * xx
-        end do
-      end do
-
-      return
-      end
-
 
 subroutine ppush(mc,ic,xi,xf)
       use floatPrecision
@@ -4549,27 +4481,21 @@ subroutine dapri(ina,iunit)
       if(inva.eq.0) then
          write(iunit,'(A)') '    I  VALUE  '
 #ifdef CRLIBM
-#ifndef LF95
-                                                  call enable_xp()
-#endif
+      call enable_xp()
 #endif
          do i = ipoa,ipoa+illa-1
            write(iunit,'(I6,2X,G21.14)') i-ipoa, cc(i)
            !Eric
-           write(111) cc(i)
+           write(26) cc(i)
          end do
 #ifdef CRLIBM
-#ifndef LF95
-                                                  call disable_xp()
-#endif
+      call disable_xp()
 #endif
       elseif(nomax.eq.1) then
          if(illa.ne.0) write(iunit,'(A)') '    I  COEFFICIENT          ORDER   EXPONENTS'
          if(illa.eq.0) write(iunit,'(A)') '   ALL COMPONENTS ZERO '
 #ifdef CRLIBM
-#ifndef LF95
-                                                  call enable_xp()
-#endif
+      call enable_xp()
 #endif
          do 90 i=1,illa
            do k=1,inva
@@ -4581,16 +4507,12 @@ subroutine dapri(ina,iunit)
              ioa=1
            endif
          write(iunit,'(I6,2X,G21.14,I5,4X,18(2I2,1X))') iout,cc(ipoa+i-1),ioa,(j(iii),iii=1,nvmax)
-         write(111) cc(ipoa+i-1)
-!Eric
-!        write(iunit,*) cc(ipoa+i-1)
+         write(26) cc(ipoa+i-1)
          write(iunit,'(G21.14)') cc(ipoa+i-1)
-         write(111) cc(ipoa+i-1)
+         write(26) cc(ipoa+i-1)
  90     continue
 #ifdef CRLIBM
-#ifndef LF95
-                                                  call disable_xp()
-#endif
+      call disable_xp()
 #endif
       else
          if(illa.ne.0) write(iunit,'(A)') '    I  COEFFICIENT          ORDER   EXPONENTS'
@@ -4604,25 +4526,19 @@ subroutine dapri(ina,iunit)
 !ETIENNE
           iout = iout+1
 #ifdef CRLIBM
-#ifndef LF95
-                                                  call enable_xp()
-#endif
+      call enable_xp()
 #endif
           write(iunit,'(I6,2X,G21.14,I5,4X,18(2I2,1X))') iout,cc(ii),ioa,(j(iii),iii=1,nvmax)
 !Eric
-         write(111) cc(ii)
+          write(26) cc(ii)
 !ETIENNE
-!Eric
-!         write(iunit,* ) cc(ii)
           write(iunit,'(G21.14)') cc(ii)
-          write(111) cc(ii)
+          write(26) cc(ii)
           endif
 !ETIENNE
 !
 #ifdef CRLIBM
-#ifndef LF95
-                                                  call disable_xp()
-#endif
+      call disable_xp()
 #endif
  100      continue
         end do
@@ -4633,7 +4549,7 @@ subroutine dapri(ina,iunit)
       write(iunit,'(A)') '                                      '
 
 !Eric
-      write(111) zero
+      write(26) zero
       return
       end
 
@@ -4672,15 +4588,7 @@ subroutine dapri77(ina,iunit)
       ipoa = idapo(ina)
       ilma = idalm(ina)
       illa = idall(ina)
-!
-!      WRITE(IUNIT,*) INA, ' in dapri ', DANAME(INA)
-!      WRITE(6,*) INA, ' in dapri ', DANAME(INA)
-! 611  WRITE(6,*) ' MORE '
-!        READ(5,*) MORE
-!        IF(MORE.GT.0) THEN
-!        WRITE(6,*) MORE,' ',DANAME(MORE)
-!        GOTO 611
-!        ENDIF
+
       write(iunit,'(/1X,A10,A6,I5,A6,I5,A7,I5/1X,A/)') daname(ina),', NO =',inoa,', NV =',inva,', INA =',ina, &
      &'***********'//'**********************************'
 
@@ -4715,11 +4623,8 @@ subroutine dapri77(ina,iunit)
             end if
 
 #ifdef CRLIBM
-#ifndef LF95
-                                                  call enable_xp()
+      call enable_xp()
 #endif
-#endif
-!      WRITE(IUNIT,*) IOA,CC(II),(J(I),I=1,INVA)
       if(abs(cc(ii)).gt.eps) then
       if(eps.gt.1.e-37_fPrec) then
        write(iunit,501) ioa,cc(ii),(j(i),i=1,inva)
@@ -4731,9 +4636,7 @@ subroutine dapri77(ina,iunit)
  503  format(' ', i3,1x,g23.16,1x,100(1x,i2))
  502  format(' ', i5,1x,g23.16,1x,100(1x,i2))
 #ifdef CRLIBM
-#ifndef LF95
-                                                  call disable_xp()
-#endif
+      call disable_xp()
 #endif
       end if
 !ETIENNE
@@ -4747,20 +4650,14 @@ subroutine dapri77(ina,iunit)
 
       if(iout.eq.0) iout=1
 #ifdef CRLIBM
-#ifndef LF95
-                                                  call enable_xp()
+      call enable_xp()
 #endif
-#endif
-
       write(iunit,502) -iout,zero,(j(i),i=1,inva)
-
 #ifdef CRLIBM
-#ifndef LF95
-                                                  call disable_xp()
+      call disable_xp()
 #endif
-#endif
-      return
-      end
+
+end
 
 
 subroutine dashift(ina,inc,ishift)
@@ -4795,14 +4692,6 @@ subroutine dashift(ina,inc,ishift)
       illa = idall(ina)
       call daall(inb(1),1,'$$DAJUNK$$',inoa,inva)
 
-!      WRITE(IUNIT,*) INA, ' in dapri ', DANAME(INA)
-!      WRITE(6,*) INA, ' in dapri ', DANAME(INA)
-! 611  WRITE(6,*) ' MORE '
-!        READ(5,*) MORE
-!        IF(MORE.GT.0) THEN
-!        WRITE(6,*) MORE,' ',DANAME(MORE)
-!        GOTO 611
-!        ENDIF
       iout = 0
 
 !      DO 100 IOA = 0,INOA
@@ -4828,17 +4717,8 @@ subroutine dashift(ina,inc,ishift)
         iout = iout+1
       endif
 
-!      WRITE(IUNIT,*) IOA,CC(II),(J(I),I=1,INVA)
       if(abs(cc(ii)).gt.eps) then
       if(eps.gt.1.e-37_fPrec) then
-#ifdef CRLIBM
-!                                                 call enable_xp()
-#endif
-!       write(iunit,501) ioa,cc(ii),(j(i),i=1,inva)
-#ifdef CRLIBM
-!                                                 call disable_xp()
-#endif
-!      write(111) cc(ii)
        ich=1
        do ik=1,ishift
          if(j(ik).ne.0) ich=0
@@ -4853,14 +4733,6 @@ subroutine dashift(ina,inc,ishift)
        endif
        call dapok(inb(1),jd,cc(ii))
       else
-#ifdef CRLIBM
-!                                                 call enable_xp()
-#endif
-!       write(iunit,503) ioa,cc(ii),(j(i),i=1,inva)
-#ifdef CRLIBM
-!                                                 call disable_xp()
-#endif
-!       write(111) c(ii)
         ich=1
         do ik=1,ishift
           if(j(ik).ne.0) ich=0
@@ -4960,7 +4832,7 @@ subroutine darea(ina,iunit)
       call disable_xp()
 #endif
 !Eric
-      read(111) c
+      read(26) c
 !
       if(ii.eq.0) goto 20
 !ETIENNE
@@ -4970,7 +4842,7 @@ subroutine darea(ina,iunit)
 !Eric
       read(iunit,'(G21.14)') c
 !Eric
-      read(111) c
+      read(26) c
 #ifdef CRLIBM
       call disable_xp()
 #endif
@@ -5122,7 +4994,7 @@ subroutine dadeb(iunit,c,istop)
 #ifdef CR
       call abend('                                                  ')
 #else
-      call prror(-1)
+      call prror
 #endif
 end subroutine dadeb
 
@@ -5458,7 +5330,7 @@ subroutine datra(idif,ina,inc)
       idall(inc) = ic - ipoc + 1
       if(idall(inc).gt.idalm(inc)) then
          write(lout,*)'ERROR IN DADTRA'
-         call dadeb(111,'ERR DADTRA',1)
+         call dadeb(26,'ERR DADTRA',1)
       endif
 
       return
@@ -6145,11 +6017,7 @@ subroutine daprimax(ina,iunit)
 
       if(ina.lt.1.or.ina.gt.nda) then
          write(lout,*)'ERROR IN DAPRI, INA = ',ina
-#ifdef CR
-      call abend('                                                  ')
-#else
-         stop
-#endif
+         call prror
       endif
 
       inoa = idano(ina)
@@ -6163,17 +6031,13 @@ subroutine daprimax(ina,iunit)
 
       if(inva.eq.0) then
 #ifdef CRLIBM
-#ifndef LF95
-                                                  call enable_xp()
-#endif
+      call enable_xp()
 #endif
          do i = ipoa,ipoa+illa-1
            write(iunit,'(I6,2X,G21.14)') i-ipoa, cc(i)
          end do
 #ifdef CRLIBM
-#ifndef LF95
-                                                  call disable_xp()
-#endif
+      call disable_xp()
 #endif
       elseif(nomax.eq.1) then
          do 90 i=1,illa
@@ -6183,17 +6047,13 @@ subroutine daprimax(ina,iunit)
              ioa=1
            endif
 #ifdef CRLIBM
-#ifndef LF95
-                                                  call enable_xp()
-#endif
+      call enable_xp()
 #endif
          write(iunit,'(I6,2X,G21.14,I5,4X,18(2I2,1X))')                 &
      &iout,cc(ipoa+i-1),ioa,(j(iii),iii=1,nvmax)
          write(iunit,*) cc(ipoa+i-1)
 #ifdef CRLIBM
-#ifndef LF95
-                                                  call disable_xp()
-#endif
+      call disable_xp()
 #endif
  90      continue
       else
@@ -6207,18 +6067,14 @@ subroutine daprimax(ina,iunit)
 !ETIENNE
           iout = iout+1
 #ifdef CRLIBM
-#ifndef LF95
-                                                  call enable_xp()
-#endif
+      call enable_xp()
 #endif
           write(iunit,'(I6,2X,G21.14,I5,4X,18(2I2,1X))')                &
      &iout,cc(ii),ioa,(j(iii),iii=1,nvmax)
 !ETIENNE
           write(iunit,*) cc(ii)
 #ifdef CRLIBM
-#ifndef LF95
-                                                  call disable_xp()
-#endif
+      call disable_xp()
 #endif
           endif
 !ETIENNE
@@ -6414,7 +6270,7 @@ subroutine daorder(ina,iunit,jx,invo,nchop)
 #ifdef CRLIBM
 #ifndef LF95
                                                   call disable_xp()
-      read(111) c
+      read(26) c
 #endif
 #endif
 
@@ -6433,7 +6289,7 @@ subroutine daorder(ina,iunit,jx,invo,nchop)
                                                   call disable_xp()
 #endif
 #endif
-      read(111) c
+      read(26) c
 
       do jh=1,invo
         j(jh)=jt(jx(jh))
@@ -6545,7 +6401,7 @@ subroutine datrash(idif,ina,inc)
       idall(inc) = ic - ipoc + 1
       if(idall(inc).gt.idalm(inc)) then
          write(lout,*)'ERROR IN DATRASH '
-         call dadeb(111,'ERR DATRAS',1)
+         call dadeb(26,'ERR DATRAS',1)
       endif
 !
       return

@@ -7,7 +7,7 @@
   qv=zero
 #else
   mpe=20
-  dyy1=(-one*ekk)*tilts(k)                                         !hr02
+  dyy1=(-one*ekk)*tilts(k)
   dyy2=ekk*tiltc(k)
   qu=zero
   qv=zero

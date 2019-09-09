@@ -106,6 +106,8 @@ module scatter
 
   integer, private, save :: scatter_seed1_CR       = -1
   integer, private, save :: scatter_seed2_CR       = -1
+
+  real(kind=fPrec), allocatable, private, save :: scatter_statScale_CR(:)
 #endif
 
   public :: scatter_getScaling
@@ -222,7 +224,7 @@ subroutine scatter_init
   call f_requestUnit("scatter_log.dat", scatter_logFile)
 #ifdef CR
   if(scatter_logFilePos == -1) then
-    write(93,"(a)") "SCATTER> INIT opening new file 'scatter_log.dat'"
+    write(crlog,"(a)") "CR_CHECK> SCATTER INIT opening new file 'scatter_log.dat'"
 #endif
     call f_open(unit=scatter_logFile,file="scatter_log.dat",formatted=.true.,mode="w",err=fErr,status="replace")
     write(scatter_logFile,"(a)") "# scatter_log"
@@ -234,7 +236,7 @@ subroutine scatter_init
     scatter_logFilePos = 2
     flush(scatter_logFile)
   else
-    write(93,"(a)") "SCATTER> INIT kept already opened file 'scatter_log.dat'"
+    write(crlog,"(a)") "CR_CHECK> SCATTER kept already opened file 'scatter_log.dat'"
   end if
 #endif
 #ifdef HDF5
@@ -245,7 +247,7 @@ subroutine scatter_init
   call f_requestUnit("scatter_summary.dat",scatter_sumFile)
 #ifdef CR
   if(scatter_sumFilePos == -1) then
-    write(93,"(a)") "SCATTER> INIT opening new file 'scatter_summary.dat'"
+    write(crlog,"(a)") "CR_CHECK> SCATTER INIT opening new file 'scatter_summary.dat'"
 #endif
     call f_open(unit=scatter_sumFile,file="scatter_summary.dat",formatted=.true.,mode="w",err=fErr,status="replace")
     call scatter_writeReport
@@ -259,7 +261,7 @@ subroutine scatter_init
     scatter_sumFilePos = scatter_sumFilePos + 3
     flush(scatter_sumFile)
   else
-    write(93,"(a)") "SCATTER> INIT kept already opened file 'scatter_summary.dat'"
+    write(crlog,"(a)") "CR_CHECK> SCATTER kept already opened file 'scatter_summary.dat'"
   end if
 #endif
 
@@ -821,7 +823,6 @@ subroutine scatter_thin(iElem, ix, turn)
   use string_tools
   use crcoall
   use mod_time
-  use mod_hions
   use mod_alloc
   use mod_common
   use mod_particles
@@ -840,7 +841,7 @@ subroutine scatter_thin(iElem, ix, turn)
   integer          i, j, k
   integer          tmpSeed1, tmpSeed2
   logical          updateE, autoRatio, isDiff
-  integer          iLost, procID
+  integer          iLost, procID, fixedID
   real(kind=fPrec) t, dEE, dPP, theta, phi
   real(kind=fPrec) elemScale, sigmaTot, ratioTot, crossSection, scatterProb, targetDensity, scRatio, brRatio
 
@@ -910,7 +911,7 @@ subroutine scatter_thin(iElem, ix, turn)
   end do
 
   ! Generate random numbers for probability, branching ratio and phi angle
-  call ranecu(rndVals, napx*3, -1)
+  call ranecu(rndVals, napx*3, 0)
 
   ! Loop over particles
   do j=1,napx
@@ -949,7 +950,8 @@ subroutine scatter_thin(iElem, ix, turn)
     phi = (2*pi)*rndVals(k+2)
 
     ! If we're scaling the probability with DYNK, update the statistical weight
-    scatter_statScale(partID(j)) = scatter_statScale(partID(j)) / elemScale
+    fixedID = part_getOrigIndex(j)
+    scatter_statScale(fixedID) = scatter_statScale(fixedID) / elemScale
 
     ! Get event
     call scatter_generator_getEvent(idGen,j,t,theta,dEE,dPP,procID,iLost,isDiff)
@@ -990,12 +992,12 @@ subroutine scatter_thin(iElem, ix, turn)
       rRecords(5,nRecords) = dPP
       rRecords(6,nRecords) = targetDensity
       rRecords(7,nRecords) = scatterProb
-      rRecords(8,nRecords) = scatter_statScale(partID(j))
+      rRecords(8,nRecords) = scatter_statScale(fixedID)
     else
 #endif
       write(scatter_logFile,"(2(1x,i8),2(1x,a20),1x,a8,1x,i4,1x,f12.3,1x,f12.6,1x,f9.6,5(1x,1pe16.9))") &
         partID(j), turn, chr_rPadCut(bez(ix),20), chr_rPadCut(scatter_genList(idGen)%genName,20), scatter_procNames(procID), &
-        iLost, t, theta, phi, dEE, dPP, targetDensity, scatterProb, scatter_statScale(partID(j))
+        iLost, t, theta, phi, dEE, dPP, targetDensity, scatterProb, scatter_statScale(fixedID)
 #ifdef CR
       scatter_logFilePos = scatter_logFilePos + 1
 #endif
@@ -1379,7 +1381,7 @@ function scatter_generator_getPPElastic(a, b1, b2, phi, tmin) result(t)
   maxItt = 1000000
   do
     nItt = nItt + 1
-    call ranecu(rndArr, 3, -1)
+    call ranecu(rndArr, 3, 0)
 
     ! Randomly switch between g1 and g3 according to probability
     if(rndArr(1) > prob3) then
@@ -1473,15 +1475,17 @@ end subroutine scatter_writeReport
 
 ! =================================================================================================
 !  K. Sjobak, V.K. Berglyd Olsen, BE-ABP-HSS
-!  Last modified: 2018-11-10
-!  Called from CRCHECK; reads the _CR arrays for scatter from file-
-!  Sets readerr=.true. if something goes wrong while reading.
+!  Last modified: 2019-05-23
+!  Called from CRCHECK; reads the _CR arrays for scatter from file
+!  Sets readErr to true if something goes wrong while reading.
 ! =================================================================================================
 #ifdef CR
 subroutine scatter_crcheck_readdata(fileUnit, readErr)
 
+  use parpro
   use crcoall
   use mod_alloc
+  use numerical_constants
 
   implicit none
 
@@ -1490,16 +1494,20 @@ subroutine scatter_crcheck_readdata(fileUnit, readErr)
 
   integer j
 
+  call alloc(scatter_statScale_CR, npart, zero, "scatter_statScale_CR")
+
   read(fileUnit, err=10, end=10) scatter_logFilePos_CR, scatter_sumFilePos_CR
   read(fileUnit, err=10, end=10) scatter_seed1_CR, scatter_seed2_CR
+  read(fileUnit, err=10, end=10) scatter_statScale_CR
 
   readErr = .false.
   return
 
 10 continue
-  write(lout,"(a,i0)") "READERR in scatter_crcheck; fileUnit = ",fileUnit
-  write(93,  "(a,i0)") "READERR in scatter_crcheck; fileUnit = ",fileUnit
   readErr = .true.
+  write(lout,"(a,i0,a)") "SIXTRACR> ERROR Reading C/R file fort.",fileUnit," in SCATTER"
+  write(crlog,  "(a,i0,a)") "SIXTRACR> ERROR Reading C/R file fort.",fileUnit," in SCATTER"
+  flush(crlog)
 
 end subroutine scatter_crcheck_readdata
 
@@ -1522,10 +1530,10 @@ subroutine scatter_crcheck_positionFiles
   call f_requestUnit("scatter_log.dat",scatter_logFile)
   inquire(unit=scatter_logFile, opened=isOpen)
   if(isOpen) then
-    write(93,"(a)")      "SIXTRACR> ERROR CRCHECK FAILED while repsositioning 'scatter_log.dat'"
-    write(93,"(a,i0,a)") "SIXTRACR>       UNIT ",scatter_logFile," already in use!"
-    flush(93)
-    write(lout,"(a)") "SIXTRACR> CRCHECK failure positioning 'scatter_log.dat'"
+    write(crlog,"(a)")      "CR_CHECK> ERROR Failed while repsositioning 'scatter_log.dat'"
+    write(crlog,"(a,i0,a)") "CR_CHECK>       unit ",scatter_logFile," already in use!"
+    flush(crlog)
+    write(lerr,"(a)") "CR_CHECK> ERROR Failed positioning 'scatter_log.dat'"
     call prror
   end if
 
@@ -1542,23 +1550,23 @@ subroutine scatter_crcheck_positionFiles
 
     call f_open(unit=scatter_logFile,file="scatter_log.dat",formatted=.true.,mode="w+",err=fErr,status="old")
     if(fErr) goto 10
-    write(97,"(2(a,i0))") "SIXTRACR> CRCHECK sucessfully repositioned 'scatter_log.dat': "//&
-      "scatter_logFilePos = ",scatter_logFilePos,", scatter_logFilePos_CR = ",scatter_logFilePos_CR
-    flush(93)
+    write(97,"(2(a,i0))") "CR_CHECK> Sucessfully repositioned 'scatter_log.dat': "//&
+      "Position: ",scatter_logFilePos,", Position C/R: ",scatter_logFilePos_CR
+    flush(crlog)
 
   else
-    write(93,"(a,i0)") "SIXTRACR> CRCHECK did not attempt repositioning 'scatter_log.dat' at line ",scatter_logFilePos_CR
-    write(93,"(a)")    "SIXTRACR> If anything has been written to the file, it will be correctly truncated in Scatter INIT."
-    flush(93)
+    write(crlog,"(a,i0)") "CR_CHECK> Did not attempt repositioning 'scatter_log.dat' at line ",scatter_logFilePos_CR
+    write(crlog,"(a)")    "CR_CHECK> If anything has been written to the file, it will be correctly truncated in Scatter INIT."
+    flush(crlog)
   end if
 
   call f_requestUnit("scatter_summary.dat",scatter_sumFile)
   inquire(unit=scatter_sumFile, opened=isOpen)
   if(isOpen) then
-    write(93,"(a)")      "SIXTRACR> ERROR CRCHECK FAILED while repsositioning 'scatter_summary.dat'"
-    write(93,"(a,i0,a)") "SIXTRACR>       UNIT ",scatter_sumFile," already in use!"
-    flush(93)
-    write(lout,"(a)") "SIXTRACR> CRCHECK failure positioning 'scatter_summary.dat'"
+    write(crlog,"(a)")      "CR_CHECK> ERROR Failed while repsositioning 'scatter_summary.dat'"
+    write(crlog,"(a,i0,a)") "CR_CHECK>       Unit ",scatter_sumFile," already in use!"
+    flush(crlog)
+    write(lout,"(a)") "CR_CHECK> Failed positioning 'scatter_summary.dat'"
     call prror
   end if
 
@@ -1575,60 +1583,72 @@ subroutine scatter_crcheck_positionFiles
 
     call f_open(unit=scatter_sumFile,file="scatter_summary.dat",formatted=.true.,mode="w+",err=fErr,status="old")
     if(fErr) goto 10
-    write(97,"(2(a,i0))") "SIXTRACR> CRCHECK sucessfully repositioned 'scatter_summary.dat': "//&
-      "scatter_sumFilePos = ",scatter_sumFilePos,", scatter_sumFilePos_CR = ",scatter_sumFilePos_CR
-    flush(93)
+    write(97,"(2(a,i0))") "CR_CHECK> Sucessfully repositioned 'scatter_summary.dat': "//&
+      "Position: ",scatter_sumFilePos,", Position C/R: ",scatter_sumFilePos_CR
+    flush(crlog)
 
   else
-    write(93,"(a,i0)") "SIXTRACR> CRCHECK did not attempt repositioning 'scatter_summary.dat' at line ",scatter_sumFilePos_CR
-    write(93,"(a)")    "SIXTRACR> If anything has been written to the file, it will be correctly truncated in Scatter INIT."
-    flush(93)
+    write(crlog,"(a,i0)") "CR_CHECK> Did not attempt repositioning 'scatter_summary.dat' at line ",scatter_sumFilePos_CR
+    write(crlog,"(a)")    "CR_CHECK> If anything has been written to the file, it will be correctly truncated in Scatter INIT."
+    flush(crlog)
   end if
 
   return
 
 10 continue
-  write(93,"(a,i0)")    "SIXTRACR> ERROR While reading 'scatter_log.dat' or 'scatter_summary.dat', iostat = ",iError
-  write(93,"(2(a,i0))") "SIXTRACR> scatter_logFilePos = ",scatter_logFilePos,", scatter_logFilePos_CR = ",scatter_logFilePos_CR
-  write(93,"(2(a,i0))") "SIXTRACR> scatter_sumFilePos = ",scatter_sumFilePos,", scatter_sumFilePos_CR = ",scatter_sumFilePos_CR
-  flush(93)
-  write(lerr,"(a)")"SIXTRACR> ERROR CRCHECK failure positioning 'scatter_log.dat' or 'scatter_summary.dat'."
+  write(crlog,"(a,i0)")    "CR_CHECK> ERROR While reading 'scatter_log.dat' or 'scatter_summary.dat', iostat = ",iError
+  write(crlog,"(2(a,i0))") "CR_CHECK>       Position: ",scatter_logFilePos,", Position C/R: ",scatter_logFilePos_CR
+  write(crlog,"(2(a,i0))") "CR_CHECK>       Position: ",scatter_sumFilePos,", Position C/R: ",scatter_sumFilePos_CR
+  flush(crlog)
+  write(lerr,"(a)")"CR_CHECK> ERROR CRCHECK failure positioning 'scatter_log.dat' or 'scatter_summary.dat'."
   call prror
 
 end subroutine scatter_crcheck_positionFiles
 
 ! =================================================================================================
 !  K. Sjobak, V.K. Berglyd Olsen, BE-ABP-HSS
-!  Last modified: 2018-11-10
+!  Last modified: 2019-05-23
 !  Called from CRPOINT; write checkpoint data to fort.95/96
 ! =================================================================================================
-subroutine scatter_crpoint(fileUnit, writeErr, iError)
+subroutine scatter_crpoint(fileUnit, writeErr)
 
-  integer, intent(in)    :: fileUnit
-  logical, intent(out)   :: writeErr
-  integer, intent(inout) :: iError
+  use crcoall
+
+  integer, intent(in)  :: fileUnit
+  logical, intent(out) :: writeErr
 
   writeErr = .false.
 
-  write(fileunit,err=10,iostat=iError) scatter_logFilePos, scatter_sumFilePos
-  write(fileunit,err=10,iostat=iError) scatter_seed1, scatter_seed2
+  write(fileunit,err=10) scatter_logFilePos, scatter_sumFilePos
+  write(fileunit,err=10) scatter_seed1, scatter_seed2
+  write(fileunit,err=10) scatter_statScale
   flush(fileUnit)
 
   return
 
 10 continue
   writeErr = .true.
+  write(lout, "(a,i0,a)") "CR_POINT> ERROR Writing C/R file fort.",fileUnit," in SCATTER"
+  write(crlog,"(a,i0,a)") "CR_POINT> ERROR Writing C/R file fort.",fileUnit," in SCATTER"
+  flush(crlog)
 
 end subroutine scatter_crpoint
 
 ! =================================================================================================
 !  K. Sjobak, V.K. Berglyd Olsen, BE-ABP-HSS
-!  Last modified: 2019-01-28
+!  Last modified: 2019-05-23
 !  Called from CRSTART
 ! =================================================================================================
 subroutine scatter_crstart
+
+  use mod_alloc
+
   scatter_seed1 = scatter_seed1_CR
   scatter_seed2 = scatter_seed2_CR
+  scatter_statScale(:) = scatter_statScale_CR(:)
+
+  call dealloc(scatter_statScale_CR,"scatter_statScale_CR")
+
 end subroutine scatter_crstart
 #endif
 ! End of CR
