@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-# -*- coding: utf-8 -*
+# -*- coding: utf-8 -*-
 """SixTrack DevTools
 
   SixTrack DevTools :: Plot Particle State
@@ -15,20 +15,21 @@ import sys
 import numpy as np
 import matplotlib.pyplot as plt
 from os import path
+from math import ceil
 
-if len(sys.argv) != 3:
+if len(sys.argv) < 3:
   print("\n"
-    "plotParticleState.py takes two input arguments:\n"
+    "plotParticleState.py takes two or three input arguments:\n"
     " - filename : The file to plot. Must be initial_state.dat or final_state.dat (no binary files).\n"
     " - column   : Comma separated list of columns to plot (no spaces between them).\n"
     "              Available: x,y,xp,yp,sigma,dp,p,e\n"
+    " - saveto   : [Optional] file name to save figure to" 
   )
   exit(0)
 
 # Constants
 
 colMap = {"x":4,"y":5,"xp":6,"yp":7,"sigma":8,"dp":9,"p":10,"e":11}
-
 
 # Save the arguments and check that they make sense
 
@@ -54,6 +55,11 @@ for aCol in sys.argv[2].split(","):
   else:
     print("Not a valid column: %s" % aCol)
     exit(1)
+
+if len(sys.argv) > 3:
+  saveTo = sys.argv[3]
+else:
+  saveTo = None
 
 # Write a summary
 print((
@@ -90,24 +96,24 @@ print("Read %d particles from file." % nPart)
 
 # Plot
 
-iFig  = 0
-nBins = 40
+iFig   = 0
+nBins  = 100
+theFig = plt.figure(iFig,figsize=(16, 9),dpi=100)
+nRow = 2
+nCol = ceil(len(theCols)/2)
+theFig.clf()
 for aCol in theCols:
   iFig  += 1
-  theFig = plt.figure(iFig,figsize=(6, 4),dpi=100)
-  theFig.clf()
   dHist, binEdges   = np.histogram(theData[aCol], bins=nBins, density=True)
   binCentres        = (binEdges[:-1] + binEdges[1:])/2
-  # fCoeff, varMatrix = curve_fit(fitGauss, binCentres, dHist, p0=p0)
-  # hFit              = fitGauss(binCentres, *fCoeff)
   
-  # sFig1 = plt.subplot(2,3,i+1)
+  sFig1 = plt.subplot(nRow,nCol,iFig)
   plt.step(binCentres,dHist,where="mid")
-  # plt.hist(theData[aCol], bins=nBins, density=True)
-  # plt.plot(binCentres,hFit)
   plt.title("Distribution of %s" % aCol)
-  # plt.xlabel("mu = %.2f, sigma = %.2f" % (fCoeff[1],fCoeff[2]))
 
+plt.subplots_adjust(left=0.05, right=0.95, top=0.95, bottom=0.05)
+if saveTo is not None:
+  plt.savefig(saveTo)
 plt.show(block=True)
 
 

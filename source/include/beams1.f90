@@ -14,7 +14,7 @@
                 if(nbeaux(imbb(i)).eq.2.or.nbeaux(imbb(i)).eq.3) then
                   write(lerr,"(a)") "BEAMBEAM> ERROR At each interaction point the beam must be either "//&
                     "round or elliptical for all particles"
-                  call prror(-1)
+                  call prror
                 else
                   nbeaux(imbb(i))=1
                   sigman2(1,imbb(i))=sigman(1,imbb(i))**2
@@ -25,7 +25,7 @@
                 if(nbeaux(imbb(i)).eq.1.or.nbeaux(imbb(i)).eq.3) then
                   write(lerr,"(a)") "BEAMBEAM> ERROR At each interaction point the beam must be either "//&
                     "round or elliptical for all particles"
-                  call prror(-1)
+                  call prror
                 else
                   nbeaux(imbb(i))=2
                   sigman2(1,imbb(i))=sigman(1,imbb(i))**2
@@ -39,7 +39,7 @@
                 if(nbeaux(imbb(i)).eq.1.or.nbeaux(imbb(i)).eq.2) then
                   write(lerr,"(a)") "BEAMBEAM> ERROR At each interaction point the beam must be either "//&
                     "round or elliptical for all particles"
-                  call prror(-1)
+                  call prror
                 else
                   nbeaux(imbb(i))=3
                   sigman2(1,imbb(i))=sigman(1,imbb(i))**2

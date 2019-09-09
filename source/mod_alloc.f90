@@ -226,7 +226,7 @@ subroutine alloc1di16(input, eIdx, initial, ename, fIdxIn)
     fIdx = 1
   end if
 
-  if(allocated(input) .neqv. .true.) then
+  if(.not. allocated(input)) then
 
 #ifdef DEBUG
     write(alloc_log,"(a)") "ALLOC> Allocating array '"//ename//"'"
@@ -302,7 +302,7 @@ subroutine alloc2di16(input, eIdx1, eIdx2, initial, ename, fIdxIn1, fIdxIn2)
     fIdx2 = 1
   end if
 
-  if(allocated(input) .neqv. .true.) then
+  if(.not. allocated(input)) then
 
 #ifdef DEBUG
     write(alloc_log,"(a)") "ALLOC> Allocating array '"//ename//"'"
@@ -393,7 +393,7 @@ subroutine alloc3di16(input, eIdx1, eIdx2, eIdx3, initial, ename, fIdxIn1, fIdxI
     fIdx3 = 1
   end if
 
-  if(allocated(input) .neqv. .true.) then
+  if(.not. allocated(input)) then
 
 #ifdef DEBUG
     write(alloc_log,"(a)") "ALLOC> Allocating array '"//ename//"'"
@@ -482,7 +482,7 @@ subroutine alloc1di32(input, eIdx, initial, ename, fIdxIn)
     fIdx = 1
   end if
 
-  if(allocated(input) .neqv. .true.) then
+  if(.not. allocated(input)) then
 
 #ifdef DEBUG
     write(alloc_log,"(a)") "ALLOC> Allocating array '"//ename//"'"
@@ -558,7 +558,7 @@ subroutine alloc2di32(input, eIdx1, eIdx2, initial, ename, fIdxIn1, fIdxIn2)
     fIdx2 = 1
   end if
 
-  if(allocated(input) .neqv. .true.) then
+  if(.not. allocated(input)) then
 
 #ifdef DEBUG
     write(alloc_log,"(a)") "ALLOC> Allocating array '"//ename//"'"
@@ -649,7 +649,7 @@ subroutine alloc3di32(input, eIdx1, eIdx2, eIdx3, initial, ename, fIdxIn1, fIdxI
     fIdx3 = 1
   end if
 
-  if(allocated(input) .neqv. .true.) then
+  if(.not. allocated(input)) then
 
 #ifdef DEBUG
     write(alloc_log,"(a)") "ALLOC> Allocating array '"//ename//"'"
@@ -738,7 +738,7 @@ subroutine alloc1di64(input, eIdx, initial, ename, fIdxIn)
     fIdx = 1
   end if
 
-  if(allocated(input) .neqv. .true.) then
+  if(.not. allocated(input)) then
 
 #ifdef DEBUG
     write(alloc_log,"(a)") "ALLOC> Allocating array '"//ename//"'"
@@ -814,7 +814,7 @@ subroutine alloc2di64(input, eIdx1, eIdx2, initial, ename, fIdxIn1, fIdxIn2)
     fIdx2 = 1
   end if
 
-  if(allocated(input) .neqv. .true.) then
+  if(.not. allocated(input)) then
 
 #ifdef DEBUG
     write(alloc_log,"(a)") "ALLOC> Allocating array '"//ename//"'"
@@ -905,7 +905,7 @@ subroutine alloc3di64(input, eIdx1, eIdx2, eIdx3, initial, ename, fIdxIn1, fIdxI
     fIdx3 = 1
   end if
 
-  if(allocated(input) .neqv. .true.) then
+  if(.not. allocated(input)) then
 
 #ifdef DEBUG
     write(alloc_log,"(a)") "ALLOC> Allocating array '"//ename//"'"
@@ -998,7 +998,7 @@ subroutine alloc1dr32(input, eIdx, initial, ename, fIdxIn)
     fIdx = 1
   end if
 
-  if(allocated(input) .neqv. .true.) then
+  if(.not. allocated(input)) then
 
 #ifdef DEBUG
     write(alloc_log,"(a)") "ALLOC> Allocating array '"//ename//"'"
@@ -1074,7 +1074,7 @@ subroutine alloc2dr32(input, eIdx1, eIdx2, initial, ename, fIdxIn1, fIdxIn2)
     fIdx2 = 1
   end if
 
-  if(allocated(input) .neqv. .true.) then
+  if(.not. allocated(input)) then
 
 #ifdef DEBUG
     write(alloc_log,"(a)") "ALLOC> Allocating array '"//ename//"'"
@@ -1165,7 +1165,7 @@ subroutine alloc3dr32(input, eIdx1, eIdx2, eIdx3, initial, ename, fIdxIn1, fIdxI
     fIdx3 = 1
   end if
 
-  if(allocated(input) .neqv. .true.) then
+  if(.not. allocated(input)) then
 
 #ifdef DEBUG
     write(alloc_log,"(a)") "ALLOC> Allocating array '"//ename//"'"
@@ -1269,7 +1269,7 @@ subroutine alloc4dr32(input, eIdx1, eIdx2, eIdx3, eIdx4, initial, ename, fIdxIn1
     fIdx4 = 1
   end if
 
-  if(allocated(input) .neqv. .true.) then
+  if(.not. allocated(input)) then
 
 #ifdef DEBUG
     write(alloc_log,"(a)") "ALLOC> Allocating array '"//ename//"'"
@@ -1366,7 +1366,7 @@ subroutine alloc1dr64(input, eIdx, initial, ename, fIdxIn)
     fIdx = 1
   end if
 
-  if(allocated(input) .neqv. .true.) then
+  if(.not. allocated(input)) then
 
 #ifdef DEBUG
     write(alloc_log,"(a)") "ALLOC> Allocating array '"//ename//"'"
@@ -1442,7 +1442,7 @@ subroutine alloc2dr64(input, eIdx1, eIdx2, initial, ename, fIdxIn1, fIdxIn2)
     fIdx2 = 1
   end if
 
-  if(allocated(input) .neqv. .true.) then
+  if(.not. allocated(input)) then
 
 #ifdef DEBUG
     write(alloc_log,"(a)") "ALLOC> Allocating array '"//ename//"'"
@@ -1533,7 +1533,7 @@ subroutine alloc3dr64(input, eIdx1, eIdx2, eIdx3, initial, ename, fIdxIn1, fIdxI
     fIdx3 = 1
   end if
 
-  if(allocated(input) .neqv. .true.) then
+  if(.not. allocated(input)) then
 
 #ifdef DEBUG
     write(alloc_log,"(a)") "ALLOC> Allocating array '"//ename//"'"
@@ -1637,7 +1637,7 @@ subroutine alloc4dr64(input, eIdx1, eIdx2, eIdx3, eIdx4, initial, ename, fIdxIn1
     fIdx4 = 1
   end if
 
-  if(allocated(input) .neqv. .true.) then
+  if(.not. allocated(input)) then
 
 #ifdef DEBUG
     write(alloc_log,"(a)") "ALLOC> Allocating array '"//ename//"'"
@@ -1734,7 +1734,7 @@ subroutine alloc1dr128(input, eIdx, initial, ename, fIdxIn)
     fIdx = 1
   end if
 
-  if(allocated(input) .neqv. .true.) then
+  if(.not. allocated(input)) then
 
 #ifdef DEBUG
     write(alloc_log,"(a)") "ALLOC> Allocating array '"//ename//"'"
@@ -1810,7 +1810,7 @@ subroutine alloc2dr128(input, eIdx1, eIdx2, initial, ename, fIdxIn1, fIdxIn2)
     fIdx2 = 1
   end if
 
-  if(allocated(input) .neqv. .true.) then
+  if(.not. allocated(input)) then
 
 #ifdef DEBUG
     write(alloc_log,"(a)") "ALLOC> Allocating array '"//ename//"'"
@@ -1901,7 +1901,7 @@ subroutine alloc3dr128(input, eIdx1, eIdx2, eIdx3, initial, ename, fIdxIn1, fIdx
     fIdx3 = 1
   end if
 
-  if(allocated(input) .neqv. .true.) then
+  if(.not. allocated(input)) then
 
 #ifdef DEBUG
     write(alloc_log,"(a)") "ALLOC> Allocating array '"//ename//"'"
@@ -2005,7 +2005,7 @@ subroutine alloc4dr128(input, eIdx1, eIdx2, eIdx3, eIdx4, initial, ename, fIdxIn
     fIdx4 = 1
   end if
 
-  if(allocated(input) .neqv. .true.) then
+  if(.not. allocated(input)) then
 
 #ifdef DEBUG
     write(alloc_log,"(a)") "ALLOC> Allocating array '"//ename//"'"
@@ -2107,7 +2107,7 @@ subroutine alloc1dc(input, strlen, eIdx, initial, ename, fIdxIn)
     fIdx = 1
   end if
 
-  if(allocated(input) .neqv. .true.) then
+  if(.not. allocated(input)) then
 
 #ifdef DEBUG
     write(alloc_log,"(a)") "ALLOC> Allocating array '"//ename//"'"
@@ -2184,7 +2184,7 @@ subroutine alloc2dc(input, strlen, eIdx1, eIdx2, initial, ename, fIdxIn1, fIdxIn
     fIdx2 = 1
   end if
 
-  if(allocated(input) .neqv. .true.) then
+  if(.not. allocated(input)) then
 
 #ifdef DEBUG
     write(alloc_log,"(a)") "ALLOC> Allocating array '"//ename//"'"
@@ -2270,7 +2270,7 @@ subroutine alloc1ds(input, eIdx, initial, ename, fIdxIn)
     fIdx = 1
   end if
 
-  if(allocated(input) .neqv. .true.) then
+  if(.not. allocated(input)) then
 
 #ifdef DEBUG
     write(alloc_log,"(a)") "ALLOC> Allocating array '"//ename//"'"
@@ -2345,7 +2345,7 @@ subroutine alloc1dl(input, eIdx, initial, ename, fIdxIn)
     fIdx = 1
   end if
 
-  if(allocated(input) .neqv. .true.) then
+  if(.not. allocated(input)) then
 
 #ifdef DEBUG
     write(alloc_log,"(a)") "ALLOC> Allocating array '"//ename//"'"
@@ -2421,7 +2421,7 @@ subroutine alloc2dl(input, eIdx1, eIdx2, initial, ename, fIdxIn1, fIdxIn2)
     fIdx2 = 1
   end if
 
-  if(allocated(input) .neqv. .true.) then
+  if(.not. allocated(input)) then
 
 #ifdef DEBUG
     write(alloc_log,"(a)") "ALLOC> Allocating array '"//ename//"'"
@@ -2489,7 +2489,7 @@ subroutine dealloc1di16(input, ename)
   character(len=*), intent(in) :: ename
   integer(kind=int16), allocatable, intent(inout) :: input(:)
   !Check that we are already allocated
-  if(allocated(input) .eqv. .FALSE.) then
+  if(.not. allocated(input)) then
     write(lerr,"(a)") "ALLOC> ERROR Trying to deallocate a NULL pointer: '"//ename//"'"
     stop
   end if
@@ -2503,7 +2503,7 @@ subroutine dealloc2di16(input, ename)
   character(len=*), intent(in) :: ename
   integer(kind=int16), allocatable, intent(inout) :: input(:,:)
   !Check that we are already allocated
-  if(allocated(input) .eqv. .FALSE.) then
+  if(.not. allocated(input)) then
     write(lerr,"(a)") "ALLOC> ERROR Trying to deallocate a NULL pointer: '"//ename//"'"
     stop
   end if
@@ -2517,7 +2517,7 @@ subroutine dealloc3di16(input, ename)
   character(len=*), intent(in) :: ename
   integer(kind=int16), allocatable, intent(inout) :: input(:,:,:)
   !Check that we are already allocated
-  if(allocated(input) .eqv. .FALSE.) then
+  if(.not. allocated(input)) then
     write(lerr,"(a)") "ALLOC> ERROR Trying to deallocate a NULL pointer: '"//ename//"'"
     stop
   end if
@@ -2531,7 +2531,7 @@ subroutine dealloc1di32(input, ename)
   character(len=*), intent(in) :: ename
   integer(kind=int32), allocatable, intent(inout) :: input(:)
   !Check that we are already allocated
-  if(allocated(input) .eqv. .FALSE.) then
+  if(.not. allocated(input)) then
     write(lerr,"(a)") "ALLOC> ERROR Trying to deallocate a NULL pointer: '"//ename//"'"
     stop
   end if
@@ -2545,7 +2545,7 @@ subroutine dealloc2di32(input, ename)
   character(len=*), intent(in) :: ename
   integer(kind=int32), allocatable, intent(inout) :: input(:,:)
   !Check that we are already allocated
-  if(allocated(input) .eqv. .FALSE.) then
+  if(.not. allocated(input)) then
     write(lerr,"(a)") "ALLOC> ERROR Trying to deallocate a NULL pointer: '"//ename//"'"
     stop
   end if
@@ -2559,7 +2559,7 @@ subroutine dealloc3di32(input, ename)
   character(len=*), intent(in) :: ename
   integer(kind=int32), allocatable, intent(inout) :: input(:,:,:)
   !Check that we are already allocated
-  if(allocated(input) .eqv. .FALSE.) then
+  if(.not. allocated(input)) then
     write(lerr,"(a)") "ALLOC> ERROR Trying to deallocate a NULL pointer: '"//ename//"'"
     stop
   end if
@@ -2573,7 +2573,7 @@ subroutine dealloc1di64(input, ename)
   character(len=*), intent(in) :: ename
   integer(kind=int64), allocatable, intent(inout) :: input(:)
   !Check that we are already allocated
-  if(allocated(input) .eqv. .FALSE.) then
+  if(.not. allocated(input)) then
     write(lerr,"(a)") "ALLOC> ERROR Trying to deallocate a NULL pointer: '"//ename//"'"
     stop
   end if
@@ -2587,7 +2587,7 @@ subroutine dealloc2di64(input, ename)
   character(len=*), intent(in) :: ename
   integer(kind=int64), allocatable, intent(inout) :: input(:,:)
   !Check that we are already allocated
-  if(allocated(input) .eqv. .FALSE.) then
+  if(.not. allocated(input)) then
     write(lerr,"(a)") "ALLOC> ERROR Trying to deallocate a NULL pointer: '"//ename//"'"
     stop
   end if
@@ -2601,7 +2601,7 @@ subroutine dealloc3di64(input, ename)
   character(len=*), intent(in) :: ename
   integer(kind=int64), allocatable, intent(inout) :: input(:,:,:)
   !Check that we are already allocated
-  if(allocated(input) .eqv. .FALSE.) then
+  if(.not. allocated(input)) then
     write(lerr,"(a)") "ALLOC> ERROR Trying to deallocate a NULL pointer: '"//ename//"'"
     stop
   end if
@@ -2615,7 +2615,7 @@ subroutine dealloc1dr32(input, ename)
   character(len=*), intent(in) :: ename
   real(kind=real32), allocatable, intent(inout) :: input(:)
   !Check that we are already allocated
-  if(allocated(input) .eqv. .FALSE.) then
+  if(.not. allocated(input)) then
     write(lerr,"(a)") "ALLOC> ERROR Trying to deallocate a NULL pointer: '"//ename//"'"
     stop
   end if
@@ -2629,7 +2629,7 @@ subroutine dealloc2dr32(input, ename)
   character(len=*), intent(in) :: ename
   real(kind=real32), allocatable, intent(inout) :: input(:,:)
   !Check that we are already allocated
-  if(allocated(input) .eqv. .FALSE.) then
+  if(.not. allocated(input)) then
     write(lerr,"(a)") "ALLOC> ERROR Trying to deallocate a NULL pointer: '"//ename//"'"
     stop
   end if
@@ -2643,7 +2643,7 @@ subroutine dealloc3dr32(input, ename)
   character(len=*), intent(in) :: ename
   real(kind=real32), allocatable, intent(inout) :: input(:,:,:)
   !Check that we are already allocated
-  if(allocated(input) .eqv. .FALSE.) then
+  if(.not. allocated(input)) then
     write(lerr,"(a)") "ALLOC> ERROR Trying to deallocate a NULL pointer: '"//ename//"'"
     stop
   end if
@@ -2657,7 +2657,7 @@ subroutine dealloc4dr32(input, ename)
   character(len=*), intent(in) :: ename
   real(kind=real32), allocatable, intent(inout) :: input(:,:,:,:)
   !Check that we are already allocated
-  if(allocated(input) .eqv. .FALSE.) then
+  if(.not. allocated(input)) then
     write(lerr,"(a)") "ALLOC> ERROR Trying to deallocate a NULL pointer: '"//ename//"'"
     stop
   end if
@@ -2671,7 +2671,7 @@ subroutine dealloc1dr64(input, ename)
   character(len=*), intent(in) :: ename
   real(kind=real64), allocatable, intent(inout) :: input(:)
   !Check that we are already allocated
-  if(allocated(input) .eqv. .FALSE.) then
+  if(.not. allocated(input)) then
     write(lerr,"(a)") "ALLOC> ERROR Trying to deallocate a NULL pointer: '"//ename//"'"
     stop
   end if
@@ -2685,7 +2685,7 @@ subroutine dealloc2dr64(input, ename)
   character(len=*), intent(in) :: ename
   real(kind=real64), allocatable, intent(inout) :: input(:,:)
   !Check that we are already allocated
-  if(allocated(input) .eqv. .FALSE.) then
+  if(.not. allocated(input)) then
     write(lerr,"(a)") "ALLOC> ERROR Trying to deallocate a NULL pointer: '"//ename//"'"
     stop
   end if
@@ -2699,7 +2699,7 @@ subroutine dealloc3dr64(input, ename)
   character(len=*), intent(in) :: ename
   real(kind=real64), allocatable, intent(inout) :: input(:,:,:)
   !Check that we are already allocated
-  if(allocated(input) .eqv. .FALSE.) then
+  if(.not. allocated(input)) then
     write(lerr,"(a)") "ALLOC> ERROR Trying to deallocate a NULL pointer: '"//ename//"'"
     stop
   end if
@@ -2713,7 +2713,7 @@ subroutine dealloc4dr64(input, ename)
   character(len=*), intent(in) :: ename
   real(kind=real64), allocatable, intent(inout) :: input(:,:,:,:)
   !Check that we are already allocated
-  if(allocated(input) .eqv. .FALSE.) then
+  if(.not. allocated(input)) then
     write(lerr,"(a)") "ALLOC> ERROR Trying to deallocate a NULL pointer: '"//ename//"'"
     stop
   end if
@@ -2727,7 +2727,7 @@ subroutine dealloc1dr128(input, ename)
   character(len=*), intent(in) :: ename
   real(kind=real128), allocatable, intent(inout) :: input(:)
   !Check that we are already allocated
-  if(allocated(input) .eqv. .FALSE.) then
+  if(.not. allocated(input)) then
     write(lerr,"(a)") "ALLOC> ERROR Trying to deallocate a NULL pointer: '"//ename//"'"
     stop
   end if
@@ -2741,7 +2741,7 @@ subroutine dealloc2dr128(input, ename)
   character(len=*), intent(in) :: ename
   real(kind=real128), allocatable, intent(inout) :: input(:,:)
   !Check that we are already allocated
-  if(allocated(input) .eqv. .FALSE.) then
+  if(.not. allocated(input)) then
     write(lerr,"(a)") "ALLOC> ERROR Trying to deallocate a NULL pointer: '"//ename//"'"
     stop
   end if
@@ -2755,7 +2755,7 @@ subroutine dealloc3dr128(input, ename)
   character(len=*), intent(in) :: ename
   real(kind=real128), allocatable, intent(inout) :: input(:,:,:)
   !Check that we are already allocated
-  if(allocated(input) .eqv. .FALSE.) then
+  if(.not. allocated(input)) then
     write(lerr,"(a)") "ALLOC> ERROR Trying to deallocate a NULL pointer: '"//ename//"'"
     stop
   end if
@@ -2769,7 +2769,7 @@ subroutine dealloc4dr128(input, ename)
   character(len=*), intent(in) :: ename
   real(kind=real128), allocatable, intent(inout) :: input(:,:,:,:)
   !Check that we are already allocated
-  if(allocated(input) .eqv. .FALSE.) then
+  if(.not. allocated(input)) then
     write(lerr,"(a)") "ALLOC> ERROR Trying to deallocate a NULL pointer: '"//ename//"'"
     stop
   end if
@@ -2785,7 +2785,7 @@ subroutine dealloc1dc(input, strlen, ename)
   integer, intent(in) :: strlen
 
   !Check that we are already allocated
-  if(allocated(input) .eqv. .FALSE.) then
+  if(.not. allocated(input)) then
     write(lerr,"(a)") "ALLOC> ERROR Trying to deallocate a NULL pointer: '"//ename//"'"
     stop
   end if
@@ -2802,7 +2802,7 @@ subroutine dealloc2dc(input, strlen, ename)
   integer, intent(in) :: strlen
 
   !Check that we are already allocated
-  if(allocated(input) .eqv. .FALSE.) then
+  if(.not. allocated(input)) then
     write(lerr,"(a)") "ALLOC> ERROR Trying to deallocate a NULL pointer: '"//ename//"'"
     stop
   end if
@@ -2817,7 +2817,7 @@ subroutine dealloc1dl(input, ename)
   character(len=*), intent(in) :: ename
   logical, allocatable, intent(inout) :: input(:)
   !Check that we are already allocated
-  if(allocated(input) .eqv. .FALSE.) then
+  if(.not. allocated(input)) then
     write(lerr,"(a)") "ALLOC> ERROR Trying to deallocate a NULL pointer: '"//ename//"'"
     stop
   end if
@@ -2831,7 +2831,7 @@ subroutine dealloc2dl(input, ename)
   character(len=*), intent(in) :: ename
   logical, allocatable, intent(inout) :: input(:,:)
   !Check that we are already allocated
-  if(allocated(input) .eqv. .FALSE.) then
+  if(.not. allocated(input)) then
     write(lerr,"(a)") "ALLOC> ERROR Trying to deallocate a NULL pointer: '"//ename//"'"
     stop
   end if

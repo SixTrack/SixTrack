@@ -3,7 +3,7 @@
 ! ~~~~~~~~~~~~~~~~~~~~~~~
 !  V.K. Berglyd Olsen, BE-ABP-HSS
 !  Created: 2018-05-18
-!  Updated: 2019-04-24
+!  Updated: 2019-05-08
 ! ================================================================================================ !
 module sixtrack_input
 
@@ -11,6 +11,16 @@ module sixtrack_input
   use numerical_constants, only : zero, one, c1m3
 
   implicit none
+
+  ! Block Presence
+  logical, public,  save :: sixin_hasSIMU    = .false.
+  logical, public,  save :: sixin_hasTRAC    = .false.
+  logical, public,  save :: sixin_hasINIT    = .false.
+  logical, public,  save :: sixin_hasHION    = .false.
+
+  ! Various Flags for Consistency Between Blocks
+  logical, public,  save :: sixin_hionSet    = .false.
+  logical, public,  save :: sixin_refMassSet = .false.
 
   ! Record of encountered blocks
   character(len=:), allocatable, private, save :: sixin_cBlock(:) ! Name of block
@@ -20,44 +30,48 @@ module sixtrack_input
   integer,                       private, save :: sixin_nBlock    ! Number of blocks
 
   ! Linear Optics Variables
-  integer,                       private, save :: sixin_ilin0 = 1
+  integer,          private, save :: sixin_ilin0 = 1
 
   ! Synchrotron Oscillations
-  real(kind=fPrec),              public,  save :: sixin_alc  = c1m3
-  real(kind=fPrec),              public,  save :: sixin_harm = one
-  real(kind=fPrec),              public,  save :: sixin_phag = zero
-  real(kind=fPrec),              public,  save :: sixin_u0   = zero
+  real(kind=fPrec), public,  save :: sixin_alc  = c1m3
+  real(kind=fPrec), public,  save :: sixin_harm = one
+  real(kind=fPrec), public,  save :: sixin_phag = zero
+  real(kind=fPrec), public,  save :: sixin_u0   = zero
 
   ! Multipole Coefficients
-  integer,                       private, save :: sixin_im = 0
+  integer,          private, save :: sixin_im = 0
 
   ! RF-multipoles
-  integer,                       private, save :: sixin_rfm = 0
+  integer,          private, save :: sixin_rfm = 0
 
   ! Beam-Beam Elements
-  real(kind=fPrec),              public,  save :: sixin_emitNX = zero
-  real(kind=fPrec),              public,  save :: sixin_emitNY = zero
+  real(kind=fPrec), public,  save :: sixin_emitNX = zero
+  real(kind=fPrec), public,  save :: sixin_emitNY = zero
 
   ! "Phase Trombone" Element
-  integer,                       private, save :: sixin_imtr0 = 0
+  integer,          private, save :: sixin_imtr0 = 0
 
   ! Settings
-  logical,                       private, save :: sixin_forcePartSummary = .false.
-  logical,                       private, save :: sixin_forceWriteFort12 = .false.
+  logical,          private, save :: sixin_forcePartSummary = .false.
+  logical,          private, save :: sixin_forceWriteFort12 = .false.
+
+  ! Simulation Block
+  logical,          public,  save :: sixin_simuThick       = .false.    ! Lattice is thick
+  logical,          public,  save :: sixin_simu6D          = .false.    ! Tracking 6D
+  logical,          public,  save :: sixin_simuMassFromPDG = .false.    ! Set the referenc mass from PG ID
+  logical,          public,  save :: sixin_simuFort33      = .false.    ! Read fort.33
+  logical,          public,  save :: sixin_simuInitClorb   = .false.    ! Init closed orbit from fort.3
+  real(kind=fPrec), public,  save :: sixin_simuSetClorb(6) = zero       ! The init values for closed orbit
 
   interface sixin_echoVal
     module procedure sixin_echoVal_int
-    module procedure sixin_echoVal_real32
-    module procedure sixin_echoVal_real64
-    module procedure sixin_echoVal_real128
+    module procedure sixin_echoVal_real
     module procedure sixin_echoVal_char
     module procedure sixin_echoVal_logical
   end interface sixin_echoVal
 
   private :: sixin_echoVal_int
-  private :: sixin_echoVal_real32
-  private :: sixin_echoVal_real64
-  private :: sixin_echoVal_real128
+  private :: sixin_echoVal_real
   private :: sixin_echoVal_char
   private :: sixin_echoVal_logical
 
@@ -247,19 +261,19 @@ subroutine sixin_echoVal_int(varName, varVal, blockName, lineNo)
   else
     write(lineNm,"(i2)") lineNo
   end if
-  write(lout,"(a,i0)") "INPUT> DEBUG "//blockName//":"//lineNm//" "//chr_rpad(varName,10)//" =  ",varVal
+  write(lout,"(a,i0)") "INPUT> DEBUG "//blockName//":"//lineNm//" "//chr_rpad(varName,16)//" =  ",varVal
 
 end subroutine sixin_echoVal_int
 
-subroutine sixin_echoVal_real32(varName, varVal, blockName, lineNo)
+subroutine sixin_echoVal_real(varName, varVal, blockName, lineNo)
 
   use crcoall
   use string_tools
 
-  character(len=*),  intent(in) :: varName
-  real(kind=real32), intent(in) :: varVal
-  character(len=*),  intent(in) :: blockName
-  integer,           intent(in) :: lineNo
+  character(len=*), intent(in) :: varName
+  real(kind=fPrec), intent(in) :: varVal
+  character(len=*), intent(in) :: blockName
+  integer,          intent(in) :: lineNo
   character(len=2) :: lineNm
 
   if(lineNo == -1) then
@@ -269,53 +283,17 @@ subroutine sixin_echoVal_real32(varName, varVal, blockName, lineNo)
   else
     write(lineNm,"(i2)") lineNo
   end if
-  write(lout,"(a,e13.6)") "INPUT> DEBUG "//blockName//":"//lineNm//" "//chr_rpad(varName,10)//" = ",varVal
+#ifdef SINGLE_MATH
+  write(lout,"(a,1pe13.6)")  "INPUT> DEBUG "//blockName//":"//lineNm//" "//chr_rpad(varName,16)//" = ",varVal
+#endif
+#ifdef DOUBLE_MATH
+  write(lout,"(a,1pe22.15)") "INPUT> DEBUG "//blockName//":"//lineNm//" "//chr_rpad(varName,16)//" = ",varVal
+#endif
+#ifdef QUAD_MATH
+  write(lout,"(a,1pe41.34)") "INPUT> DEBUG "//blockName//":"//lineNm//" "//chr_rpad(varName,16)//" = ",varVal
+#endif
 
-end subroutine sixin_echoVal_real32
-
-subroutine sixin_echoVal_real64(varName, varVal, blockName, lineNo)
-
-  use crcoall
-  use string_tools
-
-  character(len=*),  intent(in) :: varName
-  real(kind=real64), intent(in) :: varVal
-  character(len=*),  intent(in) :: blockName
-  integer,           intent(in) :: lineNo
-  character(len=2) :: lineNm
-
-  if(lineNo == -1) then
-    lineNm = "PP"
-  else if(lineNo < 10) then
-    write(lineNm,"(i1,1x)") lineNo
-  else
-    write(lineNm,"(i2)") lineNo
-  end if
-  write(lout,"(a,e22.15)") "INPUT> DEBUG "//blockName//":"//lineNm//" "//chr_rpad(varName,10)//" = ",varVal
-
-end subroutine sixin_echoVal_real64
-
-subroutine sixin_echoVal_real128(varName, varVal, blockName, lineNo)
-
-  use crcoall
-  use string_tools
-
-  character(len=*),   intent(in) :: varName
-  real(kind=real128), intent(in) :: varVal
-  character(len=*),   intent(in) :: blockName
-  integer,            intent(in) :: lineNo
-  character(len=2) :: lineNm
-
-  if(lineNo == -1) then
-    lineNm = "PP"
-  else if(lineNo < 10) then
-    write(lineNm,"(i1,1x)") lineNo
-  else
-    write(lineNm,"(i2)") lineNo
-  end if
-  write(lout,"(a,e41.34)") "INPUT> DEBUG "//blockName//":"//lineNm//" "//chr_rpad(varName,10)//" = ",varVal
-
-end subroutine sixin_echoVal_real128
+end subroutine sixin_echoVal_real
 
 subroutine sixin_echoVal_char(varName, varVal, blockName, lineNo)
 
@@ -335,7 +313,7 @@ subroutine sixin_echoVal_char(varName, varVal, blockName, lineNo)
   else
     write(lineNm,"(i2)") lineNo
   end if
-  write(lout,"(a)") "INPUT> DEBUG "//blockName//":"//lineNm//" "//chr_rpad(varName,10)//" = '"//varVal//"'"
+  write(lout,"(a)") "INPUT> DEBUG "//blockName//":"//lineNm//" "//chr_rpad(varName,16)//" = '"//trim(varVal)//"'"
 
 end subroutine sixin_echoVal_char
 
@@ -358,9 +336,9 @@ subroutine sixin_echoVal_logical(varName, varVal, blockName, lineNo)
     write(lineNm,"(i2)") lineNo
   end if
   if(varVal) then
-    write(lout,"(a)") "INPUT> DEBUG "//blockName//":"//lineNm//" "//chr_rpad(varName,10)//" = True"
+    write(lout,"(a)") "INPUT> DEBUG "//blockName//":"//lineNm//" "//chr_rpad(varName,16)//" = True"
   else
-    write(lout,"(a)") "INPUT> DEBUG "//blockName//":"//lineNm//" "//chr_rpad(varName,10)//" = False"
+    write(lout,"(a)") "INPUT> DEBUG "//blockName//":"//lineNm//" "//chr_rpad(varName,16)//" = False"
   end if
 
 end subroutine sixin_echoVal_logical
@@ -469,11 +447,12 @@ subroutine sixin_parseInputLineSETT(inLine, iLine, iErr)
       iErr = .true.
       return
     end if
+    st_iStateWrite = .true.
     select case(lnSplit(2))
     case("binary")
-      st_initialstate = 1
+      st_iStateText = .false.
     case("text")
-      st_initialstate = 2
+      st_iStateText = .true.
     case default
       write(lerr,"(a)") "INPUT> ERROR INITIALSTATE first value be either 'binary' or 'text', got '"//trim(lnSplit(2))//"'"
       iErr = .true.
@@ -481,23 +460,13 @@ subroutine sixin_parseInputLineSETT(inLine, iLine, iErr)
     end select
     if(nSplit == 3) then
       if(lnSplit(3) == "ions") then
-        st_initialstate = st_initialstate + 2
+        st_iStateIons = .true.
       else
         write(lerr,"(a)") "INPUT> ERROR INITIALSTATE second value must be 'ions', got '"//trim(lnSplit(3))//"'"
         iErr = .true.
         return
       end if
     end if
-    select case(st_initialstate)
-    case(1)
-      write(lout,"(a,i0)") "INPUT> Particle initial state will be dumped as a binary file"
-    case(2)
-      write(lout,"(a,i0)") "INPUT> Particle initial state will be dumped as a text file"
-    case(3)
-      write(lout,"(a,i0)") "INPUT> Particle initial state will be dumped as a binary file with ion data included"
-    case(4)
-      write(lout,"(a,i0)") "INPUT> Particle initial state will be dumped as a text file with ion data included"
-    end select
 
   case("FINALSTATE")
     if(nSplit /= 2 .and. nSplit /= 3) then
@@ -505,11 +474,12 @@ subroutine sixin_parseInputLineSETT(inLine, iLine, iErr)
       iErr = .true.
       return
     end if
+    st_fStateWrite = .true.
     select case(lnSplit(2))
     case("binary")
-      st_finalstate = 1
+      st_fStateText = .false.
     case("text")
-      st_finalstate = 2
+      st_fStateText = .true.
     case default
       write(lerr,"(a)") "INPUT> ERROR FINALSTATE first value must be either 'binary' or 'text', got '"//trim(lnSplit(2))//"'"
       iErr = .true.
@@ -517,23 +487,13 @@ subroutine sixin_parseInputLineSETT(inLine, iLine, iErr)
     end select
     if(nSplit == 3) then
       if(lnSplit(3) == "ions") then
-        st_finalstate = st_finalstate + 2
+        st_fStateIons = .true.
       else
         write(lerr,"(a)") "INPUT> ERROR FINALSTATE second value must be 'ions', got '"//trim(lnSplit(3))//"'"
         iErr = .true.
         return
       end if
     end if
-    select case(st_finalstate)
-    case(1)
-      write(lout,"(a,i0)") "INPUT> Particle final state will be dumped as a binary file"
-    case(2)
-      write(lout,"(a,i0)") "INPUT> Particle final state will be dumped as a text file"
-    case(3)
-      write(lout,"(a,i0)") "INPUT> Particle final state will be dumped as a binary file with ion data included"
-    case(4)
-      write(lout,"(a,i0)") "INPUT> Particle final state will be dumped as a text file with ion data included"
-    end select
 
   case("QUIET")
     if(nSplit > 1) then
@@ -546,6 +506,455 @@ subroutine sixin_parseInputLineSETT(inLine, iLine, iErr)
   end select
 
 end subroutine sixin_parseInputLineSETT
+
+! ================================================================================================ !
+!  Parse Simulation Block Line
+!  V.K. Berglyd Olsen, BE-ABP-HSS
+!  Created: 2019-05-08
+!  Updated: 2019-05-08
+! ================================================================================================ !
+subroutine sixin_parseInputLineSIMU(inLine, iLine, iErr)
+
+  use crcoall
+  use string_tools
+  use mod_settings
+  use mod_common
+  use mod_commons
+  use mod_common_track
+  use mod_pdgid
+  use physical_constants
+
+  character(len=*), intent(in)    :: inLine
+  integer,          intent(in)    :: iLine
+  logical,          intent(inout) :: iErr
+
+  character(len=:), allocatable   :: lnSplit(:)
+  integer i, nSplit, numPart, tmpInt
+  logical spErr, tmpLog
+
+  call chr_split(inLine, lnSplit, nSplit, spErr)
+  if(spErr) then
+    write(lerr,"(a)") "SIMU> ERROR Failed to parse input line."
+    iErr = .true.
+    return
+  end if
+  if(nSplit == 0) return
+
+  ! Set a few defaults that the SIMU block does not provide an interface for
+  idz(:) = 1     ! Set coupling to on for both planes when using this block, otherwise it's [1,0]
+  ntwin  = 2     ! Improved Lyapunov analysis
+  idfor  = 1     ! Don't add closed orbit, 4D version of the flag
+  nwr(4) = 10000 ! How often to dump a fort.12 by default
+
+  ! Set clssical radius from default proton and electron masses.
+  ! This is changed if the user requests latest values
+  crad = (crade*pmae)/pmap
+
+  select case(lnSplit(1))
+
+  case("PARTICLES")
+    if(nSplit /= 2) then
+      write(lerr,"(a,i0)") "SIMU> ERROR PARTICLES takes 1 argument, got ",nSplit-1
+      write(lerr,"(a)")    "SIMU>       PARTICLES n_particles"
+      iErr = .true.
+      return
+    end if
+    call chr_cast(lnSplit(2),numPart,iErr)
+    if(mod(numPart,2) /= 0) then
+      write(lerr,"(a)") "SIMU> ERROR NPART must be an even number"
+      iErr = .true.
+      return
+    end if
+    napx = numPart/2
+#ifndef STF
+    if(napx > 32) then
+      write(lerr,"(a)") "SIMU> ERROR To run SixTrack with more than 64 particles, it has to be compiled with the STF flag."
+      iErr = .true.
+      return
+    end if
+#endif
+    if(numPart > npart) then
+      call expand_arrays(nele, numPart, nblz, nblo)
+    end if
+    if(napx > 32 .and. .not. sixin_forcePartSummary) then
+      write(lout,"(a)") "SIMU> NOTE More than 64 particles requested, switching off printing of particle summary."
+      st_partsum = .false.
+    end if
+    if(napx > 32 .and. .not. sixin_forceWriteFort12) then
+      write(lout,"(a)") "SIMU> NOTE More than 64 particles requested, switching off wriritng of fort.12."
+      st_writefort12 = .false.
+    end if
+
+    if(st_debug) then
+      call sixin_echoVal("npart",numPart,"SIMU",iLine)
+    end if
+    if(iErr) return
+
+  case("TURNS")
+    if(nSplit < 2 .or. nSplit > 3) then
+      write(lerr,"(a,i0)") "SIMU> ERROR TURNS takes 1 or 2 arguments, got ",nSplit-1
+      write(lerr,"(a)")    "SIMU>       TURNS forward_turns [backward_turns]"
+      iErr = .true.
+      return
+    end if
+    if(nSplit > 1) call chr_cast(lnSplit(2), numl,  iErr) ! Number of turns in the forward direction
+    if(nSplit > 2) call chr_cast(lnSplit(3), numlr, iErr) ! Number of turns in the backward direction
+    nnuml = numl ! Default nnuml to numl
+    if(st_debug) then
+      call sixin_echoVal("turn_forward", numl, "SIMU",iLine)
+      call sixin_echoVal("turn_backward",numlr,"SIMU",iLine)
+    end if
+    if(iErr) return
+
+  case("REF_ENERGY")
+    if(nSplit < 2) then
+      write(lerr,"(a,i0)") "SIMU> ERROR REF_ENERGY takes 1 argument, got ",nSplit-1
+      write(lerr,"(a)")    "SIMU>       REF_ENERGY energy[MeV]"
+      iErr = .true.
+      return
+    end if
+    call chr_cast(lnSplit(2),e0,iErr)
+    if(st_debug) then
+      call sixin_echoVal("ref_energy",e0,"SIMU",iLine)
+    end if
+    if(iErr) return
+
+  case("PDG_YEAR")
+    if(nSplit < 2) then
+      write(lerr,"(a,i0)") "SIMU> ERROR PDG_YEAR takes 1 argument, got ",nSplit-1
+      write(lerr,"(a)")    "SIMU>       PDG_YEAR year"
+      iErr = .true.
+      return
+    end if
+    call chr_cast(lnSplit(2),pdgyear,iErr)
+    ! Compute the proton radius from PDG year
+    select case(pdgyear)
+    case(2017,2018)
+      crad = (crade_18*pmae_18)/pmap_18
+    case default
+      crad = (crade*pmae)/pmap
+    end select
+    if(st_debug) then
+      call sixin_echoVal("pdgyear",pdgyear,"SIMU",iLine)
+    end if
+    if(iErr) return
+
+  case("REF_PARTICLE")
+    if(nSplit /= 2 .and. nSplit /= 3 .and. nSplit /= 5) then
+      write(lerr,"(a,i0)") "SIMU> ERROR REF_PARTICLE takes 1, 2 or 4 arguments, got ",nSplit-1
+      write(lerr,"(a)")    "SIMU>       REF_PARTICLE mass[MeV] [charge A Z]"
+      write(lerr,"(a)")    "SIMU>    or REF_PARTICLE name/PDGID [charge A Z]"
+      iErr = .true.
+      return
+    end if
+    if(chr_isNumeric(lnSplit(2))) then
+      call chr_cast(lnSplit(2),nucm0,iErr)
+    else
+      select case(chr_toLower(lnSplit(2)))
+      case("proton","pdg2212")
+        pdgid0 = 2212
+        aa0    = 1
+        zz0    = 1
+        qq0    = 1
+      case default
+        write(lerr,"(a)") "SIMU> ERROR Unknown or unsupported named particle mass or PDG ID '"//trim(lnSplit(2))//"'"
+        iErr = .true.
+        return
+      end select
+      sixin_simuMassFromPDG = .true.
+    end if
+    if(nSplit > 2) then
+      call chr_cast(lnSplit(3),qq0,iErr)
+    end if
+    if(nSplit > 3) then
+      call chr_cast(lnSplit(4),aa0,iErr)
+      call chr_cast(lnSplit(5),zz0,iErr)
+    end if
+
+!   aa0, zz0 will default to 1
+    call CalculatePDGid(pdgid0, aa0, zz0)
+
+    if(st_debug) then
+      call sixin_echoVal("PDGid",        pdgid0,   "SIMU",iLine)
+      call sixin_echoVal("charge",       int(qq0), "SIMU",iLine)
+      call sixin_echoVal("A",            int(aa0), "SIMU",iLine)
+      call sixin_echoVal("Z",            int(zz0), "SIMU",iLine)
+      call sixin_echoVal("proton_radius",crad,     "SIMU",iLine)
+    end if
+    if(iErr) return
+    sixin_hionSet    = .true.
+    sixin_refMassSet = .true. ! Prevents the SYNC block from overriding nucm0 and crad
+
+  case("OPTICS")
+    if(nSplit /= 3) then
+      write(lerr,"(a,i0)") "SIMU> ERROR OPTICS takes 2 arguments, got ",nSplit-1
+      write(lerr,"(a)")    "SIMU>       OPTICS first_idx last_idx"
+      iErr = .true.
+      return
+    end if
+    call chr_cast(lnSplit(2), niu(1), iErr) ! Optics calculation, first index
+    call chr_cast(lnSplit(3), niu(2), iErr) ! Optics calculation. last index
+    if(st_debug) then
+      call sixin_echoVal("optics_start",niu(1),"SIMU",iLine)
+      call sixin_echoVal("optics_end",  niu(2),"SIMU",iLine)
+    end if
+    if(iErr) return
+
+  case("LATTICE")
+    if(nSplit /= 3) then
+      write(lerr,"(a,i0)") "SIMU> ERROR LATTICE takes 2 arguments, got ",nSplit-1
+      write(lerr,"(a)")    "SIMU>       LATTICE thin|thick 4D|6D"
+      iErr = .true.
+      return
+    end if
+    select case(chr_toLower(lnSplit(2)))
+    case("thin")
+      if(ithick == 1) then
+        write(lerr,"(a)") "SIMU> ERROR Geometry mismatch. Asked for thin tracking on a thick geometry input file."
+        iErr = .true.
+        return
+      end if
+      sixin_simuThick = .false.
+    case("thick")
+      if(ithick /= 1) then
+        write(lerr,"(a)") "SIMU> ERROR Geometry mismatch. Asked for thick tracking on a thin geometry input file."
+        iErr = .true.
+        return
+      end if
+      sixin_simuThick = .true.
+    case default
+      write(lerr,"(a)") "SIMU> ERROR Unknown lattice structure '"//trim(lnSplit(2))//"'"
+      iErr = .true.
+      return
+    end select
+    select case(chr_toUpper(lnSplit(3)))
+    case("4D")
+      sixin_simu6D = .false.
+    case("6D")
+      sixin_simu6D = .true.
+    case default
+      write(lerr,"(a)") "SIMU> ERROR Unknown dimension '"//trim(lnSplit(3))//"'"
+      iErr = .true.
+      return
+    end select
+
+  case("CRPOINT")
+    if(nSplit /= 2) then
+      write(lerr,"(a,i0)") "SIMU> ERROR CRPOINT takes 1 argument, got ",nSplit-1
+      write(lerr,"(a)")    "SIMU>       CRPOINT interval"
+      iErr = .true.
+      return
+    end if
+    call chr_cast(lnSplit(2),numlcp,iErr)
+    if(numlcp < 1) then
+      write(lerr,"(a)") "SIMU> ERROR CRPOINT must be larger than 0"
+      iErr = .true.
+      return
+    end if
+    if(st_debug) then
+      call sixin_echoVal("crpoint",numlcp,"SIMU",iLine)
+    end if
+    if(iErr) return
+
+  case("6D_CLORB")
+    if(nSplit /= 2) then
+      write(lerr,"(a,i0)") "SIMU> ERROR 6D_CLORB takes 1 argument, got ",nSplit-1
+      write(lerr,"(a)")    "SIMU>       6D_CLORB on|off"
+      iErr = .true.
+      return
+    end if
+    call chr_cast(lnSplit(2),tmpLog,iErr)
+    if(tmpLog) then
+      iclo6 = 1
+    else
+      iclo6 = 0
+    end if
+    if(st_debug) then
+      call sixin_echoVal("calc_clorb",iclo6,"SIMU",iLine)
+    end if
+    if(iErr) return
+
+  case("INIT_CLORB")
+    if(nSplit /= 2 .and. nSplit /= 5 .and. nSplit /= 7) then
+      write(lerr,"(a,i0)") "SIMU> ERROR INIT_CLORB takes 1, 4 or 6 arguments, got ",nSplit-1
+      write(lerr,"(a)")    "SIMU>       INIT_CLORB read_fort33(on|off)"
+      write(lerr,"(a)")    "SIMU>    or INIT_CLORB x xp y yp sigma dp/p"
+      iErr = .true.
+      return
+    end if
+    if(nSplit == 2) then
+      sixin_simuInitClorb = .false.
+      call chr_cast(lnSplit(2),sixin_simuFort33,iErr)
+      if(st_debug) then
+        call sixin_echoVal("read_fort33",sixin_simuFort33,"SIMU",iLine)
+      end if
+    else
+      sixin_simuInitClorb = .true.
+      call chr_cast(lnSplit(2),sixin_simuSetClorb(1),iErr)
+      call chr_cast(lnSplit(3),sixin_simuSetClorb(2),iErr)
+      call chr_cast(lnSplit(4),sixin_simuSetClorb(3),iErr)
+      call chr_cast(lnSplit(5),sixin_simuSetClorb(4),iErr)
+      if(nSplit == 7) then
+        call chr_cast(lnSplit(6),sixin_simuSetClorb(5),iErr)
+        call chr_cast(lnSplit(7),sixin_simuSetClorb(6),iErr)
+      end if
+      if(st_debug) then
+        call sixin_echoVal("init_clorb_x",    sixin_simuSetClorb(1),"SIMU",iLine)
+        call sixin_echoVal("init_clorb_xp",   sixin_simuSetClorb(2),"SIMU",iLine)
+        call sixin_echoVal("init_clorb_y",    sixin_simuSetClorb(3),"SIMU",iLine)
+        call sixin_echoVal("init_clorb_yp",   sixin_simuSetClorb(4),"SIMU",iLine)
+        call sixin_echoVal("init_clorb_sigma",sixin_simuSetClorb(5),"SIMU",iLine)
+        call sixin_echoVal("init_clorb_dpsv", sixin_simuSetClorb(6),"SIMU",iLine)
+      end if
+    end if
+    if(iErr) return
+
+  case("READ_FORT13")
+    if(nSplit /= 2) then
+      write(lerr,"(a,i0)") "SIMU> ERROR READ_FORT13 takes 1 argument, got ",nSplit-1
+      write(lerr,"(a)")    "SIMU>       READ_FORT13 on|off"
+      iErr = .true.
+      return
+    end if
+    call chr_cast(lnSplit(2),rdfort13,iErr)
+    if(st_debug) then
+      call sixin_echoVal("read_fort13",rdfort13,"SIMU",iLine)
+    end if
+    if(iErr) return
+
+  case("WRITE_FORT12")
+    if(nSplit /= 2) then
+      write(lerr,"(a,i0)") "SIMU> ERROR WRITE_FORT12 takes 1 argument, got ",nSplit-1
+      write(lerr,"(a)")    "SIMU>       WRITE_FORT12 interval"
+      iErr = .true.
+      return
+    end if
+    call chr_cast(lnSplit(2),nwr(4),iErr)
+    if(st_debug) then
+      call sixin_echoVal("write_fort12",nwr(4),"SIMU",iLine)
+    end if
+    if(iErr) return
+
+  case("WRITE_TRACKS")
+    if(nSplit /= 2 .and. nSplit /= 3) then
+      write(lerr,"(a,i0)") "SIMU> ERROR WRITE_TRACKS takes 1 or 2 arguments, got ",nSplit-1
+      write(lerr,"(a)")    "SIMU>       WRITE_TRACKS interval [rewind(on|off)]"
+      iErr = .true.
+      return
+    end if
+    call chr_cast(lnSplit(2),nwri,iErr)
+    if(nSplit > 2) then
+      call chr_cast(lnSplit(3),tmpLog,iErr)
+      if(tmpLog) then
+        irew = 0
+      else
+        irew = 1
+      end if
+    end if
+    if(st_debug) then
+      call sixin_echoVal("write_tracks", nwri,"SIMU",iLine)
+      call sixin_echoVal("rewind_tracks",irew,"SIMU",iLine)
+    end if
+    if(iErr) return
+
+  case("EXACT")
+    if(nSplit /= 2) then
+      write(lerr,"(a,i0)") "SIMU> ERROR EXACT takes 1 argument, got ",nSplit-1
+      write(lerr,"(a)")    "SIMU>       EXACT on|off"
+      iErr = .true.
+      return
+    end if
+    call chr_cast(lnSplit(2),iexact,iErr)
+    if(st_debug) then
+      call sixin_echoVal("do_exact",iexact,"SIMU",iLine)
+    end if
+    if(iErr) return
+
+  case("CURVEFF")
+    if(nSplit /= 2) then
+      write(lerr,"(a,i0)") "SIMU> ERROR CURVEFF takes 1 argument, got ",nSplit-1
+      write(lerr,"(a)")    "SIMU>       CURVEFF on|off"
+      iErr = .true.
+      return
+    end if
+    call chr_cast(lnSplit(2),curveff,iErr)
+    if(st_debug) then
+      call sixin_echoVal("do_curveff",curveff,"SIMU",iLine)
+    end if
+    if(iErr) return
+
+  case default
+    write(lerr,"(a)") "SIMU> ERROR Unknown keyword '"//trim(lnSplit(1))//"'"
+    iErr = .true.
+    return
+
+  end select
+
+end subroutine sixin_parseInputLineSIMU
+
+! Called when the SIMU block is closed
+subroutine sixin_parseInputDoneSIMU(iErr)
+
+  use crcoall
+  use mod_common
+  use mod_settings
+  use physical_constants
+
+  logical, intent(inout) :: iErr
+
+  ! Set the mass from the PDG ID in the case it was not explicitly give as a number
+  if(sixin_simuMassFromPDG) then
+    select case(pdgid0)
+    case(2212)
+      select case(pdgyear)
+      case(2017,2018)
+        nucm0 = pmap_18
+      case default
+        nucm0 = pmap
+      end select
+    case default
+      write(lout,"(a,i0)") "SIMU> ERROR Unknown or unsupported PDG ID ",pdgid0
+      iErr = .true.
+    end select
+  end if
+
+  if(st_debug) then
+    call sixin_echoVal("nucm0",  nucm0,  "SIMU",-1)
+    call sixin_echoVal("pdgid0", pdgid0, "SIMU",-1)
+    call sixin_echoVal("pdgyear",pdgyear,"SIMU",-1)
+  end if
+
+end subroutine sixin_parseInputDoneSIMU
+
+! Called after ENDE
+subroutine sixin_postInputSIMU(iErr)
+
+  use crcoall
+  use mod_common
+  use mod_common_da
+  use mod_settings
+
+  logical, intent(inout) :: iErr
+
+  if(sixin_hasSIMU .and. (sixin_simuThick .neqv. (ithick == 1))) then
+    write(lout,"(a)") "SIMU> ERROR Lattice format either not defined in SIMU block, or does not match the structure file."
+    iErr = .true.
+  end if
+
+  if(iclo6 > 0 .and. .not. sixin_simu6D) then
+    write(lout,"(a)") "SIMU> ERROR Can only calculated 6D closed orbit for 6D simulations."
+    iErr = .true.
+  end if
+
+  if(sixin_simu6D) nsix  = 0
+
+  if(st_debug) then
+    call sixin_echoVal("idfor",idfor,"SIMU",-1)
+    call sixin_echoVal("iclo6",iclo6,"SIMU",-1)
+    call sixin_echoVal("nsix", nsix, "SIMU",-1)
+  end if
+
+end subroutine sixin_postInputSIMU
 
 ! ================================================================================================ !
 !  Parse Displacement Block Line
@@ -791,6 +1200,61 @@ subroutine sixin_parseInputLineINIT(inLine, iLine, iErr)
 end subroutine sixin_parseInputLineINIT
 
 ! ================================================================================================ !
+!  Parse Heavy Ions Parameters Line
+!  Moved from hions module
+!  Last modified: 2018-06-xx
+! ================================================================================================ !
+subroutine sixin_parseInputLineHION(inLine, iLine, iErr)
+
+  use crcoall
+  use string_tools
+  use mod_common
+  use mod_pdgid
+
+  character(len=*), intent(in)    :: inLine
+  integer,          intent(inout) :: iLine
+  logical,          intent(inout) :: iErr
+
+  character(len=:), allocatable   :: lnSplit(:)
+  integer nSplit
+  logical spErr
+
+  call chr_split(inLine, lnSplit, nSplit, spErr)
+  if(spErr) then
+    write(lerr,"(a)") "HIONS> ERROR Failed to parse input line."
+    iErr = .true.
+    return
+  end if
+  if(nSplit == 0) return
+
+  if(iLine > 1) then
+    write(lout,"(a)") "HIONS> WARNING Only expected one input line."
+  end if
+
+  if(nSplit < 3 .or. nSplit > 4) then
+    write(lerr,"(a,i0)") "HIONS> ERROR Line must have 3 values (4 with Q), got ",nSplit
+    iErr = .true.
+    return
+  end if
+
+  call chr_cast(lnSplit(1),aa0,  iErr)
+  call chr_cast(lnSplit(2),zz0,  iErr)
+  call chr_cast(lnSplit(3),nucm0,iErr)
+
+  if(nSplit == 4) then
+    call chr_cast(lnSplit(4),qq0,iErr)
+  else
+    qq0 = zz0
+  end if
+
+  call CalculatePDGid(pdgid0, aa0, zz0)
+
+  nucm0 = nucm0*c1e3 ! [GeV/c^2] -> [MeV/c^2]
+  sixin_hionSet = .true.
+
+end subroutine sixin_parseInputLineHION
+
+! ================================================================================================ !
 !  Parse Tracking Parameters Line
 !  Rewritten from code from DATEN by VKBO
 !  Last modified: 2018-06-xx
@@ -811,7 +1275,7 @@ subroutine sixin_parseInputLineTRAC(inLine, iLine, iErr)
 
   character(len=:), allocatable   :: lnSplit(:)
   character(len=:), allocatable   :: expLine
-  integer nSplit, iDummy
+  integer nSplit, imc, ibidu
   logical spErr
 
   call chr_split(inLine, lnSplit, nSplit, spErr)
@@ -830,19 +1294,20 @@ subroutine sixin_parseInputLineTRAC(inLine, iLine, iErr)
       return
     end if
 
-    if(nSplit > 0)  call chr_cast(lnSplit(1), numl,   iErr) ! Number of turns in the forward direction
-    if(nSplit > 1)  call chr_cast(lnSplit(2), numlr,  iErr) ! Number of turns in the backward direction
-    if(nSplit > 2)  call chr_cast(lnSplit(3), napx,   iErr) ! Number of amplitude variations (i.e. particle pairs)
-    if(nSplit > 3)  call chr_cast(lnSplit(4), amp(1), iErr) ! End amplitude
-    if(nSplit > 4)  call chr_cast(lnSplit(5), amp0,   iErr) ! Start amplitude
-    if(nSplit > 5)  call chr_cast(lnSplit(6), ird,    iErr) ! Ignored
-    if(nSplit > 6)  call chr_cast(lnSplit(7), iDummy, iErr) ! Number of variations of the relative momentum deviation dp/p
-    if(nSplit > 7)  call chr_cast(lnSplit(8), niu(1), iErr) ! Unknown
-    if(nSplit > 8)  call chr_cast(lnSplit(9), niu(2), iErr) ! Unknown
-    if(nSplit > 9)  call chr_cast(lnSplit(10),numlcp, iErr) ! CR: How often to write checkpointing files
-    if(nSplit > 10) call chr_cast(lnSplit(11),numlmax,iErr) ! CR: Maximum amount of turns; default is 1e6
+    imc = 1
 
-    if(iDummy > 1) then
+    if(nSplit > 0) call chr_cast(lnSplit(1), numl,   iErr) ! Number of turns in the forward direction
+    if(nSplit > 1) call chr_cast(lnSplit(2), numlr,  iErr) ! Number of turns in the backward direction
+    if(nSplit > 2) call chr_cast(lnSplit(3), napx,   iErr) ! Number of amplitude variations (i.e. particle pairs)
+    if(nSplit > 3) call chr_cast(lnSplit(4), amp(1), iErr) ! End amplitude
+    if(nSplit > 4) call chr_cast(lnSplit(5), amp0,   iErr) ! Start amplitude
+    if(nSplit > 5) call chr_cast(lnSplit(6), ird,    iErr) ! Ignored
+    if(nSplit > 6) call chr_cast(lnSplit(7), imc,    iErr) ! Number of variations of the relative momentum deviation dp/p
+    if(nSplit > 7) call chr_cast(lnSplit(8), niu(1), iErr) ! Unknown
+    if(nSplit > 8) call chr_cast(lnSplit(9), niu(2), iErr) ! Unknown
+    if(nSplit > 9) call chr_cast(lnSplit(10),numlcp, iErr) ! CR: How often to write checkpointing files
+
+    if(imc /= 1) then
       write(lerr,"(a)") "TRAC> ERROR Variations of the relative momentum deviation is no longer supporter. "//&
         "The value imc must be set to 1."
       iErr = .true.
@@ -862,7 +1327,6 @@ subroutine sixin_parseInputLineTRAC(inLine, iLine, iErr)
       call sixin_echoVal("niu(1)", niu(1), "TRAC",iLine)
       call sixin_echoVal("niu(2)", niu(2), "TRAC",iLine)
       call sixin_echoVal("numlcp", numlcp, "TRAC",iLine)
-      call sixin_echoVal("numlmax",numlmax,"TRAC",iLine)
     end if
     if(iErr) return
 
@@ -878,12 +1342,12 @@ subroutine sixin_parseInputLineTRAC(inLine, iLine, iErr)
       call expand_arrays(nele, napx*2, nblz, nblo)
     end if
 
-    if(napx > 32 .and. sixin_forcePartSummary .eqv. .false.) then
+    if(napx > 32 .and. .not. sixin_forcePartSummary) then
       write(lout,"(a)") "TRAC> NOTE More than 64 particles requested, switching off printing of particle summary."
       st_partsum = .false.
     end if
 
-    if(napx > 32 .and. sixin_forceWriteFort12 .eqv. .false.) then
+    if(napx > 32 .and. .not. sixin_forceWriteFort12) then
       write(lout,"(a)") "TRAC> NOTE More than 64 particles requested, switching off wriritng of fort.12."
       st_writefort12 = .false.
     end if
@@ -938,11 +1402,15 @@ subroutine sixin_parseInputLineTRAC(inLine, iLine, iErr)
     if(iErr) return
 
     if(iclo6 == 5 .or. iclo6 == 6) then
-      iclo6  = iclo6-4
-      iclo6r = 1
+      iclo6            = iclo6-4
+      sixin_simuFort33 = .true.
     end if
     if(iclo6 == 2 .and. idfor == 0) idfor = 1
     if(iclo6 == 1 .or.  iclo6 == 2) nsix  = 0
+    if(idfor == 2) then
+      rdfort13 = .true.
+      idfor = 0
+    end if
 
   case(3)
 
@@ -954,29 +1422,32 @@ subroutine sixin_parseInputLineTRAC(inLine, iLine, iErr)
 
     nwr(4) = 10000
 
-    if(nSplit > 0) call chr_cast(lnSplit(1),nde(1),  iErr) ! Number of turns at flat bottom
-    if(nSplit > 1) call chr_cast(lnSplit(2),nde(2),  iErr) ! Number of turns for the energy ramping
-    if(nSplit > 2) call chr_cast(lnSplit(3),nwr(1),  iErr) ! Every nth turn coordinates will be written
-    if(nSplit > 3) call chr_cast(lnSplit(4),nwr(2),  iErr) ! Every nth turn coordinates in the ramping region will be written
-    if(nSplit > 4) call chr_cast(lnSplit(5),nwr(3),  iErr) ! Every nth turn at the flat top a write out of the coordinates
-    if(nSplit > 5) call chr_cast(lnSplit(6),nwr(4),  iErr) ! Every nth turn coordinates are written to unit 6.
-    if(nSplit > 6) call chr_cast(lnSplit(7),ntwin,   iErr) ! Flag for calculated distance of phase space
-    if(nSplit > 7) call chr_cast(lnSplit(8),iDummy,  iErr) ! No longer in use. Formerly ibidu
-    if(nSplit > 8) call chr_cast(lnSplit(9),iexact,  iErr) ! Switch to enable exact solution of the equation of motion
+    if(nSplit > 0) call chr_cast(lnSplit(1), nde(1), iErr) ! Number of turns at flat bottom
+    if(nSplit > 1) call chr_cast(lnSplit(2), nde(2), iErr) ! Number of turns for the energy ramping
+    if(nSplit > 2) call chr_cast(lnSplit(3), nwr(1), iErr) ! Every nth turn coordinates will be written
+    if(nSplit > 3) call chr_cast(lnSplit(4), nwr(2), iErr) ! Every nth turn coordinates in the ramping region will be written
+    if(nSplit > 4) call chr_cast(lnSplit(5), nwr(3), iErr) ! Every nth turn at the flat top a write out of the coordinates
+    if(nSplit > 5) call chr_cast(lnSplit(6), nwr(4), iErr) ! Every nth turn coordinates are written to unit 6.
+    if(nSplit > 6) call chr_cast(lnSplit(7), ntwin,  iErr) ! Flag for calculated distance of phase space
+    if(nSplit > 7) call chr_cast(lnSplit(8), ibidu,  iErr) ! No longer in use.
+    if(nSplit > 8) call chr_cast(lnSplit(9), iexact, iErr) ! Switch to enable exact solution of the equation of motion
     if(nSplit > 9) call chr_cast(lnSplit(10),curveff,iErr) ! Switch to include curvatures effect on multipoles..
 
     if(st_debug) then
-      call sixin_echoVal("nde(1)",nde(1),  "TRAC",iLine)
-      call sixin_echoVal("nde(2)",nde(2),  "TRAC",iLine)
-      call sixin_echoVal("nwr(1)",nwr(1),  "TRAC",iLine)
-      call sixin_echoVal("nwr(2)",nwr(2),  "TRAC",iLine)
-      call sixin_echoVal("nwr(3)",nwr(3),  "TRAC",iLine)
-      call sixin_echoVal("nwr(4)",nwr(4),  "TRAC",iLine)
-      call sixin_echoVal("ntwin", ntwin,   "TRAC",iLine)
-      call sixin_echoVal("iexact",iexact,  "TRAC",iLine)
+      call sixin_echoVal("nde(1)", nde(1), "TRAC",iLine)
+      call sixin_echoVal("nde(2)", nde(2), "TRAC",iLine)
+      call sixin_echoVal("nwr(1)", nwr(1), "TRAC",iLine)
+      call sixin_echoVal("nwr(2)", nwr(2), "TRAC",iLine)
+      call sixin_echoVal("nwr(3)", nwr(3), "TRAC",iLine)
+      call sixin_echoVal("nwr(4)", nwr(4), "TRAC",iLine)
+      call sixin_echoVal("ntwin",  ntwin,  "TRAC",iLine)
+      call sixin_echoVal("iexact", iexact, "TRAC",iLine)
       call sixin_echoVal("curveff",curveff,"TRAC",iLine)
     end if
     if(iErr) return
+
+    ! nwr(1) and nwr(2) are nor used any more, but nwr(3) goes into nwri
+    nwri = nwr(3)
 
   case default
     write(lerr,"(a,i0)") "TRAC> ERROR Unexpected line number ",iLine
@@ -1061,7 +1532,6 @@ subroutine sixin_parseInputLineDIFF(inLine, iLine, iErr)
 
   end if
 
-  if(iclo6 == 1 .or. iclo6 == 2) nsix = 0
   if(nvar /= 6) then
     nsix  = 0
     iclo6 = 0
@@ -1113,7 +1583,8 @@ end subroutine sixin_parseInputLineDIFF
 ! ================================================================================================ !
 !  Parse Chromaticity Adjustment Line
 !  Rewritten from code from DATEN by VKBO
-!  Last modified: 2018-06-xx
+!  Rewritten: 2018-06
+!  Updated:   2019-06-07
 ! ================================================================================================ !
 subroutine sixin_parseInputLineCHRO(inLine, iLine, iErr)
 
@@ -1122,17 +1593,15 @@ subroutine sixin_parseInputLineCHRO(inLine, iLine, iErr)
   use mod_settings
   use mod_common
   use mod_common_track
+  use mod_find
 
   character(len=*), intent(in)    :: inLine
   integer,          intent(inout) :: iLine
   logical,          intent(inout) :: iErr
 
   character(len=:), allocatable   :: lnSplit(:)
-  character(len=mNameLen)      :: tmp_is(2)
-  integer nSplit,i,ichrom0
+  integer nSplit,i
   logical spErr
-
-  save :: tmp_is,ichrom0
 
   call chr_split(inLine, lnSplit, nSplit, spErr)
   if(spErr) then
@@ -1140,47 +1609,53 @@ subroutine sixin_parseInputLineCHRO(inLine, iLine, iErr)
     iErr = .true.
     return
   end if
+  if(nSplit == 0) return
 
   select case(iLine)
 
   case(1)
 
-    ichrom0   = 0
-    tmp_is(:) = " "
+    if(nSplit > 1) call chr_cast(lnSplit(2),cro(1), iErr)
+    if(nSplit > 2) call chr_cast(lnSplit(3),ichrom, iErr)
 
-    if(nSplit > 0) tmp_is(1) = lnSplit(1)
-    if(nSplit > 1) call chr_cast(lnSplit(2),cro(1),   iErr)
-    if(nSplit > 2) call chr_cast(lnSplit(3),ichrom0,  iErr)
+    crois(1) = find_singElemFromName(lnSplit(1))
+    if(crois(1) <= 0) then
+      write(lerr,"(a)") "CHRO> ERROR Element '"//trim(lnSplit(1))//"' not in single elements list"
+      iErr = .true.
+      return
+    end if
+
+    if(ichrom < 1 .or. ichrom > 3) then
+      write(lerr,"(a,i0)") "CHRO> ERROR Chromaticity calculation flag ichrom must be 1, 2 or 3, got ",ichrom
+      iErr = .true.
+      return
+    end if
 
     if(st_debug) then
-      call sixin_echoVal("bez_is(1)",tmp_is(1),"CHRO",iLine)
-      call sixin_echoVal("cro(1)",   cro(1),   "CHRO",iLine)
-      call sixin_echoVal("ichrom0",  ichrom0,  "CHRO",iLine)
+      call sixin_echoVal("bez_is(1)",lnSplit(1),"CHRO",iLine)
+      call sixin_echoVal("crois(1)", crois(1),  "CHRO",iLine)
+      call sixin_echoVal("cro(1)",   cro(1),    "CHRO",iLine)
+      call sixin_echoVal("ichrom",   ichrom,    "CHRO",iLine)
     end if
     if(iErr) return
 
   case(2)
 
-    if(nSplit > 0) tmp_is(2) = lnSplit(1)
-    if(nSplit > 1) call chr_cast(lnSplit(2),cro(2),   iErr)
+    if(nSplit > 1) call chr_cast(lnSplit(2),cro(2), iErr)
+
+    crois(2) = find_singElemFromName(lnSplit(1))
+    if(crois(2) <= 0) then
+      write(lerr,"(a)") "CHRO> ERROR Element '"//trim(lnSplit(1))//"' not in single elements list"
+      iErr = .true.
+      return
+    end if
 
     if(st_debug) then
-      call sixin_echoVal("bez_is(2)",tmp_is(2),"CHRO",iLine)
-      call sixin_echoVal("cro(1)",   cro(2),   "CHRO",iLine)
+      call sixin_echoVal("bez_is(2)",lnSplit(1),"CHRO",iLine)
+      call sixin_echoVal("crois(2)", crois(2),  "CHRO",iLine)
+      call sixin_echoVal("cro(2)",   cro(2),    "CHRO",iLine)
     end if
     if(iErr) return
-
-    do i=1,il
-      if(tmp_is(1) == bez(i)) is(1) = i
-      if(tmp_is(2) == bez(i)) is(2) = i
-    end do
-    if(ichrom0 >= 1 .and. ichrom0 <= 3) ichrom = ichrom0
-
-    if(st_debug) then
-      call sixin_echoVal("is(1)", is(1), "CHRO",iLine)
-      call sixin_echoVal("is(2)", is(2), "CHRO",iLine)
-      call sixin_echoVal("ichrom",ichrom,"CHRO",iLine)
-    end if
 
   case default
     write(lerr,"(a,i0)") "CHRO> ERROR Unexpected line number ",iLine
@@ -1435,6 +1910,7 @@ subroutine sixin_parseInputLineSYNC(inLine, iLine, iErr)
   use mod_common
   use mod_common_da,   only : nvar
   use mathlib_bouncer, only : cos_mb
+  use physical_constants
 
   character(len=*), intent(in)    :: inLine
   integer,          intent(in)    :: iLine
@@ -1464,6 +1940,12 @@ subroutine sixin_parseInputLineSYNC(inLine, iLine, iErr)
     if(nSplit > 5) call chr_cast(lnSplit(6),pma,       iErr)
     if(nSplit > 6) call chr_cast(lnSplit(7),ition,     iErr)
     if(nSplit > 7) call chr_cast(lnSplit(8),dppoff,    iErr)
+
+    if(sixin_refMassSet) then
+      ! Reference mass already set in SIMU block, so override pma
+      pma = nucm0
+      write(lout,"(a)") "SYNC> WARNING Reference mass already set in SIMU block. Value set here is ignored."
+    end if
 
     if(st_debug) then
       call sixin_echoVal("harm",  sixin_harm,"SYNC",iLine)
@@ -1498,7 +1980,9 @@ subroutine sixin_parseInputLineSYNC(inLine, iLine, iErr)
       iErr = .true.
       return
     end if
-    crad = (crade*pmae)/pma
+    if(sixin_refMassSet .eqv. .false.) then
+      crad = (crade*pmae)/pma
+    end if
     if(abs(tlen) <= pieni) then
       write(lerr,"(a)") "SYNC> ERROR Please include length of the machine."
       iErr = .true.
@@ -3028,10 +3512,26 @@ subroutine sixin_parseInputLineBEAM(inLine, iLine, iErr)
       return
     end if
 
-    if(ibeco /= 0 .and. ibeco /= 1) ibeco = 1
-    if(ibtyp /= 0 .and. ibtyp /= 1) ibtyp = 0
-    if(ibbc  /= 0 .and. ibbc  /= 1) ibbc  = 0
-    if(lhc    < 0 .or.  lhc    > 2) lhc   = 1
+    if(ibeco /= 0 .and. ibeco /= 1) then
+      write(lerr,"(a,i0)") "BEAM> ERROR BEAM block parameter 6, ibeco, must be 0 or 1, got ", ibeco
+      iErr = .true.
+      return
+    end if
+    if(ibtyp /= 0 .and. ibtyp /= 1) then
+      write(lerr,"(a,i0)") "BEAM> ERROR BEAM block parameter 7, ibtyp, must be 0 or 1, got ", ibtyp
+      iErr = .true.
+      return
+    end if
+    if(lhc < 0 .or. lhc > 2) then
+      write(lerr,"(a,i0)") "BEAM> ERROR BEAM block parameter 8, lhc, must be 0, 1 or 2, got ", lhc
+      iErr = .true.
+      return
+    end if
+    if(ibbc /= 0 .and. ibbc  /= 1) then
+      write(lerr,"(a,i0)") "BEAM> ERROR BEAM block parameter 9, ibbc, must be 0 or 1, got ", ibbc
+      iErr = .true.
+      return
+    end if
 
     nbeam = 1
 

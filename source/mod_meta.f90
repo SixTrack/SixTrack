@@ -86,9 +86,9 @@ subroutine meta_finalise
   call f_requestUnit("crkillswitch.tmp",tmpUnit)
   inquire(file="crkillswitch.tmp",exist=fExist)
   if(fExist) then
-    open(tmpUnit,file="crkillswitch.tmp",form="unformatted",access="stream",status="old",action="read")
+    call f_open(unit=tmpUnit,file="crkillswitch.tmp",formatted=.false.,mode="r",access="stream",status="old")
     read(tmpUnit) nCRKills1,nCRKills2
-    close(tmpUnit)
+    call f_close(tmpUnit)
   end if
 
   call meta_write("SymplecticityDeviation",   meta_sympCheck)
@@ -281,30 +281,32 @@ subroutine meta_crcheck(fileUnit, readErr)
   return
 
 10 continue
-  write(lerr,"(a,i0)") "META> ERROR Reading in meta_crcheck from fileUnit #",fileUnit
-  write(93,  "(a,i0)") "META> ERROR Reading in meta_crcheck from fileUnit #",fileUnit
   readErr = .true.
+  write(lout,"(a,i0,a)") "SIXTRACR> ERROR Reading C/R file fort.",fileUnit," in META"
+  write(crlog,  "(a,i0,a)") "SIXTRACR> ERROR Reading C/R file fort.",fileUnit," in META"
+  flush(crlog)
 
 end subroutine meta_crcheck
 
-subroutine meta_crpoint(fileUnit, writeErr, iErro)
+subroutine meta_crpoint(fileUnit, writeErr)
 
   use crcoall
 
-  integer, intent(in)    :: fileUnit
-  logical, intent(inout) :: writeErr
-  integer, intent(inout) :: iErro
+  integer, intent(in)  :: fileUnit
+  logical, intent(out) :: writeErr
 
-  write(fileunit,err=10,iostat=iErro) meta_nRestarts, meta_nPartTurn
-  endfile(fileUnit,iostat=iErro)
-  backspace(fileUnit,iostat=iErro)
+  write(fileunit,err=10) meta_nRestarts, meta_nPartTurn
+  flush(fileUnit)
+
+  writeErr = .false.
 
   return
 
 10 continue
-  write(lerr,"(a,i0)") "META> ERROR Writing in meta_crpoint to fileUnit #",fileUnit
-  write(93,  "(a,i0)") "META> ERROR Writing in meta_crpoint to fileUnit #",fileUnit
   writeErr = .true.
+  write(lout,"(a,i0,a)") "SIXTRACR> ERROR Writing C/R file fort.",fileUnit," in META"
+  write(crlog,  "(a,i0,a)") "SIXTRACR> ERROR Writing C/R file fort.",fileUnit," in META"
+  flush(crlog)
 
 end subroutine meta_crpoint
 

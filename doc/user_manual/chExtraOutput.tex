@@ -180,7 +180,7 @@ NEXT
         \hline
         Header \#2 & Closed orbit  $x$,$x_p$,$y$,$y_p$,$\sigma$,$\delta$, units are $[\rm mm,mrad,mm,mrad,1]$.\\
         \hline
-        Header \#3 & Matrix of eigenvectors (\texttt{tamatrix}). Eigenvectors are normalized, rotated and ordered as in the Ripken formalism and described in the SixTrack physics manual, Chapter ``Optics Calculation''. The matrix \texttt{tamatrix} is in canonical variables $x$,$p_x$,$y$,$p_y$,$\zeta$,$\delta$, units are $[\rm mm,mrad,mm,mrad,1]$. \\
+        Header \#3 & Matrix of eigenvectors (TA Matrix or \texttt{tamatrix}). Eigenvectors are normalized, rotated and ordered as in the Ripken formalism and described in the SixTrack physics manual, Chapter ``Optics Calculation''. The matrix \texttt{tamatrix} is in canonical variables $x$,$p_x$,$y$,$p_y$,$\zeta$,$\delta$, units are $[\rm mm,mrad,mm,mrad,1]$.\index{TA Matrix} \\
         \hline
         Header \#4 & Inverse of ta-matrix \texttt{inv(tamatrix)} used for normalization where
         \begin{equation}
@@ -433,23 +433,40 @@ NEXT
 % ================================================================================================================================ %
 \section{ZIPFile Combined and Compressed Output} \label{sec:ZIPF}
 
-In order to retrieve extra simulation output such as \texttt{DUMP} or \texttt{FMA} from BOINC, it is necessary to pack the output files into a single file with a special name that will be retrieved.\index{zip}\index{ZIPF}
-This can be achieved with the \texttt{ZIPF} block, which packs the listed files into the compressed archive \texttt{Sixout.zip} at the end of the simulation.
+In order to retrieve extra simulation output such as \texttt{DUMP} or \texttt{FMA} from BOINC, it is necessary to pack the output files into a single file with a special name that will be retrieved.\index{zip}\index{ZIPF}\index{ZLIB}
+This can be achieved with the \texttt{ZIPF} block, which packs the listed files into a compressed archive at the end of the simulation.
+The \texttt{ZIPF} block can always be present in \texttt{fort.3}, but if SixTrack was not built with either the \texttt{LIBARCHIVE} or \texttt{ZLIB} option, no archive file will be produced.
+
+The \texttt{ZIPF} block can take two optional arguments, otherwise everything else is interpreted as a file name to be packed into the archive file.
+Multiple file names can be specified on a single line, and are separated by a space character.
+If the file name contains a space, it must be wrapped in single or double quotes.
 
 Note that if one of the files do not exist at the end of the simulation, it will be silently skipped and not included in the archive.
 
 \bigskip
 \begin{tabular}{@{}llp{0.7\linewidth}}
     \textbf{Keyword}    & \texttt{ZIPF} \\
-    \textbf{Data lines} & Variable, one for each file that is to be packed. \\
+    \textbf{Data lines} & Variable, see below. \\
 \end{tabular}
+
+\paragraph{Archive Name} \texttt{OUTFILE}\\
+
+This keyword can be used to set the file name of the archive file.
+If this keyword is omitted, the archive file will be named ``Sixout.zip''.
+
+\paragraph{Compression Level} \texttt{ZIPLEVEL}\\
+
+This keyword can be used to set the compression level.
+A value of 0 will just pack the files, and not compress them.
+A value of 9 is the highest level of compression, and also the slowest,
+The default value is 3.
 
 \paragraph{Example}~
 \begin{cverbatim}
 ZIPF
-    fma_sixtrack
-    IP3_DUMP_1
-    fort.90
+    OUTFILE Sixout.zip
+    ZIPLEVEL 3
+    fma_sixtrack IP3_DUMP_1 fort.90
 NEXT
 \end{cverbatim}
 

@@ -42,7 +42,7 @@ subroutine beaminf(track,param,sigzs,bcu,ibb,ne,ibbc)
       phi2=phi               !Note - phi2 is not a free parameter anymore
   else
       write(lerr,"(a,i0,a)") "ERROR beaminf: beam_expflag was ",beam_expflag," expected 0 or 1. This is a BUG!"
-      call prror(-1)
+      call prror
   endif
   sphi=sin_mb(phi)
   sphi2=sin_mb(phi2)
@@ -57,6 +57,7 @@ subroutine beaminf(track,param,sigzs,bcu,ibb,ne,ibbc)
   call boostf(sphi,cphi,tphi,salpha,calpha,track)
   call sbcf(star,cphi,cphi2,nsli,f,ibb,bcu,track,ibbc)
   call boostif(sphi,cphi,tphi,salpha,calpha,track)
+! Do not remove or modify the comment below.
 !     DADAL AUTOMATIC INCLUSION
   return
 end subroutine beaminf
@@ -117,6 +118,7 @@ subroutine boostf(sphi,cphi,tphi,salpha,calpha,track)
 !FOX       +SPHI*SALPHA*TRACK(3)) ;
 !FOX    TRACK(1)=X1 ;
 !FOX    TRACK(3)=Y1 ;
+! Do not remove or modify the comment below.
 !     DADAL AUTOMATIC INCLUSION
   return
 end subroutine boostf
@@ -263,6 +265,7 @@ subroutine sbcf(star,cphi,cphi2,nsli,f,ibb,bcu,track,ibbc)
 !FOX    TRACK(3)=TRACK(3)+S*BBFY ;
 !FOX    TRACK(4)=TRACK(4)-BBFY ;
 2000 continue
+! Do not remove or modify the comment below.
 !     DADAL AUTOMATIC INCLUSION
   return
 end subroutine sbcf
@@ -328,6 +331,7 @@ subroutine boostif(sphi,cphi,tphi,salpha,calpha,track)
 !FOX            +SALPHA*SPHI*TRACK(4) ;
 !FOX    TRACK(2)=(TRACK(2)*CPHI+CALPHA*TPHI*H1) ;
 !FOX    TRACK(4)=(TRACK(4)*CPHI+SALPHA*TPHI*H1) ;
+! Do not remove or modify the comment below.
 !     DADAL AUTOMATIC INCLUSION
   return
 end subroutine boostif
@@ -455,6 +459,7 @@ subroutine bbff(sepx,sepy,sigxx,sigyy,bbfx,bbfy,bbgx,bbgy)
 !FOX      BBGY= -BBGX ;
   endif
   endif
+! Do not remove or modify the comment below.
 !     DADAL AUTOMATIC INCLUSION
   return
 end subroutine bbff

@@ -29,6 +29,13 @@ set_tests_properties(SelfTest_read90 PROPERTIES PASS_REGULAR_EXPRESSION "Error i
 add_test(NAME SelfTest_readDump3 COMMAND readDump3)
 set_tests_properties(SelfTest_readDump3 PROPERTIES PASS_REGULAR_EXPRESSION "Expected 2 arguments: inputfile outputfile\n.*3")
 
+if(ZLIB)
+  add_test(NAME SelfTest_zlib COMMAND ${CMAKE_BINARY_DIR}/zlib/example)
+  if(64BIT)
+    add_test(NAME SelfTest_zlib_64 COMMAND ${CMAKE_BINARY_DIR}/zlib/example64)
+  endif()
+endif()
+
 ##
 ## Checks
 ##
@@ -41,12 +48,15 @@ set_tests_properties(CheckBuildManual PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR"
 
 ##
 ## ERROR Tests
+## Only run for non-CR version as CR version doesn't write directly to stderr
 ##
 
-list(APPEND SIXTRACK_ERROR
-  error_init
-  error_trac
-)
+if(NOT CR)
+  list(APPEND SIXTRACK_ERROR
+    error_init
+    error_trac
+  )
+endif(NOT CR)
 
 ##
 ## Needs checking: thick6dsingles (broken input files -- this test could probably be removed)
@@ -127,6 +137,7 @@ list(APPEND SIXTRACK_TESTS
   orbit6d-element-solenoid
   orbit6d-element-trombone
   orbit6d-element-trombone-kick
+  orbit6d-element-rotations
   orbit6d-ions
   orbit6d-ions-long
   part_state_binary_ions
@@ -172,8 +183,20 @@ endif()
 
 if(NOT CR)
   list(APPEND SIXTRACK_TESTS
-    collimation_db_old
+    collimation_dist_1h
+    collimation_dist_1v
+    collimation_dist_2h
+    collimation_dist_2v
+    collimation_dist_3h
+    collimation_dist_3v
+    collimation_dist_4
+    collimation_dist_5
+    collimation_dist_6
+    collimation_dist_radial
     collimation_k2
+    collimation_new-db_new-block
+    collimation_old-db_new-block
+    collimation_old-db_old-block
     scatter_collimation
   )
 endif()
@@ -223,8 +246,20 @@ set(TESTS_NOFORT10
   beam-HO_6D-simple-oldstyle
   beambeam4dDYNK
   beambeamDYNK
-  collimation_db_old
+  collimation_dist_1h
+  collimation_dist_1v
+  collimation_dist_2h
+  collimation_dist_2v
+  collimation_dist_3h
+  collimation_dist_3v
+  collimation_dist_4
+  collimation_dist_5
+  collimation_dist_6
+  collimation_dist_radial
   collimation_k2
+  collimation_new-db_new-block
+  collimation_old-db_new-block
+  collimation_old-db_old-block
   dump_2_all_ele_highprec
   dump_all_highprec
   dump_binary
@@ -250,6 +285,7 @@ set(TESTS_NOFORT10
   orbit6d-element-solenoid
   orbit6d-element-trombone
   orbit6d-element-trombone-kick
+  orbit6d-element-rotations
   orbit6d-ions
   orbit6d-ions-long
   part_state_binary_ions
@@ -275,9 +311,22 @@ set(TESTS_NO_STF_FORT90
   chebythin6d_DYNK
   chebythin6d_ions
   chebythin6d_ramp_DYNK
-  collimation_db_old
+  collimation_dist_1h
+  collimation_dist_1v
+  collimation_dist_2h
+  collimation_dist_2v
+  collimation_dist_3h
+  collimation_dist_3v
+  collimation_dist_4
+  collimation_dist_5
+  collimation_dist_6
+  collimation_dist_radial
   collimation_k2
+  collimation_new-db_new-block
+  collimation_old-db_new-block
+  collimation_old-db_old-block
   crabs
+  orbit6d-element-rotations
   dipedge
   dump_all_highprec
   dump4
@@ -324,6 +373,8 @@ if(CR)
     dynk_operators
     dynk_polynomial
     dynk_random
+    elensidealthck4d
+    elensidealthck6d
     elensidealthin6d_ramp_DYNK
     scatter_aperture
     scatter_bbelastic
@@ -535,7 +586,20 @@ set(FAST_TESTS
   chebythin6d
   chebythin6d_DYNK
   chebythin6d_ions
-  collimation_db_old
+  chebythin6d_ramp_DYNK
+  collimation_dist_1h
+  collimation_dist_1v
+  collimation_dist_2h
+  collimation_dist_2v
+  collimation_dist_3h
+  collimation_dist_3v
+  collimation_dist_4
+  collimation_dist_5
+  collimation_dist_6
+  collimation_dist_radial
+  collimation_old-db_new-block
+  collimation_old-db_old-block
+  collimation_old-db_old-block
   crabs
   dump_2_all_ele_highprec
   dump_all_highprec
@@ -578,6 +642,7 @@ set(FAST_TESTS
   orbit6d-element-solenoid
   orbit6d-element-trombone
   orbit6d-element-trombone-kick
+  orbit6d-element-rotations
   orbit6d-ions
   orbit6d-ions-long
   part_state_binary_ions
@@ -672,6 +737,14 @@ set(SELFTEST_TOOLS
 foreach(TOOL IN ITEMS ${SELFTEST_TOOLS})
   set_property(TEST ${TOOL} PROPERTY LABELS tool fast)
 endforeach()
+
+# Zlib tests
+if(ZLIB)
+  set_property(TEST SelfTest_zlib PROPERTY LABELS tool fast)
+  if(64BIT)
+    set_property(TEST SelfTest_zlib_64 PROPERTY LABELS tool fast)
+  endif()
+endif()
 
 # Inputs
 set(SELFTEST_INPUT

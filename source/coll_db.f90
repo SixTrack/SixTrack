@@ -1,11 +1,14 @@
 ! ================================================================================================ !
 !  Collimator Database Module
+!  V.K. Berglyd Olsen, BE/ABP/HSS
+!  Created: 2018-03-22
+!  Updated: 2019-04-08
 ! ================================================================================================ !
 module coll_db
 
-  use parpro
   use floatPrecision
-  use numerical_constants, only : c1e3
+  use parpro, only : mFileName
+  use numerical_constants, only : zero
 
   implicit none
 
@@ -13,11 +16,11 @@ module coll_db
   public :: cdb_getFamilyNSig
 
   integer,                  parameter     :: cdb_fNameLen  = 16     ! Length of collimator family name
-  real(kind=fPrec),         parameter     :: cdb_defColGap = c1e3   ! Default collimator gap in sigma
+  real(kind=fPrec),         parameter     :: cdb_defColGap = zero   ! Default collimator gap in sigma
 
   character(len=mFileName), public,  save :: cdb_fileName = " "     ! Database file
   logical,                  private, save :: cdb_dbOld    = .false. ! Old or new DB format
-  logical,                  public,  save :: cdb_doNSig   = .false. ! Use the sigmas from fort.3 isntead of DB
+  logical,                  public,  save :: cdb_doNSig   = .false. ! Use the sigmas from fort.3 instead of DB
   integer,                  public,  save :: cdb_nColl    = 0       ! Number of collimators
   integer,                  public,  save :: cdb_nFam     = 0       ! Number of collimator families
 
@@ -38,6 +41,7 @@ module coll_db
   ! Family Arrays
   character(len=:), allocatable, public, save :: cdb_famName(:)     ! Family name
   real(kind=fPrec), allocatable, public, save :: cdb_famNSig(:)     ! Family sigma
+  real(kind=fPrec), allocatable, public, save :: cdb_famNSigOrig(:) ! Family sigma
 
   ! Element Map
   integer,          allocatable, public, save :: cdb_elemMap(:)     ! Map from single elements to DB
@@ -46,31 +50,33 @@ contains
 
 subroutine cdb_allocDB
 
+  use parpro
   use mod_alloc
   use numerical_constants
 
-  call alloc(cdb_cName,     mNameLen, cdb_nColl, " ",     "cdb_cName")
-  call alloc(cdb_cNameUC,   mNameLen, cdb_nColl, " ",     "cdb_cNameUC")
-  call alloc(cdb_cMaterial, 4,        cdb_nColl, " ",     "cdb_cMaterial")
-  call alloc(cdb_cFamily,             cdb_nColl, -1,      "cdb_cFamily")
-  call alloc(cdb_cNSig,               cdb_nColl, zero,    "cdb_cNSig")
-  call alloc(cdb_cNSigOrig,           cdb_nColl, zero,    "cdb_cNSigOrig")
-  call alloc(cdb_cLength,             cdb_nColl, zero,    "cdb_cLength")
-  call alloc(cdb_cOffset,             cdb_nColl, zero,    "cdb_cOffset")
-  call alloc(cdb_cRotation,           cdb_nColl, zero,    "cdb_cRotation")
-  call alloc(cdb_cBx,                 cdb_nColl, zero,    "cdb_cBx")
-  call alloc(cdb_cBy,                 cdb_nColl, zero,    "cdb_cBy")
-  call alloc(cdb_cFound,              cdb_nColl, .false., "cdb_cFound")
+  call alloc(cdb_cName,     mNameLen, cdb_nColl, " ",           "cdb_cName")
+  call alloc(cdb_cNameUC,   mNameLen, cdb_nColl, " ",           "cdb_cNameUC")
+  call alloc(cdb_cMaterial, 4,        cdb_nColl, " ",           "cdb_cMaterial")
+  call alloc(cdb_cFamily,             cdb_nColl, 0,             "cdb_cFamily")
+  call alloc(cdb_cNSig,               cdb_nColl, cdb_defColGap, "cdb_cNSig")
+  call alloc(cdb_cNSigOrig,           cdb_nColl, cdb_defColGap, "cdb_cNSigOrig")
+  call alloc(cdb_cLength,             cdb_nColl, zero,          "cdb_cLength")
+  call alloc(cdb_cOffset,             cdb_nColl, zero,          "cdb_cOffset")
+  call alloc(cdb_cRotation,           cdb_nColl, zero,          "cdb_cRotation")
+  call alloc(cdb_cBx,                 cdb_nColl, zero,          "cdb_cBx")
+  call alloc(cdb_cBy,                 cdb_nColl, zero,          "cdb_cBy")
+  call alloc(cdb_cFound,              cdb_nColl, .false.,       "cdb_cFound")
 
 end subroutine cdb_allocDB
 
 subroutine cdb_allocFam
 
+  use parpro
   use mod_alloc
-  use numerical_constants
 
   call alloc(cdb_famName, cdb_fNameLen, cdb_nFam, " ",           "cdb_famName")
   call alloc(cdb_famNSig,               cdb_nFam, cdb_defColGap, "cdb_famNSig")
+  call alloc(cdb_famNSigOrig,           cdb_nFam, cdb_defColGap, "cdb_famNSigOrig")
 
 end subroutine cdb_allocFam
 
@@ -80,7 +86,7 @@ subroutine cdb_expand_arrays(nele_new)
 
   integer, intent(in) :: nele_new
 
-  call alloc(cdb_elemMap,nele_new,-1,"cdb_elemMap")
+  call alloc(cdb_elemMap,nele_new,0,"cdb_elemMap")
 
 end subroutine cdb_expand_arrays
 
@@ -91,16 +97,18 @@ end subroutine cdb_expand_arrays
 ! ================================================================================================ !
 subroutine cdb_readCollDB
 
+  use parpro
   use crcoall
   use mod_units
   use mod_common
+  use mod_settings
   use string_tools
 
   character(len=:), allocatable :: lnSplit(:)
   character(len=mInputLn) inLine
   character(len=cdb_fNameLen) cFam
   real(kind=fPrec)  cNSig
-  integer dbUnit, ioStat, nLines, nSplit, collID, famID, elemEnd
+  integer dbUnit, ioStat, nSplit, collID, famID, elemEnd
   integer i, j, ix
   logical dbErr, spErr
 
@@ -112,25 +120,18 @@ subroutine cdb_readCollDB
   end if
 
 ! ============================================================================ !
-!  Check DB Format: New or old, and count number of collimators
+!  Check DB Format: New or Old
 ! ============================================================================ !
-
-  nLines = 0
 
 10 continue
   read(dbUnit,"(a)",end=20) inLine
   if(inLine(1:1) == "#") goto 10
-  nLines = nLines + 1
-  if(nLines == 1) then
-    ! Check first line to count number of values
-    call chr_split(inLine, lnSplit, nSplit, spErr)
-    if(nSplit > 1) then
-      cdb_dbOld = .false. ! New style DB (multi-column)
-    else
-      cdb_dbOld = .true.  ! Old style DB (single-column)
-    end if
+  call chr_split(inLine, lnSplit, nSplit, spErr)
+  if(nSplit > 1) then
+    cdb_dbOld = .false. ! New style DB (multi-column)
+  else
+    cdb_dbOld = .true.  ! Old style DB (single-column)
   end if
-  goto 10
 
 20 continue
   call f_close(dbUnit)
@@ -147,7 +148,10 @@ subroutine cdb_readCollDB
 #ifdef HDF5
   call cdb_writeDB_HDF5
 #endif
-  call cdb_writeFam
+  if(st_debug) then
+    call cdb_writeFam
+    call cdb_writeDB
+  end if
 
 ! ============================================================================ !
 !  Post-Processing DB
@@ -182,6 +186,112 @@ subroutine cdb_readCollDB
 end subroutine cdb_readCollDB
 
 subroutine cdb_readDB_newFormat
+
+  use parpro
+  use crcoall
+  use string_tools
+  use mod_units
+  use mod_alloc
+  use numerical_constants
+
+  character(len=:), allocatable :: lnSplit(:)
+  character(len=mInputLn) inLine
+  real(kind=fPrec) nSig
+  integer i, dbUnit, ioStat, nSplit, iLine, famID, iColl
+  logical cErr, fErr, fExists
+
+  fErr  = .false.
+  cErr  = .false.
+  iLine = 0
+  iColl = 0
+
+  call f_requestUnit(cdb_fileName, dbUnit)
+  call f_open(unit=dbUnit,file=cdb_fileName,formatted=.true.,mode="r",status="old",err=fErr)
+  if(fErr) then
+    write(lerr,"(a)") "COLLDB> ERROR Cannot read from '"//trim(cdb_fileName)//"'"
+    call prror
+  end if
+
+10 continue
+  iLine = iLine + 1
+
+  read(dbUnit,"(a)",end=20,iostat=ioStat) inLine
+  if(ioStat /= 0) then
+    write(lerr,"(a)") "COLLDB> ERROR Cannot read from '"//trim(cdb_fileName)//"'"
+    call prror
+  end if
+  if(inLine(1:1) == "#") goto 10
+
+  call chr_split(inLine, lnSplit, nSplit, cErr)
+  if(cErr) then
+    write(lerr,"(a,i0)") "COLLDB> ERROR Failed to parse database line ",iLine
+    call prror
+  end if
+
+  if(lnSplit(1) == "NSIG_FAM") then
+    ! Collimator Family
+    call chr_cast(lnSplit(3),nSig,cErr)
+    call cdb_addFamily(trim(lnSplit(2)), nSig, famID, fExists)
+    if(fExists .and. .not. cdb_doNSig) then
+      ! If setting nsig in fort.3 is disabled, the DB values take precedence, so we overwrite them here
+      cdb_famNSig(famID)     = nSig
+      cdb_famNSigOrig(famID) = nSig
+    end if
+    goto 10
+  end if
+
+  ! If not a family definition, it should be a collimator
+  if(nSplit < 6) then
+    write(lerr,"(a,i0,a)") "COLLDB> ERROR Collimator description on line ",iLine," has less than 6 values."
+    call prror
+  end if
+
+  iColl = iColl + 1
+  if(iColl > cdb_nColl) then
+    cdb_nColl = cdb_nColl + 10
+    call cdb_allocDB
+  end if
+
+  cdb_cName(iColl)     = lnSplit(1)
+  cdb_cNameUC(iColl)   = chr_toUpper(lnSplit(1))
+  cdb_cMaterial(iColl) = lnSplit(3)
+
+  call chr_cast(lnSplit(4),cdb_cLength(iColl),  cErr)
+  call chr_cast(lnSplit(5),cdb_cRotation(iColl),cErr)
+  call chr_cast(lnSplit(6),cdb_cOffset(iColl),  cErr)
+
+  cdb_cRotation(iColl) = cdb_cRotation(iColl)*rad
+
+  if(nSplit > 6) call chr_cast(lnSplit(7),cdb_cBx(iColl),cErr)
+  if(nSplit > 7) call chr_cast(lnSplit(8),cdb_cBy(iColl),cErr)
+
+  if(chr_isNumeric(lnSplit(2))) then
+    ! If column 3 is a number, we have no family assigned, so just use the value given.
+    call chr_cast(lnSplit(2),cdb_cNSig(iColl),cErr)
+    cdb_cNSigOrig(iColl) = cdb_cNSig(iColl)
+  else
+    ! Otherwise, we look up the name and require that it exists. We also save the family ID.
+    famID = cdb_getFamilyID(lnSplit(2))
+    if(famID == -1) then
+      write(lerr,"(a,i0,a)") "COLLDB> ERROR Collimator opening '"//trim(adjustl(lnSplit(2)))//"' on line ",iLine,&
+        " is not in family database"
+      call prror
+    else
+      cdb_cFamily(iColl)   = famID
+      cdb_cNSig(iColl)     = cdb_famNSig(famID)
+      cdb_cNSigOrig(iColl) = cdb_famNSig(famID)
+    end if
+  end if
+
+  goto 10
+
+20 continue
+
+  cdb_nColl = iColl
+  call cdb_allocDB ! This should remove the unused lines in the DB
+
+  call f_close(dbUnit)
+
 end subroutine cdb_readDB_newFormat
 
 subroutine cdb_readDB_oldFormat
@@ -332,7 +442,7 @@ subroutine cdb_writeDB_ROOT
   character(len=5)          :: this_material = C_NULL_CHAR
   integer j
 
-  if(root_flag .eqv. .false. .or. root_CollimationDB /= 1) return
+  if((root_flag .eqv. .false.) .or. root_CollimationDB /= 1) return
 
   do j=1,cdb_nColl
     this_name     = trim(adjustl(cdb_cNameUC(j)))//C_NULL_CHAR
@@ -402,26 +512,26 @@ end subroutine cdb_writeDB_HDF5
 !  Updated: 2019-03-22
 !  Add a family to the family database
 ! ================================================================================================ !
-subroutine cdb_addFamily(famName, nSig, famID, fErr)
+subroutine cdb_addFamily(famName, nSig, famID, fExists)
 
   use crcoall
 
   character(len=*),  intent(in)  :: famName
   real(kind=fPrec),  intent(in)  :: nSig
   integer,           intent(out) :: famID
-  logical,           intent(out) :: fErr
+  logical,           intent(out) :: fExists
 
   famID = cdb_getFamilyID(famName)
   if(famID == -1) then
     cdb_nfam = cdb_nFam + 1
     call cdb_allocFam
-    cdb_famName(cdb_nFam) = famName
-    cdb_famNSig(cdb_nFam) = nSig
-    famID = cdb_nFam
-    fErr = .false.
+    cdb_famName(cdb_nFam)     = famName
+    cdb_famNSig(cdb_nFam)     = nSig
+    cdb_famNSigOrig(cdb_nFam) = nSig
+    famID   = cdb_nFam
+    fExists = .false.
   else
-    write(lout,"(a)") "COLLDB> Warning Collimator family '"//trim(famName)//"' already exists."
-    fErr = .true.
+    fExists = .true.
   end if
 
 end subroutine cdb_addFamily
@@ -484,18 +594,51 @@ subroutine cdb_writeFam
 
   integer j, famUnit
 
-  call f_requestUnit("coll_families.dat", famUnit)
-  call f_open(unit=famUnit,file="coll_families.dat",formatted=.true.,mode="w",status="replace")
+  call f_requestUnit("coll_families_dump.dat", famUnit)
+  call f_open(unit=famUnit,file="coll_families_dump.dat",formatted=.true.,mode="w",status="replace")
 
-  write(famUnit,"(a16,1x,a13)") "# famName       ","nSig"
+  write(famUnit,"(a16,2(1x,a13))") "# famName       ","nSig","nSigOrig"
   do j=1,cdb_nFam
-    write(famUnit,"(a16,1x,f13.6)") cdb_famName(j),cdb_famNSig(j)
+    write(famUnit,"(a16,2(1x,f13.6))") cdb_famName(j),cdb_famNSig(j),cdb_famNSigOrig(j)
   end do
 
   flush(famUnit)
   call f_close(famUnit)
 
 end subroutine cdb_writeFam
+
+! ================================================================================================ !
+!  V.K. Berglyd Olsen, BE-ABP-HSS
+!  Created: 2019-04-09
+!  Updated: 2019-04-09
+!  Write collimator database to file
+! ================================================================================================ !
+subroutine cdb_writeDB
+
+  use mod_units
+
+  character(len=cdb_fNameLen) famName
+  integer j, dbUnit
+
+  call f_requestUnit("coll_db_dump.dat", dbUnit)
+  call f_open(unit=dbUnit,file="coll_db_dump.dat",formatted=.true.,mode="w",status="replace")
+
+  write(dbUnit,"(a20,1x,a16,2(1x,a13),1x,a4,5(1x,a13))") "# collName          ","famName         ","nSig",&
+    "nSigOrig","mat.","length","angle","offset","betax","betay"
+  do j=1,cdb_nColl
+    if(cdb_cFamily(j) > 0) then
+      famName = cdb_famName(cdb_cFamily(j))
+    else
+      famName = " "
+    end if
+    write(dbUnit,"(a20,1x,a16,2(1x,f13.6),1x,a4,5(1x,f13.6))") cdb_cName(j),famName,cdb_cNSig(j),&
+      cdb_cNSigOrig(j),cdb_cMaterial(j),cdb_cLength(j),cdb_cRotation(j),cdb_cOffset(j),cdb_cBx(j),cdb_cBy(j)
+  end do
+
+  flush(dbUnit)
+  call f_close(dbUnit)
+
+end subroutine cdb_writeDB
 
 ! ================================================================================================ !
 !  V.K. Berglyd Olsen, BE-ABP-HSS

@@ -305,7 +305,7 @@ subroutine hash_digestFile(fileName, md5Digest, isAscii)
   end if
 
   tmpVals(:) = 0
-  call hash_digestFileC(fileName//char(0), len(fileName)+1, tmpVals, 16, tmpIsAscii)
+  call hash_digestFileC(trim(fileName)//char(0), len_trim(fileName)+1, tmpVals, 16, tmpIsAscii)
   if(tmpVals(1) == -1) then
     md5Digest = "***** ERROR File Not Found *****"
   else

@@ -11,6 +11,8 @@ subroutine sumpos
   use crcoall
   use parpro
   use string_tools
+  use mod_units
+  use mod_common, only : fort10, unit10
 
   implicit none
 
@@ -21,25 +23,23 @@ subroutine sumpos
   integer nSplit, ioStat, lineNo, i, j
   logical spErr, fErr
 
-  save
-
-  rewind 10
+  rewind(unit10)
   lineNo = 0
   do i=1,1000
-    read(10,"(a)",end=20,iostat=ioStat) inLine
+    read(unit10,"(a)",end=20,iostat=ioStat) inLine
     if(ioStat /= 0) then
-      write(lerr,"(a,i0)") "SUMPOS> ERROR Failed to read line from 'fort.10'. iostat = ",ioStat
-      call prror(-1)
+      write(lerr,"(a,i0)") "SUMPOS> ERROR Failed to read line from '"//trim(fort10)//"'. iostat = ",ioStat
+      call prror
     end if
 
     call chr_split(inLine, lnSplit, nSplit, spErr)
     if(spErr) then
-      write(lerr,"(a)") "SUMPOS> ERROR Failed to parse line from 'fort.10'"
-      call prror(-1)
+      write(lerr,"(a)") "SUMPOS> ERROR Failed to parse line from '"//trim(fort10)//"'"
+      call prror
     end if
     if(nSplit > 60) then
-      write(lerr,"(a,i0)") "SUMPOS> ERROR Too many elements on a single line of 'fort.10'. Max is 60, got ",nSplit
-      call prror(-1)
+      write(lerr,"(a,i0)") "SUMPOS> ERROR Too many elements on a single line of '"//trim(fort10)//"'. Max is 60, got ",nSplit
+      call prror
     end if
     lineNo = lineNo+1
 
@@ -61,26 +61,26 @@ subroutine sumpos
     write(lout,10010) nint(dlost),d(3),d(5),d(7),d(9),d(10),d(11),d(12),nint(d(16)),nint(d(18)),    &
       d(19),d(21),ch,d(4),d(6),d(8),d(13),nint(d(17)),d(20),d(25),d(14),d(15)
   end do
-  20 continue
-  rewind 10
 
+  20 continue
+  rewind(unit10)
   lineNo = 0
   write(lout,10020)
   do i=1,1000
-    read(10,"(a)",end=40,iostat=ioStat) inLine
+    read(unit10,"(a)",end=40,iostat=ioStat) inLine
     if(ioStat /= 0) then
-      write(lerr,"(a,i0)") "SUMPOS> ERROR Failed to read line from 'fort.10'. iostat = ",ioStat
-      call prror(-1)
+      write(lerr,"(a,i0)") "SUMPOS> ERROR Failed to read line from '"//trim(fort10)//"'. iostat = ",ioStat
+      call prror
     end if
 
     call chr_split(inLine, lnSplit, nSplit, spErr)
     if(spErr) then
-      write(lerr,"(a)") "SUMPOS> ERROR Failed to parse line from 'fort.10'"
-      call prror(-1)
+      write(lerr,"(a)") "SUMPOS> ERROR Failed to parse line from '"//trim(fort10)//"'"
+      call prror
     end if
     if(nSplit > 60) then
-      write(lerr,"(a,i0)") "SUMPOS> ERROR Too many elements on a single line of 'fort.10'. Max is 60, got ",nSplit
-      call prror(-1)
+      write(lerr,"(a,i0)") "SUMPOS> ERROR Too many elements on a single line of '"//trim(fort10)//"'. Max is 60, got ",nSplit
+      call prror
     end if
     lineNo = lineNo+1
 
@@ -93,6 +93,7 @@ subroutine sumpos
     ! and we always print the maximum DMMAC as NMAC
     ! or zero which should really be OK I think.
     ! N.B. If particle is lost nms is 0, so we set mmac to zero too
+    ! (nms is always 1)
     d(60) = one ! was real(nmac)
     if(nint(d(59)) == 0) d(60) = zero
     write(lout,10030) i,nint(d(59)),nint(d(60)),nint(d(59))*nint(d(24))
@@ -207,7 +208,7 @@ subroutine envarsv
   use mod_commons
   use mod_common_track
   use mod_common_da
-  use mod_common_main, only : dpsv,oidpsv,rvv,ekv,dpd,dpsq,fokqv
+  use mod_common_main, only : dpsv,oidpsv,rvv,dpd,dpsq
 
   use mod_alloc
 
@@ -216,7 +217,7 @@ subroutine envarsv
   integer ih1,ih2,j,kz1,l,l1,l2
 
   real(kind=fPrec) aek,afok,as3,as4,as6,co,fi,fok,fok1,g,gl,hc,hi,hi1,hm,hp,hs,rho,rhoc,rhoi,&
-    si,siq,sm1,sm12,sm2,sm23,sm3,wf,wfa,wfhi,fokm
+    si,siq,sm1,sm12,sm2,sm23,sm3,wf,wfa,wfhi,fokm,fokq
 
   ! The dpd and dpsq arrays used to be local and zeroed here.
   ! Currently using the global ones instead.
@@ -363,7 +364,7 @@ subroutine envarsv
     case(3)
 
       do j=1,napx
-        fok = ekv(j,l)*oidpsv(j)
+        fok = ek(l)*oidpsv(j)
         aek = abs(fok)
         hi  = sqrt(aek)
         fi  = el(l)*hi
@@ -431,28 +432,24 @@ subroutine envarsv
       end do
       cycle
 !-----------------------------------------------------------------------
-!  COMBINED FUNCTION MAGNET HORIZONTAL
+!  COMBINED FUNCTION MAGNET HORIZONTAL (7)
+!  COMBINED FUNCTION MAGNET VERTICAL   (8)
 !  FOCUSING
 !-----------------------------------------------------------------------
     case(7,8)
 
       if(kz1.eq.7) then
-        do j=1,napx
-          fokqv(j) = ekv(j,l)
-        end do
-        ih1 = 1
-        ih2 = 2
+        fokq = ek(l)
+        ih1  = 1
+        ih2  = 2
       else
-!  COMBINED FUNCTION MAGNET VERTICAL
-        do j=1,napx
-          fokqv(j) = -ekv(j,l)
-        end do
-        ih1 = 2
-        ih2 = 1
+        fokq = -ek(l)
+        ih1  = 2
+        ih2  = 1
       end if
       do j=1,napx
         wf   = ed(l)/dpsq(j)
-        fok  = fokqv(j)/dpd(j)-wf**2
+        fok  = fokq/dpd(j)-wf**2
         afok = abs(fok)
         hi   = sqrt(afok)
         fi   = hi*el(l)
@@ -491,7 +488,7 @@ subroutine envarsv
           as(5,ih1,j,l) = (((-one*rvv(j))*sm12)*afok)/c4e3
           as(6,ih1,j,l) = ((-one*rvv(j))*(el(l)+al(1,ih1,j,l)*al(2,ih1,j,l)))/c4e3
 
-          aek = abs(ekv(j,l)/dpd(j))
+          aek = abs(ek(l)/dpd(j))
           hi  = sqrt(aek)
           fi  = hi*el(l)
           hp  = exp_mb(fi)
@@ -532,7 +529,7 @@ subroutine envarsv
           as(5,ih1,j,l) = ((rvv(j)*sm12)*afok)/c4e3
           as(6,ih1,j,l) = ((-one*rvv(j))*(el(l)+al(1,ih1,j,l)*al(2,ih1,j,l)))/c4e3
 
-          aek = abs(ekv(j,l)/dpd(j))
+          aek = abs(ek(l)/dpd(j))
           hi  = sqrt(aek)
           fi  = hi*el(l)
           si  = sin_mb(fi)
@@ -611,7 +608,7 @@ subroutine mydaini(ncase,nnord,nnvar,nndim,nnvar2,nnord1)
 !-----------------------------------------------------------------------
   if(nndim < 2 .or. nndim > 3) then
     write(lerr,"(a)") "DAINI> ERROR DA corrections implemented for 4D and 6D only."
-    call prror(-1)
+    call prror
   end if
 !--------------------
   nordo=nord

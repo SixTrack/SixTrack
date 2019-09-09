@@ -322,7 +322,7 @@ subroutine cheby_postInput
     if(.not. exist) then
       write(lerr,"(a)") "CHEBY> ERROR Problems with file with coefficients for Chebyshev polynominals: ", &
             trim(cheby_filename(jj))
-      call prror(-1)
+      call prror
     end if
     call parseChebyFile(jj)
   end do
@@ -352,8 +352,8 @@ subroutine cheby_postInput
            " - reference radius [mm]:",cheby_refR(cheby_itable(jj))
       goto 10 
     end if
-    if (cheby_r1(jj)==zero) then
-      write(lerr,"(a)")      "CHEBY> ERROR R1 cannot be zero for the time being!"
+    if (cheby_r1(jj)<zero) then
+      write(lerr,"(a)")      "CHEBY> ERROR R1 cannot be lower than zero!"
       goto 10 
     end if
     if (cheby_I (jj)<=zero) then
@@ -433,7 +433,7 @@ subroutine cheby_postInput
 
 10 continue
    write(lout,"(a,i0,a)") "CHEBY>       concerned lens #", jj," - name: '"//trim(bez(kk))//"'"
-   call prror(-1)
+   call prror
    
 end subroutine cheby_postInput
 
@@ -554,7 +554,7 @@ subroutine parseChebyFile(ifile)
 
 20 continue
 
-  call f_close(fUnit)
+  call f_freeUnit(fUnit)
   if (cheby_refR(ifile)<=zero) then
     write(lerr,"(a)") "CHEBY> ERROR ref lens radius [mm] must be positive."
     goto 30
@@ -591,7 +591,7 @@ subroutine parseChebyFile(ifile)
   end do
 40 continue
   write(lerr,"(a)") "CHEBY> ERROR while parsing file "//trim(cheby_filename(ifile))
-  call prror(-1)
+  call prror
 
 end subroutine parseChebyFile
 
@@ -603,7 +603,6 @@ subroutine cheby_kick(i,ix,n)
   ! apply kick of Chebyshev lenses
 
   use mod_common, only : betrel, napx, brho
-  use mod_hions, only : moidpsv
   use mod_common_main
   use mathlib_bouncer
   use numerical_constants, only : zero, c180e0, pi
@@ -630,7 +629,7 @@ subroutine cheby_kick(i,ix,n)
 
     ! check that particle is within the domain of chebyshev polynomials
     rr=sqrt(xx**2+yy**2)
-    if (rr.ge.cheby_r1(icheby(ix)).and.rr.lt.cheby_r2(icheby(ix))) then ! rr<r1 || rr>=r2 -> no kick from lens
+    if (rr.gt.cheby_r1(icheby(ix)).and.rr.lt.cheby_r2(icheby(ix))) then ! rr<r1 || rr>=r2 -> no kick from lens
       
       ! in case of non-zero tilt angle, rotate coordinates
       if (lrotate) then
@@ -688,7 +687,7 @@ subroutine cheby_potentialMap(iLens,ix)
   call f_open(unit=fUnit,file=cheby_mapFileName(iLens),mode='w',err=err,formatted=.true.,status="replace")
   if(err) then
     write(lerr,"(a)") "CHEBY> ERROR Failed to open file."
-    call prror(-1)
+    call prror
   end if
  
   ! rotation angle
@@ -730,7 +729,7 @@ subroutine cheby_potentialMap(iLens,ix)
       ! check that particle is within the domain of chebyshev polynomials
       rr=sqrt(xxr**2+yyr**2)
       inside=0
-      if (rr.ge.cheby_r1(iLens).and.rr.lt.cheby_r2(iLens)) inside=1 ! kick only if rr>=r1 && rr<r2
+      if (rr.gt.cheby_r1(iLens).and.rr.lt.cheby_r2(iLens)) inside=1 ! kick only if rr>=r1 && rr<r2
       ! in case of non-zero tilt angle, rotate coordinates
       if (lrotate) then
         theta = atan2_mb(yyr, xxr)-angle_rad
@@ -748,7 +747,7 @@ subroutine cheby_potentialMap(iLens,ix)
     end do
   end do
 
-  call f_close(fUnit)
+  call f_freeUnit(fUnit)
   
 end subroutine cheby_potentialMap
 

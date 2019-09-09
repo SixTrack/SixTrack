@@ -431,7 +431,7 @@ subroutine h5_initHDF5
   call h5pset_preserve_f(h5_plistID, .true., h5_fileError)
   if(h5_fileError < 0) then
     write(lerr,"(a)") "HDF5> ERROR Failed to initialise Fortran HDF5."
-    call prror(-1)
+    call prror
   end if
   write(lout,"(a)") "HDF5> Fortran HDF5 initialised."
 
@@ -449,7 +449,7 @@ subroutine h5_openFile
 
   if(.not. h5_isActive) then
     write(lerr,"(a)") "HDF5> ERROR HDF5 file open called, but HDF5 is not active. This is a bug."
-    call prror(-1)
+    call prror
   end if
 
   inquire(file=h5_fileName%chr, exist=doesExist)
@@ -459,14 +459,14 @@ subroutine h5_openFile
       call h5fcreate_f(h5_fileName%chr, H5F_ACC_TRUNC_F, h5_fileID, h5_fileError)
       if(h5_fileError < 0) then
         write(lerr,"(a)") "HDF5> ERROR Failed to open HDF5 file '"//h5_fileName//"'."
-        call prror(-1)
+        call prror
       end if
       write(lout,"(a)") "HDF5> Truncated HDF5 file '"//h5_fileName//"'."
     else
       call h5fopen_f(h5_fileName%chr, H5F_ACC_RDWR_F, h5_fileID, h5_fileError)
       if(h5_fileError < 0) then
         write(lerr,"(3a)") "HDF5> ERROR Failed to open HDF5 file '",h5_fileName%chr,"'."
-        call prror(-1)
+        call prror
       end if
       write(lout,"(a)") "HDF5> Opened HDF5 file '"//h5_fileName//"'."
     end if
@@ -474,7 +474,7 @@ subroutine h5_openFile
     call h5fcreate_f(h5_fileName%chr, H5F_ACC_EXCL_F, h5_fileID, h5_fileError)
     if(h5_fileError < 0) then
       write(lerr,"(a)") "HDF5> ERROR Failed to create HDF5 file '"//h5_fileName//"'."
-      call prror(-1)
+      call prror
     end if
     write(lout,"(a)") "HDF5> Created HDF5 file '"//h5_fileName//"'."
   end if
@@ -486,7 +486,7 @@ subroutine h5_openFile
     if(h5_fileError < 0) then
       write(lerr,"(a)") "HDF5> ERROR Failed to create root group '"//h5_rootPath//"'."
       write(lerr,"(a)") "HDF5> ERROR   If you are writing to an existing file, the root group must be unique."
-      call prror(-1)
+      call prror
     end if
     write(lout,"(a)") "HDF5> Created root group '"//h5_rootPath//"'."
   else
@@ -580,14 +580,14 @@ subroutine h5_closeHDF5
   call h5fclose_f(h5_fileID, h5_fileError)
   if(h5_fileError < 0) then
     write(lerr,"(a)") "HDF5> ERROR Failed to close HDF5 file."
-    call prror(-1)
+    call prror
   end if
 
   ! This cleans up everything left over
   call h5close_f(h5_fileError)
   if(h5_fileError < 0) then
     write(lerr,"(a)") "HDF5> ERROR Failed to close Fortran HDF5."
-    call prror(-1)
+    call prror
   end if
 
   write(lout,"(a)") "HDF5> Closed HDF5 file."
@@ -603,13 +603,13 @@ subroutine h5_initForAperture
 
   if(.not. h5_isReady) then
     write(lerr,"(a)") "HDF5> ERROR Block initialisation requested, but no HDF5 file is open. This is a bug."
-    call prror(-1)
+    call prror
   end if
 
   call h5gcreate_f(h5_rootID, h5_aperGroup, h5_aperID, h5_fileError)
   if(h5_fileError < 0) then
     write(lerr,"(a)") "HDF5> ERROR Failed to create aperture group '"//h5_aperGroup//"'."
-    call prror(-1)
+    call prror
   end if
   if(h5_debugOn) then
     write(lout,"(a)") "HDF5> DEBUG Group created for APERTURE."
@@ -621,13 +621,13 @@ subroutine h5_initForCollimation
 
   if(.not. h5_isReady) then
     write(lerr,"(a)") "HDF5> ERROR Block initialisation requested, but no HDF5 file is open. This is a bug."
-    call prror(-1)
+    call prror
   end if
 
   call h5gcreate_f(h5_rootID, h5_collGroup, h5_collID, h5_fileError)
   if(h5_fileError < 0) then
     write(lerr,"(a)") "HDF5> ERROR Failed to create collimation group '"//h5_collGroup//"'."
-    call prror(-1)
+    call prror
   end if
   if(h5_debugOn) then
     write(lout,"(a)") "HDF5> DEBUG Group created for COLLIMATION."
@@ -639,13 +639,13 @@ subroutine h5_initForDump
 
   if(.not. h5_isReady) then
     write(lerr,"(a)") "HDF5> ERROR Block initialisation requested, but no HDF5 file is open. This is a bug."
-    call prror(-1)
+    call prror
   end if
 
   call h5gcreate_f(h5_rootID, h5_dumpGroup, h5_dumpID, h5_fileError)
   if(h5_fileError < 0) then
     write(lerr,"(a)") "HDF5> ERROR Failed to create dump group '"//h5_dumpGroup//"'."
-    call prror(-1)
+    call prror
   end if
   if(h5_debugOn) then
     write(lout,"(a)") "HDF5> DEBUG Group created for DUMP."
@@ -657,13 +657,13 @@ subroutine h5_initForScatter
 
   if(.not. h5_isReady) then
     write(lerr,"(a)") "HDF5> ERROR Block initialisation requested, but no HDF5 file is open. This is a bug."
-    call prror(-1)
+    call prror
   end if
 
   call h5gcreate_f(h5_rootID, h5_scatGroup, h5_scatID, h5_fileError)
   if(h5_fileError < 0) then
     write(lerr,"(a)") "HDF5> ERROR Failed to create scatter group '"//h5_scatGroup//"'."
-    call prror(-1)
+    call prror
   end if
   if(h5_debugOn) then
     write(lout,"(a)") "HDF5> DEBUG Group created for SCATTER."
@@ -692,21 +692,21 @@ subroutine h5_createFormat(formatName, setFields, fmtID)
 
   if(.not. h5_isActive) then
     write(lerr,"(a)") "HDF5> ERROR HDF5 routine called, but HDF5 is not active. This is a bug."
-    call prror(-1)
+    call prror
   end if
 
   ! Check inputs
   if(len(formatName) == 0) then
     write(lerr,"(a)") "HDF5> ERROR Empty format name given. This is a bug."
-    call prror(-1)
+    call prror
   end if
   if(allocated(setFields) .eqv. .false.) then
     write(lerr,"(a)") "HDF5> ERROR Fields array not allocated. This is a bug."
-    call prror(-1)
+    call prror
   end if
   if(size(setFields) == 0) then
     write(lerr,"(a)") "HDF5> ERROR Fields array empty. This is a bug."
-    call prror(-1)
+    call prror
   end if
 
   ! First, extend the h5_fmtList array
@@ -778,7 +778,7 @@ subroutine h5_createFormat(formatName, setFields, fmtID)
 
   if(h5_dataError /= 0) then
     write(lerr,"(a)") "HDF5> ERROR Failed to create compund data record '"//formatName//"'"
-    call prror(-1)
+    call prror
   end if
 
   ! Save the Resulting HDF5 DataType
@@ -821,7 +821,7 @@ subroutine h5_createDataSet(setName, groupID, fmtID, setID, chunckSize)
 
   if(.not. h5_isReady) then
     write(lerr,"(a)") "HDF5> ERROR Dataset creation requested, but no HDF5 file is open. This is a bug."
-    call prror(-1)
+    call prror
   end if
 
   ! First, extend the h5_setList array
@@ -856,7 +856,7 @@ subroutine h5_createDataSet(setName, groupID, fmtID, setID, chunckSize)
   call h5pset_chunk_f(propID, 1, spaceSize, h5_dataError)
   if(h5_dataError /= 0) then
     write(lerr,"(a)") "HDF5> ERROR Failed to set chunck size for '"//cleanName//"'"
-    call prror(-1)
+    call prror
   end if
   if(h5_gzipLevel > -1) then
     call h5pset_deflate_f(propID, h5_gzipLevel, h5_dataError)
@@ -867,7 +867,7 @@ subroutine h5_createDataSet(setName, groupID, fmtID, setID, chunckSize)
   call h5dcreate_f(groupID, cleanName, dtypeID, spaceID, dataID, h5_dataError, propID)
   if(h5_dataError /= 0) then
     write(lerr,"(a)") "HDF5> ERROR Failed to create dataset '"//cleanName//"'"
-    call prror(-1)
+    call prror
   end if
 
   call h5sclose_f(spaceID, h5_dataError)
@@ -914,7 +914,7 @@ subroutine h5_createBuffer(bufName, fmtID, setID, bufSize)
 
   if(.not. h5_isReady) then
     write(lerr,"(a)") "HDF5> ERROR Buffer creation requested, but no HDF5 file is open. This is a bug."
-    call prror(-1)
+    call prror
   end if
 
   ! First, extend the h5_setList array
@@ -1166,7 +1166,7 @@ subroutine h5_prepareWrite(setID, appendSize)
 
   if(.not. h5_isReady) then
     write(lerr,"(a)") "HDF5> ERROR Dataset operation requested, but no HDF5 file is open. This is a bug."
-    call prror(-1)
+    call prror
   end if
 
   oldSize(1) = h5_setList(setID-h5_setOff)%records
@@ -1184,7 +1184,7 @@ subroutine h5_prepareWrite(setID, appendSize)
 
   if(h5_dataError /= 0) then
     write(lerr,"(a)") "HDF5> ERROR Failed to extend dataset '"//h5_setList(setID-h5_setOff)%name//"'"
-    call prror(-1)
+    call prror
   end if
 
   h5_setList(setID-h5_setOff)%records = newSize(1)
@@ -1208,7 +1208,7 @@ subroutine h5_finaliseWrite(setID)
 
   if(.not. h5_isReady) then
     write(lerr,"(a)") "HDF5> ERROR Dataset operation requested, but no HDF5 file is open. This is a bug."
-    call prror(-1)
+    call prror
   end if
 
   call h5dclose_f(h5_setList(setID-h5_setOff)%dataID,  h5_dataError)
