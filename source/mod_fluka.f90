@@ -100,9 +100,6 @@ module mod_fluka
   ! hisix: write isotope info
   integer, public :: isotope_log_unit                  ! logical unit for isotope-id output (was 822)
 
-  integer, public :: unit209 ! Holds the actual units of fort.209
-  integer, public :: unit210 ! Holds the actual units of fort.210
-
   ! fluka insertions
   logical, public :: fluka_inside = .false.                        ! Are we in a fluka insertion?
   integer(kind=int32), public, allocatable :: fluka_type(:)        ! type of insertion (one per SINGLE ELEMENT)
@@ -183,13 +180,9 @@ contains
 !    fluka_synch_length = zero
 
     call f_requestUnit(fort208,            unit208)
-    call f_requestUnit("fort.209",         unit209)
-    call f_requestUnit("fort.210",         unit210)
     call f_requestUnit("fluka.log",        fluka_log_unit)
     call f_requestUnit("fluka_isotope.log",isotope_log_unit)
-    call f_open(unit=unit208,         file=fort208,         formatted=.true.,mode="w")
-    call f_open(unit=unit209,         file="fort.209",         formatted=.true.,mode="w")
-    call f_open(unit=unit210,         file="fort.210",         formatted=.true.,mode="w")
+    call f_open(unit=unit208,         file=fort208,            formatted=.true.,mode="w")
     call f_open(unit=fluka_log_unit,  file="fluka.log",        formatted=.true.,mode="w")
     call f_open(unit=isotope_log_unit,file="fluka_isotope.log",formatted=.true.,mode="w")
 
@@ -1142,13 +1135,6 @@ subroutine kernel_fluka_element( nturn, i, ix )
           call root_EnergyDeposition(fluka_geo_index(fluka_ix), nnuc0-nnuc1, c1m3*(ien0-ien1))
         end if
 #endif
-      ! hisix debugging:
-      ! write out the particle distribution after the primary
-        if(fluka_geo_index(fluka_ix).eq.11) then
-          do j=1,napx
-            write(unit210,*) naa(j), nzz(j), nucm(j),ejfv(j),mtc(j),dpsv(j)
-          end do
-        end if
       end if
 
 !     hisix: check which particle ids have not been sent back
@@ -1161,10 +1147,6 @@ subroutine kernel_fluka_element( nturn, i, ix )
             pid_q = one
           end if
         end do
-
-        if(pid_q.eq.zero.and.pids(j).ne.zero) then
-          write(unit209,*) fluka_geo_index(fluka_ix), pids(j)
-        end if
       end do
 
 !     empty places
@@ -1197,7 +1179,6 @@ subroutine kernel_fluka_element( nturn, i, ix )
       fluka_ix = -1
       fluka_nturn = -1
       flush(unit208)
-      flush(unit209)
       return
 end subroutine kernel_fluka_element
 
@@ -1373,14 +1354,6 @@ subroutine kernel_fluka_exit
             call root_EnergyDeposition(fluka_geo_index(fluka_ix), nnuc0-nnuc1, c1m3*(ien0-ien1))
           end if
 #endif
-
-          ! hisix debugging:
-          ! write out the particle distribution after the primary
-          if (fluka_geo_index(fluka_ix).eq.11) then
-            do j=1,napx
-              write(unit210,*) naa(j), nzz(j), nucm(j),ejfv(j),mtc(j),dpsv(j)
-            end do
-          end if
         end if
 !
 !     hisix: check which particle ids have not been sent back
@@ -1392,9 +1365,6 @@ subroutine kernel_fluka_exit
             pid_q = one
           end if
         end do
-        if(pid_q.eq.zero.and.pids(j).ne.zero) then
-          write(unit209,*) fluka_geo_index(fluka_ix), pids(j)
-        end if
       end do
 
 !     empty places
@@ -1427,8 +1397,6 @@ subroutine kernel_fluka_exit
       fluka_ix = -1
       fluka_nturn = -1
       flush(unit208)
-      flush(unit209)
-
       return
 end subroutine kernel_fluka_exit
 
