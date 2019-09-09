@@ -111,7 +111,7 @@ subroutine trauthin(nthinerr)
     !43--elliptic beam z>x
     !44 -- 6d beam-beam
     if(kzz.eq.20) then
-        call initialize_element(ix,.false.)
+        call initialise_element(ix,.false.)
       goto 290
     endif
 
@@ -254,7 +254,7 @@ subroutine trauthin(nthinerr)
         ktrack(i) = 20
 #include "include/stra10.f90"
       end if
-    case (11) ! Multipole block (also in initialize_element)
+    case (11) ! Multipole block (also in initialise_element)
       r0  = ek(ix)
       nmz = nmu(ix)
       if(abs(r0).le.pieni.or.nmz.eq.0) then
@@ -529,7 +529,7 @@ subroutine thin4d(nthinerr)
   use aperture
   use elens
   use cheby, only : cheby_ktrack, cheby_kick
-  use utils
+  use mod_utils
   use wire
 #ifdef CR
   use checkpoint_restart
@@ -1152,7 +1152,7 @@ subroutine thin6d(nthinerr)
   use aperture
   use elens
   use cheby, only : cheby_ktrack, cheby_kick
-  use utils
+  use mod_utils
   use wire
 #ifdef CR
   use checkpoint_restart

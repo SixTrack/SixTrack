@@ -23,8 +23,9 @@ module coll_db
   logical,                  public,  save :: cdb_doNSig   = .false. ! Use the sigmas from fort.3 instead of DB
   integer,                  public,  save :: cdb_nColl    = 0       ! Number of collimators
   integer,                  public,  save :: cdb_nFam     = 0       ! Number of collimator families
+  integer,                  public,  save :: cdb_setPos   = 0       ! The position in the DB file where the settings start
 
-  ! Database arrays
+  ! Main Database Arrays
   character(len=:), allocatable, public, save :: cdb_cName(:)       ! Collimator name
   character(len=:), allocatable, public, save :: cdb_cNameUC(:)     ! Collimator name upper case
   character(len=:), allocatable, public, save :: cdb_cMaterial(:)   ! Collimator material
@@ -38,10 +39,11 @@ module coll_db
   real(kind=fPrec), allocatable, public, save :: cdb_cBy(:)         ! Collimator beta y
   logical,          allocatable, public, save :: cdb_cFound(:)      ! Found in lattice
 
-  ! Additional computed values
-  real(kind=fPrec), allocatable, public, save :: cdb_cTilt(:,:)    ! Collimator jaw tilt
-  integer,          allocatable, public, save :: cdb_cJawFit(:,:)  ! Collimator jaw fit index
-  integer,          allocatable, public, save :: cdb_cSliced(:)    ! Collimator jaw fit sliced data index
+  ! Additional Settings Arrays
+  real(kind=fPrec), allocatable, public, save :: cdb_cTilt(:,:)     ! Collimator jaw tilt
+  integer,          allocatable, public, save :: cdb_cJawFit(:,:)   ! Collimator jaw fit index
+  integer,          allocatable, public, save :: cdb_cSliced(:)     ! Collimator jaw fit sliced data index
+  integer,          allocatable, public, save :: cdb_cSides(:)      ! 0 = two-sided, or 1,2 for single side 1 or 2
 
   ! Family Arrays
   character(len=:), allocatable, public, save :: cdb_famName(:)     ! Family name
@@ -53,12 +55,19 @@ module coll_db
 
 contains
 
+! ================================================================================================ !
+!  V.K. Berglyd Olsen, BE-ABP-HSS
+!  Created: 2019-03-19
+!  Updated: 2019-08-30
+!  Change the size of the collimator database arrays
+! ================================================================================================ !
 subroutine cdb_allocDB
 
   use parpro
   use mod_alloc
   use numerical_constants
 
+  ! Main Database Arrays
   call alloc(cdb_cName,     mNameLen, cdb_nColl, " ",           "cdb_cName")
   call alloc(cdb_cNameUC,   mNameLen, cdb_nColl, " ",           "cdb_cNameUC")
   call alloc(cdb_cMaterial, 4,        cdb_nColl, " ",           "cdb_cMaterial")
@@ -72,12 +81,20 @@ subroutine cdb_allocDB
   call alloc(cdb_cBy,                 cdb_nColl, zero,          "cdb_cBy")
   call alloc(cdb_cFound,              cdb_nColl, .false.,       "cdb_cFound")
 
+  ! Additional Settings Arrays
   call alloc(cdb_cTilt,     2,        cdb_nColl, zero,          "cdb_cTilt")
   call alloc(cdb_cJawFit,   2,        cdb_nColl, 0,             "cdb_cJawFit")
   call alloc(cdb_cSliced,             cdb_nColl, 0,             "cdb_cSliced")
+  call alloc(cdb_cSides,              cdb_nColl, 0,             "cdb_cSides")
 
 end subroutine cdb_allocDB
 
+! ================================================================================================ !
+!  V.K. Berglyd Olsen, BE-ABP-HSS
+!  Created: 2019-03-19
+!  Updated: 2019-08-30
+!  Change the size of the collimator family arrays
+! ================================================================================================ !
 subroutine cdb_allocFam
 
   use parpro
@@ -89,14 +106,16 @@ subroutine cdb_allocFam
 
 end subroutine cdb_allocFam
 
+! ================================================================================================ !
+!  V.K. Berglyd Olsen, BE-ABP-HSS
+!  Created: 2019-03-19
+!  Updated: 2019-08-30
+!  Change the size of other arrays depending on external size parameters
+! ================================================================================================ !
 subroutine cdb_expand_arrays(nele_new)
-
   use mod_alloc
-
   integer, intent(in) :: nele_new
-
   call alloc(cdb_elemMap,nele_new,0,"cdb_elemMap")
-
 end subroutine cdb_expand_arrays
 
 ! ================================================================================================ !
@@ -151,6 +170,11 @@ subroutine cdb_readCollDB
     call cdb_readDB_newFormat
   end if
 
+  if(cdb_setPos > 0) then
+    ! The DB has additional SETTINGS, parse them
+    call cdb_readDBSettings
+  end if
+
 #ifdef ROOT
   call cdb_writeDB_ROOT
 #endif
@@ -194,6 +218,13 @@ subroutine cdb_readCollDB
 
 end subroutine cdb_readCollDB
 
+! ================================================================================================ !
+!  V.K. Berglyd Olsen, BE-ABP-HSS
+!  Created: 2019-03-19
+!  Updated: 2019-08-30
+!  Parsing the collimator section of the new database format. That is, the sigma settings and the
+!  collimator descriptions. The parsing ends when it reaches the SETTINGS keyword.
+! ================================================================================================ !
 subroutine cdb_readDB_newFormat
 
   use parpro
@@ -213,6 +244,8 @@ subroutine cdb_readDB_newFormat
   cErr  = .false.
   iLine = 0
   iColl = 0
+
+  write(lout,"(a)") "COLLDB> Reading collimator database, new format"
 
   call f_requestUnit(cdb_fileName, dbUnit)
   call f_open(unit=dbUnit,file=cdb_fileName,formatted=.true.,mode="r",status="old",err=fErr)
@@ -235,6 +268,13 @@ subroutine cdb_readDB_newFormat
   if(cErr) then
     write(lerr,"(a,i0)") "COLLDB> ERROR Failed to parse database line ",iLine
     call prror
+  end if
+  if(nSplit == 0) goto 10 ! Skip empty lines
+
+  if(lnSplit(1) == "SETTINGS") then
+    write(lout,"(a,i0)") "COLLDB> SETTINGS flag encountered in collimator database on line ",iLine
+    cdb_setPos = iLine
+    goto 20
   end if
 
   if(lnSplit(1) == "NSIG_FAM") then
@@ -303,6 +343,12 @@ subroutine cdb_readDB_newFormat
 
 end subroutine cdb_readDB_newFormat
 
+! ================================================================================================ !
+!  V.K. Berglyd Olsen, BE-ABP-HSS
+!  Created: 2019-03-19
+!  Updated: 2019-09-02
+!  Parses the old style database format with one calue per line.
+! ================================================================================================ !
 subroutine cdb_readDB_oldFormat
 
   use crcoall
@@ -314,25 +360,14 @@ subroutine cdb_readDB_oldFormat
   character(len=mInputLn) inLine
   character(len=cdb_fNameLen) famName
   logical cErr
-  integer j, dbUnit, dbNew, ioStat, iLine, famID
+  integer j, dbUnit, ioStat, iLine, famID
 
   cErr = .false.
 
+  write(lout,"(a)") "COLLDB> Reading collimator database, old format"
+
   call f_requestUnit(cdb_fileName, dbUnit)
   call f_open(unit=dbUnit,file=cdb_fileName,formatted=.true.,mode="r",status="old")
-
-  call f_requestUnit(trim(cdb_fileName)//".new", dbNew)
-  call f_open(unit=dbNew,file=trim(cdb_fileName)//".new",formatted=.true.,mode="w",status="replace")
-
-  write(dbNew,"(a)") "# Automatically converted collimator DB from old format file '"//trim(cdb_fileName)//"'"
-  write(dbNew,"(a)") "# Families"
-  do j=1,cdb_nFam
-    write(dbNew,"(a,1x,a16,1x,f13.6)") "NSIG_FAM",cdb_famName(j),cdb_famNSig(j)
-  end do
-  write(dbNew,"(a)") "# Collimators"
-
-  write(dbNew,"(1a,a47,1x,a16,1x,a4,5(1x,a13))") "#",chr_rPad(" name",47),&
-    "opening","mat.","length[m]","angle[deg]","offset[m]","beta_x[m]","beta_y[m]"
 
   read(dbUnit,*,iostat=ioStat) inLine
   iLine = 1
@@ -415,22 +450,10 @@ subroutine cdb_readDB_oldFormat
       cdb_cNSig(j) = cdb_cNSigOrig(j)
     end if
     cdb_cFamily(j) = famID
-    if(famID > 0) then
-      write(dbNew,"(a48,1x,a16,1x,a4,5(1x,f13.6))") cdb_cName(j),&
-      chr_lPad(trim(famName),16),cdb_cMaterial(j),cdb_cLength(j),cdb_cRotation(j)/rad,&
-      cdb_cOffset(j),cdb_cBx(j),cdb_cBy(j)
-    else
-      write(dbNew,"(a48,1x,f16.3,1x,a4,5(1x,f13.6))") cdb_cName(j),&
-      cdb_cNSig(j),cdb_cMaterial(j),cdb_cLength(j),cdb_cRotation(j)/rad,&
-      cdb_cOffset(j),cdb_cBx(j),cdb_cBy(j)
-    end if
 
   end do
 
-  call f_close(dbUnit)
-
-  flush(dbNew)
-  call f_close(dbNew)
+  call f_freeUnit(dbUnit)
 
   return
 
@@ -439,6 +462,204 @@ subroutine cdb_readDB_oldFormat
   call prror
 
 end subroutine cdb_readDB_oldFormat
+
+! ================================================================================================ !
+!  V.K. Berglyd Olsen, BE-ABP-HSS
+!  Created: 2019-03-19
+!  Updated: 2019-09-02
+!  Write a copy of the old style DB in new DB format.
+! ================================================================================================ !
+subroutine cdb_writeDB_newFromOld
+
+  use crcoall
+  use string_tools
+  use mod_units
+  use numerical_constants
+
+  character(len=cdb_fNameLen) famName
+  integer j, dbNew
+
+  if(cdb_dbOld .eqv. .false.) then
+    ! Already have a new format DB
+    return
+  end if
+
+  write(lout,"(a)") "COLLDB> Converting old format DB to new format to file '"//trim(cdb_fileName)//".new'"
+
+  call f_requestUnit(trim(cdb_fileName)//".new", dbNew)
+  call f_open(unit=dbNew,file=trim(cdb_fileName)//".new",formatted=.true.,mode="w",status="replace")
+
+  write(dbNew,"(a)") "# Automatically converted collimator DB from old format file '"//trim(cdb_fileName)//"'"
+  write(dbNew,"(a)") "# Families"
+  do j=1,cdb_nFam
+    write(dbNew,"(a,1x,a16,1x,f13.6)") "NSIG_FAM",cdb_famName(j),cdb_famNSig(j)
+  end do
+  write(dbNew,"(a)") "#"
+  write(dbNew,"(a)") "# Collimators"
+
+  write(dbNew,"(1a,a47,1x,a16,1x,a4,5(1x,a13))") "#",chr_rPad(" name",47),&
+    "opening/fam","mat.","length[m]","angle[deg]","offset[m]","beta_x[m]","beta_y[m]"
+
+  do j=1,cdb_nColl
+    if(cdb_cFamily(j) > 0) then
+      famName = cdb_famName(cdb_cFamily(j))
+      write(dbNew,"(a48,1x,a16,1x,a4,5(1x,f13.6))") cdb_cName(j),&
+      chr_lPad(trim(famName),16),cdb_cMaterial(j),cdb_cLength(j),cdb_cRotation(j)/rad,&
+      cdb_cOffset(j),cdb_cBx(j),cdb_cBy(j)
+    else
+      write(dbNew,"(a48,1x,f16.3,1x,a4,5(1x,f13.6))") cdb_cName(j),&
+      cdb_cNSig(j),cdb_cMaterial(j),cdb_cLength(j),cdb_cRotation(j)/rad,&
+      cdb_cOffset(j),cdb_cBx(j),cdb_cBy(j)
+    end if
+  end do
+
+  write(dbNew,"(a)") "#"
+  write(dbNew,"(a)") "# Additional Collimator Settings"
+  write(dbNew,"(a)") "SETTINGS"
+
+  ! Onesided Collimators
+  do j=1,cdb_nColl
+    if(cdb_cSides(j) > 0) then
+      write(dbNew,"(a,1x,a48,1x,i1)") "ONESIDED",cdb_cName(j),cdb_cSides(j)
+    end if
+  end do
+
+  flush(dbNew)
+  call f_freeUnit(dbNew)
+
+end subroutine cdb_writeDB_newFromOld
+
+! ================================================================================================ !
+!  V.K. Berglyd Olsen, BE-ABP-HSS
+!  Created: 2019-08-30
+!  Updated: 2019-08-30
+!  Parse additional settings from the collimator database. This is treated separately since this
+!  section is parsed in a standard name/value format like an input block in fort.3
+! ================================================================================================ !
+subroutine cdb_readDBSettings
+
+  use parpro
+  use crcoall
+  use string_tools
+  use mod_units
+  use mod_alloc
+  use numerical_constants
+
+  character(len=:), allocatable :: lnSplit(:)
+  character(len=mInputLn) inLine
+  integer i, dbUnit, ioStat, nSplit, iLine, iColl, iFam, iTemp
+  logical cErr, fErr, isFam
+
+  fErr  = .false.
+  cErr  = .false.
+  iLine = 0
+
+  write(lout,"(a)") "COLLDB> Reading additional settings from collimator database"
+
+  call f_requestUnit(cdb_fileName, dbUnit)
+  call f_open(unit=dbUnit,file=cdb_fileName,formatted=.true.,mode="r",status="old",err=fErr)
+  if(fErr) then
+    write(lerr,"(a)") "COLLDB> ERROR Cannot read from '"//trim(cdb_fileName)//"'"
+    call prror
+  end if
+
+10 continue
+  iLine = iLine + 1
+
+  read(dbUnit,"(a)",end=20,iostat=ioStat) inLine
+  if(iLine <= cdb_setPos) goto 10 ! Skip already parsed lines
+
+  if(ioStat /= 0) then
+    write(lerr,"(a)") "COLLDB> ERROR Cannot read from '"//trim(cdb_fileName)//"'"
+    call prror
+  end if
+  if(inLine(1:1) == "#") goto 10
+
+  call chr_split(inLine, lnSplit, nSplit, cErr)
+  if(cErr) then
+    write(lerr,"(a)") "COLLDB> ERROR Failed to parse database line"
+    goto 30
+  end if
+  if(nSplit == 0) goto 10 ! Skip empty lines
+
+  ! Look up the target collimator or family
+  iFam  = -1
+  iColl = -1
+  isFam = .false.
+  if(nSplit >= 2) then
+    iFam  = cdb_getFamilyID(lnSplit(2))
+    iColl = cdb_getCollimatorID(lnSplit(2))
+    if(iFam == -1 .and. iColl == -1) then
+      write(lerr,"(a)") "COLLDB> ERROR Could not find '"//trim(lnSplit(2))//"' in neither collimator nor family database"
+      goto 30
+    end if
+    if(iFam > 0 .and. iColl > 0) then
+      write(lerr,"(a)") "COLLDB> ERROR Found '"//trim(lnSplit(2))//"' in both collimator and family database"
+      goto 30
+    end if
+    isFam = iFam > 0
+  else
+    write(lerr,"(a)") "COLLDB> ERROR Each keyword in the SETTINGS section of the collimator database requires "//&
+      "a target collimator or family name"
+    goto 30
+  end if
+
+  ! Parse the keywords
+  select case(lnSplit(1))
+
+  case("ONESIDED") ! Treatment of one-sided collimators
+
+    if(nSplit /= 3) then
+      write(lerr,"(a,i0)") "COLLDB> ERROR ONESIDED expects 2 values, got ",nSplit-1
+      write(lerr,"(a)")    "COLLDB>       ONESIDED collname|famname 1|2"
+      goto 30
+    end if
+    call chr_cast(lnSplit(3), iTemp, cErr)
+    if(iTemp /= 1 .and. iTemp /= 2) then
+      write(lerr,"(a,i0)") "COLLDB> ERROR ONESIDED collimator value must be 1 or 2, got ",iTemp
+      goto 30
+    end if
+    if(isFam) then
+      do i=1,cdb_nColl
+        if(cdb_cFamily(iFam) == iFam) then
+          if(iTemp == 2) then
+            call cdb_rotateCollimator(i, pi)
+            write(lout,"(a,i0,a)") "COLLDB> Collimator family '"//trim(lnSplit(2))//&
+              "' is set as one-sided and rotated by pi (",iTemp,")"
+          else
+            write(lout,"(a,i0,a)") "COLLDB> Collimator family '"//trim(lnSplit(2))//"' is set as one-sided (",iTemp,")"
+          end if
+          cdb_cSides(i) = 1
+        end if
+      end do
+    else
+      if(iTemp == 2) then
+        call cdb_rotateCollimator(iColl, pi)
+        write(lout,"(a,i0,a)") "COLLDB> Collimator '"//trim(lnSplit(2))//"' is set as one-sided and rotated by pi (",iTemp,")"
+      else
+        write(lout,"(a,i0,a)") "COLLDB> Collimator '"//trim(lnSplit(2))//"' is set as one-sided (",iTemp,")"
+      end if
+      cdb_cSides(iColl) = 1
+    end if
+
+  case default
+    write(lerr,"(a)") "COLLDB> ERROR Unknown keyword '"//trim(lnSplit(1))//"' in SETTINGS section"
+    goto 30
+
+  end select
+
+  goto 10
+
+20 continue
+
+  call f_close(dbUnit)
+  return
+
+30 continue
+  write(lerr,"(a,i0)") "COLLDB> ERROR Collimator DB '"//trim(cdb_fileName)//"' on line ",iLine
+  call prror
+
+end subroutine cdb_readDBSettings
 
 #ifdef ROOT
 subroutine cdb_writeDB_ROOT
@@ -517,6 +738,30 @@ end subroutine cdb_writeDB_HDF5
 
 ! ================================================================================================ !
 !  V.K. Berglyd Olsen, BE-ABP-HSS
+!  Created: 2019-09-02
+!  Updated: 2019-09-02
+!  Rotate a collimater by rAngle radians
+!  Note: does not check that zero <= rAngle <= twopi
+! ================================================================================================ !
+subroutine cdb_rotateCollimator(collID, rAngle)
+
+  use numerical_constants
+
+  integer,          intent(in) :: collID
+  real(kind=fPrec), intent(in) :: rAngle
+
+  cdb_cRotation(collID) = cdb_cRotation(collID) + rAngle
+  if(cdb_cRotation(collID) >= twopi) then
+    cdb_cRotation(collID) = modulo(cdb_cRotation(collID), twopi)
+  end if
+  if(cdb_cRotation(collID) < zero) then
+    cdb_cRotation(collID) = cdb_cRotation(collID) + twopi
+  end if
+
+end subroutine cdb_rotateCollimator
+
+! ================================================================================================ !
+!  V.K. Berglyd Olsen, BE-ABP-HSS
 !  Created: 2019-03-22
 !  Updated: 2019-03-22
 !  Add a family to the family database
@@ -567,6 +812,29 @@ integer function cdb_getFamilyID(famName) result(famID)
   end if
 
 end function cdb_getFamilyID
+
+! ================================================================================================ !
+!  V.K. Berglyd Olsen, BE-ABP-HSS
+!  Created: 2019-08-30
+!  Updated: 2019-08-30
+!  Find a collimator in the database and returns its ID
+! ================================================================================================ !
+integer function cdb_getCollimatorID(collName) result(collID)
+
+  character(len=*), intent(in) :: collName
+  integer i
+
+  collID = -1
+  if(cdb_nColl > 0) then
+    do i=1,cdb_nColl
+      if(cdb_cName(i) == collName) then
+        collID = i
+        exit
+      end if
+    end do
+  end if
+
+end function cdb_getCollimatorID
 
 ! ================================================================================================ !
 !  V.K. Berglyd Olsen, BE-ABP-HSS
@@ -648,6 +916,10 @@ subroutine cdb_writeDB
   call f_close(dbUnit)
 
 end subroutine cdb_writeDB
+
+! ================================================================================================ !
+!  Compatibility Functions for old collimation code assuming LHC naming convention
+! ================================================================================================ !
 
 ! ================================================================================================ !
 !  V.K. Berglyd Olsen, BE-ABP-HSS
@@ -803,5 +1075,35 @@ subroutine cdb_generateFamName(inElem, famName)
   end if
 
 end subroutine cdb_generateFamName
+
+! ================================================================================================ !
+!  V.K. Berglyd Olsen, BE-ABP-HSS
+!  Created: 2019-09-02
+!  Updated: 2019-09-02
+!  Checks for one sided collimators from old input block and DB using the COLL block flag and
+!  hardcoded onesided treatment for TCDQ and roman pots.
+! ================================================================================================ !
+subroutine cdb_setLHCOnesided(doOneSide)
+
+  use crcoall
+
+  logical, intent(in) :: doOneSide
+
+  integer i
+
+  if(cdb_dbOld .eqv. .false.) then
+    ! Only do this if we're using the old DB format
+    return
+  end if
+
+  do i=1,cdb_nColl
+    cdb_cSides(i) = 0
+    if((cdb_cNameUC(i)(1:3) == "TCP" .and. doOneSide) .or. cdb_cNameUC(i)(1:4) == "TCDQ" .or. cdb_cNameUC(i)(1:5) == "TCXRP") then
+      cdb_cSides(i) = 1
+      write(lout,"(a)") "COLLDB> Collimator '"//trim(cdb_cName(i))//"' is treated as one-sided"
+    end if
+  end do
+
+end subroutine cdb_setLHCOneSided
 
 end module coll_db

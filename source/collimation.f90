@@ -218,7 +218,7 @@ module collimation
 
   real(kind=fPrec), save :: remitx_dist,remity_dist,remitx_collgap,remity_collgap
 
-  logical, save :: firstcoll,found,onesided
+  logical, save :: firstcoll,found
   integer rnd_lux,rnd_k1,rnd_k2
 
   integer, save :: myix,myktrack
@@ -622,7 +622,7 @@ end subroutine collimation_expand_arrays
 !  This routine is called once at the start of the simulation and can be used to do any initial
 !  configuration and/or file loading.
 ! ================================================================================================ !
-subroutine collimate_init()
+subroutine collimate_init
 
   use crcoall
   use parpro
@@ -914,8 +914,10 @@ subroutine collimate_init()
   ie    = 1
   n_tot_absorbed = 0
 
-  ! Read collimator database
-  call cdb_readCollDB
+  ! Collimator Database
+  call cdb_readCollDB                 ! Read the collimator DB
+  call cdb_setLHCOnesided(do_oneside) ! Set LHC onesided collimators
+  call cdb_writeDB_newFromOld         ! Write a copy of the db in new format, if provided in old format
 
   ! Then do any implementation specific initial loading
 #ifdef COLLIMATE_K2
@@ -1184,13 +1186,10 @@ subroutine collimate_parseInputLine(inLine, iLine, iErr)
     call chr_cast(lnSplit(2), rnd_seed, iErr)
 
   case("DO_ONESIDE")
-    if(nSplit /= 2) then
-      write(lerr,"(a,i0)") "COLL> ERROR DO_ONESIDE expects 1 value, got ",nSplit-1
-      write(lerr,"(a)")    "COLL>       DO_ONESIDE true|false"
-      iErr = .true.
-      return
-    end if
-    call chr_cast(lnSplit(2), do_oneside, iErr)
+    write(lerr,"(a)") "COLL> ERROR The new COLLIMATION block no longer supports the DO_ONESIDE flag"
+    write(lerr,"(a)") "COLL>       The feature has been moved the the collimator database"
+    iErr = .true.
+    return
 
   case("WRITE_DIST")
     if(nSplit /= 2) then
@@ -2305,6 +2304,7 @@ subroutine collimate_do_collimator(stracki)
 
   real(kind=fPrec), intent(in) :: stracki
 
+  logical onesided
   integer j, iSlice
   real(kind=fPrec) jawLength, jawAperture, jawOffset, jawTilt(2)
 
@@ -2679,20 +2679,14 @@ subroutine collimate_do_collimator(stracki)
 !++  Do the collimation tracking
   enom_gev = myenom*c1m3
 
-!++  Allow primaries to be one-sided, if requested
-  if ((cdb_cNameUC(icoll)(1:3).eq.'TCP' .or. cdb_cNameUC(icoll)(1:3).eq.'COL') .and. do_oneside) then
+  ! Allow treatment of collimators as one-sided
+  if(cdb_cSides(icoll) == 1) then
+    onesided = .true.
+  else if(cdb_cSides(icoll) == 2) then
     onesided = .true.
   else
     onesided = .false.
   end if
-
-  !GRD-SR, 09-02-2006
-  !Force the treatment of the TCDQ equipment as a onsided collimator.
-  !Both for Beam 1 and Beam 2, the TCDQ is at positive x side.
-  ! to treat all collimators onesided
-  ! -> only for worst case TCDQ studies
-  if(cdb_cNameUC(icoll)(1:4) == 'TCDQ')  onesided = .true.
-  if(cdb_cNameUC(icoll)(1:5) == 'TCXRP') onesided = .true.
 
   if(cdb_cSliced(icoll) > 0) then ! Treatment of sliced collimators
     ! Now, loop over the number of slices and call collimate2 each time!
