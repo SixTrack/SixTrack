@@ -10,21 +10,12 @@ module postprocessing
 
 contains
 
-#ifdef STF
-#ifdef CR
-subroutine postpr(posi,nnuml)
-#else
-subroutine postpr(posi)
-#endif
-#else
-#ifdef CR
-subroutine postpr(nfile,nnuml)
-#else
-subroutine postpr(nfile)
-#endif
-#endif
+subroutine postpr(arg1,arg2)
 !-----------------------------------------------------------------------
 !  POST PROCESSING
+!
+!  The variabe arg1 sets posi for STF builds and nfile otherwise.
+!  The variable arg2 sets nnuml for CR builds, and is 0 otherwise
 !
 !  NFILE   :  FILE UNIT (non-STF) -- always fixed to 90 for STF version.
 !  POSI    :  PARTICLE NUMBER
@@ -39,11 +30,12 @@ subroutine postpr(nfile)
       use string_tools
       use mod_version
       use mod_time
-      use mod_common_main, only : nnumxv
+      use mod_units
+      use mod_common_main, only : numxv,partID
       use mod_common, only : dpscor,sigcor,icode,idam,its6d,dphix,dphiz,qx0,qz0,&
         dres,dfft,cma1,cma2,nstart,nstop,iskip,iconv,imad,ipos,iav,iwg,ivox,    &
         ivoz,ires,ifh,toptit,kwtype,itf,icr,idis,icow,istw,iffw,nprint,ndafi,   &
-        chromc,tlim,trtime
+        chromc,tlim,trtime,fort10,fort110,unit10,unit110,napxo
 #ifdef ROOT
       use root_output
 #endif
@@ -51,6 +43,9 @@ subroutine postpr(nfile)
       use checkpoint_restart
 #endif
       implicit none
+
+      integer,           intent(in) :: arg1
+      integer, optional, intent(in) :: arg2
 
       integer i,i1,i11,i2,i3,ia,ia0,iaa,iab,iap6,iapx,iapz,ich,idnt,    &
      &ierro,idummy,if1,if2,ife,ife2,ifipa,ifp,ii,ilapa,ilyap,im1,im1s,  &
@@ -99,7 +94,7 @@ subroutine postpr(nfile)
       character(len=11) hvs
       character(len=8192) ch
       character(len=25) ch1
-      integer errno,l1,l2
+      integer errno,l1,l2,nnuml
       logical rErr
       dimension tle(nlya),dle(nlya)
       dimension wgh(nlya),biav(nlya),slope(nlya),varlea(nlya)
@@ -113,11 +108,20 @@ subroutine postpr(nfile)
       dimension x(2,6),cloau(6),di0au(4)
       dimension qwc(3),clo(3),clop(3),di0(2),dip0(2)
       dimension ta(6,6),txyz(6),txyz2(6),xyzv(6),xyzv2(6),rbeta(6)
-#ifdef CR
-      integer nnuml
-#endif
       integer itot,ttot
       save
+
+      if(present(arg2)) then
+        nnuml = arg2
+      else
+        nnuml = 0
+      end if
+#ifdef STF
+      posi = arg1
+#else
+      nfile = arg1
+#endif
+
 !----------------------------------------------------------------------
 !--TIME START
       pieni2=c1m8
@@ -225,7 +229,7 @@ subroutine postpr(nfile)
       enddo
 
       ttot=ttot*10**2+itot
-      sumda(52)=real(ttot,fPrec)                                               !hr06
+      sumda(52)=real(ttot,fPrec)
 ! and put CPU time for Massimo
 ! so even if we go to 550 we now get the stats
       sumda(60)=real(trtime,fPrec)
@@ -519,7 +523,7 @@ subroutine postpr(nfile)
       endif
 #endif
 
-      if((((numl+1)/iskip)/(iab-iaa))/iav.gt.nlya) nstop=iav*nlya !hr06
+      if((((numl+1)/iskip)/(iab-iaa))/iav.gt.nlya) nstop=iav*nlya
 
       rewind nfile
 
@@ -531,8 +535,8 @@ subroutine postpr(nfile)
          read(nfile) !One header per particle pair.
       enddo
 #endif
-      sumda(5)=ta(1,1)**2+ta(1,2)**2                                     !hr06
-      sumda(6)=ta(3,3)**2+ta(3,4)**2                                     !hr06
+      sumda(5)=ta(1,1)**2+ta(1,2)**2
+      sumda(6)=ta(3,3)**2+ta(3,4)**2
 
       if(iconv.eq.1) then
         cma1=one
@@ -593,33 +597,33 @@ subroutine postpr(nfile)
       ta63=ta(6,3)*c1e3
       ta64=ta(6,4)*c1e3
       ta65=ta(6,5)*c1e3
-      bet0(1)=ta(1,1)**2+ta(1,2)**2                                      !hr06
-      bet0x2 =ta(1,3)**2+ta(1,4)**2                                      !hr06
-      bet0x3 =ta(1,5)**2+ta16**2                                         !hr06
-      gam0x1 =ta(2,1)**2+ta(2,2)**2                                      !hr06
-      gam0x2 =ta(2,3)**2+ta(2,4)**2                                      !hr06
-      gam0x3 =ta(2,5)**2+ta26**2                                         !hr06
-      alf0(1)=-one*(ta(1,1)*ta(2,1)+ta(1,2)*ta(2,2))                     !hr06
-      alf0x2 =-one*(ta(1,3)*ta(2,3)+ta(1,4)*ta(2,4))                     !hr06
-      alf0x3 =-one*(ta(1,5)*ta(2,5)+ta16*ta26)                           !hr06
-      bet0(2)=ta(3,3)**2+ta(3,4)**2                                      !hr06
-      bet0z2 =ta(3,1)**2+ta(3,2)**2                                      !hr06
-      bet0z3 =ta(3,5)**2+ta36**2                                         !hr06
-      gam0z1 =ta(4,3)**2+ta(4,4)**2                                      !hr06
-      gam0z2 =ta(4,1)**2+ta(4,2)**2                                      !hr06
-      gam0z3 =ta(4,5)**2+ta46**2                                         !hr06
-      alf0(2)=-one*(ta(3,3)*ta(4,3)+ta(3,4)*ta(4,4))                     !hr06
-      alf0z2 =-one*(ta(3,1)*ta(4,1)+ta(3,2)*ta(4,2))                     !hr06
-      alf0z3 =-one*(ta(3,5)*ta(4,5)+ta36*ta46)                           !hr06
-      bet0(3)=ta(5,5)**2+ta56**2                                         !hr06
-      bet0s2 =ta(5,1)**2+ta(5,2)**2                                      !hr06
-      bet0s3 =ta(5,3)**2+ta(5,4)**2                                      !hr06
-      gam0s1 =ta65**2+ta(6,6)**2                                         !hr06
-      gam0s2 =ta61**2+ta62**2                                            !hr06
-      gam0s3 =ta63**2+ta64**2                                            !hr06
-      alf0(3)=-one*(ta(5,5)*ta65+ta56*ta(6,6))                           !hr06
-      alf0s2 =-one*(ta(5,1)*ta61+ta(5,2)*ta62)                           !hr06
-      alf0s3 =-one*(ta(5,3)*ta63+ta(5,4)*ta64)                           !hr06
+      bet0(1)=ta(1,1)**2+ta(1,2)**2
+      bet0x2 =ta(1,3)**2+ta(1,4)**2
+      bet0x3 =ta(1,5)**2+ta16**2
+      gam0x1 =ta(2,1)**2+ta(2,2)**2
+      gam0x2 =ta(2,3)**2+ta(2,4)**2
+      gam0x3 =ta(2,5)**2+ta26**2
+      alf0(1)=-one*(ta(1,1)*ta(2,1)+ta(1,2)*ta(2,2))
+      alf0x2 =-one*(ta(1,3)*ta(2,3)+ta(1,4)*ta(2,4))
+      alf0x3 =-one*(ta(1,5)*ta(2,5)+ta16*ta26)
+      bet0(2)=ta(3,3)**2+ta(3,4)**2
+      bet0z2 =ta(3,1)**2+ta(3,2)**2
+      bet0z3 =ta(3,5)**2+ta36**2
+      gam0z1 =ta(4,3)**2+ta(4,4)**2
+      gam0z2 =ta(4,1)**2+ta(4,2)**2
+      gam0z3 =ta(4,5)**2+ta46**2
+      alf0(2)=-one*(ta(3,3)*ta(4,3)+ta(3,4)*ta(4,4))
+      alf0z2 =-one*(ta(3,1)*ta(4,1)+ta(3,2)*ta(4,2))
+      alf0z3 =-one*(ta(3,5)*ta(4,5)+ta36*ta46)
+      bet0(3)=ta(5,5)**2+ta56**2
+      bet0s2 =ta(5,1)**2+ta(5,2)**2
+      bet0s3 =ta(5,3)**2+ta(5,4)**2
+      gam0s1 =ta65**2+ta(6,6)**2
+      gam0s2 =ta61**2+ta62**2
+      gam0s3 =ta63**2+ta64**2
+      alf0(3)=-one*(ta(5,5)*ta65+ta56*ta(6,6))
+      alf0s2 =-one*(ta(5,1)*ta61+ta(5,2)*ta62)
+      alf0s3 =-one*(ta(5,3)*ta63+ta(5,4)*ta64)
       bet04(1)=bet0(1)
       bet04(2)=bet0(2)
       alf04(1)=alf0(1)
@@ -724,7 +728,7 @@ subroutine postpr(nfile)
       endif ! END if(nprint.eq.1)
 
 !--INITIALISATION
-      tpi=eight*atan_mb(one)                                               !hr06
+      tpi=eight*atan_mb(one)
       prec=c1m1
       i1=0
       i11=1
@@ -739,15 +743,15 @@ subroutine postpr(nfile)
       iap6=0
       ivo6=1
       qs0=zero
-      armin0=c1e9                                                         !hr06
+      armin0=c1e9
       armin=armin0
       nivh=ninv/2
-      finv=tpi/real(ninv,fPrec)                                                !hr06
+      finv=tpi/real(ninv,fPrec)
       dani(1)=zero
       dani(ninv+1)=tpi
 
       do i=1,ninv-1
-        dani(i+1)=real(i,fPrec)*finv                                             !hr06
+        dani(i+1)=real(i,fPrec)*finv
       end do
 
       dle1=zero
@@ -824,11 +828,11 @@ subroutine postpr(nfile)
       its6d=0
 
       do i=1,6
-        tasum=(tasum+abs(t(i,5)))+abs(t(i,6))                            !hr06
+        tasum=(tasum+abs(t(i,5)))+abs(t(i,6))
       end do
 
       do i=1,4
-        tasum=(tasum+abs(t(5,i)))+abs(t(6,i))                            !hr06
+        tasum=(tasum+abs(t(5,i)))+abs(t(6,i))
       end do
 
       tasum=tasum-two
@@ -946,7 +950,7 @@ subroutine postpr(nfile)
         endif
 #else
         write(lout,*) "ERROR in postpr: program=MAD not valid for STF."
-        call prror(-1)
+        call prror
 #endif
       endif ! END if(program.eq.'MAD')
 
@@ -965,7 +969,7 @@ subroutine postpr(nfile)
         x(2,6)=h1
         call distance(x,cloau,di0au,t,b)
       endif
-      if(nstop.gt.nstart.and.(ia-nstop).gt.0) goto 200                   !hr06
+      if(nstop.gt.nstart.and.(ia-nstop).gt.0) goto 200
       if(b.lt.b0.or.abs(b0).le.pieni) b0=b
       goto 190
   200 if(ia.le.0) goto 530
@@ -1106,7 +1110,7 @@ subroutine postpr(nfile)
         endif
 #else
         write(lout,*) "ERROR in postpr: program=MAD not valid for STF."
-        call prror(-1)
+        call prror
 #endif
       endif
 
@@ -1175,8 +1179,8 @@ subroutine postpr(nfile)
 !--EMITTANCES
       xp0=bet0(1)*d+alf0(1)*c
       zp0=bet0(2)*f+alf0(2)*e
-      emx=(c**2+xp0**2)/bet0(1)                                          !hr06
-      emz=(e**2+zp0**2)/bet0(2)                                          !hr06
+      emx=(c**2+xp0**2)/bet0(1)
+      emz=(e**2+zp0**2)/bet0(2)
       if(icode.ge.4.and.its6d.ne.0) then
         c=c+di0(1)*h
         d=d+dip0(1)*h
@@ -1210,8 +1214,8 @@ subroutine postpr(nfile)
 
 !--CONVERT TO CANONICAL VARIABLES
       if(its6d.eq.1) then
-        xyzv(2)=xyzv(2)*((one+xyzv(6))+clop(3))                          !hr06
-        xyzv(4)=xyzv(4)*((one+xyzv(6))+clop(3))                          !hr06
+        xyzv(2)=xyzv(2)*((one+xyzv(6))+clop(3))
+        xyzv(4)=xyzv(4)*((one+xyzv(6))+clop(3))
       endif
 
       do iq=1,6
@@ -1227,8 +1231,8 @@ subroutine postpr(nfile)
       endif
 
 !--EMITTANCES WITH LINEAR COUPLING
-      evx=txyz(1)**2+txyz(2)**2                                          !hr06
-      evz=txyz(3)**2+txyz(4)**2                                          !hr06
+      evx=txyz(1)**2+txyz(2)**2
+      evz=txyz(3)**2+txyz(4)**2
 !     calculation second particle
       xyzv2(1)=c1
       xyzv2(2)=d1
@@ -1239,8 +1243,8 @@ subroutine postpr(nfile)
 
 !--CONVERT TO CANONICAL VARIABLES
       if(its6d.eq.1) then
-        xyzv2(2)=xyzv2(2)*((one+xyzv2(6))+clop(3))                       !hr06
-        xyzv2(4)=xyzv2(4)*((one+xyzv2(6))+clop(3))                       !hr06
+        xyzv2(2)=xyzv2(2)*((one+xyzv2(6))+clop(3))
+        xyzv2(4)=xyzv2(4)*((one+xyzv2(6))+clop(3))
       endif
 
       do iq=1,6
@@ -1250,8 +1254,8 @@ subroutine postpr(nfile)
         end do
       end do
 
-      evx2=txyz2(1)**2+txyz2(2)**2                                       !hr06
-      evz2=txyz2(3)**2+txyz2(4)**2                                       !hr06
+      evx2=txyz2(1)**2+txyz2(2)**2
+      evz2=txyz2(3)**2+txyz2(4)**2
       write(toptit(3)(6:15),10010) sqrt(evx*bet0(1))+sqrt(evz*bet0x2)
       write(toptit(3)(23:32),10010) sqrt(evz*bet0(2))+sqrt(evx*bet0z2)
 
@@ -1427,7 +1431,7 @@ subroutine postpr(nfile)
         endif
 #else
         write(lout,*) "ERROR in postpr: program=MAD not valid for STF."
-        call prror(-1)
+        call prror
 #endif
       endif
 !--LYAPUNOV
@@ -1476,8 +1480,8 @@ subroutine postpr(nfile)
 !--EMITTANCES
       xp=bet0(1)*d+alf0(1)*c
       zp=bet0(2)*f+alf0(2)*e
-      emx=(c**2+xp**2)/bet0(1)                                           !hr06
-      emz=(e**2+zp**2)/bet0(2)                                           !hr06
+      emx=(c**2+xp**2)/bet0(1)
+      emz=(e**2+zp**2)/bet0(2)
       if(icode.ge.4.and.its6d.ne.0) then
         c=c+di0(1)*h
         d=d+dip0(1)*h
@@ -1505,8 +1509,8 @@ subroutine postpr(nfile)
 
 !--CONVERT TO CANONICAL VARIABLES
       if(its6d.eq.1) then
-        xyzv(2)=xyzv(2)*((one+xyzv(6))+clop(3))                          !hr06
-        xyzv(4)=xyzv(4)*((one+xyzv(6))+clop(3))                          !hr06
+        xyzv(2)=xyzv(2)*((one+xyzv(6))+clop(3))
+        xyzv(4)=xyzv(4)*((one+xyzv(6))+clop(3))
       endif
 
       do iq=1,6
@@ -1517,8 +1521,8 @@ subroutine postpr(nfile)
       end do
 
 !--EMITTANCES WITH LINEAR COUPLING
-      evx1=txyz(1)**2+txyz(2)**2                                         !hr06
-      evz1=txyz(3)**2+txyz(4)**2                                         !hr06
+      evx1=txyz(1)**2+txyz(2)**2
+      evz1=txyz(3)**2+txyz(4)**2
 
 !--COURANT SYNDER CONT.
       do 260 iq=1,6
@@ -1558,7 +1562,7 @@ subroutine postpr(nfile)
       b=b-b0
       dle1c=zero
       if(b.gt.zero) dle1c=log_mb(b)
-      if(b.lt.zero) dle1c=-one*log_mb(-one*b)                            !hr06
+      if(b.lt.zero) dle1c=-one*log_mb(-one*b)
       dle1=dle1+dle1c
 
 !--EMITTANCES WITH LINEAR COUPLING CONT.
@@ -1591,11 +1595,11 @@ subroutine postpr(nfile)
       if(mod(i1,iav).eq.0) then
         if(i2.ge.nlya) goto 240
         i2=i2+1
-        dle(i2)=dle1/real(iav,fPrec)                                     !hr06
+        dle(i2)=dle1/real(iav,fPrec)
         if(ia.gt.0) then
-          tle1=log_mb(real(ia,fPrec))                                          !hr06
+          tle1=log_mb(real(ia,fPrec))
           if(i2.gt.1) then
-            biav(i2-1)=bold/real(iav,fPrec)                                    !hr06
+            biav(i2-1)=bold/real(iav,fPrec)
             if(i2.eq.2) biav(1)=biav(1)*half
             bold=zero
             tle(i2)=(tle1+tlo)*half
@@ -1640,18 +1644,22 @@ subroutine postpr(nfile)
       if (binrec.ne.0) then
 #ifndef STF
         if (binrecs(91-nfile).ne.crbinrecs(91-nfile)) then
-          write(lout,*) 'SIXTRACR POSTPR *** ERROR *** Wrong number of binary records'
-          write(lout,*) 'Unit No ',nfile,' binrec/binrecs/crbinrecs ', binrec,binrecs(91-nfile),crbinrecs(91-nfile)
-          write(93,*) 'SIXTRACR POSTPR *** ERROR *** Wrong number of binary records'
-          write(93,*) 'Unit No ',nfile,' binrec/binrecs/crbinrecs ', binrec,binrecs(91-nfile),crbinrecs(91-nfile)
+          write(lout,"(a)") "SIXTRACR> ERROR POSTPR Wrong number of binary records"
+          write(lout,"(a,i0,a,3(1x,i0))") "SIXTRACR> Unit ",nfile,", binrec/binrecs/crbinrecs ",&
+            binrec,binrecs(91-nfile),crbinrecs(91-nfile)
+          write(crlog,"(a)") "SIXTRACR> ERROR POSTPR Wrong number of binary records"
+          write(crlog,"(a,i0,a,3(1x,i0))") "SIXTRACR> Unit ",nfile,", binrec/binrecs/crbinrecs ",&
+            binrec,binrecs(91-nfile),crbinrecs(91-nfile)
 #else
         if (binrecs(posi1).ne.crbinrecs(posi1)) then
-          write(lout,*) 'SIXTRACR POSTPR *** ERROR *** Wrong number of binary records'
-          write(lout,*) 'Particle No ',posi1,' binrec/binrecs/crbinrecs ', binrec,binrecs(posi1),crbinrecs(posi1)
-          write(93,*) 'SIXTRACR POSTPR *** ERROR *** Wrong number of binary records'
-          write(93,*) 'Particle No ',posi,' binrec/binrecs/crbinrecs ', binrec,binrecs(posi1),crbinrecs(posi1)
+          write(lout,"(a)") "SIXTRACR> ERROR POSTPR Wrong number of binary records"
+          write(lout,"(a,i0,a,3(1x,i0))") "SIXTRACR> Particle ",posi1,", binrec/binrecs/crbinrecs ",&
+            binrec,binrecs(posi1),crbinrecs(posi1)
+          write(crlog,"(a)") "SIXTRACR> ERROR POSTPR Wrong number of binary records"
+          write(crlog,"(a,i0,a,3(1x,i0))") "SIXTRACR> Particle ",posi1,", binrec/binrecs/crbinrecs ",&
+            binrec,binrecs(posi1),crbinrecs(posi1)
 #endif
-          flush(93)
+          flush(crlog)
           goto 551
         endif
       endif
@@ -1673,26 +1681,26 @@ subroutine postpr(nfile)
         write(lout,*) 'WARNING: IAPZ IS ZERO'
         iapz=1
       endif
-      tphx=dphx/real(iapx,fPrec)                                         !hr06
-      tphz=dphz/real(iapz,fPrec)                                         !hr06
-      if(iap6.gt.0) tph6=dph6/real(iap6,fPrec)                           !hr06
+      tphx=dphx/real(iapx,fPrec)
+      tphz=dphz/real(iapz,fPrec)
+      if(iap6.gt.0) tph6=dph6/real(iap6,fPrec)
 
 !--STANDARD DEVIATION OF PHASEADVANCES
       do i=1,iapx
-        sdpx=sdpx+(phase(1,i)-tphx)**2                                   !hr06
+        sdpx=sdpx+(phase(1,i)-tphx)**2
       end do
 
       do i=1,iapz
-        sdpz=sdpz+(phase(2,i)-tphz)**2                                   !hr06
+        sdpz=sdpz+(phase(2,i)-tphz)**2
       end do
 
       do i=1,iap6
-        sdp6=sdp6+(phase(3,i)-tph6)**2                                   !hr06
+        sdp6=sdp6+(phase(3,i)-tph6)**2
       end do
 
-      sdpx=sqrt(sdpx)/real(iapx,fPrec)                                   !hr06
-      sdpz=sqrt(sdpz)/real(iapz,fPrec)                                   !hr06
-      if(iap6.gt.0) sdp6=sqrt(sdp6)/real(iap6,fPrec)                     !hr06
+      sdpx=sqrt(sdpx)/real(iapx,fPrec)
+      sdpz=sqrt(sdpz)/real(iapz,fPrec)
+      if(iap6.gt.0) sdp6=sqrt(sdp6)/real(iap6,fPrec)
 
 !--AVERAGED EMITTANCES
       di11=i11
@@ -1771,7 +1779,7 @@ subroutine postpr(nfile)
            p=p*c1e3
 #else
            write(lout,*) "ERROR in postpr: program=MAD not valid for STF."
-           call prror(-1)
+           call prror
 #endif
         endif !END if(program.eq.'MAD')
 
@@ -1795,8 +1803,8 @@ subroutine postpr(nfile)
 !--MEAN EMITTANCES
         xp=bet0(1)*d+alf0(1)*c
         zp=bet0(2)*f+alf0(2)*e
-        emx=(c**2+xp**2)/bet0(1)                                         !hr06
-        emz=(e**2+zp**2)/bet0(2)                                         !hr06
+        emx=(c**2+xp**2)/bet0(1)
+        emz=(e**2+zp**2)/bet0(2)
 
         if(icode.ge.4.and.its6d.ne.0) then
           c=c+di0(1)*h
@@ -1806,9 +1814,9 @@ subroutine postpr(nfile)
         endif
 
         emt=emx+emz
-        emxs=emxs+(emx-emxa)**2                                          !hr06
-        emzs=emzs+(emz-emza)**2                                          !hr06
-        emts=emts+(emt-emta)**2                                          !hr06
+        emxs=emxs+(emx-emxa)**2
+        emzs=emzs+(emz-emza)**2
+        emts=emts+(emt-emta)**2
 
 !--COURANT SYNDER
         xyzv(1)=c
@@ -1820,8 +1828,8 @@ subroutine postpr(nfile)
 
 !--CONVERT TO CANONICAL VARIABLES
         if(its6d.eq.1) then
-          xyzv(2)=xyzv(2)*((one+xyzv(6))+clop(3))                        !hr06
-          xyzv(4)=xyzv(4)*((one+xyzv(6))+clop(3))                        !hr06
+          xyzv(2)=xyzv(2)*((one+xyzv(6))+clop(3))
+          xyzv(4)=xyzv(4)*((one+xyzv(6))+clop(3))
         endif
 
 ! normalisation with t-matrix = inverse matrix of eigenvectors
@@ -1833,8 +1841,8 @@ subroutine postpr(nfile)
         end do
 
 !--MEAN EMITTANCES WITH LINEAR COUPLING
-        evx=txyz(1)**2+txyz(2)**2                                        !hr06
-        evz=txyz(3)**2+txyz(4)**2                                        !hr06
+        evx=txyz(1)**2+txyz(2)**2
+        evz=txyz(3)**2+txyz(4)**2
 
 !--COURANT SYNDER CONT.
         do iq=1,6
@@ -1850,9 +1858,9 @@ subroutine postpr(nfile)
 
 !--MEAN EMITTANCES WITH LINEAR COUPLING CONT.
         evt=evx+evz
-        sevx=sevx+(evx-evxm)**2                                          !hr06
-        sevz=sevz+(evz-evzm)**2                                          !hr06
-        sevt=sevt+(evt-evtm)**2                                          !hr06
+        sevx=sevx+(evx-evxm)**2
+        sevz=sevz+(evz-evzm)**2
+        sevt=sevt+(evt-evtm)**2
   340 continue
   350 continue
 
@@ -1868,38 +1876,40 @@ subroutine postpr(nfile)
 !--PRINTING
 !----------------------------------------------------------------------
       if(nstop.lt.ia.and.(ia.lt.numl.or.ia.lt.nint(dnumlr))) nlost=1
-      if(nnumxv(ifipa).eq.0.and.nnumxv(ilapa).eq.0) then
-        sumda(22)=real(ia,fPrec)                                         !hr06
-        sumda(23)=real(ia,fPrec)                                         !hr06
-      else
-        sumda(22)=real(nnumxv(ifipa),fPrec)                              !hr06
-        sumda(23)=real(nnumxv(ilapa),fPrec)                              !hr06
-      endif
-! #ifdef SIXDA
-!       sumda(22)=real(ia,fPrec)                                           !hr06
-!       sumda(23)=real(ia,fPrec)                                           !hr06
-! #endif
-#ifdef CR
-! TRY a FIX for nnuml
-! should be redumdant now
-!     if (nnuml.ne.numl) then
-!       if (nint(sumda(22)).eq.numl) sumda(22)=dble(nnuml)
-!       if (nint(sumda(23)).eq.numl) sumda(23)=dble(nnuml)
-!     endif
-#endif
+
+      block
+        ! Search for the particle ID read from track file in the partID array
+        ! This is necessary in order to look up the correct lost turn in the numxv array
+        integer partN, partA, partB
+        partA = 0
+        partB = 0
+        do partN=1,napxo
+          if(partID(partN) == ifipa) partA = partN
+          if(partID(partN) == ilapa) partB = partN
+          if(partA > 0 .and. partB > 0) exit
+        end do
+        if(numxv(partA) == 0 .and. numxv(partB) == 0) then
+          sumda(22) = real(ia,fPrec)
+          sumda(23) = real(ia,fPrec)
+        else
+          sumda(22) = real(numxv(partA),fPrec)
+          sumda(23) = real(numxv(partB),fPrec)
+        end if
+      end block
+
       sumda(2)=real(nlost,fPrec)
       sumda(9)=dp1-clop(3)
 
 !--GET DIFFERENCE IN THE NUMBER OF TURNS PER DATA ENTRY : TIDNT
 !--NOW CONSIDERING ONLY TURNS LARGER THAN NSTART
-      tidnt=real(((ia-nstart)+idnt)/i11,fPrec)                           !hr06
+      tidnt=real(((ia-nstart)+idnt)/i11,fPrec)
       if(i2.ge.2) then
         if(nprint.eq.1) write(lout,10110)
         ilyap=0
         slopem=zero
 
         do i=1,i2-1
-          iturn=nint(real((i+1)*iav,fPrec)*tidnt)                        !hr06
+          iturn=nint(real((i+1)*iav,fPrec)*tidnt)
           if(nprint.eq.1) write(lout,10120) iturn,biav(i),slope(i),varlea(i)
           if(biav(i).gt.c1m1) ilyap=1
           slopem=max(slopem,slope(i))
@@ -1909,7 +1919,7 @@ subroutine postpr(nfile)
         sumda(10)=biav(i2-1)
 
         if(ilyap.eq.0) then
-         sumda(11)=slope(i2-1)                                           !hr06
+         sumda(11)=slope(i2-1)
         else
          sumda(11)=slopem
         endif
@@ -1948,7 +1958,7 @@ subroutine postpr(nfile)
           jm1=j-1
           if(im1.eq.0.and.jm1.eq.0) goto 370
           if(im1+jm1.gt.ires) goto 370
-          ares=real(im1,fPrec)*tphx+real(jm1,fPrec)*tphz                 !hr06
+          ares=real(im1,fPrec)*tphx+real(jm1,fPrec)*tphz
           dares=anint(ares)
           ares=ares-dares
           if(abs(ares).lt.armin) then
@@ -1956,7 +1966,7 @@ subroutine postpr(nfile)
             im1s=im1
             jm1s=jm1
           endif
-          ared=real(im1,fPrec)*tphx-real(jm1,fPrec)*tphz                 !hr06
+          ared=real(im1,fPrec)*tphx-real(jm1,fPrec)*tphz
           dared=anint(ared)
           ared=ared-dared
           if(abs(ared).lt.armin) then
@@ -1972,8 +1982,8 @@ subroutine postpr(nfile)
 
 
       if(armin.lt.armin0) then
-        sumda(16)=real(im1s,fPrec)                                       !hr06
-        sumda(17)=real(jm1s,fPrec)                                       !hr06
+        sumda(16)=real(im1s,fPrec)
+        sumda(17)=real(jm1s,fPrec)
         sumda(18)=sumda(16)+abs(sumda(17))
       endif
       if(iwarx.eq.1.and.nprint.eq.1) write(lout,10150)
@@ -2055,12 +2065,12 @@ subroutine postpr(nfile)
         do 400 i=if1,if2
           xxaux=sqrt(xxr(i)**2+xxi(i)**2)
           zzaux=sqrt(zzr(i)**2+zzi(i)**2)
-          if(abs(xxaux-xxmax).le.pieni) ffx=(real(i-1,fPrec)/dife)+qx0         !hr06
-          if(abs(zzaux-zzmax).le.pieni) ffz=(real(i-1,fPrec)/dife)+qz0         !hr06
+          if(abs(xxaux-xxmax).le.pieni) ffx=(real(i-1,fPrec)/dife)+qx0
+          if(abs(zzaux-zzmax).le.pieni) ffz=(real(i-1,fPrec)/dife)+qz0
           xxaux=xxaux/xxmax
           zzaux=zzaux/zzmax
-          if(xxaux.gt.dfft.and.nprint.eq.1) write(lout,10190) real(i-1,fPrec)/dife+qx0,xxaux*c1e2  !hr06
-      if(zzaux.gt.dfft.and.nprint.eq.1) write(lout,10200) real(i-1,fPrec)/dife+qz0,zzaux*c1e2      !hr06
+          if(xxaux.gt.dfft.and.nprint.eq.1) write(lout,10190) real(i-1,fPrec)/dife+qx0,xxaux*c1e2
+      if(zzaux.gt.dfft.and.nprint.eq.1) write(lout,10200) real(i-1,fPrec)/dife+qz0,zzaux*c1e2
   400   continue
 
         if(nprint.eq.1) write(lout,10210) ffx,ffz,qwc(1),ffx-qwc(1),qwc(2),ffz-qwc(2),dres,ires
@@ -2072,10 +2082,10 @@ subroutine postpr(nfile)
             jm1=j-1
             if(im1.eq.0.and.jm1.eq.0) goto 410
             if(im1+jm1.gt.ires) goto 410
-            ares=real(im1,fPrec)*ffx+real(jm1,fPrec)*ffz                             !hr06
+            ares=real(im1,fPrec)*ffx+real(jm1,fPrec)*ffz
             dares=anint(ares)
             ares=ares-dares
-            ared=real(im1,fPrec)*ffx-real(jm1,fPrec)*ffz                             !hr06
+            ared=real(im1,fPrec)*ffx-real(jm1,fPrec)*ffz
             dared=anint(ared)
             ared=ared-dared
             if(abs(ares).lt.dres.and.nprint.eq.1) write(lout,10170) im1,jm1,dares,ares
@@ -2110,28 +2120,28 @@ subroutine postpr(nfile)
 ! This place 60 now used for CPU time seconds
 ! But it is set earlier in case particles are lost very early
       sumda(24)=dizu0
-      emax=(emax/c1e2)*emxa+emxa                                        !hr06
-      emix=(emix/c1e2)*emxa+emxa                                        !hr06
-      emaz=(emaz/c1e2)*emza+emza                                        !hr06
-      emiz=(emiz/c1e2)*emza+emza                                        !hr06
+      emax=(emax/c1e2)*emxa+emxa
+      emix=(emix/c1e2)*emxa+emxa
+      emaz=(emaz/c1e2)*emza+emza
+      emiz=(emiz/c1e2)*emza+emza
       sumda(28)=sqrt(bet0(1)*abs(emix))
       sumda(29)=sqrt(bet0(1)*emxa)
       sumda(30)=sqrt(bet0(1)*emax)
       sumda(31)=sqrt(bet0(2)*abs(emiz))
       sumda(32)=sqrt(bet0(2)*emza)
       sumda(33)=sqrt(bet0(2)*emaz)
-      evxma=(evxma/c1e2)*evxm+evxm                                      !hr06
-      evxmi=(evxmi/c1e2)*evxm+evxm                                      !hr06
-      evzma=(evzma/c1e2)*evzm+evzm                                      !hr06
-      evzmi=(evzmi/c1e2)*evzm+evzm                                      !hr06
+      evxma=(evxma/c1e2)*evxm+evxm
+      evxmi=(evxmi/c1e2)*evxm+evxm
+      evzma=(evzma/c1e2)*evzm+evzm
+      evzmi=(evzmi/c1e2)*evzm+evzm
       sumda(34)=sqrt(bet0(1)*abs(evxmi))
       sumda(35)=sqrt(bet0(1)*evxm)
       sumda(36)=sqrt(bet0(1)*evxma)
       sumda(37)=sqrt(bet0(2)*abs(evzmi))
       sumda(38)=sqrt(bet0(2)*evzm)
       sumda(39)=sqrt(bet0(2)*evzma)
-      evtma=(evtma/c1e2)*evtm+evtm                                      !hr06
-      evtmi=(evtmi/c1e2)*evtm+evtm                                      !hr06
+      evtma=(evtma/c1e2)*evtm+evtm
+      evtmi=(evtmi/c1e2)*evtm+evtm
 
       if(abs(evxm+evzm).gt.pieni) then
         ratemx=evxm/(evxm+evzm)
@@ -2141,12 +2151,12 @@ subroutine postpr(nfile)
         ratemz=zero
       endif
 
-      sumda(40)=sqrt((bet0(1)*abs(evtmi))*ratemx)                        !hr06
-      sumda(41)=sqrt((bet0(1)*evtm)*ratemx)                              !hr06
-      sumda(42)=sqrt((bet0(1)*evtma)*ratemx)                             !hr06
-      sumda(43)=sqrt((bet0(2)*abs(evtmi))*ratemz)                        !hr06
-      sumda(44)=sqrt((bet0(2)*evtm)*ratemz)                              !hr06
-      sumda(45)=sqrt((bet0(2)*evtma)*ratemz)                             !hr06
+      sumda(40)=sqrt((bet0(1)*abs(evtmi))*ratemx)
+      sumda(41)=sqrt((bet0(1)*evtm)*ratemx)
+      sumda(42)=sqrt((bet0(1)*evtma)*ratemx)
+      sumda(43)=sqrt((bet0(2)*abs(evtmi))*ratemz)
+      sumda(44)=sqrt((bet0(2)*evtm)*ratemz)
+      sumda(45)=sqrt((bet0(2)*evtma)*ratemz)
 
 !--PUT IN THE CHROMATICITY
       sumda(50)=chromc(1)*c1e3
@@ -2154,60 +2164,51 @@ subroutine postpr(nfile)
 
 !--WRITE DATA FOR THE SUMMARY OF THE POSTPROCESSING ON FILE # 10
 ! We should really write fort.10 in BINARY!
-      write(110,iostat=ierro) (sumda(i),i=1,60)
-      if(ierro.ne.0) then
-        write(lout,*)
-        write(lout,*) '*** ERROR ***,PROBLEMS WRITING TO FILE 110'
-        write(lout,*) 'ERROR CODE : ',ierro
-        write(lout,*)
-      endif
+      write(unit110,iostat=ierro) (sumda(i),i=1,60)
+      if(ierro /= 0) then
+        write(lerr,"(a,i0)") "POSTPR> ERROR Problems writing to "//trim(fort110)//". iostat = ",ierro
+      end if
 #ifndef CRLIBM
       write(ch,*,iostat=ierro) (sumda(i),i=1,60)
-      do ich=8192,1,-1
-        if(ch(ich:ich).ne.' ') goto 700
-      enddo
- 700  write(10,'(a)',iostat=ierro) ch(:ich)
+      write(unit10,"(a)",iostat=ierro) trim(ch)
 #else
       l1=1
       do i=1,60
         call chr_fromReal(sumda(i),ch1,19,2,rErr)
-        ch(l1:l1+25)=' '//ch1(1:25)
+        ch(l1:l1+25) = " "//ch1(1:25)
         l1=l1+26
-      enddo
-      write(10,'(a)',iostat=ierro) ch(1:l1-1)
+      end do
+      write(unit10,"(a)",iostat=ierro) ch(1:l1-1)
 #endif
-      if(ierro.ne.0) then
-        write(lout,*)
-        write(lout,*)'*** ERROR ***,PROBLEMS WRITING TO FILE 10'
-        write(lout,*) 'ERROR CODE : ',ierro
-        write(lout,*)
-      endif
+      if(ierro /= 0) then
+        write(lerr,"(a,i0)") "POSTPR> ERROR Problems writing to "//trim(fort10)//". iostat = ",ierro
+      end if
 !--CALCULATION THE INVARIANCES OF THE 4D TRANSVERSAL MOTION
       do 420 i=1,ninv
         if(invx(i).gt.0) then
           nuix=nuix+1
-          xing=xing+xinv(i)/real(invx(i),fPrec)                          !hr06
+          xing=xing+xinv(i)/real(invx(i),fPrec)
         endif
 
         if(invz(i).gt.0) then
           nuiz=nuiz+1
-          zing=zing+zinv(i)/real(invz(i),fPrec)                          !hr06
+          zing=zing+zinv(i)/real(invz(i),fPrec)
         endif
   420 continue
 
-      pinx=real(nuix,fPrec)                                              !hr06
-      pinz=real(nuiz,fPrec)                                              !hr06
+      pinx=real(nuix,fPrec)
+      pinz=real(nuiz,fPrec)
 
       if(nuix.ne.0) then
         pixr=real(nuez,fPrec)/real(nuix,fPrec)
-        xing=xing/real(nuix,fPrec)                                       !hr06
+        xing=xing/real(nuix,fPrec)
       endif
       if(nuiz.ne.0) then
         pizr=real(nuex,fPrec)/real(nuiz,fPrec)
-        zing=zing/real(nuiz,fPrec)                                       !hr06
+        zing=zing/real(nuiz,fPrec)
       endif
-      pinx=(pinx/real(ninv,fPrec))*c1e2                                  !hr06
-      pinz=(pinz/real(ninv,fPrec))*c1e2                                  !hr06
+      pinx=(pinx/real(ninv,fPrec))*c1e2
+      pinz=(pinz/real(ninv,fPrec))*c1e2
       if(nprint.eq.1) write(lout,10230)
       if(nuez.lt.ninv.and.nprint.eq.1) write(lout,10240) nuez,ninv
       if(nuex.lt.ninv.and.nprint.eq.1) write(lout,10250) nuex,ninv
@@ -2217,7 +2218,7 @@ subroutine postpr(nfile)
 !--PLOTTING
 !----------------------------------------------------------------------
       pmin(1)=zero
-      pmax(1)=real(ia,fPrec)                                             !hr06
+      pmax(1)=real(ia,fPrec)
       pmin(7)=pmin(3)
       pmax(7)=pmax(3)
       pmin(8)=pmin(5)
@@ -2230,7 +2231,7 @@ subroutine postpr(nfile)
       pmax(13)=pmax(5)
       pmin(14)=pmin(10)
       pmax(14)=pmax(10)
-      pmax(15)=real(ia,fPrec)                                            !hr06
+      pmax(15)=real(ia,fPrec)
       pmin(17)=pmin(3)
       pmax(17)=pmax(3)
       pmin(18)=pmin(4)
@@ -2402,7 +2403,7 @@ subroutine postpr(nfile)
               end if
 #else
         write(lout,*) "ERROR in postpr: program=MAD not valid for STF."
-        call prror(-1)
+        call prror
 #endif
 
             end if
@@ -2444,8 +2445,8 @@ subroutine postpr(nfile)
             xyzv(6)=h
 !--CONVERT TO CANONICAL VARIABLES
             if(its6d.eq.1) then
-              xyzv(2)=xyzv(2)*((one+xyzv(6))+clop(3))                    !hr06
-              xyzv(4)=xyzv(4)*((one+xyzv(6))+clop(3))                    !hr06
+              xyzv(2)=xyzv(2)*((one+xyzv(6))+clop(3))
+              xyzv(4)=xyzv(4)*((one+xyzv(6))+clop(3))
             endif
 
             do iq=1,6
@@ -2507,7 +2508,7 @@ subroutine postpr(nfile)
               k1=k-if1+1
               xxaux=sqrt(xxr(k)**2+xxi(k)**2)
               xxaux=xxaux/xxmax
-              fxs(k1)=real(dble(k-1)/dife+qx0)                           !hr06
+              fxs(k1)=real(dble(k-1)/dife+qx0)
               if(iffw.eq.2) then
                 if(abs(xxaux).lt.pieni) then
                   write(lout,*) '* * * ERROR * * *'
@@ -2534,7 +2535,7 @@ subroutine postpr(nfile)
               k1=k-if1+1
               zzaux=sqrt(zzr(k)**2+zzi(k)**2)
               zzaux=zzaux/zzmax
-              fxs(k1)=real(real(k-1,fPrec)/dife+qz0)                           !hr06
+              fxs(k1)=real(real(k-1,fPrec)/dife+qz0)
 
               if(iffw.eq.2) then
                 if(abs(zzaux).lt.pieni) then
@@ -2580,51 +2581,41 @@ subroutine postpr(nfile)
       write(lout,10300) nfile,'WRONG RANGE OF DATA FOR PROCESSING'
       goto 550
 #ifdef CR
-  551 write(93,*)'SIXTRACR POSTPR  *** ERROR *** (see fort.6)'
-      endfile (93,iostat=ierro)
-      backspace (93,iostat=ierro)
+  551 write(crlog,"(a)") "SIXTRACR> ERROR POSTPR"
+      flush(crlog)
 ! Now we let abend handle the fort.10......
 ! It will write 0d0 plus CPU time and turn number
 ! But we empty it as before (if we crash in abend???)
-      rewind 10
-      endfile (10,iostat=ierro)
-      close(10)
-      write(lout,*) 'SIXTRACR POSTPR  *** ERROR ***'
-      call prror(-1)
+      rewind(unit10)
+      endfile(unit10,iostat=ierro)
+      call f_close(unit10)
+      write(lerr,"(a)") "SIXTRACR> ERROR POSTPR"
+      call prror
 #endif
 
  550  continue
 !--WRITE DATA FOR THE SUMMARY OF THE POSTPROCESSING ON FILE # 10
 !-- Will almost all be zeros but we now have napxto and ttime
 ! We should really write fort.10 in BINARY!
-      write(110,iostat=ierro) (sumda(i),i=1,60)
-      if(ierro.ne.0) then
-        write(lout,*)
-        write(lout,*) '*** ERROR ***,PROBLEMS WRITING TO FILE 110'
-        write(lout,*) 'ERROR CODE : ',ierro
-        write(lout,*)
+      write(unit110,iostat=ierro) (sumda(i),i=1,60)
+      if(ierro /= 0) then
+        write(lerr,"(a,i0)") "POSTPR> ERROR Problems writing to file 110. Error code ",ierro
       endif
 #ifndef CRLIBM
       write(ch,*,iostat=ierro) (sumda(i),i=1,60)
-      do ich=8192,1,-1
-        if(ch(ich:ich).ne.' ') goto 707
-      enddo
- 707  write(10,'(a)',iostat=ierro) ch(:ich)
+      write(unit10,"(a)",iostat=ierro) trim(ch)
 #else
       l1=1
       do i=1,60
         call chr_fromReal(sumda(i),ch1,19,2,rErr)
-        ch(l1:l1+25)=' '//ch1(1:25)
+        ch(l1:l1+25) = " "//ch1(1:25)
         l1=l1+26
       enddo
-      write(10,'(a)',iostat=ierro) ch(1:l1-1)
+      write(unit10,"(a)",iostat=ierro) ch(1:l1-1)
 #endif
-      if(ierro.ne.0) then
-        write(lout,*)
-        write(lout,*) '*** ERROR ***,PROBLEMS WRITING TO FILE 10'
-        write(lout,*) 'ERROR CODE : ',ierro
-        write(lout,*)
-      endif
+      if(ierro /= 0) then
+        write(lerr,"(a,i0)") "POSTPR> ERROR Problems writing to "//trim(fort10)//". iostat = ",ierro
+      end if
 !--REWIND USED FILES
   560 rewind nfile
       if(nprint == 1) then
@@ -2866,8 +2857,8 @@ subroutine fft(ar,ai,m,n)
         le1=le/2
         ur=one
         ui=zero
-        wr=cos_mb(pi/real(le1,fPrec))                                          !hr06
-        wi=-one*sin_mb(pi/real(le1,fPrec))                                     !hr06
+        wr=cos_mb(pi/real(le1,fPrec))
+        wi=-one*sin_mb(pi/real(le1,fPrec))
         do j=1,le1
           do i=j,n,le
             ip=i+le1
@@ -2886,8 +2877,8 @@ subroutine fft(ar,ai,m,n)
       end do
 
       do i=1,n
-        ar(i)=(ar(i)/real(n,fPrec))*2                                          !hr06
-        ai(i)=(ai(i)/real(n,fPrec))*2                                          !hr06
+        ar(i)=(ar(i)/real(n,fPrec))*2
+        ai(i)=(ai(i)/real(n,fPrec))*2
       end do
 
       return
@@ -2917,7 +2908,7 @@ subroutine cphase(k,a,b,c,d,i,j,ie)
       real(kind=fPrec) a,b,c,d,f,tpi
       save
 !---------------------------------------------------------------------
-      tpi=eight*atan_mb(one)                                               !hr06
+      tpi=eight*atan_mb(one)
       if(abs(b).gt.pieni.or.abs(c).gt.pieni) then
         f=atan2_mb(b,c)
         ie=ie+1
@@ -2966,12 +2957,12 @@ subroutine sinpro(a,b,c,d,e)
 !---------------------------------------------------------------------
       if(abs(a).gt.pieni) then
         if(c.gt.pieni.and.b.gt.pieni) then
-          c=(sqrt(c/b)/a)*c1e2                                          !hr06
+          c=(sqrt(c/b)/a)*c1e2
         else
           c=zero
         endif
-        d=((d-a)/a)*c1e2                                                !hr06
-        e=((e-a)/a)*c1e2                                                !hr06
+        d=((d-a)/a)*c1e2
+        e=((e-a)/a)*c1e2
       else
         c=zero
         d=zero
@@ -2982,6 +2973,7 @@ end subroutine sinpro
 
 
 subroutine join
+      use, intrinsic :: iso_fortran_env, only : real64
       use mathlib_bouncer
       use numerical_constants
       use crcoall
@@ -3317,299 +3309,235 @@ subroutine join
 10010 format(//10x,'** ERROR IN JOIN** ----- PROBLEMS WITH DATA FILE : ',i2,' ----- ERROR CODE : ',i10//)
 end subroutine join
 
+! ================================================================================================ !
+!  Subroutine for writing the header of the binary files (fort.90 etc.)
+!  Always converting to real64 before writing to disk
+! ================================================================================================ !
+!  K. SJOBAK, October 2017
+! ================================================================================================ !
+subroutine writebin_header(ia_p1,ia_p2,fileunit_in, ierro_wbh, cdate,ctime,progrm)
 
-      subroutine writebin_header(ia_p1,ia_p2,fileunit_in, ierro_wbh,    &
-     &     cdate,ctime,progrm)
-!-------------------------------------------------------------------------
-!     Subroutine for writing the header of the binary files (fort.90 etc.)
-!     Always converting to real64 before writing to disk
-!-----------------------------------------------------------------------
-!     K. SJOBAK, October 2017
-!-----------------------------------------------------------------------
-      use numerical_constants
-      use, intrinsic :: iso_fortran_env, only : real64
-      use parpro
-      use mod_common
-      use mod_common_main
-      implicit none
+  use, intrinsic :: iso_fortran_env, only : real64
+  use numerical_constants
+  use parpro
+  use mod_common
+  use mod_common_main
 
-      integer, intent(in) :: ia_p1, ia_p2, fileunit_in
-      integer, intent(inout) :: ierro_wbh
+  implicit none
 
-      character(len=8) cdate,ctime,progrm !Note: Keep in sync with maincr
-                                          !DANGER: If the len changes, CRCHECK will break.
+  integer, intent(in)    :: ia_p1, ia_p2, fileunit_in
+  integer, intent(inout) :: ierro_wbh
 
-      integer i,j
+  character(len=8) cdate,ctime,progrm ! Note: Keep in sync with maincr. If the len changes, CRCHECK will break.
+  integer i,j
 
-      real(kind=real64) qwcs_tmp(3), clo6v_tmp(3), clop6v_tmp(3)
-      real(kind=real64) di0xs_tmp, dip0xs_tmp, di0zs_tmp,dip0zs_tmp
-      real(kind=real64) tas_tmp(6,6)
-      real(kind=real64) mmac_tmp,nms_tmp,izu0_tmp,numlr_tmp,            &
-     &     sigcor_tmp,dpscor_tmp
+  real(kind=real64) qwcs_tmp(3), clo6v_tmp(3), clop6v_tmp(3)
+  real(kind=real64) di0xs_tmp, dip0xs_tmp, di0zs_tmp,dip0zs_tmp
+  real(kind=real64) tas_tmp(6,6)
+  real(kind=real64) mmac_tmp,nms_tmp,izu0_tmp,numlr_tmp,sigcor_tmp,dpscor_tmp
 
-      real(kind=real64) zero64,one64
-      parameter(zero64 = 0.0_real64)
-      parameter(one64  = 1.0_real64)
+  real(kind=real64), parameter :: zero64 = 0.0_real64
+  real(kind=real64), parameter :: one64  = 1.0_real64
 
-      !Convert from whatever precission is used internally to real64,
-      ! which is what should go in the output file
-      do i=1,3
-         qwcs_tmp  (i) = real(qwcs  (i), real64)
-         clo6v_tmp (i) = real(clo6v (i), real64)
-         clop6v_tmp(i) = real(clop6v(i), real64)
-      enddo
+  !Convert from whatever precission is used internally to real64,
+  ! which is what should go in the output file
+  do i=1,3
+    qwcs_tmp  (i) = real(qwcs  (i), real64)
+    clo6v_tmp (i) = real(clo6v (i), real64)
+    clop6v_tmp(i) = real(clop6v(i), real64)
+  end do
 
-      di0xs_tmp  = real(di0xs, real64)
-      dip0xs_tmp = real(dip0xs, real64)
-      di0zs_tmp  = real(di0zs, real64)
-      dip0zs_tmp = real(dip0zs, real64)
+  di0xs_tmp  = real(di0xs,  real64)
+  dip0xs_tmp = real(dip0xs, real64)
+  di0zs_tmp  = real(di0zs,  real64)
+  dip0zs_tmp = real(dip0zs, real64)
 
-      do i=1,6
-         do j=1,6
-            tas_tmp(j,i) = real(tas(j,i), real64)
-         enddo
-      enddo
+  do i=1,6
+    do j=1,6
+      tas_tmp(j,i) = real(tas(j,i), real64)
+    end do
+  end do
 
-      mmac_tmp   = 1.0_real64
-      nms_tmp    = real(nms(ia_p1), real64)
-      izu0_tmp   = real(izu0,       real64)
-      numlr_tmp  = real(numlr,      real64)
-      sigcor_tmp = real(sigcor,     real64)
-      dpscor_tmp = real(dpscor,     real64)
+  mmac_tmp   = 1.0_real64
+  nms_tmp    = 1.0_real64
+  izu0_tmp   = real(izu0,   real64)
+  numlr_tmp  = real(numlr,  real64)
+  sigcor_tmp = real(sigcor, real64)
+  dpscor_tmp = real(dpscor, real64)
 
-      ! DANGER: IF THE LENGTH OR NUMBER OF THESE FIELDS CHANGE,
-      ! CRCHECK WON'T WORK. SEE HOW VARIABLES HBUFF/TBUFF ARE USED.
-      ! WE ALSO ASSUME THAT THE INTEGERS ARE ALWAYS 32BIT...
+  ! DANGER: IF THE LENGTH OR NUMBER OF THESE FIELDS CHANGE,
+  ! CRCHECK WON'T WORK. SEE HOW VARIABLES HBUFF/TBUFF ARE USED.
+  ! WE ALSO ASSUME THAT THE INTEGERS ARE ALWAYS 32BIT...
 
-      write(fileunit_in,iostat=ierro_wbh)                               &
-     &     sixtit,commen,cdate,ctime,progrm,                            &
-     &     ia_p1,ia_p2, napx, icode,numl,                               &
-     &     qwcs_tmp(1),qwcs_tmp(2),qwcs_tmp(3),                         &
-     &     clo6v_tmp(1),clop6v_tmp(1),clo6v_tmp(2),clop6v_tmp(2),       &
-     &     clo6v_tmp(3),clop6v_tmp(3),                                  &
-     &     di0xs_tmp,dip0xs_tmp,di0zs_tmp,dip0zs_tmp,                   &
-     &     zero64,one64,                                                &
-     &     tas_tmp(1,1),tas_tmp(1,2),tas_tmp(1,3),                      &
-     &     tas_tmp(1,4),tas_tmp(1,5),tas_tmp(1,6),                      &
-     &     tas_tmp(2,1),tas_tmp(2,2),tas_tmp(2,3),                      &
-     &     tas_tmp(2,4),tas_tmp(2,5),tas_tmp(2,6),                      &
-     &     tas_tmp(3,1),tas_tmp(3,2),tas_tmp(3,3),                      &
-     &     tas_tmp(3,4),tas_tmp(3,5),tas_tmp(3,6),                      &
-     &     tas_tmp(4,1),tas_tmp(4,2),tas_tmp(4,3),                      &
-     &     tas_tmp(4,4),tas_tmp(4,5),tas_tmp(4,6),                      &
-     &     tas_tmp(5,1),tas_tmp(5,2),tas_tmp(5,3),                      &
-     &     tas_tmp(5,4),tas_tmp(5,5),tas_tmp(5,6),                      &
-     &     tas_tmp(6,1),tas_tmp(6,2),tas_tmp(6,3),                      &
-     &     tas_tmp(6,4),tas_tmp(6,5),tas_tmp(6,6),                      &
-     &     mmac_tmp,nms_tmp,izu0_tmp,numlr_tmp,                         &
-     &     sigcor_tmp,dpscor_tmp,                                       &
-     &     zero64,zero64,zero64,zero64,zero64,zero64,zero64,zero64,     &
-     &     zero64,zero64,zero64,zero64,zero64,zero64,zero64,zero64,     &
-     &     zero64,zero64,zero64,zero64,zero64,zero64,zero64,zero64,     &
-     &     zero64,zero64,zero64,zero64,zero64,zero64,zero64,zero64,     &
-     &     zero64,zero64,zero64,zero64,zero64,zero64,zero64,zero64,     &
-     &     zero64,zero64,zero64,zero64
+  write(fileunit_in,iostat=ierro_wbh)                            &
+    sixtit,commen,cdate,ctime,progrm,                            &
+    ia_p1,ia_p2, napx, icode,numl,                               &
+    qwcs_tmp(1),qwcs_tmp(2),qwcs_tmp(3),                         &
+    clo6v_tmp(1),clop6v_tmp(1),clo6v_tmp(2),clop6v_tmp(2),       &
+    clo6v_tmp(3),clop6v_tmp(3),                                  &
+    di0xs_tmp,dip0xs_tmp,di0zs_tmp,dip0zs_tmp,                   &
+    zero64,one64,                                                &
+    tas_tmp(1,1),tas_tmp(1,2),tas_tmp(1,3),                      &
+    tas_tmp(1,4),tas_tmp(1,5),tas_tmp(1,6),                      &
+    tas_tmp(2,1),tas_tmp(2,2),tas_tmp(2,3),                      &
+    tas_tmp(2,4),tas_tmp(2,5),tas_tmp(2,6),                      &
+    tas_tmp(3,1),tas_tmp(3,2),tas_tmp(3,3),                      &
+    tas_tmp(3,4),tas_tmp(3,5),tas_tmp(3,6),                      &
+    tas_tmp(4,1),tas_tmp(4,2),tas_tmp(4,3),                      &
+    tas_tmp(4,4),tas_tmp(4,5),tas_tmp(4,6),                      &
+    tas_tmp(5,1),tas_tmp(5,2),tas_tmp(5,3),                      &
+    tas_tmp(5,4),tas_tmp(5,5),tas_tmp(5,6),                      &
+    tas_tmp(6,1),tas_tmp(6,2),tas_tmp(6,3),                      &
+    tas_tmp(6,4),tas_tmp(6,5),tas_tmp(6,6),                      &
+    mmac_tmp,nms_tmp,izu0_tmp,numlr_tmp,                         &
+    sigcor_tmp,dpscor_tmp,                                       &
+    zero64,zero64,zero64,zero64,zero64,zero64,zero64,zero64,     &
+    zero64,zero64,zero64,zero64,zero64,zero64,zero64,zero64,     &
+    zero64,zero64,zero64,zero64,zero64,zero64,zero64,zero64,     &
+    zero64,zero64,zero64,zero64,zero64,zero64,zero64,zero64,     &
+    zero64,zero64,zero64,zero64,zero64,zero64,zero64,zero64,     &
+    zero64,zero64,zero64,zero64
 
-      end subroutine writebin_header
+end subroutine writebin_header
 
-      subroutine writebin(nthinerr)
-!-------------------------------------------------------------------------
-!     Subroutine for writing the the binary files (fort.90 etc.)
-!     Always converting to real64 before writing to disk
-!-------------------------------------------------------------------------
-!     F. SCHMIDT, 3 February 1999
-!     K. SJOBAK,    October  2017
-!-------------------------------------------------------------------------
-      use mathlib_bouncer
-      use numerical_constants
-      use, intrinsic :: iso_fortran_env, only : real64
-      use crcoall
-      use parpro
-      use mod_common
-      use mod_common_main
-      use mod_commons
-      use mod_common_track
-      use mod_common_da
+! ================================================================================================ !
+!  Subroutine for writing the the binary files (fort.90 etc.)
+!  Always converting to real64 before writing to disk
+! ================================================================================================ !
+!  F. SCHMIDT, 3 February 1999
+!  K. SJOBAK,    October  2017
+!  V.K. Berglyd Olsen, April 2019
+! ================================================================================================ !
+subroutine writebin(nthinerr)
+
+  use, intrinsic :: iso_fortran_env, only : real64
+  use numerical_constants
+  use crcoall
+  use parpro
+  use mod_common
+  use mod_common_main
+  use mod_commons
+  use mod_common_track
+  use mod_common_da
+  use mod_settings
 #ifdef CR
-      use checkpoint_restart
+  use checkpoint_restart
 #endif
-      implicit none
 
-      integer ia,ia2,ie,nthinerr
+  implicit none
+
+  integer, intent(inout) :: nthinerr
+
+  integer ia,ie,ip,fUnit
+  real(kind=real64) dam_tmp,xv_tmp(2,2),yv_tmp(2,2),sigmv_tmp(2),dpsv_tmp(2),e0_tmp
+
 #ifdef CR
-      integer ncalls
-#endif
-#ifdef BOINC
-      integer timech
-#endif
-#ifdef CR
-      data ncalls /0/
+  if(cr_restart) then
+    write(crlog,"(a)") "WRITEBIN> Restarting, so not writing records"
+    flush(crlog)
+    return
+  end if
 #endif
 
-      real(kind=real64) dam_tmp, xv_tmp(2,2),yv_tmp(2,2),               &
-     &sigmv_tmp(2),dpsv_tmp(2),e0_tmp
+  ! Rewritten by VKBO to use a map to preserve the particle pairs after particle arrays have been reshuffled
+  ! Loop over pairs, looking up their current index in the pair-map generated by subroutine updatePairMap
+  do ip=1,(napxo+1)/2
 
-      save
-!-----------------------------------------------------------------------
-#ifdef CR
-      ncalls=ncalls+1
-      if (restart) then
-         write(93,*) 'WRITEBIN bailing out on restart'
-         write(93,*) 'numl, nnuml, numx, numlcr '
-         write(93,*)  numl,nnuml,numx,numlcr
-         flush(93)
-         return
-      else
-#ifndef DEBUG
-         if (ncalls.le.20.or.numx.ge.nnuml-20) then
-#endif
-            write(93,*)                                                 &
-     &'WRITEBIN numl, nnuml, numlcr, numx, nwri, numlcp '
-            write(93,*) ' ',numl,nnuml,numlcr,numx,nwri,numlcp
-            flush(93)
-#ifndef DEBUG
-         endif
-#endif
-      endif
-#ifndef DEBUG
-      if (ncalls.le.20.or.numx.ge.nnuml-20) then
-#endif
-      write(93,*) 'WRITEBIN writing binrec ',binrec+1
-      flush(93)
-#ifndef DEBUG
-      endif
-#endif
-#endif
-         do ia=1,napx-1
-!GRD
-!     PSTOP=true -> particle lost,
-!     partID(ia)=particle ID that is not changing
-!     (the particle arrays are compressed to remove lost particles)
-!     In the case of no lost particles, all partID(i)=i for 1..npart
-            if(.not.pstop(partID(ia)).and..not.pstop(partID(ia)+1).and. &
-     &           (mod(partID(ia),2).ne.0)) then !Skip odd particle IDs
+    ia = pairMap(1,ip)
+    ie = pairMap(2,ip)
 
-               ia2=(partID(ia)+1)/2 !File ID for non-STF & binrecs
-               ie=ia+1              !ia = Particle ID 1, ie = Particle ID 2
+    if(ia == 0 .or. ie == 0) then
+      ! Check that the map does not contain a 0 index, which means something is wrong in the record keeping of lost particles
+      write(lerr,"(a,i0)") "WRITEBIN> ERROR The map of particle pairs is missing one or both particles for pair ",ip
+      call prror
+    end if
 
-               if(ntwin.ne.2) then !Write particle partID(ia) only
-                  dam_tmp      = real(dam(ia),   real64)
-                  xv_tmp(1,1)  = real(xv1(ia),  real64)
-                  yv_tmp(1,1)  = real(yv1(ia),  real64)
-                  xv_tmp(2,1)  = real(xv2(ia),  real64)
-                  yv_tmp(2,1)  = real(yv2(ia),  real64)
-                  sigmv_tmp(1) = real(sigmv(ia), real64)
-                  dpsv_tmp(1)  = real(dpsv(ia),  real64)
-                  e0_tmp       = real(e0,        real64)
+    if(.not.pstop(ia) .and. .not.pstop(ie)) then
 
-                  ! DANGER: IF THE LENGTH OR NUMBER OF THESE FIELDS CHANGE,
-                  ! CRCHECK WON'T WORK. SEE HOW VARIABLES HBUFF/TBUFF ARE USED.
-                  ! WE ALSO ASSUME THAT THE INTEGERS ARE ALWAYS 32BIT...
-
-#ifndef STF
-                  write(91-ia2,iostat=ierro)                            &
+#ifdef STF
+      fUnit = 90
 #else
-                  write(90,iostat=ierro)                                &
+      fUnit = 91-ip
+      if(ip > 32) then
+        write(lerr,"(a)") "WRITEBIN> ERROR Trying to write more than 32 pairs to track files. This is a bug!"
+        call prror
+      end if
 #endif
-     &               numx,partID(ia),dam_tmp,                           &
-     &               xv_tmp(1,1),yv_tmp(1,1),                           &
-     &               xv_tmp(2,1),yv_tmp(2,1),                           &
-     &               sigmv_tmp(1),dpsv_tmp(1),e0_tmp
-#ifndef STF
-                  flush(91-ia2)
-#else
-                  flush(90)
-#endif
+
+      if(ntwin /= 2) then ! Write particle ia only
+        dam_tmp      = real(dam(ia),   real64)
+        xv_tmp(1,1)  = real(xv1(ia),   real64)
+        yv_tmp(1,1)  = real(yv1(ia),   real64)
+        xv_tmp(2,1)  = real(xv2(ia),   real64)
+        yv_tmp(2,1)  = real(yv2(ia),   real64)
+        sigmv_tmp(1) = real(sigmv(ia), real64)
+        dpsv_tmp(1)  = real(dpsv(ia),  real64)
+        e0_tmp       = real(e0,        real64)
+
+        ! DANGER: IF THE LENGTH OR NUMBER OF THESE FIELDS CHANGE,
+        ! CRCHECK WON'T WORK. SEE HOW VARIABLES HBUFF/TBUFF ARE USED.
+        ! WE ALSO ASSUME THAT THE INTEGERS ARE ALWAYS 32BIT...
+
+        write(fUnit,iostat=ierro) numx,partID(ia),dam_tmp, &
+          xv_tmp(1,1),yv_tmp(1,1),xv_tmp(2,1),yv_tmp(2,1), &
+          sigmv_tmp(1),dpsv_tmp(1),e0_tmp
+        flush(fUnit)
 #ifdef CR
-                  binrecs(ia2)=binrecs(ia2)+1
+        binrecs(ip) = binrecs(ip)+1
 #endif
 
-               else !Write both particles partID(ia) and partID(ia)+1
-                    ! Note that dam(ia) (distance in angular phase space)
-                    ! is written twice.
-                  dam_tmp      = real(dam(ia),   real64)
+      else ! Write both particles ia and ie
+        ! Note that dam(ia) (distance in angular phase space) is written twice.
+        dam_tmp      = real(dam(ia),   real64)
 
-                  xv_tmp(1,1)  = real(xv1(ia),  real64)
-                  yv_tmp(1,1)  = real(yv1(ia),  real64)
-                  xv_tmp(2,1)  = real(xv2(ia),  real64)
-                  yv_tmp(2,1)  = real(yv2(ia),  real64)
-                  sigmv_tmp(1) = real(sigmv(ia), real64)
-                  dpsv_tmp(1)  = real(dpsv(ia),  real64)
+        xv_tmp(1,1)  = real(xv1(ia),   real64)
+        yv_tmp(1,1)  = real(yv1(ia),   real64)
+        xv_tmp(2,1)  = real(xv2(ia),   real64)
+        yv_tmp(2,1)  = real(yv2(ia),   real64)
+        sigmv_tmp(1) = real(sigmv(ia), real64)
+        dpsv_tmp(1)  = real(dpsv(ia),  real64)
 
-                  xv_tmp(1,2)  = real(xv1(ie),  real64)
-                  yv_tmp(1,2)  = real(yv1(ie),  real64)
-                  xv_tmp(2,2)  = real(xv2(ie),  real64)
-                  yv_tmp(2,2)  = real(yv2(ie),  real64)
-                  sigmv_tmp(2) = real(sigmv(ie), real64)
-                  dpsv_tmp(2)  = real(dpsv(ie),  real64)
+        xv_tmp(1,2)  = real(xv1(ie),   real64)
+        yv_tmp(1,2)  = real(yv1(ie),   real64)
+        xv_tmp(2,2)  = real(xv2(ie),   real64)
+        yv_tmp(2,2)  = real(yv2(ie),   real64)
+        sigmv_tmp(2) = real(sigmv(ie), real64)
+        dpsv_tmp(2)  = real(dpsv(ie),  real64)
 
-                  e0_tmp       = real(e0,        real64)
+        e0_tmp       = real(e0,        real64)
 
-                  ! DANGER: IF THE LENGTH OR NUMBER OF THESE FIELDS CHANGE,
-                  ! CRCHECK WON'T WORK. SEE HOW VARIABLES HBUFF/TBUFF ARE USED.
-                  ! WE ALSO ASSUME THAT THE INTEGERS ARE ALWAYS 32BIT...
-#ifndef STF
-                  write(91-ia2,iostat=ierro)                            &
-#else
-                  write(90,iostat=ierro)                                &
-#endif
-     &               numx,partID(ia),dam_tmp,                           &
-     &               xv_tmp(1,1),yv_tmp(1,1),                           &
-     &               xv_tmp(2,1),yv_tmp(2,1),                           &
-     &               sigmv_tmp(1),dpsv_tmp(1),e0_tmp,                   &
-     &               partID(ia)+1,dam_tmp,                              &
-     &               xv_tmp(1,2),yv_tmp(1,2),                           &
-     &               xv_tmp(2,2),yv_tmp(2,2),                           &
-     &               sigmv_tmp(2),dpsv_tmp(2),e0_tmp
-#ifndef STF
-                  flush(91-ia2)
-#else
-                  flush(90)
-#endif
+        ! DANGER: IF THE LENGTH OR NUMBER OF THESE FIELDS CHANGE,
+        ! CRCHECK WON'T WORK. SEE HOW VARIABLES HBUFF/TBUFF ARE USED.
+        ! WE ALSO ASSUME THAT THE INTEGERS ARE ALWAYS 32BIT...
+        write(fUnit,iostat=ierro) numx,                            &
+          partID(ia),dam_tmp,xv_tmp(1,1),yv_tmp(1,1),              &
+          xv_tmp(2,1),yv_tmp(2,1),sigmv_tmp(1),dpsv_tmp(1),e0_tmp, &
+          partID(ie),dam_tmp,xv_tmp(1,2),yv_tmp(1,2),              &
+          xv_tmp(2,2),yv_tmp(2,2),sigmv_tmp(2),dpsv_tmp(2),e0_tmp
+        flush(fUnit)
 
 #ifdef CR
-                  binrecs(ia2)=binrecs(ia2)+1
+        binrecs(ip) = binrecs(ip)+1
 #endif
-               endif
-               if(ierro.ne.0) then
-                  write(lout,*)
-                  write(lout,*)                                         &
-     &                 '*** ERROR ***,PROBLEM WRITING TO FILE# : ',     &
-     &                 91-ia2
-                  write(lout,*) 'ERROR CODE : ',ierro
-                  write(lout,*)
+      end if
+      if(ierro /= 0) then
+        write(lerr,"(2(a,i0))") "WRITEBIN> ERROR Problem writing to file unit ",fUnit,", error code ",ierro
+        flush(lerr)
+        flush(12)
+        nthinerr = 3000
+        return
+      end if
+    end if
+  end do
 #ifdef CR
-                  flush(lout)
-#else
-                  flush(12)
+  if(lhc /= 9) then
+    binrec = binrec+1
+  end if
 #endif
-                  nthinerr=3000
-                  return
-               endif
-            endif
-         end do !END "do 10 ia=1,napx-1"
-#ifdef CR
-      if (lhc.ne.9) then
-         binrec=binrec+1
-#ifndef DEBUG
-         if (ncalls.le.20.or.numx.ge.nnuml-20) then
-#endif
-            write(93,*) 'WRITEBIN written binrec ',binrec
-            flush(93)
-#ifndef DEBUG
-         endif
-#endif
-      endif
-      return
-   11 write(lout,*) '*** ERROR ***,PROBLEMS WRITING TO FILE # : 91',ierro
-      write(lout,*) 'SIXTRACR WRITEBIN IO ERROR on Unit 91'
-      call prror(-1)
-#endif
-      return
-      end subroutine writebin
 
-! These routines have been moved from sixtrack.s90 because they are only
-! use here. VKBO 2018-05-25
+end subroutine writebin
+
+! These routines have been moved from sixtrack.s90 because they are only used here. VKBO 2018-05-25
 subroutine lfitwd(x,y,w,l,key,a,b,e)
 !-----------------------------------------------------------------------
 !
@@ -3623,12 +3551,11 @@ subroutine lfitwd(x,y,w,l,key,a,b,e)
 !
 !-----------------------------------------------------------------------
 !Eric made DOUBLE PRECISION
-  use mathlib_bouncer
   implicit none
   integer icnt,j,key,l
   real(kind=fPrec) a,b,e,x,y,w
   real(kind=fPrec) w2,w2x,w2x2,w2xy,w2y,w2y2,ww,wwf,wwfi
-  dimension x(l),y(l),w(l)                                           !hr07
+  dimension x(l),y(l),w(l)
   save
 !-----------------------------------------------------------------------
 !
@@ -3645,7 +3572,7 @@ subroutine lfitwd(x,y,w,l,key,a,b,e)
   icnt=0
   do 2 j=1,l
   if(y(j).eq.0..and.key.eq.0) goto 2
-  ww=w(j)**2                                                         !hr07
+  ww=w(j)**2
   w2=ww+w2
   wwf=ww*x(j)
   w2x=wwf+w2x
@@ -3662,7 +3589,7 @@ subroutine lfitwd(x,y,w,l,key,a,b,e)
   b=(w2y-a*w2x)/w2
   if(icnt.le.2) goto 3
 !Eric
-  e=((w2y2-w2y**2/w2)-(w2xy-(w2x*w2y)/w2)**2/(w2x2-w2x**2/w2))/     &!hr07
+  e=((w2y2-w2y**2/w2)-(w2xy-(w2x*w2y)/w2)**2/(w2x2-w2x**2/w2))/     &
   &real(icnt-2,fPrec)
   goto 4
 !
@@ -3683,12 +3610,11 @@ subroutine lfitd(x,y,l,key,a,b,e)
 !
 !-----------------------------------------------------------------------
 !Eric made DOUBLE PRECISION
-  use mathlib_bouncer
   implicit none
   integer j,key,l
   real(kind=fPrec) a,b,count,e,scartx,scarty
   real(kind=fPrec) sumx,sumxx,sumxy,sumy,sumyy,x,xmed,y,ymed
-  dimension x(l),y(l)                                                !hr07
+  dimension x(l),y(l)
   save
 !-----------------------------------------------------------------------
 !
@@ -3739,7 +3665,6 @@ end subroutine lfitd
 end module postprocessing
 
 subroutine hbook2(i1,c1,i2,r1,r2,i3,r3,r4,r5)
-  use floatPrecision
   implicit none
   integer i1,i2,i3
   real r1,r2,r3,r4,r5
@@ -3806,7 +3731,6 @@ subroutine hplot(i1,c1,c2,i2)
 end subroutine hplot
 
 subroutine hplset(c1,r1)
-  use floatPrecision
   implicit none
   real r1
   character c1
@@ -3815,7 +3739,6 @@ subroutine hplset(c1,r1)
 end subroutine hplset
 
 subroutine hplsiz(r1,r2,c1)
-  use floatPrecision
   implicit none
   real r1,r2
   character c1
@@ -3824,7 +3747,6 @@ subroutine hplsiz(r1,r2,c1)
 end subroutine hplsiz
 
 subroutine hplsof(r1,r2,c1,r3,r4,r5,i1)
-  use floatPrecision
   implicit none
   integer i1
   real r1,r2,r3,r4,r5
@@ -3834,7 +3756,6 @@ subroutine hplsof(r1,r2,c1,r3,r4,r5,i1)
 end subroutine hplsof
 
 subroutine htitle(c1)
-  use floatPrecision
   implicit none
   character c1
   save
@@ -3842,7 +3763,6 @@ subroutine htitle(c1)
 end subroutine htitle
 
 subroutine ipl(i1,r1,r2)
-  use floatPrecision
   implicit none
   integer i1
   real r1(*),r2(*)
@@ -3851,7 +3771,6 @@ subroutine ipl(i1,r1,r2)
 end subroutine ipl
 
 subroutine ipm(i1,r1,r2)
-  use floatPrecision
   implicit none
   integer i1
   real r1,r2

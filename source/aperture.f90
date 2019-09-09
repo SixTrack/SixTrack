@@ -18,7 +18,6 @@ module aperture
   use mod_common_track
   use mod_common_da
 
-  use mod_hions
   use mod_alloc
 #ifdef HDF5
   use hdf5_output
@@ -83,8 +82,10 @@ module aperture
   real(kind=fPrec), allocatable, save :: nucmLast(:)  ! nuclear mass [GeV/c2] (npart)
   real(kind=fPrec), allocatable, save :: sigmvLast(:) ! lag [mm] (npart)
   real(kind=fPrec), allocatable, save :: dpsvLast(:)  ! (npart)
-  integer, allocatable, save :: naaLast(:)            ! nuclear mass [] (npart)
-  integer, allocatable, save :: nzzLast(:)            ! atomic number [] (npart)
+  integer(kind=int16), allocatable, save :: naaLast(:)            ! nuclear mass [] (npart)
+  integer(kind=int16), allocatable, save :: nzzLast(:)            ! atomic number [] (npart)
+  integer(kind=int16), allocatable, save :: nqqLast(:)            ! charge [] (npart)
+  integer(kind=int32), allocatable, save :: pdgidLast(:)          ! PDGid [] (npart)
   real(kind=fPrec), save :: bktpre=c1m1            ! precision of back-tracking [m]
   integer, save :: iLast=0                         ! index of last aperture marker (lattice structure)
   integer, save :: ixLast=0                        ! index of last aperture marker (SING list)
@@ -141,8 +142,11 @@ subroutine aperture_expand_arrays(nele_new, npart_new)
   call alloc(nucmLast,  npart_new, zero, "nucmLast")  ! nuclear mass [GeV/c2] (npart)
   call alloc(sigmvLast, npart_new, zero, "sigmvLast") ! lag [mm] (npart)
   call alloc(dpsvLast,  npart_new, zero, "dpsvLast")  ! (npart)
-  call alloc(naaLast,   npart_new, 0, "naaLast")      ! nuclear mass [] (npart)
-  call alloc(nzzLast,   npart_new, 0, "nzzLast")      ! atomic number [] (npart)
+  call alloc(naaLast,   npart_new, 0_int16, "naaLast")      ! nuclear mass [](npart)
+  call alloc(nzzLast,   npart_new, 0_int16, "nzzLast")      ! atomic number [](npart)
+  call alloc(nqqLast,   npart_new, 0_int16, "nqqLast")      ! charge [] (npart)
+  call alloc(pdgidLast, npart_new, 0_int32, "pdgidLast")    ! PDG id [] (npart)
+
 
 end subroutine aperture_expand_arrays
 
@@ -154,7 +158,7 @@ end subroutine aperture_expand_arrays
 subroutine aperture_init
 
   use mod_units, only: f_open, f_requestUnit
-
+  use string_tools, only : chr_lpad, chr_rpad
   implicit none
 
 #ifdef HDF5
@@ -220,13 +224,16 @@ subroutine aperture_init
       apefilepos=0
 #endif
 
-      write(losses_unit,"(a)") "# turn block bezid bez slos "// &
+      write(losses_unit,"(a)") chr_lpad('turn',9) // chr_lpad('block',9) // chr_lpad('bezid',9) // chr_rpad(' bez',49) //&
+&                              chr_lpad('slos',13) // &
 #ifdef FLUKA
-        "fluka_uid fluka_gen fluka_weight "// &
+&        chr_lpad('fluka_uid',10) // chr_lpad('fluka_gen',10) // chr_lpad('fluka_weight',15) //  &
 #else
-        "partid "// &
+&        chr_lpad('partid',9) // &
 #endif
-        "x xp y yp etot dE dT A_atom Z_atom "
+&        chr_lpad('x (m)',15) // chr_lpad('xp',15) // chr_lpad('y (m)',15) // chr_lpad('yp',15) // &
+&        chr_lpad('P tot (GeV/c)',15) // chr_lpad('dE (eV)',15) // chr_lpad('dT (s)',15) // &
+&        chr_lpad('A',9) // chr_lpad('Z',9) // chr_lpad('Q',9) // chr_lpad('PDGid',13)
       ! Flush file
       flush(losses_unit)
 #ifdef CR
@@ -475,6 +482,8 @@ subroutine aperture_saveLastCoordinates( i, ix, iBack )
     dpsvLast(j) = dpsv(j)
     naaLast(j) = naa(j)
     nzzLast(j) = nzz(j)
+    nqqLast(j) = nqq(j)
+    pdgidLast(j) = pdgid(j)
   end do
 
   iLastThick = i
@@ -503,12 +512,12 @@ subroutine aperture_backTrackingInit
   if( ix.lt.0 ) then
     write(lerr,"(a)") "APER> ERROR Impossible to properly initialise backtracking:"
     write(lerr,"(a)") "APER>       first element of lattice structure is not a single element"
-    call prror(-1)
+    call prror
   end if
   if( kape(ix).eq.0 ) then
     write(lerr,"(a)") "APER> ERROR Impossible to properly initialise backtracking:"
     write(lerr,"(a)") "APER>       first element of lattice structure is not assigned an aperture profile"
-    call prror(-1)
+    call prror
   end if
 
   call aperture_saveLastCoordinates( i, ix, -1 )
@@ -528,10 +537,6 @@ subroutine aperture_checkApeMarker(turn, i, ix, llost)
 !-----------------------------------------------------------------------
 
   use physical_constants
-
-#ifdef FLUKA
-  use mod_fluka
-#endif
 
 #ifdef ROOT
   use iso_c_binding
@@ -765,7 +770,7 @@ subroutine aperture_reportLoss(turn, i, ix)
   use physical_constants
 
 #ifdef FLUKA
-  use mod_fluka
+  use mod_fluka, only : fluka_uid, fluka_gen, fluka_weight, fluka_enable
 #endif
 #ifdef HDF5
   use hdf5_output
@@ -803,7 +808,7 @@ subroutine aperture_reportLoss(turn, i, ix)
   logical llos        ! temporal logic array for interpolation
   logical lback       ! actually perform backtracking
   real(kind=fPrec) xlos(2), ylos(2), aprr(11), step, length, slos, ejfvlos, ejvlos, nucmlos, sigmvlos, dpsvlos
-  integer naalos, nzzlos
+  integer naalos, nzzlos, nqqlos, pdgidlos
 
   integer npart_tmp ! Temporary holder for number of particles,
                     ! used to switch between collimat/standard version at runtime
@@ -962,6 +967,8 @@ subroutine aperture_reportLoss(turn, i, ix)
         dpsvlos = dpsvLast(j)
         naalos = naaLast(j)
         nzzlos = nzzLast(j)
+        nqqlos = nqqLast(j)
+        pdgidlos = pdgidLast(j)
       else
         ejfvlos = ejfv(j)
         ejvlos = ejv(j)
@@ -970,6 +977,8 @@ subroutine aperture_reportLoss(turn, i, ix)
         dpsvlos = dpsv(j)
         naalos = naa(j)
         nzzlos = nzz(j)
+        nqqlos = nqq(j)
+        pdgidlos = pdgid(j)
       end if
 
       ! ==============================================================
@@ -1057,9 +1066,9 @@ subroutine aperture_reportLoss(turn, i, ix)
 #endif
 
 #ifdef FLUKA
-        write(losses_unit,'(3(1X,I8),1X,A48,1X,F12.5,2(1X,I8),8(1X,1PE14.7),2(1X,I8))')&
+        write(losses_unit,'(3(1X,I8),1X,A48,1X,F12.5,2(1X,I9),8(1X,1PE14.7),3(1X,I8),1X,I12)') &
 #else
-        write(losses_unit,'(3(1X,I8),1X,A48,1X,F12.5,1X,I8,7(1X,1PE14.7),2(1X,I8))')   &
+        write(losses_unit,'(3(1X,I8),1X,A48,1X,F12.5,1X,I8,7(1X,1PE14.7),3(1X,I8),1X,I12)')    &
 #endif
 
      &       turn, i, ix, bezs(i), slos,                                     &
@@ -1072,7 +1081,7 @@ subroutine aperture_reportLoss(turn, i, ix)
      &       xlos(1)*c1m3, ylos(1)*c1m3, xlos(2)*c1m3, ylos(2)*c1m3,         &
      &       ejfvlos*c1m3, (ejvlos*(nucm0/nucmlos)-e0)*c1e6,                 &
      &       (-(c1m3 * (sigmvlos/clight) ))* (e0/e0f),                       &
-     &       naalos, nzzlos
+     &       naalos, nzzlos, nqqlos, pdgidlos
 #ifdef CR
         apefilepos=apefilepos+1
 #endif
@@ -1088,11 +1097,11 @@ subroutine aperture_reportLoss(turn, i, ix)
         call ApertureCheckWriteLossParticleF(turn, i, ix, this_name, len_trim(this_name), slos, &
           fluka_uid(j), fluka_gen(j), fluka_weight(j), &
           xlos(1)*c1m3, ylos(1)*c1m3, xlos(2)*c1m3, ylos(2)*c1m3, ejfvlos*c1m3, (ejvlos-e0)*c1e6, &
-          (-(c1m3 * (sigmvlos/clight))) * (e0/e0f), naalos, nzzlos)
+          (-(c1m3 * (sigmvlos/clight))) * (e0/e0f), naalos, nzzlos, nqqlos, pdgidlos)
 #else
         call ApertureCheckWriteLossParticle(turn, i, ix, this_name, len_trim(this_name), slos, plost(j),&
           xlos(1)*c1m3, ylos(1)*c1m3, xlos(2)*c1m3, ylos(2)*c1m3, ejfvlos*c1m3, (ejvlos-e0)*c1e6, &
-          (-(c1m3 * (sigmvlos/clight))) * (e0/e0f), naalos, nzzlos)
+          (-(c1m3 * (sigmvlos/clight))) * (e0/e0f), naalos, nzzlos, nqqlos, pdgidlos)
 #endif
       end if
 #endif
@@ -1102,14 +1111,12 @@ subroutine aperture_reportLoss(turn, i, ix)
 #else
       if(((partID(j).le.aperture_napxStart) .and. do_coll) .or. .not.do_coll) then
 #endif
-        pstop(partID(j))=.true.
-        ! Record for postpr
-        if(.not.limifound.or.kape(ix).eq.0) then
-          aperv(partID(j),1) = aper(1)
-          aperv(partID(j),2) = aper(2)
+        if(.not.limifound .or. kape(ix) == 0) then
+          aperv(1,j) = aper(1)
+          aperv(2,j) = aper(2)
         else
-          aperv(partID(j),1) = min(ape(1,ix),ape(3,ix))
-          aperv(partID(j),2) = min(ape(2,ix),ape(4,ix))
+          aperv(1,j) = min(ape(1,ix),ape(3,ix))
+          aperv(2,j) = min(ape(2,ix),ape(4,ix))
         end if
         xv1(j)   = xlos(1)
         xv2(j)   = xlos(2)
@@ -1118,8 +1125,10 @@ subroutine aperture_reportLoss(turn, i, ix)
         dpsv(j)  = dpsvlos
         ejv(j)   = ejvlos
         sigmv(j) = sigmvlos
-        numxv(partID(j))   = numx
-        nnumxv(partID(j))  = numx
+        numxv(j) = numx
+
+        ! Record for postpr
+        pstop(j) = .true.
 #ifdef FLUKA
       end if ! partID(j).le.aperture_napxStart
 #else
@@ -1306,10 +1315,54 @@ subroutine roffpos_inv( x, y, xnew, ynew, tlt, xoff, yoff )
   return
 end subroutine roffpos_inv
 
+#ifdef FLUKA
+subroutine contour_FLUKA_markers()
+!-----------------------------------------------------------------------
+! by A.Mereghetti
+! last modified: 22-05-2019
+! check that aperture is well defined accross a Fluka insertion
+  !-----------------------------------------------------------------------
+
+  use mod_fluka, only : FLUKA_ENTRY, FLUKA_EXIT, fluka_type, fluka_geo_index
+  use parpro, only : nblo
+  use mod_common, only : iu, ic
+  use mod_common_track, only : ktrack
+
+  implicit none
+
+  ! temporary variables
+  integer i1 , i2
+  integer ix1, ix2
+
+  i1=1
+  do while ( i1.le.iu )
+    if(ktrack(i1).ne.1.and.ic(i1).gt.nblo) then
+      ix1=ic(i1)-nblo
+      if ( fluka_type(ix1).eq.FLUKA_ENTRY ) then
+        do i2=i1+1,iu
+          if(ktrack(i2).ne.1.and.ic(i2).gt.nblo) then
+            ix2=ic(i2)-nblo
+            if ( fluka_type(ix2).eq.FLUKA_EXIT ) then
+              if(fluka_geo_index(ix1).eq.fluka_geo_index(ix2))then
+                call contour_aperture_markers( i1, i2, .true.  )
+                i1 = i2
+                exit
+              endif
+            endif
+          endif
+        enddo
+      endif
+    endif
+    i1 = i1+1
+  enddo
+
+end subroutine contour_FLUKA_markers
+#endif
+
 subroutine contour_aperture_markers( itElUp, itElDw, lInsUp )
 !-----------------------------------------------------------------------
 ! by A.Mereghetti
-! last modified: 20-12-2016
+! last modified: 25-07-2019
 ! check elements itElUp (upstream) and itElDw (downstream) and
 !   assign them (or insert) an aperture marker, in case;
 ! lInsUp: force the insertion of an aperture marker upstream
@@ -1333,8 +1386,14 @@ subroutine contour_aperture_markers( itElUp, itElDw, lInsUp )
 ! do not overwrite interface variables
   iElUp=itElUp
   iElDw=itElDw
+  iuold=-1
 ! markers accross extremes of lattice structure?
   lAccrossLatticeExtremes=iElUp.gt.iElDw
+#ifdef DEBUG
+  write(lout,*) "check 00: il, iu, iuold, iElUp, iElDw, ic(iElUp)-nblo, ic(iElDw)-nblo", &
+       il, iu, iuold, iElUp, iElDw, ic(iElUp)-nblo, ic(iElDw)-nblo
+  call dumpMe
+#endif
 
 ! upstream marker
   iuold=iu
@@ -1351,13 +1410,18 @@ subroutine contour_aperture_markers( itElUp, itElDw, lInsUp )
       write(lout,"(a)")    "APER> ...no need to insert an upstream marker - no shift of downstream entries required."
     end if
   end if
+#ifdef DEBUG
+  write(lout,*) "check 01: il, iu, iuold, iElUp, iElDw, ic(iElUp)-nblo, ic(iElDw)-nblo", &
+       il, iu, iuold, iElUp, iElDw, ic(iElUp)-nblo, ic(iElDw)-nblo
+  call dumpMe
+#endif
 
 ! downstream marker
   iuold=iu
   call contour_aperture_marker( iElDw, .false. )
 ! the addition of the downstream aperture marker may have shifted by one the downstream entries
   if( iu-iuold.ne.0 ) then
-! NB: if lAccrossLatticeExtremes, the downstream marker is almost at the beginngin of
+! NB: if lAccrossLatticeExtremes, the downstream marker is almost at the beginning of
 !     the lattice structure! Hence, if a new entry has been inserted,
 !     the upstream marker (towards the end of the lattice structure) is
 !     shifted by 1
@@ -1368,6 +1432,11 @@ subroutine contour_aperture_markers( itElUp, itElDw, lInsUp )
   else
     write(lout,"(a)")    "APER> ...no need to insert a downstream marker - no shift of downstream entries required."
   end if
+#ifdef DEBUG
+  write(lout,*) "check 02: il, iu, iuold, iElUp, iElDw, ic(iElUp)-nblo, ic(iElDw)-nblo", &
+       il, iu, iuold, iElUp, iElDw, ic(iElUp)-nblo, ic(iElDw)-nblo
+  call dumpMe
+#endif
 
   if( lAccrossLatticeExtremes ) then
 ! check that the aperture markers at the extremities of accelerator
@@ -1380,7 +1449,7 @@ subroutine contour_aperture_markers( itElUp, itElDw, lInsUp )
       call dump_aperture_header( lout )
       call dump_aperture_marker( lout, ixApeUp, iElUp )
       call dump_aperture_marker( lout, ixApeDw, iElDw )
-      call prror(-1)
+      call prror
     end if
   end if
 
@@ -1389,7 +1458,7 @@ end subroutine contour_aperture_markers
 subroutine contour_aperture_marker( iEl, lInsUp )
 !-----------------------------------------------------------------------
 !     by A.Mereghetti
-!     last modified: 20-12-2016
+!     last modified: 25-07-2019
 !     put an aperture marker at iEl
 !     NB: it can be either a brand new entry in lattice sequence or
 !         updating an existing one
@@ -1400,15 +1469,15 @@ subroutine contour_aperture_marker( iEl, lInsUp )
 #ifdef FLUKA
 ! import mod_fluka
 ! inserted in main code by the 'fluka' compilation flag
-  use mod_fluka
+  use mod_fluka, only : fluka_type, FLUKA_ELEMENT, FLUKA_ENTRY
 #endif
   use mod_geometry, only : geom_insertStruElem, geom_insertSingElem, geom_checkSingElemUnique
 
   implicit none
 
 ! interface variables
-  integer iEl
-  logical lInsUp
+  integer, intent(inout) ::  iEl
+  logical, intent(in)    ::  lInsUp
 ! temporary variables
   integer i,ix,iSrcUp,iSrcDw,iApeUp,ixApeUp,iApeDw,ixApeDw,jj,itmpape,iNew,ixNew,ixApeNewFrom,ixEl
   real(kind=fPrec) tmpape(11), ddcum
@@ -1429,6 +1498,7 @@ subroutine contour_aperture_marker( iEl, lInsUp )
       iEl=iu
       ixEl=ix
       bez(ixEl)='e.latt.aper'
+      bezs(iEl)=bez(ixEl)
       write(lout,"(a)") "APER> -> Inserted empty marker at end of lattice"
     end if
   else if( iEl.eq.1 ) then
@@ -1440,6 +1510,7 @@ subroutine contour_aperture_marker( iEl, lInsUp )
       iEl=1
       ixEl=ix
       bez(ixEl)='s.latt.aper'
+      bezs(iEl)=bez(ixEl)
       write(lout,"(a)") "APER> -> Inserted empty marker at start of lattice"
 #ifdef FLUKA
     else if( fluka_type(ixEl).eq.FLUKA_ELEMENT.or.fluka_type(ixEl).eq.FLUKA_ENTRY   ) then
@@ -1453,12 +1524,13 @@ subroutine contour_aperture_marker( iEl, lInsUp )
       iEl=1
       ixEl=ix
       bez(ixEl)='s.latt.aper'
+      bezs(iEl)=bez(ixEl)
       write(lout,"(a)") "APER> -> Inserted empty marker at start of lattice since first entry is a FLUKA element"
 #endif
     end if
   else if( ixEl.le.0 ) then
     write(lerr,"(a,i0,a)") "APER> ERROR Lattice element at: i=",iEl," is NOT a SINGLE ELEMENT."
-    call prror(-1)
+    call prror
   end if
 
 ! echo
@@ -1493,7 +1565,7 @@ subroutine contour_aperture_marker( iEl, lInsUp )
   call find_closest_aperture(iSrcUp,.true.,iApeUp,ixApeUp,lApeUp)
   if( iApeUp.eq.-1 .and. ixApeUp.eq.-1 ) then
     write(lerr,"(a)") "APER> ERROR Could not find upstream marker"
-    call prror(-1)
+    call prror
   end if
 ! - get closest downstream aperture marker
 ! NB: no risk of overflow, as first/last element in lattice
@@ -1502,7 +1574,7 @@ subroutine contour_aperture_marker( iEl, lInsUp )
   call find_closest_aperture(iSrcDw,.false.,iApeDw,ixApeDw,lApeDw)
   if( iApeDw.eq.-1 .and. ixApeDw.eq.-1 ) then
     write(lerr,"(a)") "APER> ERROR Could not find downstream marker"
-    call prror(-1)
+    call prror
   end if
 ! - echo found apertures
   call dump_aperture_header( lout )
@@ -1578,8 +1650,10 @@ subroutine contour_aperture_marker( iEl, lInsUp )
     else
 !     this should never happen
       write(lerr,"(a)") "APER> ERROR in aperture auto assignment."
-      call prror(-1)
+      call prror
     end if
+!   update bezs array, based
+    bezs(iNew)=bez(ic(iNew)-nblo)
   end if
 
 ! echo for checking
@@ -1602,7 +1676,7 @@ subroutine find_closest_aperture( iStart, lUp, iEl, ixEl, lfound )
 #ifdef FLUKA
 ! import mod_fluka
 ! inserted in main code by the 'fluka' compilation flag
-  use mod_fluka
+  use mod_fluka, only : fluka_type, FLUKA_NONE
 #endif
 
   implicit none
@@ -1707,7 +1781,7 @@ subroutine interp_aperture( iUp,ixUp, iDw,ixDw, oKApe,oApe, spos )
   integer jj
 
   oApe(:)=zero
- 
+
   if( sameAperture(ixUp,ixDw ) ) then
     ! constant aperture - no need to interpolate
     oKApe=kape(ixUp)
@@ -1717,7 +1791,7 @@ subroutine interp_aperture( iUp,ixUp, iDw,ixDw, oKApe,oApe, spos )
     ! type: we may interpolate the same aperture type
     oKApe=-1 ! transition
     if( kape(ixUp).eq.kape(ixDw) ) oKApe=kape(ixUp)
-     
+
     ! actual interpolation
     ddcum = spos-dcum(iUp)
     if( ddcum.lt.zero ) ddcum=dcum(iu)+ddcum
@@ -1730,7 +1804,7 @@ subroutine interp_aperture( iUp,ixUp, iDw,ixDw, oKApe,oApe, spos )
         oApe(jj)=((ape(jj,ixDw)-ape(jj,ixUp))/mdcum)*ddcum+ape(jj,ixUp)
       end if
     end do
-    
+
   end if
   return
 end subroutine interp_aperture
@@ -1738,15 +1812,17 @@ end subroutine interp_aperture
 subroutine copy_aperture( ixApeTo, ixApeFrom, nKApe, nApe )
 !-----------------------------------------------------------------------
 !     by A.Mereghetti
-!     last modified: 02-12-2016
+!     last modified: 25-07-2019
 !     copy aperture, either from an existing one or from the one
 !       received on the fly
 !-----------------------------------------------------------------------
   implicit none
 
 ! interface variables
-  integer ixApeTo, ixApeFrom, nKApe
-  real(kind=fPrec) nApe(11)
+  integer, intent(in) :: ixApeTo
+  integer, intent(in) :: ixApeFrom
+  integer, intent(in) :: nKApe
+  real(kind=fPrec), intent(in) ::  nApe(11)
 
   if( ixApeFrom.gt.0 ) then
 ! copy aperture marker from existing SINGLE ELEMENT
@@ -1799,7 +1875,7 @@ subroutine dump_aperture_model
   ix=ic(i)-nblo
   if( kape(ix).eq.0 ) then
     write(lerr,"(a)") "APER> ERROR First element of lattice structure is not assigned any aperture type"
-    call prror(-1)
+    call prror
   end if
   call dump_aperture_marker( aperunit, ix, i )
   iOld=i
@@ -1886,7 +1962,7 @@ subroutine dump_aperture_model_hdf5
   ix = ic(i)-nblo
   if(kape(ix) == 0) then
     write(lerr,"(a)") "APER> ERROR First element of lattice structure is not assigned any aperture type"
-    call prror(-1)
+    call prror
   end if
   call dump_aperture_hdf5(bez(ix), kape(ix), dcum(i), ape(1:9,ix), modelSet, .false.)
   iOld  = i
@@ -1988,18 +2064,23 @@ end subroutine dump_aperture_hdf5
 #endif
 
 subroutine dumpMe
+  use parpro, only : mNameLen
   implicit none
 
 ! temporary variables
   integer i, ix
+  character(len=mNameLen) tmpC, tmpD
+  tmpC="name"
+  tmpD="bezs(i)"
 
   write(lout,"(a)") "APER> dumpMe -----------------------------------------------------------------------------"
+  write(lout,"(a,2(a8,1x),2(a,1x),a15,1x,a8)") "APER> ","i","ix",tmpC,tmpD,"dcum(i)","kape(ix)"
   do i=1,iu
     ix=ic(i)-nblo
     if( ix.gt.0 ) then
-      write(lout,"(a,i8,1x,a,1x,f15.6,1x,i8)") "APER> ",i,bez(ix),dcum(i),kape(ix)
+      write(lout,"(a,2(i8,1x),2(a,1x),f15.6,1x,i8)") "APER> ",i,ix,bez(ix),bezs(i),dcum(i),kape(ix)
     else
-      write(lout,"(a,i8,1x,a,1x,f15.6)") "APER> ",i,bezb(ic(i)),dcum(i)
+      write(lout,"(a,2(i8,1x),2(a,1x),f15.6)") "APER> ",i,ic(i),bezb(ic(i)),bezs(i),dcum(i)
     end if
   end do
   write(lout,"(a)") "APER> dumpMe -----------------------------------------------------------------------------"
@@ -2118,31 +2199,31 @@ subroutine dump_aperture_xsecs
      if(lopen) then
         write(lerr,"(a,i0)")"APER> ERROR Dump_aperture_xsecs. Could not open file unit '"//trim(xsec_filename(ixsec))//&
           "' with unit ",xsecunit(ixsec)
-        call prror(-1)
+        call prror
      end if
      call f_open(unit=xsecunit(ixsec),file=xsec_filename(ixsec),formatted=.true.,mode='w',err=err)
      if(ierro .ne. 0) then
         write(lerr,"(2(a,i0))") "APER> ERROR Opening file '"//trim(xsec_filename(ixsec))//&
           "' on unit # ",xsecunit(ixsec),", iostat = ",ierro
-        call prror(-1)
+        call prror
      end if
 
      ! loop over s-locations
      sLoc=sLocMin(ixsec)
      do while(sLoc.le.sLocMax(ixsec))
         call geom_findElemAtLoc( sLoc, .true., iEl, ixEl, lfound )
-        if(.not.lfound) call prror(-1)
+        if(.not.lfound) call prror
         ! get upstream aperture marker
         call find_closest_aperture(iEl,.true.,iApeUp,ixApeUp,lApeUp)
         if( iApeUp.eq.-1 .and. ixApeUp.eq.-1 ) then
            write(lerr,"(a)") "APER> ERROR Could not find upstream aperture marker"
-           call prror(-1)
+           call prror
         end if
         ! get downstream aperture marker
         call find_closest_aperture(iEl,.false.,iApeDw,ixApeDw,lApeDw)
         if( iApeDw.eq.-1 .and. ixApeDw.eq.-1 ) then
            write(lerr,"(a)") "APER> ERROR Could not find downstream aperture marker"
-           call prror(-1)
+           call prror
         end if
         ! interpolate and get aperture at desired location
         call interp_aperture( iApeUp, ixApeUp, iApeDw, ixApeDw, itmpape, tmpape, sLoc )
@@ -2635,7 +2716,7 @@ subroutine aper_parseLoadFile(load_file, iLine, iErr)
   read(loadunit,"(a)",end=90,iostat=iErro) unitLine
   if(iErro > 0) then
     write(lerr,"(a,i0)") "LIMI> ERROR Could not read from unit ",loadunit
-    call prror(-1)
+    call prror
   end if
   lineNo = lineNo + 1
 
@@ -2655,7 +2736,7 @@ subroutine aper_parseLoadFile(load_file, iLine, iErr)
 
 90 continue
   write(lout,"(a,i0,a)") "LIMI> Read ",lineNo," lines from external file."
-  call f_close(loadunit)
+  call f_freeUnit(loadunit)
   return
 
 end subroutine aper_parseLoadFile
@@ -3038,6 +3119,126 @@ end subroutine aper_inputParsingDone
 !  END APERTURE LIMITATIONS PARSING
 ! ================================================================================================ !
 
+#ifdef ROOT
+
+subroutine root_dump_aperture_model
+  use parpro
+  implicit none
+
+! temporary variables
+  integer i, ix
+  logical lopen
+
+  integer iOld, ixOld, niter, oKApe, jj
+  real(kind=fPrec) aprr(11),slos
+  character(len=mNameLen), parameter :: interpolated = 'interpolated'
+
+! First element of lattice
+  i=1
+  ix=ic(i)-nblo
+  if( kape(ix).eq.0 ) then
+    write(lerr,"(a)") "APER> ERROR Frst element of lattice structure is not assigned any aperture type"
+    call prror
+  end if
+  call root_dump_aperture_marker( ix, i )
+  iOld=i
+  ixOld=ix
+
+  do i=2,iu
+    ix=ic(i)-nblo
+    if(ix.gt.0) then
+      ! SINGLE ELEMENT
+      if( kape(ix) .ne. 0 ) then
+        if(lbacktracking) then
+          ! Number of iterations
+          if( (dcum(i)-dcum(iOld)).gt.zero) then
+            niter = nint((dcum(i)-dcum(iOld))/bktpre+1)
+            do jj=1,niter
+              slos = int(dcum(iOld)/bktpre+jj)*bktpre
+              if( slos.lt.dcum(iOld) .or. slos.gt.dcum(i) ) exit
+              call interp_aperture(iOld,ixOld,i,ix,oKApe,aprr,slos)
+              call root_dump_aperture( interpolated, oKApe, slos, aprr )
+            end do
+          end if
+          iOld=i
+          ixOld=ix
+        end if
+        call root_dump_aperture_marker( ix, i )
+      end if
+    end if
+  end do
+
+  return
+
+end subroutine root_dump_aperture_model
+
+subroutine root_dump_aperture( name, aptype, spos, ape )
+  use mod_settings
+
+  use root_output
+
+  implicit none
+
+! interface variables
+  integer aptype
+  character(len=mNameLen) name
+  real(kind=fPrec) ape(11)
+  real(kind=fPrec) spos
+
+  character(len=mNameLen+1) this_name
+  character(len=3) this_type
+
+!write the aperture to root
+     if(root_flag .and. root_DumpPipe.eq.1) then
+
+     this_name = trim(adjustl(name)) // C_NULL_CHAR
+     this_type = trim(adjustl(apeName(aptype))) // C_NULL_CHAR
+
+     select case(aptype)
+     case(-1) ! transition
+        call root_DumpAperture( this_name, len_trim(this_name), this_type, len_trim(this_type), spos, &
+                                ape(1), ape(2), ape(3), ape(4), ape(5), ape(6), ape(7), ape(8), ape(9), ape(10), ape(11) )
+     case(1) ! Circle
+        call root_DumpAperture( this_name, len_trim(this_name), this_type, len_trim(this_type), spos, &
+                                ape(1), zero, zero, zero, zero, zero, ape(7), ape(8), ape(9), ape(10), ape(11) )
+     case(2) ! Rectangle
+        call root_DumpAperture( this_name, len_trim(this_name), this_type, len_trim(this_type), spos, &
+                                ape(1), ape(2), zero, zero, zero, zero, ape(7), ape(8), ape(9), ape(10), ape(11) )
+     case(3) ! Ellipse
+        call root_DumpAperture( this_name, len_trim(this_name), this_type, len_trim(this_type), spos, &
+                                ape(3), ape(4), zero, zero, zero, zero, ape(7), ape(8), ape(9), ape(10), ape(11) )
+     case(4) ! Rectellipse
+        call root_DumpAperture( this_name, len_trim(this_name), this_type, len_trim(this_type), spos, &
+                                ape(1), ape(2), ape(3), ape(4), zero, zero, ape(7), ape(8), ape(9), ape(10), ape(11) )
+     case(5) ! Octagon
+        ! get angles from points passing through x1,y1 and x2,y2
+        ! x1=ape(1)
+        ! y1=ape(1)*tan(theta1)
+        ! x2=ape(2)/tan(theta2)
+        ! y2=ape(2)
+        call root_DumpAperture( this_name, len_trim(this_name), this_type, len_trim(this_type), spos, &
+                                ape(1), ape(2),atan2_mb(ape(1)*ape(7)+ape(8),ape(1)), atan2_mb(ape(2),(ape(2)-ape(8))/ape(7)), &
+                                zero, zero, zero, zero, ape(9), ape(10), ape(11) )
+     case(6) ! Racetrack
+        call root_DumpAperture( this_name, len_trim(this_name), this_type, len_trim(this_type), spos, &
+                                ape(5), ape(6), ape(3), ape(4), zero, zero, zero, zero, ape(9), ape(10), ape(11) )
+     end select
+     end if
+end subroutine root_dump_aperture
+
+subroutine root_dump_aperture_marker( ixEl, iEl )
+  implicit none
+
+! interface variables
+  integer iEl, ixEl
+
+  call root_dump_aperture( bez(ixEl), kape(ixEl), dcum(iEl), ape(1:11,ixEl) )
+  return
+end subroutine root_dump_aperture_marker
+
+#endif
+!End ROOT
+
 ! ================================================================================================================================ !
 !  Begin Checkpoint Restart
 ! ================================================================================================================================ !
@@ -3060,6 +3261,9 @@ subroutine aper_crcheck_readdata(fileunit, readerr)
 
 100 continue
   readerr = .true.
+  write(lout, "(a,i0,a)") "CR_CHECK> ERROR Reading C/R file fort.",fileUnit," in APERTURE"
+  write(crlog,"(a,i0,a)") "CR_CHECK> ERROR Reading C/R file fort.",fileUnit," in APERTURE"
+  flush(crlog)
 
 end subroutine aper_crcheck_readdata
 
@@ -3078,8 +3282,8 @@ subroutine aper_crcheck_positionFiles
   character(len=1024) arecord
 
   call f_requestUnit(losses_filename,losses_unit)
-  write(93,"(a,i0)") "SIXTRACR> CRCHECK REPOSITIONING file of APERTURE LOSSES to apefilepos_cr = ",apefilepos_cr
-  flush(93)
+  write(crlog,"(a,i0)") "CR_CHECK> Repositioning file of APERTURE LOSSES to position: ",apefilepos_cr
+  flush(crlog)
 
   inquire(unit=losses_unit, opened=lopen)
   if (.not. lopen) call f_open(unit=losses_unit,file=losses_filename,status='old',formatted=.true.,mode='rw',err=err)
@@ -3101,31 +3305,31 @@ subroutine aper_crcheck_positionFiles
   return
 
 111 continue
-  write(93,*) 'SIXTRACR> APER_CRCHECK_POSITIONFILE *** ERROR *** reading file of APERTURE LOSSES, iostat=',ierro
-  write(93,*) 'apefilepos=',apefilepos,' apefilepos_cr=',apefilepos_cr,' losses_unit=',losses_unit
-  flush(93)
-  write(lerr,"(a)") "SIXTRACR> ERROR APER_CRCHECK_POSITIONFILES failure positioning file of APERTURE LOSSES"
-  call prror(-1)
+  write(crlog,"(1(a,i0))") "CR_CHECK> ERROR Failed positioning APERTURE LOSSES file, iostat: ",ierro
+  write(crlog,"(2(a,i0))") "CR_CHECK>       File position: ",apefilepos,", C/R position: ",apefilepos_cr
+  flush(crlog)
+  write(lerr,"(a)") "CR_CHECK> ERROR Failure positioning file of APERTURE LOSSES"
+  call prror
 
 end subroutine aper_crcheck_positionFiles
 
 ! ================================================================================================================================ !
-subroutine aper_crpoint(fileunit,lerror,ierro)
+subroutine aper_crpoint(fileunit,lerror)
 
   implicit none
 
-  integer, intent(in)    :: fileunit
-  logical, intent(inout) :: lerror
-  integer, intent(inout) :: ierro
+  integer, intent(in)  :: fileunit
+  logical, intent(out) :: lerror
 
-  write(fileUnit,err=100,iostat=ierro) apefilepos
-  endfile (fileunit,iostat=ierro)
-  backspace (fileunit,iostat=ierro)
+  write(fileUnit,err=100) apefilepos
+  flush(fileunit)
   return
 
 100 continue
   lerror = .true.
-  return
+  write(lout, "(a,i0,a)") "CR_POINT> ERROR Writing C/R file fort.",fileUnit," in APERTURE"
+  write(crlog,"(a,i0,a)") "CR_POINT> ERROR Writing C/R file fort.",fileUnit," in APERTURE"
+  flush(crlog)
 
 end subroutine aper_crpoint
 ! ================================================================================================================================ !

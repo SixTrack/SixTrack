@@ -12,6 +12,7 @@ module root_output
   integer root_CollimationDB
   integer root_Optics
   integer root_FLUKA
+  integer root_DumpPipe
   integer root_RunNumber
   character(len=512) :: root_eos_server
   character(len=512) :: root_folder
@@ -23,7 +24,7 @@ interface
 
 !General stuff
 subroutine DoSixTrackRootInit(eos, run_number, eos_server, root_path, root_prefix, Accelerator, Optics, ApertureCheck, Collimation,&
-& CollimationDB, FLUKA_f) bind(C,name="DoSixTrackRootInit")
+& CollimationDB, FLUKA_f, ApertureDump) bind(C,name="DoSixTrackRootInit")
   use, intrinsic :: iso_c_binding
   implicit none
   integer(kind=C_INT), intent(in), value :: eos
@@ -37,6 +38,7 @@ subroutine DoSixTrackRootInit(eos, run_number, eos_server, root_path, root_prefi
   integer(kind=C_INT), intent(in), value :: Collimation
   integer(kind=C_INT), intent(in), value :: CollimationDB
   integer(kind=C_INT), intent(in), value :: FLUKA_f
+  integer(kind=C_INT), intent(in), value :: ApertureDump
 end subroutine DoSixTrackRootInit
 
 subroutine SixTrackRootExit() bind(C,name="SixTrackRootExit")
@@ -60,7 +62,7 @@ subroutine CollimatorLossRootWrite(icoll_in,db_name,db_name_len,impact_in,absorb
 end subroutine CollimatorLossRootWrite
 
 subroutine ApertureCheckWriteLossParticle(turn_in, i_in, ix_in, bez_in, bez_in_len, slos_in, ipart_in, x_in, xp_in, y_in, yp_in, &
-& p_in, dp_in, ct_in, naa_in, nzz_in) bind(C,name="ApertureCheckWriteLossParticle")
+& p_in, dp_in, ct_in, naa_in, nzz_in, nqq_in, pdgid_in) bind(C,name="ApertureCheckWriteLossParticle")
   use, intrinsic :: iso_c_binding
   implicit none
   integer(kind=C_INT), intent(in), value :: turn_in
@@ -79,10 +81,13 @@ subroutine ApertureCheckWriteLossParticle(turn_in, i_in, ix_in, bez_in, bez_in_l
   real(kind=C_DOUBLE), intent(in), value :: ct_in
   integer(kind=C_INT), intent(in), value :: naa_in
   integer(kind=C_INT), intent(in), value :: nzz_in
+  integer(kind=C_INT), intent(in), value :: nqq_in
+  integer(kind=C_INT), intent(in), value :: pdgid_in
 end subroutine ApertureCheckWriteLossParticle
 
 subroutine ApertureCheckWriteLossParticleF(turn_in, i_in, ix_in, bez_in, bez_in_len, slos_in, fluka_uid_in, fluka_gen_in, &
-& fluka_weight_in, x_in, xp_in, y_in, yp_in, p_in, dp_in, ct_in, naa_in, nzz_in) bind(C,name="ApertureCheckWriteLossParticleF")
+& fluka_weight_in, x_in, xp_in, y_in, yp_in, p_in, dp_in, ct_in, naa_in, nzz_in, nqq_in, pdgid_in) &
+& bind(C,name="ApertureCheckWriteLossParticleF")
   use, intrinsic :: iso_c_binding
   implicit none
   integer(kind=C_INT), intent(in), value :: turn_in
@@ -103,6 +108,8 @@ subroutine ApertureCheckWriteLossParticleF(turn_in, i_in, ix_in, bez_in, bez_in_
   real(kind=C_DOUBLE), intent(in), value :: ct_in
   integer(kind=C_INT), intent(in), value :: naa_in
   integer(kind=C_INT), intent(in), value :: nzz_in
+  integer(kind=C_INT), intent(in), value :: nqq_in
+  integer(kind=C_INT), intent(in), value :: pdgid_in
 end subroutine ApertureCheckWriteLossParticleF
 
 subroutine SurvivalRootWrite(nturn_in, npart_in) bind(C,name="SurvivalRootWrite")
@@ -244,24 +251,65 @@ subroutine  ConfigurationOutputRootSet_nturns(nturns_in) bind(C,name="Configurat
   integer(kind=C_INT), intent(in), value :: nturns_in
 end subroutine
 
+subroutine  ConfigurationOutputRootSet_aperture_binsize(bin_size_in) bind(C,name="ConfigurationOutputRootSet_aperture_binsize")
+  use, intrinsic :: iso_c_binding
+  implicit none
+  real(kind=C_DOUBLE), intent(in), value :: bin_size_in
+end subroutine
+
+subroutine  ConfigurationOutputRootSet_reference_energy(e0_in) bind(C,name="ConfigurationOutputRootSet_reference_energy")
+  use, intrinsic :: iso_c_binding
+  implicit none
+  real(kind=C_DOUBLE), intent(in), value :: e0_in
+end subroutine
+
+subroutine  ConfigurationOutputRootSet_reference_mass(nucm0_in) bind(C,name="ConfigurationOutputRootSet_reference_mass")
+  use, intrinsic :: iso_c_binding
+  implicit none
+  real(kind=C_DOUBLE), intent(in), value :: nucm0_in
+end subroutine
+
 subroutine ConfigurationRootWrite() bind(C,name="ConfigurationRootWrite")
   implicit none
 end subroutine
 
-subroutine root_FLUKA_EnergyDeposition(id_in, nucleons_in, energy_in) bind(C,name="root_FLUKA_EnergyDeposition")
+subroutine root_EnergyDeposition(id_in, nucleons_in, energy_in) bind(C,name="root_EnergyDeposition")
   use, intrinsic :: iso_c_binding
   implicit none
-  integer(kind=C_INT),    intent(in), value :: id_in
-  integer(kind=C_INT16_T),    intent(in), value :: nucleons_in
-  real(kind=C_DOUBLE), intent(in), value :: energy_in
+  integer(kind=C_INT),     intent(in), value :: id_in
+  integer(kind=C_INT16_T), intent(in), value :: nucleons_in
+  real(kind=C_DOUBLE),     intent(in), value :: energy_in
 end subroutine
 
-subroutine root_FLUKA_Names(id_in, name_in, name_len) bind(C,name="root_FLUKA_Names")
+subroutine root_FLUKA_Names(id_in, name_in, name_len, ins_type) bind(C,name="root_FLUKA_Names")
   use, intrinsic :: iso_c_binding
   implicit none
   integer(kind=C_INT),    intent(in), value :: id_in
   character(kind=C_CHAR,len=1), intent(in)  :: name_in
   integer(kind=C_INT),    intent(in), value :: name_len
+  integer(kind=C_INT),    intent(in), value :: ins_type
+end subroutine
+
+subroutine root_DumpAperture(apname_in, apname_len, aptype_in, aptype_len, s_in, ap1_in, ap2_in, ap3_in, ap4_in, ap5_in, ap6_in, &
+& ap7_in, ap8_in, ap9_in, ap10_in, ap11_in) bind(C,name="root_DumpAperture")
+  use, intrinsic :: iso_c_binding
+  implicit none
+  character(kind=C_CHAR,len=1), intent(in)  :: apname_in
+  integer(kind=C_INT),    intent(in), value :: apname_len
+  character(kind=C_CHAR,len=1), intent(in)  :: aptype_in
+  integer(kind=C_INT),    intent(in), value :: aptype_len
+  real(kind=C_DOUBLE), intent(in), value :: s_in
+  real(kind=C_DOUBLE), intent(in), value :: ap1_in
+  real(kind=C_DOUBLE), intent(in), value :: ap2_in
+  real(kind=C_DOUBLE), intent(in), value :: ap3_in
+  real(kind=C_DOUBLE), intent(in), value :: ap4_in
+  real(kind=C_DOUBLE), intent(in), value :: ap5_in
+  real(kind=C_DOUBLE), intent(in), value :: ap6_in
+  real(kind=C_DOUBLE), intent(in), value :: ap7_in
+  real(kind=C_DOUBLE), intent(in), value :: ap8_in
+  real(kind=C_DOUBLE), intent(in), value :: ap9_in
+  real(kind=C_DOUBLE), intent(in), value :: ap10_in
+  real(kind=C_DOUBLE), intent(in), value :: ap11_in
 end subroutine
 
 end interface
@@ -272,7 +320,7 @@ subroutine SixTrackRootInit
   implicit none
   if(root_flag)  then
     call DoSixTrackRootInit(root_eos_enabled, root_RunNumber, root_eos_server, root_folder, root_prefix, root_Accelerator, &
-&                           root_Optics, root_ApertureCheck, root_Collimation, root_CollimationDB, root_FLUKA)
+&                           root_Optics, root_ApertureCheck, root_Collimation, root_CollimationDB, root_FLUKA, root_DumpPipe)
   end if
 end subroutine SixTrackRootInit
 
@@ -286,6 +334,7 @@ subroutine SixTrackRootFortranInit
   root_CollimationDB = 0
   root_Optics        = 0
   root_FLUKA         = 0
+  root_DumpPipe      = 0
   root_RunNumber     = 0
   root_eos_server    = C_NULL_CHAR
   root_folder        = C_NULL_CHAR
@@ -315,10 +364,10 @@ subroutine root_daten(inLine,iErr)
   !ROOT is enabled
   root_flag = .true.
 
-  if(nSplit /=. 2) then
+  if(nSplit /= 2) then
     write(lerr,"(a,i0)") "ROOT> ERROR Expected 2 entries per line, got ",nSplit
     iErr = .true.
-    retirn
+    return
   end if
 
 !  For input debugging if needed
@@ -352,7 +401,10 @@ subroutine root_daten(inLine,iErr)
       root_Collimation = 1
       root_CollimationDB = 1
       root_Optics = 1
+      root_DumpPipe = 1
+#ifdef FLUKA
       root_FLUKA = 1
+#endif
     else if(lnSplit(2) == 'ACCEL') then
       root_Accelerator = 1
     else if(lnSplit(2) == 'COLL') then
@@ -365,6 +417,8 @@ subroutine root_daten(inLine,iErr)
       root_Optics = 1
     else if(lnSplit(2) == 'FLUKA') then
       root_FLUKA = 1
+    else if(lnSplit(2) == 'PIPE') then
+      root_DumpPipe = 1
     end if
   end if
 
@@ -393,6 +447,7 @@ subroutine root_parseInputDone
   write(lout,*) 'CollimationDB: ', root_CollimationDB
   write(lout,*) 'Aperture:      ', root_ApertureCheck
   write(lout,*) 'FLUKA:         ', root_FLUKA
+  write(lout,*) 'PIPE:          ', root_DumpPipe
 
 end subroutine root_parseInputDone
 

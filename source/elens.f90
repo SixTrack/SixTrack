@@ -1,6 +1,6 @@
 ! M. Fitterer, FNAL, A. Mereghtti, CERN
-! last modified: 11-04-2019
-! Common block for electron lens definition
+! last modified: 25-04-2019
+! Common block for electron lens
 module elens
 
   use parpro
@@ -44,7 +44,7 @@ module elens
   logical, save          :: elens_lAllowUpdate(nelens) = .true.  ! Flag for disabling updating of kick,
                                                                  !  i.e. after DYNK has touched thetaR2,
                                                                  !  the energy update is disabled.
-  logical, save          :: elens_lFox(nelens)         = .false. ! the kick from the elens should be taken into account
+  logical, save          :: elens_lFox(nelens)         = .true.  ! the kick from the elens should be taken into account
                                                                  !  when searching for the closed orbit with DA algebra
 #ifdef CR
   logical, save          :: elens_lAllowUpdate_CR(nelens)
@@ -111,213 +111,254 @@ subroutine elens_parseInputLine(inLine, iLine, iErr)
   end if
   if(nSplit == 0) return
 
-  if(nSplit < 7) then
-    write(lerr,"(a,i0)") "ELENS> ERROR Expected at least 7 input parameters, got ",nSplit
-    iErr = .true.
-    return
-  end if
-
-  iElem = -1
-  do j=1,nele
-    if(bez(j) == trim(lnSplit(1))) then
-      iElem = j
-      exit
-    end if
-  end do
-  if(iElem == -1) then
-    write(lerr,"(a)") "ELENS> ERROR Element '"//trim(lnSplit(1))//"' not found in single element list."
-    iErr = .true.
-    return
-  end if
-
-  if(kz(iElem) /= elens_kz) then
-    write(lerr,"(3(a,i0))") "ELENS> ERROR Element type is kz(",iElem,") = ",kz(iElem)," != ",elens_kz
-    iErr = .true.
-    return
-  end if
-  if(el(iElem) /= zero .or. ek(iElem) /= zero .or. ed(iElem) /= zero) then
-    write(lerr,"(a)")       "ELENS> ERROR Length el(iElem) (elens is treated as thin element), "//&
-      "and first and second field have to be zero:"
-    write(lerr,"(2(a,i0),a)") "ELENS>       el(",iElem,") = ",el(iElem)," != 0"
-    write(lerr,"(2(a,i0),a)") "ELENS>       ed(",iElem,") = ",ed(iElem)," != 0"
-    write(lerr,"(2(a,i0),a)") "ELENS>       ek(",iElem,") = ",ek(iElem)," != 0"
-    iErr = .true.
-    return
-  end if
-
-  melens = melens+1
-  if(melens > nelens) then
-    write(lerr,"(2(a,i0))") "ELENS> ERROR Too many elenses: ",melens,". Max is ",nelens
-    iErr = .true.
-    return
-  end if
-
-  ielens(iElem) = melens
-  if(elens_type(ielens(iElem)) /= 0) then
-    write(lerr,"(a)") "ELENS> ERROR The element '"//trim(bez(iElem))//"' was defined twice."
-    iErr = .true.
-    return
-  end if
-
-  ! Parse the element
-  select case (lnSplit(2))
-  case("UNIFORM")
-    elens_type(ielens(iElem)) = 1
-  case("GAUSSIAN")
-    elens_type(ielens(iElem)) = 2
-    if(nSplit < 8) then
-      write(lerr,"(a,i0)") "ELENS> ERROR Expected at least 8 input parameters for GAUSSIAN, got ",nSplit
+  select case (lnSplit(1))
+     
+  case("FOX")
+    if(nSplit .ne. 2) then
+      write(lerr,"(a,i0)") "ELENS> ERROR Expected at least 2 input parameters for FOX line, got ",nSplit
       iErr = .true.
       return
     end if
-  case("RADIAL")
-    elens_type(ielens(iElem)) = 3
-    if(nSplit < 8) then
-      write(lerr,"(a,i0)") "ELENS> ERROR Expected at least 8 input parameters for RADIAL, got ",nSplit
+    call chr_cast(lnSPlit(2), elens_lFox(melens),iErr)
+     
+  case("INTER")
+    if(nSplit .ne. 2) then
+      write(lerr,"(a,i0)") "ELENS> ERROR Expected at least 2 input parameters for INTERpolation line, got ",nSplit
       iErr = .true.
       return
     end if
+    if ( elens_type(melens).ne.3 ) then
+      write(lout,"(a,i0)") "ELENS> WARNING INTERpolation setting for an ELENS type without radial profile - ignoring setting..."
+      return
+    end if
+    call chr_cast(lnSPlit(2), elens_radial_mpoints(melens),iErr)
+    if ( elens_radial_mpoints(melens) <=0 .or. elens_radial_mpoints(melens).gt.20 ) then
+      write(lerr,"(a,i0)") "ELENS> ERROR Unreasonable number of points for radial interpolation, got ",elens_radial_mpoints(melens)
+      write(lerr,"(a)")    "ELENS>       Please choose a value beterrn 1 and 20 (included)"
+      iErr = .true.
+      return
+    end if
+     
   case default
-    write(lerr,"(a)") "ELENS> ERROR Elens type '"//trim(lnSplit(2))//"' not recognized. Remember to use all UPPER CASE."
-    iErr = .true.
-    return
-  end select
-
-  call chr_cast(lnSplit(3),elens_theta_r2(ielens(iElem)),iErr)
-  call chr_cast(lnSplit(4),elens_r2(ielens(iElem)),      iErr)
-  call chr_cast(lnSplit(5),elens_r1(ielens(iElem)),      iErr)
-  call chr_cast(lnSplit(6),elens_offset_x(ielens(iElem)),iErr)
-  call chr_cast(lnSplit(7),elens_offset_y(ielens(iElem)),iErr)
-
-  if(elens_type(ielens(iElem)) == 2) then
-    ! GAUSSIAN profile of electrons: need also sigma of e-beam
-    call chr_cast(lnSplit(8),elens_sig(ielens(iElem)),iErr)
-
-  elseif(elens_type(ielens(iElem)) == 3 )then
-    ! Radial profile of electrons given by file: need also
-    !   name of file where profile is stored
-    tmpch = trim(lnSplit(8))
-
-    ! Check if profile has already been requested:
-    chIdx = -1
-    do tmpi1=1,melens_radial_profiles
-      if(tmpch == elens_radial_filename(tmpi1)) then
-        elens_iRadial(ielens(iElem)) = tmpi1
-        chIdx = tmpi1
+    if(nSplit < 7) then
+      write(lerr,"(a,i0)") "ELENS> ERROR Expected at least 7 input parameters, got ",nSplit
+      iErr = .true.
+      return
+    end if
+    
+    iElem = -1
+    do j=1,nele
+      if(bez(j) == trim(lnSplit(1))) then
+        iElem = j
         exit
       end if
     end do
-    if(chIdx == -1) then
-      ! Unsuccessful search
-      melens_radial_profiles = melens_radial_profiles+1
-      if(melens_radial_profiles > nelens_radial_profiles) then
-        write(lerr,"(2(a,i0))") "ELENS> ERROR Too many radial profiles: ",melens_radial_profiles,&
-          ". Max is ",nelens_radial_profiles
+    if(iElem == -1) then
+      write(lerr,"(a)") "ELENS> ERROR Element '"//trim(lnSplit(1))//"' not found in single element list."
+      iErr = .true.
+      return
+    end if
+    
+    if(kz(iElem) /= elens_kz) then
+      write(lerr,"(3(a,i0))") "ELENS> ERROR Element type is kz(",iElem,") = ",kz(iElem)," != ",elens_kz
+      iErr = .true.
+      return
+    end if
+    if(el(iElem) /= zero .or. ek(iElem) /= zero .or. ed(iElem) /= zero) then
+      write(lerr,"(a)")       "ELENS> ERROR Length el(iElem) (elens is treated as thin element), "//&
+        "and first and second field have to be zero:"
+      write(lerr,"(2(a,i0),a)") "ELENS>       el(",iElem,") = ",el(iElem)," != 0"
+      write(lerr,"(2(a,i0),a)") "ELENS>       ed(",iElem,") = ",ed(iElem)," != 0"
+      write(lerr,"(2(a,i0),a)") "ELENS>       ek(",iElem,") = ",ek(iElem)," != 0"
+      iErr = .true.
+      return
+    end if
+    
+    melens = melens+1
+    if(melens > nelens) then
+      write(lerr,"(2(a,i0))") "ELENS> ERROR Too many elenses: ",melens,". Max is ",nelens
+      iErr = .true.
+      return
+    end if
+    
+    ielens(iElem) = melens
+    if(elens_type(ielens(iElem)) /= 0) then
+      write(lerr,"(a)") "ELENS> ERROR The element '"//trim(bez(iElem))//"' was defined twice."
+      iErr = .true.
+      return
+    end if
+    
+    ! Parse the element
+    select case (lnSplit(2))
+    case("UNIFORM")
+      elens_type(ielens(iElem)) = 1
+    case("GAUSSIAN")
+      elens_type(ielens(iElem)) = 2
+      if(nSplit < 8) then
+        write(lerr,"(a,i0)") "ELENS> ERROR Expected at least 8 input parameters for GAUSSIAN, got ",nSplit
         iErr = .true.
         return
       end if
-      elens_iRadial(ielens(iElem)) = melens_radial_profiles
-      elens_radial_filename(tmpi1) = tmpch
-    end if
-  end if
-
-  ! Additional geometrical infos:
-  ! Depending on profile, the position of these parameters change
-  tmpi1 = 0
-  tmpi2 = 0
-  tmpi3 = 0
-  if(elens_type(ielens(iElem)) == 1 .and. nSplit >= 10) then
-    tmpi1 = 8
-    tmpi2 = 9
-    tmpi3 = 10
-    elens_lThetaR2(ielens(iElem)) = .true.
-  else if(elens_type(ielens(iElem)) == 2 .and. nSplit >= 11) then
-    tmpi1 = 9
-    tmpi2 = 10
-    tmpi3 = 11
-    elens_lThetaR2(ielens(iElem)) = .true.
-  else if(elens_type(ielens(iElem)) == 3 .and. nSplit >= 11) then
-    tmpi1 = 9
-    tmpi2 = 10
-    tmpi3 = 11
-    elens_lThetaR2(ielens(iElem)) = .true.
-  end if
-
-  if(elens_lThetaR2(ielens(iElem))) then
-    call chr_cast(lnSplit(tmpi1),elens_len(ielens(iElem)),iErr)
-    call chr_cast(lnSplit(tmpi2),elens_I(ielens(iElem)),  iErr)
-    call chr_cast(lnSplit(tmpi3),elens_Ek(ielens(iElem)), iErr)
-  end if
-
-  ! sanity checks
-  if(elens_r2(ielens(iElem)) < elens_r1(ielens(iElem))) then
-    write(lout,"(a)") "ELENS> WARNING ELEN R2<R1. Inverting."
-    tmpflt=elens_r2(ielens(iElem))
-    elens_r2(ielens(iElem)) = elens_r1(ielens(iElem))
-    elens_r1(ielens(iElem)) = tmpflt
-  else if(elens_r2(ielens(iElem)) == elens_r1(ielens(iElem))) then
-    write(lerr,"(a)") "ELENS> ERROR ELEN R2=R1. Elens does not exist."
-    iErr = .true.
-    return
-  end if
-  if(elens_r2(ielens(iElem)) <= zero) then
-    write(lerr,"(a)") "ELENS> ERROR R2<=0!"
-    iErr = .true.
-    return
-  end if
-  if(elens_r1(ielens(iElem)) <= zero) then
-    write(lerr,"(a)") "ELENS> ERROR R1<=0!"
-    iErr = .true.
-    return
-  end if
-  if(elens_lThetaR2(ielens(iElem))) then
-    if(elens_len(ielens(iElem)) <= zero) then
-      write(lerr,"(a)") "ELENS> ERROR L<0!"
+    case("RADIAL")
+      elens_type(ielens(iElem)) = 3
+      if(nSplit < 8) then
+        write(lerr,"(a,i0)") "ELENS> ERROR Expected at least 8 input parameters for RADIAL, got ",nSplit
+        iErr = .true.
+        return
+      end if
+    case("CHEBYSHEV")
+      write(lerr,"(a)") "ELENS> ERROR CHEBYSHEV type not fully supported yet - elens name: '"//trim(bez(iElem))
       iErr = .true.
       return
-    end if
-    if(elens_I(ielens(iElem)) == zero) then
-      write(lerr,"(a)") "ELENS> ERROR I=0!"
+!       elens_type(ielens(iElem)) = 4
+!       if(nSplit < 8) then
+!         write(lerr,"(a,i0)") "ELENS> ERROR Expected at least 8 input parameters for CHEBYSHEV, got ",nSplit
+!         iErr = .true.
+!         return
+!       end if
+    case default
+      write(lerr,"(a)") "ELENS> ERROR Elens type '"//trim(lnSplit(2))//"' not recognized. Remember to use all UPPER CASE."
       iErr = .true.
       return
-    end if
-    if(elens_Ek(ielens(iElem)) <= zero) then
-      write(lerr,"(a)") "ELENS> ERROR Ek<0! (e-beam)"
-      iErr = .true.
-      return
-    end if
-  end if
-  if( elens_type(ielens(iElem)) == 2 ) then
-    if ( elens_sig(ielens(iElem)).le.zero ) then
-       write(lerr,"(a)") "ELENS> ERROR sigma of electron beam <=0 in Elens '"//trim(bez(iElem))//"'."
-       iErr = .true.
-       return
-    end if
-  end if
-
-  if(st_debug) then
-    call sixin_echoVal("name",    bez(iElem),                   "ELENS",iLine)
-    call sixin_echoVal("type",    elens_type(ielens(iElem)),    "ELENS",iLine)
-    call sixin_echoVal("theta_r2",elens_theta_r2(ielens(iElem)),"ELENS",iLine)
-    call sixin_echoVal("r1",      elens_r1(ielens(iElem)),      "ELENS",iLine)
-    call sixin_echoVal("r2",      elens_r2(ielens(iElem)),      "ELENS",iLine)
-    call sixin_echoVal("offset_x",elens_offset_x(ielens(iElem)),"ELENS",iLine)
-    call sixin_echoVal("offset_y",elens_offset_y(ielens(iElem)),"ELENS",iLine)
+    end select ! case (lnSplit(2))
+    
+    call chr_cast(lnSplit(3),elens_theta_r2(ielens(iElem)),iErr)
+    call chr_cast(lnSplit(4),elens_r2(ielens(iElem)),      iErr)
+    call chr_cast(lnSplit(5),elens_r1(ielens(iElem)),      iErr)
+    call chr_cast(lnSplit(6),elens_offset_x(ielens(iElem)),iErr)
+    call chr_cast(lnSplit(7),elens_offset_y(ielens(iElem)),iErr)
+    
     if(elens_type(ielens(iElem)) == 2) then
-      call sixin_echoVal("sig",elens_sig(ielens(iElem)),"ELENS",iLine)
+      ! GAUSSIAN profile of electrons: need also sigma of e-beam
+      call chr_cast(lnSplit(8),elens_sig(ielens(iElem)),iErr)
+    
+    elseif(elens_type(ielens(iElem)) == 3 )then
+      ! Radial profile of electrons given by file: need also
+      !   name of file where profile is stored
+      tmpch = trim(lnSplit(8))
+    
+      ! Check if profile has already been requested:
+      chIdx = -1
+      do tmpi1=1,melens_radial_profiles
+        if(tmpch == elens_radial_filename(tmpi1)) then
+          elens_iRadial(ielens(iElem)) = tmpi1
+          chIdx = tmpi1
+          exit
+        end if
+      end do
+      if(chIdx == -1) then
+        ! Unsuccessful search
+        melens_radial_profiles = melens_radial_profiles+1
+        if(melens_radial_profiles > nelens_radial_profiles) then
+          write(lerr,"(2(a,i0))") "ELENS> ERROR Too many radial profiles: ",melens_radial_profiles,&
+            ". Max is ",nelens_radial_profiles
+          iErr = .true.
+          return
+        end if
+        elens_iRadial(ielens(iElem)) = melens_radial_profiles
+        elens_radial_filename(tmpi1) = tmpch
+      end if
+    end if
+
+    ! Additional geometrical infos:
+    ! Depending on profile, the position of these parameters change
+    tmpi1 = 0
+    tmpi2 = 0
+    tmpi3 = 0
+    if(elens_type(ielens(iElem)) == 1 .and. nSplit >= 10) then
+      tmpi1 = 8
+      tmpi2 = 9
+      tmpi3 = 10
+      elens_lThetaR2(ielens(iElem)) = .true.
+    else if(elens_type(ielens(iElem)) == 2 .and. nSplit >= 11) then
+      tmpi1 = 9
+      tmpi2 = 10
+      tmpi3 = 11
+      elens_lThetaR2(ielens(iElem)) = .true.
+    else if(elens_type(ielens(iElem)) == 3 .and. nSplit >= 11) then
+      tmpi1 = 9
+      tmpi2 = 10
+      tmpi3 = 11
+      elens_lThetaR2(ielens(iElem)) = .true.
+    end if
+    
+    if(elens_lThetaR2(ielens(iElem))) then
+      call chr_cast(lnSplit(tmpi1),elens_len(ielens(iElem)),iErr)
+      call chr_cast(lnSplit(tmpi2),elens_I(ielens(iElem)),  iErr)
+      call chr_cast(lnSplit(tmpi3),elens_Ek(ielens(iElem)), iErr)
+    end if
+    
+    ! sanity checks
+    if(elens_r2(ielens(iElem)) < elens_r1(ielens(iElem))) then
+      write(lout,"(a)") "ELENS> WARNING ELEN R2<R1. Inverting."
+      tmpflt=elens_r2(ielens(iElem))
+      elens_r2(ielens(iElem)) = elens_r1(ielens(iElem))
+      elens_r1(ielens(iElem)) = tmpflt
+    else if(elens_r2(ielens(iElem)) == elens_r1(ielens(iElem))) then
+      write(lerr,"(a)") "ELENS> ERROR ELEN R2=R1. Elens does not exist."
+      iErr = .true.
+      return
+    end if
+    if(elens_r2(ielens(iElem)) <= zero) then
+      write(lerr,"(a)") "ELENS> ERROR R2<=0!"
+      iErr = .true.
+      return
+    end if
+    if(elens_r1(ielens(iElem)) < zero) then
+      write(lerr,"(a)") "ELENS> ERROR R1<0!"
+      iErr = .true.
+      return
     end if
     if(elens_lThetaR2(ielens(iElem))) then
-      call sixin_echoVal("L", elens_len(ielens(iElem)),"ELENS",iLine)
-      call sixin_echoVal("I", elens_I(ielens(iElem)),  "ELENS",iLine)
-      call sixin_echoVal("Ek",elens_Ek(ielens(iElem)), "ELENS",iLine)
+      if(elens_len(ielens(iElem)) <= zero) then
+        write(lerr,"(a)") "ELENS> ERROR L<0!"
+        iErr = .true.
+        return
+      end if
+      if(elens_I(ielens(iElem)) == zero) then
+        write(lerr,"(a)") "ELENS> ERROR I=0!"
+        iErr = .true.
+        return
+      end if
+      if(elens_Ek(ielens(iElem)) <= zero) then
+        write(lerr,"(a)") "ELENS> ERROR Ek<0! (e-beam)"
+        iErr = .true.
+        return
+      end if
     end if
-  end if
+    if( elens_type(ielens(iElem)) == 2 ) then
+      if ( elens_sig(ielens(iElem)).le.zero ) then
+         write(lerr,"(a)") "ELENS> ERROR sigma of electron beam <=0 in Elens '"//trim(bez(iElem))//"'."
+         iErr = .true.
+         return
+      end if
+    end if
+    
+    if(st_debug) then
+      call sixin_echoVal("name",    bez(iElem),                   "ELENS",iLine)
+      call sixin_echoVal("type",    elens_type(ielens(iElem)),    "ELENS",iLine)
+      call sixin_echoVal("theta_r2",elens_theta_r2(ielens(iElem)),"ELENS",iLine)
+      call sixin_echoVal("r1",      elens_r1(ielens(iElem)),      "ELENS",iLine)
+      call sixin_echoVal("r2",      elens_r2(ielens(iElem)),      "ELENS",iLine)
+      call sixin_echoVal("offset_x",elens_offset_x(ielens(iElem)),"ELENS",iLine)
+      call sixin_echoVal("offset_y",elens_offset_y(ielens(iElem)),"ELENS",iLine)
+      if(elens_type(ielens(iElem)) == 2) then
+        call sixin_echoVal("sig",elens_sig(ielens(iElem)),"ELENS",iLine)
+      end if
+      if(elens_lThetaR2(ielens(iElem))) then
+        call sixin_echoVal("L", elens_len(ielens(iElem)),"ELENS",iLine)
+        call sixin_echoVal("I", elens_I(ielens(iElem)),  "ELENS",iLine)
+        call sixin_echoVal("Ek",elens_Ek(ielens(iElem)), "ELENS",iLine)
+      end if
+    end if
+ 
+  end select ! case (lnSplit(1))
 
 end subroutine elens_parseInputLine
 
 subroutine elens_parseInputDone(iErr)
 
-  use mod_common, only : bez, kz
+  use mod_common, only : bez, kz, fort3
 
   implicit none
 
@@ -337,7 +378,7 @@ subroutine elens_parseInputDone(iErr)
         end if
       end do
       ! report error
-      write(lout,"(a)") "ELENS> ERROR Type of elens not declared in fort.3 for element '"//trim(bez(kk))//"'"
+      write(lerr,"(a)") "ELENS> ERROR Type of elens not declared in "//trim(fort3)//" for element '"//trim(bez(kk))//"'"
       iErr = .true.
       return
     end if
@@ -348,8 +389,8 @@ end subroutine elens_parseInputDone
 subroutine elens_postInput
 
   use mathlib_bouncer
-  use utils, only : polinterp
-  use mod_common, only : bez,kz
+  use mod_utils, only : polinterp
+  use mod_common, only : bez,kz,fort3
 
   integer j, jj, nlens, jguess
   logical exist
@@ -359,12 +400,12 @@ subroutine elens_postInput
   do jj=1,nele
     if(kz(jj)==elens_kz) then
       if (ielens(jj).eq.0) then
-        write(lout,"(a,i0,a)") "ELENS> ERROR single element ",jj," named '"//trim(bez(jj))//"'"
-        write(lout,"(a)")      "ELENS>       does not have a corresponding line in ELEN block in fort.3"
+        write(lerr,"(a,i0,a)") "ELENS> ERROR single element ",jj," named '"//trim(bez(jj))//"'"
+        write(lerr,"(a)")      "ELENS>       does not have a corresponding line in ELEN block in "//trim(fort3)
         call prror
       elseif ( elens_type(ielens(jj))==0 ) then
-        write(lout,"(a,i0,a)") "ELENS> ERROR single element ",jj," named '"//trim(bez(jj))//"'"
-        write(lout,"(a)")      "ELENS>       had not been assigned a type"
+        write(lerr,"(a,i0,a)") "ELENS> ERROR single element ",jj," named '"//trim(bez(jj))//"'"
+        write(lerr,"(a)")      "ELENS>       had not been assigned a type"
         call prror
       else
         nlens=nlens+1
@@ -372,8 +413,8 @@ subroutine elens_postInput
     end if
   end do
   if ( nlens.ne.melens ) then
-    write(lout,"(a,i0)") "ELENS> ERROR number of elenses declared in ELEN block in fort.3 ",melens
-    write(lout,"(a,i0)") "ELENS>       is not the same as the total number of elenses in lattice ",nlens
+    write(lerr,"(a,i0)") "ELENS> ERROR number of elenses declared in ELEN block in "//trim(fort3)//" ",melens
+    write(lerr,"(a,i0)") "ELENS>       is not the same as the total number of elenses in lattice ",nlens
     call prror
   end if
 
@@ -425,10 +466,10 @@ subroutine elens_postInput
     ! - report geometrical factor
     write(lout,"(a,i0,a,1pe22.15)") "ELENS> Geom. norm. fact. for elens #",j, &
          " named "//trim(bez(jj))//": ",elens_geo_norm(j)
-    
+
     ! Compute elens theta at R2, if requested by user
     call eLensTheta(j)
-    
+
   end do
 
 end subroutine elens_postInput
@@ -448,8 +489,7 @@ subroutine eLensTheta(j)
   use mathlib_bouncer
   use numerical_constants, only : zero, one, two, pi, c1e3, c1m3, c1m6
   use physical_constants, only: clight, pmae, eps0
-  use mod_hions, only : zz0
-  use mod_common, only : e0, betrel, brho, bez, kz
+  use mod_common, only : e0, beta0, brho, bez, kz, zz0
   use mod_settings, only : st_quiet
 
   implicit none
@@ -468,13 +508,13 @@ subroutine eLensTheta(j)
     elens_theta_r2(j) = gamma_e*((elens_len(j)*abs(elens_I(j)))/ &
          ((((two*pi)*((eps0*clight)*clight))*brho)*(elens_r2(j)*c1m3)))*c1e3
     if(elens_I(j) < zero) then
-      elens_theta_r2(j) = elens_theta_r2(j)*(one/(elens_beta_e(j)*betrel)+one)
+      elens_theta_r2(j) = elens_theta_r2(j)*(one/(elens_beta_e(j)*beta0)+one)
     else
-      elens_theta_r2(j) = elens_theta_r2(j)*(one/(elens_beta_e(j)*betrel)-one)
+      elens_theta_r2(j) = elens_theta_r2(j)*(one/(elens_beta_e(j)*beta0)-one)
     end if
-    
+
     if ( elens_type(j)>=2 ) elens_theta_r2(j) = elens_theta_r2(j) * elens_geo_norm(j)
-    
+
     if(st_quiet < 2) then
       ! find name of elens
       do jj=1,nele
@@ -490,7 +530,7 @@ subroutine eLensTheta(j)
            elens_geo_norm(j)
     end if
   end if
- 
+
 end subroutine eLensTheta
 
 ! ================================================================================================ !
@@ -512,6 +552,7 @@ subroutine parseRadialProfile(ifile)
   use mod_settings
   use string_tools
   use mod_units
+  use mod_utils, only: checkArray
 
   implicit none
 
@@ -550,11 +591,6 @@ subroutine parseRadialProfile(ifile)
   end if
   call chr_cast(lnSplit(1),tmpR,spErr)
   call chr_cast(lnSplit(2),tmpJ,spErr)
-  if(tmpR<=elens_radial_profile_R(ii,ifile)) then
-    iErr = 1
-    write(lerr,"(a,i0)") "ELENS> ERROR radius not in increasing order at ii=",ii
-    goto 30
-  end if
   if(tmpJ>=0.0) then
     ii=ii+1
     if(ii>elens_radial_dim) then
@@ -572,9 +608,16 @@ subroutine parseRadialProfile(ifile)
 
 20 continue
 
-  call f_close(fUnit)
+  call f_freeUnit(fUnit)
   write(lout,"(a,i0,a)") "ELENS> ...acquired ",elens_radial_profile_nPoints(ifile)," points."
 
+  ! check array of x-values is sensible
+  if(.not.checkArray(elens_radial_profile_R(1:elens_radial_profile_nPoints(ifile),ifile),elens_radial_profile_nPoints(ifile))) then
+    iErr=3
+    write(lerr,"(a)") "ELENS> ERROR radial profile has problem with values of radius."
+    goto 30
+  end if
+  
   if(st_quiet < 2) then
     ! Echo parsed data (unless told to be quiet!)
     write(lout,"(a,i0)") "ELENS> Radial profile as from file "//&
@@ -589,7 +632,7 @@ subroutine parseRadialProfile(ifile)
 
 30 continue
   write(lerr,"(a,i0,a)") "ELENS> ERROR ",iErr," while parsing file "//trim(elens_radial_filename(ifile))
-  call prror(-1)
+  call prror
 
 end subroutine parseRadialProfile
 
@@ -609,7 +652,7 @@ subroutine integrateRadialProfile(ifile)
   use numerical_constants
   use physical_constants
   use crcoall
-  use utils, only: polintegrate
+  use mod_utils, only: polintegrate
   use mod_alloc, only: alloc, dealloc
   use mod_settings, only: st_quiet
 
@@ -622,12 +665,21 @@ subroutine integrateRadialProfile(ifile)
   real(kind=fPrec), allocatable :: cumul(:)
 
   write(lout,"(a)") "ELENS> Normalising radial profile described in "//trim(elens_radial_filename(ifile))
+  if(st_quiet < 2) flush(lout)
   nn=elens_radial_profile_nPoints(ifile)
-  call alloc(cumul,nn,zero,'cumul')
+  call alloc(cumul,nn+1,zero,'cumul')
+  if(st_quiet < 2) then
+    write(lout,"(a,i0,a)") "ELENS> Allocating cumul array to ",nn+1," elements"
+    flush(lout)
+  end if
   tmpTot=polintegrate(elens_radial_profile_R(0:nn,ifile), elens_radial_profile_J(0:nn,ifile), &
                       nn+1, elens_radial_mpoints(ifile), 2, cumul)
   elens_radial_profile_J(0:nn,ifile)=cumul(1:nn+1)
   call dealloc(cumul,'cumul')
+  if(st_quiet < 2) then
+    write(lout,"(a)") "ELENS> De-allocating cumul array"
+    flush(lout)
+  end if
   
   if(st_quiet < 2) then
     write(lout,"(a,i0)") "ELENS> Integrated radial profile read from file "//&
@@ -675,12 +727,11 @@ end subroutine normaliseRadialProfile
 ! ================================================================================================ !
 subroutine elens_kick(i,ix,n)
 
-  use mod_common, only : betrel, napx
-  use mod_hions, only : moidpsv
-  use mod_common_main
+  use mod_common, only : beta0, napx
+  use mod_common_main, only : xv1, xv2, yv1, yv2, moidpsv, rvv
   use mathlib_bouncer
   use numerical_constants, only : zero, one
-  use utils, only : polinterp
+  use mod_utils, only : polinterp
 
   implicit none
   
@@ -729,8 +780,8 @@ subroutine elens_kick(i,ix,n)
                 elens_radial_mpoints(ielens(ix)), elens_radial_jguess(ielens(ix)) )-elens_radial_fr1(ielens(ix))) &
                 /elens_geo_norm(ielens(ix))
         case default
-          write(lout,"(a,i0,a)") "ELENS> ERROR elens_kick: elens_type=",elens_type(ielens(ix))," not recognized. "
-          write(lout,"(a)")      "ELENS>       Possible values for type are: 1, 2 and 3"
+          write(lerr,"(a,i0,a)") "ELENS> ERROR elens_kick: elens_type=",elens_type(ielens(ix))," not recognized. "
+          write(lerr,"(a)")      "ELENS>       Possible values for type are: 1, 2 and 3"
           call prror
         end select
       else ! r1 < r2 <= rr
@@ -740,9 +791,9 @@ subroutine elens_kick(i,ix,n)
       frr = (((elens_theta_r2(ielens(ix))*elens_r2(ielens(ix)))/rr)*frr)*moidpsv(jj)
       if(elens_lThetaR2(ielens(ix))) then
         if(elens_I(ielens(ix)) < zero) then
-          frr = frr*((rvv(jj)+elens_beta_e(ielens(ix))*betrel)/(one+elens_beta_e(ielens(ix))*betrel))
+          frr = frr*((rvv(jj)+elens_beta_e(ielens(ix))*beta0)/(one+elens_beta_e(ielens(ix))*beta0))
         else
-          frr = frr*((rvv(jj)-elens_beta_e(ielens(ix))*betrel)/(one-elens_beta_e(ielens(ix))*betrel))
+          frr = frr*((rvv(jj)-elens_beta_e(ielens(ix))*beta0)/(one-elens_beta_e(ielens(ix))*beta0))
         end if
       endif
       yv1(jj)=yv1(jj)-(frr*xx)/rr
@@ -757,14 +808,13 @@ end subroutine elens_kick
 ! ================================================================================================ !
 subroutine elens_kick_fox(i,ix)
 
-  use mod_common, only : betrel, napx, mtcda
-  use mod_hions, only : moidpsv
+  use mod_common, only : beta0, mtcda
+  use crcoall, only : lout
   use mod_common_main
-  use mathlib_bouncer
   use numerical_constants, only : zero, one
-  use utils, only : huntBin, polcof
+  use mod_utils, only : huntBin, polcof
   use mod_lie_dab, only : lnv, idao, rscrri, iscrda
-  use mod_common_track, only : xxtr, yytr, issss, comt_daStart, comt_daEnd
+  use mod_common_track, only : comt_daStart, comt_daEnd
   use mod_common_da
 
   implicit none
@@ -774,18 +824,18 @@ subroutine elens_kick_fox(i,ix)
   
   integer          :: jj, idaa, iLens, iRadial, nBin, nPoints, mPoints, kMin, kMax, kk
   integer          :: hh(lnv)=0
-  real(kind=fPrec) :: rra, xclo, yclo, ele_r1, ele_r2, elenor, elesig, elefr1, elebet, rkk, tmpcof
+  real(kind=fPrec) :: rra, frra, xa, ya, xclo, yclo, ele_r1, ele_r2, elenor, elesig, elefr1, elebet, rkk, tmpcof
   real(kind=fPrec), allocatable :: cof(:)
 
   common/daele/alda,asda,aldaq,asdaq,smida,xx,yy,dpda,dpda1,sigmda,ej1,ejf1,rv
-  save
+
 !-----------------------------------------------------------------------
 !FOX  B D ;
 #include "include/dainicom.f90"
 !FOX  D V DA INT XI NORD NVAR ; D V DA INT YI  NORD NVAR ;
 !FOX  D V DA INT RR NORD NVAR ; D V DA INT FRR NORD NVAR ;
 !FOX  D V RE INT XCLO ; D V RE INT YCLO ;
-!FOX  D V RE INT BETREL ;
+!FOX  D V RE INT BETA0 ;
 !FOX  D V RE INT ELE_R1 ; D V RE INT ELE_R2 ;
 !FOX  D V RE INT ELEFR1 ;
 !FOX  D V RE INT ELENOR ;
@@ -797,10 +847,14 @@ subroutine elens_kick_fox(i,ix)
 !FOX  D V RE INT RKK ;
 !FOX  D V RE INT ONE ; D V RE INT TWO ; D V RE INT HALF ;
 !FOX  D V RE INT RRA ;
+!FOX  D V RE INT FRRA ;
+!FOX  D V RE INT XA ; D V RE INT YA ;
 !FOX  E D ;
 !FOX  1 if(1.eq.1) then
   call comt_daStart
 !-----------------------------------------------------------------------
+
+  write(lout,'(2(a,i0))')'ELENS> ELENS_KICK_FOX for i=',i,' - ix=',ix
 
   iLens=ielens(ix)
   XCLO=elens_offset_x(iLens)
@@ -811,24 +865,37 @@ subroutine elens_kick_fox(i,ix)
   ELESIG=elens_sig(iLens)
   ELEFR1=elens_radial_fr1(iLens)
   ELEBET=elens_beta_e(iLens)
-  
+  FRRA=zero
+  RRA=zero
+  XA=zero
+  YA=zero
+
   ! 1) apply offset of e-lens
   !    xx = x(proton) - elens_offset_x
   !    yy = y(proton) - elens_offset_y
-!FOX    XI=(XX(1)-XCLO) ;
-!FOX    YI=(XX(2)-YCLO) ;
-  
+!FOX  XI=(XX(1)-XCLO) ;
+!FOX  YI=(XX(2)-YCLO) ;
+  call dapek(XI,hh,XA)
+  call dapek(YI,hh,YA)
+  if ( XA.eq.zero .and. YA.eq.zero ) then
+    write(lout,'(2(a,1pe22.15))')'ELENS> ELENS_KICK_FOX exiting computation as orbit locally on axis of elens'
+    return
+  end if
+  write(lout,'(2(a,1pe22.15))')'ELENS> ELENS_KICK_FOX computing at XA=',XA,' - YA=',YA
+
   ! 2) calculate radius
   !    radial position of main beam relative to center of elens beam
   !    rr = sqrt(xx**2+yy**2)
-!FOX    RR=SQRT(XI*XI+YI*YI) ;
-  
+!FOX  RR=SQRT(XI*XI+YI*YI) ;
+
   ! 3) calculate kick
   !    shape function: spatial charge density depends on type:
   !    0    if r < R1
   !    frr  if R1 < r < R2
   !    1    if r > R2
   call dapek(RR,hh,RRA)
+  write(lout,'(a,1pe22.15)')   'ELENS> ELENS_KICK_FOX computing at RRA=',RRA
+  write(lout,'(2(a,1pe22.15))')'ELENS>                when R1=',elens_r1(iLens),' and R2=',elens_r2(iLens)
   if (RRA.gt.elens_r1(iLens)) then ! rr <= r1 -> no kick from elens
     if (RRA.lt.elens_r2(iLens)) then ! r1 < rr < r2
       select case (elens_type(iLens))
@@ -836,7 +903,7 @@ subroutine elens_kick_fox(i,ix)
         ! UNIFORM: eLens with uniform profile
         ! formula: (r^2-r1^2)/(r2^2-r1^2)
 !FOX    FRR=((RR+ELE_R1)*(RR-ELE_R1))/ELENOR ;
-         
+
       case (2)
         ! GAUSSIAN: eLens with Gaussian profile
         ! formula: (exp(-r1^2/2sig^2)-exp(-r^2/2sig^2))/(exp(-r1^2/2sig^2)-exp(-r2^2/2sig^2))
@@ -857,41 +924,49 @@ subroutine elens_kick_fox(i,ix)
 !FOX    LINLIN=TMPCOF ;
 !FOX    TMPTMP=RR;
         do kk=2,mPoints
-           TMPCOF=COF(kk)
-           RKK=real(kk-1,fPrec)
-!FOX       LINLIN=LINLIN+(TMPTMP*TMPCOF)/RKK ;
-!FOX       TMPTMP=TMPTMP*RR ;
+          TMPCOF=COF(kk)
+          RKK=real(kk-1,fPrec)
+!FOX      LINLIN=LINLIN+(TMPTMP*TMPCOF)/RKK ;
+!FOX      TMPTMP=TMPTMP*RR ;
         end do
 !FOX    FRR=(LINLIN-ELEFR1)/ELENOR ;
         call dealloc(cof,'cof')
 
       case default
-        write(lout,"(a,i0,a)") "ELENS> ERROR in elens_kick_fox: elens_type=",elens_type(ielens(ix))," not recognized. "
-        write(lout,"(a)")      "ELENS>       Possible values for type are: 1, 2 and 3"
+        write(lerr,"(a,i0,a)") "ELENS> ERROR in elens_kick_fox: elens_type=",elens_type(ielens(ix))," not recognized. "
+        write(lerr,"(a)")      "ELENS>       Possible values for type are: 1, 2 and 3"
         call prror
       end select
     else ! r1 < r2 <= rr
 !FOX    FRR=ONE ;
     endif
+    write(lout,'(a)')'ELENS> ELENS_KICK_FOX radial kick 01'
     ! 'radial kick'
 !FOX    FRR=(((ELE_R2*ELE_R2)/RR)*FRR)*(MTCDA/(ONE+DPDA)) ;
+    write(lout,'(a)')'ELENS> ELENS_KICK_FOX radial kick 02'
     if(elens_lThetaR2(ielens(ix))) then
       if(elens_I(ielens(ix)) < zero) then
-!FOX    FRR=FRR*((RV+ELEBET*BETREL)/(ONE+ELEBET*BETREL)) ;
+!FOX    FRR=FRR*((RV+ELEBET*BETA0)/(ONE+ELEBET*BETA0)) ;
       else
-!FOX    FRR=FRR*((RV-ELEBET*BETREL)/(ONE-ELEBET*BETREL)) ;
+!FOX    FRR=FRR*((RV-ELEBET*BETA0)/(ONE-ELEBET*BETA0)) ;
       end if
     endif
+    write(lout,'(a)')'ELENS> ELENS_KICK_FOX radial kick 03'
 !FOX  YY(1)=YY(1)-(FRR*XI)/RR ;
+    write(lout,'(a)')'ELENS> ELENS_KICK_FOX radial kick 04'
 !FOX  YY(2)=YY(2)-(FRR*YI)/RR ;
   endif
 
   call comt_daEnd
+
+  call dapek(FRR,hh,FRRA)
+  write(lout,'(2(a,1pe22.15))')'ELENS> ELENS_KICK_FOX computed at RRA=',RRA,' - FRRA=',FRRA
+
 end subroutine elens_kick_fox
 
 #ifdef CR
 subroutine elens_crcheck(fileUnit,readErr)
-  implicit none
+
   integer, intent(in)  :: fileUnit
   logical, intent(out) :: readErr
 
@@ -904,37 +979,36 @@ subroutine elens_crcheck(fileUnit,readErr)
 
 10 continue
 
-  write(lout,"(a,i0)") "READERR in elens_crcheck; fileUnit = ",fileUnit
-  write(93,  "(a,i0)") "READERR in elens_crcheck; fileUnit = ",fileUnit
+  write(lout, "(a,i0,a)") "CR_CHECK> ERROR Reading C/R file fort.",fileUnit," in ELENS"
+  write(crlog,"(a,i0,a)") "CR_CHECK> ERROR Reading C/R file fort.",fileUnit," in ELENS"
+  flush(crlog)
   readErr = .true.
 
 end subroutine elens_crcheck
 
-subroutine elens_crpoint(fileUnit, writeErr,iErro)
-  implicit none
+subroutine elens_crpoint(fileUnit, writeErr)
 
-  integer, intent(in)    :: fileUnit
-  logical, intent(inout) :: writeErr
-  integer, intent(inout) :: iErro
+  integer, intent(in)  :: fileUnit
+  logical, intent(out) :: writeErr
 
   integer j
 
-  write(fileunit,err=10,iostat=iErro) (elens_lAllowUpdate(j), j=1, nelens)
-  endfile(fileunit,iostat=iErro)
-  backspace(fileunit,iostat=iErro)
+  write(fileunit,err=10) (elens_lAllowUpdate(j), j=1, nelens)
+  flush(fileunit)
 
   writeErr = .false.
   return
 
 10 continue
 
+  write(lout, "(a,i0,a)") "CR_POINT> ERROR Writing C/R file fort.",fileUnit," in ELENS"
+  write(crlog,"(a,i0,a)") "CR_POINT> ERROR Writing C/R file fort.",fileUnit," in ELENS"
+  flush(crlog)
   writeErr = .true.
-  return
 
 end subroutine elens_crpoint
 
 subroutine elens_crstart
-  implicit none
   elens_lAllowUpdate(1:nelens) = elens_lAllowUpdate_CR(1:nelens)
 end subroutine elens_crstart
 

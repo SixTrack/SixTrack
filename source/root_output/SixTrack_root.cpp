@@ -7,6 +7,7 @@
 
 #include "SixTrack_root.h"
 #include "ApertureCheck_root.h"
+#include "ApertureDump_root.h"
 #include "Collimation_root.h"
 #include "AcceleratorOutput_root.h"
 #include "ConfigurationOutput_root.h"
@@ -15,13 +16,12 @@
 
 TFile *RootFile;
 
-
 /**
 * General configuration and start up
 * i.e. opening files on EOS
 * Catch errors?
 */
-extern "C" void DoSixTrackRootInit(int eos, int run_number, char* eos_server, char* root_path, char* root_prefix, int Accelerator, int Optics, int ApertureCheck, int Collimation, int CollimationDB, int FLUKA)
+extern "C" void DoSixTrackRootInit(int eos, int run_number, char* eos_server, char* root_path, char* root_prefix, int Accelerator, int Optics, int ApertureCheck, int Collimation, int CollimationDB, int FLUKA, int ApertureDump)
 {
     std::cout << "Root output initialization" << std::endl;
     std::cout << "Accelerator is enabled: " << Accelerator << std::endl;
@@ -29,6 +29,7 @@ extern "C" void DoSixTrackRootInit(int eos, int run_number, char* eos_server, ch
     std::cout << "ApertureCheck is enabled: " << ApertureCheck << std::endl;
     std::cout << "Collimation is enabled: " << Collimation << std::endl;
     std::cout << "FLUKA Collimation is enabled: " << FLUKA << std::endl;
+    std::cout << "Aperture Dump is enabled: " << ApertureDump << std::endl;
     std::string fname;
     if(eos)
     {
@@ -76,6 +77,7 @@ extern "C" void DoSixTrackRootInit(int eos, int run_number, char* eos_server, ch
     if(Collimation)
     {
         CollimationRootInit();
+		CollimationEnergyRootInit();
     }
 
     if(CollimationDB)
@@ -83,12 +85,15 @@ extern "C" void DoSixTrackRootInit(int eos, int run_number, char* eos_server, ch
         CollimationDBRootInit();
     }
 
-
     if(FLUKA)
     {
         CollimationFLUKARootInit();
     }
 
+    if(ApertureDump)
+    {
+        root_ApertureDumpInit();
+    }
     //Dump
 
     //Tracking

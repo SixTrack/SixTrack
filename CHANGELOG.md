@@ -1,5 +1,226 @@
 # SixTrack Changelog
 
+### Version 5.3.3 [09.09.2019] - Release
+
+**Bug Fixes**
+
+* Fixed bug in the `DIST` module with conversion of longitudinal emittance from eVs to µm. The conversion was off by a factor `1e6` due to the energy variable being in `MeV` not `eV`. PR #950 (V.K. Berglyd Olsen)
+* Fixed bug in the `DIST` module where emittance was sent to `DISTLIB` as normalised emittance, while `DISTLIB` expected geometric emittance. PR #952 (V.K. Berglyd Olsen)
+* Fixed a bug in binary particle state files where the internal normalisation matrix was written to file instead of the ones which have all elements scaled to the same unit. PR #952 (V.K. Berglyd Olsen)
+
+**Documentation**
+
+* Minor changes to the documentation (LaTeX manual and markdown files) to correct outdated information. PR #948 (V.K. Berglyd Olsen)
+* Updated the README to add a paper that can be cited by studies using SixTrack 5. PR #949 (V.K. Berglyd Olsen, R. De Maria)
+
+**Code Improvements and Changes**
+
+* The way SixTrack keeps track of particle pairs for DA studies has changed. Earlier, the pairing was preserved by a reverse map from original particle index to the current index. The index of a particle changes when it is lost in an aperture, collimator or interaction point. The reverse map was effectively a record of the particle ID. However, since the new `DIST` module makes it possible to set the particle ID to any value, the reverse map has now been replaced by a map containing a particle pairID as well as whether it is particle 1 or 2 of the pair. This map is not under the user's control, and therefore preserves the pair structure through tracking. Rewriting the code to use this map eliminates a potential memory access violation due to a corner case when particles are lost and initiated with a non-incremental particle ID. The rewrite is otherwise identical to old functionality, and shouldn't alter any results. The main benefit is cleaner code, and the particle ID now being entirely passthrough as far as SixTrack is concerned, making it easier to interface with external codes that inject new particles into SixTrack. PR #938 (V.K. Berglyd Olsen, A. Mereghetti)
+* Added a check in the parsing of multi-column `STRUCT` input blocks that ensures that the element position of a given lattice element has a position larger or equal to the previous element. This prevents the accidental initialisation of negative length elements. PR #955 (V.K. Berglyd Olsen)
+* Moved a number of subroutines related to initialisation of beam--beam elements and elements in general out of the main `sixtrack` source file and to more appropriate files. PRs #957 and #960 (V.K. Berglyd Olsen)
+
+### Version 5.3.2 [23.08.2019] - Release
+
+**Bug Fixes**
+
+* Fixed a bug with `DUMP` format 101 when using HDF5 output. The memory map used was mixed up with the map for format 3. PR #937 (V.K. Berglyd Olsen)
+* Fixed a bug in the `DIST` block module where reading less than all particles of a file would fail. PR #939 (V.K. Berglyd Olsen)
+* Fixed an issue where calculating PDGID would overflow due to intermediate integer variables being 16 bit. PR #940 (J. Molson)
+* Fixed a bug with saving int16 ion variables to HDF5 files. PR #942 (V.K. Berglyd Olsen)
+
+**Documentation**
+
+* Added full documentation of the new and improved `DIST` block. PR #941 (V.K. Berglyd Olsen)
+
+**Code Improvements and Changes**
+
+* General particle transport for FLUKA and changing FLUKAIO to a submodule pulled from the GitLab repository (requires CERN Kerberos access). PR #919 (J. Molson)
+* The submodule for libArchive, and its interface and wrapper code, has been removed. PR #920 (V.K. Berglyd Olsen)
+* Clean-up of the formatting of the header in a number of output files in the aperture module. PR #923 (J. Molson)
+* The arrays for the per-element normalisation matrix is now no longer sparse, but instead using a compact array of structs. This reduces the memory usage of SixTrack by up to about 35%. PRs #934 and #935 (V.K. Berglyd Olsen)
+* The linear optics subroutines have been moved the a new module together with the parsing of the `LINEAR OPTICS` input block. PR #936 (V.K. Berglyd Olsen)
+
+**Test Suite**
+
+* Removed unused and incomplete test `thick6dsingles` and duplicate test `thick4in_da` as well as a lot of comments in the code used as "version control". PR #944 (V.K. Berglyd Olsen)
+
+### Version 5.3.1 [02.08.2019] - Release
+
+**Bug Fixes**
+
+* Fixed and issue when using the collimation module with a thin 4D simulation. In this setup, the module would not be properly initialised due to an erroneous if-condition for the initialisation call. PR #931 (V.K. Berglyd Olsen)
+* Fixed a minor issue with the formatting of the tracking progress printout. PR #925 (V.K. Berglyd Olsen)
+* Fixed and issue with missing labels in aperture losses file. PR #928, issue #926 (A. Gorzawski, A. Mereghetti)
+
+**Documentation**
+
+* Some inconsistencies and out-of-date information has been corrected in the user manual. PRs #921, #922 and #927 (V.K. Berglyd Olsen, R. De Maria)
+
+**Code Improvements and Changes**
+
+* The `DIST` block has been rewritten and a number of new parsing options added for integrating with a new external library for generating beam distributions. The library is not yet completed, so the new block format is not finalised or documented. However, the `DIST` block is backwards compatible with the old options, and should be working as before. PRs #905 and #930 (V.K. Berglyd Olsen, T. Persson)
+* Particle spin arrays have been added to SixTrack intended for future code, but not yet in use. The arrays have been added nonetheless so they can be included in the new `DIST` block. PR #916 (J. Molson)
+
+### Version 5.3.0 [11.07.2019] - Release
+
+**Bug Fixes**
+
+* The Fortran `.eqv.` operator has a lower precedence than `.eq.`. This was not accounted for in the `SETTINGS` block when the particle summary output after tracking is requested. PR #902 (V.K. Berglyd Olsen, A. Mereghetti)
+* Fixed an issue where the wrong index value was written to the `fort.208` file used in the FLUKA coupling, making the file useless. PR #911 (A. Gorzawski, A. Mereghetti)
+
+**User Side Changes**
+
+* A new Collimation Database file format is now supported by the Collimation module. The new format is column-wise as opposed to the old single column file. The old database is converted for the user to the new format and written to a file with the same name as the old database but `.new` added to it. The new format is in preparation for adding new collimator types to the database. PR #903 (V.K. Berglyd Olsen, A. Mereghetti)
+* A Geant4 block `GNT4` has been added in order to use Geant4 with the collimation module. The features are enabled by building with the `G4COLLIMATION` flag. PR #713 (J. Molson, A. Mereghetti, K. Sjobak)
+* SixTrack can now track any particle with a charge. The charge setting that exists in the `SIMU` block, and has been added to the `HION` block, now properly separates the particle charge from the ion Z value. PR #713 (J. Molson, A. Mereghetti, K. Sjobak)
+
+**Build System**
+
+* Fixes to ARM and OSX builds. PR #901 (J. Molson)
+* Removed the .exe in the middle of the file name when building on Windows. PR #900 (V.K. Berglyd Olsen)
+* The `ZLIB` flag is now on by default, meaning the `ZIPF` block also works by default. PR #899 (V.K. Berglyd Olsen)
+* The NAFFlib submodule is updated by default during build if the user has git installed. PR #899 (V.K. Berglyd Olsen)
+* Some minor tweaks to the build system were made to support AVX-512. Seems to work best when building with Intel's Fortran compiler. PR #898 (V.K. Berglyd Olsen)
+
+**Code Improvements and Changes**
+
+* The `FAST` compiler flag and code has been removed. PR #914 (R. De Maria)
+* The collimation beam distribution generator has been moved to a separate module named `coll_dist` and undergone a significant cleanup. A number of now redundant particle arrays have been removed in the process. PR #885 (V.K. Berglyd Olsen)
+
+### Version 5.2.10 [13.06.2019] - Release
+
+**Bug Fixes**
+
+* Technically not a bug, but the Chromaticity Corrections (`CHRO`) block did not have proper checks on the validity of the settings in the input block. It never reported on the non-existence of the elements requested (although there are checks later on in SixTrack) and if the `ichrom` flag was set to an invalid value, it was simply set to a valid value without telling the user. These issues have now been corrected. It may cause previously accepted input files with faulty parameters to now fail. PR #894 (V.K. Berglyd Olsen)
+
+**User Side Changes**
+
+* Added `ZLIB` as a build option, which now includes a much simpler zipping library than libArchive. The `ZLIB` flag is off by default, but when enabled, will allow the user to use the `ZIPF` module to add simulation files to a zip file. The `ZIPF` module has also been improved a bit, and the output file can be specified as well as the compression level. In the near future, libArchive will be removed, and `ZLIB` enabled by default. PR #882 (V.K. Berglyd Olsen)
+* Rotations (also known as patches) have been implemented as new elements. It is following the same logic as MAD-X, and the conversion from MAD-X is already in the master branch. PR #892 (T. Persson)
+* The particle state files that can be dumped before and after tracking now include the charge column if ions are enabled. The file also includes additional values in the header covering the settings for the reference particle, the 4D and 6D closed orbit, the tunes, and the 6-by-6 TA matrix (eigenvector/normalisation matrix). PRs #893, #895 and #896 (V.K. Berglyd Olsen, R. De Maria)
+
+**Build System**
+
+* Removed the `API` build flag for building the BOINC API. Building without it would previously build a dummy API for BOINC. There is no longer any apparent reason to do this as the rewrite of checkpoint/restart ensures that the tests can run fine with the full API linked. The API is now always linked when the `BOINC` flag is enabled. PR #890 (V.K. Berglyd Olsen)
+
+### Version 5.2.9 [05.06.2019] - Release
+
+**Bug Fixes**
+
+* Added a check that the `BEAM` block is present when beam--beam elements exist in the lattice. This would previously run, but produce NaN particle coordinates due to division by zero. Thanks to Sofia Kostoglou for the example job. PR #887 (V.K. Berglyd Olsen, R. De Maria)
+* Fixed a minor issue with the MD5 interface when running on Windows where the return from `fwrite` was treated as an error value. This resulted in an error message being printed for each line of the hashed file for no reason at all. PR #886 (V.K. Berglyd Olsen)
+
+**User Side Changes**
+
+* The Collimation Module now allows for name/value format to be used in the `COLL` block in `fort.3`. The full description of the formatting of the block is available in the user manual. The old format is still supported, but they cannot be mixed. PR #796 (V.K. Berglyd Olsen)
+
+**Code Improvements and Changes**
+
+* The timing module `mod_time` is now fully checkpointed, meaning the timing data in the log file `sim_time.dat` contains the correct timing information for the full simulation across multiple checkpoints and restarts. PR #884 (V.K. Berglyd Olsen)
+
+**Build System**
+
+* Solaris build support in the BOINC build script hs been added. PR #888 (J. Molson)
+
+
+### Version 5.2.8 [28.05.2019] - Release
+
+**Bug Fixes**
+
+* Fixed a bug in the routine that inserts structure elements into the lattice. The routine uses a circular shift to cycle a fresh element (added at the end of the lattice structure by memory allocation) into the new position, but was cycling the wrong way. The result was that if the shift was over more than 2 elements, the order of the lattice would be wrong. Bug experienced when inserting the aperture markers downstream of Fluka insertions or of the lattice edges. PR #879 (A. Mereghetti)
+* Fixed an error message in `DUMP` that would segfault due to using the wrong index variable in an array lookup. PR #879 (A. Mereghetti)
+* Fixed a bug in the Fluka-SixTrack coupling when SixTrack errors while the beam is on the Fluka side. Solved with a temporary call to `kernel_fluka_exit` at `prror`. This required to change the interface of the `kernel_fluka_exit` subroutine. PR #879 (A. Mereghetti)
+* Fixed checkpointing of statistical scaling arrays in the Scatter Module. These were previously not checkpointed at all. PR #880 (V.K. Berglyd Olsen)
+* Fixed a bug in the SixTestWrapper where not passing any checks at all would default the SixTestWrapper to pass the test as a whole. It now properly requires at least one check to be considered passed. Previously, one of the tests would always pass without verifying a single output file. PR #881 (V.K. Berglyd Olsen)
+
+**BOINC Integration**
+
+* The dummy API has been replaced by a BOINC service module. PR #875 (V.K. Berglyd Olsen, A. Mereghetti)
+  * When running on BOINC, SixTrack no longer checkpoints at the turn interval specified in `fort.3`, but instead tries to checkpoint once a minute. The volunteer's setting on minimum checkpoint interval in their BOINC Manager is still obeyed.
+  * When BOINC is run in standalone mode, that is in the test suite rather than by a volunteer, the checkpoint interval is 10 seconds. The settings for the `CRKILLSWITCH` are still obeyed.
+  * For the time being, at least, the checkpointing decisions taken by the service module are logged to the file `cr_boinc.log`. This log file may be removed when the new scheme is properly tested.
+* The BOINC library is now built from a point on the upstream master branch after some modifications to the Fortran API were merged. This means that we are running off-tag on the BOINC API, which now reports version 7.15. PR #877 (V.K. Berglyd Olsen)
+* Tracking progress reported to BOINC now stops at 99%, and the remaining 1% is reserved for post-processing. PR #877 (V.K. Berglyd Olsen)
+
+**Code Improvements and Changes**
+
+* Cleanup in the FLUKA integration modules, merging them to a single module. At the same time, refactored code for checking integrity of user info concerning coupling. Also added state variables concerning the current fluka insertion and the last messages sent/received, in view of a thorough revision of the error handling. PR #879 (A. Mereghetti)
+
+### Version 5.2.7 [17.05.2019] - Release
+
+**Bug Fixes**
+
+* Fixed an infinite loop corner case from previous release. It was only triggered if one tried to rum the Differential Algebra (DA) version of SixTrack with checkpoint/restarting, which isn't something that makes sense doing anyway. The loop was only triggered with ifort builds, and used all available memory when triggered, so it was a bit nasty. In addition, the DA executable is no longer built when building with checkpoint/restart. PR #871 (V.K. Berglyd Olsen)
+
+**User Side Changes**
+
+* A new block has been added to `fort.3`. It's named `SIMU`, and holds the main tracking variables for setting up a simulations. When used, it replaces the `TRAC`, `INIT`, and `HION` block. It is intended to work with the `DIST` block, and therefore does not support any of the settings for generating distributions. If those are needed, please use the old blocks. For further details, see the user manual. The block is considered experimental until it's thoroughly tested. PR #872 (V.K. Berglyd Olsen, R. De Maria, A. Mereghetti)
+
+**Documentation**
+
+* Fixed the RF-multipole definitions. PR #869 (R. De Maria)
+
+**Code Improvements and Changes**
+
+* Removed the thick arrays: `ekv`, `fokqv` and removed the checkpointing of all remaining thick arrays. These are recomputed by the subroutine `synuthck` anyway. PR #870 (V.K. Berglyd Olsen, K. Sjobak)
+* Some cleanup in the main common module for particle arrays. Mostly added comments on what variables do, and removed a few unused or redundant arrays. The deleted arrays are: `xsv`, `zsv`, `dp0v`, `sigmv6`, `dpsv6`, `xlv`, `zlv`, `nms`, and `ekkv`. PR #874 (V.K. Berglyd Olsen)
+
+### Version 5.2.6 [07.05.2019] - Release
+
+**Bug Fixes**
+
+* Fixed a bug with linking zlib and libarchive when building on Windows. PR #853 (V.K. Berglyd Olsen)
+* Fixed a bug in postprocessing where the binary postprocessing summary file would append its data to another file in some cases. This was caused by the file having a fixed file unit in the range which is otherwise reserved for dynamically allocated file units. This file now also gets a unit assigned to it, avoiding this issue. Some checks have been added to the file units module to try and prevent similar bugs in the future. PR #855 (V.K. Berglyd Olsen)
+* The recently added error tests failed on some operating systems due to the python wrapper not finding a symlinked include file. PR #862 (K.N Sjobak)
+* Fixed a floating point exception and array bounds violation in the fringe field module. PR #866 (V.K. Berglyd Olsen)
+* Fixed a bug where sometimes a segfault would be triggered when SixTrack exited with an error due to the error routine itself missing an explicit interface. PR #866 (V.K. Berglyd Olsen, K. Sjobak)
+
+**User Side Changes**
+
+* All the checkpoint/restart files have now been given more descriptive names with a `cr` prefix. The log file, formerly `fort.93`, has been renamed `cr_status.log`. The output to the log file has also been cleaned up significantly so that it is now more readable. PR #854 (V.K. Berglyd Olsen)
+* The `numlmax` parameter in the `TRAC` block of `fort.3` has been removed. The feature was either not fully implemented as described, or has been broken at some point. The option to use checkpoint/restart files to extend earlier simulations will be reimplemented at a later point. PR #854 (V.K. Berglyd Olsen)
+
+**Code Improvements and Changes**
+
+* When running SixTrack with BOINC, checkpoint files are written on turn 1 without requesting permission from the BOINC api. This ensures that the tests that require a successful restart to pass also pass on executables with the BOINC api linked. PR #853 (V.K. Berglyd Olsen)
+* Rewritten the checkpoint/restart module and cleaned out all code duplication. It should now be a lot easier to read the code and extend it. PR #854 (V.K. Berglyd Olsen)
+
+### Version 5.2.5 [26.04.2019] - Release
+
+**User Side Changes**
+
+* It is now allowed to set `R1=0.0` for both elenses and chebyshev maps, even though the fox implementation is still on-going. This will allow for running full elens studies, even though the closed orbit does not take into account these elements yet. PR #850 (A. Mereghetti)
+* The main SixTrack executable will now print version information and exit if provided with one of the arguments `-v`, `-V` or `-nv`. Representing two levels of detail, and the numerical version number, respectively. PR #846 (V.K. Berglyd Olsen)
+* Alternative file names for the `fort.3` and `fort.2` input files can be given as first and second argument, respectively. PR #846 (V.K. Berglyd Olsen)
+
+**Bug Fixes**
+
+* Setting the `TRAC` block variable `imc` to anything other than 1 now properly triggers an error. This is now consistent with the manual, which states "Number of variations of the relative momentum deviation has been removed. This value must be 1." PRs #847 and #848 (V.K. Berglyd Olsen)
+* The wrapper for CRLIBM had its own set of parameters `pi` and `pi2`. The wrapper now uses the new hex constants defined in `numerical_constants`. PR #845 (V.K. Berglyd Olsen, Eric Mcintosh)
+
+**Test Suite**
+
+* Added a new test category that checks error messages when SixTrack is made to fail by providing invalid input files. This bot increases code coverage, and ensures that faulty simulation input is caught and reported correctly. PRs #825, #847, #848 and #851 (V.K. Berglyd Olsen, K. Sjobak)
+
+### Version 5.2.4 [23.04.2019] - Release
+
+**User Side Changes**
+
+* Error messages are now written to `stderr` rather than `stdout`. When building with checkpoint/restart, this is piped to `fort.91`. PR #834 (V.K. Berglyd Olsen)
+* The tracking progress output to `stdout` now also contains info about how many particles are being tracked. This is useful in simulations with particle losses. This information was previously only printed by the collimation module. PR #836 (V.K. Berglyd Olsen)
+
+**Bug Fixes**
+
+* Minor inconsistency in the writing of the `initial_state.bin` and `final_state.bin` files between compilers as logical values are stored differently. This is now set explicitly for logical values. PR #832 (V.K. Berglyd Olsen)
+* Electron lenses/chebyshev lenses flagged in `fort.2`, but not declared as such in `fort.3`, were caught only in case the respective blocks were active, The consistency check was applied in the wrong stage of parsing, and would therefore not necessarily catch the inconsistency, causing a segfault. Fixes Issue #826. PR #833 (A. Mereghetti)
+
+**Code Improvements and Changes**
+
+* Removed 30 arrays used as temporary arrays for thick tracking (but was always allocated). These arrays were allocated to the number of particles, but could be replaced by scalars. This change frees up `(NPART-1)*240` bytes of memory, where `NPART` is the number of tracked particles. PR #822 (V.K. Berglyd Olsen, K. Sjobak)
+* Some minor reordering of the logic in handling RF cavities when below transition energy. The initialisation of the cavity elements is now in one place only. An integer array with the length of the single element list (`NELE`) was also removed. Tests have been added for below transition energy tracking. PR #828 (V.K. Berglyd Olsen, K. Sjobak)
+* Commented out and no longer maintained code under the `DEBUG` flag has been deleted in coordination with Eric McIntosh. PR #835 (V.K. Berglyd Olsen, K. Sjobak)
+* The constants `pi`, `pi/2`, `2*pi`, `sqrt(pi)`, `pi/180`, and `1/ln(2)` are now set with hex values to bypass conversion from decimal to binary. This is enabled for single and double precision, and for quad precision for the GNU compiler only. Intel and NAG does not support this for quad precision. PRs #840 and #842 (V.K. Berglyd Olsen)
+
 ### Version 5.2.3 [13.04.2019] - Release
 
 **Bug Fixes**
@@ -55,7 +276,7 @@
 
 * The module handling opening and closing of files wrote warnings to stderr. This is now written to stdout instead to avoid cluttering the stderr logs when running on BOINC. PR #774 (V.K. Berglyd Olsen)
 * Fixed a bug with some some of the output files under the FLUKA flag. The bug was introduced in 5.1.2. PR #780 (V.K. Berglyd Olsen)
-* Fixed some `write(unit,*)` of header files in the collimation module that produced different results on the `nagfor` compiler thab the others. PR #790 (V.K. Berglyd Olsen)
+* Fixed some `write(unit,*)` of header files in the collimation module that produced different results on the `nagfor` compiler than the others. PR #790 (V.K. Berglyd Olsen)
 
 **Code Improvements and Changes**
 

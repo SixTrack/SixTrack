@@ -31,7 +31,7 @@ module parpro
   integer, parameter :: nelb  = 280       ! Maximum elements per BLOC
 
   ! Maximum length of strings
-  integer, parameter :: mNameLen  = 48    ! Maximum length of element names. Keep in sync with MadX
+  integer, parameter :: mNameLen  = 48    ! Maximum length of element names. Keep in sync with MadX (and inside Geant4 code!)
   integer, parameter :: mFileName = 64    ! Maximum length of file names
   integer, parameter :: mPathName = 255   ! Maximum length of path names
   integer, parameter :: mStrLen   = 161   ! Standard string length
@@ -73,12 +73,10 @@ module parbeam
   integer,          parameter :: ny   = 470
   integer,          parameter :: idim = (nx+2)*(ny+2)
 
-  ! common /wzcom1/
-  real(kind=fPrec), save :: hrecip
   integer,          save :: kstep
-
-  ! common /wzcom2/
-  real(kind=fPrec), save :: wtreal(idim),wtimag(idim)
+  real(kind=fPrec), save :: hrecip
+  real(kind=fPrec), save :: wtreal(idim)
+  real(kind=fPrec), save :: wtimag(idim)
 
   ! common /beam_exp/
   integer,          save :: beam_expflag      = 0       ! 0: Old BEAM block, 1: New BEAM::EXPERT
@@ -101,8 +99,12 @@ module mod_settings
   logical, save :: st_debug        = .false. ! Global DEBUG flag
   logical, save :: st_partsum      = .false. ! Flag to print final particle summary
   logical, save :: st_writefort12  = .false. ! Flag to write fort.12 after tracking
-  integer, save :: st_initialstate = 0       ! Dump particle initial state (mod_particles)
-  integer, save :: st_finalstate   = 0       ! Dump particle final state (mod_particles)
+  logical, save :: st_fStateWrite  = .false. ! Dump particle final state file
+  logical, save :: st_fStateText   = .false. ! Dump particle final state file as text
+  logical, save :: st_fStateIons   = .false. ! Dump particle final state file with ion columns
+  logical, save :: st_iStateWrite  = .false. ! Dump particle initial state file
+  logical, save :: st_iStateText   = .false. ! Dump particle initial state file as text
+  logical, save :: st_iStateIons   = .false. ! Dump particle initial state file with ion columns
 
   ! Checpoint/Restart Kills Switch Settings
   logical,              save :: st_killswitch = .false. ! Enables the kill on turn number debug feature
@@ -118,16 +120,14 @@ module mod_common
 
   use parpro
   use floatPrecision
-  use physical_constants
   use numerical_constants
+  use physical_constants, only : pmap
+  use, intrinsic :: iso_fortran_env, only : int16, int32
 
   implicit none
 
   ! Parameters
-  real(kind=fPrec),  parameter :: cc         = 1.12837916709551_fPrec ! Used in errf
-  real(kind=fPrec),  parameter :: xlim       = 5.33_fPrec             ! Used in errf
-  real(kind=fPrec),  parameter :: ylim       = 4.29_fPrec             ! Used in errf
-  real(kind=fPrec),  parameter :: eps_dcum   = c1m6                   ! Tolerance for machine length mismatch [m]
+  real(kind=fPrec),  parameter :: eps_dcum   = c1m6    ! Tolerance for machine length mismatch [m]
 
   ! Various Flags and Variables
   character(len=80), save      :: toptit(5)  = " "     ! DANGER: If the len changes, CRCHECK will break
@@ -136,12 +136,21 @@ module mod_common
   logical,           save      :: print_dcum = .false. ! Print dcum. Set in the SETTINGS block
   integer,           save      :: ithick     = 0       ! Thick tracking flag
 
+  ! File Names and Units
+  character(len=mFileName), public, save :: fort2   = "fort.2"   ! Name of machine geometry file
+  character(len=mFileName), public, save :: fort3   = "fort.3"   ! Name of main input file
+  character(len=mFileName), public, save :: fort6   = "fort.6"   ! Name of main output file (stdout)
+  character(len=mFileName), public, save :: fort10  = "fort.10"  ! Name of main postprocessing file (text)
+  character(len=mFileName), public, save :: fort110 = "fort.110" ! Name of main postprocessing file (binary)
+
+  integer,                  public, save :: unit10  = -1         ! Unit of main postprocessing file (text)
+  integer,                  public, save :: unit110 = -1         ! Unit of main postprocessing file (binary)
+
   !  GENERAL VARIABLES
   ! ===================
 
   ! Error Variables
   integer,          save :: ierro      = 0
-  integer,          save :: errout     = 0    ! Used in prror and abend
 
   ! Loop Variables
   integer,          save :: iu         = 0    ! Number of entries in the accelerator
@@ -149,26 +158,26 @@ module mod_common
   integer,          save :: kanf       = 0    ! Structure index where the GO keyword is issued
 
   ! TRACK Block Variables
-  real(kind=fPrec), save :: amp0       = zero ! End amplitude
-  integer,          save :: numl       = 1    ! Number of turns in the forward direction
-  integer,          save :: numlr      = 0    ! Number of turns in the backward direction
-  integer,          save :: napx       = 0    ! Number of amplitude variations
-  integer,          save :: ird        = 0    ! Ignored
-  integer,          save :: niu(2)     = 0    ! Start and stop structure element for optics calculation
-  integer,          save :: numlcp     = 1000 ! How often to write checkpointing files
-  integer,          save :: numlmax    = 1e9  ! Max number of C/R turns
-  integer,          save :: idfor      = 0    ! Add closed orbit to initia coordinates
-  integer,          save :: irew       = 0    ! Rewind fort.59-90
-  integer,          save :: iclo6      = 0    ! 6D closed orbit flags
-  integer,          save :: iclo6r     = 0    ! 6D closed orbit flags
-  integer,          save :: nde(2)     = 0    ! Number of turns at flat bottom / energy ramping
-  integer,          save :: nwr(4)     = 1    ! Writings to fort.90
-  integer,          save :: ntwin      = 1    ! How to calculate the distance in phase space
-  integer,          save :: iexact     = 0    ! Exact solution of the equation of motion
-  integer,          save :: curveff    = 0    ! Enable the curvature effect in a combined function magnet
-  integer,          save :: napxo      = 0    ! Original value of napx
-  integer,          save :: napxto     = 0    ! Particles times turns
-  integer,          save :: nnuml      = 0
+  real(kind=fPrec), save :: amp0       = zero    ! End amplitude
+  integer,          save :: numl       = 1       ! Number of turns in the forward direction
+  integer,          save :: numlr      = 0       ! Number of turns in the backward direction
+  integer,          save :: numx       = 0       ! Checkpoint turn (turn-1)
+  integer,          save :: napx       = 0       ! Number of amplitude variations
+  integer,          save :: ird        = 0       ! Ignored
+  integer,          save :: niu(2)     = 0       ! Start and stop structure element for optics calculation
+  integer,          save :: numlcp     = 1000    ! How often to write checkpointing files
+  integer,          save :: idfor      = 0       ! Add closed orbit to initial coordinates
+  integer,          save :: irew       = 0       ! Rewind fort.59-90
+  integer,          save :: iclo6      = 0       ! 6D closed orbit flags
+  integer,          save :: nde(2)     = 0       ! Number of turns at flat bottom / energy ramping
+  integer,          save :: nwr(4)     = 1       ! Writings to fort.90
+  integer,          save :: ntwin      = 1       ! How to calculate the distance in phase space
+  integer,          save :: napxo      = 0       ! Original value of napx
+  integer,          save :: napxto     = 0       ! Particles times turns
+  integer,          save :: nnuml      = 0       ! Turn number for POSTPR
+  logical,          save :: curveff    = .false. ! Enable the curvature effect in a combined function magnet
+  logical,          save :: iexact     = .false. ! Exact solution of the equation of motion
+  logical,          save :: rdfort13   = .false. ! Wheteher to read distribution from fort.13 or not
 
   ! INITIAL COORDINATES Block Variables
   real(kind=fPrec), save :: rat        = zero
@@ -311,8 +320,7 @@ module mod_common
   real(kind=fPrec), save :: emitx      = zero ! Horisontal emittance
   real(kind=fPrec), save :: emity      = zero ! Vertical emittance
   real(kind=fPrec), save :: emitz      = zero ! Longitudinal emittance
-  real(kind=fPrec), save :: gammar     = one  ! Gamma factor
-  real(kind=fPrec), save :: betrel     = zero ! Relativistic beta of beam
+  real(kind=fPrec), save :: gammar     = one  ! Inverse Lorentz factor
   real(kind=fPrec), save :: brho       = zero ! magnetic rigitidy of beam [Tm]
   integer,          save :: ibb6d      = 0    ! 6D beam-beam switch
   integer,          save :: nbeam      = 0    ! Beam-beam elements flag
@@ -335,7 +343,17 @@ module mod_common
   integer,          save :: nordm      = 0
 
   ! Reference Particle
-  real(kind=fPrec), save :: e0         = zero ! Reference energy
+  real(kind=fPrec),    save :: e0      = zero ! Reference energy [MeV]
+  real(kind=fPrec),    save :: e0f     = zero ! Reference momentum [MeV/c]
+  real(kind=fPrec),    save :: nucm0   = pmap ! Reference mass [MeV/c^2]
+  real(kind=fPrec),    save :: nucmda  = pmap ! Reference mass [MeV/c^2] (DA)
+  real(kind=fPrec),    save :: gamma0  = one  ! Reference beam Lorentz factor
+  real(kind=fPrec),    save :: beta0   = zero ! Reference beam relativistic beta
+  integer(kind=int16), save :: aa0     = 1    ! Reference nucleon number
+  integer(kind=int16), save :: zz0     = 1    ! Reference charge multiplicity
+  integer(kind=int16), save :: qq0     = 1    ! Reference charge
+  integer(kind=int32), save :: pdgid0  = 2212 ! Reference particle PDG ID
+  integer,             save :: pdgyear = 2002 ! Reference particle PDG year
 
   ! Tracking Particles
   real(kind=fPrec), save :: ej(mpa)    = zero ! Particle energy
@@ -354,7 +372,7 @@ module mod_common
 
   ! Other Variables
   integer,          save :: ichromc    = 0
-  integer,          save :: ilinc      = 0
+  integer,          save :: ilinc      = 0    ! 2 = Beam-beam closed orbit calc
   integer,          save :: iqmodc     = 0
   real(kind=fPrec), save :: corr(3,3)  = zero
   real(kind=fPrec), save :: chromc(2)  = 9.999999e23_fPrec
@@ -749,12 +767,12 @@ module mod_common_track
   real(kind=fPrec), save :: alf0(2)  = zero
   real(kind=fPrec), save :: clo(2)   = zero
   real(kind=fPrec), save :: clop(2)  = zero
-  integer,          save :: nwri     = 0
+  integer,          save :: nwri     = 0     ! Flag for frequency of calls to writebin. Set by nwr(3) in TRAC
 
   ! Chromaticity
-  real(kind=fPrec), save :: cro(2)   = zero
-  integer,          save :: is(2)    = 0
-  integer,          save :: ichrom   = 0
+  real(kind=fPrec), save :: cro(2)   = zero  ! Desired values of the chromaticity
+  integer,          save :: crois(2) = 0     ! Index of the elements in the single elements list
+  integer,          save :: ichrom   = 0     ! Flag for calculation, 1: "traditional", 2: including beam-beam, 3: both
 
   ! tas
   real(kind=fPrec), save :: tasm(6,6)
@@ -771,7 +789,6 @@ module mod_common_track
   ! Substitute variables for x,y and is for DA version
   real(kind=fPrec), save :: xxtr(mpa,2)
   real(kind=fPrec), save :: yytr(mpa,2)
-  integer,          save :: issss(2)
 
 contains
 
@@ -800,114 +817,113 @@ end subroutine mod_commont_expand_arrays
 subroutine comt_daStart
   xxtr(1:mpa,1:2) = x(1:mpa,1:2)
   yytr(1:mpa,1:2) = y(1:mpa,1:2)
-  issss(1:2)      = is(1:2)
 end subroutine comt_daStart
 
 ! Copy from temp DA variables to actual variables
 subroutine comt_daEnd
   x(1:mpa,1:2) = xxtr(1:mpa,1:2)
   y(1:mpa,1:2) = yytr(1:mpa,1:2)
-  is(1:2)      = issss(1:2)
 end subroutine comt_daEnd
 
 end module mod_common_track
 
 ! ================================================================================================ !
-!  MAIN COMMON VARIABLES
-!  Last modified: 2018-06-13
+!  Main Variables Used for Particle Tracking
+!  Last modified: 2019-05-09
 ! ================================================================================================ !
 module mod_common_main
 
   use parpro
   use floatPrecision
   use numerical_constants
+  use, intrinsic :: iso_fortran_env, only : int16, int32
 
   implicit none
 
-  ! Main 1
-  real(kind=fPrec), allocatable, save :: ekv(:,:)     ! (npart,nele)
-  real(kind=fPrec), allocatable, save :: smiv(:)      ! (nblz)
-  real(kind=fPrec), allocatable, save :: zsiv(:)      ! (nblz)
-  real(kind=fPrec), allocatable, save :: xsiv(:)      ! (nblz)
+  real(kind=fPrec), save :: qw(2)      = zero
+  real(kind=fPrec), save :: qwc(3)     = zero
+  real(kind=fPrec), save :: clo0(2)    = zero
+  real(kind=fPrec), save :: clop0(2)   = zero
+  real(kind=fPrec), save :: ekk(2)     = zero
+  real(kind=fPrec), save :: cr(mmul)   = zero
+  real(kind=fPrec), save :: ci(mmul)   = zero
+  real(kind=fPrec), save :: temptr(6)  = zero
+  real(kind=fPrec), save :: clo6v(3)   = zero
+  real(kind=fPrec), save :: clop6v(3)  = zero
+  real(kind=fPrec), save :: tas(6,6)   = zero
+  real(kind=fPrec), save :: tasau(6,6) = zero
+  real(kind=fPrec), save :: qwcs(3)    = zero
+  real(kind=fPrec), save :: di0xs      = zero
+  real(kind=fPrec), save :: di0zs      = zero
+  real(kind=fPrec), save :: dip0xs     = zero
+  real(kind=fPrec), save :: dip0zs     = zero
+  real(kind=fPrec), save :: di0au(4)
+  real(kind=fPrec), save :: tau(6,6)
+  real(kind=fPrec), save :: wx(3)
+  real(kind=fPrec), save :: x1(6)
+  real(kind=fPrec), save :: x2(6)
+  real(kind=fPrec), save :: fake(2,20)
+  real(kind=fPrec), save :: xau(2,6)
+  real(kind=fPrec), save :: cloau(6)
 
-  real(kind=fPrec), allocatable, save :: fokqv(:)     ! (npart)
-  real(kind=fPrec), allocatable, save :: xsv(:)       ! (npart)
-  real(kind=fPrec), allocatable, save :: zsv(:)       ! (npart)
-  real(kind=fPrec), allocatable, save :: xv1(:)       ! (npart)
-  real(kind=fPrec), allocatable, save :: yv1(:)       ! (npart)
-  real(kind=fPrec), allocatable, save :: xv2(:)       ! (npart)
-  real(kind=fPrec), allocatable, save :: yv2(:)       ! (npart)
-  real(kind=fPrec), allocatable, save :: dam(:)       ! (npart)
-  real(kind=fPrec), allocatable, save :: ekkv(:)      ! (npart)
-  real(kind=fPrec), allocatable, save :: sigmv(:)     ! (npart)
-  real(kind=fPrec), allocatable, save :: dpsv(:)      ! (npart)
-  real(kind=fPrec), allocatable, save :: dp0v(:)      ! (npart)
-  real(kind=fPrec), allocatable, save :: sigmv6(:)    ! (npart)
-  real(kind=fPrec), allocatable, save :: dpsv6(:)     ! (npart)
-  real(kind=fPrec), allocatable, save :: ejv(:)       ! (npart)
-  real(kind=fPrec), allocatable, save :: ejfv(:)      ! (npart)
-  real(kind=fPrec), allocatable, save :: xlv(:)       ! (npart)
-  real(kind=fPrec), allocatable, save :: zlv(:)       ! (npart)
-  real(kind=fPrec), allocatable, save :: rvv(:)       ! (npart)
-  real(kind=fPrec), allocatable, save :: ejf0v(:)     ! (npart)
+  !  Arrays
+  ! ========
 
-  integer,          allocatable, save :: numxv(:)     ! (npart)
-  integer,          allocatable, save :: nnumxv(:)    ! (npart)
-  integer,          allocatable, save :: nms(:)       ! (npart)
-  integer,          allocatable, save :: partID(:)    ! (npart)
-  integer,          allocatable, save :: parentID(:)  ! (npart)
+  ! Number of Structure Elements (nblz)
+  real(kind=fPrec), allocatable, save :: zsiv(:)       ! Displacement of elements, including error
+  real(kind=fPrec), allocatable, save :: xsiv(:)       ! Displacement of elements, including error
+  real(kind=fPrec), allocatable, save :: smiv(:)       ! Magnetic kick, including error
 
-  logical,          allocatable, save :: pstop(:)     ! (npart)
-  logical,          allocatable, save :: llostp(:)    ! (npart)
+  ! Number of Particles (npart)
+  real(kind=fPrec), allocatable, save :: xv1(:)        ! Transverse coordinates: Horisontal position
+  real(kind=fPrec), allocatable, save :: yv1(:)        ! Transverse coordinates: Horisontal angle
+  real(kind=fPrec), allocatable, save :: xv2(:)        ! Transverse coordinates: Vertical position
+  real(kind=fPrec), allocatable, save :: yv2(:)        ! Transverse coordinates: Vertical angle
+  real(kind=fPrec), allocatable, save :: sigmv(:)      ! Longitudinal coordinate: Position offset
+  real(kind=fPrec), allocatable, save :: dpsv(:)       ! Longitudinal coordinate: Momentum offset from reference momentum e0f
+  real(kind=fPrec), allocatable, save :: ejfv(:)       ! Particle momentum
+  real(kind=fPrec), allocatable, save :: ejv(:)        ! Particle energy
 
-  real(kind=fPrec),              save :: qw(2)     = zero
-  real(kind=fPrec),              save :: qwc(3)    = zero
-  real(kind=fPrec),              save :: clo0(2)   = zero
-  real(kind=fPrec),              save :: clop0(2)  = zero
-  real(kind=fPrec),              save :: ekk(2)    = zero
-  real(kind=fPrec),              save :: cr(mmul)  = zero
-  real(kind=fPrec),              save :: ci(mmul)  = zero
-  real(kind=fPrec),              save :: temptr(6) = zero
-  real(kind=fPrec),              save :: clo6v(3)  = zero
-  real(kind=fPrec),              save :: clop6v(3) = zero
-  real(kind=fPrec),              save :: tas(6,6)  = zero
+  real(kind=fPrec), allocatable, save :: oidpsv(:)     ! 1/(1+dpsv)
+  real(kind=fPrec), allocatable, save :: moidpsv(:)    ! Relative rigidity offset
+  real(kind=fPrec), allocatable, save :: omoidpsv(:)   ! Relative rigidity offset
+  real(kind=fPrec), allocatable, save :: rvv(:)        ! Beta_0 / Beta(j)
+  real(kind=fPrec), allocatable, save :: ejf0v(:)      ! Temporary array for momentum updates
+  real(kind=fPrec), allocatable, save :: dam(:)        ! Distance in phase space
+  real(kind=fPrec), allocatable, save :: dpd(:)        ! Thick tracking only: 1+dpsv
+  real(kind=fPrec), allocatable, save :: dpsq(:)       ! Thick tracking only: sqrt(1+dpsv)
+  real(kind=fPrec), allocatable, save :: ampv(:)       ! Amplitude variations
+  real(kind=fPrec), allocatable, save :: nucm(:)       ! Particle mass
+  real(kind=fPrec), allocatable, save :: mtc(:)        ! Mass-to-charge ratio
 
-  ! Main 2
-  real(kind=fPrec), allocatable, save :: dpd(:)       ! (npart)
-  real(kind=fPrec), allocatable, save :: dpsq(:)      ! (npart)
-  real(kind=fPrec), allocatable, save :: oidpsv(:)    ! (npart)
-  real(kind=fPrec), allocatable, save :: ampv(:)      ! (npart)
-  real(kind=fPrec), allocatable, save :: aperv(:,:)   ! (npart,2)
+  real(kind=fPrec), allocatable, save :: spin_x(:)     ! x component of the particle spin
+  real(kind=fPrec), allocatable, save :: spin_y(:)     ! y component of the particle spin
+  real(kind=fPrec), allocatable, save :: spin_z(:)     ! z component of the particle spin
 
-  integer,          allocatable, save :: iv(:)        ! (npart)
+  integer(kind=int16), allocatable, save :: nqq(:)     ! Particle charge
+  integer(kind=int16), allocatable, save :: naa(:)     ! Ion atomic mass
+  integer(kind=int16), allocatable, save :: nzz(:)     ! Ion atomic number
+  integer(kind=int32), allocatable, save :: pdgid(:)   ! Particle PDGid
 
-  ! Main 3
-  real(kind=fPrec), allocatable, save :: bl1v(:,:,:,:) ! (6,2,npart,nblo)
-  real(kind=fPrec),              save :: tasau(6,6) = zero
-  real(kind=fPrec),              save :: qwcs(3)    = zero
-  real(kind=fPrec),              save :: di0xs      = zero
-  real(kind=fPrec),              save :: di0zs      = zero
-  real(kind=fPrec),              save :: dip0xs     = zero
-  real(kind=fPrec),              save :: dip0zs     = zero
-  real(kind=fPrec),              save :: di0au(4)
-  real(kind=fPrec),              save :: tau(6,6)
-  real(kind=fPrec),              save :: wx(3)
-  real(kind=fPrec),              save :: x1(6)
-  real(kind=fPrec),              save :: x2(6)
-  real(kind=fPrec),              save :: fake(2,20)
-  real(kind=fPrec),              save :: xau(2,6)
-  real(kind=fPrec),              save :: cloau(6)
+  integer,          allocatable, save :: numxv(:)      ! Turn in which a particle was lost
 
-  ! Main 4
-  integer,          save :: numx
-  real(kind=fPrec), save :: e0f
-  logical,          save :: sythckcr ! Only used for CR
+  integer,          allocatable, save :: partID(:)     ! Particle ID
+  integer,          allocatable, save :: parentID(:)   ! Particle parent ID in case of secondary particles
+  integer,          allocatable, save :: pairID(:,:)   ! The original particle pair ID for a particle
+  integer,          allocatable, save :: pairMap(:,:)  ! A reverse map for pairID to index
+  logical,          allocatable, save :: pstop(:)      ! Particle lost flag (post-processing)
+  logical,          allocatable, save :: llostp(:)     ! Particle lost flag
+  real(kind=fPrec), allocatable, save :: aperv(:,:)    ! Aperture at loss
+  integer,          allocatable, save :: iv(:)         ! Entry in the sequence where loss occured
+
+  real(kind=fPrec), allocatable, save :: bl1v(:,:,:,:) ! Thick tracking only: Transfer matrix for linear tracking (6,2,npart,nblo)
 
 contains
 
 subroutine mod_commonmn_expand_arrays(nblz_new,npart_new)
 
   use mod_alloc
+  use mod_common, only : nucm0, aa0, zz0, qq0, pdgid0
   use numerical_constants, only : zero, one
 
   implicit none
@@ -917,49 +933,52 @@ subroutine mod_commonmn_expand_arrays(nblz_new,npart_new)
 
   integer :: nblz_prev  = -2
   integer :: npart_prev = -2
+  integer npair_new
 
+  npair_new = (npart_new+1)/2
 
   if(nblz_new /= nblz_prev) then
-    call alloc(smiv,             nblz_new,       zero,    "smiv")
-    call alloc(zsiv,             nblz_new,       zero,    "zsiv")
-    call alloc(xsiv,             nblz_new,       zero,    "xsiv")
+    call alloc(smiv,     nblz_new,     zero,    "smiv")
+    call alloc(zsiv,     nblz_new,     zero,    "zsiv")
+    call alloc(xsiv,     nblz_new,     zero,    "xsiv")
   end if
 
   if(npart_new /= npart_prev) then
-    call alloc(fokqv,            npart_new,      zero,    "fokqv")
-    call alloc(xsv,              npart_new,      zero,    "xsv")
-    call alloc(zsv,              npart_new,      zero,    "zsv")
-    call alloc(xv1,              npart_new,      zero,    "xv1")
-    call alloc(yv1,              npart_new,      zero,    "yv1")
-    call alloc(xv2,              npart_new,      zero,    "xv2")
-    call alloc(yv2,              npart_new,      zero,    "yv2")
-    call alloc(dam,              npart_new,      zero,    "dam")
-    call alloc(ekkv,             npart_new,      zero,    "ekkv")
-    call alloc(sigmv,            npart_new,      zero,    "sigmv")
-    call alloc(dpsv,             npart_new,      zero,    "dpsv")
-    call alloc(dp0v,             npart_new,      zero,    "dp0v")
-    call alloc(sigmv6,           npart_new,      zero,    "sigmv6")
-    call alloc(dpsv6,            npart_new,      zero,    "dpsv6")
-    call alloc(ejv,              npart_new,      zero,    "ejv")
-    call alloc(ejfv,             npart_new,      zero,    "ejfv")
-    call alloc(xlv,              npart_new,      zero,    "xlv")
-    call alloc(zlv,              npart_new,      zero,    "zlv")
-    call alloc(rvv,              npart_new,      one,     "rvv")
-    call alloc(ejf0v,            npart_new,      zero,    "ejf0v")
-    call alloc(numxv,            npart_new,      0,       "numxv")
-    call alloc(nnumxv,           npart_new,      0,       "nnumxv")
-    call alloc(nms,              npart_new,      0,       "nms")
-    call alloc(partID,           npart_new,      0,       "partID")
-    call alloc(parentID,         npart_new,      0,       "parentID")
-    call alloc(pstop,            npart_new,      .false., "pstop")
-    call alloc(llostp,           npart_new,      .false., "llostp")
-
-    call alloc(dpd,              npart_new,      zero,    "dpd")
-    call alloc(dpsq,             npart_new,      zero,    "dpsq")
-    call alloc(oidpsv,           npart_new,      one,     "oidpsv")
-    call alloc(ampv,             npart_new,      zero,    "ampv")
-    call alloc(aperv,            npart_new, 2,   zero,    "aperv")
-    call alloc(iv,               npart_new,      0,       "iv")
+    call alloc(xv1,        npart_new, zero,    "xv1")
+    call alloc(yv1,        npart_new, zero,    "yv1")
+    call alloc(xv2,        npart_new, zero,    "xv2")
+    call alloc(yv2,        npart_new, zero,    "yv2")
+    call alloc(sigmv,      npart_new, zero,    "sigmv")
+    call alloc(dpsv,       npart_new, zero,    "dpsv")
+    call alloc(ejv,        npart_new, zero,    "ejv")
+    call alloc(ejfv,       npart_new, zero,    "ejfv")
+    call alloc(dam,        npart_new, zero,    "dam")
+    call alloc(rvv,        npart_new, one,     "rvv")
+    call alloc(ejf0v,      npart_new, zero,    "ejf0v")
+    call alloc(numxv,      npart_new, 0,       "numxv")
+    call alloc(partID,     npart_new, 0,       "partID")
+    call alloc(parentID,   npart_new, 0,       "parentID")
+    call alloc(pairID,  2, npart_new, 0,       "pairID")
+    call alloc(pairMap, 2, npair_new, 0,       "pairMap")
+    call alloc(pstop,      npart_new, .false., "pstop")
+    call alloc(llostp,     npart_new, .false., "llostp")
+    call alloc(dpd,        npart_new, zero,    "dpd")
+    call alloc(dpsq,       npart_new, zero,    "dpsq")
+    call alloc(oidpsv,     npart_new, one,     "oidpsv")
+    call alloc(moidpsv,    npart_new, one,     "moidpsv")
+    call alloc(omoidpsv,   npart_new, zero,    "omoidpsv")
+    call alloc(nucm,       npart_new, zero,    "nucm")
+    call alloc(mtc,        npart_new, nucm0,   "mtc")
+    call alloc(spin_x,     npart_new, zero,    "spin_x")
+    call alloc(spin_y,     npart_new, zero,    "spin_y")
+    call alloc(spin_z,     npart_new, zero,    "spin_z")
+    call alloc(naa,        npart_new, aa0,     "naa")
+    call alloc(nzz,        npart_new, zz0,     "nzz")
+    call alloc(nqq,        npart_new, qq0,     "nqq")
+    call alloc(pdgid,      npart_new, pdgid0,  "pdgid")
+    call alloc(ampv,       npart_new, zero,    "ampv")
+    call alloc(aperv,   2, npart_new, zero,    "aperv")
+    call alloc(iv,         npart_new, 0,       "iv")
   end if
 
   nblz_prev  = nblz_new
@@ -976,7 +995,6 @@ subroutine mod_commonmn_expand_thickarrays(nele_new, npart_new, nblo_new)
 
   integer,intent(in) :: nele_new, npart_new, nblo_new
 
-  call alloc(ekv,     npart_new,nele_new,zero,"ekv")
   call alloc(bl1v,6,2,npart_new,nblo_new,zero,"bl1v")
 
 end subroutine mod_commonmn_expand_thickarrays

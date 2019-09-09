@@ -55,29 +55,28 @@ void md5wrapper_digestFile(char* fileName, int strLen, int* md5Vals, int md5Size
 #ifdef WIN32
   unsigned char dataTmp[1024];
 
-  if (isAscii == 1) { //STRIP THE CARRIAGE RETURNS FROM THE FILE.
-      snprintf(fileNameMod,strLen+4,"%s.tmp",fileName);
+  if(isAscii == 1) { // STRIP THE CARRIAGE RETURNS FROM THE FILE.
+    snprintf(fileNameMod,strLen+4,"%s.tmp",fileName);
 
-      FILE* inFile = fopen(fileName, "rb");
-      FILE* outFile = fopen(fileNameMod, "wb");
-      while((bytes = fread(data, 1, 1024, inFile)) != 0) {
-          int j = 0;
-          for (int i = 0; i < bytes; i++) {
-              if (data[i] != '\r') {
-                  dataTmp[j]=data[i];
-                  j++;
-              }
-          }
-          int err = fwrite(dataTmp, sizeof(char), j, outFile);
-          if (err) {
-              printf("MD5> ERROR in stripping file '%s'->'%s'.\n", fileName,fileNameMod);
-          }
+    FILE* inFile = fopen(fileName, "rb");
+    FILE* outFile = fopen(fileNameMod, "wb");
+    while((bytes = fread(data, 1, 1024, inFile)) != 0) {
+      int j = 0;
+      for(int i = 0; i < bytes; i++) {
+        if(data[i] != '\r') {
+          dataTmp[j] = data[i];
+          j++;
+        }
       }
-      fclose (inFile);
-      fclose (outFile);
-  }
-  else {
-      snprintf(fileNameMod,strLen,"%s",fileName);
+      int nitems = fwrite(dataTmp, sizeof(char), j, outFile);
+      if(nitems != j) {
+        printf("MD5> ERROR in stripping file '%s' -> '%s'.\n", fileName, fileNameMod);
+      }
+    }
+    fclose(inFile);
+    fclose(outFile);
+  } else {
+    snprintf(fileNameMod,strLen,"%s",fileName);
   }
 #else
   snprintf(fileNameMod,strLen,"%s",fileName);

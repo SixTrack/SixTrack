@@ -34,7 +34,7 @@ subroutine daliesix
   if(nvarf/2.lt.ndim) ndim=nvarf/2
   if(ndim == 0) then
     write(lerr,"(a)") "DALIESIX> ERROR Number of normal form variables have to be: 2, 4, 5, 6 + parameters."
-    call prror(-1)
+    call prror
   end if
   nv=nvarf
   nd2=2*ndim
@@ -68,7 +68,7 @@ subroutine daliesix
   call etallnom(hs,1,'HS        ')
   call etallnom(df,nd2,'DF        ')
   rewind mfile
-  rewind 111
+  rewind 26
   rewind mf1
   rewind mf2
   rewind mf3
@@ -182,7 +182,7 @@ subroutine mydaini(ncase,nnord,nnvar,nndim,nnvar2,nnord1)
 
   if(nndim < 2 .or. nndim > 3) then
     write(lerr,"(a)") "DAINI> ERROR DA corrections implemented for 4D and 6D only."
-    call prror(-1)
+    call prror
   end if
 
   nordo=nord
@@ -213,7 +213,7 @@ subroutine mydaini(ncase,nnord,nnvar,nndim,nnvar2,nnord1)
   ! tune variation
   if(ncase.eq.2) call umlauda
   rewind 18
-  rewind 111
+  rewind 26
 
   ! main map calculation
   if(ncase.eq.3) call runda
@@ -248,11 +248,9 @@ subroutine runcav
   use parpro
   use mod_time
   use mod_common
-  use mod_common_main, only : e0f
   use mod_commons
   use mod_common_track, only : comt_daStart,comt_daEnd
   use mod_common_da
-  use mod_hions
   use mod_lie_dab, only : idao,rscrri,iscrda
 
   implicit none
@@ -282,9 +280,9 @@ subroutine runcav
   call darea(dpda1,18)
   rewind 18
 !Eric
-    rewind 111
+  rewind 26
   if(ition.ne.0) then
-  e0f=sqrt(e0**2-nucm0**2)                                             !hr08
+    e0f=sqrt(e0**2-nucm0**2)
 !FOX  DPDA=DPDA1*C1M3 ;
 !FOX  MOIDA=MTCDA/(ONE+DPDA) ;
 !FOX  EJF1=E0F*(ONE+DPDA)/(NUCM0/NUCMDA) ;
@@ -325,6 +323,7 @@ subroutine runcav
 
   write(lout,10010)
 !-----------------------------------------------------------------------
+! Do not remove or modify the comment below.
 !     DADAL AUTOMATIC INCLUSION
   time2=0.
   call time_timerCheck(time2)
@@ -437,14 +436,13 @@ subroutine runda
   use crcoall
   use parpro
   use mod_common
-  use mod_common_main, only : e0f,numx
   use mod_commons
   use mod_common_track, only : xxtr,yytr,comt_daStart,comt_daEnd
   use mod_common_da
   use mod_commond2
-  use mod_hions
   use mod_lie_dab, only : idao,iscrri,rscrri,iscrda
   use mod_units
+  use mod_utils
   use mod_time
   use mod_fluc,    only : fluc_errAlign,fluc_writeFort4
 
@@ -455,7 +453,7 @@ subroutine runda
   real(kind=fPrec) beamoff1,beamoff2, beamoff3, beamoff4,beamoff5,beamoff6,benkcc,betr0,cbxb,       &
     cbzb,cik,crk,crxb,crzb,dare,dpdav,dpdav2,dummy,fake,ox,oxp,oz,ozp,r0,r000,r0a,r2b,r2bf,rb,rbf,  &
     rho2b,rkb,rkbf,scikveb,scrkveb,sigmdac,startco,tkb,xbb,xrb,xs,zbb,zfeld1,zfeld2,zrb,zs,crabfreq,&
-    crabpht,crabpht2,crabpht3,crabpht4
+    crabpht,crabpht2,crabpht3,crabpht4,sin_t,cos_t,tan_t
   logical fErr
   character(len=300) ch
   common/daele/alda,asda,aldaq,asdaq,smida,xx,yy,dpda,dpda1,sigmda,ej1,ejf1,rv
@@ -734,7 +732,7 @@ subroutine runda
       endif
       if(ix <= 0) then
         write(lerr,"(a)") "RUNDA> ERROR Inverted linear blocks not allowed."
-        call prror(-1)
+        call prror
       endif
 #include "include/dalin1.f90"
 #include "include/dalin2.f90"
@@ -774,6 +772,7 @@ subroutine runda
           write(lout,*) ' WARNING: in the 5*6 mode no extra parameters allowed'
         endif
         rewind 19
+! Do not remove or modify the comment below.
 !     DADAL AUTOMATIC INCLUSION
         return
       endif
@@ -922,7 +921,7 @@ subroutine runda
           else if(sigman(1,imbb(i)).gt.sigman(2,imbb(i))) then
             if(ibeco.eq.1) then
               if(abs(sigman(1,imbb(i))).lt.pieni.or.abs(sigman(2,imbb(i))).lt.pieni) goto 9088
-              r2b=two*(sigman(1,imbb(i))**2-sigman(2,imbb(i))**2) !hr08
+              r2b=two*(sigman(1,imbb(i))**2-sigman(2,imbb(i))**2)
               rb=sqrt(r2b)
               rkb=((crad*ptnfac(ix))*pisqrt)/rb
               if(ibbc.eq.0) then
@@ -944,7 +943,7 @@ subroutine runda
               beamoff5=(rkb*(crxb-exp_mb(-one*tkb)*cbxb))*sign(one,cik)
             endif
             if(abs(sigman(1,imbb(i))).lt.pieni.or.abs(sigman(2,imbb(i))).lt.pieni) goto 9088
-            r2bf=two*(sigman(1,imbb(i))**2-sigman(2,imbb(i))**2) !hr08
+            r2bf=two*(sigman(1,imbb(i))**2-sigman(2,imbb(i))**2)
             rbf=sqrt(r2bf)
             rkbf=((crad*ptnfac(ix))*pisqrt)/rbf
 #include "include/beamcof.f90"
@@ -1151,7 +1150,7 @@ subroutine runda
       endif
 
     if(kzz.eq.23) then
-!FOX  CRABAMP=ED(IX)*ZZ0 ;
+!FOX  CRABAMP=ED(IX)*QQ0 ;
 
         crabfreq=ek(ix)*c1e3
         crabpht=crabph(ix)
@@ -1178,7 +1177,7 @@ subroutine runda
       goto 440
   endif
     if(kzz.eq.-23) then
-!FOX  CRABAMP=ED(IX)*ZZ0 ;
+!FOX  CRABAMP=ED(IX)*QQ0 ;
         crabfreq=ek(ix)*c1e3
         crabpht=crabph(ix)
 !FOX  Y(2)=Y(2) - CRABAMP*C1E3/E0F*
@@ -1211,7 +1210,7 @@ subroutine runda
       xs=xsi(i) ! JBG change of variables for misal calculations
       zs=zsi(i)
 #include "include/alignf.f90"
-!FOX  CRABAMP2=ED(IX)*ZZ0 ;
+!FOX  CRABAMP2=ED(IX)*QQ0 ;
 
     crabfreq=ek(ix)*c1e3 !JBG Input in MHz changed to kHz
     crabpht2=crabph2(ix)
@@ -1238,13 +1237,12 @@ subroutine runda
       if(kzz.eq.-26) then
         ! JBG bypass this element if 4D/5D case
         if(iclo6.eq.0) then
-!                write(*,*)'Bypassing RF mult 4D or 5D case'
             goto 440
         endif
       xs=xsi(i) ! JBG change of variables for misal calculations
       zs=zsi(i)
 #include "include/alignf.f90"
-!FOX  CRABAMP2=ED(IX)*ZZ0 ;
+!FOX  CRABAMP2=ED(IX)*QQ0 ;
           crabfreq=ek(ix)*c1e3
           crabpht2=crabph2(ix)
 !FOX  Y(2)=Y(2) + (CRABAMP2*CRKVE)*
@@ -1269,13 +1267,12 @@ subroutine runda
       if(kzz.eq.27) then
         ! JBG bypass this element if 4D/5D case
         if(iclo6.eq.0) then
-!                write(*,*)'Bypassing RF mult 4D or 5D case'
             goto 440
         endif
       xs=xsi(i)
       zs=zsi(i)
 #include "include/alignf.f90"
-!FOX  CRABAMP3=ED(IX)*ZZ0 ;
+!FOX  CRABAMP3=ED(IX)*QQ0 ;
           crabfreq=ek(ix)*c1e3
           crabpht3=crabph3(ix)
 !FOX  Y(1)=Y(1) + 2D0*(1D0/2D0)*CRABAMP3*((CRKVE*CRKVE)-
@@ -1301,13 +1298,12 @@ subroutine runda
       if(kzz.eq.-27) then
         ! JBG bypass this element if 4D/5D case
         if(iclo6.eq.0) then
-!                write(*,*)'Bypassing RF mult 4D or 5D case'
             goto 440
         endif
       xs=xsi(i)
       zs=zsi(i)
 #include "include/alignf.f90"
-!FOX  CRABAMP3=ED(IX)*ZZ0 ;
+!FOX  CRABAMP3=ED(IX)*QQ0 ;
           crabfreq=ek(ix)*c1e3
           crabpht3=crabph3(ix)
 !FOX  Y(2)=Y(2) - CRABAMP3*((CIKVE*CIKVE)-
@@ -1332,13 +1328,12 @@ subroutine runda
       if(kzz.eq.28) then
         ! JBG bypass this element if 4D/5D case
         if(iclo6.eq.0) then
-!                write(*,*)'Bypassing RF mult 4D or 5D case'
             goto 440
         endif
       xs=xsi(i)
       zs=zsi(i)
 #include "include/alignf.f90"
-!FOX  CRABAMP4=ED(IX)*ZZ0 ;
+!FOX  CRABAMP4=ED(IX)*QQ0 ;
           crabfreq=ek(ix)*c1e3
           crabpht4=crabph4(ix)
 !FOX  Y(1)=Y(1) + (CRABAMP4)*
@@ -1674,6 +1669,7 @@ subroutine runda
   write(lout,10010)
 
 520 continue
+! Do not remove or modify the comment below.
 !     DADAL AUTOMATIC INCLUSION
   time2=0.
   call time_timerCheck(time2)
@@ -1686,7 +1682,7 @@ call comt_daEnd
 
 9088 continue
   write(lerr,"(a)") "RUNDA> ERROR Either normalized emittances or the resulting sigma values equal to zero for beam-beam/"
-  call prror(-1)
+  call prror
   return
 
 10000 format(/t10,'TRACKING ENDED ABNORMALLY'/t10, 'PARTICLE NO. ',     &
@@ -1724,14 +1720,14 @@ subroutine anfb(tas)
   write(lout,10030)
   if(itra.eq.0) goto 60
   tas56=tas(5,6)*c1m3
-  bet0x2=tas(1,3)**2+tas(1,4)**2                                     !hr08
-  bet0z2=tas(3,1)**2+tas(3,2)**2                                     !hr08
-  bet0s1=tas(5,5)**2+tas56**2                                        !hr08
+  bet0x2=tas(1,3)**2+tas(1,4)**2
+  bet0z2=tas(3,1)**2+tas(3,2)**2
+  bet0s1=tas(5,5)**2+tas56**2
   dsign=one
-  if(tas(3,3).lt.-one*pieni) rat=-one*rat                            !hr08
+  if(tas(3,3).lt.-one*pieni) rat=-one*rat
   if(rat.lt.-one*pieni) dsign=-one*one
   x11=amp(1)/(sqrt(bet0(1))+sqrt(abs(rat)*bet0x2))
-  x13=(x11*dsign)*sqrt(abs(rat))                                     !hr08
+  x13=(x11*dsign)*sqrt(abs(rat))
   amp(2)=(dsign*real(1-iver,fPrec))*(abs(x11)*sqrt(bet0z2)+abs(x13)*sqrt(bet0(2)))
   x1(5)=zero
   if(iclo6.eq.1.or.iclo6.eq.2) then
@@ -1755,8 +1751,8 @@ subroutine anfb(tas)
 10     continue
 20   continue
     if(iclo6.eq.1.or.iclo6.eq.2) then
-      x2(2)=x2(2)/((one+x2(6))+clop6(3))                             !hr08
-      x2(4)=x2(4)/((one+x2(6))+clop6(3))                             !hr08
+      x2(2)=x2(2)/((one+x2(6))+clop6(3))
+      x2(4)=x2(4)/((one+x2(6))+clop6(3))
     endif
     if(abs(bet0s1).le.pieni) x2(6)=dp1
     if(iver.eq.1) then

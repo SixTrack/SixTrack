@@ -1,2 +1,1 @@
-initial_state.bin
-final_state.bin
+hash.md5

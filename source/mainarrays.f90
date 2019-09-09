@@ -12,8 +12,8 @@ subroutine allocate_arrays
   use crcoall
 
   use mod_common,         only : mod_common_expand_arrays
-  use mod_common_track,        only : mod_commont_expand_arrays
-  use mod_common_main,       only : mod_commonmn_expand_arrays
+  use mod_common_track,   only : mod_commont_expand_arrays
+  use mod_common_main,    only : mod_commonmn_expand_arrays
   use mod_commond2,       only : mod_commond2_expand_arrays
   use aperture,           only : aperture_expand_arrays
   use elens,              only : elens_allocate_arrays
@@ -23,7 +23,6 @@ subroutine allocate_arrays
   use bdex,               only : bdex_allocate_arrays
   use dynk,               only : dynk_allocate_arrays
   use wire,               only : wire_expand_arrays
-  use mod_hions,          only : hions_allocate_arrays
 #ifdef CR
   use checkpoint_restart, only : cr_expand_arrays
 #endif
@@ -54,7 +53,6 @@ subroutine allocate_arrays
   call cheby_allocate_arrays
   call bdex_allocate_arrays
   call dynk_allocate_arrays
-  call hions_allocate_arrays
 #ifdef CR
   call cr_expand_arrays(npart)
 #endif
@@ -85,7 +83,6 @@ subroutine expand_arrays(nele_new, npart_new, nblz_new, nblo_new)
   use bdex,               only : bdex_expand_arrays
   use dynk,               only : dynk_expand_arrays
   use wire,               only : wire_expand_arrays
-  use mod_hions,          only : hions_expand_arrays
 #ifdef CR
   use checkpoint_restart, only : cr_expand_arrays
 #endif
@@ -123,7 +120,6 @@ subroutine expand_arrays(nele_new, npart_new, nblz_new, nblo_new)
   call bdex_expand_arrays(nele_new)
   call dynk_expand_arrays(nele_new)
 
-  call hions_expand_arrays(npart_new)
 #ifdef CR
   call cr_expand_arrays(npart_new)
 #endif
@@ -182,14 +178,13 @@ end subroutine expand_thickarrays
 ! ================================================================================================ !
 !  Shuffle Lost Particles
 !  A. Mereghetti, V.K. Berglyd Olsen, BE-ABP-HSS
-!  Last modified: 2018-12-04
+!  Last modified: 2019-08-12
 !  This routine is called to move all lost particles to the end of particle arrays (after napx)
-!  Routine has ben renamed from compactArrays.
+!  Routine has been renamed from compactArrays.
 ! ================================================================================================ !
 subroutine shuffleLostParticles
 
   use floatPrecision
-  use mod_hions
   use mod_common
   use mod_common_track
   use mod_common_main
@@ -216,6 +211,9 @@ subroutine shuffleLostParticles
     ! Move lost particle to the back
     partID(j:tnapx)    = cshift(partID(j:tnapx),    1)
     parentID(j:tnapx)  = cshift(parentID(j:tnapx),  1)
+    pairID(:,j:tnapx)  = cshift(pairID(:,j:tnapx),  1, 2)
+    pstop(j:tnapx)     = cshift(pstop(j:tnapx),     1)
+    numxv(j:tnapx)     = cshift(numxv(j:tnapx),     1)
     tmp_lostP(j:tnapx) = cshift(tmp_lostP(j:tnapx), 1)
 
     ! Main Particle Arrays
@@ -232,12 +230,17 @@ subroutine shuffleLostParticles
     ! Ion Arrays
     nzz(j:tnapx)       = cshift(nzz(j:tnapx),       1)
     naa(j:tnapx)       = cshift(naa(j:tnapx),       1)
+    nqq(j:tnapx)       = cshift(nqq(j:tnapx),       1)
+    pdgid(j:tnapx)     = cshift(pdgid(j:tnapx),     1)
     nucm(j:tnapx)      = cshift(nucm(j:tnapx),      1)
     mtc(j:tnapx)       = cshift(mtc(j:tnapx),       1)
     dpsv1(j:tnapx)     = cshift(dpsv1(j:tnapx),     1)
     oidpsv(j:tnapx)    = cshift(oidpsv(j:tnapx),    1)
     moidpsv(j:tnapx)   = cshift(moidpsv(j:tnapx),   1)
     omoidpsv(j:tnapx)  = cshift(omoidpsv(j:tnapx),  1)
+    spin_x(j:tnapx)    = cshift(spin_x(j:tnapx),    1)
+    spin_y(j:tnapx)    = cshift(spin_y(j:tnapx),    1)
+    spin_z(j:tnapx)    = cshift(spin_z(j:tnapx),    1)
 
     ! Backtracking + Aperture
     plost(j:tnapx)     = cshift(plost(j:tnapx),     1)
@@ -250,6 +253,9 @@ subroutine shuffleLostParticles
     dpsvLast(j:tnapx)  = cshift(dpsvLast(j:tnapx),  1)
     naaLast(j:tnapx)   = cshift(naaLast(j:tnapx),   1)
     nzzLast(j:tnapx)   = cshift(nzzLast(j:tnapx),   1)
+    nqqLast(j:tnapx)   = cshift(nqqLast(j:tnapx),   1)
+    pdgidLast(j:tnapx) = cshift(pdgidLast(j:tnapx), 1)
+    aperv(:,j:tnapx)   = cshift(aperv(:,j:tnapx),   1, 2)
 
     tnapx = tnapx - 1
   end do
@@ -260,18 +266,6 @@ subroutine shuffleLostParticles
     tnapx = napx
     do j=napx,1,-1
       if(llostp(j) .eqv. .false.) cycle
-
-      xgrd(j:tnapx)                 = cshift(xgrd(j:tnapx),                 1)
-      ygrd(j:tnapx)                 = cshift(ygrd(j:tnapx),                 1)
-      xpgrd(j:tnapx)                = cshift(xpgrd(j:tnapx),                1)
-      ypgrd(j:tnapx)                = cshift(ypgrd(j:tnapx),                1)
-      pgrd(j:tnapx)                 = cshift(pgrd(j:tnapx),                 1)
-      ejfvgrd(j:tnapx)              = cshift(ejfvgrd(j:tnapx),              1)
-      sigmvgrd(j:tnapx)             = cshift(sigmvgrd(j:tnapx),             1)
-      rvvgrd(j:tnapx)               = cshift(rvvgrd(j:tnapx),               1)
-      dpsvgrd(j:tnapx)              = cshift(dpsvgrd(j:tnapx),              1)
-      oidpsvgrd(j:tnapx)            = cshift(oidpsvgrd(j:tnapx),            1)
-      dpsv1grd(j:tnapx)             = cshift(dpsv1grd(j:tnapx),             1)
 
       part_hit_pos(j:tnapx)         = cshift(part_hit_pos(j:tnapx),         1)
       part_hit_turn(j:tnapx)        = cshift(part_hit_turn(j:tnapx),        1)
@@ -314,5 +308,35 @@ subroutine shuffleLostParticles
 
   napx = napx_new
   call move_alloc(tmp_lostP, llostp)
+  call updatePairMap
 
 end subroutine shuffleLostParticles
+
+! ================================================================================================ !
+!  Build Particle Pair Map
+! ~~~~~~~~~~~~~~~~~~~~~~~~~
+!  V.K. Berglyd Olsen, BE-ABP-HSS
+!  Created: 2019-08-12
+!  Updated: 2019-08-12
+!
+!      This map allows for reverse lookup from a pairID to the index of its two particles in the
+!  main particle arrays. This is used for the distance calculation and for post-processing.
+!      It is assumed that the array of pairIDs is never modified after initialisation, only
+!  reshuffled when lost particles are moved to the end. The pairID must be preserved also for these.
+!      If, for some reason, each pair ID is not represented exactly twice in the array, the final
+!  map will contain zeros. Any routine using this map for lookup must therefore check for 0 values
+!  and trigger necessary error handling.
+! ================================================================================================ !
+subroutine updatePairMap
+
+  use parpro, only : npart
+  use mod_common_main, only : partID, pairID, pairMap
+
+  integer j, m
+
+  pairMap(:,:) = 0
+  do j=1,npart
+    pairMap(pairID(2,j),pairID(1,j)) = j
+  end do
+
+end subroutine updatePairMap

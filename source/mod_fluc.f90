@@ -144,7 +144,7 @@ subroutine fluc_moreRandomness
   real(kind=fPrec)   :: tmpRnd(newRnd)
 
   call recuin(fluc_iSeed1, fluc_iSeed2)
-  call ranecu(tmpRnd, newRnd, mcut)
+  call ranecu(tmpRnd, newRnd, 1, real(mcut,kind=fPrec))
   call recuut(fluc_iSeed1, fluc_iSeed2)
 
   if(nzfz == -1) nzfz = 0
@@ -285,7 +285,7 @@ subroutine fluc_readFort8
     write(lerr,"(a)")       "FLUC>       You either have a non-existing element somewhere in the file,"
     write(lerr,"(a)")       "FLUC>       or too many references to the same element name."
     write(lerr,"(2(a,i0))") "FLUC>       Found ",(nAlign-1)," elements out of ",fluc_nAlign
-    call prror(-1)
+    call prror
   end if
 
   write(lout,"(a,i0,a)") "FLUC> Read ",fluc_nAlign," values from fort.8"
@@ -294,7 +294,7 @@ subroutine fluc_readFort8
 
 30 continue
   write(lerr,"(a,i0,a)") "FLUC> ERROR fort.8:",lineNo," '"//trim(inLine)//"'"
-  call prror(-1)
+  call prror
 
 end subroutine fluc_readFort8
 
@@ -435,7 +435,7 @@ subroutine fluc_readFort16
     write(lerr,"(a)")       "FLUC>       You either have a non-existing element somewhere in the file,"
     write(lerr,"(a)")       "FLUC>       or too many references to the same element name."
     write(lerr,"(2(a,i0))") "FLUC>       Found ",(nExt-1)," elements out of ",fluc_nExt
-    call prror(-1)
+    call prror
   end if
 
   write(lout,"(a,i0,a)") "FLUC> Read ",fluc_nExt," values from fort.16"
@@ -444,7 +444,7 @@ subroutine fluc_readFort16
 
 30 continue
   write(lerr,"(a,i0,a)") "FLUC> ERROR fort.16:",lineNo," '"//trim(inLine)//"'"
-  call prror(-1)
+  call prror
 
 end subroutine fluc_readFort16
 
@@ -558,7 +558,7 @@ subroutine fluc_readFort30
     write(lerr,"(a)")       "FLUC>       You either have a non-existing element somewhere in the file,"
     write(lerr,"(a)")       "FLUC>       or too many references to the same element name."
     write(lerr,"(2(a,i0))") "FLUC>       Found ",(nZFZ-1)," elements out of ",fluc_nZFZ
-    call prror(-1)
+    call prror
   end if
 
   write(lout,"(a,i0,a)") "FLUC> Read ",fluc_nZFZ," values from fort.30"
@@ -567,7 +567,7 @@ subroutine fluc_readFort30
 
 30 continue
   write(lerr,"(a,i0,a)") "FLUC> ERROR fort.30:",lineNo," '"//trim(inLine)//"'"
-  call prror(-1)
+  call prror
 
 end subroutine fluc_readFort30
 
@@ -578,7 +578,7 @@ end subroutine fluc_readFort30
 subroutine fluc_writeFort4
 
   use floatPrecision
-  use mod_common,          only : ncororb,sm,ek
+  use mod_common,          only : ncororb,sm,ek,fort2
   use numerical_constants, only : zero,pieni
   use string_tools
   use mod_units
@@ -595,7 +595,7 @@ subroutine fluc_writeFort4
   ii      = 0
   lineNo2 = 0
 
-  call f_open(unit=2,file="fort.2",formatted=.true.,mode="r",err=iErr)
+  call f_open(unit=2,file=fort2,   formatted=.true.,mode="r",err=iErr)
   call f_open(unit=4,file="fort.4",formatted=.true.,mode="w",err=iErr)
 
   rewind(2)
