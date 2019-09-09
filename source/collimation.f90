@@ -466,10 +466,6 @@ module collimation
   integer, private, save :: efficiency_2d_unit
   integer, private, save :: outlun
 
-#ifdef G4COLLIMATION
-  integer, public :: unit208 ! Holds the actual units of fort.208
-#endif
-
 #ifdef HDF5
   ! Variables to save hdf5 dataset indices
   integer, private, save :: coll_hdf5_survival
@@ -935,8 +931,8 @@ subroutine collimate_init
   end if
 
 ! Open the edep file
-  call f_requestUnit("fort.208", unit208)
-  call f_open(unit=unit208, file="fort.208",formatted=.true.,mode="w")
+  call f_requestUnit(fort208,unit208)
+  call f_open(unit=unit208,file=fort208,formatted=.true.,mode="w")
 
 !! This function lives in the G4Interface.cpp file in the g4collimat folder
 !! Accessed by linking libg4collimat.a
@@ -2717,118 +2713,116 @@ subroutine collimate_do_collimator(stracki)
 
 #else
 
-  !! Add the geant4 geometry
-        if(firstrun.and.iturn.eq.1) then
-          call g4_add_collimator(cdb_cNameUC(icoll), c_material, c_length, c_aperture, c_rotation, torbx(ie), torby(ie))
-        endif
+    !! Add the geant4 geometry
+    if(firstrun .and. iturn == 1) then
+      call g4_add_collimator(cdb_cNameUC(icoll), c_material, c_length, c_aperture, c_rotation, torbx(ie), torby(ie))
+    end if
 
 !! Here we do the real collimation
 !! First set the correct collimator
-        call g4_set_collimator(cdb_cNameUC(icoll))
-        flush(lout)
+    call g4_set_collimator(cdb_cNameUC(icoll))
+    flush(lout)
 
 !! Loop over all our particles
-        g4_lostc = 0
-        nnuc0 = 0
-        ien0  = zero
-        nnuc1 = 0
-        ien1  = zero
+    g4_lostc = 0
+    nnuc0 = 0
+    ien0  = zero
+    nnuc1 = 0
+    ien1  = zero
 
-        if(g4_debug .eqv. .true.) then
-          write(lout,"(2a)") 'COLLIMATOR:', cdb_cNameUC(icoll)
-          write(lout,"(12a)") chr_lpad('id',33), chr_lpad('pdgid',12), chr_lpad('mass',25), chr_lpad('x',25), chr_lpad('y',25), &
-                              chr_lpad('xp',25), chr_lpad('yp',25), chr_lpad('p',25), chr_lpad('spin_x',25), chr_lpad('spin_y',25),&
-                              chr_lpad('spin_z',25)
-          flush(lout)
-        end if
+    if(g4_debug .eqv. .true.) then
+      write(lout,"(2a)") 'COLLIMATOR:', cdb_cNameUC(icoll)
+      write(lout,"(12a)") chr_lpad('id',33), chr_lpad('pdgid',12), chr_lpad('mass',25), chr_lpad('x',25), chr_lpad('y',25), &
+                          chr_lpad('xp',25), chr_lpad('yp',25), chr_lpad('p',25), chr_lpad('spin_x',25), chr_lpad('spin_y',25),&
+                          chr_lpad('spin_z',25)
+      flush(lout)
+    end if
 
-        do j = 1, napx
+    do j = 1, napx
 !!!!          if(part_abs_pos(j).eq.0 .and. part_abs_turn(j).eq.0) then
 !! Rotate particles in the frame of the collimator
 !! There is more precision if we do it here rather
 !! than in the g4 geometry
 
-            if(g4_debug .eqv. .true.) then
-              write(lout,"(a,2(1X,I11),10(1X,E24.16))") 'g4 sending particle: ', j, pdgid(j), nucm(j), rcx(j), rcy(j), rcxp(j), &
-                    rcyp(j), rcp(j), spin_x(j), spin_y(j), spin_z(j), sigmv(j)
-            end if
+      if(g4_debug .eqv. .true.) then
+        write(lout,"(a,2(1X,I11),10(1X,E24.16))") 'g4 sending particle: ', j, pdgid(j), nucm(j), rcx(j), rcy(j), rcxp(j), &
+          rcyp(j), rcp(j), spin_x(j), spin_y(j), spin_z(j), sigmv(j)
+      end if
 
-            x_tmp = rcx(j)
-            y_tmp = rcy(j)
-            xp_tmp = rcxp(j)
-            yp_tmp = rcyp(j)
-            rcx(j) =  x_tmp *cos_mb(c_rotation) + sin_mb(c_rotation)*y_tmp
-            rcy(j) =  y_tmp *cos_mb(c_rotation) - sin_mb(c_rotation)*x_tmp
-            rcxp(j) = xp_tmp*cos_mb(c_rotation) + sin_mb(c_rotation)*yp_tmp
-            rcyp(j) = yp_tmp*cos_mb(c_rotation) - sin_mb(c_rotation)*xp_tmp
+      x_tmp = rcx(j)
+      y_tmp = rcy(j)
+      xp_tmp = rcxp(j)
+      yp_tmp = rcyp(j)
+      rcx(j) =  x_tmp *cos_mb(c_rotation) + sin_mb(c_rotation)*y_tmp
+      rcy(j) =  y_tmp *cos_mb(c_rotation) - sin_mb(c_rotation)*x_tmp
+      rcxp(j) = xp_tmp*cos_mb(c_rotation) + sin_mb(c_rotation)*yp_tmp
+      rcyp(j) = yp_tmp*cos_mb(c_rotation) - sin_mb(c_rotation)*xp_tmp
 
 !! Add all particles
-
-            call g4_add_particle(rcx(j), rcy(j), rcxp(j), rcyp(j), rcp(j), pdgid(j), nzz(j), naa(j), nqq(j), nucm(j), &
-                                 sigmv(j), spin_x(j), spin_y(j), spin_z(j))
-!!!!          end if
+      call g4_add_particle(rcx(j), rcy(j), rcxp(j), rcyp(j), rcp(j), pdgid(j), nzz(j), naa(j), nqq(j), nucm(j), &
+        sigmv(j), spin_x(j), spin_y(j), spin_z(j))
 
 ! Log input energy + nucleons as per the FLUKA coupling
-        nnuc0   = nnuc0 + naa(j)
-        ien0    = ien0 + rcp(j) * c1e3
-        end do
+      nnuc0   = nnuc0 + naa(j)
+      ien0    = ien0 + rcp(j) * c1e3
+    end do
 
 !! Call the geant4 collimation function
 !            call g4_collimate(rcx(j), rcy(j), rcxp(j), rcyp(j), rcp(j))
-        call g4_collimate()
+    call g4_collimate()
 
 !! Get the particle number back
-        call g4_get_particle_count(g4_npart)
+    call g4_get_particle_count(g4_npart)
 
 !! resize arrays
-        call expand_arrays(nele, g4_npart, nblz, nblo)
+    call expand_arrays(nele, g4_npart, nblz, nblo)
 
 !! Reset napx to the correct value
-        napx = g4_npart
+    napx = g4_npart
 
-        if(g4_debug .eqv. .true.) then
-          write(lout,"(12a)") chr_lpad('id',33), chr_lpad('pdgid',12), chr_lpad('mass',25), chr_lpad('x',25), chr_lpad('y',25), &
-                              chr_lpad('xp',25), chr_lpad('yp',25), chr_lpad('p',25), chr_lpad('spin_x',25), chr_lpad('spin_y',25),&
-                              chr_lpad('spin_z',25)
-          flush(lout)
-        end if
+    if(g4_debug .eqv. .true.) then
+      write(lout,"(12a)") chr_lpad('id',33), chr_lpad('pdgid',12), chr_lpad('mass',25), chr_lpad('x',25), chr_lpad('y',25), &
+                          chr_lpad('xp',25), chr_lpad('yp',25), chr_lpad('p',25), chr_lpad('spin_x',25), chr_lpad('spin_y',25),&
+                          chr_lpad('spin_z',25)
+      flush(lout)
+    end if
 
-        do j = 1, napx
+    do j = 1, napx
 !! Get the particle back + information
 !! Remember C arrays start at 0, fortran at 1 here.
-            call g4_collimate_return(j-1, rcx(j), rcy(j), rcxp(j), rcyp(j), rcp(j), pdgid(j), nucm(j), nzz(j), naa(j), nqq(j), &
-   sigmv(j), part_hit_flag, part_abs_flag, part_impact(j), part_indiv(j), part_linteract(j), spin_x(j), spin_y(j), spin_z(j) )
+      call g4_collimate_return(j-1, rcx(j), rcy(j), rcxp(j), rcyp(j), rcp(j), pdgid(j), nucm(j), nzz(j), naa(j), nqq(j), &
+        sigmv(j), part_hit_flag, part_abs_flag, part_impact(j), part_indiv(j), part_linteract(j), spin_x(j), spin_y(j), spin_z(j))
 
-            partID(j) = j
-            pstop (j) = .false.
+      partID(j) = j
+      pstop (j) = .false.
 
 !! Rotate back into the accelerator frame
-            x_tmp   = rcx(j)
-            y_tmp   = rcy(j)
-            xp_tmp  = rcxp(j)
-            yp_tmp  = rcyp(j)
-            rcx(j)  = x_tmp *cos_mb(-one*c_rotation) + sin_mb(-one*c_rotation)*y_tmp
-            rcy(j)  = y_tmp *cos_mb(-one*c_rotation) - sin_mb(-one*c_rotation)*x_tmp
-            rcxp(j) = xp_tmp*cos_mb(-one*c_rotation) + sin_mb(-one*c_rotation)*yp_tmp
-            rcyp(j) = yp_tmp*cos_mb(-one*c_rotation) - sin_mb(-one*c_rotation)*xp_tmp
+      x_tmp   = rcx(j)
+      y_tmp   = rcy(j)
+      xp_tmp  = rcxp(j)
+      yp_tmp  = rcyp(j)
+      rcx(j)  = x_tmp *cos_mb(-one*c_rotation) + sin_mb(-one*c_rotation)*y_tmp
+      rcy(j)  = y_tmp *cos_mb(-one*c_rotation) - sin_mb(-one*c_rotation)*x_tmp
+      rcxp(j) = xp_tmp*cos_mb(-one*c_rotation) + sin_mb(-one*c_rotation)*yp_tmp
+      rcyp(j) = yp_tmp*cos_mb(-one*c_rotation) - sin_mb(-one*c_rotation)*xp_tmp
 
 ! This needs fixing - FIXME
 !            sigmv(j) = zero
 !            sigmv(j) = s - (g4_v0*g4_time)
-            part_impact(j) = 0
-            part_indiv(j) = 0
-            part_linteract(j) = 0
+      part_impact(j) = 0
+      part_indiv(j) = 0
+      part_linteract(j) = 0
 
 ! Log output energy + nucleons as per the FLUKA coupling
-            nnuc1       = nnuc1 + naa(j)                          ! outcoming nucleons
-            ien1        = ien1  + rcp(j) * c1e3                   ! outcoming energy
+      nnuc1       = nnuc1 + naa(j)                          ! outcoming nucleons
+      ien1        = ien1  + rcp(j) * c1e3                   ! outcoming energy
 
 ! Fix hits
 ! if(part_hit_pos(j) .eq.ie .and. part_hit_turn(j).eq.iturn)
-            part_hit_pos(j)  = ie
-            part_hit_turn(j) = iturn
-            part_abs_pos(j) = 0
-            part_abs_turn(j) = 0
+      part_hit_pos(j)  = ie
+      part_hit_turn(j) = iturn
+      part_abs_pos(j) = 0
+      part_abs_turn(j) = 0
 
 !!           If a particle hit
 !            if(part_hit_flag.ne.0) then
@@ -2853,27 +2847,26 @@ subroutine collimate_do_collimator(stracki)
 !              g4_lostc = g4_lostc + 1
 !            end if
 
-            if(g4_debug .eqv. .true.) then
-              write(lout,"(a,2(1X,I11),10(1X,E24.16))") 'g4 return particle:  ', j, pdgid(j), nucm(j), rcx(j), rcy(j), rcxp(j), &
-                    rcyp(j), rcp(j), spin_x(j), spin_y(j), spin_z(j), sigmv(j)
-            end if
+      if(g4_debug .eqv. .true.) then
+        write(lout,"(a,2(1X,I11),10(1X,E24.16))") 'g4 return particle:  ', j, pdgid(j), nucm(j), rcx(j), rcy(j), rcxp(j), &
+              rcyp(j), rcp(j), spin_x(j), spin_y(j), spin_z(j), sigmv(j)
+      end if
 
-          flush(lout)
+      flush(lout)
 !!!!          end if !part_abs_pos(j) .ne. 0 .and. part_abs_turn(j) .ne. 0
-        end do   !do j = 1, napx
-!      write(lout,*) 'COLLIMATOR LOSSES ', cdb_cNameUC(icoll), g4_lostc
+    end do   !do j = 1, napx
 
-        call g4_collimation_clear()
+    call g4_collimation_clear()
 
-  if((ien0-ien1).gt.one) then
+    if((ien0-ien1) > one) then
 #ifdef ROOT
-    if(root_flag .and. root_Collimation .eq. 1) then
-      call root_EnergyDeposition(icoll, nnuc0-nnuc1,c1m3*(ien0-ien1))
-    end if
+      if(root_flag .and. root_Collimation == 1) then
+        call root_EnergyDeposition(icoll, nnuc0-nnuc1,c1m3*(ien0-ien1))
+      end if
 #endif
-    write(unit208,*) icoll, (nnuc0-nnuc1), c1m3*(ien0-ien1)
-    flush(unit208)
-  end if
+      write(unit208,"(2(i5,1x),e24.16)") icoll, (nnuc0-nnuc1), c1m3*(ien0-ien1)
+      flush(unit208)
+    end if
 
 #endif
   end if

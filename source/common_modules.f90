@@ -142,9 +142,11 @@ module mod_common
   character(len=mFileName), public, save :: fort6   = "fort.6"   ! Name of main output file (stdout)
   character(len=mFileName), public, save :: fort10  = "fort.10"  ! Name of main postprocessing file (text)
   character(len=mFileName), public, save :: fort110 = "fort.110" ! Name of main postprocessing file (binary)
-
+  character(len=mFileName), public, save :: fort208 = "fort.208" ! Collimation/FLUKA
+  
   integer,                  public, save :: unit10  = -1         ! Unit of main postprocessing file (text)
   integer,                  public, save :: unit110 = -1         ! Unit of main postprocessing file (binary)
+  integer,                  public, save :: unit208 = -1         ! Collimation/FLUKA
 
   !  GENERAL VARIABLES
   ! ===================
