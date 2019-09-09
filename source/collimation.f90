@@ -464,6 +464,7 @@ module collimation
   integer, private, save :: distsec_unit, efficiency_unit, efficiency_dpop_unit
   integer, private, save :: coll_summary_unit, amplitude_unit, amplitude2_unit, betafunctions_unit, orbitchecking_unit
   integer, private, save :: efficiency_2d_unit
+  integer, private, save :: profiling_jaw_unit
   integer, private, save :: outlun
 
 #ifdef HDF5
@@ -1728,6 +1729,11 @@ subroutine collimate_openFiles
   write(coll_settingsUnit,"(a20,1x,a10,5(1x,a13),1x,a4)") chr_rPad("# name",20),"slice","halfgap[m]","gapoffset[m]",&
     "tiltjaw1[rad]","tiltjaw2[rad]","length[m]","mat."
 
+  call f_requestUnit('jaw_profiles.dat', profiling_jaw_unit)
+  open(unit=profiling_jaw_unit, file='jaw_profiles.dat')
+  write(profiling_jaw_unit,'("#",3(a7,1x),5(a17,1x),a12)') &
+    "icoll", "iturn", "np", "x[m]", "xp[]", "y[m]", "yp[]", "s[m]", "[1:in,2:out]"
+
   ! Positions
   call f_requestUnit(coll_positionsFile,coll_positionsUnit)
   call f_open(unit=coll_positionsUnit,file=coll_positionsFile,formatted=.true.,mode="w")
@@ -2291,6 +2297,7 @@ subroutine collimate_do_collimator(stracki)
   use mod_units
   use mathlib_bouncer
   use string_tools, only : chr_rpad, chr_lpad
+  use mod_alloc
 
 #ifdef ROOT
   use root_output
@@ -2300,9 +2307,10 @@ subroutine collimate_do_collimator(stracki)
 
   real(kind=fPrec), intent(in) :: stracki
 
-  logical onesided
   integer j, iSlice
+  logical onesided, linside(napx)
   real(kind=fPrec) jawLength, jawAperture, jawOffset, jawTilt(2)
+  real(kind=fPrec) x_Dump,xpDump,y_Dump,ypDump,s_Dump
 
 #ifdef G4COLLIMATION
   integer :: g4_lostc
@@ -2637,7 +2645,7 @@ subroutine collimate_do_collimator(stracki)
 ! end RB addition
 
 !++  Copy particle data to 1-dim array and go back to meters
-  do j = 1, napx
+  do j=1,napx
     rcx(j)  = (xv1(j)-torbx(ie)) /c1e3
     rcxp(j) = (yv1(j)-torbxp(ie))/c1e3
     rcy(j)  = (xv2(j)-torby(ie)) /c1e3
@@ -2684,8 +2692,10 @@ subroutine collimate_do_collimator(stracki)
     onesided = .false.
   end if
 
+  linside(:) = .false.
+
   if(cdb_cSliced(icoll) > 0) then ! Treatment of sliced collimators
-    ! Now, loop over the number of slices and call collimate2 each time!
+    ! Now, loop over the number of slices and call collimate2 each time.
     ! For each slice, the corresponding offset and angle are to be used.
     do iSlice=1,jaw_getSliceCount(cdb_cSliced(icoll))
       jawAperture = c_aperture
@@ -2699,7 +2709,7 @@ subroutine collimate_do_collimator(stracki)
       call collimate2(c_material, jawLength, c_rotation, jawAperture, jawOffset, jawTilt, &
         rcx, rcxp, rcy, rcyp, rcp, rcs, napx, enom_gev, part_hit_pos, part_hit_turn,      &
         part_abs_pos, part_abs_turn, part_impact, part_indiv, part_linteract, onesided,   &
-        flukaname, secondary, iSlice, nabs_type)
+        flukaname, secondary, iSlice, nabs_type, linside)
     end do
 
   else ! Treatment of non-sliced collimators
@@ -2709,7 +2719,7 @@ subroutine collimate_do_collimator(stracki)
     call collimate2(c_material, c_length, c_rotation, c_aperture, c_offset, c_tilt, &
       rcx, rcxp, rcy, rcyp, rcp, rcs, napx, enom_gev, part_hit_pos,part_hit_turn,   &
       part_abs_pos, part_abs_turn, part_impact, part_indiv, part_linteract,         &
-      onesided, flukaname, secondary, 1, nabs_type)
+      onesided, flukaname, secondary, 1, nabs_type, linside)
 
 #else
 
@@ -2869,6 +2879,21 @@ subroutine collimate_do_collimator(stracki)
     end if
 
 #endif
+  end if
+
+  if(dowrite_impact) then
+    ! update writeout of jaw profiles
+    do j=1,napx
+      if(linside(j) .and. sqrt(rcx(j)**2 + rcy(j)**2) < 99.0e-3_fPrec) then
+        x_Dump = rcx (j)*cos_mb(c_rotation)+sin_mb(c_rotation)*rcy (j)
+        xpDump = rcxp(j)*cos_mb(c_rotation)+sin_mb(c_rotation)*rcyp(j)
+        y_Dump = rcy (j)*cos_mb(c_rotation)-sin_mb(c_rotation)*rcx (j)
+        ypDump = rcyp(j)*cos_mb(c_rotation)-sin_mb(c_rotation)*rcxp(j)
+        s_Dump = c_length
+        write(profiling_jaw_unit,'(3(1x,i7),5(1x,e17.9),1x,i1)') &
+          icoll,iturn,flukaname(j),x_Dump,xpDump,y_Dump,ypDump,s_Dump,2
+      end if
+    end do
   end if
 
 end subroutine collimate_do_collimator
@@ -3622,6 +3647,7 @@ subroutine collimate_exit()
     call f_close(coll_scatterUnit)
     call f_close(coll_fstImpactUnit)
   endif
+  call f_close(profiling_jaw_unit)
 
   call f_requestUnit('amplitude.dat', amplitude_unit)
   call f_requestUnit('amplitude2.dat', amplitude2_unit)
@@ -4412,11 +4438,11 @@ subroutine collimate2(c_material, c_length, c_rotation,           &
      &     lhit_pos, lhit_turn,                                         &
      &     part_abs_pos_local, part_abs_turn_local,                     &
      &     impact, indiv, lint, onesided,name,                          &
-     &     flagsec, j_slices, nabs_type)
+     &     flagsec, j_slices, nabs_type, linside)
 
   use crcoall
   use parpro
-  use mod_common, only : iexact
+  use mod_common, only : iexact, napx
   use mathlib_bouncer
   use mod_ranlux
 #ifdef HDF5
@@ -4437,6 +4463,7 @@ subroutine collimate2(c_material, c_length, c_rotation,           &
   integer, allocatable :: nabs_type(:) !(npart)
 !MAY2005
 
+  logical linside(napx)
   real(kind=fPrec), allocatable :: x_in(:) !(npart)
   real(kind=fPrec), allocatable :: xp_in(:) !(npart)
   real(kind=fPrec), allocatable :: y_in(:) !(npart)
@@ -4462,6 +4489,7 @@ subroutine collimate2(c_material, c_length, c_rotation,           &
 !
 
   real(kind=fPrec) x_flk,xp_flk,y_flk,yp_flk,zpj
+  real(kind=fPrec) x_Dump,xpDump,y_Dump,ypDump,s_Dump
 
   real(kind=fPrec) s_impact
   integer flagsec(npart)
@@ -4804,6 +4832,23 @@ subroutine collimate2(c_material, c_length, c_rotation,           &
 !++  Now do the scattering part
 !
     if (zlm.gt.zero) then
+      if(.not.linside(j)) then
+        ! first time particle hits collimator: entering jaw
+        linside(j)=.true.
+        if(dowrite_impact) then
+           if ( tiltangle.gt.zero ) then
+              x_Dump=(x+c_aperture/two+tiltangle*sp)*mirror+c_offset
+           else
+              x_Dump=(x+c_aperture/two+tiltangle*(sp-c_length))*mirror+c_offset
+           end if
+           xpDump=(xp+tiltangle)*mirror
+           y_Dump=z
+           ypDump=zp
+           s_Dump=sp+real(j_slices-1,fPrec)*c_length
+           write(profiling_jaw_unit,'(3(1x,i7),5(1x,e17.9),1x,i1)') &
+                  icoll,iturn,name(j),x_Dump,xpDump,y_Dump,ypDump,s_Dump,1
+        end if
+      end if
 !JUNE2005
       s_impact = sp
 !JUNE2005
@@ -4979,6 +5024,20 @@ subroutine collimate2(c_material, c_length, c_rotation,           &
     if(nabs.ne.1 .and. zlm.gt.zero) then
       drift_length = (length-(s+sp))
       if(drift_length.gt.c1m15) then
+        linside(j)=.false.
+        if(dowrite_impact) then
+           if ( tiltangle.gt.zero ) then
+              x_Dump=(x+c_aperture/two+tiltangle*(s+sp))*mirror+c_offset
+           else
+              x_Dump=(x+c_aperture/two+tiltangle*(s+sp-c_length))*mirror+c_offset
+           end if
+           xpDump=(xp+tiltangle)*mirror
+           y_Dump=z
+           ypDump=zp
+           s_Dump=s+sp+real(j_slices-1,fPrec)*c_length
+           write(profiling_jaw_unit,'(3(1x,i7),5(1x,e17.9),1x,i1)') &
+                icoll,iturn,name(j),x_Dump,xpDump,y_Dump,ypDump,s_Dump,2
+        end if
         if(iexact) then
           zpj = sqrt(one-xp**2-zp**2)
           x   = x + drift_length*(xp/zpj)
