@@ -1987,7 +1987,7 @@ recursive real(kind=fPrec) function dynk_computeFUN(funNum, turn) result(retval)
   use mod_ranecu
   use numerical_constants, only : pi
   use string_tools
-  use utils
+  use mod_utils
 
   implicit none
 
@@ -2339,7 +2339,7 @@ subroutine dynk_setvalue(element_name, att_name, newValue)
         else
           goto 100 ! ERROR
         end if
-        call initialize_element(ii, .false.)
+        call initialise_element(ii, .false.)
 
       case(11)
         im = irm(ii)
@@ -2377,21 +2377,21 @@ subroutine dynk_setvalue(element_name, att_name, newValue)
             goto 100 ! ERROR
           end if
         end if
-        call initialize_element(ii, .false.)
+        call initialise_element(ii, .false.)
 
       case(12)
         if(att_name == "voltage") then ! [MV]
           ed(ii) = newValue
         else if(att_name == "harmonic") then
           ek(ii) = newValue
-          el(ii) = dynk_elemData(ii,3) ! Need to reset el before calling initialize_element()
-          call initialize_element(ii, .false.)
+          el(ii) = dynk_elemData(ii,3) ! Need to reset el before calling initialise_element()
+          call initialise_element(ii, .false.)
         else if(att_name == "lag_angle") then ! [deg]
           el(ii) = newValue
-          ! Note: el is set to 0 in initialize_element and in daten.
+          ! Note: el is set to 0 in initialise_element and in daten.
           ! Calling initialize element on a cavity without setting el
           ! will set phasc = 0!
-          call initialize_element(ii, .false.)
+          call initialise_element(ii, .false.)
         else
           goto 100 ! ERROR
         end if
@@ -2436,7 +2436,7 @@ subroutine dynk_setvalue(element_name, att_name, newValue)
           else
             goto 100
           end if
-          call initialize_element(ii, .false.)
+          call initialise_element(ii, .false.)
         else
           goto 102
         end if
@@ -2448,11 +2448,11 @@ subroutine dynk_setvalue(element_name, att_name, newValue)
         else if(att_name == "frequency") then ! [MHz]
           ek(ii) = newValue
         else if(att_name == "phase") then ! [rad]
-          ! Note: el is set to 0 in initialize_element and in daten.
+          ! Note: el is set to 0 in initialise_element and in daten.
           ! Calling initialize element on a crab without setting el
           ! will set crabph = 0!
           el(ii) = newValue
-          call initialize_element(ii, .false.)
+          call initialise_element(ii, .false.)
         else
           goto 100 ! ERROR
         end if

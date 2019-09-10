@@ -1,0 +1,3 @@
+collsettings.dat
+aperture_losses.dat
+hash.md5

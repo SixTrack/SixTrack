@@ -111,7 +111,7 @@ subroutine trauthin(nthinerr)
     !43--elliptic beam z>x
     !44 -- 6d beam-beam
     if(kzz.eq.20) then
-        call initialize_element(ix,.false.)
+        call initialise_element(ix,.false.)
       goto 290
     endif
 
@@ -254,7 +254,7 @@ subroutine trauthin(nthinerr)
         ktrack(i) = 20
 #include "include/stra10.f90"
       end if
-    case (11) ! Multipole block (also in initialize_element)
+    case (11) ! Multipole block (also in initialise_element)
       r0  = ek(ix)
       nmz = nmu(ix)
       if(abs(r0).le.pieni.or.nmz.eq.0) then
@@ -439,16 +439,15 @@ subroutine trauthin(nthinerr)
   if (dynk_enabled) call dynk_pretrack
   call time_timeStamp(time_afterPreTrack)
 
-  if ((idp == 0 .or. ition == 0) .and. .not.do_coll) then !4D tracking (not collimat compatible)
+  if((idp == 0 .or. ition == 0) .and. .not.do_coll) then !4D tracking (not collimat compatible)
     write(lout,"(a)") ""
     write(lout,"(a)") "TRACKING> Calling thin4d subroutine"
     write(lout,"(a)") ""
     call thin4d(nthinerr)
   else !6D tracking
-    if(idp == 0 .or. ition == 0) then !Actually 4D, but collimation needs 6D so goto 6D.
+    if(do_coll .and. (idp == 0 .or. ition == 0)) then !Actually 4D, but collimation needs 6D so goto 6D.
       write(lout,"(a)") "TRACKING> WARNING Calling 6D tracking due to collimation! Would normally have called thin4d"
     endif
-
     hsy(3)=(c1m3*hsy(3))*real(ition,fPrec)
     do jj=1,nele
       if(abs(kz(jj)) == 12) then
@@ -530,7 +529,7 @@ subroutine thin4d(nthinerr)
   use aperture
   use elens
   use cheby, only : cheby_ktrack, cheby_kick
-  use utils
+  use mod_utils
   use wire
 #ifdef CR
   use checkpoint_restart
@@ -1153,7 +1152,7 @@ subroutine thin6d(nthinerr)
   use aperture
   use elens
   use cheby, only : cheby_ktrack, cheby_kick
-  use utils
+  use mod_utils
   use wire
 #ifdef CR
   use checkpoint_restart

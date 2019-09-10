@@ -3353,6 +3353,7 @@ subroutine sixin_parseInputLineBEAM(inLine, iLine, iErr)
   use mod_settings
   use parbeam, only : beam_expflag
   use mod_common
+  use mod_utils
 
   character(len=*), intent(in)    :: inLine
   integer,          intent(in)    :: iLine
@@ -3512,6 +3513,7 @@ subroutine sixin_parseInputLineBEAM_EXP(inLine, iLine, iErr)
   use mod_settings
   use parbeam, only : beam_expflag
   use mod_common
+  use mod_utils
 
   character(len=*), intent(in)    :: inLine
   integer,          intent(in)    :: iLine
