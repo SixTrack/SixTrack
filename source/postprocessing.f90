@@ -10,117 +10,98 @@ module postprocessing
 
 contains
 
-subroutine postpr(arg1,arg2)
-!-----------------------------------------------------------------------
+! ================================================================================================ !
 !  POST PROCESSING
-!
-!  The variabe arg1 sets posi for STF builds and nfile otherwise.
-!  The variable arg2 sets nnuml for CR builds, and is 0 otherwise
-!
-!  NFILE   :  FILE UNIT (non-STF) -- always fixed to 90 for STF version.
-!  POSI    :  PARTICLE NUMBER
-!             (the first particle in pair if ntwin=2, i.e. it is a  pair).
-!  NNUML   :  ??
-!-----------------------------------------------------------------------
-      use mathlib_bouncer
-      use numerical_constants
-      use matrix_inv
-      use crcoall
-      use parpro
-      use string_tools
-      use mod_version
-      use mod_time
-      use mod_units
-      use mod_common_main, only : numxv,partID
-      use mod_common, only : dpscor,sigcor,icode,idam,its6d,dphix,dphiz,qx0,qz0,&
-        dres,dfft,cma1,cma2,nstart,nstop,iskip,iconv,imad,ipos,iav,iwg,ivox,    &
-        ivoz,ires,ifh,toptit,kwtype,itf,icr,idis,icow,istw,iffw,nprint,ndafi,   &
-        chromc,tlim,trtime,fort10,fort110,unit10,unit110,napxo
+! ~~~~~~~~~~~~~~~~~
+!  POSI    :  Particle number (the first particle in pair if ntwin=2, i.e. it is a  pair).
+!  NUML_T  :  Turn number (optional, defaults to 0)
+! ================================================================================================ !
+subroutine postpr(posi, numl_t)
+
+  use mathlib_bouncer
+  use numerical_constants
+  use matrix_inv
+  use crcoall
+  use parpro
+  use string_tools
+  use mod_version
+  use mod_time
+  use mod_units
+  use mod_common_main, only : numxv,partID
+  use mod_common, only : dpscor,sigcor,icode,idam,its6d,dphix,dphiz,qx0,qz0,    &
+    dres,dfft,cma1,cma2,nstart,nstop,iskip,iconv,imad,ipos,iav,iwg,ivox,ivoz,   &
+    ires,ifh,toptit,kwtype,itf,icr,idis,icow,istw,iffw,nprint,ndafi,chromc,tlim,&
+    trtime,fort10,fort110,unit10,unit110,napxo
 #ifdef ROOT
-      use root_output
+  use root_output
 #endif
 #ifdef CR
-      use checkpoint_restart
+  use checkpoint_restart
 #endif
-      implicit none
 
-      integer,           intent(in) :: arg1
-      integer, optional, intent(in) :: arg2
+  implicit none
 
-      integer i,i1,i11,i2,i3,ia,ia0,iaa,iab,iap6,iapx,iapz,ich,idnt,    &
-     &ierro,idummy,if1,if2,ife,ife2,ifipa,ifp,ii,ilapa,ilyap,im1,im1s,  &
-     &invx,invz,iq,iskc,itopa,iturn,ivo6,iwar6,iwarx,iwarz,j,jm1,jm1s,  &
-     &jq,k,k1,nerror,nfft,nfile,nivh,nlost,ntwin,nuex,nuez,nuix,nuiz,   &
-     &numl
-#ifdef STF
-      integer posi,posi1, ia_stf,ifipa_stf,ilapa_stf
-#endif
-      real tim1,tim2,fxs,fzs
-      real(kind=fPrec) const,dle,slope,tle,varlea,wgh
-      real(kind=fPrec) alf0,alf04,alf0s2,alf0s3,alf0x2,alf0x3,alf0z2,   &
-     &alf0z3,ampx0,ampz0,angi,angii,angiii,ared,ares,armin,armin0,b,b0, &
-     &bet0,bet04,bet0s2,bet0s3,bet0x2,bet0x3,bet0z2,bet0z3,biav,bold,c, &
-     &c0,c1,c6,clo,cloau,clop,cx,cz,d,d0,d1,dared,dares,di0,di0au,      &
-     &di11,dife,dip0,dizu0,dle1,dle1c,dmmac,dnms,dnumlr,dp1,dph6,dphx,  &
-     &dphz,dpx,dpxp,dpz,dpzp,dummy,e,e0,e1,emag,emat,emax,emaz,emi,emig,&
-     &emii,emiii,emit,emix,emiz,emt,emta,emts,emx,emx0,emxa,emxs,emz,   &
-     &emz0,emza,emzs,evt,evt1,evtm,evtma,evtmi,evx,evx1,evx2,evxm,evxma,&
-     &evxmi,evz,evz1,evz2,evzm,evzma,evzmi,f,f0,f1,ffx,ffz,finv,g,g0,g1,&
-     &gam0s1,gam0s2,gam0s3,gam0x1,gam0x2,gam0x3,gam0z1,gam0z2,gam0z3,h, &
-     &h0,h1,p,p1,pcha,pieni2,pinx,pinz,pixr,pizr,pmax,pmin,prec,        &
-     &qs0,qwc,ratemx,ratemz,rbeta,s6,sdp6,sdpx,sdpz,sevt,sevx,sevz,     &
-     &slopem,sumda,sx,sz,t,ta,ta16,ta26,ta36,ta46,ta56,ta61,ta62,ta63,  &
-     &ta64,ta65,tasum,tidnt,tle1,tlo,tph6,tphx,tphz,tpi,txyz,txyz2,x,   &
-     &xing,xinv,xp,xp0,xxaux,xxmax,xxmin,xxi,xxr,xyzv,xyzv2,zing,zinv,  &
-     &zp,zp0,zzaux,zzmax,zzmin,zzi,zzr
+  integer,           intent(in) :: posi
+  integer, optional, intent(in) :: numl_t
 
-      !The fort.90 file is always with real64, so we need some temps to read it
-      ! For the header:
-      real(kind=real64) qwc_tmp(3), clo_tmp(3), clop_tmp(3)
-      real(kind=real64) di0_tmp(2), dip0_tmp(2)
-      real(kind=real64) ta_tmp(6,6)
-      real(kind=real64) dmmac_tmp,dnms_tmp,dizu0_tmp,dnumlr_tmp,sigcor_tmp,dpscor_tmp
-      real(kind=real64) dummy64
+  integer i,i1,i11,i2,i3,ia,ia0,iaa,iab,iap6,iapx,iapz,ich,idnt,ierro,idummy,   &
+    if1,if2,ife,ife2,ifipa,ifp,ii,ilapa,ilyap,im1,im1s,invx,invz,iq,iskc,itopa, &
+    iturn,ivo6,iwar6,iwarx,iwarz,j,jm1,jm1s,jq,k,k1,nerror,nfft,nfile,nivh,     &
+    nlost,ntwin,nuex,nuez,nuix,nuiz,numl,posi1, ia_stf,ifipa_stf,ilapa_stf
+  real tim1,tim2,fxs,fzs
+  real(kind=fPrec) const,dle,slope,tle,varlea,wgh,alf0,alf04,alf0s2,alf0s3,     &
+    alf0x2,alf0x3,alf0z2,alf0z3,ampx0,ampz0,angi,angii,angiii,ared,ares,armin,  &
+    armin0,b,b0,bet0,bet04,bet0s2,bet0s3,bet0x2,bet0x3,bet0z2,bet0z3,biav,bold, &
+    c,c0,c1,c6,clo,cloau,clop,cx,cz,d,d0,d1,dared,dares,di0,di0au,di11,dife,    &
+    dip0,dizu0,dle1,dle1c,dmmac,dnms,dnumlr,dp1,dph6,dphx,dphz,dpx,dpxp,dpz,    &
+    dpzp,dummy,e,e0,e1,emag,emat,emax,emaz,emi,emig,emii,emiii,emit,emix,emiz,  &
+    emt,emta,emts,emx,emx0,emxa,emxs,emz,emz0,emza,emzs,evt,evt1,evtm,evtma,    &
+    evtmi,evx,evx1,evx2,evxm,evxma,evxmi,evz,evz1,evz2,evzm,evzma,evzmi,f,f0,f1,&
+    ffx,ffz,finv,g,g0,g1,gam0s1,gam0s2,gam0s3,gam0x1,gam0x2,gam0x3,gam0z1,      &
+    gam0z2,gam0z3,h,h0,h1,p,p1,pcha,pieni2,pinx,pinz,pixr,pizr,pmax,pmin,prec,  &
+    qs0,qwc,ratemx,ratemz,rbeta,s6,sdp6,sdpx,sdpz,sevt,sevx,sevz,slopem,sumda,  &
+    sx,sz,t,ta,ta16,ta26,ta36,ta46,ta56,ta61,ta62,ta63,ta64,ta65,tasum,tidnt,   &
+    tle1,tlo,tph6,tphx,tphz,tpi,txyz,txyz2,x,xing,xinv,xp,xp0,xxaux,xxmax,xxmin,&
+    xxi,xxr,xyzv,xyzv2,zing,zinv,zp,zp0,zzaux,zzmax,zzmin,zzi,zzr
 
-      !For the actual tracking data
-      real(kind=real64) b_tmp,c_tmp,d_tmp,e_tmp,f_tmp,g_tmp,h_tmp,p_tmp
-      real(kind=real64) c1_tmp,d1_tmp,e1_tmp,f1_tmp,g1_tmp,h1_tmp,p1_tmp
+  !The fort.90 file is always with real64, so we need some temps to read it
+  ! For the header:
+  real(kind=real64) qwc_tmp(3),clo_tmp(3),clop_tmp(3),di0_tmp(2),dip0_tmp(2),ta_tmp(6,6)
+  real(kind=real64) dmmac_tmp,dnms_tmp,dizu0_tmp,dnumlr_tmp,sigcor_tmp,dpscor_tmp,dummy64
 
-      character(len=80) title(20),chxtit(20),chytit(20)
-      character(len=8) cdate,ctime,progrm ! Note: Keep in sync with maincr
-      character(len=80) sixtit,commen     ! Note: Keep in sync with mod_common
-                                          ! DANGER: If the len changes, CRCHECK will break.
+  !For the actual tracking data
+  real(kind=real64) b_tmp,c_tmp,d_tmp,e_tmp,f_tmp,g_tmp,h_tmp,p_tmp
+  real(kind=real64) c1_tmp,d1_tmp,e1_tmp,f1_tmp,g1_tmp,h1_tmp,p1_tmp
 
-      character(len=11) hvs
-      character(len=8192) ch
-      character(len=25) ch1
-      integer errno,l1,l2,nnuml
-      logical rErr
-      dimension tle(nlya),dle(nlya)
-      dimension wgh(nlya),biav(nlya),slope(nlya),varlea(nlya)
-      dimension xinv(ninv),invx(ninv),zinv(ninv),invz(ninv)
-      dimension xxr(npos),xxi(npos),zzr(npos),zzi(npos),fxs(npos),fzs(npos)
-      dimension bet0(3),alf0(3),t(6,6)
-      dimension bet04(2),alf04(2)
-      dimension pmin(30),pmax(30)
-      dimension idummy(6)
-      dimension sumda(60)
-      dimension x(2,6),cloau(6),di0au(4)
-      dimension qwc(3),clo(3),clop(3),di0(2),dip0(2)
-      dimension ta(6,6),txyz(6),txyz2(6),xyzv(6),xyzv2(6),rbeta(6)
-      integer itot,ttot
-      save
+  character(len=80) title(20),chxtit(20),chytit(20)
+  character(len=8)  cdate,ctime,progrm ! Note: Keep in sync with maincr
+  character(len=80) sixtit,commen      ! Note: Keep in sync with mod_common. DANGER: If the len changes, CRCHECK will break.
 
-      if(present(arg2)) then
-        nnuml = arg2
-      else
-        nnuml = 0
-      end if
-#ifdef STF
-      posi = arg1
-#else
-      nfile = arg1
-#endif
+  character(len=11) hvs
+  character(len=8192) ch
+  character(len=25) ch1
+  integer errno,l1,l2,nnuml
+  logical rErr
+  dimension tle(nlya),dle(nlya)
+  dimension wgh(nlya),biav(nlya),slope(nlya),varlea(nlya)
+  dimension xinv(ninv),invx(ninv),zinv(ninv),invz(ninv)
+  dimension xxr(npos),xxi(npos),zzr(npos),zzi(npos),fxs(npos),fzs(npos)
+  dimension bet0(3),alf0(3),t(6,6)
+  dimension bet04(2),alf04(2)
+  dimension pmin(30),pmax(30)
+  dimension idummy(6)
+  dimension sumda(60)
+  dimension x(2,6),cloau(6),di0au(4)
+  dimension qwc(3),clo(3),clop(3),di0(2),dip0(2)
+  dimension ta(6,6),txyz(6),txyz2(6),xyzv(6),xyzv2(6),rbeta(6)
+  integer itot,ttot
+  save
+
+  if(present(numl_t)) then
+    nnuml = numl_t
+  else
+    nnuml = 0
+  end if
 
 !----------------------------------------------------------------------
 !--TIME START
