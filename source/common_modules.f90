@@ -172,7 +172,7 @@ module mod_common
   integer,          save :: irew       = 0       ! Rewind fort.59-90
   integer,          save :: iclo6      = 0       ! 6D closed orbit flags
   integer,          save :: nde(2)     = 0       ! Number of turns at flat bottom / energy ramping
-  integer,          save :: nwr(4)     = 1       ! Writings to fort.90
+  integer,          save :: nwr(4)     = 1       ! Writings to singletrackfile.dat
   integer,          save :: ntwin      = 1       ! How to calculate the distance in phase space
   integer,          save :: napxo      = 0       ! Original value of napx
   integer,          save :: napxto     = 0       ! Particles times turns

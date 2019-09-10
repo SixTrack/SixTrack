@@ -64,7 +64,7 @@ subroutine postpr(posi, numl_t)
     tle1,tlo,tph6,tphx,tphz,tpi,txyz,txyz2,x,xing,xinv,xp,xp0,xxaux,xxmax,xxmin,&
     xxi,xxr,xyzv,xyzv2,zing,zinv,zp,zp0,zzaux,zzmax,zzmin,zzi,zzr
 
-  !The fort.90 file is always with real64, so we need some temps to read it
+  !The singletrackfile file is always with real64, so we need some temps to read it
   ! For the header:
   real(kind=real64) qwc_tmp(3),clo_tmp(3),clop_tmp(3),di0_tmp(2),dip0_tmp(2),ta_tmp(6,6)
   real(kind=real64) dmmac_tmp,dnms_tmp,dizu0_tmp,dnumlr_tmp,sigcor_tmp,dpscor_tmp,dummy64
@@ -2533,7 +2533,7 @@ subroutine join
       dimension x(mpa,2),y(mpa,2),sigm(mpa),dps(mpa)
       dimension di0(2),dip0(2)
 
-      !The fort.90 file is always with real64, so we need some temps to read it
+      !The singletrackfile file is always with real64, so we need some temps to read it
       ! For the header:
       real(kind=real64) qwc_tmp(3), clo_tmp(3), clop_tmp(3)
       real(kind=real64) di0_tmp(2), dip0_tmp(2)
@@ -2638,7 +2638,7 @@ subroutine join
             exit
          endif
 
-         !Loop to read the actual tracking data and write it to fort.90
+         !Loop to read the actual tracking data and write it to singletrackfile.dat
          do
 
             !First file
@@ -2697,9 +2697,7 @@ subroutine join
             y(2,2)=y(2,2)*c1e3
             sigm(2)=sigm(2)*c1e3
 
-            !OK, we have read a pair, now write it back to fort.90
-            ! (possible bug: Should this have been back to fort.(91-i)?)
-
+            !OK, we have read a pair, now write it back to singletrackfile.dat
             !Convert it to real64 before writing
             x_tmp(1,1) = real(x(1,1), real64)
             y_tmp(1,1) = real(y(1,1), real64)
@@ -2811,7 +2809,7 @@ subroutine join
             goto 40
          endif
 
-         !copy the particle records from fort.90 to fort.91-i
+         !copy the particle records from singletrackfile.dat
          do
             read(90,iostat=ierro) &
                  ia,ipa,dam_tmp, &
@@ -2852,7 +2850,7 @@ subroutine join
 end subroutine join
 
 ! ================================================================================================ !
-!  Subroutine for writing the header of the binary files (fort.90 etc.)
+!  Subroutine for writing the header of the binary file singletrackfile.dat
 !  Always converting to real64 before writing to disk
 ! ================================================================================================ !
 !  K. SJOBAK, October 2017
@@ -2943,7 +2941,7 @@ subroutine writebin_header(ia_p1,ia_p2,fileunit_in, ierro_wbh, cdate,ctime,progr
 end subroutine writebin_header
 
 ! ================================================================================================ !
-!  Subroutine for writing the the binary files (fort.90 etc.)
+!  Subroutine for writing the the binary file singletrackfile.dat
 !  Always converting to real64 before writing to disk
 ! ================================================================================================ !
 !  F. SCHMIDT, 3 February 1999

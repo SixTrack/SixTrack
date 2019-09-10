@@ -300,7 +300,7 @@ end subroutine cr_killSwitch
 !  Last modified: 2018-12-05
 !
 !  This subroutine checks if the C/R files exist, and if so tries to load them into the cr* variables.
-!  This routine also repositions the output files for fort.90..91-napx/2 and various other modules
+!  This routine also repositions the output files for singletrackfile.dat and various other modules
 ! ================================================================================================ !
 subroutine crcheck
 
@@ -882,7 +882,6 @@ subroutine cr_positionTrackFiles
   integer(kind=int32) hbuff(253),tbuff(35)
 
   ! We may be re-running with a DIFFERENT number of turns (numl)
-  ! Eric fix this later by reading numl for fort.90
   if(numl /= crnuml) then
     if(numl < crnumlcr) then
       write(lerr, "(2(a,i0))") "CR_CHECK> ERROR New numl < crnumlcr : ",numl," < ",crnumlcr
@@ -893,7 +892,7 @@ subroutine cr_positionTrackFiles
     write(crlog,"(2(a,i0))") "CR_CHECK> Resetting numl in binary file headers from ",crnuml," to ",numl
     flush(crlog)
 
-    ! Reposition binary files fort.90 etc. / singletrackfile.dat
+    ! Reposition binary file singletrackfile.dat
     call f_requestUnit("cr_trackfile.tmp",tUnit)
     call f_open(unit=tUnit,file="cr_trackfile.tmp",formatted=.false.,mode="rw")
     ! First, copy crbinrecs(ia)*(crnapx/2) records of data from singletrackfile.dat to temp file
