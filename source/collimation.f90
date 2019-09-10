@@ -1698,6 +1698,7 @@ subroutine collimate_openFiles
 
   use mod_units
   use string_tools
+  use mod_common, only : numl
 #ifdef HDF5
   use hdf5_output
   use hdf5_tracks2
