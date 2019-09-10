@@ -1101,7 +1101,7 @@ subroutine collimate_parseInputLine(inLine, iLine, iErr)
     call chr_cast(lnSplit(2), cdb_doNSig, iErr)
 
   case("JAW_SLICE")
-    write(lerr,"(a)") "COLL> ERROR The new COLLIMATION block no longer supports the HAW_SLICE flag"
+    write(lerr,"(a)") "COLL> ERROR The new COLLIMATION block no longer supports the JAW_SLICE flag"
     write(lerr,"(a)") "COLL>       The feature has been moved the the collimator database"
     iErr = .true.
     return
