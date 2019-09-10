@@ -232,150 +232,6 @@ subroutine postpr(posi, numl_t)
 !----------------------------------------------------------------------
       rewind nfile
       ia=0
-#ifndef STF
-      read(nfile,end=510,iostat=ierro) &
-     &     sixtit,commen,cdate,ctime,progrm, &
-     &     ifipa,ilapa,itopa,icode,numl, &
-     &     qwc_tmp(1),qwc_tmp(2),qwc_tmp(3), &
-     &     clo_tmp(1),clop_tmp(1),clo_tmp(2),clop_tmp(2), &
-     &     clo_tmp(3),clop_tmp(3), &
-     &     di0_tmp(1),dip0_tmp(1),di0_tmp(2),dip0_tmp(2), &
-     &     dummy64,dummy64, &
-     &     ta_tmp(1,1),ta_tmp(1,2),ta_tmp(1,3), &
-     &     ta_tmp(1,4),ta_tmp(1,5),ta_tmp(1,6), &
-     &     ta_tmp(2,1),ta_tmp(2,2),ta_tmp(2,3), &
-     &     ta_tmp(2,4),ta_tmp(2,5),ta_tmp(2,6), &
-     &     ta_tmp(3,1),ta_tmp(3,2),ta_tmp(3,3), &
-     &     ta_tmp(3,4),ta_tmp(3,5),ta_tmp(3,6), &
-     &     ta_tmp(4,1),ta_tmp(4,2),ta_tmp(4,3), &
-     &     ta_tmp(4,4),ta_tmp(4,5),ta_tmp(4,6), &
-     &     ta_tmp(5,1),ta_tmp(5,2),ta_tmp(5,3), &
-     &     ta_tmp(5,4),ta_tmp(5,5),ta_tmp(5,6), &
-     &     ta_tmp(6,1),ta_tmp(6,2),ta_tmp(6,3), &
-     &     ta_tmp(6,4),ta_tmp(6,5),ta_tmp(6,6), &
-     &     dmmac_tmp,dnms_tmp,dizu0_tmp,dnumlr_tmp, &
-     &     sigcor_tmp,dpscor_tmp
-
-      if(ierro.gt.0) then
-         write(lout,10320) nfile
-#ifdef CR
-         goto 551
-#else
-         goto 550
-#endif
-      endif
-
-      !Convert it to the current working precission
-      do i=1,3
-         qwc(i)  = real(qwc_tmp (i), fPrec)
-         clo(i)  = real(clo_tmp (i), fPrec)
-         clop(i) = real(clop_tmp(i), fPrec)
-      end do
-
-      do i=1,2
-         di0(i)  = real(di0_tmp (i), fPrec)
-         dip0(i) = real(dip0_tmp(i), fPrec)
-      enddo
-
-      do i=1,6
-         do j=1,6
-            ta(j,i) = real(ta_tmp(j,i), fPrec)
-         end do
-      end do
-
-      dmmac  = real(dmmac_tmp,  fPrec)
-      dnms   = real(dnms_tmp,   fPrec)
-      dizu0  = real(dizu0_tmp,  fPrec)
-      dnumlr = real(dnumlr_tmp, fPrec)
-      sigcor = real(sigcor_tmp, fPrec)
-      dpscor = real(dpscor_tmp, fPrec)
-
-#ifdef CR
-      sumda(1)=nnuml
-#else
-      sumda(1)=numl
-#endif
-      idam=1
-      if(icode.eq.1.or.icode.eq.2.or.icode.eq.4) idam=1
-      if(icode.eq.3.or.icode.eq.5.or.icode.eq.6) idam=2
-      if(icode.eq.7) idam=3
-      if(ilapa.ne.ifipa) ntwin=2
-      if(imad.eq.1.and.progrm.eq.'MAD') then
-        imad=0
-        rewind nfile
-        call join
-
-        read(nfile,end=520,iostat=ierro) &
-     &     sixtit,commen,cdate,ctime,progrm, &
-     &     ifipa,ilapa,itopa,icode,numl, &
-     &     qwc_tmp(1),qwc_tmp(2),qwc_tmp(3), &
-     &     clo_tmp(1),clop_tmp(1),clo_tmp(2),clop_tmp(2), &
-     &     clo_tmp(3),clop_tmp(3), &
-     &     di0_tmp(1),dip0_tmp(1),di0_tmp(2),dip0_tmp(2), &
-     &     dummy64,dummy64, &
-     &     ta_tmp(1,1),ta_tmp(1,2),ta_tmp(1,3), &
-     &     ta_tmp(1,4),ta_tmp(1,5),ta_tmp(1,6), &
-     &     ta_tmp(2,1),ta_tmp(2,2),ta_tmp(2,3), &
-     &     ta_tmp(2,4),ta_tmp(2,5),ta_tmp(2,6), &
-     &     ta_tmp(3,1),ta_tmp(3,2),ta_tmp(3,3), &
-     &     ta_tmp(3,4),ta_tmp(3,5),ta_tmp(3,6), &
-     &     ta_tmp(4,1),ta_tmp(4,2),ta_tmp(4,3), &
-     &     ta_tmp(4,4),ta_tmp(4,5),ta_tmp(4,6), &
-     &     ta_tmp(5,1),ta_tmp(5,2),ta_tmp(5,3), &
-     &     ta_tmp(5,4),ta_tmp(5,5),ta_tmp(5,6), &
-     &     ta_tmp(6,1),ta_tmp(6,2),ta_tmp(6,3), &
-     &     ta_tmp(6,4),ta_tmp(6,5),ta_tmp(6,6), &
-     &     dmmac_tmp,dnms_tmp,dizu0_tmp,dnumlr_tmp, &
-     &     sigcor_tmp,dpscor_tmp
-
-        if(ierro.gt.0) then
-           write(lout,10320) nfile
-#ifdef CR
-           goto 551
-#else
-           goto 550
-#endif
-        endif
-
-        !Convert it to the current working precission
-        do i=1,3
-           qwc(i)  = real(qwc_tmp (i), fPrec)
-           clo(i)  = real(clo_tmp (i), fPrec)
-           clop(i) = real(clop_tmp(i), fPrec)
-        end do
-
-        do i=1,2
-           di0(i)  = real(di0_tmp (i), fPrec)
-           dip0(i) = real(dip0_tmp(i), fPrec)
-        enddo
-
-        do i=1,6
-           do j=1,6
-              ta(j,i) = real(ta_tmp(j,i), fPrec)
-           end do
-        end do
-
-        dmmac  = real(dmmac_tmp,  fPrec)
-        dnms   = real(dnms_tmp,   fPrec)
-        dizu0  = real(dizu0_tmp,  fPrec)
-        dnumlr = real(dnumlr_tmp, fPrec)
-        sigcor = real(sigcor_tmp, fPrec)
-        dpscor = real(dpscor_tmp, fPrec)
-
-        !MadX convention
-        ta(1,6)=ta(1,6)*c1e3
-        ta(2,6)=ta(2,6)*c1e3
-        ta(3,6)=ta(3,6)*c1e3
-        ta(4,6)=ta(4,6)*c1e3
-        ta(5,6)=ta(5,6)*c1e3
-        ta(6,1)=ta(6,1)*c1m3
-        ta(6,2)=ta(6,2)*c1m3
-        ta(6,3)=ta(6,3)*c1m3
-        ta(6,4)=ta(6,4)*c1m3
-        ta(6,5)=ta(6,5)*c1m3
-
-      endif
-#else
       !Read header lines until a match is found
  555  continue
       read(nfile,end=510,iostat=ierro) &
@@ -451,28 +307,10 @@ subroutine postpr(posi, numl_t)
       if(icode.eq.7) idam=3
       if(ilapa.ne.ifipa) then !Is first particle != Last particle?
         ntwin=2               !(ntwin=1 is the default in postpr)
-!--   binrecs is indexed as 1,2,3,... (=i.e.(91-nfile) in the non-STF version,
 !--   while posi values are called as 1,3,5, so using posi1 for crbinrecs index later
       endif
       posi1 = (posi+1)/2 !For both ntwin=1 and 2
-#endif
 
-#ifndef STF
-!--PREVENT FAULTY POST-PROCESSING
-      read(nfile,end=530,iostat=ierro) iaa
-
-      if(ierro.gt.0) then
-        write(lout,10320) nfile
-        goto 550
-      endif
-
-      read(nfile,end=535,iostat=ierro) iab
-
-      if(ierro.gt.0) then
-        write(lout,10320) nfile
-        goto 550
-      endif
-#else
 !--PREVENT FAULTY POST-PROCESSING
       !--bypass headers
       rewind nfile
@@ -502,20 +340,15 @@ subroutine postpr(posi, numl_t)
         write(lout,10320) nfile
         goto 550
       endif
-#endif
 
       if((((numl+1)/iskip)/(iab-iaa))/iav.gt.nlya) nstop=iav*nlya
 
       rewind nfile
 
 !-- Bypassing header to read tracking data later
-#ifndef STF
-      read(nfile)
-#else
       do i=1,itopa,2
          read(nfile) !One header per particle pair.
       enddo
-#endif
       sumda(5)=ta(1,1)**2+ta(1,2)**2
       sumda(6)=ta(3,3)**2+ta(3,4)**2
 
@@ -831,42 +664,6 @@ subroutine postpr(posi, numl_t)
 !--FIND MINIMUM VALUE OF THE DISTANCE IN PHASESPACE
 !----------------------------------------------------------------------
   190 ifipa=0
-#ifndef STF
-      if(ntwin.eq.1) then
-         read(nfile,end=200,iostat=ierro) ia,ifipa,b_tmp,c_tmp,d_tmp,e_tmp,f_tmp,g_tmp,h_tmp,p_tmp
-
-         b=real(b_tmp,fPrec)
-         c=real(c_tmp,fPrec)
-         d=real(d_tmp,fPrec)
-         e=real(e_tmp,fPrec)
-         f=real(f_tmp,fPrec)
-         g=real(g_tmp,fPrec)
-         h=real(h_tmp,fPrec)
-         p=real(p_tmp,fPrec)
-
-      elseif(ntwin.eq.2) then
-         read(nfile,end=200,iostat=ierro) ia,ifipa,b_tmp,c_tmp,d_tmp,e_tmp,f_tmp,g_tmp,h_tmp,p_tmp,ilapa,b_tmp,c1_tmp,d1_tmp,    &
-     &e1_tmp,f1_tmp,g1_tmp,h1_tmp,p1_tmp
-
-         b=real(b_tmp,fPrec)
-         c=real(c_tmp,fPrec)
-         d=real(d_tmp,fPrec)
-         e=real(e_tmp,fPrec)
-         f=real(f_tmp,fPrec)
-         g=real(g_tmp,fPrec)
-         h=real(h_tmp,fPrec)
-         p=real(p_tmp,fPrec)
-
-         c1=real(c1_tmp,fPrec)
-         d1=real(d1_tmp,fPrec)
-         e1=real(e1_tmp,fPrec)
-         f1=real(f1_tmp,fPrec)
-         g1=real(g1_tmp,fPrec)
-         h1=real(h1_tmp,fPrec)
-         p1=real(p1_tmp,fPrec)
-
-      endif
-#else
 !STF case: read tracking data until one reaches right particle.
       if(ntwin.eq.1) then
          read(nfile,end=200,iostat=ierro) ia_stf,ifipa_stf,b_tmp,c_tmp,d_tmp,e_tmp,f_tmp,g_tmp,h_tmp,p_tmp
@@ -905,7 +702,6 @@ subroutine postpr(posi, numl_t)
          h1=real(h1_tmp,fPrec)
          p1=real(p1_tmp,fPrec)
       endif
-#endif
       if(ierro.gt.0) then
         write(lout,10320) nfile
         goto 550
