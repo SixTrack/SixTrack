@@ -74,6 +74,7 @@ list(APPEND SIXTRACK_TESTS
   beam-HO_6D-newstyle
   beam-HO_6D-oldstyle
   beam-HO_6D-simple-newstyle
+  beam-HO_6D-simple-newstyle-coupling
   beam-HO_6D-simple-newstyle-orbit
   beam-HO_6D-simple-oldstyle
   beam-HO_LR-ibbc-newstyle
@@ -103,6 +104,10 @@ list(APPEND SIXTRACK_TESTS
   dump9
   dynk_filelin
   dynk_globalvars
+  dynk_IIR
+  dynk_operators
+  dynk_polynomial
+  dynk_random
   elensidealthck4d
   elensidealthck6d
   elensidealthin4d
@@ -131,10 +136,10 @@ list(APPEND SIXTRACK_TESTS
   notilt
   orbit6d-element-combinedFunction
   orbit6d-element-quadrupole
+  orbit6d-element-rotations
   orbit6d-element-solenoid
   orbit6d-element-trombone
   orbit6d-element-trombone-kick
-  orbit6d-element-rotations
   orbit6d-ions
   orbit6d-ions-long
   part_state_binary_ions
@@ -147,6 +152,7 @@ list(APPEND SIXTRACK_TESTS
   rfMultipoles_3rdOrder
   rfMultipoles_4thOrder
   s316
+  scatter_aperture
   scatter_bbelastic
   thick4
   thick6d_below_transit
@@ -166,17 +172,6 @@ list(APPEND SIXTRACK_TESTS
 ##
 # Tests depending on flags
 ##
-
-if(STF)
-  list(APPEND SIXTRACK_TESTS
-    beam-HO_6D-simple-newstyle-coupling
-    dynk_IIR
-    dynk_operators
-    dynk_polynomial
-    dynk_random
-    scatter_aperture
-  )
-endif()
 
 if(NOT CR)
   list(APPEND SIXTRACK_TESTS
@@ -214,7 +209,7 @@ if(PYTHIA)
   )
 endif()
 
-if(DISTLIB AND STF)
+if(DISTLIB)
   list(APPEND SIXTRACK_TESTS
     distlib_normalised
     distlib_tmatrix
@@ -314,7 +309,7 @@ set(TESTS_NOFORT10
 )
 
 # List of tests that do not produce singletrackfile.dat or fort.90
-set(TESTS_NO_STF_FORT90
+set(TESTS_NO_STF
   beam-HO_6D-simple-newstyle-coupling
   chebythin6d
   chebythin6d_DYNK
@@ -415,15 +410,10 @@ foreach(TST IN ITEMS ${SIXTRACK_TESTS})
   endif()
 
   # if STF, we need to use the STF flag on read90, and disable checking fort.90
-  if(STF)
-    set(STF_ENABLE 1)
-    set(FORT90 0)
-  else()
-    set(STF_ENABLE 0)
-    set(FORT90 1)
-  endif(STF)
+  set(STF_ENABLE 1)
+  set(FORT90 0)
 
-  if(TST IN_LIST TESTS_NO_STF_FORT90)
+  if(TST IN_LIST TESTS_NO_STF)
     set(STF_ENABLE 0)
     set(FORT90 0)
   endif()
