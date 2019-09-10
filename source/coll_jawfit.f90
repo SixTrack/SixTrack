@@ -12,11 +12,11 @@ module coll_jawfit
 
   implicit none
 
+  integer, public, parameter :: jaw_fitNameLen = 16
+
   type, private :: type_fitParams
-    character(len=:), allocatable :: fitName                ! Fit name
+    character(len=jaw_fitNameLen) :: fitName                ! Fit name
     real(kind=fPrec)              :: fitParams(6) = zero    ! Fit parameters
-    real(kind=fPrec)              :: fitScale     = one     ! Fit scale
-    logical                       :: reCentre     = .false. ! Recentre the collimator to new minimum
   end type type_fitParams
 
   type, private :: type_sliceParams
@@ -36,16 +36,17 @@ contains
 ! ================================================================================================ !
 !  V.K. Berglyd Olsen, BE-ABP-HSS
 !  Created: 2019-08-01
-!  Updated: 2019-08-01
+!  Updated: 2019-09-10
 !  Add a jaw fit model to the storage
 ! ================================================================================================ !
-subroutine jaw_addJawFit(fitName, fitParams, fitScale, reCentre, fitID)
+subroutine jaw_addJawFit(fitName, fitParams, fitID, fErr)
 
-  character(len=*), intent(in)  :: fitName
-  real(kind=fPrec), intent(in)  :: fitParams(6)
-  real(kind=fPrec), intent(in)  :: fitScale
-  logical,          intent(in)  :: reCentre
-  integer,          intent(out) :: fitID
+  use crcoall
+
+  character(len=*), intent(in)    :: fitName
+  real(kind=fPrec), intent(in)    :: fitParams(6)
+  integer,          intent(out)   :: fitID
+  logical,          intent(inout) :: fErr
 
   type(type_fitParams), allocatable :: jawTmp(:)
 
@@ -59,24 +60,31 @@ subroutine jaw_addJawFit(fitName, fitParams, fitScale, reCentre, fitID)
     jaw_nFitData = 1
   end if
 
+  fitID = jaw_getFitID(fitName)
+  if(fitID /= -1) then
+    write(lerr,"(a)") "COLLJAW> ERROR Duplicate jaw fit name '"//trim(fitName)//"'"
+    fErr = .true.
+    return
+  end if
+
   jaw_fitData(jaw_nFitData)%fitName   = fitName
   jaw_fitData(jaw_nFitData)%fitParams = fitParams
-  jaw_fitData(jaw_nFitData)%fitScale  = fitScale
-  jaw_fitData(jaw_nFitData)%reCentre  = reCentre
 
   fitID = jaw_nFitData
+
+  write(lout,"(a)") "COLLJAW> Added jaw fit profile '"//trim(fitName)//"'"
 
 end subroutine jaw_addJawFit
 
 ! ================================================================================================ !
 !  V.K. Berglyd Olsen, BE-ABP-HSS
 !  Created: 2019-08-01
-!  Updated: 2019-08-02
+!  Updated: 2019-09-10
 !  Compute the fit parameters for a given collimator using a stored fit model.
 !  Most of the fit code was extracted from the main collimation module.
 !  Original comments from original authors have been preserved.
 ! ================================================================================================ !
-subroutine jaw_computeFit(collName, fitID, nSlices, cLength, cTilt, cOffset, sliceID)
+subroutine jaw_computeFit(collName, fitID, nSlices, fitScale, reCentre, cLength, cTilt, cOffset, sliceID)
 
   use crcoall
   use mathlib_bouncer
@@ -85,6 +93,8 @@ subroutine jaw_computeFit(collName, fitID, nSlices, cLength, cTilt, cOffset, sli
   character(len=*), intent(in)  :: collName
   integer,          intent(in)  :: fitID(2)
   integer,          intent(in)  :: nSlices
+  real(kind=fPrec), intent(in)  :: fitScale(2)
+  logical,          intent(in)  :: reCentre(2)
   real(kind=fPrec), intent(in)  :: cLength
   real(kind=fPrec), intent(in)  :: cTilt(2)
   real(kind=fPrec), intent(in)  :: cOffset
@@ -109,8 +119,8 @@ subroutine jaw_computeFit(collName, fitID, nSlices, cLength, cTilt, cOffset, sli
 
   fac1   = jaw_fitData(fitID(1))%fitParams
   fac2   = jaw_fitData(fitID(2))%fitParams
-  scale1 = jaw_fitData(fitID(1))%fitScale
-  scale2 = jaw_fitData(fitID(2))%fitScale
+  scale1 = fitScale(1)
+  scale2 = fitScale(2)
 
   sX(:)  = zero
   sX1(:) = zero
@@ -149,10 +159,10 @@ subroutine jaw_computeFit(collName, fitID, nSlices, cLength, cTilt, cOffset, sli
   ! Index here must go up to (nSlices+1) in case the last point is the
   ! closest (and also for the later calculation of 'a_tmp1' and 'a_tmp2')
   ! The recentring flag, as given in 'fort.3' chooses whether we recentre the deepest point or not
-  if(jaw_fitData(fitID(1))%reCentre) then
+  if(reCentre(1)) then
     sY1 = sY1 - minval(sY1)
   end if
-  if(jaw_fitData(fitID(2))%reCentre) then
+  if(reCentre(2)) then
     sY2 = sY2 - maxval(sY2)
   end if
 
@@ -221,5 +231,25 @@ integer function jaw_getSliceCount(sliceID)
   integer, intent(in) :: sliceID
   jaw_getSliceCount = jaw_sliceData(sliceID)%nSlices
 end function jaw_getSliceCount
+
+! ================================================================================================ !
+!  Return the index of a fit by name
+! ================================================================================================ !
+integer function jaw_getFitID(fitName)
+
+  character(len=*), intent(in) :: fitName
+
+  integer i, fitID
+
+  fitID = -1
+  do i=1,jaw_nFitData
+    if(jaw_fitData(i)%fitName == fitName) then
+      fitID = i
+      exit
+    end if
+  end do
+  jaw_getFitID = fitID
+
+end function jaw_getFitID
 
 end module coll_jawfit

@@ -1,8 +1,8 @@
 ! ================================================================================================ !
 !  Collimator Database Module
-!  V.K. Berglyd Olsen, BE/ABP/HSS
+!  V.K. Berglyd Olsen, BE-ABP-HSS
 !  Created: 2018-03-22
-!  Updated: 2019-04-08
+!  Updated: 2019-09-10
 ! ================================================================================================ !
 module coll_db
 
@@ -23,7 +23,7 @@ module coll_db
   logical,                  public,  save :: cdb_doNSig   = .false. ! Use the sigmas from fort.3 instead of DB
   integer,                  public,  save :: cdb_nColl    = 0       ! Number of collimators
   integer,                  public,  save :: cdb_nFam     = 0       ! Number of collimator families
-  integer,                  public,  save :: cdb_setPos   = 0       ! The position in the DB file where the settings start
+  integer,                  public,  save :: cdb_setPos   = 0       ! The position in the DB file of the SETTINGS keyword
 
   ! Main Database Arrays
   character(len=:), allocatable, public, save :: cdb_cName(:)       ! Collimator name
@@ -45,10 +45,10 @@ module coll_db
   integer,          allocatable, public, save :: cdb_cSliced(:)     ! Collimator jaw fit sliced data index
   integer,          allocatable, public, save :: cdb_cSides(:)      ! 0 = two-sided, or 1,2 for single side 1 or 2
 
-  ! Family Arrays
+  ! Collimator Family Arrays
   character(len=:), allocatable, public, save :: cdb_famName(:)     ! Family name
   real(kind=fPrec), allocatable, public, save :: cdb_famNSig(:)     ! Family sigma
-  real(kind=fPrec), allocatable, public, save :: cdb_famNSigOrig(:) ! Family sigma
+  real(kind=fPrec), allocatable, public, save :: cdb_famNSigOrig(:) ! Family sigma (original value from DB)
 
   ! Element Map
   integer,          allocatable, public, save :: cdb_elemMap(:)     ! Map from single elements to DB
@@ -543,11 +543,14 @@ subroutine cdb_readDBSettings
   use string_tools
   use mod_units
   use mod_alloc
+  use coll_jawfit
   use numerical_constants
 
   character(len=:), allocatable :: lnSplit(:)
   character(len=mInputLn) inLine
-  integer i, dbUnit, ioStat, nSplit, iLine, iColl, iFam, iTemp
+  character(len=jaw_fitNameLen) jFitName
+  real(kind=fPrec) jFit(6)
+  integer i, dbUnit, ioStat, nSplit, iLine, iColl, iFam, iTemp, iFit
   logical cErr, fErr, isFam
 
   fErr  = .false.
@@ -582,27 +585,9 @@ subroutine cdb_readDBSettings
   end if
   if(nSplit == 0) goto 10 ! Skip empty lines
 
-  ! Look up the target collimator or family
   iFam  = -1
   iColl = -1
   isFam = .false.
-  if(nSplit >= 2) then
-    iFam  = cdb_getFamilyID(lnSplit(2))
-    iColl = cdb_getCollimatorID(lnSplit(2))
-    if(iFam == -1 .and. iColl == -1) then
-      write(lerr,"(a)") "COLLDB> ERROR Could not find '"//trim(lnSplit(2))//"' in neither collimator nor family database"
-      goto 30
-    end if
-    if(iFam > 0 .and. iColl > 0) then
-      write(lerr,"(a)") "COLLDB> ERROR Found '"//trim(lnSplit(2))//"' in both collimator and family database"
-      goto 30
-    end if
-    isFam = iFam > 0
-  else
-    write(lerr,"(a)") "COLLDB> ERROR Each keyword in the SETTINGS section of the collimator database requires "//&
-      "a target collimator or family name"
-    goto 30
-  end if
 
   ! Parse the keywords
   select case(lnSplit(1))
@@ -619,6 +604,8 @@ subroutine cdb_readDBSettings
       write(lerr,"(a,i0)") "COLLDB> ERROR ONESIDED collimator value must be 1 or 2, got ",iTemp
       goto 30
     end if
+
+    call cdb_getCollimatorPrFamilyID(lnSplit(2), iFam, iColl, isFam, cErr)
     if(isFam) then
       do i=1,cdb_nColl
         if(cdb_cFamily(iFam) == iFam) then
@@ -641,6 +628,32 @@ subroutine cdb_readDBSettings
       end if
       cdb_cSides(iColl) = 1
     end if
+
+  case("JAW_PROFILE") ! Adding a Jaw Fit Profile
+    if(nSplit < 3 .and. nSplit > 8) then
+      write(lerr,"(a,i0)") "COLLDB> ERROR JAW_PROFILE expects 3 to 8 values, got ",nSplit-1
+      write(lerr,"(a)")    "COLLDB>       JAW_PROFILE name fac0 [... fac5]"
+      goto 30
+    end if
+    if(len_trim(lnSplit(2)) > jaw_fitNameLen) then
+      write(lerr,"(2(a,i0))") "COLLDB> ERROR JAW_PROFILE name cannot be more than ",jaw_fitNameLen,&
+        " characters, got ",len_trim(lnSplit(2))
+      goto 30
+    end if
+
+    jFit(:)  = zero
+    jFitName = trim(lnSplit(2))
+
+    if(nSplit > 2) call chr_cast(lnSplit(3), jFit(1), cErr)
+    if(nSplit > 3) call chr_cast(lnSplit(4), jFit(2), cErr)
+    if(nSplit > 4) call chr_cast(lnSplit(5), jFit(3), cErr)
+    if(nSplit > 5) call chr_cast(lnSplit(6), jFit(4), cErr)
+    if(nSplit > 6) call chr_cast(lnSplit(7), jFit(5), cErr)
+    if(nSplit > 7) call chr_cast(lnSplit(8), jFit(6), cErr)
+
+    call jaw_addJawFit(jFitName, jFit, iFit, cErr)
+
+    if(cErr) goto 30
 
   case default
     write(lerr,"(a)") "COLLDB> ERROR Unknown keyword '"//trim(lnSplit(1))//"' in SETTINGS section"
@@ -838,6 +851,43 @@ end function cdb_getCollimatorID
 
 ! ================================================================================================ !
 !  V.K. Berglyd Olsen, BE-ABP-HSS
+!  Created: 2019-09-10
+!  Updated: 2019-09-10
+!  Look up a name in both family and collimator database
+! ================================================================================================ !
+subroutine cdb_getCollimatorPrFamilyID(itemName, iFam, iColl, isFam, fErr)
+
+  use crcoall
+
+  character(len=*), intent(in)    :: itemName
+  integer,          intent(out)   :: iFam
+  integer,          intent(out)   :: iColl
+  logical,          intent(out)   :: isFam
+  logical,          intent(inout) :: fErr
+
+  iFam  = -1
+  iColl = -1
+  isFam = .false.
+
+  iFam  = cdb_getFamilyID(itemName)
+  iColl = cdb_getCollimatorID(itemName)
+  if(iFam == -1 .and. iColl == -1) then
+    write(lerr,"(a)") "COLLDB> ERROR Could not find '"//trim(itemName)//"' in neither collimator nor family database"
+    fErr = .true.
+    return
+  end if
+  if(iFam > 0 .and. iColl > 0) then
+    write(lerr,"(a)") "COLLDB> ERROR Found '"//trim(itemName)//"' in both collimator and family database"
+    fErr = .true.
+    return
+  end if
+
+  isFam = iFam > 0
+
+end subroutine cdb_getCollimatorPrFamilyID
+
+! ================================================================================================ !
+!  V.K. Berglyd Olsen, BE-ABP-HSS
 !  Created: 2019-03-21
 !  Updated: 2019-03-22
 !  Find a family in the database and returns its nsig
@@ -943,7 +993,7 @@ subroutine cdb_setMasterJawFit(nSlices, sMin, sMax, rc1, rc2, jawFit, fitScale)
   real(kind=fPrec), intent(in) :: fitScale(2)
 
   integer i, ix, k, fitID(2), sliceID
-  logical reCentre(2)
+  logical reCentre(2), fErr
 
   if(nSlices < 1) then
     return
@@ -952,8 +1002,14 @@ subroutine cdb_setMasterJawFit(nSlices, sMin, sMax, rc1, rc2, jawFit, fitScale)
   reCentre(:) = .false.
   if(rc1 /= zero) reCentre(1) = .true.
   if(rc2 /= zero) reCentre(2) = .true.
-  call jaw_addJawFit("FIT_1", jawFit(1,:), fitScale(1), reCentre(1), fitID(1))
-  call jaw_addJawFit("FIT_2", jawFit(2,:), fitScale(2), reCentre(2), fitID(2))
+
+  fErr = .false.
+  call jaw_addJawFit("FIT_1", jawFit(1,:), fitID(1), fErr)
+  call jaw_addJawFit("FIT_2", jawFit(2,:), fitID(2), fErr)
+  if(fErr) then
+    write(lerr,"(a)") "COLLDB> ERROR While setting up jaw fit parameters"
+    call prror
+  end if
 
   do i=1,iu
     ix = ic(i)
@@ -967,7 +1023,8 @@ subroutine cdb_setMasterJawFit(nSlices, sMin, sMax, rc1, rc2, jawFit, fitScale)
            cdb_cNameUC(k)(1:5) == "TCRYO") then
           write(lout,"(a,f13.6)") "COLLDB> Will apply jaw fit to collimator '"//trim(bez(ix))//"' at position ",dcum(i)
           cdb_cJawFit(:,k) = fitID
-          call jaw_computeFit(trim(bez(ix)), fitID, nSlices, cdb_cLength(k), cdb_cTilt(:,k), cdb_cOffset(k), sliceID)
+          call jaw_computeFit(trim(bez(ix)), fitID, nSlices, fitScale, reCentre, cdb_cLength(k), cdb_cTilt(:,k), &
+            cdb_cOffset(k), sliceID)
           cdb_cSliced(k) = sliceID
         end if
       end if
