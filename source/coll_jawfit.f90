@@ -178,7 +178,7 @@ subroutine jaw_computeFit(collName, fitID, nSlices, fitScale, reCentre, cLength,
 
   sliceID = jaw_nSliceData
 
-  write(lout,"(a,i0,a)") "COLLJAW> Collimator "//trim(collName)//" sliced in ",nSlices," slices"
+  write(lout,"(a,i0,a)") "COLLJAW> Collimator '"//trim(collName)//"' sliced in ",nSlices," slices"
 
 end subroutine jaw_computeFit
 
@@ -225,14 +225,24 @@ subroutine jaw_getFitSliceValues(sliceID, iSlice, cLength, cAperture, cOffset, c
 end subroutine jaw_getFitSliceValues
 
 ! ================================================================================================ !
+!  V.K. Berglyd Olsen, BE-ABP-HSS
+!  Created: 2019-08-01
+!  Updated: 2019-09-10
 !  Return the number of slices for a given jaw fit
 ! ================================================================================================ !
 integer function jaw_getSliceCount(sliceID)
   integer, intent(in) :: sliceID
+  if(sliceID < 1 .or. sliceID > jaw_nSliceData) then ! Invalid index
+    jaw_getSliceCount = -1
+    return
+  end if
   jaw_getSliceCount = jaw_sliceData(sliceID)%nSlices
 end function jaw_getSliceCount
 
 ! ================================================================================================ !
+!  V.K. Berglyd Olsen, BE-ABP-HSS
+!  Created: 2019-09-10
+!  Updated: 2019-09-10
 !  Return the index of a fit by name
 ! ================================================================================================ !
 integer function jaw_getFitID(fitName)

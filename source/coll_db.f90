@@ -548,10 +548,12 @@ subroutine cdb_readDBSettings
 
   character(len=:), allocatable :: lnSplit(:)
   character(len=mInputLn) inLine
-  character(len=jaw_fitNameLen) jFitName
-  real(kind=fPrec) jFit(6)
-  integer i, dbUnit, ioStat, nSplit, iLine, iColl, iFam, iTemp, iFit
+  integer i, dbUnit, ioStat, nSplit, iLine, iColl, iFam, iTemp, iFit, fitID(2)
   logical cErr, fErr, isFam
+
+  real(kind=fPrec) rParam(6)
+  integer          iParam(3)
+  logical          bParam(2)
 
   fErr  = .false.
   cErr  = .false.
@@ -605,10 +607,11 @@ subroutine cdb_readDBSettings
       goto 30
     end if
 
-    call cdb_getCollimatorPrFamilyID(lnSplit(2), iFam, iColl, isFam, cErr)
+    call cdb_getCollimatorOrFamilyID(lnSplit(2), iFam, iColl, isFam, cErr)
+    if(cErr) goto 30
     if(isFam) then
       do i=1,cdb_nColl
-        if(cdb_cFamily(iFam) == iFam) then
+        if(cdb_cFamily(i) == iFam) then
           if(iTemp == 2) then
             call cdb_rotateCollimator(i, pi)
             write(lout,"(a,i0,a)") "COLLDB> Collimator family '"//trim(lnSplit(2))//&
@@ -631,7 +634,7 @@ subroutine cdb_readDBSettings
 
   case("JAW_PROFILE") ! Adding a Jaw Fit Profile
     if(nSplit < 3 .and. nSplit > 8) then
-      write(lerr,"(a,i0)") "COLLDB> ERROR JAW_PROFILE expects 3 to 8 values, got ",nSplit-1
+      write(lerr,"(a,i0)") "COLLDB> ERROR JAW_PROFILE expects 2 to 7 values, got ",nSplit-1
       write(lerr,"(a)")    "COLLDB>       JAW_PROFILE name fac0 [... fac5]"
       goto 30
     end if
@@ -641,19 +644,69 @@ subroutine cdb_readDBSettings
       goto 30
     end if
 
-    jFit(:)  = zero
-    jFitName = trim(lnSplit(2))
+    rParam(:) = zero
+    if(nSplit > 2) call chr_cast(lnSplit(3), rParam(1), cErr)
+    if(nSplit > 3) call chr_cast(lnSplit(4), rParam(2), cErr)
+    if(nSplit > 4) call chr_cast(lnSplit(5), rParam(3), cErr)
+    if(nSplit > 5) call chr_cast(lnSplit(6), rParam(4), cErr)
+    if(nSplit > 6) call chr_cast(lnSplit(7), rParam(5), cErr)
+    if(nSplit > 7) call chr_cast(lnSplit(8), rParam(6), cErr)
 
-    if(nSplit > 2) call chr_cast(lnSplit(3), jFit(1), cErr)
-    if(nSplit > 3) call chr_cast(lnSplit(4), jFit(2), cErr)
-    if(nSplit > 4) call chr_cast(lnSplit(5), jFit(3), cErr)
-    if(nSplit > 5) call chr_cast(lnSplit(6), jFit(4), cErr)
-    if(nSplit > 6) call chr_cast(lnSplit(7), jFit(5), cErr)
-    if(nSplit > 7) call chr_cast(lnSplit(8), jFit(6), cErr)
-
-    call jaw_addJawFit(jFitName, jFit, iFit, cErr)
+    call jaw_addJawFit(trim(lnSplit(2)), rParam(1:6), iFit, cErr)
 
     if(cErr) goto 30
+
+  case("JAW_FIT") ! Apply Jaw Fit Profile
+    if(nSplit /= 5 .and. nSplit /= 7 .and. nSplit /= 9) then
+      write(lerr,"(a,i0)") "COLLDB> ERROR JAW_FIT expects 4, 6 ot 8 values, got ",nSplit-1
+      write(lerr,"(a)")    "COLLDB>       JAW_FIT collname|famname nslices fit1 fit2 [scale1 scale2 [recentre1 recentre2]]"
+      goto 30
+    end if
+
+    rParam(:) = one
+    iParam(:) = -1
+    bParam(:) = .false.
+    if(nSplit > 2) call chr_cast(lnSplit(3), iParam(1), cErr)
+    if(nSplit > 5) call chr_cast(lnSplit(6), rParam(1), cErr)
+    if(nSplit > 6) call chr_cast(lnSplit(7), rParam(2), cErr)
+    if(nSplit > 7) call chr_cast(lnSplit(8), bParam(1), cErr)
+    if(nSplit > 8) call chr_cast(lnSplit(9), bParam(2), cErr)
+
+    fitID(1) = jaw_getFitID(lnSplit(4))
+    fitID(2) = jaw_getFitID(lnSplit(5))
+    do i=1,2
+      if(fitID(i) == -1) then
+        write(lerr,"(a)") "COLLDB> ERROR Unknown fit profile '"//trim(lnSplit(3+1))//&
+          "', did you forget to add it first?"
+        goto 30
+      end if
+    end do
+
+    call cdb_getCollimatorOrFamilyID(lnSplit(2), iFam, iColl, isFam, cErr)
+    if(cErr) goto 30
+    if(isFam) then
+      do i=1,cdb_nColl
+        if(cdb_cFamily(i) == iFam) then
+          if(cdb_cSliced(i) /= 0) then
+            write(lerr,"(a)") "COLLDB> ERROR Collimator '"//trim(cdb_cName(i))//"' has already been sliced"
+            call prror
+          end if
+          cdb_cJawFit(:,i) = fitID
+          call jaw_computeFit(cdb_cName(i), fitID, iParam(1), rParam(1:2), bParam(1:2), cdb_cLength(i), &
+            cdb_cTilt(:,i), cdb_cOffset(i), iFit)
+          cdb_cSliced(i) = iFit
+        end if
+      end do
+    else
+      if(cdb_cSliced(iColl) /= 0) then
+        write(lerr,"(a)") "COLLDB> ERROR Collimator '"//trim(cdb_cName(iColl))//"' has already been sliced"
+        call prror
+      end if
+      cdb_cJawFit(:,iColl) = fitID
+      call jaw_computeFit(cdb_cName(iColl), fitID, iParam(1), rParam(1:2), bParam(1:2), cdb_cLength(iColl), &
+        cdb_cTilt(:,iColl), cdb_cOffset(iColl), iFit)
+      cdb_cSliced(iColl) = iFit
+    end if
 
   case default
     write(lerr,"(a)") "COLLDB> ERROR Unknown keyword '"//trim(lnSplit(1))//"' in SETTINGS section"
@@ -855,7 +908,7 @@ end function cdb_getCollimatorID
 !  Updated: 2019-09-10
 !  Look up a name in both family and collimator database
 ! ================================================================================================ !
-subroutine cdb_getCollimatorPrFamilyID(itemName, iFam, iColl, isFam, fErr)
+subroutine cdb_getCollimatorOrFamilyID(itemName, iFam, iColl, isFam, fErr)
 
   use crcoall
 
@@ -884,7 +937,7 @@ subroutine cdb_getCollimatorPrFamilyID(itemName, iFam, iColl, isFam, fErr)
 
   isFam = iFam > 0
 
-end subroutine cdb_getCollimatorPrFamilyID
+end subroutine cdb_getCollimatorOrFamilyID
 
 ! ================================================================================================ !
 !  V.K. Berglyd Olsen, BE-ABP-HSS
@@ -974,7 +1027,7 @@ end subroutine cdb_writeDB
 ! ================================================================================================ !
 !  V.K. Berglyd Olsen, BE-ABP-HSS
 !  Created: 2019-08-01
-!  Updated: 2019-08-01
+!  Updated: 2019-09-10
 !  Set jaw fit from fort.3
 ! ================================================================================================ !
 subroutine cdb_setMasterJawFit(nSlices, sMin, sMax, rc1, rc2, jawFit, fitScale)
