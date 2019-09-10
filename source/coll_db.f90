@@ -40,6 +40,9 @@ module coll_db
   logical,          allocatable, public, save :: cdb_cFound(:)      ! Found in lattice
 
   ! Additional Settings Arrays
+  real(kind=fPrec), allocatable, public, save :: cdb_cTilt(:,:)     ! Collimator jaw tilt
+  integer,          allocatable, public, save :: cdb_cJawFit(:,:)   ! Collimator jaw fit index
+  integer,          allocatable, public, save :: cdb_cSliced(:)     ! Collimator jaw fit sliced data index
   integer,          allocatable, public, save :: cdb_cSides(:)      ! 0 = two-sided, or 1,2 for single side 1 or 2
 
   ! Family Arrays
@@ -79,6 +82,9 @@ subroutine cdb_allocDB
   call alloc(cdb_cFound,              cdb_nColl, .false.,       "cdb_cFound")
 
   ! Additional Settings Arrays
+  call alloc(cdb_cTilt,     2,        cdb_nColl, zero,          "cdb_cTilt")
+  call alloc(cdb_cJawFit,   2,        cdb_nColl, 0,             "cdb_cJawFit")
+  call alloc(cdb_cSliced,             cdb_nColl, 0,             "cdb_cSliced")
   call alloc(cdb_cSides,              cdb_nColl, 0,             "cdb_cSides")
 
 end subroutine cdb_allocDB
@@ -914,6 +920,61 @@ end subroutine cdb_writeDB
 ! ================================================================================================ !
 !  Compatibility Functions for old collimation code assuming LHC naming convention
 ! ================================================================================================ !
+
+! ================================================================================================ !
+!  V.K. Berglyd Olsen, BE-ABP-HSS
+!  Created: 2019-08-01
+!  Updated: 2019-08-01
+!  Set jaw fit from fort.3
+! ================================================================================================ !
+subroutine cdb_setMasterJawFit(nSlices, sMin, sMax, rc1, rc2, jawFit, fitScale)
+
+  use parpro
+  use crcoall
+  use coll_jawfit
+  use mod_common
+  use mod_common_track
+  use numerical_constants
+
+  integer,          intent(in) :: nSlices
+  real(kind=fPrec), intent(in) :: sMin, sMax
+  real(kind=fPrec), intent(in) :: rc1, rc2
+  real(kind=fPrec), intent(in) :: jawFit(2,6)
+  real(kind=fPrec), intent(in) :: fitScale(2)
+
+  integer i, ix, k, fitID(2), sliceID
+  logical reCentre(2)
+
+  if(nSlices < 1) then
+    return
+  end if
+
+  reCentre(:) = .false.
+  if(rc1 /= zero) reCentre(1) = .true.
+  if(rc2 /= zero) reCentre(2) = .true.
+  call jaw_addJawFit("FIT_1", jawFit(1,:), fitScale(1), reCentre(1), fitID(1))
+  call jaw_addJawFit("FIT_2", jawFit(2,:), fitScale(2), reCentre(2), fitID(2))
+
+  do i=1,iu
+    ix = ic(i)
+    if(ix > nblo) then
+      ix = ix-nblo
+      k  = cdb_elemMap(ix)
+      if(k > 0 .and. dcum(i) > sMin .and. dcum(i) < sMax) then
+        if(cdb_cNameUC(k)(1:4) == "TCSG" .or. cdb_cNameUC(k)(1:3) == "TCP"  .or. &
+           cdb_cNameUC(k)(1:4) == "TCLA" .or. cdb_cNameUC(k)(1:3) == "TCT"  .or. &
+           cdb_cNameUC(k)(1:4) == "TCLI" .or. cdb_cNameUC(k)(1:4) == "TCL." .or. &
+           cdb_cNameUC(k)(1:5) == "TCRYO") then
+          write(lout,"(a,f13.6)") "COLLDB> Will apply jaw fit to collimator '"//trim(bez(ix))//"' at position ",dcum(i)
+          cdb_cJawFit(:,k) = fitID
+          call jaw_computeFit(trim(bez(ix)), fitID, nSlices, cdb_cLength(k), cdb_cTilt(:,k), cdb_cOffset(k), sliceID)
+          cdb_cSliced(k) = sliceID
+        end if
+      end if
+    end if
+  end do
+
+end subroutine cdb_setMasterJawFit
 
 ! ================================================================================================ !
 !  V.K. Berglyd Olsen, BE-ABP-HSS
