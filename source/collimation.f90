@@ -203,7 +203,7 @@ module collimation
 
   real(kind=fPrec), save :: remitx_dist,remity_dist,remitx_collgap,remity_collgap
 
-  logical, save :: firstcoll,found
+  logical, save :: firstcoll
   integer rnd_lux,rnd_k1,rnd_k2
 
   integer, save :: myix
@@ -2205,87 +2205,62 @@ end subroutine coll_doCollimation
 !<
 subroutine collimate_start_collimator(stracki)
 
-  use crcoall
-  use parpro
   use mod_common
-  use mod_commons
-  use mod_common_da
   use mod_common_main
   use mod_common_track
-  use numerical_constants, only : c5m4
   use coll_db
 
-  implicit none
-
-  integer :: j
   real(kind=fPrec), intent(in) :: stracki
 
-  if(cdb_elemMap(myix) > 0) then
-    nsig = cdb_cNSig(cdb_elemMap(myix))
-  else
-    nsig = cdb_defColGap
-    write(lout,"(a,f7.2)") "COLL> WARNING Collimation called on an unknown element '"//trim(bez(myix))//"'. "//&
-      "Collimator opening set to ",nsig
-  end if
+  integer j
 
-!++  Write trajectory for any selected particle
+  icoll    = cdb_elemMap(myix)
+  nsig     = cdb_cNSig(icoll)
   c_length = zero
 
-! SR, 23-11-2005: To avoid binary entries in 'amplitude.dat'
-  if( firstrun ) then
-    if(rselect.gt.0 .and. rselect.lt.65) then
-      do j = 1, napx
-        xj  = (xv1(j)-torbx(ie))/c1e3
-        xpj = (yv1(j)-torbxp(ie))/c1e3
-        yj  = (xv2(j)-torby(ie))/c1e3
-        ypj = (yv2(j)-torbyp(ie))/c1e3
-        pj  = ejv(j)/c1e3
+  ! SR, 23-11-2005: To avoid binary entries in 'amplitude.dat'
+  if(firstrun) then
 
-        if(iturn.eq.1.and.j.eq.1) then
-          sum_ax(ie)=zero
-          sum_ay(ie)=zero
-        end if
+    gammax = (one + talphax(ie)**2)/tbetax(ie)
+    gammay = (one + talphay(ie)**2)/tbetay(ie)
 
-!-- DRIFT PART
-        if(stracki.eq.0.) then
-          if(iexact) then
-            zpj = sqrt(one-xpj**2-ypj**2)
-            xj  = xj + half*c_length*(xpj/zpj)
-            yj  = yj + half*c_length*(ypj/zpj)
-          else
-            xj  = xj + half*c_length*xpj
-            yj  = yj + half*c_length*ypj
-          end if
-        end if
+    do j=1,napx
+      xj  = (xv1(j)-torbx(ie))/c1e3
+      xpj = (yv1(j)-torbxp(ie))/c1e3
+      yj  = (xv2(j)-torby(ie))/c1e3
+      ypj = (yv2(j)-torbyp(ie))/c1e3
+      pj  = ejv(j)/c1e3
 
-        gammax = (one + talphax(ie)**2)/tbetax(ie)
-        gammay = (one + talphay(ie)**2)/tbetay(ie)
+      if(iturn == 1 .and. j == 1) then
+        sum_ax(ie) = zero
+        sum_ay(ie) = zero
+      end if
 
-        if(part_abs_pos(j).eq.0 .and. part_abs_turn(j).eq.0) then
-          nspx = sqrt(abs( gammax*(xj)**2 + two*talphax(ie)*xj*xpj +tbetax(ie)*xpj**2 )/myemitx0_collgap)
-          nspy = sqrt(abs( gammay*(yj)**2 + two*talphay(ie)*yj*ypj +tbetay(ie)*ypj**2 )/myemity0_collgap)
-          sum_ax(ie)   = sum_ax(ie) + nspx
-          sqsum_ax(ie) = sqsum_ax(ie) + nspx**2
-          sum_ay(ie)   = sum_ay(ie) + nspy
-          sqsum_ay(ie) = sqsum_ay(ie) + nspy**2
-          nampl(ie)    = nampl(ie) + 1
+      ! DRIFT PART
+      if(stracki == 0.0) then
+        if(iexact) then
+          zpj = sqrt(one-xpj**2-ypj**2)
+          xj  = xj + half*c_length*(xpj/zpj)
+          yj  = yj + half*c_length*(ypj/zpj)
         else
-          nspx = zero
-          nspy = zero
+          xj  = xj + half*c_length*xpj
+          yj  = yj + half*c_length*ypj
         end if
-      end do
-    end if
-  end if
+      end if
 
-!GRD HERE WE LOOK FOR ADEQUATE DATABASE INFORMATION
-  found = .false.
-  if(cdb_elemMap(myix) > 0) then
-    icoll = cdb_elemMap(myix)
-    found = .true.
-  end if
-
-  if(.not. found .and. firstrun .and. iturn.eq.1) then
-    write(lout,"(a)") "COLL> WARNING Collimator not found in colldb: '"//trim(bez(myix))//"'"
+      if(part_abs_pos(j) == 0 .and. part_abs_turn(j) == 0) then
+        nspx = sqrt(abs(gammax*xj**2 + two*talphax(ie)*xj*xpj +tbetax(ie)*xpj**2)/myemitx0_collgap)
+        nspy = sqrt(abs(gammay*yj**2 + two*talphay(ie)*yj*ypj +tbetay(ie)*ypj**2)/myemity0_collgap)
+        sum_ax(ie)   = sum_ax(ie) + nspx
+        sqsum_ax(ie) = sqsum_ax(ie) + nspx**2
+        sum_ay(ie)   = sum_ay(ie) + nspy
+        sqsum_ay(ie) = sqsum_ay(ie) + nspy**2
+        nampl(ie)    = nampl(ie) + 1
+      else
+        nspx = zero
+        nspy = zero
+      end if
+    end do
   end if
 
 end subroutine collimate_start_collimator
