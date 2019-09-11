@@ -154,7 +154,6 @@ module collimation
   real(kind=fPrec), allocatable, save :: sqsum_ax(:) !(nblz)
   real(kind=fPrec), allocatable, save :: sum_ay(:) !(nblz)
   real(kind=fPrec), allocatable, save :: sqsum_ay(:) !(nblz)
-  real(kind=fPrec), allocatable, save :: sampl(:) !(nblz)
 
   real(kind=fPrec), allocatable, save :: neffx(:) !(numeff)
   real(kind=fPrec), allocatable, save :: neffy(:) !(numeff)
@@ -592,7 +591,6 @@ subroutine collimation_expand_arrays(npart_new, nblz_new)
   call alloc(sqsum_ax, nblz_new, zero, "sqsum_ax") !(nblz_new)
   call alloc(sum_ay,   nblz_new, zero, "sum_ay") !(nblz_new)
   call alloc(sqsum_ay, nblz_new, zero, "sqsum_ay") !(nblz_new)
-  call alloc(sampl,    nblz_new, zero, "sampl") !(nblz_new)
 
   call alloc(secondary,            npart_new, 0, "secondary") !(npart_new)
   call alloc(tertiary,             npart_new, 0, "tertiary") !(npart_new)
@@ -898,7 +896,6 @@ subroutine collimate_init
     sum_ay(i)   = zero
     sqsum_ay(i) = zero
     nampl(i)    = zero
-    sampl(i)    = zero
   end do
 
   nspx = zero
@@ -2236,7 +2233,6 @@ subroutine coll_doCollimation(stracki, isColl)
         nspx = zero
         nspy = zero
       end if
-      sampl(ie) = totals
     end do
 
   end if
@@ -2317,8 +2313,6 @@ subroutine collimate_start_collimator(stracki)
           nspx = zero
           nspy = zero
         end if
-
-          sampl(ie)    = totals
       end do
     end if
   end if
@@ -3109,11 +3103,11 @@ end do
           call h5_prepareWrite(coll_hdf5_allImpacts, 1)
           call h5_writeData(coll_hdf5_allImpacts, 1, 1, ipart(j))
           call h5_writeData(coll_hdf5_allImpacts, 2, 1, iturn)
-          call h5_writeData(coll_hdf5_allImpacts, 3, 1, sampl(ie))
+          call h5_writeData(coll_hdf5_allImpacts, 3, 1, dcum(ie))
           call h5_finaliseWrite(coll_hdf5_allImpacts)
         else
 #endif
-          write(coll_allImpactUnit,'(i8,1x,i4,1x,f8.2)') ipart(j),iturn,sampl(ie)
+          write(coll_allImpactUnit,'(i8,1x,i4,1x,f8.2)') ipart(j),iturn,dcum(ie)
 #ifdef HDF5
         end if
 #endif
@@ -3127,11 +3121,11 @@ end do
             call h5_prepareWrite(coll_hdf5_allAbsorb, 1)
             call h5_writeData(coll_hdf5_allAbsorb, 1, 1, ipart(j))
             call h5_writeData(coll_hdf5_allAbsorb, 2, 1, iturn)
-            call h5_writeData(coll_hdf5_allAbsorb, 3, 1, sampl(ie))
+            call h5_writeData(coll_hdf5_allAbsorb, 3, 1, dcum(ie))
             call h5_finaliseWrite(coll_hdf5_allAbsorb)
           else
 #endif
-            write(coll_allAbsorbUnit,'(i8,1x,i4,1x,f8.2)') ipart(j),iturn,sampl(ie)
+            write(coll_allAbsorbUnit,'(i8,1x,i4,1x,f8.2)') ipart(j),iturn,dcum(ie)
 #ifdef HDF5
           end if
 #endif
@@ -3182,7 +3176,7 @@ end do
               ! We write trajectories before and after element in this case.
               hdfpid  = ipart(j)
               hdfturn = iturn
-              hdfs    = sampl(ie)-half*c_length
+              hdfs    = dcum(ie)-half*c_length
               hdfx    = (rcx0(j)*c1e3+torbx(ie)) - half*c_length*(rcxp0(j)*c1e3+torbxp(ie))
               hdfxp   = rcxp0(j)*c1e3+torbxp(ie)
               hdfy    = (rcy0(j)*c1e3+torby(ie)) - half*c_length*(rcyp0(j)*c1e3+torbyp(ie))
@@ -3191,7 +3185,7 @@ end do
               hdftyp  = secondary(j)+tertiary(j)+other(j)+scatterhit(j)
               call h5tr2_writeLine(hdfpid,hdfturn,hdfs,hdfx,hdfxp,hdfy,hdfyp,hdfdee,hdftyp)
 
-              hdfs  = sampl(ie)+half*c_length
+              hdfs  = dcum(ie)+half*c_length
               hdfx  = xv1(j) + half*c_length*yv1(j)
               hdfxp = yv1(j)
               hdfy  = xv2(j) + half*c_length*yv2(j)
@@ -3200,7 +3194,7 @@ end do
             else
 #endif
               write(coll_tracksUnit,'(1x,i8,1x,i4,1x,f10.2,4(1x,e12.5),1x,e11.3,1x,i4)') &
-                ipart(j),iturn,sampl(ie)-half*c_length,           &
+                ipart(j),iturn,dcum(ie)-half*c_length,                             &
                 (rcx0(j)*c1e3+torbx(ie))-half*c_length*(rcxp0(j)*c1e3+torbxp(ie)), &
                 rcxp0(j)*c1e3+torbxp(ie),                                          &
                 (rcy0(j)*c1e3+torby(ie))-half*c_length*(rcyp0(j)*c1e3+torbyp(ie)), &
@@ -3208,7 +3202,7 @@ end do
                 (ejv(j)-myenom)/myenom,secondary(j)+tertiary(j)+other(j)+scatterhit(j)
 
               write(coll_tracksUnit,'(1x,i8,1x,i4,1x,f10.2,4(1x,e12.5),1x,e11.3,1x,i4)') &
-                ipart(j),iturn,sampl(ie)+half*c_length,           &
+                ipart(j),iturn,dcum(ie)+half*c_length,                          &
                 xv1(j)+half*c_length*yv1(j),yv1(j),                             &
                 xv2(j)+half*c_length*yv2(j),yv2(j),(ejv(j)-myenom)/myenom,      &
                 secondary(j)+tertiary(j)+other(j)+scatterhit(j)
@@ -3675,7 +3669,7 @@ subroutine collimate_exit
       else
         ix = ic(i)-nblo
       end if
-      write(coll_ampUnit,"(i8,1x,a16,19(1x,1pe20.13))") i, bez(ix)(1:20), sampl(i),                      &
+      write(coll_ampUnit,"(i8,1x,a16,19(1x,1pe20.13))") i, bez(ix)(1:20), dcum(i),                       &
         sum_ax(i)/real(max(nampl(i),1),fPrec),                                                           &
         sqrt(abs((sqsum_ax(i)/real(max(nampl(i),1),fPrec))-(sum_ax(i)/real(max(nampl(i),1),fPrec))**2)), &
         sum_ay(i)/real(max(nampl(i),1),fPrec),                                                           &
@@ -3691,7 +3685,7 @@ subroutine collimate_exit
   call f_open(unit=coll_orbitCheckUnit,file=coll_orbitCheckFile,formatted=.true.,mode="w")
   write(coll_orbitCheckUnit,"(a1,1x,a6,3(1x,a15))") "#","s","torbitx","torbity"
   do i=1,iu
-    write(coll_orbitCheckUnit,"(i8,3(1x,1pe15.7))") i, sampl(i), torbx(i), torby(i)
+    write(coll_orbitCheckUnit,"(i8,3(1x,1pe15.7))") i, dcum(i), torbx(i), torby(i)
   end do
   call f_close(coll_orbitCheckUnit)
 
@@ -3871,8 +3865,6 @@ subroutine collimate_end_element
           nspx = zero
           nspy = zero
         end if
-
-        sampl(ie) = totals
       end do
     end if
   end if
@@ -3921,7 +3913,7 @@ subroutine collimate_end_element
           if(h5_writeTracks2) then
             hdfpid=ipart(j)
             hdfturn=iturn
-            hdfs=sampl(ie)
+            hdfs=dcum(ie)
             hdfx=xv1(j)
             hdfxp=yv1(j)
             hdfy=xv2(j)
@@ -3931,7 +3923,7 @@ subroutine collimate_end_element
             call h5tr2_writeLine(hdfpid,hdfturn,hdfs,hdfx,hdfxp,hdfy,hdfyp,hdfdee,hdftyp)
           else
 #endif
-            write(coll_tracksUnit,'(1x,i8,1x,i4,1x,f10.2,4(1x,e12.5),1x,e11.3,1x,i4)') ipart(j), iturn, sampl(ie), &
+            write(coll_tracksUnit,'(1x,i8,1x,i4,1x,f10.2,4(1x,e12.5),1x,e11.3,1x,i4)') ipart(j), iturn, dcum(ie), &
               xv1(j), yv1(j), xv2(j), yv2(j), (ejv(j)-myenom)/myenom, secondary(j)+tertiary(j)+other(j)+scatterhit(j)
 #ifdef HDF5
           end if
@@ -4246,7 +4238,6 @@ subroutine collimate_end_turn
           sum_ay(ie)   = sum_ay(ie) + nspy
           sqsum_ay(ie) = sqsum_ay(ie) + nspy**2
           nampl(ie)    = nampl(ie) + 1
-          sampl(ie)    = totals
         else
           nspx = zero
           nspy = zero
@@ -4296,7 +4287,7 @@ subroutine collimate_end_turn
           if(h5_writeTracks2) then
             hdfpid=ipart(j)
             hdfturn=iturn
-            hdfs=sampl(ie)
+            hdfs=dcum(ie)
             hdfx=xv1(j)
             hdfxp=yv1(j)
             hdfy=xv2(j)
@@ -4306,7 +4297,7 @@ subroutine collimate_end_turn
             call h5tr2_writeLine(hdfpid,hdfturn,hdfs,hdfx,hdfxp,hdfy,hdfyp,hdfdee,hdftyp)
           else
 #endif
-            write(coll_tracksUnit,'(1x,i8,1x,i4,1x,f10.2,4(1x,e12.5),1x,e11.3,1x,i4)') ipart(j),iturn,sampl(ie), &
+            write(coll_tracksUnit,'(1x,i8,1x,i4,1x,f10.2,4(1x,e12.5),1x,e11.3,1x,i4)') ipart(j),iturn,dcum(ie), &
               xv1(j),yv1(j),xv2(j),yv2(j),(ejv(j)-myenom)/myenom,secondary(j)+tertiary(j)+other(j)+scatterhit(j)
 #ifdef HDF5
           end if
