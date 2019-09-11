@@ -1216,10 +1216,9 @@ subroutine thin6d(nthinerr)
     end if
     meta_nPartTurn = meta_nPartTurn + napx
 
-    if (do_coll) then
-      ! This subroutine sets variables iturn and totals
+    if(do_coll) then
       call collimate_start_turn(n)
-    endif
+    end if
 
     numx=n-1
 
@@ -1273,7 +1272,7 @@ subroutine thin6d(nthinerr)
       ! should be faster/safer to first check the turn then do the name search
       if( iturn.eq.1 ) then
         if (bez(myix)(1:5).eq.'PRESS' .or.  bez(myix)(1:5).eq.'press' ) then
-          call beamGas(myix, secondary,totals,myenom,ipart)
+          call beamGas(myix,secondary,dcum(i),myenom,ipart)
         end if
       end if
 #endif
@@ -1340,9 +1339,6 @@ subroutine thin6d(nthinerr)
       case (1)
         stracki=strack(i)
         ! Check if collimation is enabled, and call the collimation code as necessary
-        if(do_coll) then
-          totals = totals+stracki ! Ralph drift length is stracki
-        end if
         if(do_coll .and. cdb_elemMap(myix) > 0) then
           ! Collimator is in database, and we're doing collimation
           call coll_doCollimation(stracki,.true.)

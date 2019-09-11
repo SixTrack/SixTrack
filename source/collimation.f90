@@ -223,7 +223,6 @@ module collimation
 
   real(kind=fPrec), public  :: nspx,nspy,mux0,muy0
   real(kind=fPrec), private :: ax0,ay0,bx0,by0     ! These are set, but never used
-  real(kind=fPrec), public, save :: totals
 
   real(kind=fPrec), allocatable, save :: xbob(:) !(nblz)
   real(kind=fPrec), allocatable, save :: ybob(:) !(nblz)
@@ -3713,7 +3712,7 @@ subroutine collimate_start_turn(n)
   integer, intent(in) :: n
 
   iturn=n
-  totals=zero !This keeps track of the s position of the current element, which is also done by cadcum
+
 end subroutine collimate_start_turn
 
 !>
