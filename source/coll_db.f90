@@ -675,7 +675,7 @@ subroutine cdb_writeDB_ROOT
   if((root_flag .eqv. .false.) .or. root_CollimationDB /= 1) return
 
   do j=1,cdb_nColl
-    this_name     = trim(adjustl(cdb_cNameUC(j)))//C_NULL_CHAR
+    this_name     = trim(adjustl(cdb_cName(j)))//C_NULL_CHAR
     this_material = trim(adjustl(cdb_cMaterial(j)))//C_NULL_CHAR
     call CollimatorDatabaseRootWrite(j, this_name, len_trim(this_name), this_material, len_trim(this_material), cdb_cNSig(j), &
       cdb_cLength(j), cdb_cRotation(j), cdb_cOffset(j))
@@ -961,10 +961,10 @@ subroutine cdb_setMasterJawFit(nSlices, sMin, sMax, rc1, rc2, jawFit, fitScale)
       ix = ix-nblo
       k  = cdb_elemMap(ix)
       if(k > 0 .and. dcum(i) > sMin .and. dcum(i) < sMax) then
-        if(cdb_cNameUC(k)(1:4) == "TCSG" .or. cdb_cNameUC(k)(1:3) == "TCP"  .or. &
-           cdb_cNameUC(k)(1:4) == "TCLA" .or. cdb_cNameUC(k)(1:3) == "TCT"  .or. &
-           cdb_cNameUC(k)(1:4) == "TCLI" .or. cdb_cNameUC(k)(1:4) == "TCL." .or. &
-           cdb_cNameUC(k)(1:5) == "TCRYO") then
+        if(cdb_cName(k)(1:4) == "tcsg" .or. cdb_cName(k)(1:3) == "tcp"  .or. &
+           cdb_cName(k)(1:4) == "tcla" .or. cdb_cName(k)(1:3) == "tct"  .or. &
+           cdb_cName(k)(1:4) == "tcli" .or. cdb_cName(k)(1:4) == "tcl." .or. &
+           cdb_cName(k)(1:5) == "tcryo") then
           write(lout,"(a,f13.6)") "COLLDB> Will apply jaw fit to collimator '"//trim(bez(ix))//"' at position ",dcum(i)
           cdb_cJawFit(:,k) = fitID
           call jaw_computeFit(trim(bez(ix)), fitID, nSlices, cdb_cLength(k), cdb_cTilt(:,k), cdb_cOffset(k), sliceID)
@@ -1098,7 +1098,7 @@ subroutine cdb_setLHCOnesided(doOneSide)
 
   do i=1,cdb_nColl
     cdb_cSides(i) = 0
-    if((cdb_cNameUC(i)(1:3) == "TCP" .and. doOneSide) .or. cdb_cNameUC(i)(1:4) == "TCDQ" .or. cdb_cNameUC(i)(1:5) == "TCXRP") then
+    if(cdb_cName(i)(1:3) == "tcp" .and. doOneSide .or. cdb_cName(i)(1:4) == "tcdq" .or. cdb_cName(i)(1:5) == "tcxrp") then
       cdb_cSides(i) = 1
       write(lout,"(a)") "COLLDB> Collimator '"//trim(cdb_cName(i))//"' is treated as one-sided"
     end if

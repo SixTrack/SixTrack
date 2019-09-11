@@ -1937,7 +1937,7 @@ subroutine collimate_start
   write(lout,"(a)") ""
   write(lout,"(a,i0)") "COLL> Number of collimators: ",cdb_nColl
   do icoll = 1, cdb_nColl
-    write(lout,"(a,i5,a)") "COLL> Collimator ",icoll,": "//cdb_cNameUC(icoll)//" "//cdb_cName(icoll)
+    write(lout,"(a,i5,a)") "COLL> Collimator ",icoll,": "//cdb_cName(icoll)
   end do
   write(lout,"(a)") ""
 
@@ -1990,8 +1990,8 @@ subroutine collimate_start
         cdb_cTilt(2,icoll) =      c_systilt+c_rmstilt*ran_gauss2(three)
       end if
 
-      write(outlun,*) 'INFO>  Collimator ', cdb_cNameUC(icoll), ' jaw 1 has tilt [rad]: ', cdb_cTilt(1,icoll)
-      write(outlun,*) 'INFO>  Collimator ', cdb_cNameUC(icoll), ' jaw 2 has tilt [rad]: ', cdb_cTilt(2,icoll)
+      write(outlun,*) 'INFO>  Collimator ', cdb_cName(icoll), ' jaw 1 has tilt [rad]: ', cdb_cTilt(1,icoll)
+      write(outlun,*) 'INFO>  Collimator ', cdb_cName(icoll), ' jaw 2 has tilt [rad]: ', cdb_cTilt(2,icoll)
     end do
   end if
 
@@ -2012,7 +2012,7 @@ subroutine collimate_start
        cdb_cOffset(icoll) = c_sysoffset_sec +  c_rmsoffset_sec*ran_gauss2(three)
      end if
 
-     write(outlun,*) 'INFO>  offset: ', cdb_cNameUC(icoll), cdb_cOffset(icoll)
+     write(outlun,*) 'INFO>  offset: ', cdb_cName(icoll), cdb_cOffset(icoll)
    end do
  endif
 
@@ -2025,7 +2025,7 @@ subroutine collimate_start
 !            write(outlun,*) 'INFO> c_rmserror_gap = ',c_rmserror_gap
   do icoll = 1, cdb_nColl
     gap_rms_error(icoll) = c_rmserror_gap * ran_gauss2(three)
-    write(outlun,*) 'INFO>  gap_rms_error: ', cdb_cNameUC(icoll),gap_rms_error(icoll)
+    write(outlun,*) 'INFO>  gap_rms_error: ', cdb_cName(icoll),gap_rms_error(icoll)
   end do
 
 !---- creating a file with beta-functions at TCP/TCS
@@ -2420,7 +2420,7 @@ subroutine collimate_do_collimator(stracki)
     write(outlun,*) ' '
     write(outlun,*)   'Collimator information: '
     write(outlun,*) ' '
-    write(outlun,*) 'Name:                ', cdb_cNameUC(icoll)
+    write(outlun,*) 'Name:                ', cdb_cName(icoll)
     write(outlun,*) 'Material:            ', cdb_cMaterial(icoll)
     write(outlun,*) 'Length [m]:          ', cdb_cLength(icoll)
     write(outlun,*) 'Rotation [rad]:      ', cdb_cRotation(icoll)
@@ -2516,8 +2516,8 @@ subroutine collimate_do_collimator(stracki)
 
 ! coll settings file
       if(n_slices.le.1) then
-        write(coll_settingsUnit,'(a20,1x,i10,5(1x,e13.5),1x,a)') &
-          cdb_cNameUC(icoll)(1:20),                              &
+        write(coll_settingsUnit,"(a20,1x,i10,5(1x,e13.5),1x,a)") &
+          cdb_cName(icoll)(1:20),                                &
           n_slices,calc_aperture,                                &
           cdb_cOffset(icoll),                                    &
           cdb_cTilt(1,icoll),                                    &
@@ -2527,15 +2527,6 @@ subroutine collimate_do_collimator(stracki)
       end if !if(n_slices.le.1) then
     end if !if(iturn.eq.1) then
   end if !if(firstrun) then
-
-!++  Assign aperture which we define as the FULL width (factor 2)!!!
-!JUNE2005 AGAIN, SOME SPECIFIC STUFF FOR RHIC
-  if(cdb_cNameUC(icoll)(1:4).eq.'COLM') then
-    c_aperture = two*calc_aperture
-    nom_aperture = two*nom_aperture
-  else if(cdb_cNameUC(icoll)(1:4).ne.'COLM') then
-    c_aperture = two*calc_aperture
-  end if
 
   c_aperture = two*calc_aperture
 !          IF(IPENCIL.GT.zero) THEN
