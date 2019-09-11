@@ -207,7 +207,7 @@ module collimation
   logical, save :: firstcoll,found
   integer rnd_lux,rnd_k1,rnd_k2
 
-  integer, save :: myix,myktrack
+  integer, save :: myix
 
   real(kind=fPrec), public  :: nspx,nspy,mux0,muy0
   real(kind=fPrec), private :: ax0,ay0,bx0,by0     ! These are set, but never used
@@ -3659,11 +3659,12 @@ subroutine collimate_start_element(i)
 
   use crcoall
   use parpro
+  use coll_db
   use mod_common
-  use mod_common_main
   use mod_commons
-  use mod_common_track
   use mod_common_da
+  use mod_common_main
+  use mod_common_track
 
   implicit none
 
@@ -3709,28 +3710,6 @@ subroutine collimate_start_element(i)
   else
     myix = ic(i)-nblo
   end if
-
-!++  Make sure we go into collimation routine for any definition
-!++  of collimator element, relying on element name instead.
-  if (                                                          &
-!GRD HERE ARE SOME CHANGES TO MAKE RHIC TRAKING AVAILABLE
-!APRIL2005
-      (bez(myix)(1:3).eq.'TCP'.or.bez(myix)(1:3).eq.'tcp') .or.         &
-      (bez(myix)(1:3).eq.'TCS'.or.bez(myix)(1:3).eq.'tcs') .or.         &
-!UPGRADE January 2005
-      (bez(myix)(1:3).eq.'TCL'.or.bez(myix)(1:3).eq.'tcl') .or.         &
-      (bez(myix)(1:3).eq.'TCT'.or.bez(myix)(1:3).eq.'tct') .or.         &
-      (bez(myix)(1:3).eq.'TCD'.or.bez(myix)(1:3).eq.'tcd') .or.         &
-      (bez(myix)(1:3).eq.'TDI'.or.bez(myix)(1:3).eq.'tdi') .or.         &
-! UPGRADE MAI 2006 -> TOTEM
-      (bez(myix)(1:3).eq.'TCX'.or.bez(myix)(1:3).eq.'tcx') .or.         &
-! TW 04/2008 adding TCRYO
-      (bez(myix)(1:3).eq.'TCR'.or.bez(myix)(1:3).eq.'tcr') ) then
-
-    myktrack = 1
-  else
-    myktrack = ktrack(i)
-  endif
 
 end subroutine collimate_start_element
 

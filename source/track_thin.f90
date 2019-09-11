@@ -1250,8 +1250,8 @@ subroutine thin6d(nthinerr)
     !! This is the loop over each element: label 650
     do 650 i=1,iu !Loop over elements
 
-      if (do_coll) then
-        ! This subroutine sets variables myktrack and myix
+      if(do_coll) then
+        ! This subroutine sets variable myix
         call collimate_start_element(i)
       endif
 
@@ -1329,15 +1329,15 @@ subroutine thin6d(nthinerr)
         if(bdex_enable .and. kz(ix) == 0 .and. bdex_elementAction(ix) /= 0) call bdex_track(i,ix,n)
       end if
 
-      if (do_coll) then
-        dotrack = myktrack
+      if(do_coll .and. cdb_elemMap(myix) > 0) then
+        dotrack = 1
       else
         dotrack = ktrack(i)
       end if
 
       select case(dotrack)
       case (1)
-        stracki=strack(i)
+        stracki = strack(i)
         ! Check if collimation is enabled, and call the collimation code as necessary
         if(do_coll .and. cdb_elemMap(myix) > 0) then
           ! Collimator is in database, and we're doing collimation
