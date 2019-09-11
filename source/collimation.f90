@@ -428,7 +428,6 @@ module collimation
   ! Output Files
   character(len=12), parameter :: coll_survivalFile   = "survival.dat"
   character(len=12), parameter :: coll_gapsFile       = "collgaps.dat"
-  character(len=18), parameter :: coll_tempDbFile     = "collimator-temp.db"
   character(len=10), parameter :: coll_impactFile     = "impact.dat"
   character(len=11), parameter :: coll_tracksFile     = "tracks2.dat"
   character(len=17), parameter :: coll_positionsFile  = "CollPositions.dat"
@@ -449,7 +448,6 @@ module collimation
 
   integer, private, save :: coll_survivalUnit   = -1
   integer, private, save :: coll_gapsUnit       = -1
-  integer, private, save :: coll_tempDbUnit     = -1
   integer, private, save :: coll_impactUnit     = -1
   integer, private, save :: coll_tracksUnit     = -1
   integer, private, save :: coll_positionsUnit  = -1
@@ -1726,10 +1724,6 @@ subroutine collimate_openFiles
     "#","ID","name            ","angle[rad]","betax[m]","betay[m]","halfgap[m]",&
     "mat.","length[m]","sigx[m]","sigy[m]","tilt1[rad]","tilt2[rad]","nsig"
 
-  ! Temporary Database
-  call f_requestUnit(coll_tempDbFile,coll_tempDbUnit)
-  call f_open(unit=coll_tempDbUnit,file=coll_tempDbFile,formatted=.true.,mode="w")
-
   ! Collimator Settings (Jaw Slices)
   call f_requestUnit(coll_settingsFile,coll_settingsUnit)
   call f_open(unit=coll_settingsUnit,file=coll_settingsFile,formatted=.true.,mode="w")
@@ -2433,15 +2427,6 @@ subroutine collimate_do_collimator(stracki)
 !-------------------------------------------------------------------
 !++  Output to temporary database and screen
   if(iturn == 1 .and. firstrun) then
-    write(coll_tempDbUnit,*) '# '
-    write(coll_tempDbUnit,*) cdb_cNameUC(icoll)
-    write(coll_tempDbUnit,*) cdb_cMaterial(icoll)
-    write(coll_tempDbUnit,*) cdb_cLength(icoll)
-    write(coll_tempDbUnit,*) cdb_cRotation(icoll)
-    write(coll_tempDbUnit,*) cdb_cOffset(icoll)
-    write(coll_tempDbUnit,*) tbetax(ie)
-    write(coll_tempDbUnit,*) tbetay(ie)
-
     write(outlun,*) ' '
     write(outlun,*)   'Collimator information: '
     write(outlun,*) ' '
