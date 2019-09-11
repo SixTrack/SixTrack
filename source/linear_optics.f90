@@ -1041,7 +1041,6 @@ subroutine writelin(nr,typ,tl,p1,t,ixwl,isBLOC,ielem)
   use mod_common
   use mod_commons
   use mod_common_track
-  use collimation
   use floatPrecision
   use mathlib_bouncer
   use numerical_constants
@@ -1056,7 +1055,7 @@ subroutine writelin(nr,typ,tl,p1,t,ixwl,isBLOC,ielem)
   use hdf5_linopt
 #endif
 
-  integer i,iwrite,ixwl,l,ll,nr
+  integer i,iwrite,ixwl,l,ll,nr,tiel
   real(kind=fPrec) al1(2),al2(2),b1(2),b2(2),c(2),cp(2),d(2),dp(2),g1(2),g2(2),p1(2),t(6,4),tl
   character(len=mNameLen) typ
   ! isBLOC == TRUE if ixwl currently refers to a BLOC index, FALSE if it is a SINGLE ELEMENT index
@@ -1105,18 +1104,19 @@ subroutine writelin(nr,typ,tl,p1,t,ixwl,isBLOC,ielem)
     end if
 #endif
 
-    if(do_coll) then
-      tbetax(max(ielem,1))  = b1(1)
-      tbetay(max(ielem,1))  = b1(2)
-      talphax(max(ielem,1)) = al1(1)
-      talphay(max(ielem,1)) = al1(2)
-      torbx(max(ielem,1))   = c(1)
-      torbxp(max(ielem,1))  = cp(1)
-      torby(max(ielem,1))   = c(2)
-      torbyp(max(ielem,1))  = cp(2)
-      tdispx(max(ielem,1))  = d(1)
-      tdispy(max(ielem,1))  = d(2)
-    end if
+    tiel = max(ielem,1)
+    tbetax(tiel)  = b1(1)
+    tbetay(tiel)  = b1(2)
+    talphax(tiel) = al1(1)
+    talphay(tiel) = al1(2)
+    torbx(tiel)   = c(1)
+    torby(tiel)   = c(2)
+    torbxp(tiel)  = cp(1)
+    torbyp(tiel)  = cp(2)
+    tdispx(tiel)  = d(1)
+    tdispy(tiel)  = d(2)
+    tdispxp(tiel) = dp(1)
+    tdispyp(tiel) = dp(2)
 
     if(ncorru == 0) then
       if(st_quiet == 0) then

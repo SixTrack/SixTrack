@@ -193,18 +193,6 @@ module collimation
   character(len=4), save :: smpl
   character(len=80), save :: pfile
 
-  ! These vatiables are common to writelin,linopt,trauthin,thin6d and maincr
-  real(kind=fPrec), allocatable, save :: tbetax(:)  !(nblz)
-  real(kind=fPrec), allocatable, save :: tbetay(:)  !(nblz)
-  real(kind=fPrec), allocatable, save :: talphax(:) !(nblz)
-  real(kind=fPrec), allocatable, save :: talphay(:) !(nblz)
-  real(kind=fPrec), allocatable, save :: torbx(:)   !(nblz)
-  real(kind=fPrec), allocatable, save :: torbxp(:)  !(nblz)
-  real(kind=fPrec), allocatable, save :: torby(:)   !(nblz)
-  real(kind=fPrec), allocatable, save :: torbyp(:)  !(nblz)
-  real(kind=fPrec), allocatable, save :: tdispx(:)  !(nblz)
-  real(kind=fPrec), allocatable, save :: tdispy(:)  !(nblz)
-
   ! Variables for finding the collimator with the smallest gap
   ! and defining, stroring the gap rms error
 
@@ -548,17 +536,6 @@ subroutine collimation_expand_arrays(npart_new, nblz_new)
 
   if(.not. do_coll) return
   ! Arrays that are only needed if Collimation is enabled
-
-  call alloc(tbetax,  nblz_new, zero, 'tbetax')  !(nblz)
-  call alloc(tbetay,  nblz_new, zero, 'tbetay')  !(nblz)
-  call alloc(talphax, nblz_new, zero, 'talphax') !(nblz)
-  call alloc(talphay, nblz_new, zero, 'talphay') !(nblz)
-  call alloc(torbx,   nblz_new, zero, 'torbx')   !(nblz)
-  call alloc(torbxp,  nblz_new, zero, 'torbxp')  !(nblz)
-  call alloc(torby,   nblz_new, zero, 'torby')   !(nblz)
-  call alloc(torbyp,  nblz_new, zero, 'torbyp')  !(nblz)
-  call alloc(tdispx,  nblz_new, zero, 'tdispx')  !(nblz)
-  call alloc(tdispy,  nblz_new, zero, 'tdispy')  !(nblz)
 
   call alloc(flukaname, npart_new, 0, "flukaname") !(npart)
   call alloc(ipart, npart_new, 0, "ipart") !(npart)
@@ -1871,6 +1848,7 @@ subroutine collimate_start
   use crcoall
   use mod_common
   use mod_common_main
+  use mod_common_track
   use coll_db
   use mod_ranlux
   use mathlib_bouncer
@@ -2188,6 +2166,7 @@ subroutine coll_doCollimation(stracki, isColl)
   use mod_time
   use mod_common
   use mod_common_main
+  use mod_common_track
 
   real(kind=fPrec), intent(in) :: stracki
   logical,          intent(in) :: isColl
@@ -2248,10 +2227,10 @@ subroutine collimate_start_collimator(stracki)
   use crcoall
   use parpro
   use mod_common
-  use mod_common_main
   use mod_commons
-  use mod_common_track
   use mod_common_da
+  use mod_common_main
+  use mod_common_track
   use numerical_constants, only : c5m4
   use coll_db
 
@@ -2339,10 +2318,10 @@ subroutine collimate_do_collimator(stracki)
   use crcoall
   use parpro
   use mod_common
-  use mod_common_main
   use mod_commons
-  use mod_common_track
   use mod_common_da
+  use mod_common_main
+  use mod_common_track
   use numerical_constants, only : c5m4
   use coll_db
   use coll_jawfit
@@ -2914,10 +2893,10 @@ subroutine collimate_end_collimator(stracki)
   use crcoall
   use parpro
   use mod_common
-  use mod_common_main
   use mod_commons
-  use mod_common_track
   use mod_common_da
+  use mod_common_main
+  use mod_common_track
   use numerical_constants, only : c5m4
   use coll_db
   use mod_units
@@ -3335,10 +3314,10 @@ subroutine collimate_exit
 
   use parpro
   use mod_common
-  use mod_common_main
   use mod_commons
-  use mod_common_track
   use mod_common_da
+  use mod_common_main
+  use mod_common_track
   use crcoall
   use coll_db
   use mod_units
@@ -3764,10 +3743,10 @@ subroutine collimate_end_element
   use crcoall
   use parpro
   use mod_common
-  use mod_common_main
   use mod_commons
-  use mod_common_track
   use mod_common_da
+  use mod_common_main
+  use mod_common_track
 #ifdef HDF5
   use hdf5_output
   use hdf5_tracks2
@@ -3900,10 +3879,10 @@ subroutine collimate_end_turn
 
   use parpro
   use mod_common
-  use mod_common_main
   use mod_commons
-  use mod_common_track
   use mod_common_da
+  use mod_common_main
+  use mod_common_track
   use crcoall
   use mod_units
   use mathlib_bouncer
