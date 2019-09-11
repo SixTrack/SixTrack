@@ -149,7 +149,6 @@ module collimation
   real(kind=fPrec), allocatable, save :: sumimpact(:) !(50)
   real(kind=fPrec), allocatable, save :: sqsumimpact(:) !(50)
 
-  character(len=:), allocatable, save :: ename(:) !(mNameLen)(nblz)
   integer, allocatable, save :: nampl(:) !(nblz)
   real(kind=fPrec), allocatable, save :: sum_ax(:) !(nblz)
   real(kind=fPrec), allocatable, save :: sqsum_ax(:) !(nblz)
@@ -588,7 +587,6 @@ subroutine collimation_expand_arrays(npart_new, nblz_new)
   call alloc(counteddpop, npart_new, numeffdpop, 0, "counteddpop") !(npart,numeffdpop)
   call alloc(counted2d,   npart_new, numeff, numeffdpop, 0, "counted2d") !(npart,numeff,numeffdpop)
 
-  call alloc(ename,    mNameLen, nblz_new, ' ', "ename") !(nblz_new)
   call alloc(nampl,    nblz_new, 0, "nampl") !(nblz_new)
   call alloc(sum_ax,   nblz_new, zero, "sum_ax") !(nblz_new)
   call alloc(sqsum_ax, nblz_new, zero, "sqsum_ax") !(nblz_new)
@@ -1877,7 +1875,7 @@ subroutine collimate_start
   use mathlib_bouncer
   use mod_units
 
-  integer i,j,k,jb
+  integer i,j,k
   real(kind=fPrec) dummy
 
   do i=1,napx
@@ -2035,12 +2033,10 @@ subroutine collimate_start
   do j=1,iu
 ! this transformation gives the right marker/name to the corresponding
 ! beta-dunctions or vice versa ;)
-    if(ic(j).le.nblo) then
-      do jb=1,mel(ic(j))
-        myix=mtyp(ic(j),jb)
-      end do
+    if(ic(j) <= nblo) then
+      myix = mtyp(ic(j),mel(ic(j)))
     else
-      myix=ic(j)-nblo
+      myix = ic(j)-nblo
     end if
 
     if(cdb_elemMap(myix) > 0) then
@@ -2241,7 +2237,6 @@ subroutine coll_doCollimation(stracki, isColl)
         nspy = zero
       end if
       sampl(ie) = totals
-      ename(ie) = bez(myix)
     end do
 
   end if
@@ -2324,10 +2319,9 @@ subroutine collimate_start_collimator(stracki)
         end if
 
           sampl(ie)    = totals
-          ename(ie)    = bez(myix)
-      end do !do j = 1, napx
-    end if !if(rselect.gt.0 .and. rselect.lt.65) then
-  end if !if( firstrun ) then
+      end do
+    end if
+  end if
 
 !GRD HERE WE LOOK FOR ADEQUATE DATABASE INFORMATION
   found = .false.
@@ -2424,8 +2418,6 @@ subroutine collimate_do_collimator(stracki)
     end do
   end if
 
-!-------------------------------------------------------------------
-!++  Output to temporary database and screen
   if(iturn == 1 .and. firstrun) then
     write(outlun,*) ' '
     write(outlun,*)   'Collimator information: '
@@ -3632,6 +3624,7 @@ end subroutine collimate_end_sample
 !<
 subroutine collimate_exit
 
+  use parpro
   use mod_units
   use mod_common
   use string_tools
@@ -3640,7 +3633,7 @@ subroutine collimate_exit
   use hdf5_tracks2
 #endif
 
-  integer i
+  integer i, ix
 
   ! Just call it here since samples are no longer supported
   call collimate_end_sample(1)
@@ -3677,7 +3670,12 @@ subroutine collimate_exit
     write(coll_ampUnit,"(a1,1x,a6,1x,a16,19(1x,a20))") "#","ielem",chr_rPad("name",20),"s","AX_AV","AX_RMS","AY_AV","AY_RMS",&
       "alphax","alphay","betax","betay","orbitx","orbity","dispx","dispy","xbob","ybob","xpbob","ypbob","mux","muy"
     do i=1,iu
-      write(coll_ampUnit,"(i8,1x,a16,19(1x,1pe20.13))") i, ename(i)(1:20), sampl(i),                     &
+      if(ic(i) <= nblo) then
+        ix = mtyp(ic(i),mel(ic(i)))
+      else
+        ix = ic(i)-nblo
+      end if
+      write(coll_ampUnit,"(i8,1x,a16,19(1x,1pe20.13))") i, bez(ix)(1:20), sampl(i),                      &
         sum_ax(i)/real(max(nampl(i),1),fPrec),                                                           &
         sqrt(abs((sqsum_ax(i)/real(max(nampl(i),1),fPrec))-(sum_ax(i)/real(max(nampl(i),1),fPrec))**2)), &
         sum_ay(i)/real(max(nampl(i),1),fPrec),                                                           &
@@ -3740,7 +3738,7 @@ subroutine collimate_start_element(i)
   implicit none
 
   integer, intent(in) :: i
-  integer j,jb
+  integer j
 
   ie=i
 #ifndef G4COLLIMATION
@@ -3776,12 +3774,10 @@ subroutine collimate_start_element(i)
   end if
 
 !++  Here comes sixtrack stuff
-  if(ic(i).le.nblo) then
-    do jb=1,mel(ic(i))
-      myix=mtyp(ic(i),jb)
-    end do
+  if(ic(i) <= nblo) then
+    myix = mtyp(ic(i),mel(ic(i)))
   else
-    myix=ic(i)-nblo
+    myix = ic(i)-nblo
   end if
 
 !++  Make sure we go into collimation routine for any definition
@@ -3877,7 +3873,6 @@ subroutine collimate_end_element
         end if
 
         sampl(ie) = totals
-        ename(ie) = bez(myix)
       end do
     end if
   end if
@@ -4252,7 +4247,6 @@ subroutine collimate_end_turn
           sqsum_ay(ie) = sqsum_ay(ie) + nspy**2
           nampl(ie)    = nampl(ie) + 1
           sampl(ie)    = totals
-          ename(ie)    = bez(myix)
         else
           nspx = zero
           nspy = zero
