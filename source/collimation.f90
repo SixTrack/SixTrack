@@ -113,7 +113,6 @@ module collimation
 
   integer, save :: ie, iturn, nabs_total
 
-
   integer ieff,ieffdpop
 
   real(kind=fPrec), private, save :: myemitx0_dist    = zero
@@ -291,15 +290,6 @@ module collimation
   real(kind=fPrec), save :: average, sigma, sigsecut, nspxd, xndisp, zpj
 
   real(kind=fPrec), save :: dnormx,dnormy,driftx,drifty,xnorm,xpnorm,xangle,ynorm,ypnorm,yangle,grdpiover2,grdpiover4,grd3piover4
-
-  ! SEPT2005-SR, 29-08-2005 --- add parameter for the array length ---- TW
-  real(kind=fPrec), allocatable, save :: x_sl(:) !(100)
-  real(kind=fPrec), allocatable, save :: x1_sl(:) !(100)
-  real(kind=fPrec), allocatable, save :: x2_sl(:) !(100)
-  real(kind=fPrec), allocatable, save :: y1_sl(:) !(100)
-  real(kind=fPrec), allocatable, save :: y2_sl(:) !(100)
-  real(kind=fPrec), allocatable, save :: angle1(:) !(100)
-  real(kind=fPrec), allocatable, save :: angle2(:) !(100)
 
   real(kind=fPrec), save :: max_tmp, a_tmp1, a_tmp2, ldrift, mynex2, myney2, Nap1pos,Nap2pos,Nap1neg,Nap2neg
   real(kind=fPrec), save :: tiltOffsPos1,tiltOffsPos2,tiltOffsNeg1,tiltOffsNeg2
@@ -491,15 +481,6 @@ subroutine collimation_allocate_arrays
   call alloc(x_pencil,  max_ncoll, zero, "x_pencil") !(max_ncoll)
   call alloc(y_pencil,  max_ncoll, zero, "y_pencil") !(max_ncoll)
   call alloc(pencil_dx, max_ncoll, zero, "pencil_dx") !(max_ncoll)
-
-  !SEPT2005-SR, 29-08-2005 --- add parameter for the array length ---- TW
-  call alloc(x_sl, 100, zero, "x_sl") !(100)
-  call alloc(x1_sl, 100, zero, "x1_sl") !(100)
-  call alloc(x2_sl, 100, zero, "x2_sl") !(100)
-  call alloc(y1_sl, 100, zero, "y1_sl") !(100)
-  call alloc(y2_sl, 100, zero, "y2_sl") !(100)
-  call alloc(angle1, 100, zero, "angle1") !(100)
-  call alloc(angle2, 100, zero, "angle2") !(100)
 
   call alloc(npartdpop, numeffdpop, 0, "npartdpop") !(numeffdpop)
   call alloc(neff, numeff, zero, "neff") !(numeff)
@@ -3657,41 +3638,32 @@ end subroutine collimate_start_turn
 !<
 subroutine collimate_start_element(i)
 
-  use crcoall
-  use parpro
-  use coll_db
   use mod_common
-  use mod_commons
-  use mod_common_da
   use mod_common_main
-  use mod_common_track
-
-  implicit none
 
   integer, intent(in) :: i
   integer j
 
   ie=i
 #ifndef G4COLLIMATION
-!++  For absorbed particles set all coordinates to zero. Also
-!++  include very large offsets, let's say above 100mm or
-!++  100mrad.
-  do j = 1, napx
-    if( (part_abs_pos(j).ne.0 .and. part_abs_turn(j).ne.0) .or.&
- &  xv1(j).gt.c1e2 .or. yv1(j).gt.c1e2 .or. xv2(j).gt.c1e2 .or. yv2(j).gt.c1e2) then
-      xv1(j) = zero
-      yv1(j) = zero
-      xv2(j) = zero
-      yv2(j) = zero
-      ejv(j) = myenom
-      sigmv(j)= zero
-      part_abs_pos(j)=ie
-      part_abs_turn(j)=iturn
-      secondary(j) = 0
-      tertiary(j)  = 0
-      other(j)     = 0
-      scatterhit(j)= 0
-      nabs_type(j) = 0
+  ! For absorbed particles set all coordinates to zero. Also
+  ! include very large offsets, let's say above 100mm or 100mrad.
+  do j=1,napx
+    if((part_abs_pos(j) /= 0 .and. part_abs_turn(j) /= 0) .or. &
+      xv1(j) > c1e2 .or. yv1(j) > c1e2 .or. xv2(j) > c1e2 .or. yv2(j) > c1e2) then
+      xv1(j)   = zero
+      yv1(j)   = zero
+      xv2(j)   = zero
+      yv2(j)   = zero
+      ejv(j)   = myenom
+      sigmv(j) = zero
+      secondary(j)  = 0
+      tertiary(j)   = 0
+      other(j)      = 0
+      scatterhit(j) = 0
+      nabs_type(j)  = 0
+      part_abs_pos(j)  = ie
+      part_abs_turn(j) = iturn
     end if
   end do
 #endif

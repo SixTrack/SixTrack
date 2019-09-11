@@ -2010,10 +2010,10 @@ subroutine thin6d(nthinerr)
     napxto = napxto + napx
 #endif
 
-    if (do_coll) then
+    if(do_coll) then
       !GRD HERE WE SET THE FLAG FOR INITIALIZATION TO FALSE AFTER TURN 1
       firstrun = .false.
-    endif
+    end if
 
 660 continue !END loop over turns
 
