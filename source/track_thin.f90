@@ -1397,8 +1397,7 @@ subroutine thin6d(nthinerr)
           endif
           ejfv(j)=sqrt(ejv(j)**2-nucm(j)**2)
           rvv(j)=(ejv(j)*e0f)/(e0*ejfv(j))
-          dpsv(j) = (ejfv(j)*(nucm0/nucm(j))-e0f)/e0f
-!          dpsv(j)=(ejfv(j)-e0f)/e0f
+          dpsv(j)=(ejfv(j)*(nucm0/nucm(j))-e0f)/e0f
           oidpsv(j)=one/(one+dpsv(j))
           moidpsv(j)=mtc(j)/(one+dpsv(j))
           omoidpsv(j)=c1e3*((one-mtc(j))*oidpsv(j))
