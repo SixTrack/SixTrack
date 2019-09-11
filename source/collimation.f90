@@ -446,7 +446,6 @@ module collimation
   character(len=14), parameter :: coll_efficFile      = "efficiency.dat"
   character(len=19), parameter :: coll_efficDPFile    = "efficiency_dpop.dat"
   character(len=17), parameter :: coll_effic2DFile    = "efficiency_2d.dat"
-  character(len=11), parameter :: coll_distsecFile    = "distsec.dat"
 
   integer, private, save :: coll_survivalUnit   = -1
   integer, private, save :: coll_gapsUnit       = -1
@@ -471,7 +470,6 @@ module collimation
   integer, private, save :: coll_efficUnit      = -1
   integer, private, save :: coll_efficDPUnit    = -1
   integer, private, save :: coll_effic2DUnit    = -1
-  integer, private, save :: coll_distsecUnit    = -1
 
   integer, private, save :: outlun              = -1
 
@@ -2543,15 +2541,6 @@ subroutine collimate_do_collimator(stracki)
 !          IF(IPENCIL.GT.zero) THEN
 !          C_APERTURE = 2.*pencil_aperture
 
-  if(firstrun.and.iturn.eq.1.and.icoll.eq.7) then
-    call f_requestUnit(coll_distsecFile,coll_distsecUnit)
-    call f_open(unit=coll_distsecUnit,file=coll_distsecFile,formatted=.true.,mode="w")
-    do j=1,napx
-      write(coll_distsecUnit,'(4(1X,E15.7))') xv1(j),yv1(j),xv2(j),yv2(j)
-    end do
-    call f_close(coll_distsecUnit)
-  end if
-
 ! RB: addition matched halo sampled directly on the TCP using pencil beam flag
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   if ((iturn.eq.1).and.(ipencil.eq.icoll).and.(pencil_distr.eq.3)) then
@@ -3465,9 +3454,10 @@ subroutine collimate_exit
     call f_requestUnit(coll_efficFile,coll_efficUnit)
     call f_open(unit=coll_efficUnit,file=coll_efficFile,formatted=.true.,mode="w")
     if(n_tot_absorbed /= 0) then
-      write(coll_efficUnit,*) '# 1=rad_sigma 2=frac_x 3=frac_y 4=frac_r' ! This is not correct?
+      write(coll_efficUnit,"(a1,1x,a13,6(1x,a15),1x,a8)") "#","rad_sigma",&
+        "frac_x","frac_y","frac_r","eff_x","eff_y","eff_r","n_abs"
       do k=1,numeff
-        write(coll_efficUnit,'(7(1x,e15.7),1x,I5)') rsig(k), neffx(k)/real(n_tot_absorbed,fPrec), &
+        write(coll_efficUnit,"(7(1x,e15.7),1x,i8)") rsig(k), neffx(k)/real(n_tot_absorbed,fPrec), &
           neffy(k)/real(n_tot_absorbed,fPrec), neff(k)/real(n_tot_absorbed,fPrec), neffx(k), neffy(k), neff(k), n_tot_absorbed
       end do
     else
@@ -3502,10 +3492,10 @@ subroutine collimate_exit
     call f_requestUnit(coll_efficDPFile,coll_efficDPUnit)
     call f_open(unit=coll_efficDPUnit,file=coll_efficDPFile,formatted=.true.,mode="w")
     if(n_tot_absorbed /= 0) then
-      write(coll_efficDPUnit,*) '# 1=dp/p 2=n_dpop/tot_nabs 3=n_dpop 4=tot_nabs 5=npart'
+      write(coll_efficDPUnit,"(a1,1x,a13,2(1x,a15),2(1x,a8))") "#","dp/p","n_dpop/tot_nabs","n_dpop","tot_nabs","npart"
       do k=1,numeffdpop
-        write(coll_efficDPUnit,'(3(1x,e15.7),2(1x,I5))') dpopbins(k), neffdpop(k)/real(n_tot_absorbed,fPrec), neffdpop(k), &
-            n_tot_absorbed, npartdpop(k)
+        write(coll_efficDPUnit,"(e15.7,2(1x,e15.7),2(1x,i8))") dpopbins(k), neffdpop(k)/real(n_tot_absorbed,fPrec), neffdpop(k), &
+          n_tot_absorbed, npartdpop(k)
       end do
     else
       write(coll_efficDPUnit,"(a)") "No particles absorbed"
@@ -3541,11 +3531,11 @@ subroutine collimate_exit
     call f_requestUnit(coll_effic2DFile,coll_effic2DUnit)
     call f_open(unit=coll_effic2DUnit,file=coll_effic2DFile,formatted=.true.,mode="w")
     if(n_tot_absorbed /= 0) then
-      write(coll_effic2DUnit,*) '# 1=rad_sigma 2=dp/p 3=n/tot_nabs 4=n 5=tot_nabs'
+      write(coll_effic2DUnit,"(a1,1x,a13,3(1x,a15),1x,a8)") "#","rad_sigma","dp/p","n/tot_nabs","n","tot_nabs"
       do i=1,numeff
         do k=1,numeffdpop
-          write(coll_effic2DUnit,'(4(1x,e15.7),1(1x,I5))') rsig(i), dpopbins(k),neff2d(i,k)/real(n_tot_absorbed,fPrec), &
-                neff2d(i,k), n_tot_absorbed
+          write(coll_effic2DUnit,"(e15.7,3(1x,e15.7),1x,i8)") rsig(i), dpopbins(k), &
+            neff2d(i,k)/real(n_tot_absorbed,fPrec), neff2d(i,k), n_tot_absorbed
         end do
       end do
     else
@@ -3574,7 +3564,7 @@ subroutine collimate_exit
       if(cdb_cLength(i) > zero .and. cdb_cFound(i)) then
         call h5_prepareWrite(setHdf, 1)
         call h5_writeData(setHdf, 1, 1, i)
-        call h5_writeData(setHdf, 2, 1, cdb_cNameUC(i))
+        call h5_writeData(setHdf, 2, 1, cdb_cName(i))
         call h5_writeData(setHdf, 3, 1, cn_impact(i))
         call h5_writeData(setHdf, 4, 1, cn_absorbed(i))
         call h5_writeData(setHdf, 5, 1, caverage(i))
@@ -3588,11 +3578,12 @@ subroutine collimate_exit
 #endif
     call f_requestUnit(coll_summaryFile,coll_summaryUnit)
     call f_open(unit=coll_summaryUnit,file=coll_summaryFile,formatted=.true.,mode="w")
-    write(coll_summaryUnit,*) '# 1=icoll 2=collname 3=nimp 4=nabs 5=imp_av 6=imp_sig 7=length'
+    write(coll_summaryUnit,"(a1,1x,a5,1x,a20,2(1x,a8),2(1x,a15),1x,a6)") "#","icoll",chr_rPad("collname",20),&
+      "nimp","nabs","imp_av","imp_sig","length"
     do icoll = 1, cdb_nColl
       if(cdb_cLength(icoll) > zero .and. cdb_cFound(icoll)) then
-        write(coll_summaryUnit,'(i4,1x,a,2(1x,i5),2(1x,e15.7),3x,f4.1)') icoll, cdb_cNameUC(icoll), cn_impact(icoll), &
-          cn_absorbed(icoll), caverage(icoll), csigma(icoll),cdb_cLength(icoll)
+        write(coll_summaryUnit,"(i7,1x,a20,2(1x,i8),2(1x,e15.7),1x,f6.2)") icoll, cdb_cName(icoll)(1:20), cn_impact(icoll), &
+          cn_absorbed(icoll), caverage(icoll), csigma(icoll), cdb_cLength(icoll)
       end if
     end do
     call f_close(coll_summaryUnit)
@@ -3604,7 +3595,7 @@ subroutine collimate_exit
   if(root_flag .and. root_Collimation.eq.1) then
     do icoll = 1, cdb_nColl
       if(cdb_cLength(icoll).gt.zero) then
-        call CollimatorLossRootWrite(icoll, cdb_cNameUC(icoll), len(cdb_cNameUC(icoll)), cn_impact(icoll), cn_absorbed(icoll), &
+        call CollimatorLossRootWrite(icoll, cdb_cName(icoll), len(cdb_cName(icoll)), cn_impact(icoll), cn_absorbed(icoll), &
           caverage(icoll), csigma(icoll), cdb_cLength(icoll))
       end if
     end do
