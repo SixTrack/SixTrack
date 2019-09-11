@@ -288,9 +288,10 @@ module collimation
   real(kind=fPrec), allocatable, private, save :: rcyp0(:) !(npart)
   real(kind=fPrec), allocatable, private, save :: rcp0(:) !(npart)
 
+  real(kind=fPrec), private, save :: xj, xpj, yj, ypj, pj
+
   real(kind=fPrec), save :: enom_gev,betax,betay,xmax,ymax
   real(kind=fPrec), save :: nsig,calc_aperture,gammax,gammay,gammax0,gammay0,gammax1,gammay1
-  real(kind=fPrec), save :: xj,xpj,yj,ypj,pj
   real(kind=fPrec), save :: arcdx,arcbetax,xdisp,rxjco,ryjco
   real(kind=fPrec), save :: rxpjco,rypjco,c_rmstilt,c_systilt
   real(kind=fPrec), save :: scale_bx, scale_by, scale_bx0, scale_by0, xkick, ykick, bx_dist, by_dist
@@ -2185,6 +2186,70 @@ subroutine collimate_start
 
 end subroutine collimate_start
 
+! ================================================================================================ !
+!  V.K. Berglyd Olsen, BE-ABP-HSS
+!  Created: 2019-09-11
+!  Updated: 2019-09-11
+!  Wrapper routine for main collimation call in tracking.
+! ================================================================================================ !
+subroutine coll_doCollimation(stracki, isColl)
+
+  use mod_time
+  use mod_common
+  use mod_common_main
+
+  real(kind=fPrec), intent(in) :: stracki
+  logical,          intent(in) :: isColl
+
+  integer j
+
+  if(isColl) then
+
+    call time_startClock(time_clockCOLL)
+    call collimate_start_collimator(stracki)
+    call collimate_do_collimator(stracki)
+    call collimate_end_collimator(stracki)
+    call time_stopClock(time_clockCOLL)
+
+  else
+
+    do j=1,napx
+      xj  = (xv1(j)-torbx(ie))/c1e3
+      xpj = (yv1(j)-torbxp(ie))/c1e3
+      yj  = (xv2(j)-torby(ie))/c1e3
+      ypj = (yv2(j)-torbyp(ie))/c1e3
+      pj  = ejv(j)/c1e3
+
+      if(firstrun) then
+        if(iturn == 1 .and. j == 1) then
+          sum_ax(ie) = zero
+          sum_ay(ie) = zero
+        end if
+      end if
+
+      gammax = (one + talphax(ie)**2)/tbetax(ie)
+      gammay = (one + talphay(ie)**2)/tbetay(ie)
+
+      if(part_abs_pos(j) == 0 .and. part_abs_turn(j) == 0) then
+        nspx         = sqrt(abs(gammax*(xj)**2 + two*talphax(ie)*xj*xpj + tbetax(ie)*xpj**2)/myemitx0_collgap)
+        nspy         = sqrt(abs(gammay*(yj)**2 + two*talphay(ie)*yj*ypj + tbetay(ie)*ypj**2)/myemity0_collgap)
+        sum_ax(ie)   = sum_ax(ie) + nspx
+        sqsum_ax(ie) = sqsum_ax(ie) + nspx**2
+        sum_ay(ie)   = sum_ay(ie) + nspy
+        sqsum_ay(ie) = sqsum_ay(ie) + nspy**2
+        nampl(ie)    = nampl(ie) + 1
+      else
+        nspx = zero
+        nspy = zero
+      end if
+      sampl(ie) = totals
+      ename(ie) = trim(bez(myix))
+    end do
+
+  end if
+
+end subroutine coll_doCollimation
+
 !>
 !! collimate_start_collimator()
 !! This routine is called each time we hit a collimator
@@ -2210,6 +2275,8 @@ subroutine collimate_start_collimator(stracki)
     nsig = cdb_cNSig(cdb_elemMap(myix))
   else
     nsig = cdb_defColGap
+    write(lout,"(a,f7.2)") "COLL> WARNING Collimation called on an unknown element '"//trim(bez(myix))//"'. "//&
+      "Collimator opening set to ",nsig
   end if
 
 !++  Write trajectory for any selected particle

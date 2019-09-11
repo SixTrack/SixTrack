@@ -1141,6 +1141,7 @@ subroutine thin6d(nthinerr)
 #endif
 
   use collimation
+  use coll_db
   use postprocessing, only : writebin
   use crcoall
   use parpro
@@ -1163,7 +1164,7 @@ subroutine thin6d(nthinerr)
 
   implicit none
 
-  integer i,irrtr,ix,j,k,n,nmz,nthinerr,dotrack,xory,nac,nfree,nramp1,nplato,nramp2,turnrep,elemEnd,&
+  integer i,irrtr,ix,j,k,n,nmz,nthinerr,dotrack,xory,nac,nfree,nramp1,nplato,nramp2,turnrep,&
     kxxa,nfirst
   real(kind=fPrec) pz,cccc,cikve,crkve,crkveuk,r0,stracki,xlvj,yv1j,yv2j,zlvj,acdipamp,qd,          &
     acphase,acdipamp2,acdipamp1,crabamp,crabfreq,crabamp2,crabamp3,crabamp4,kcrab,RTWO,NNORM,l,cur, &
@@ -1338,88 +1339,13 @@ subroutine thin6d(nthinerr)
       select case(dotrack)
       case (1)
         stracki=strack(i)
-
-        if (do_coll) then
-          !==========================================
-          !Ralph drift length is stracki
-          !bez(ix) is name of drift
-          totals=totals+stracki
-
-          !________________________________________________________________________
-          !++  If we have a collimator then...
-          !
-          !Feb2006
-          !GRD (June 2005) 'COL' option is for RHIC collimators
-          !
-          !     SR (17-01-2006): Special assignment to the TCS.TCDQ for B1 and B4,
-          !     using the new naming as in V6.500.
-          !     Note that this must be in the loop "if TCSG"!!
-          !
-          !     SR, 17-01-2006: Review the TCT assignments because the MADX names
-          !     have changes (TCTH.L -> TCTH.4L)
-          !
-          ! JULY 2008 added changes (V6.503) for names in TCTV -> TCTVA and TCTVB
-          ! both namings before and after V6.503 can be used
-          !
-          elemEnd = len_trim(bez(myix))
-          if((    bez(myix)(1:2) == 'TC'  .or. bez(myix)(1:2) == 'tc'   &
-            .or.  bez(myix)(1:2) == 'TD'  .or. bez(myix)(1:2) == 'td'   &
-            .or.  bez(myix)(1:3) == 'COL' .or. bez(myix)(1:3) == 'col') &
-            .and. bez(myix)(elemEnd-2:elemEnd) /= "_AP") then
-
-            call time_startClock(time_clockCOLL)
-            call collimate_start_collimator(stracki)
-
-            !++ For known collimators
-            if(found) then
-              call collimate_do_collimator(stracki)
-              call collimate_end_collimator(stracki)
-            end if ! end of check for 'found'
-            call time_stopClock(time_clockCOLL)
-            !------------------------------------------------------------------
-            !++  Here leave the known collimator IF loop...
-            !_______________________________________________________________________
-            !++  If it is just a drift (i.e. did not pass the namecheck)
-          else
-            ! TODO: Could just as well call normal sixtrack code (below)...
-            do j=1,napx
-              xv1(j)  = xv1(j) + stracki*yv1(j)
-              xv2(j)  = xv2(j) + stracki*yv2(j)
-              sigmv(j) = sigmv(j) + stracki*(c1e3-rvv(j)*(c1e3+(yv1(j)*yv1(j)+yv2(j)*yv2(j))*c5m4))
-              xj     = (xv1(j)-torbx(ie))/c1e3
-              xpj    = (yv1(j)-torbxp(ie))/c1e3
-              yj     = (xv2(j)-torby(ie))/c1e3
-              ypj    = (yv2(j)-torbyp(ie))/c1e3
-              pj     = ejv(j)/c1e3
-
-              if(firstrun) then
-                if (iturn.eq.1.and.j.eq.1) then
-                  sum_ax(ie)=zero
-                  sum_ay(ie)=zero
-                end if
-              end if
-
-              gammax = (one + talphax(ie)**2)/tbetax(ie)
-              gammay = (one + talphay(ie)**2)/tbetay(ie)
-
-              if (part_abs_pos(j).eq.0 .and. part_abs_turn(j).eq.0) then
-                nspx    = sqrt(abs(gammax*(xj)**2 + two*talphax(ie)*xj*xpj + tbetax(ie)*xpj**2)/myemitx0_collgap)
-                nspy    = sqrt(abs(gammay*(yj)**2 + two*talphay(ie)*yj*ypj + tbetay(ie)*ypj**2)/myemity0_collgap)
-                sum_ax(ie)   = sum_ax(ie) + nspx
-                sqsum_ax(ie) = sqsum_ax(ie) + nspx**2
-                sum_ay(ie)   = sum_ay(ie) + nspy
-                sqsum_ay(ie) = sqsum_ay(ie) + nspy**2
-                nampl(ie)    = nampl(ie) + 1
-              else
-                nspx = zero
-                nspy = zero
-              end if
-              sampl(ie)    = totals
-              ename(ie)    = bez(myix)(1:mNameLen)
-            end do
-          endif
-          !GRD END OF THE CHANGES FOR COLLIMATION STUDIES, BACK TO NORMAL SIXTRACK STUFF
-
+        ! Check if collimation is enabled, and call the collimation code as necessary
+        if(do_coll) then
+          totals = totals+stracki ! Ralph drift length is stracki
+        end if
+        if(do_coll .and. cdb_elemMap(myix) > 0) then
+          ! Collimator is in database, and we're doing collimation
+          call coll_doCollimation(stracki,.true.)
         else ! Normal SixTrack drifts
           if(iexact) then
             ! EXACT DRIFT
@@ -1438,15 +1364,20 @@ subroutine thin6d(nthinerr)
               yv1(j)=yv1(j)*c1e3
               yv2(j)=yv2(j)*c1e3
               sigmv(j)=sigmv(j)*c1e3
-            enddo
+            end do
           else
             do j=1,napx
-              xv1(j)  = xv1(j) + stracki*yv1(j)
-              xv2(j)  = xv2(j) + stracki*yv2(j)
+              xv1(j)   = xv1(j) + stracki*yv1(j)
+              xv2(j)   = xv2(j) + stracki*yv2(j)
               sigmv(j) = sigmv(j) + stracki*(c1e3-rvv(j)*(c1e3+(yv1(j)**2+yv2(j)**2)*c5m4))
             end do
           end if
+          if(do_coll) then
+            ! Not a collimator, but collimation still need to perform additional calculations
+            call coll_doCollimation(stracki,.false.)
+          end if
         end if
+
         ! A.Mereghetti and P.Garcia Ortega, for the FLUKA Team
         ! last modified: 07-03-2018
         ! store old particle coordinates
