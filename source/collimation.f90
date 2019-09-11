@@ -208,7 +208,7 @@ module collimation
   ! Variables for finding the collimator with the smallest gap
   ! and defining, stroring the gap rms error
 
-  character(len=mNameLen) :: coll_mingap1, coll_mingap2
+  character(len=mNameLen) :: coll_mingap2
   real(kind=fPrec), allocatable, save :: gap_rms_error(:) !(max_ncoll)
   real(kind=fPrec) :: nsig_err, sig_offset
   real(kind=fPrec) :: mingap, gap_h1, gap_h2, gap_h3, gap_h4
@@ -1165,7 +1165,7 @@ subroutine collimate_parseInputLine(inLine, iLine, iErr)
       return
     end if
     call chr_cast(lnSplit(2), do_select, iErr)
-    name_sel = trim(lnSplit(3))
+    name_sel = chr_toLower(trim(lnSplit(3)))
 
   case("DO_NOMINAL")
     if(nSplit /= 2) then
@@ -1565,7 +1565,7 @@ subroutine collimate_parseInputLine(inLine, iLine, iErr)
     call chr_cast(lnSplit(2), do_nominal,       iErr)
     call chr_cast(lnSplit(3), rnd_seed,         iErr)
     call chr_cast(lnSplit(4), dowrite_dist,     iErr)
-    name_sel = lnSplit(5)
+    name_sel = chr_toLower(lnSplit(5))
     call chr_cast(lnSplit(6), do_oneside,       iErr)
     call chr_cast(lnSplit(7), dowrite_impact,   iErr)
     call chr_cast(lnSplit(8), dowrite_secondary,iErr)
@@ -1974,7 +1974,7 @@ subroutine collimate_start
 !++  sample.
   if(c_rmstilt_prim.gt.zero .or. c_rmstilt_sec.gt.zero .or. c_systilt_prim.ne.zero .or. c_systilt_sec.ne.zero) then
     do icoll = 1, cdb_nColl
-      if(cdb_cNameUC(icoll)(1:3).eq.'TCP') then
+      if(cdb_cName(icoll)(1:3) == "tcp") then
         c_rmstilt = c_rmstilt_prim
         c_systilt = c_systilt_prim
       else
@@ -2006,7 +2006,7 @@ subroutine collimate_start
  if(c_sysoffset_prim.ne.zero .or. c_sysoffset_sec.ne.zero .or.c_rmsoffset_prim.gt.zero .or.c_rmsoffset_sec.gt.zero) then
    do icoll = 1, cdb_nColl
 
-     if(cdb_cNameUC(icoll)(1:3).eq.'TCP') then
+     if(cdb_cName(icoll)(1:3) == "tcp") then
        cdb_cOffset(icoll) = c_sysoffset_prim + c_rmsoffset_prim*ran_gauss2(three)
      else
        cdb_cOffset(icoll) = c_sysoffset_sec +  c_rmsoffset_sec*ran_gauss2(three)
@@ -2048,7 +2048,7 @@ subroutine collimate_start
 
     do i=1,cdb_nColl
 ! start searching minimum gap
-      if(cdb_cNameUC(i) == bez(myix) .or. cdb_cName(i) == bez(myix)) then
+      if(cdb_cName(i) == bez(myix)) then
         if( cdb_cLength(i) > zero ) then
           nsig_err = nsig + gap_rms_error(i)
 
@@ -2086,22 +2086,18 @@ subroutine collimate_start
           if((gap_h1 + sig_offset) .le. mingap) then
             mingap = gap_h1 + sig_offset
             coll_mingap_id = i
-            coll_mingap1 = cdb_cNameUC(i)
             coll_mingap2 = cdb_cName(i)
           else if((gap_h2 + sig_offset) .le. mingap) then
             mingap = gap_h2 + sig_offset
             coll_mingap_id = i
-            coll_mingap1 = cdb_cNameUC(i)
             coll_mingap2 = cdb_cName(i)
           else if((gap_h3 - sig_offset) .le. mingap) then
             mingap = gap_h3 - sig_offset
             coll_mingap_id = i
-            coll_mingap1 = cdb_cNameUC(i)
             coll_mingap2 = cdb_cName(i)
           else if((gap_h4 - sig_offset) .le. mingap) then
             mingap = gap_h4 - sig_offset
             coll_mingap_id = i
-            coll_mingap1 = cdb_cNameUC(i)
             coll_mingap2 = cdb_cName(i)
           end if
         end if
@@ -2110,7 +2106,7 @@ subroutine collimate_start
 
   end do !do j=1,iu
 
-  write(coll_twissLikeUnit,*) coll_mingap_id, coll_mingap1, coll_mingap2,  mingap
+  write(coll_twissLikeUnit,*) coll_mingap_id, coll_mingap2,  mingap
   write(coll_twissLikeUnit,*) 'INFO> IPENCIL initial ', ipencil
 
 ! if pencil beam is used and on collimator with smallest gap the
@@ -2120,7 +2116,7 @@ subroutine collimate_start
   end if
 
   write(coll_twissLikeUnit,*) 'INFO> IPENCIL new (if do_mingap) ', ipencil
-  write(coll_sigmaSetUnit,*) coll_mingap_id, coll_mingap1, coll_mingap2,  mingap
+  write(coll_sigmaSetUnit,*) coll_mingap_id, coll_mingap2,  mingap
 
 ! if pencil beam is used and on collimator with smallest gap the
 ! distribution should be generated, set ipencil to coll_mingap_id
@@ -2353,9 +2349,8 @@ subroutine collimate_do_collimator(stracki)
   use coll_dist
   use mod_units
   use mathlib_bouncer
-  use string_tools, only : chr_rpad, chr_lpad
   use mod_alloc
-
+  use string_tools
 #ifdef ROOT
   use root_output
 #endif
@@ -2409,7 +2404,7 @@ subroutine collimate_do_collimator(stracki)
   end if
 
 !++  Write beam ellipse at selected collimator
-  if((cdb_cNameUC(icoll) == name_sel .or. cdb_cName(icoll) == name_sel) .and. do_select) then
+  if(chr_toLower(cdb_cName(icoll)) == name_sel .and. do_select) then
     do j=1,napx
       write(coll_ellipseUnit,'(1X,I8,6(1X,E15.7),3(1X,I4,1X,I4))') ipart(j),xv1(j), xv2(j), yv1(j), yv2(j), &
         ejv(j), sigmv(j),iturn,secondary(j)+tertiary(j)+other(j)+scatterhit(j),nabs_type(j)
@@ -2737,12 +2732,12 @@ subroutine collimate_do_collimator(stracki)
 
     !! Add the geant4 geometry
     if(firstrun .and. iturn == 1) then
-      call g4_add_collimator(cdb_cNameUC(icoll), c_material, c_length, c_aperture, c_rotation, torbx(ie), torby(ie))
+      call g4_add_collimator(cdb_cName(icoll), c_material, c_length, c_aperture, c_rotation, torbx(ie), torby(ie))
     end if
 
 !! Here we do the real collimation
 !! First set the correct collimator
-    call g4_set_collimator(cdb_cNameUC(icoll))
+    call g4_set_collimator(cdb_cName(icoll))
     flush(lout)
 
 !! Loop over all our particles
@@ -2753,7 +2748,7 @@ subroutine collimate_do_collimator(stracki)
     ien1  = zero
 
     if(g4_debug .eqv. .true.) then
-      write(lout,"(2a)") 'COLLIMATOR:', cdb_cNameUC(icoll)
+      write(lout,"(2a)") 'COLLIMATOR:', cdb_cName(icoll)
       write(lout,"(12a)") chr_lpad('id',33), chr_lpad('pdgid',12), chr_lpad('mass',25), chr_lpad('x',25), chr_lpad('y',25), &
                           chr_lpad('xp',25), chr_lpad('yp',25), chr_lpad('p',25), chr_lpad('spin_x',25), chr_lpad('spin_y',25),&
                           chr_lpad('spin_z',25)
@@ -2926,6 +2921,7 @@ subroutine collimate_end_collimator(stracki)
   use numerical_constants, only : c5m4
   use coll_db
   use mod_units
+  use string_tools
 #ifdef HDF5
   use hdf5_output
   use hdf5_tracks2
@@ -3124,12 +3120,12 @@ end do
 
         ! Indicate wether this is a secondary / tertiary / other particle;
         !  note that 'scatterhit' (equals 8 when set) is set in SCATTER.
-        if(cdb_cNameUC(icoll)(1:3) == 'TCP') then
+        if(cdb_cName(icoll)(1:3) == "tcp") then
           secondary(j) = 1
-        else if(cdb_cNameUC(icoll)(1:3) == 'TCS') then
+        else if(cdb_cName(icoll)(1:3) == "tcs") then
           tertiary(j)  = 2
-        else if((cdb_cNameUC(icoll)(1:3) == 'TCL') .or. (cdb_cNameUC(icoll)(1:3) == 'TCT') .or. &
-                (cdb_cNameUC(icoll)(1:3) == 'TCD') .or. (cdb_cNameUC(icoll)(1:3) == 'TDI')) then
+        else if((cdb_cName(icoll)(1:3) == "tcl") .or. (cdb_cName(icoll)(1:3) == "tct") .or. &
+                (cdb_cName(icoll)(1:3) == "tcd") .or. (cdb_cName(icoll)(1:3) == "tdi")) then
           other(j)     = 4
         end if
       else
@@ -3260,7 +3256,7 @@ end do
 
 ! should name_sel(1:11) extended to allow longer names as done for
 ! coll the coll_ellipse.dat file !!!!!!!!
-  if((cdb_cNameUC(icoll) == name_sel .or. cdb_cName(icoll) == name_sel) .and. iturn == 1) then
+  if(chr_toLower(cdb_cName(icoll)) == name_sel .and. iturn == 1) then
     num_selhit = 0
     num_surhit = 0
     num_selabs = 0

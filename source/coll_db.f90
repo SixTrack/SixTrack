@@ -27,7 +27,6 @@ module coll_db
 
   ! Main Database Arrays
   character(len=:), allocatable, public, save :: cdb_cName(:)       ! Collimator name
-  character(len=:), allocatable, public, save :: cdb_cNameUC(:)     ! Collimator name upper case
   character(len=:), allocatable, public, save :: cdb_cMaterial(:)   ! Collimator material
   integer,          allocatable, public, save :: cdb_cFamily(:)     ! Collimator family
   real(kind=fPrec), allocatable, public, save :: cdb_cNSig(:)       ! Collimator sigma
@@ -69,7 +68,6 @@ subroutine cdb_allocDB
 
   ! Main Database Arrays
   call alloc(cdb_cName,     mNameLen, cdb_nColl, " ",           "cdb_cName")
-  call alloc(cdb_cNameUC,   mNameLen, cdb_nColl, " ",           "cdb_cNameUC")
   call alloc(cdb_cMaterial, 4,        cdb_nColl, " ",           "cdb_cMaterial")
   call alloc(cdb_cFamily,             cdb_nColl, 0,             "cdb_cFamily")
   call alloc(cdb_cNSig,               cdb_nColl, cdb_defColGap, "cdb_cNSig")
@@ -302,7 +300,6 @@ subroutine cdb_readDB_newFormat
   end if
 
   cdb_cName(iColl)     = lnSplit(1)
-  cdb_cNameUC(iColl)   = chr_toUpper(lnSplit(1))
   cdb_cMaterial(iColl) = lnSplit(3)
 
   call chr_cast(lnSplit(4),cdb_cLength(iColl),  cErr)
@@ -359,6 +356,7 @@ subroutine cdb_readDB_oldFormat
 
   character(len=mInputLn) inLine
   character(len=cdb_fNameLen) famName
+  character(len=mNameLen) collDummy
   logical cErr
   integer j, dbUnit, ioStat, iLine, famID
 
@@ -386,7 +384,7 @@ subroutine cdb_readDB_oldFormat
     if(ioStat /= 0) goto 100
 
     ! Line 2: Upper case name
-    read(dbUnit,*,iostat=ioStat) cdb_cNameUC(j)
+    read(dbUnit,*,iostat=ioStat) collDummy
     iLine = iLine + 1
     if(ioStat /= 0) goto 100
 
