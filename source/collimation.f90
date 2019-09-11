@@ -444,6 +444,9 @@ module collimation
   character(len=17), parameter :: coll_sigmaSetFile   = "sigmasettings.out"
   character(len=16), parameter :: coll_settingsFile   = "collsettings.dat"
   character(len=16), parameter :: coll_jawProfileFile = "jaw_profiles.dat"
+  character(len=13), parameter :: coll_ampFile        = "amplitude.dat"
+  character(len=14), parameter :: coll_amp2File       = "amplitude2.dat"
+  character(len=17), parameter :: coll_betaFuncFile   = "betafunctions.dat"
 
   integer, private, save :: coll_survivalUnit   = -1
   integer, private, save :: coll_gapsUnit       = -1
@@ -463,9 +466,12 @@ module collimation
   integer, private, save :: coll_sigmaSetUnit   = -1
   integer, private, save :: coll_settingsUnit   = -1
   integer, private, save :: coll_jawProfileUnit = -1
+  integer, private, save :: coll_ampUnit        = -1
+  integer, private, save :: coll_amp2Unit       = -1
+  integer, private, save :: coll_betaFuncUnit   = -1
 
   integer, private, save :: distsec_unit, efficiency_unit, efficiency_dpop_unit
-  integer, private, save :: coll_summary_unit, amplitude_unit, amplitude2_unit, betafunctions_unit, orbitchecking_unit
+  integer, private, save :: coll_summary_unit, orbitchecking_unit
   integer, private, save :: efficiency_2d_unit
   integer, private, save :: outlun
 
@@ -2243,7 +2249,7 @@ subroutine coll_doCollimation(stracki, isColl)
         nspy = zero
       end if
       sampl(ie) = totals
-      ename(ie) = trim(bez(myix))
+      ename(ie) = bez(myix)
     end do
 
   end if
@@ -2326,7 +2332,7 @@ subroutine collimate_start_collimator(stracki)
         end if
 
           sampl(ie)    = totals
-          ename(ie)    = bez(myix)(1:mNameLen)
+          ename(ie)    = bez(myix)
       end do !do j = 1, napx
     end if !if(rselect.gt.0 .and. rselect.lt.65) then
   end if !if( firstrun ) then
@@ -3687,21 +3693,21 @@ subroutine collimate_exit()
     call f_close(coll_jawProfileUnit)
   end if
 
-  call f_requestUnit('amplitude.dat', amplitude_unit)
-  call f_requestUnit('amplitude2.dat', amplitude2_unit)
-  call f_requestUnit('betafunctions.dat', betafunctions_unit)
-  open(unit=amplitude_unit, file='amplitude.dat') !was 56
-  open(unit=amplitude2_unit, file='amplitude2.dat') !was 51
-  open(unit=betafunctions_unit, file='betafunctions.dat') !was 57
+  call f_requestUnit(coll_ampFile,     coll_ampUnit)
+  call f_requestUnit(coll_amp2File,    coll_amp2Unit)
+  call f_requestUnit(coll_betaFuncFile,coll_betaFuncUnit)
+  call f_open(unit=coll_ampUnit,     file=coll_ampFile,     formatted=.true.,mode="w")
+  call f_open(unit=coll_amp2Unit,    file=coll_amp2File,    formatted=.true.,mode="w")
+  call f_open(unit=coll_betaFuncUnit,file=coll_betaFuncFile,formatted=.true.,mode="w")
 
   if(dowrite_amplitude) then
-    write(amplitude_unit,"(a)")                                         &
+    write(coll_ampUnit,"(a)")                                         &
       "# 1=ielem 2=name 3=s 4=AX_AV 5=AX_RMS 6=AY_AV 7=AY_RMS "//       &
       "8=alphax 9=alphay 10=betax 11=betay 12=orbitx "//                &
       "13=orbity 14=tdispx 15=tdispy 16=xbob 17=ybob 18=xpbob 19=ypbob"
 
     do i=1,iu
-       write(amplitude_unit,'(i4, (1x,a16), 17(1x,e20.13))')             &
+       write(coll_ampUnit,"(i4,1x,a16,17(1x,e20.13))")             &
       &i, ename(i), sampl(i),                                            &
       &sum_ax(i)/real(max(nampl(i),1),fPrec),                            &
       &sqrt(abs((sqsum_ax(i)/real(max(nampl(i),1),fPrec))-               &
@@ -3715,27 +3721,27 @@ subroutine collimate_exit()
       &xbob(i),ybob(i),xpbob(i),ypbob(i)
     end do
 
-    write(amplitude2_unit,"(a)") "# 1=ielem 2=name 3=s 4=ORBITX 5=orbity 6=tdispx 7=tdispy 8=xbob 9=ybob 10=xpbob 11=ypbob"
+    write(coll_amp2Unit,"(a)") "# 1=ielem 2=name 3=s 4=ORBITX 5=orbity 6=tdispx 7=tdispy 8=xbob 9=ybob 10=xpbob 11=ypbob"
 
     do i=1,iu
-      write(amplitude2_unit,'(i4, (1x,a16), 9(1x,e15.7))') i, ename(i), sampl(i), torbx(i), torby(i), tdispx(i), tdispy(i), &
+      write(coll_amp2Unit,'(i4, (1x,a16), 9(1x,e15.7))') i, ename(i), sampl(i), torbx(i), torby(i), tdispx(i), tdispy(i), &
             xbob(i), ybob(i), xpbob(i), ypbob(i)
     end do
 
-    write(betafunctions_unit,"(a)") "# 1=ielem 2=name       3=s             4=TBETAX(m)     5=TBETAY(m)     6=TORBX(mm)"// &
+    write(coll_betaFuncUnit,"(a)") "# 1=ielem 2=name       3=s             4=TBETAX(m)     5=TBETAY(m)     6=TORBX(mm)"// &
       "    7=TORBY(mm) 8=TORBXP(mrad)   9=TORBYP(mrad)  10=TDISPX(m)  11=MUX()    12=MUY()"
 
 
     do i=1,iu
 !     RB: added printout of closed orbit and angle
-      write(betafunctions_unit,'(i5, (1x,a16), 10(1x,e15.7))') i, ename(i), sampl(i), tbetax(i), tbetay(i), torbx(i), torby(i), &
+      write(coll_betaFuncUnit,'(i5, (1x,a16), 10(1x,e15.7))') i, ename(i), sampl(i), tbetax(i), tbetay(i), torbx(i), torby(i), &
         torbxp(i), torbyp(i), tdispx(i), mux(i), muy(i)
     end do
   endif
 
-  close(amplitude_unit)
-  close(amplitude2_unit)
-  close(betafunctions_unit)
+  call f_close(coll_ampUnit)
+  call f_close(coll_amp2Unit)
+  call f_close(coll_betaFuncUnit)
 
 !GRD
 !GRD WE CAN ALSO MAKE AN ORBIT CHECKING
@@ -3932,7 +3938,7 @@ subroutine collimate_end_element
         end if
 
         sampl(ie) = totals
-        ename(ie) = bez(myix)(1:mNameLen)
+        ename(ie) = bez(myix)
       end do
     end if
   end if
@@ -4307,7 +4313,7 @@ subroutine collimate_end_turn
           sqsum_ay(ie) = sqsum_ay(ie) + nspy**2
           nampl(ie)    = nampl(ie) + 1
           sampl(ie)    = totals
-          ename(ie)    = bez(myix)(1:mNameLen)
+          ename(ie)    = bez(myix)
         else
           nspx = zero
           nspy = zero
