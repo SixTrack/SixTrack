@@ -2050,11 +2050,10 @@ subroutine collimate_start
       nsig = cdb_defColGap
     end if
 
-    do i = 1, cdb_nColl
+    do i=1,cdb_nColl
 ! start searching minimum gap
-      if((cdb_cNameUC(i)(1:mNameLen).eq.bez(myix)(1:mNameLen)).or. &
-          (cdb_cName(i)(1:mNameLen).eq.bez(myix)(1:mNameLen))) then
-        if( cdb_cLength(i) .gt. zero ) then
+      if(cdb_cNameUC(i) == bez(myix) .or. cdb_cName(i) == bez(myix)) then
+        if( cdb_cLength(i) > zero ) then
           nsig_err = nsig + gap_rms_error(i)
 
 ! jaw 1 on positive side x-axis
@@ -2353,18 +2352,18 @@ subroutine collimate_do_collimator(stracki)
   end if
 
 !++  Write beam ellipse at selected collimator
-  if (((cdb_cNameUC(icoll).eq.name_sel(1:mNameLen)) .or. (cdb_cName(icoll).eq.name_sel(1:mNameLen))) .and. do_select) then
-    do j = 1, napx
+  if((cdb_cNameUC(icoll) == name_sel .or. cdb_cName(icoll) == name_sel) .and. do_select) then
+    do j=1,napx
       write(coll_ellipseUnit,'(1X,I8,6(1X,E15.7),3(1X,I4,1X,I4))') ipart(j),xv1(j), xv2(j), yv1(j), yv2(j), &
-     &        ejv(j), sigmv(j),iturn,secondary(j)+tertiary(j)+other(j)+scatterhit(j),nabs_type(j)
+        ejv(j), sigmv(j),iturn,secondary(j)+tertiary(j)+other(j)+scatterhit(j),nabs_type(j)
     end do
   end if
 
 !-------------------------------------------------------------------
 !++  Output to temporary database and screen
-  if(iturn.eq.1.and.firstrun) then
+  if(iturn == 1 .and. firstrun) then
     write(coll_tempDbUnit,*) '# '
-    write(coll_tempDbUnit,*) cdb_cNameUC(icoll)!(1:11)
+    write(coll_tempDbUnit,*) cdb_cNameUC(icoll)
     write(coll_tempDbUnit,*) cdb_cMaterial(icoll)
     write(coll_tempDbUnit,*) cdb_cLength(icoll)
     write(coll_tempDbUnit,*) cdb_cRotation(icoll)
@@ -2375,7 +2374,7 @@ subroutine collimate_do_collimator(stracki)
     write(outlun,*) ' '
     write(outlun,*)   'Collimator information: '
     write(outlun,*) ' '
-    write(outlun,*) 'Name:                ', cdb_cNameUC(icoll)!(1:11)
+    write(outlun,*) 'Name:                ', cdb_cNameUC(icoll)
     write(outlun,*) 'Material:            ', cdb_cMaterial(icoll)
     write(outlun,*) 'Length [m]:          ', cdb_cLength(icoll)
     write(outlun,*) 'Rotation [rad]:      ', cdb_cRotation(icoll)
@@ -2390,36 +2389,35 @@ subroutine collimate_do_collimator(stracki)
 !++  Calculate aperture of collimator
 !JUNE2005   HERE ONE HAS TO HAVE PARTICULAR TREATMENT OF THE OPENING OF
 !JUNE2005   THE PRIMARY COLLIMATOR OF RHIC
-  if(cdb_cNameUC(icoll)(1:4).ne.'COLM') then
-    nsig = nsig + gap_rms_error(icoll)
-    xmax = nsig*sqrt(bx_dist*myemitx0_collgap)
-    ymax = nsig*sqrt(by_dist*myemity0_collgap)
-    xmax_pencil = (nsig+pencil_offset)*sqrt(bx_dist*myemitx0_collgap)
-    ymax_pencil = (nsig+pencil_offset)*sqrt(by_dist*myemity0_collgap)
-    xmax_nom   = cdb_cNSig(icoll)*sqrt(cdb_cBx(icoll)*myemitx0_collgap)
-    ymax_nom   = cdb_cNSig(icoll)*sqrt(cdb_cBy(icoll)*myemity0_collgap)
-    c_rotation = cdb_cRotation(icoll)
-    c_length   = cdb_cLength(icoll)
-    c_material = cdb_cMaterial(icoll)
-    c_offset   = cdb_cOffset(icoll)
-    c_tilt(1)  = cdb_cTilt(1,icoll)
-    c_tilt(2)  = cdb_cTilt(2,icoll)
+  nsig = nsig + gap_rms_error(icoll)
+  xmax = nsig*sqrt(bx_dist*myemitx0_collgap)
+  ymax = nsig*sqrt(by_dist*myemity0_collgap)
+  xmax_pencil = (nsig+pencil_offset)*sqrt(bx_dist*myemitx0_collgap)
+  ymax_pencil = (nsig+pencil_offset)*sqrt(by_dist*myemity0_collgap)
+  xmax_nom   = cdb_cNSig(icoll)*sqrt(cdb_cBx(icoll)*myemitx0_collgap)
+  ymax_nom   = cdb_cNSig(icoll)*sqrt(cdb_cBy(icoll)*myemity0_collgap)
+  c_rotation = cdb_cRotation(icoll)
+  c_length   = cdb_cLength(icoll)
+  c_material = cdb_cMaterial(icoll)
+  c_offset   = cdb_cOffset(icoll)
+  c_tilt(1)  = cdb_cTilt(1,icoll)
+  c_tilt(2)  = cdb_cTilt(2,icoll)
 
-    calc_aperture   = sqrt( xmax**2 * cos_mb(c_rotation)**2 + ymax**2 * sin_mb(c_rotation)**2 )
-    nom_aperture    = sqrt( xmax_nom**2 * cos_mb(c_rotation)**2 + ymax_nom**2 * sin_mb(c_rotation)**2 )
-    pencil_aperture = sqrt( xmax_pencil**2 * cos_mb(c_rotation)**2+ ymax_pencil**2 * sin_mb(c_rotation)**2 )
+  calc_aperture   = sqrt( xmax**2 * cos_mb(c_rotation)**2 + ymax**2 * sin_mb(c_rotation)**2 )
+  nom_aperture    = sqrt( xmax_nom**2 * cos_mb(c_rotation)**2 + ymax_nom**2 * sin_mb(c_rotation)**2 )
+  pencil_aperture = sqrt( xmax_pencil**2 * cos_mb(c_rotation)**2+ ymax_pencil**2 * sin_mb(c_rotation)**2 )
 
 !++  Get x and y offsets at collimator center point
-    x_pencil(icoll) = xmax_pencil * (cos_mb(c_rotation))
-    y_pencil(icoll) = ymax_pencil * (sin_mb(c_rotation))
+  x_pencil(icoll) = xmax_pencil * (cos_mb(c_rotation))
+  y_pencil(icoll) = ymax_pencil * (sin_mb(c_rotation))
 
 !++  Get corresponding beam angles (uses xp_max)
-    xp_pencil(icoll) = -one * sqrt(myemitx0_collgap/tbetax(ie))*talphax(ie)* xmax / sqrt(myemitx0_collgap*tbetax(ie))
-    yp_pencil(icoll) = -one * sqrt(myemity0_collgap/tbetay(ie))*talphay(ie)* ymax / sqrt(myemity0_collgap*tbetay(ie))
-    xp_pencil0 = xp_pencil(icoll)
-    yp_pencil0 = yp_pencil(icoll)
+  xp_pencil(icoll) = -one * sqrt(myemitx0_collgap/tbetax(ie))*talphax(ie)* xmax / sqrt(myemitx0_collgap*tbetax(ie))
+  yp_pencil(icoll) = -one * sqrt(myemity0_collgap/tbetay(ie))*talphay(ie)* ymax / sqrt(myemity0_collgap*tbetay(ie))
+  xp_pencil0 = xp_pencil(icoll)
+  yp_pencil0 = yp_pencil(icoll)
 
-    pencil_dx(icoll) = sqrt(xmax_pencil**2 * cos_mb(c_rotation)**2 + ymax_pencil**2 * sin_mb(c_rotation)**2)-calc_aperture
+  pencil_dx(icoll) = sqrt(xmax_pencil**2 * cos_mb(c_rotation)**2 + ymax_pencil**2 * sin_mb(c_rotation)**2)-calc_aperture
 
 !++ TW -- tilt for of jaw for pencil beam
 !++ as in Ralphs orig routine, but not in collimate subroutine itself
@@ -2432,7 +2430,7 @@ subroutine collimate_do_collimator(stracki)
 ! therefore 1E-3 is used to
 
 ! RB: added condition that pencil_distr.ne.3 in order to do the tilt
-    if((icoll.eq.ipencil).and.(iturn.eq.1).and. (pencil_distr.ne.3)) then
+  if((icoll.eq.ipencil).and.(iturn.eq.1).and. (pencil_distr.ne.3)) then
 !!               write(*,*) " ************************************** "
 !!               write(*,*) " * INFO> seting tilt for pencil beam  * "
 !!               write(*,*) " ************************************** "
@@ -2442,27 +2440,12 @@ subroutine collimate_do_collimator(stracki)
 !!               if (systilt_antisymm) then
 !! to align the jaw/pencil to the beam always use the minus regardless which
 !! orientation of the jaws was used (symmetric/antisymmetric)
-      c_tilt(1) = c_tilt(1) +    (xp_pencil0*cos_mb(c_rotation) + sin_mb(c_rotation)*yp_pencil0)
-      c_tilt(2) = c_tilt(2) -one*(xp_pencil0*cos_mb(c_rotation) + sin_mb(c_rotation)*yp_pencil0)
-      write(lout,*) "INFO> Changed tilt1  ICOLL  to  ANGLE  ", icoll, c_tilt(1)
-      write(lout,*) "INFO> Changed tilt2  ICOLL  to  ANGLE  ", icoll, c_tilt(2)
-    end if
-!++ TW -- tilt angle changed (added to genetated on if spec. in fort.3)
-
-!JUNE2005   HERE IS THE SPECIAL TREATMENT...
-  else if(cdb_cNameUC(icoll)(1:4).eq.'COLM') then
-    xmax = cdb_getFamilyNSig("tcth1")*sqrt(bx_dist*myemitx0_collgap)
-    ymax = cdb_getFamilyNSig("tcth2")*sqrt(by_dist*myemity0_collgap)
-
-    c_rotation = cdb_cRotation(icoll)
-    c_length   = cdb_cLength(icoll)
-    c_material = cdb_cMaterial(icoll)
-    c_offset   = cdb_cOffset(icoll)
-    c_tilt(1)  = cdb_cTilt(1,icoll)
-    c_tilt(2)  = cdb_cTilt(2,icoll)
-    calc_aperture = xmax
-    nom_aperture = ymax
+    c_tilt(1) = c_tilt(1) +    (xp_pencil0*cos_mb(c_rotation) + sin_mb(c_rotation)*yp_pencil0)
+    c_tilt(2) = c_tilt(2) -one*(xp_pencil0*cos_mb(c_rotation) + sin_mb(c_rotation)*yp_pencil0)
+    write(lout,*) "INFO> Changed tilt1  ICOLL  to  ANGLE  ", icoll, c_tilt(1)
+    write(lout,*) "INFO> Changed tilt2  ICOLL  to  ANGLE  ", icoll, c_tilt(2)
   end if
+!++ TW -- tilt angle changed (added to genetated on if spec. in fort.3)
 
 !-------------------------------------------------------------------
 !++  Further output
@@ -3113,26 +3096,17 @@ end do
 
         ! Indicate wether this is a secondary / tertiary / other particle;
         !  note that 'scatterhit' (equals 8 when set) is set in SCATTER.
-        if(cdb_cNameUC(icoll)(1:3).eq.'TCP'   .or. &
-           cdb_cNameUC(icoll)(1:4).eq.'COLM'  .or. &
-           cdb_cNameUC(icoll)(1:5).eq.'COLH0' .or. &
-           cdb_cNameUC(icoll)(1:5).eq.'COLV0'       ) then
+        if(cdb_cNameUC(icoll)(1:3) == 'TCP') then
           secondary(j) = 1
-        else if(cdb_cNameUC(icoll)(1:3).eq.'TCS'   .or. &
-                cdb_cNameUC(icoll)(1:4).eq.'COLH1' .or. &
-                cdb_cNameUC(icoll)(1:4).eq.'COLV1' .or. &
-                cdb_cNameUC(icoll)(1:4).eq.'COLH2'       ) then
+        else if(cdb_cNameUC(icoll)(1:3) == 'TCS') then
           tertiary(j)  = 2
-       else if((cdb_cNameUC(icoll)(1:3).eq.'TCL') .or. &
-               (cdb_cNameUC(icoll)(1:3).eq.'TCT') .or. &
-               (cdb_cNameUC(icoll)(1:3).eq.'TCD') .or. &
-               (cdb_cNameUC(icoll)(1:3).eq.'TDI')       ) then
+        else if((cdb_cNameUC(icoll)(1:3) == 'TCL') .or. (cdb_cNameUC(icoll)(1:3) == 'TCT') .or. &
+                (cdb_cNameUC(icoll)(1:3) == 'TCD') .or. (cdb_cNameUC(icoll)(1:3) == 'TDI')) then
           other(j)     = 4
         end if
       else
-        write(lout,*) "Error in collimate_end_collimator"
-        write(lout,*) "Particle cannot be both absorbed and not absorbed."
-        write(lout,*) part_abs_pos (j),  part_abs_turn(j)
+        write(lerr,"(a)")          "COLL> ERROR Particle cannot be both absorbed and not absorbed"
+        write(lerr,"(a,2(1x,i0))") "COLL>      ",part_abs_pos (j),part_abs_turn(j)
         call prror
       end if
 
@@ -3258,27 +3232,23 @@ end do
 
 ! should name_sel(1:11) extended to allow longer names as done for
 ! coll the coll_ellipse.dat file !!!!!!!!
-  if(((cdb_cNameUC(icoll).eq.name_sel(1:mNameLen)).or.&
-      (cdb_cName(icoll).eq.name_sel(1:mNameLen))) .and. iturn.eq.1  ) then
+  if((cdb_cNameUC(icoll) == name_sel .or. cdb_cName(icoll) == name_sel) .and. iturn == 1) then
     num_selhit = 0
     num_surhit = 0
     num_selabs = 0
 
-    do j = 1, napx
-      if( part_hit_pos (j).eq.ie .and. part_hit_turn(j).eq.iturn ) then
-
-      num_selhit = num_selhit+1
-
-      if(part_abs_pos(j) .eq.0 .and. part_abs_turn(j).eq.0) then
-        num_surhit = num_surhit+1
-      else
-        num_selabs = num_selabs + 1
-      end if
-
+    do j=1,napx
+      if(part_hit_pos (j) == ie .and. part_hit_turn(j) == iturn) then
+        num_selhit = num_selhit+1
+        if(part_abs_pos(j)  == 0 .and. part_abs_turn(j) == 0) then
+          num_surhit = num_surhit+1
+        else
+          num_selabs = num_selabs + 1
+        end if
 !++  If we want to select only partciles interacting at the specified
 !++  collimator then remove all other particles and reset the number
 !++  of the absorbed particles to the selected collimator.
-      else if(do_select.and.firstrun) then
+      else if(do_select .and. firstrun) then
         part_select(j) = 0
         n_tot_absorbed = num_selabs
       end if
@@ -3290,10 +3260,10 @@ end do
     sum      = zero
     sqsum    = zero
 
-    do j = 1, napx
-      if( part_hit_pos (j).eq.ie .and. part_hit_turn(j).eq.iturn ) then
-        if(part_impact(j).lt.-half) then
-          write(lout,*) 'ERR>  Found invalid impact parameter!', part_impact(j)
+    do j=1,napx
+      if(part_hit_pos(j) == ie .and. part_hit_turn(j) == iturn) then
+        if(part_impact(j) < -half) then
+          write(lerr,"(a,i0)") "COLL> ERROR Found invalid impact parameter ", part_impact(j)
           write(outlun,*) 'ERR>  Invalid impact parameter!', part_impact(j)
           call prror
         end if
@@ -3701,37 +3671,6 @@ subroutine collimate_exit()
   close(betafunctions_unit)
 
 !GRD
-!      DO J=1,iu
-!        DO I=1,numl
-!        xaveragesumoverturns(j)  = xaverage(j,i)
-!     &                             + xaverage(j,MAX((i-1),1))
-!        yaveragesumoverturns(j)  = yaverage(j,i)
-!     &                             + yaverage(j,MAX((i-1),1))
-!        xpaveragesumoverturns(j) = xpaverage(j,i)
-!     &                             + xpaverage(j,MAX((i-1),1))
-!        ypaveragesumoverturns(j) = ypaverage(j,i)
-!     &                             + ypaverage(j,MAX((i-1),1))
-!        END DO
-!        xclosedorbitcheck(j)=(xaveragesumoverturns(j)
-!     &                        +xaverage(j,numl))/(2*numl)
-!        yclosedorbitcheck(j)=(yaveragesumoverturns(j)
-!     &                        +yaverage(j,numl))/(2*numl)
-!        xpclosedorbitcheck(j)=(xpaveragesumoverturns(j)
-!     &                        +xpaverage(j,numl))/(2*numl)
-!        ypclosedorbitcheck(j)=(ypaveragesumoverturns(j)
-!     &                        +ypaverage(j,numl))/(2*numl)
-!      END DO
-!
-!      OPEN(unit=99, file='xchecking.dat')
-!      WRITE(99,*) '# 1=s 2=x 3=xp 4=y 5=yp'
-!      DO J=1,iu
-!      WRITE(99,'(i, 5(1x,e15.7))')
-!     &     j, SAMPL(j),
-!     &     xclosedorbitcheck(j), xpclosedorbitcheck(j),
-!     &     yclosedorbitcheck(j), ypclosedorbitcheck(j)
-!      END DO
-!      CLOSE(99)
-!GRD
 !GRD WE CAN ALSO MAKE AN ORBIT CHECKING
 !GRD
 
@@ -3838,19 +3777,17 @@ subroutine collimate_start_element(i)
   if (                                                          &
 !GRD HERE ARE SOME CHANGES TO MAKE RHIC TRAKING AVAILABLE
 !APRIL2005
-     &(bez(myix)(1:3).eq.'TCP'.or.bez(myix)(1:3).eq.'tcp') .or.         &
-     &(bez(myix)(1:3).eq.'TCS'.or.bez(myix)(1:3).eq.'tcs') .or.         &
+      (bez(myix)(1:3).eq.'TCP'.or.bez(myix)(1:3).eq.'tcp') .or.         &
+      (bez(myix)(1:3).eq.'TCS'.or.bez(myix)(1:3).eq.'tcs') .or.         &
 !UPGRADE January 2005
-     &(bez(myix)(1:3).eq.'TCL'.or.bez(myix)(1:3).eq.'tcl') .or.         &
-     &(bez(myix)(1:3).eq.'TCT'.or.bez(myix)(1:3).eq.'tct') .or.         &
-     &(bez(myix)(1:3).eq.'TCD'.or.bez(myix)(1:3).eq.'tcd') .or.         &
-     &(bez(myix)(1:3).eq.'TDI'.or.bez(myix)(1:3).eq.'tdi') .or.         &
+      (bez(myix)(1:3).eq.'TCL'.or.bez(myix)(1:3).eq.'tcl') .or.         &
+      (bez(myix)(1:3).eq.'TCT'.or.bez(myix)(1:3).eq.'tct') .or.         &
+      (bez(myix)(1:3).eq.'TCD'.or.bez(myix)(1:3).eq.'tcd') .or.         &
+      (bez(myix)(1:3).eq.'TDI'.or.bez(myix)(1:3).eq.'tdi') .or.         &
 ! UPGRADE MAI 2006 -> TOTEM
-     &(bez(myix)(1:3).eq.'TCX'.or.bez(myix)(1:3).eq.'tcx') .or.         &
+      (bez(myix)(1:3).eq.'TCX'.or.bez(myix)(1:3).eq.'tcx') .or.         &
 ! TW 04/2008 adding TCRYO
-     &(bez(myix)(1:3).eq.'TCR'.or.bez(myix)(1:3).eq.'tcr') .or.         &
-!RHIC
-     &(bez(myix)(1:3).eq.'COL'.or.bez(myix)(1:3).eq.'col') ) then
+      (bez(myix)(1:3).eq.'TCR'.or.bez(myix)(1:3).eq.'tcr') ) then
 
     myktrack = 1
   else
