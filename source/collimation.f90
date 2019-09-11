@@ -3661,7 +3661,7 @@ subroutine collimate_exit
     ! Write amplitude.dat
     call f_requestUnit(coll_ampFile,coll_ampUnit)
     call f_open(unit=coll_ampUnit,file=coll_ampFile,formatted=.true.,mode="w")
-    write(coll_ampUnit,"(a1,1x,a6,1x,a16,19(1x,a20))") "#","ielem",chr_rPad("name",20),"s","AX_AV","AX_RMS","AY_AV","AY_RMS",&
+    write(coll_ampUnit,"(a1,1x,a6,1x,a20,19(1x,a20))") "#","ielem",chr_rPad("name",20),"s","AX_AV","AX_RMS","AY_AV","AY_RMS",&
       "alphax","alphay","betax","betay","orbitx","orbity","dispx","dispy","xbob","ybob","xpbob","ypbob","mux","muy"
     do i=1,iu
       if(ic(i) <= nblo) then
@@ -3669,7 +3669,7 @@ subroutine collimate_exit
       else
         ix = ic(i)-nblo
       end if
-      write(coll_ampUnit,"(i8,1x,a16,19(1x,1pe20.13))") i, bez(ix)(1:20), dcum(i),                       &
+      write(coll_ampUnit,"(i8,1x,a20,19(1x,1pe20.13))") i, bez(ix)(1:20), dcum(i),                       &
         sum_ax(i)/real(max(nampl(i),1),fPrec),                                                           &
         sqrt(abs((sqsum_ax(i)/real(max(nampl(i),1),fPrec))-(sum_ax(i)/real(max(nampl(i),1),fPrec))**2)), &
         sum_ay(i)/real(max(nampl(i),1),fPrec),                                                           &
