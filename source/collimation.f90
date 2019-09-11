@@ -445,8 +445,7 @@ module collimation
   character(len=16), parameter :: coll_settingsFile   = "collsettings.dat"
   character(len=16), parameter :: coll_jawProfileFile = "jaw_profiles.dat"
   character(len=13), parameter :: coll_ampFile        = "amplitude.dat"
-  character(len=14), parameter :: coll_amp2File       = "amplitude2.dat"
-  character(len=17), parameter :: coll_betaFuncFile   = "betafunctions.dat"
+  character(len=17), parameter :: coll_orbitCheckFile = "orbitchecking.dat"
 
   integer, private, save :: coll_survivalUnit   = -1
   integer, private, save :: coll_gapsUnit       = -1
@@ -467,11 +466,10 @@ module collimation
   integer, private, save :: coll_settingsUnit   = -1
   integer, private, save :: coll_jawProfileUnit = -1
   integer, private, save :: coll_ampUnit        = -1
-  integer, private, save :: coll_amp2Unit       = -1
-  integer, private, save :: coll_betaFuncUnit   = -1
+  integer, private, save :: coll_orbitCheckUnit = -1
 
   integer, private, save :: distsec_unit, efficiency_unit, efficiency_dpop_unit
-  integer, private, save :: coll_summary_unit, orbitchecking_unit
+  integer, private, save :: coll_summary_unit
   integer, private, save :: efficiency_2d_unit
   integer, private, save :: outlun
 
@@ -3647,30 +3645,24 @@ end subroutine collimate_end_sample
 !! This routine is called once at the end of the simulation and
 !! can be used to do any final postrocessing and/or file saving.
 !<
-subroutine collimate_exit()
+subroutine collimate_exit
 
-  use crcoall
-  use parpro
-  use mod_common
-  use mod_common_main
-  use mod_commons
-  use mod_common_track
-  use mod_common_da
   use mod_units
+  use mod_common
+  use string_tools
 #ifdef HDF5
   use hdf5_output
   use hdf5_tracks2
 #endif
 
-  implicit none
-
-  integer :: i,j
+  integer i
 
   ! Just call it here since samples are no longer supported
   call collimate_end_sample(1)
 
   call f_close(outlun)
   call f_close(coll_gapsUnit)
+  call f_close(coll_positionsUnit)
 
   if(dowritetracks) then
     call f_close(coll_tracksUnit)
@@ -3693,70 +3685,32 @@ subroutine collimate_exit()
     call f_close(coll_jawProfileUnit)
   end if
 
-  call f_requestUnit(coll_ampFile,     coll_ampUnit)
-  call f_requestUnit(coll_amp2File,    coll_amp2Unit)
-  call f_requestUnit(coll_betaFuncFile,coll_betaFuncUnit)
-  call f_open(unit=coll_ampUnit,     file=coll_ampFile,     formatted=.true.,mode="w")
-  call f_open(unit=coll_amp2Unit,    file=coll_amp2File,    formatted=.true.,mode="w")
-  call f_open(unit=coll_betaFuncUnit,file=coll_betaFuncFile,formatted=.true.,mode="w")
-
   if(dowrite_amplitude) then
-    write(coll_ampUnit,"(a)")                                         &
-      "# 1=ielem 2=name 3=s 4=AX_AV 5=AX_RMS 6=AY_AV 7=AY_RMS "//       &
-      "8=alphax 9=alphay 10=betax 11=betay 12=orbitx "//                &
-      "13=orbity 14=tdispx 15=tdispy 16=xbob 17=ybob 18=xpbob 19=ypbob"
-
+    ! Write amplitude.dat
+    call f_requestUnit(coll_ampFile,coll_ampUnit)
+    call f_open(unit=coll_ampUnit,file=coll_ampFile,formatted=.true.,mode="w")
+    write(coll_ampUnit,"(a1,1x,a6,1x,a16,19(1x,a20))") "#","ielem",chr_rPad("name",20),"s","AX_AV","AX_RMS","AY_AV","AY_RMS",&
+      "alphax","alphay","betax","betay","orbitx","orbity","dispx","dispy","xbob","ybob","xpbob","ypbob","mux","muy"
     do i=1,iu
-       write(coll_ampUnit,"(i4,1x,a16,17(1x,e20.13))")             &
-      &i, ename(i), sampl(i),                                            &
-      &sum_ax(i)/real(max(nampl(i),1),fPrec),                            &
-      &sqrt(abs((sqsum_ax(i)/real(max(nampl(i),1),fPrec))-               &
-      &(sum_ax(i)/real(max(nampl(i),1),fPrec))**2)),                     &
-      &sum_ay(i)/real(max(nampl(i),1),fPrec),                            &
-      &sqrt(abs((sqsum_ay(i)/real(max(nampl(i),1),fPrec))-               &
-      &(sum_ay(i)/real(max(nampl(i),1),fPrec))**2)),                     &
-      &talphax(i), talphay(i),                                           &
-      &tbetax(i), tbetay(i), torbx(i), torby(i),                         &
-      &tdispx(i), tdispy(i),                                             &
-      &xbob(i),ybob(i),xpbob(i),ypbob(i)
+      write(coll_ampUnit,"(i8,1x,a16,19(1x,1pe20.13))") i, ename(i)(1:20), sampl(i),                     &
+        sum_ax(i)/real(max(nampl(i),1),fPrec),                                                           &
+        sqrt(abs((sqsum_ax(i)/real(max(nampl(i),1),fPrec))-(sum_ax(i)/real(max(nampl(i),1),fPrec))**2)), &
+        sum_ay(i)/real(max(nampl(i),1),fPrec),                                                           &
+        sqrt(abs((sqsum_ay(i)/real(max(nampl(i),1),fPrec))-(sum_ay(i)/real(max(nampl(i),1),fPrec))**2)), &
+        talphax(i), talphay(i), tbetax(i), tbetay(i), torbx(i), torby(i), tdispx(i), tdispy(i),          &
+        xbob(i), ybob(i), xpbob(i), ypbob(i), mux(i), muy(i)
     end do
+    call f_close(coll_ampUnit)
+  end if
 
-    write(coll_amp2Unit,"(a)") "# 1=ielem 2=name 3=s 4=ORBITX 5=orbity 6=tdispx 7=tdispy 8=xbob 9=ybob 10=xpbob 11=ypbob"
-
-    do i=1,iu
-      write(coll_amp2Unit,'(i4, (1x,a16), 9(1x,e15.7))') i, ename(i), sampl(i), torbx(i), torby(i), tdispx(i), tdispy(i), &
-            xbob(i), ybob(i), xpbob(i), ypbob(i)
-    end do
-
-    write(coll_betaFuncUnit,"(a)") "# 1=ielem 2=name       3=s             4=TBETAX(m)     5=TBETAY(m)     6=TORBX(mm)"// &
-      "    7=TORBY(mm) 8=TORBXP(mrad)   9=TORBYP(mrad)  10=TDISPX(m)  11=MUX()    12=MUY()"
-
-
-    do i=1,iu
-!     RB: added printout of closed orbit and angle
-      write(coll_betaFuncUnit,'(i5, (1x,a16), 10(1x,e15.7))') i, ename(i), sampl(i), tbetax(i), tbetay(i), torbx(i), torby(i), &
-        torbxp(i), torbyp(i), tdispx(i), mux(i), muy(i)
-    end do
-  endif
-
-  call f_close(coll_ampUnit)
-  call f_close(coll_amp2Unit)
-  call f_close(coll_betaFuncUnit)
-
-!GRD
-!GRD WE CAN ALSO MAKE AN ORBIT CHECKING
-!GRD
-
-  call f_requestUnit('orbitchecking.dat', orbitchecking_unit)
-  open(unit=orbitchecking_unit, file='orbitchecking.dat') !was 99
-  write(orbitchecking_unit,*) '# 1=s 2=torbitx 3=torbity'
-
-  do j=1,iu
-    write(orbitchecking_unit,'(i5, 3(1x,e15.7))') j, sampl(j),torbx(j), torby(j)
+  ! Write orbitchecking.dat
+  call f_requestUnit(coll_orbitCheckFile,coll_orbitCheckUnit)
+  call f_open(unit=coll_orbitCheckUnit,file=coll_orbitCheckFile,formatted=.true.,mode="w")
+  write(coll_orbitCheckUnit,"(a1,1x,a6,3(1x,a15))") "#","s","torbitx","torbity"
+  do i=1,iu
+    write(coll_orbitCheckUnit,"(i8,3(1x,1pe15.7))") i, sampl(i), torbx(i), torby(i)
   end do
-
-  close(orbitchecking_unit)
-  close(coll_positionsUnit)
+  call f_close(coll_orbitCheckUnit)
 
 #ifdef G4COLLIMATION
   call g4_terminate()
