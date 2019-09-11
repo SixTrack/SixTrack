@@ -442,6 +442,11 @@ module collimation
   character(len=16), parameter :: coll_jawProfileFile = "jaw_profiles.dat"
   character(len=13), parameter :: coll_ampFile        = "amplitude.dat"
   character(len=17), parameter :: coll_orbitCheckFile = "orbitchecking.dat"
+  character(len=16), parameter :: coll_summaryFile    = "coll_summary.dat"
+  character(len=14), parameter :: coll_efficFile      = "efficiency.dat"
+  character(len=19), parameter :: coll_efficDPFile    = "efficiency_dpop.dat"
+  character(len=17), parameter :: coll_effic2DFile    = "efficiency_2d.dat"
+  character(len=11), parameter :: coll_distsecFile    = "distsec.dat"
 
   integer, private, save :: coll_survivalUnit   = -1
   integer, private, save :: coll_gapsUnit       = -1
@@ -462,11 +467,13 @@ module collimation
   integer, private, save :: coll_jawProfileUnit = -1
   integer, private, save :: coll_ampUnit        = -1
   integer, private, save :: coll_orbitCheckUnit = -1
+  integer, private, save :: coll_summaryUnit    = -1
+  integer, private, save :: coll_efficUnit      = -1
+  integer, private, save :: coll_efficDPUnit    = -1
+  integer, private, save :: coll_effic2DUnit    = -1
+  integer, private, save :: coll_distsecUnit    = -1
 
-  integer, private, save :: distsec_unit, efficiency_unit, efficiency_dpop_unit
-  integer, private, save :: coll_summary_unit
-  integer, private, save :: efficiency_2d_unit
-  integer, private, save :: outlun
+  integer, private, save :: outlun              = -1
 
 #ifdef HDF5
   ! Variables to save hdf5 dataset indices
@@ -2537,12 +2544,12 @@ subroutine collimate_do_collimator(stracki)
 !          C_APERTURE = 2.*pencil_aperture
 
   if(firstrun.and.iturn.eq.1.and.icoll.eq.7) then
-    call f_requestUnit('distsec', distsec_unit)
-    open(unit=distsec_unit,file='distsec') !was 99
+    call f_requestUnit(coll_distsecFile,coll_distsecUnit)
+    call f_open(unit=coll_distsecUnit,file=coll_distsecFile,formatted=.true.,mode="w")
     do j=1,napx
-      write(distsec_unit,'(4(1X,E15.7))') xv1(j),yv1(j),xv2(j),yv2(j)
+      write(coll_distsecUnit,'(4(1X,E15.7))') xv1(j),yv1(j),xv2(j),yv2(j)
     end do
-    close(distsec_unit)
+    call f_close(coll_distsecUnit)
   end if
 
 ! RB: addition matched halo sampled directly on the TCP using pencil beam flag
@@ -3345,12 +3352,10 @@ end do
 
 end subroutine collimate_end_collimator
 
-!>
-!! collimate_end_sample()
-!! This routine is called from trauthin after each sample
-!! has been tracked by thin6d
-!<
-subroutine collimate_end_sample(j)
+! ================================================================================================ !
+!  Collimate Exit
+! ================================================================================================ !
+subroutine collimate_exit
 
   use parpro
   use mod_common
@@ -3361,6 +3366,7 @@ subroutine collimate_end_sample(j)
   use crcoall
   use coll_db
   use mod_units
+  use string_tools
 #ifdef ROOT
   use root_output
 #endif
@@ -3371,13 +3377,13 @@ subroutine collimate_end_sample(j)
 
   implicit none
 
-  integer, intent(in) :: j
+  ! integer, intent(in) :: j
 
 #ifdef HDF5
   type(h5_dataField), allocatable :: fldHdf(:)
   integer fmtHdf, setHdf
 #endif
-  integer i,k
+  integer i,k,ix
 
 !++  Save particle offsets to a file
   call f_close(coll_survivalUnit)
@@ -3407,10 +3413,10 @@ subroutine collimate_end_sample(j)
     write(outlun,*) ' INFO>  Eff_r @ 10-20 sigma [e-4] : ', ((neff(9)-neff(19))/(real(n_tot_absorbed,fPrec)))/c1m4
     write(outlun,*)
     write(outlun,*) neff(5)/real(n_tot_absorbed,fPrec), neff(9)/real(n_tot_absorbed,fPrec), &
- & (neff(9)-neff(19))/(real(n_tot_absorbed,fPrec)), ' !eff'
+      (neff(9)-neff(19))/(real(n_tot_absorbed,fPrec)), ' !eff'
     write(outlun,*)
   else
-    write(lout,*) 'NO PARTICLE ABSORBED'
+    write(lout,"(a)") "COLL> No particles absorbed"
   endif
 
   write(lout,"(a)")
@@ -3456,18 +3462,18 @@ subroutine collimate_end_sample(j)
     deallocate(fldHdf)
   else
 #endif
-    call f_requestUnit('efficiency.dat', efficiency_unit)
-    open(unit=efficiency_unit, file='efficiency.dat') !was 1991
+    call f_requestUnit(coll_efficFile,coll_efficUnit)
+    call f_open(unit=coll_efficUnit,file=coll_efficFile,formatted=.true.,mode="w")
     if(n_tot_absorbed /= 0) then
-      write(efficiency_unit,*) '# 1=rad_sigma 2=frac_x 3=frac_y 4=frac_r' ! This is not correct?
+      write(coll_efficUnit,*) '# 1=rad_sigma 2=frac_x 3=frac_y 4=frac_r' ! This is not correct?
       do k=1,numeff
-        write(efficiency_unit,'(7(1x,e15.7),1x,I5)') rsig(k), neffx(k)/real(n_tot_absorbed,fPrec), &
- & neffy(k)/real(n_tot_absorbed,fPrec), neff(k)/real(n_tot_absorbed,fPrec), neffx(k), neffy(k), neff(k), n_tot_absorbed
+        write(coll_efficUnit,'(7(1x,e15.7),1x,I5)') rsig(k), neffx(k)/real(n_tot_absorbed,fPrec), &
+          neffy(k)/real(n_tot_absorbed,fPrec), neff(k)/real(n_tot_absorbed,fPrec), neffx(k), neffy(k), neff(k), n_tot_absorbed
       end do
     else
-      write(lout,*) 'NO PARTICLE ABSORBED'
+      write(coll_efficUnit,"(a)") "No particles absorbed"
     end if
-    close(efficiency_unit)
+    call f_close(coll_efficUnit)
 #ifdef HDF5
   end if
 #endif
@@ -3493,18 +3499,18 @@ subroutine collimate_end_sample(j)
     deallocate(fldHdf)
   else
 #endif
-    call f_requestUnit('efficiency_dpop.dat', efficiency_dpop_unit)
-    open(unit=efficiency_dpop_unit, file='efficiency_dpop.dat') !was 1992
+    call f_requestUnit(coll_efficDPFile,coll_efficDPUnit)
+    call f_open(unit=coll_efficDPUnit,file=coll_efficDPFile,formatted=.true.,mode="w")
     if(n_tot_absorbed /= 0) then
-      write(efficiency_dpop_unit,*) '# 1=dp/p 2=n_dpop/tot_nabs 3=n_dpop 4=tot_nabs 5=npart'
+      write(coll_efficDPUnit,*) '# 1=dp/p 2=n_dpop/tot_nabs 3=n_dpop 4=tot_nabs 5=npart'
       do k=1,numeffdpop
-        write(efficiency_dpop_unit,'(3(1x,e15.7),2(1x,I5))') dpopbins(k), neffdpop(k)/real(n_tot_absorbed,fPrec), neffdpop(k), &
+        write(coll_efficDPUnit,'(3(1x,e15.7),2(1x,I5))') dpopbins(k), neffdpop(k)/real(n_tot_absorbed,fPrec), neffdpop(k), &
             n_tot_absorbed, npartdpop(k)
       end do
     else
-      write(lout,*) 'NO PARTICLE ABSORBED'
+      write(coll_efficDPUnit,"(a)") "No particles absorbed"
     end if
-    close(efficiency_dpop_unit)
+    call f_close(coll_efficDPUnit)
 #ifdef HDF5
   end if
 #endif
@@ -3532,20 +3538,20 @@ subroutine collimate_end_sample(j)
     deallocate(fldHdf)
   else
 #endif
-    call f_requestUnit('efficiency_2d.dat', efficiency_2d_unit)
-    open(unit=efficiency_2d_unit, file='efficiency_2d.dat') !was 1993
+    call f_requestUnit(coll_effic2DFile,coll_effic2DUnit)
+    call f_open(unit=coll_effic2DUnit,file=coll_effic2DFile,formatted=.true.,mode="w")
     if(n_tot_absorbed /= 0) then
-      write(efficiency_2d_unit,*) '# 1=rad_sigma 2=dp/p 3=n/tot_nabs 4=n 5=tot_nabs'
+      write(coll_effic2DUnit,*) '# 1=rad_sigma 2=dp/p 3=n/tot_nabs 4=n 5=tot_nabs'
       do i=1,numeff
         do k=1,numeffdpop
-          write(efficiency_2d_unit,'(4(1x,e15.7),1(1x,I5))') rsig(i), dpopbins(k),neff2d(i,k)/real(n_tot_absorbed,fPrec), &
+          write(coll_effic2DUnit,'(4(1x,e15.7),1(1x,I5))') rsig(i), dpopbins(k),neff2d(i,k)/real(n_tot_absorbed,fPrec), &
                 neff2d(i,k), n_tot_absorbed
         end do
       end do
     else
-      write(lout,*) 'NO PARTICLE ABSORBED'
+      write(coll_effic2DUnit,"(a)") "No particles absorbed"
     end if
-    close(efficiency_2d_unit)
+    call f_close(coll_effic2DUnit)
 #ifdef HDF5
   end if
 #endif
@@ -3580,16 +3586,16 @@ subroutine collimate_end_sample(j)
     deallocate(fldHdf)
   else
 #endif
-    call f_requestUnit('coll_summary.dat', coll_summary_unit)
-    open(unit=coll_summary_unit, file='coll_summary.dat') !was 50
-    write(coll_summary_unit,*) '# 1=icoll 2=collname 3=nimp 4=nabs 5=imp_av 6=imp_sig 7=length'
+    call f_requestUnit(coll_summaryFile,coll_summaryUnit)
+    call f_open(unit=coll_summaryUnit,file=coll_summaryFile,formatted=.true.,mode="w")
+    write(coll_summaryUnit,*) '# 1=icoll 2=collname 3=nimp 4=nabs 5=imp_av 6=imp_sig 7=length'
     do icoll = 1, cdb_nColl
       if(cdb_cLength(icoll) > zero .and. cdb_cFound(icoll)) then
-        write(coll_summary_unit,'(i4,1x,a,2(1x,i5),2(1x,e15.7),3x,f4.1)') icoll, cdb_cNameUC(icoll), cn_impact(icoll), &
+        write(coll_summaryUnit,'(i4,1x,a,2(1x,i5),2(1x,e15.7),3x,f4.1)') icoll, cdb_cNameUC(icoll), cn_impact(icoll), &
           cn_absorbed(icoll), caverage(icoll), csigma(icoll),cdb_cLength(icoll)
       end if
     end do
-    close(coll_summary_unit)
+    call f_close(coll_summaryUnit)
 #ifdef HDF5
   end if
 #endif
@@ -3603,33 +3609,7 @@ subroutine collimate_end_sample(j)
       end if
     end do
   end if
-
-  ! flush the root file
-!  call SixTrackRootWrite()
 #endif
-
-end subroutine collimate_end_sample
-
-!>
-!! collimate_exit()
-!! This routine is called once at the end of the simulation and
-!! can be used to do any final postrocessing and/or file saving.
-!<
-subroutine collimate_exit
-
-  use parpro
-  use mod_units
-  use mod_common
-  use string_tools
-#ifdef HDF5
-  use hdf5_output
-  use hdf5_tracks2
-#endif
-
-  integer i, ix
-
-  ! Just call it here since samples are no longer supported
-  call collimate_end_sample(1)
 
   call f_close(outlun)
   call f_close(coll_gapsUnit)
