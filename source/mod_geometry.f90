@@ -40,6 +40,7 @@ subroutine geom_parseInputLineSING(inLine, iLine, iErr)
   use crcoall
   use mod_alloc
   use mod_common
+  use mod_settings
   use string_tools
   use sixtrack_input
 
@@ -109,7 +110,9 @@ subroutine geom_parseInputLineSING(inLine, iLine, iErr)
     geom_nBeam = geom_nBeam+1
     if(geom_nBeam > nbb) then
       call expand_arrays(nele, npart, nblz, nblo, nbb+100)
-      write(lout,"(a,i0)") "GEOMETRY> Increased beam-beam element storage to nbb = ",nbb
+      if(st_debug) then
+        write(lout,"(a,i0)") "GEOMETRY> Increased beam-beam element storage to nbb = ",nbb
+      end if
     end if
   end if
 
