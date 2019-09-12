@@ -2785,7 +2785,7 @@ subroutine collimate_do_collimator(stracki)
     call g4_get_particle_count(g4_npart)
 
 !! resize arrays
-    call expand_arrays(nele, g4_npart, nblz, nblo)
+    call expand_arrays(nele, g4_npart, nblz, nblo, nbb)
 
 !! Reset napx to the correct value
     napx = g4_npart

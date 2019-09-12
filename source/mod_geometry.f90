@@ -17,6 +17,7 @@ module mod_geometry
   integer,                       public,  save :: geom_nSing  = 0
   integer,                       public,  save :: geom_nBloc  = 0
   integer,                       public,  save :: geom_nStru  = 0
+  integer,                       public,  save :: geom_nBeam  = 0
 
   character(len=:), allocatable, public,  save :: geom_bez0(:)
   character(len=:), allocatable, public,  save :: geom_beze(:,:)
@@ -39,6 +40,7 @@ subroutine geom_parseInputLineSING(inLine, iLine, iErr)
   use crcoall
   use mod_alloc
   use mod_common
+  use mod_settings
   use string_tools
   use sixtrack_input
 
@@ -96,11 +98,22 @@ subroutine geom_parseInputLineSING(inLine, iLine, iErr)
   if(kz(geom_nSing) == 25) then
     ed(geom_nSing) = ed(geom_nSing)/two
     ek(geom_nSing) = ek(geom_nSing)/two
-  endif
+  end if
 
   ! CHANGING SIGN OF CURVATURE OF VERTICAL THICK DIPOLE
   if((kz(geom_nSing) == 4 .or. kz(geom_nSing) == 5) .and. abs(el(geom_nSing)) > pieni) then
     ed(geom_nSing) = -one*ed(geom_nSing)
+  end if
+
+  ! Beam-Beam Elements
+  if(kz(geom_nSing) == 20) then
+    geom_nBeam = geom_nBeam+1
+    if(geom_nBeam > nbb) then
+      call expand_arrays(nele, npart, nblz, nblo, nbb+100)
+      if(st_debug) then
+        write(lout,"(a,i0)") "GEOMETRY> Increased beam-beam element storage to nbb = ",nbb
+      end if
+    end if
   end if
 
   !--------------------------------------------
@@ -134,7 +147,7 @@ subroutine geom_parseInputLineSING(inLine, iLine, iErr)
 
   ! Expand Arrays
   if(geom_nSing > nele-2) then
-    call expand_arrays(nele+100, npart, nblz, nblo)
+    call expand_arrays(nele+100, npart, nblz, nblo, nbb)
     call alloc(geom_bez0, mNameLen, nele, " ", "geom_bez0")
   end if
 
@@ -252,7 +265,7 @@ subroutine geom_parseInputLineBLOC(inLine, iLine, iErr)
   if(blocName /= " ") then                    ! We have a new BLOC
     geom_nBloc = geom_nBloc + 1               ! Increment the BLOC number
     if(geom_nBloc > nblo-1) then              ! Expand arrays if needed
-      call expand_arrays(nele, npart, nblz, nblo+50)
+      call expand_arrays(nele, npart, nblz, nblo+50, nbb)
       call alloc(geom_beze, mNameLen, nblo, nelb, " ", "geom_beze")
     end if
     bezb(geom_nBloc) = blocName               ! Set the BLOC name in bezb
@@ -353,7 +366,7 @@ subroutine geom_parseInputLineSTRU(inLine, iLine, iErr)
 
     geom_nStru = geom_nStru + 1
     if(geom_nStru > nblz-3) then
-      call expand_arrays(nele,npart,nblz+1000,nblo)
+      call expand_arrays(nele, npart, nblz+1000, nblo, nbb)
     end if
 
     do j=1,mblo ! is it a BLOC?
@@ -378,7 +391,7 @@ subroutine geom_parseInputLineSTRU(inLine, iLine, iErr)
 
   mbloz = geom_nStru
   if(mbloz > nblz-3) then
-    call expand_arrays(nele,npart,nblz+1000,nblo)
+    call expand_arrays(nele, npart, nblz+1000, nblo, nbb)
   end if
 
 end subroutine geom_parseInputLineSTRU
@@ -439,7 +452,7 @@ subroutine geom_parseInputLineSTRU_MULT(inLine, iLine, iErr)
 
   geom_nStru = geom_nStru + 1
   if(geom_nStru > nblz-3) then
-    call expand_arrays(nele,npart,nblz+1000,nblo)
+    call expand_arrays(nele, npart, nblz+1000, nblo, nbb)
   end if
 
   bezs(geom_nStru) = trim(lnSplit(1))
@@ -481,7 +494,7 @@ subroutine geom_parseInputLineSTRU_MULT(inLine, iLine, iErr)
 
   mbloz = geom_nStru
   if(mbloz > nblz-3) then
-    call expand_arrays(nele,npart,nblz+1000,nblo)
+    call expand_arrays(nele, npart, nblz+1000, nblo, nbb)
   end if
 
 end subroutine geom_parseInputLineSTRU_MULT
@@ -498,7 +511,7 @@ integer function geom_insertSingElem()
 
   il = il + 1
   if(il > nele-2) then
-    call expand_arrays(nele+50, npart, nblz, nblo )
+    call expand_arrays(nele+50, npart, nblz, nblo, nbb)
     if(ithick == 1) then
       call expand_thickarrays(nele, npart, nblz, nblo )
     end if
@@ -527,7 +540,7 @@ integer function geom_insertStruElem(iEl)
   character(len=mNameLen) tmpC
 
   if(iu > nblz-3) then
-    call expand_arrays(nele, npart, nblz+100, nblo)
+    call expand_arrays(nele, npart, nblz+100, nblo, nbb)
   end if
 
   iu = iu + 1

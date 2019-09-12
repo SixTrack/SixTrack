@@ -353,7 +353,7 @@ program maincr
   damp  = zero
   if(napx /= 1) damp=((amp00-amp0)/real(napx-1,fPrec))/two
   napx  = 2*napx
-  call expand_arrays(nele, napx, nblz, nblo)
+  call expand_arrays(nele, napx, nblz, nblo, nbb)
 
   ! Log some meta data
   meta_nPartInit = napx

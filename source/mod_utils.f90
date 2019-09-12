@@ -279,8 +279,8 @@ subroutine wzsubv(n,vx,vy,vu,vv)
   use numerical_constants
 
   integer,          intent(in)  :: n
-  real(kind=fPrec), intent(out) :: vx(*)
-  real(kind=fPrec), intent(out) :: vy(*)
+  real(kind=fPrec), intent(in)  :: vx(*)
+  real(kind=fPrec), intent(in)  :: vy(*)
   real(kind=fPrec), intent(out) :: vu(*)
   real(kind=fPrec), intent(out) :: vv(*)
 
@@ -497,8 +497,8 @@ subroutine wzsub(x,y,u,v)
   use parpro
   use parbeam
 
-  real(kind=fPrec), intent(out) :: x
-  real(kind=fPrec), intent(out) :: y
+  real(kind=fPrec), intent(in)  :: x
+  real(kind=fPrec), intent(in)  :: y
   real(kind=fPrec), intent(out) :: u
   real(kind=fPrec), intent(out) :: v
 
