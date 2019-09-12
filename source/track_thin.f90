@@ -1272,7 +1272,7 @@ subroutine thin6d(nthinerr)
       ! should be faster/safer to first check the turn then do the name search
       if( iturn.eq.1 ) then
         if (bez(myix)(1:5).eq.'PRESS' .or.  bez(myix)(1:5).eq.'press' ) then
-          call beamGas(myix,secondary,dcum(i),myenom,ipart)
+          call beamGas(myix,secondary,dcum(i),myenom)
         end if
       end if
 #endif
@@ -1341,7 +1341,7 @@ subroutine thin6d(nthinerr)
         ! Check if collimation is enabled, and call the collimation code as necessary
         if(do_coll .and. cdb_elemMap(myix) > 0) then
           ! Collimator is in database, and we're doing collimation
-          call coll_doCollimation(stracki,.true.)
+          call collimate_trackThin(stracki,.true.)
         else ! Normal SixTrack drifts
           if(iexact) then
             ! EXACT DRIFT
@@ -1370,7 +1370,7 @@ subroutine thin6d(nthinerr)
           end if
           if(do_coll) then
             ! Not a collimator, but collimation still need to perform additional calculations
-            call coll_doCollimation(stracki,.false.)
+            call collimate_trackThin(stracki,.false.)
           end if
         end if
 

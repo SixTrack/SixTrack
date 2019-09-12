@@ -283,7 +283,6 @@ subroutine shuffleLostParticles
       other(j:tnapx)                = cshift(other(j:tnapx),                1)
       scatterhit(j:tnapx)           = cshift(scatterhit(j:tnapx),           1)
       nabs_type(j:tnapx)            = cshift(nabs_type(j:tnapx),            1)
-      ipart(j:tnapx)                = cshift(ipart(j:tnapx),                1)
       flukaname(j:tnapx)            = cshift(flukaname(j:tnapx),            1)
 
       counted_r(j:tnapx,:)          = cshift(counted_r(j:tnapx,:),          1, 1)

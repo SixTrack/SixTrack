@@ -10,7 +10,6 @@
 !  Updated: 2019-09-12
 !
 ! ================================================================================================ !
-
 module collimation
 
   use parpro
@@ -254,7 +253,6 @@ module collimation
   real(kind=fPrec), save :: c_tilt(2)   !tilt in radian
   character(len=4), save :: c_material  !material
 
-  integer, allocatable, save :: ipart(:) !(npart)
   integer, allocatable, save :: flukaname(:) !(npart)
   real(kind=fPrec), allocatable, private, save :: rcx(:) !(npart)
   real(kind=fPrec), allocatable, private, save :: rcxp(:) !(npart)
@@ -515,7 +513,6 @@ subroutine collimation_expand_arrays(npart_new, nblz_new)
   ! Arrays that are only needed if Collimation is enabled
 
   call alloc(flukaname, npart_new, 0, "flukaname") !(npart)
-  call alloc(ipart, npart_new, 0, "ipart") !(npart)
   call alloc(rcx,   npart_new, zero, "rcx") !(npart)
   call alloc(rcxp,  npart_new, zero, "rcxp") !(npart)
   call alloc(rcy,   npart_new, zero, "rcy") !(npart)
@@ -1876,7 +1873,6 @@ subroutine collimate_start
     other(j)          = 0
     scatterhit(j)     = 0
     nabs_type(j)      = 0
-    ipart(j)          = j
     flukaname(j)      = 0
   end do
 
@@ -2135,7 +2131,7 @@ end subroutine collimate_start
 !  Updated: 2019-09-11
 !  Wrapper routine for main collimation call in tracking.
 ! ================================================================================================ !
-subroutine coll_doCollimation(stracki, isColl)
+subroutine collimate_trackThin(stracki, isColl)
 
   use mod_time
   use mod_common
@@ -2157,6 +2153,9 @@ subroutine coll_doCollimation(stracki, isColl)
 
   else
 
+    gammax = (one + talphax(ie)**2)/tbetax(ie)
+    gammay = (one + talphay(ie)**2)/tbetay(ie)
+
     do j=1,napx
       xj  = (xv1(j)-torbx(ie))/c1e3
       xpj = (yv1(j)-torbxp(ie))/c1e3
@@ -2170,9 +2169,6 @@ subroutine coll_doCollimation(stracki, isColl)
           sum_ay(ie) = zero
         end if
       end if
-
-      gammax = (one + talphax(ie)**2)/tbetax(ie)
-      gammay = (one + talphay(ie)**2)/tbetay(ie)
 
       if(part_abs_pos(j) == 0 .and. part_abs_turn(j) == 0) then
         nspx         = sqrt(abs(gammax*(xj)**2 + two*talphax(ie)*xj*xpj + tbetax(ie)*xpj**2)/myemitx0_collgap)
@@ -2190,18 +2186,19 @@ subroutine coll_doCollimation(stracki, isColl)
 
   end if
 
-end subroutine coll_doCollimation
+end subroutine collimate_trackThin
 
-!>
-!! collimate_start_collimator()
-!! This routine is called each time we hit a collimator
-!<
+! ================================================================================================ !
+!  Updated: 2019-09-12
+!  Called when we enter a collimator.
+!  The routine doesn't check that the collimator exists! This should be checked before calling it.
+! ================================================================================================ !
 subroutine collimate_start_collimator(stracki)
 
+  use coll_db
   use mod_common
   use mod_common_main
   use mod_common_track
-  use coll_db
 
   real(kind=fPrec), intent(in) :: stracki
 
@@ -2230,7 +2227,7 @@ subroutine collimate_start_collimator(stracki)
       end if
 
       ! DRIFT PART
-      if(stracki == 0.0) then
+      if(stracki == zero) then
         if(iexact) then
           zpj = sqrt(one-xpj**2-ypj**2)
           xj  = xj + half*c_length*(xpj/zpj)
@@ -2337,8 +2334,8 @@ subroutine collimate_do_collimator(stracki)
 !++  Write beam ellipse at selected collimator
   if(chr_toLower(cdb_cName(icoll)) == name_sel .and. do_select) then
     do j=1,napx
-      write(coll_ellipseUnit,'(1X,I8,6(1X,E15.7),3(1X,I4,1X,I4))') ipart(j),xv1(j), xv2(j), yv1(j), yv2(j), &
-        ejv(j), sigmv(j),iturn,secondary(j)+tertiary(j)+other(j)+scatterhit(j),nabs_type(j)
+      write(coll_ellipseUnit,"(1x,i8,6(1x,e15.7),3(1x,i4,1x,i4))") partID(j),xv1(j),xv2(j),yv1(j),yv2(j), &
+        ejv(j),sigmv(j),iturn,secondary(j)+tertiary(j)+other(j)+scatterhit(j),nabs_type(j)
     end do
   end if
 
@@ -2620,7 +2617,7 @@ subroutine collimate_do_collimator(stracki)
       call prror
     end if
 
-    flukaname(j) = ipart(j)
+    flukaname(j) = partID(j)
   end do
 
 !++  Do the collimation tracking
@@ -3022,13 +3019,13 @@ end do
 #ifdef HDF5
         if(h5_useForCOLL) then
           call h5_prepareWrite(coll_hdf5_allImpacts, 1)
-          call h5_writeData(coll_hdf5_allImpacts, 1, 1, ipart(j))
+          call h5_writeData(coll_hdf5_allImpacts, 1, 1, partID(j))
           call h5_writeData(coll_hdf5_allImpacts, 2, 1, iturn)
           call h5_writeData(coll_hdf5_allImpacts, 3, 1, dcum(ie))
           call h5_finaliseWrite(coll_hdf5_allImpacts)
         else
 #endif
-          write(coll_allImpactUnit,'(i8,1x,i4,1x,f8.2)') ipart(j),iturn,dcum(ie)
+          write(coll_allImpactUnit,"(i8,1x,i4,1x,f8.2)") partID(j),iturn,dcum(ie)
 #ifdef HDF5
         end if
 #endif
@@ -3040,13 +3037,13 @@ end do
 #ifdef HDF5
           if(h5_useForCOLL) then
             call h5_prepareWrite(coll_hdf5_allAbsorb, 1)
-            call h5_writeData(coll_hdf5_allAbsorb, 1, 1, ipart(j))
+            call h5_writeData(coll_hdf5_allAbsorb, 1, 1, partID(j))
             call h5_writeData(coll_hdf5_allAbsorb, 2, 1, iturn)
             call h5_writeData(coll_hdf5_allAbsorb, 3, 1, dcum(ie))
             call h5_finaliseWrite(coll_hdf5_allAbsorb)
           else
 #endif
-            write(coll_allAbsorbUnit,'(i8,1x,i4,1x,f8.2)') ipart(j),iturn,dcum(ie)
+            write(coll_allAbsorbUnit,"(i8,1x,i4,1x,f8.2)") partID(j),iturn,dcum(ie)
 #ifdef HDF5
           end if
 #endif
@@ -3095,7 +3092,7 @@ end do
 #ifdef HDF5
             if(h5_writeTracks2) then
               ! We write trajectories before and after element in this case.
-              hdfpid  = ipart(j)
+              hdfpid  = partID(j)
               hdfturn = iturn
               hdfs    = dcum(ie)-half*c_length
               hdfx    = (rcx0(j)*c1e3+torbx(ie)) - half*c_length*(rcxp0(j)*c1e3+torbxp(ie))
@@ -3114,16 +3111,16 @@ end do
               call h5tr2_writeLine(hdfpid,hdfturn,hdfs,hdfx,hdfxp,hdfy,hdfyp,hdfdee,hdftyp)
             else
 #endif
-              write(coll_tracksUnit,'(1x,i8,1x,i4,1x,f10.2,4(1x,e12.5),1x,e11.3,1x,i4)') &
-                ipart(j),iturn,dcum(ie)-half*c_length,                             &
+              write(coll_tracksUnit,"(1x,i8,1x,i4,1x,f10.2,4(1x,e12.5),1x,e11.3,1x,i4)") &
+                partID(j),iturn,dcum(ie)-half*c_length,                            &
                 (rcx0(j)*c1e3+torbx(ie))-half*c_length*(rcxp0(j)*c1e3+torbxp(ie)), &
                 rcxp0(j)*c1e3+torbxp(ie),                                          &
                 (rcy0(j)*c1e3+torby(ie))-half*c_length*(rcyp0(j)*c1e3+torbyp(ie)), &
                 rcyp0(j)*c1e3+torbyp(ie),                                          &
                 (ejv(j)-myenom)/myenom,secondary(j)+tertiary(j)+other(j)+scatterhit(j)
 
-              write(coll_tracksUnit,'(1x,i8,1x,i4,1x,f10.2,4(1x,e12.5),1x,e11.3,1x,i4)') &
-                ipart(j),iturn,dcum(ie)+half*c_length,                          &
+              write(coll_tracksUnit,"(1x,i8,1x,i4,1x,f10.2,4(1x,e12.5),1x,e11.3,1x,i4)") &
+                partID(j),iturn,dcum(ie)+half*c_length,                         &
                 xv1(j)+half*c_length*yv1(j),yv1(j),                             &
                 xv2(j)+half*c_length*yv2(j),yv2(j),(ejv(j)-myenom)/myenom,      &
                 secondary(j)+tertiary(j)+other(j)+scatterhit(j)
@@ -3780,19 +3777,11 @@ subroutine collimate_end_element
           ypj = (yv2(j)-torbyp(ie))/c1e3
 #ifdef HDF5
           if(h5_writeTracks2) then
-            hdfpid=ipart(j)
-            hdfturn=iturn
-            hdfs=dcum(ie)
-            hdfx=xv1(j)
-            hdfxp=yv1(j)
-            hdfy=xv2(j)
-            hdfyp=yv2(j)
-            hdfdee=(ejv(j)-myenom)/myenom
-            hdftyp=secondary(j)+tertiary(j)+other(j)+scatterhit(j)
-            call h5tr2_writeLine(hdfpid,hdfturn,hdfs,hdfx,hdfxp,hdfy,hdfyp,hdfdee,hdftyp)
+            call h5tr2_writeLine(partID(j),iturn,dcum(ie),xv1(j),yv1(j),xv2(j),yv2(j),&
+              (ejv(j)-myenom)/myenom,secondary(j)+tertiary(j)+other(j)+scatterhit(j))
           else
 #endif
-            write(coll_tracksUnit,'(1x,i8,1x,i4,1x,f10.2,4(1x,e12.5),1x,e11.3,1x,i4)') ipart(j), iturn, dcum(ie), &
+            write(coll_tracksUnit,"(1x,i8,1x,i4,1x,f10.2,4(1x,e12.5),1x,e11.3,1x,i4)") partID(j), iturn, dcum(ie), &
               xv1(j), yv1(j), xv2(j), yv2(j), (ejv(j)-myenom)/myenom, secondary(j)+tertiary(j)+other(j)+scatterhit(j)
 #ifdef HDF5
           end if
@@ -4148,25 +4137,17 @@ subroutine collimate_end_turn
             (((xv1(j)*c1m3)**2  / (tbetax(ie)*myemitx0_collgap)) + &
             ((xv2(j)*c1m3)**2  / (tbetay(ie)*myemity0_collgap)) .ge. sigsecut3)) ) then
 
-          xj     = (xv1(j)-torbx(ie))/c1e3
-          xpj    = (yv1(j)-torbxp(ie))/c1e3
-          yj     = (xv2(j)-torby(ie))/c1e3
-          ypj    = (yv2(j)-torbyp(ie))/c1e3
+          xj  = (xv1(j)-torbx(ie))/c1e3
+          xpj = (yv1(j)-torbxp(ie))/c1e3
+          yj  = (xv2(j)-torby(ie))/c1e3
+          ypj = (yv2(j)-torbyp(ie))/c1e3
 #ifdef HDF5
           if(h5_writeTracks2) then
-            hdfpid=ipart(j)
-            hdfturn=iturn
-            hdfs=dcum(ie)
-            hdfx=xv1(j)
-            hdfxp=yv1(j)
-            hdfy=xv2(j)
-            hdfyp=yv2(j)
-            hdfdee=(ejv(j)-myenom)/myenom
-            hdftyp=secondary(j)+tertiary(j)+other(j)+scatterhit(j)
-            call h5tr2_writeLine(hdfpid,hdfturn,hdfs,hdfx,hdfxp,hdfy,hdfyp,hdfdee,hdftyp)
+            call h5tr2_writeLine(partID(j),iturn,dcum(ie),xv1(j),yv1(j),xv2(j),yv2(j),&
+              (ejv(j)-myenom)/myenom,secondary(j)+tertiary(j)+other(j)+scatterhit(j))
           else
 #endif
-            write(coll_tracksUnit,'(1x,i8,1x,i4,1x,f10.2,4(1x,e12.5),1x,e11.3,1x,i4)') ipart(j),iturn,dcum(ie), &
+            write(coll_tracksUnit,"(1x,i8,1x,i4,1x,f10.2,4(1x,e12.5),1x,e11.3,1x,i4)") partID(j),iturn,dcum(ie), &
               xv1(j),yv1(j),xv2(j),yv2(j),(ejv(j)-myenom)/myenom,secondary(j)+tertiary(j)+other(j)+scatterhit(j)
 #ifdef HDF5
           end if
@@ -4658,8 +4639,8 @@ subroutine collimate2(c_material, c_length, c_rotation,           &
 !JUNE2005
       nhit = nhit + 1
 !            WRITE(*,*) J,X,XP,Z,ZP,SP,DPOP
-!     RB: add new input arguments to jaw icoll,iturn,ipart for writeout
-      call jaw(s, nabs, icoll,iturn,name(j),dowrite_impact)
+!     RB: add new input arguments to jaw icoll,iturn,partID for writeout
+      call jaw(s,nabs,icoll,iturn,name(j),dowrite_impact)
 
       nabs_type(j) = nabs
 !JUNE2005
