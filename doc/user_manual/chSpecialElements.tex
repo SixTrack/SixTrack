@@ -142,29 +142,29 @@ For the convention on signs for the last three (optional) aperture specifiers, p
     Rectangle & \texttt{RE} & \texttt{aper\_1} & hor.~half-size [mm] \\*
     & & \texttt{aper\_2} & ver.~half-size [mm] \\*
     \hline
-    
+
     Ellipse & \texttt{EL} & \texttt{aper\_1} & hor.~semi-axis [mm] \\*
     & & \texttt{aper\_2} & ver.~semi-axis [mm] \\*
     \hline
-    
+
     RectEllipse & \texttt{RL} & \texttt{aper\_1} & hor.~half-size [mm] \\*
     & & \texttt{aper\_2} & ver.~half-size [mm] \\*
     & & \texttt{aper\_3} & hor.~semi-axis [mm] \\*
     & & \texttt{aper\_4} & ver.~semi-axis [mm] \\*
     \hline
-    
+
     Octagon & \texttt{OC} & \texttt{aper\_1} & hor.~position of ver.~side [mm] \\*
     & & \texttt{aper\_2} & ver.~position of hor.~side [mm] \\*
     & & \texttt{aper\_3} & angle of first cut corner [rad] \\*
     & & \texttt{aper\_4} & angle of second cut corner [rad] \\*
     \hline
-    
+
     Ractetrack & \texttt{RT} & \texttt{aper\_1} & hor.~displ.~of ellypse centre [mm] \\*
     & & \texttt{aper\_2} & ver.~displ.~of ellypse centre [mm] \\*
     & & \texttt{aper\_3} & hor.~semi-axis [mm] \\*
     & & \texttt{aper\_4} & ver.~semi-axis [mm] \\*
     \hline
-    
+
     Transition & \texttt{TR} & \texttt{aper\_1} & hor.~half-size [mm] \\*
     & & \texttt{aper\_2} & ver.~half-size [mm] \\*
     & & \texttt{aper\_3} & hor.~semi-axis [mm] \\*
@@ -322,9 +322,9 @@ NEXT
 
 In the above example, the content of \texttt{fort3.limi} is the following:
 \begin{cverbatim}
-aper.1        EL     29.0      29.0            
+aper.1        EL     29.0      29.0
 aper.2        OC     40.0      30.0       0.5236    1.0472       -10.0       -2.0        0.174533
-aper.3        RL     18.95     23.85      23.85      23.85  
+aper.3        RL     18.95     23.85      23.85      23.85
 \end{cverbatim}
 \begin{itemize}
 \item \texttt{aper.1} specifies an ellyptical aperture with both axes of 29~mm. Effectively, it is a circular aperture;
@@ -692,7 +692,7 @@ Because of this, SixTrack does not accept a real single element in \texttt{fort.
     & \texttt{harmonic}    & --      & Harmonic number of the cavity \\
     & \texttt{lag\_angle}  & degrees & Lag angle of the cavity \\
   \hline
-    
+
    \multirow{3}{*}{\parbox{4cm}{Beam-Beam 6d (expert) \index{Beam-Beam}\\ (20),\\ Section~\ref{BeamBeam}}}
     & \texttt{h-sep}     & mm      & Horizontal offset \\
     & \texttt{v-sep}     & mm      & Vertical offset \\
@@ -744,7 +744,7 @@ Because of this, SixTrack does not accept a real single element in \texttt{fort.
   \hline
 
 \caption{Element types and attributes available in \texttt{DYNK} .}
-\label{tab:DYNK_SET} 
+\label{tab:DYNK_SET}
 
 \end{longtable}
 
@@ -1352,7 +1352,7 @@ Currently, the ideal electron lens is implemented, i.e.
     & \texttt{name} & -- & Name of e-lens. Must be the same as that in the list of single elements\index{single elements}.\\*
     \hline
 
-    & \texttt{type} & -- & Type of e-lens - either \texttt{UNIFORM} or  \texttt{GAUSSIAN}. \\* 
+    & \texttt{type} & -- & Type of e-lens - either \texttt{UNIFORM} or  \texttt{GAUSSIAN}. \\*
     \hline
 
     & \texttt{theta\_r2} & mrad & Kick\footnote{Total, \emph{not} per charge.} received at $r=r_2$ where $r_2$ is the outer radius of the e-lens.\\*
@@ -1369,17 +1369,17 @@ Currently, the ideal electron lens is implemented, i.e.
 
     & \texttt{offset\_y} & mm & Vertical offset of the e-lens.\\*
     \hline
-    
+
     \hline
     \rowcolor{blue!15}
     \multicolumn{4}{|l|}{Specific to \texttt{GAUSSIAN} type} \\*
-    
+
     & \texttt{sig\_el} & mm & $\sigma$ of the electron beam.\\*
     \hline
 
     \rowcolor{blue!15}
     \multicolumn{4}{|l|}{Specific to \texttt{RADIAL} type} \\*
-    
+
     & \texttt{filename} & & filename of the radial profile. Please see Sec.~\ref{sec:elen_rad_prof} for proper formatting of the file. The profile is read from the file, radially integrated and normalised to the total current. Hence, the kick at \texttt{r2} is given by the value of \texttt{theta\_r2} (or by the optional parameters) and not by integration of the radial profile. The domain of the profile must be larger than the domain identified by $R_1$ and $R_2$. \\*
     \hline
 
@@ -1389,10 +1389,10 @@ Currently, the ideal electron lens is implemented, i.e.
 
     & \texttt{L} & m & Length of the e-lens. Must be positive. \\*
     \hline
-    
+
     & \texttt{I} & A & Electron current of the e-lens. Must be non--zero. If negative, the electron beam is considered travelling in the direction opposite to that of the main beam. \\*
     \hline
-    
+
     & \texttt{E\_k} & keV & kinetic energy of electrons in the e-lens. Must be positive.\\*
     \hline
 
@@ -1776,29 +1776,15 @@ The default value is the sigma gap specified in the collimator database.
     \texttt{tcryo}   & The collimators in the DS regions.
 \end{longtabu}
 
-\paragraph{Set Jaw Slicing} \texttt{JAW\_SLICE nslice smin smax recenter1 recenter2}\\
+\paragraph{Jaw Slicing}~\\
 
-The surface model of the jaw.
-Specify the slicing of the jaw.
-All values default to 0.
+This feature has been removed from the main collimation block.
+The collimators or collimator families that are to be sliced are now set in the collimator database file.
+See Section~\ref{Sec:CollDB}.
 
-\bigskip
-\begin{tabular}{@{}llp{0.7\linewidth}}
-    \texttt{nslice}    & integer & Number of slices in which each jaw should be cut. \\
-    \texttt{smin}      & float   & S-position for the start of the slicing. \\
-    \texttt{smax}      & float   & S-position for the end of the slicing. \\
-    \texttt{recenter1} & float   & Moving the 1st jaw to the new smallest opening. \\
-    \texttt{recenter2} & float   & Moving the 2nd jaw to the new smallest opening.
-\end{tabular}
+\paragraph{One-Sided Collimators}~\\
 
-\paragraph{Set Jaw Fits} \texttt{JAW\_FIT[1|2] 0th 1st 2nd 3rd 4th 5th scale}\\
-
-Specifies the polynomial fit of the first or second jaw for the 0th to the 5th order, as well as the scaling of the polynomial.
-All values default to 0.
-
-\paragraph{One-Sided Collimators} \texttt{DO\_ONESIDE true|false}\\
-
-This feature has been removed.
+This feature has been removed from the main collimation block.
 The collimators or collimator families that are to be treated as one-sided are now set in the collimator database file.
 See Section~\ref{Sec:CollDB}.
 
@@ -2000,13 +1986,44 @@ The \texttt{name} can either be a collimator name or a family name.
 The last parameter specifies either jaw 1 (i.e. at $x$>0 in the collimator reference system) or jaw 2 (i.e. at $x$<0 in the collimator reference system).
 If jaw 2 is selected, the collimator is rotated by 180 degrees, as only the positive $x$ side is treated when one-sided is enabled.
 
-\paragraph{Example}~
-
+\bigskip
+\noindent\textit{Example}
 \begin{cverbatim}
 SETTINGS
 ONESIDED tcdqa.a4r6.b1    1
 ONESIDED tcdqa.c4r6.b1    1
 ONESIDED tcdqa.b4r6.b1    1
+\end{cverbatim}
+
+\paragraph{Jaw Fit Profile} \texttt{JAW\_PROFILE name fac0 [... fac5]}\\
+
+Adds a named fit profile with factors $s_i$ up to fifth order on the form:\index{collimator jaw fit}
+\begin{equation}
+    P_i = A\left[s_0 + s_1 x_i + \frac{s_2 x_i^2}{L} + s_3 x_i^3 + s_4 x_i^4 + s_5 x_i^5\right]
+\end{equation}
+where $P_i$ is the profile of the $i$-th slice, $A$ is a scaling factor, $L$ is the length of the collimator, and
+\begin{equation}
+    x_i = \frac{L(i-1)}{N}
+\end{equation}
+where $N$ is the number of slices.
+The scaling factors default to zero, and only the $0$-th order factor is required.
+
+\paragraph{Jaw Fit} \texttt{JAW\_FIT target nslices fit1 fit2 [scale1 scale2 [recentre1 recentre2]]}\\
+
+Apply a fit defined with \texttt{JAW\_PROFILE} to the two jaws of a \texttt{target} collimator or family of collimators.
+The number of slices is required, and so are the prfoile names \texttt{fit1} and \texttt{fit2} for collimator jaw 1 and 2, respectively.
+The scaling factors \texttt{scale1} and \texttt{scale2} are optional, and default to one.
+It is also possible to move the collimator such that the opening corresponds to the smallest gap after the jaw fit profile has been applied.
+This can be enabled by setting the logical flags \texttt{recentre1} and \texttt{recentre2} for the two jaws.
+These flags default to \texttt{off}.
+
+\bigskip
+\noindent\textit{Example}
+\begin{cverbatim}
+SETTINGS
+JAW_PROFILE FIT_A -1.0e-5 -2.4e-3 4.3e-3 -4.1e-3 1.8e-3 3.0e-4
+JAW_PROFILE FIT_B -1.0e-5 -2.4e-3 4.3e-3 -4.1e-3 1.8e-3 3.0e-4
+JAW_FIT tcsg7 15 FIT_A FIT_B 1.0 1.0 on on
 \end{cverbatim}
 
 % ================================================================================================================================ %
