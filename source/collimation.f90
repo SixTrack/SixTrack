@@ -253,7 +253,6 @@ module collimation
   real(kind=fPrec), save :: c_tilt(2)   !tilt in radian
   character(len=4), save :: c_material  !material
 
-  integer, allocatable, save :: flukaname(:) !(npart)
   real(kind=fPrec), allocatable, private, save :: rcx(:) !(npart)
   real(kind=fPrec), allocatable, private, save :: rcxp(:) !(npart)
   real(kind=fPrec), allocatable, private, save :: rcy(:) !(npart)
@@ -512,7 +511,6 @@ subroutine collimation_expand_arrays(npart_new, nblz_new)
   if(.not. do_coll) return
   ! Arrays that are only needed if Collimation is enabled
 
-  call alloc(flukaname, npart_new, 0, "flukaname") !(npart)
   call alloc(rcx,   npart_new, zero, "rcx") !(npart)
   call alloc(rcxp,  npart_new, zero, "rcxp") !(npart)
   call alloc(rcy,   npart_new, zero, "rcy") !(npart)
@@ -1873,7 +1871,6 @@ subroutine collimate_start
     other(j)          = 0
     scatterhit(j)     = 0
     nabs_type(j)      = 0
-    flukaname(j)      = 0
   end do
 
 #ifdef BEAMGAS
@@ -2616,8 +2613,6 @@ subroutine collimate_do_collimator(stracki)
       write(lerr,"(a,f13.6)") "COLL> ERROR Non-zero length collimator '"//trim(cdb_cName(icoll))//"' with length = ",stracki
       call prror
     end if
-
-    flukaname(j) = partID(j)
   end do
 
 !++  Do the collimation tracking
@@ -2649,7 +2644,7 @@ subroutine collimate_do_collimator(stracki)
       call collimate2(c_material, jawLength, c_rotation, jawAperture, jawOffset, jawTilt, &
         rcx, rcxp, rcy, rcyp, rcp, rcs, napx, enom_gev, part_hit_pos, part_hit_turn,      &
         part_abs_pos, part_abs_turn, part_impact, part_indiv, part_linteract, onesided,   &
-        flukaname, secondary, iSlice, nabs_type, linside)
+        secondary, iSlice, nabs_type, linside)
     end do
 
   else ! Treatment of non-sliced collimators
@@ -2659,7 +2654,7 @@ subroutine collimate_do_collimator(stracki)
     call collimate2(c_material, c_length, c_rotation, c_aperture, c_offset, c_tilt, &
       rcx, rcxp, rcy, rcyp, rcp, rcs, napx, enom_gev, part_hit_pos,part_hit_turn,   &
       part_abs_pos, part_abs_turn, part_impact, part_indiv, part_linteract,         &
-      onesided, flukaname, secondary, 1, nabs_type, linside)
+      onesided, secondary, 1, nabs_type, linside)
 
 #else
 
@@ -2831,7 +2826,7 @@ subroutine collimate_do_collimator(stracki)
         ypDump = rcyp(j)*cos_mb(c_rotation)-sin_mb(c_rotation)*rcxp(j)
         s_Dump = c_length
         write(coll_jawProfileUnit,"(3(1x,i7),5(1x,e17.9),1x,i1)") &
-          icoll,iturn,flukaname(j),x_Dump,xpDump,y_Dump,ypDump,s_Dump,2
+          icoll,iturn,partID(j),x_Dump,xpDump,y_Dump,ypDump,s_Dump,2
       end if
     end do
   end if
@@ -4217,17 +4212,14 @@ end subroutine collimate_init_k2
 !!++  - Added debug comments
 !!++  - Put real dp/dx
 !<
-subroutine collimate2(c_material, c_length, c_rotation,           &
-     &c_aperture, c_offset, c_tilt,x_in, xp_in, y_in,yp_in,p_in, s_in,  &
-     &     np, enom,                                                    &
-     &     lhit_pos, lhit_turn,                                         &
-     &     part_abs_pos_local, part_abs_turn_local,                     &
-     &     impact, indiv, lint, onesided,name,                          &
-     &     flagsec, j_slices, nabs_type, linside)
+subroutine collimate2(c_material, c_length, c_rotation, c_aperture, c_offset, c_tilt,      &
+  x_in, xp_in, y_in, yp_in, p_in, s_in, np, enom, lhit_pos, lhit_turn, part_abs_pos_local,   &
+  part_abs_turn_local, impact, indiv, lint, onesided, flagsec, j_slices, nabs_type, linside)
 
   use crcoall
   use parpro
   use mod_common, only : iexact, napx
+  use mod_common_main, only : partID
   use mathlib_bouncer
   use mod_ranlux
 #ifdef HDF5
@@ -4236,15 +4228,20 @@ subroutine collimate2(c_material, c_length, c_rotation,           &
 
   implicit none
 
+  character(len=4), intent(in)    :: c_material  ! material
+  real(kind=fPrec), intent(in)    :: c_length    ! length in m
+  real(kind=fPrec), intent(in)    :: c_rotation  ! rotation angle vs vertical in radian
+  real(kind=fPrec), intent(in)    :: c_aperture  ! aperture in m
+  real(kind=fPrec), intent(in)    :: c_offset    ! offset in m
+  real(kind=fPrec), intent(inout) :: c_tilt(2)   ! tilt in radians
+
   logical onesided,hit
-! integer nprim,filel,mat,nev,j,nabs,nhit,np,icoll,nabs_tmp
   integer nprim,j,nabs,nhit,np
 
   integer, allocatable :: lhit_pos(:) !(npart)
   integer, allocatable :: lhit_turn(:) !(npart)
   integer, allocatable :: part_abs_pos_local(:) !(npart)
   integer, allocatable :: part_abs_turn_local(:) !(npart)
-  integer, allocatable :: name(:) !(npart)
   integer, allocatable :: nabs_type(:) !(npart)
 !MAY2005
 
@@ -4259,13 +4256,6 @@ subroutine collimate2(c_material, c_length, c_rotation,           &
   real(kind=fPrec), allocatable :: lint(:) !(npart)
   real(kind=fPrec), allocatable :: impact(:) !(npart)
   real(kind=fPrec) keeps,fracab,drift_length,mirror,tiltangle
-
-  real(kind=fPrec) c_length    !length in m
-  real(kind=fPrec) c_rotation  !rotation angle vs vertical in radian
-  real(kind=fPrec) c_aperture  !aperture in m
-  real(kind=fPrec) c_offset    !offset in m
-  real(kind=fPrec) c_tilt(2)   !tilt in radian
-  character(len=4) c_material  !material
 
   real(kind=fPrec) x00,z00,p,sp,s,enom
 
@@ -4631,7 +4621,7 @@ subroutine collimate2(c_material, c_length, c_rotation,           &
           ypDump=zp
           s_Dump=sp+real(j_slices-1,fPrec)*c_length
           write(coll_jawProfileUnit,"(3(1x,i7),5(1x,e17.9),1x,i1)") &
-            icoll,iturn,name(j),x_Dump,xpDump,y_Dump,ypDump,s_Dump,1
+            icoll,iturn,partID(j),x_Dump,xpDump,y_Dump,ypDump,s_Dump,1
         end if
       end if
 !JUNE2005
@@ -4640,7 +4630,7 @@ subroutine collimate2(c_material, c_length, c_rotation,           &
       nhit = nhit + 1
 !            WRITE(*,*) J,X,XP,Z,ZP,SP,DPOP
 !     RB: add new input arguments to jaw icoll,iturn,partID for writeout
-      call jaw(s,nabs,icoll,iturn,name(j),dowrite_impact)
+      call jaw(s,nabs,icoll,iturn,partID(j),dowrite_impact)
 
       nabs_type(j) = nabs
 !JUNE2005
@@ -4654,7 +4644,7 @@ subroutine collimate2(c_material, c_length, c_rotation,           &
 #ifdef HDF5
           if(h5_useForCOLL) then
             call h5_prepareWrite(coll_hdf5_fstImpacts, 1)
-            call h5_writeData(coll_hdf5_fstImpacts, 1,  1, name(j))
+            call h5_writeData(coll_hdf5_fstImpacts, 1,  1, partID(j))
             call h5_writeData(coll_hdf5_fstImpacts, 2,  1, iturn)
             call h5_writeData(coll_hdf5_fstImpacts, 3,  1, icoll)
             call h5_writeData(coll_hdf5_fstImpacts, 4,  1, nabs)
@@ -4672,11 +4662,11 @@ subroutine collimate2(c_material, c_length, c_rotation,           &
           else
 #endif
             write(coll_fstImpactUnit,'(i5,1x,i7,1x,i2,1x,i1,2(1x,f5.3),8(1x,e17.9))') &
-                name(j),iturn,icoll,nabs,                               &
-                s_impact + (real(j_slices,fPrec)-one) * c_length,       &
-                s+sp + (real(j_slices,fPrec)-one) * c_length,           &
-                xinn,xpinn,yinn,ypinn,                                  &
-                x,xp,z,zp
+              partID(j),iturn,icoll,nabs,                             &
+              s_impact + (real(j_slices,fPrec)-one) * c_length,       &
+              s+sp + (real(j_slices,fPrec)-one) * c_length,           &
+              xinn,xpinn,yinn,ypinn,                                  &
+              x,xp,z,zp
 #ifdef HDF5
           end if
 #endif
@@ -4776,7 +4766,7 @@ subroutine collimate2(c_material, c_length, c_rotation,           &
      &              icoll,c_rotation,                                   &
      &              sInt + sp + (real(j_slices,fPrec)-one) * c_length,  &
      &              x_flk*c1e3, xp_flk*c1e3, y_flk*c1e3, yp_flk*c1e3,   &
-     &              nabs,name(j),iturn
+     &              nabs,partID(j),iturn
       end if
 
 ! standard FLUKA_impacts writeout of inelastic and single diffractive
@@ -4788,7 +4778,7 @@ subroutine collimate2(c_material, c_length, c_rotation,           &
      &icoll,c_rotation,                                                 &
      &sInt + sp + (real(j_slices,fPrec)-one) * c_length,                &
      &x_flk*c1e3, xp_flk*c1e3, y_flk*c1e3, yp_flk*c1e3,                 &
-     &nabs,name(j),iturn
+     &nabs,partID(j),iturn
         end if
 !
 !     Finally, the actual coordinate change to 99 mm
@@ -4821,7 +4811,7 @@ subroutine collimate2(c_material, c_length, c_rotation,           &
           ypDump=zp
           s_Dump=s+sp+real(j_slices-1,fPrec)*c_length
           write(coll_jawProfileUnit,"(3(1x,i7),5(1x,e17.9),1x,i1)") &
-            icoll,iturn,name(j),x_Dump,xpDump,y_Dump,ypDump,s_Dump,2
+            icoll,iturn,partID(j),x_Dump,xpDump,y_Dump,ypDump,s_Dump,2
         end if
         if(iexact) then
           zpj = sqrt(one-xp**2-zp**2)
