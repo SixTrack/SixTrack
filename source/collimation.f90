@@ -1061,17 +1061,10 @@ subroutine collimate_parseInputLine(inLine, iLine, iErr)
     call chr_cast(lnSplit(2), cdb_doNSig, iErr)
 
   case("JAW_SLICE")
-    if(nSplit /= 6) then
-      write(lerr,"(a,i0)") "COLL> ERROR JAW_SLICE expects 5 values, got ",nSplit-1
-      write(lerr,"(a)")    "COLL>       JAW_SLICE n_slices smin smax recenter1 recenter2"
-      iErr = .true.
-      return
-    end if
-    call chr_cast(lnSplit(2), n_slices,   iErr)
-    call chr_cast(lnSplit(3), smin_slices,iErr)
-    call chr_cast(lnSplit(4), smax_slices,iErr)
-    call chr_cast(lnSplit(5), recenter1,  iErr)
-    call chr_cast(lnSplit(6), recenter2,  iErr)
+    write(lerr,"(a)") "COLL> ERROR The new COLLIMATION block no longer supports the JAW_SLICE flag"
+    write(lerr,"(a)") "COLL>       The feature has been moved the the collimator database"
+    iErr = .true.
+    return
 
   case("JAW_FIT1")
     if(nSplit /= 8) then
@@ -1954,7 +1947,8 @@ subroutine collimate_start
     end do
   end if
 
-  ! In case we're using old type jaw fit, this is where we genertae the parameters for the new method
+  ! In case we're using old type jaw fit, this is where we generate the parameters for the new method
+  ! After this, the number of slices is also stored per collimator, and can be extracted again later
   call cdb_setMasterJawFit(n_slices, smin_slices, smax_slices, recenter1, recenter2, jaw_fit, jaw_ssf)
 
 !++  Generate random offsets (Gaussian distribution plus systematic)
@@ -2294,7 +2288,7 @@ subroutine collimate_do_collimator(stracki)
 
   real(kind=fPrec), intent(in) :: stracki
 
-  integer j, iSlice
+  integer j, iSlice, nSlices
   logical onesided, linside(napx)
   real(kind=fPrec) jawLength, jawAperture, jawOffset, jawTilt(2)
   real(kind=fPrec) x_Dump,xpDump,y_Dump,ypDump,s_Dump
@@ -2423,10 +2417,21 @@ subroutine collimate_do_collimator(stracki)
   end if
 !++ TW -- tilt angle changed (added to genetated on if spec. in fort.3)
 
-!-------------------------------------------------------------------
-!++  Further output
+  ! Extract number of jaw fit slices for this collimator
+  if(cdb_cSliced(icoll) > 0) then ! Collimator is sliced
+    nSlices = jaw_getSliceCount(cdb_cSliced(icoll))
+    if(nSlices < 0) then
+      write(lerr,"(a)")    "COLL> ERROR Invalid entry in jaw fit database for collimator '"//trim(cdb_cName(icoll))//"'"
+      write(lerr,"(a,i0)") "COLL>       Value returned for number of slices is ",nSlices
+      call prror
+    end if
+  else
+    nSlices = 1
+  end if
+
+  ! Further output
   if(firstrun) then
-    if(iturn.eq.1) then
+    if(iturn == 1) then
       write(outlun,*) xp_pencil(icoll), yp_pencil(icoll), pencil_dx(icoll)
       write(outlun,'(a,i4)') 'Collimator number:   ', icoll
       write(outlun,*) 'Beam size x [m]:     ', sqrt(tbetax(ie)*myemitx0_collgap), "(from collgap emittance)"
@@ -2444,19 +2449,13 @@ subroutine collimate_do_collimator(stracki)
         cdb_cMaterial(icoll),cdb_cLength(icoll),sqrt(tbetax(ie)*myemitx0_collgap), &
         sqrt(tbetay(ie)*myemity0_collgap),cdb_cTilt(1,icoll),cdb_cTilt(2,icoll),nsig
 
-! coll settings file
-      if(n_slices.le.1) then
-        write(coll_settingsUnit,"(a20,1x,i10,5(1x,e13.5),1x,a)") &
-          cdb_cName(icoll)(1:20),                                &
-          n_slices,calc_aperture,                                &
-          cdb_cOffset(icoll),                                    &
-          cdb_cTilt(1,icoll),                                    &
-          cdb_cTilt(2,icoll),                                    &
-          cdb_cLength(icoll),                                    &
-          cdb_cMaterial(icoll)
-      end if !if(n_slices.le.1) then
-    end if !if(iturn.eq.1) then
-  end if !if(firstrun) then
+      ! Write to coll settings file if we have 0 or 1 slices
+      if(nSlices <= 1) then
+        write(coll_settingsUnit,"(a20,1x,i10,5(1x,1pe13.6),1x,a)") cdb_cName(icoll)(1:20), nSlices, calc_aperture, &
+          cdb_cOffset(icoll), cdb_cTilt(1,icoll), cdb_cTilt(2,icoll), cdb_cLength(icoll), cdb_cMaterial(icoll)
+      end if
+    end if
+  end if
 
   c_aperture = two*calc_aperture
 !          IF(IPENCIL.GT.zero) THEN
@@ -2639,14 +2638,14 @@ subroutine collimate_do_collimator(stracki)
   if(cdb_cSliced(icoll) > 0) then ! Treatment of sliced collimators
     ! Now, loop over the number of slices and call collimate2 each time.
     ! For each slice, the corresponding offset and angle are to be used.
-    do iSlice=1,jaw_getSliceCount(cdb_cSliced(icoll))
+    do iSlice=1,nSlices
       jawAperture = c_aperture
       jawOffset   = c_offset
       jawTilt     = c_tilt
       call jaw_getFitSliceValues(cdb_cSliced(icoll), iSlice, jawLength, jawAperture, jawOffset, jawTilt)
       if(firstrun) then
-        write(coll_settingsUnit,"(a20,1x,i10,5(1x,1pe13.6),1x,a)") &
-          cdb_cName(icoll)(1:20), iSlice, jawAperture/two, jawOffset, jawTilt(1), jawTilt(2), jawLength, cdb_cMaterial(icoll)
+        write(coll_settingsUnit,"(a20,1x,i10,5(1x,1pe13.6),1x,a)") cdb_cName(icoll)(1:20), iSlice, &
+          jawAperture/two, jawOffset, jawTilt(1), jawTilt(2), jawLength, cdb_cMaterial(icoll)
       end if
       call collimate2(c_material, jawLength, c_rotation, jawAperture, jawOffset, jawTilt, &
         rcx, rcxp, rcy, rcyp, rcp, rcs, napx, enom_gev, part_hit_pos, part_hit_turn,      &
