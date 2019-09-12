@@ -7,7 +7,7 @@
 !  Y.I. Levinsen, C. Tambasco, J. Molson, K.N. Sjobak, V.K. Berglyd Olsen
 !
 !  Created: 2004-10-27
-!  Updated: 2019-03-25
+!  Updated: 2019-09-12
 !
 ! ================================================================================================ !
 
@@ -16,10 +16,6 @@ module collimation
   use parpro
   use floatPrecision
   use numerical_constants
-
-#ifdef G4COLLIMATION
-  use geant4
-#endif
 
   implicit none
 
@@ -599,6 +595,9 @@ subroutine collimate_init
   use mod_particles
 #ifdef HDF5
   use hdf5_output
+#endif
+#ifdef G4COLLIMATION
+  use geant4
 #endif
 
   implicit none
@@ -2283,6 +2282,9 @@ subroutine collimate_do_collimator(stracki)
 #ifdef ROOT
   use root_output
 #endif
+#ifdef G4COLLIMATION
+  use geant4
+#endif
 
   implicit none
 
@@ -2860,6 +2862,9 @@ subroutine collimate_end_collimator(stracki)
   use hdf5_output
   use hdf5_tracks2
 #endif
+#ifdef G4COLLIMATION
+  use geant4
+#endif
 
   implicit none
 
@@ -3283,6 +3288,9 @@ subroutine collimate_exit
 #ifdef HDF5
   use hdf5_output
   use hdf5_tracks2
+#endif
+#ifdef G4COLLIMATION
+  use geant4
 #endif
 
   implicit none
