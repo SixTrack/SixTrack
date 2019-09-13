@@ -587,14 +587,15 @@ subroutine collimate_init
   write(outlun,*) 'INFO>  rnd_seed: ', rnd_seed
 
   ! Call distribution routines only if collimation block is in fort.3
-  cdist_logUnit = outlun
-  cdist_energy  = myenom
-  cdist_alphaX  = myalphax
-  cdist_alphaY  = myalphay
-  cdist_betaX   = mybetax
-  cdist_betaY   = mybetay
-  cdist_emitX   = myemitx0_dist
-  cdist_emitY   = myemity0_dist
+  cdist_energy    = myenom
+  cdist_alphaX    = myalphax
+  cdist_alphaY    = myalphay
+  cdist_betaX     = mybetax
+  cdist_betaY     = mybetay
+  cdist_emitX     = myemitx0_dist
+  cdist_emitY     = myemity0_dist
+  cdist_emitXColl = myemitx0_collgap
+  cdist_emitYColl = myemity0_collgap
   if(radial) then
     call cdist_makeRadial
   else
@@ -2368,7 +2369,7 @@ subroutine collimate_do_collimator(stracki)
 !   but it might be then that only one jaw is hit on the first turn, thus only by half of the particles
 !   the particle generated on the other side will then hit the same jaw several turns later, possibly smearing the impact parameter
 !   This could possibly be improved in the future.
-    call makedis_coll(myalphax,myalphay,mybetax,mybetay,mynex2,myney2)
+    call cdist_makeDist_coll(myalphax,myalphay,mybetax,mybetay,mynex2,myney2)
 
     do j = 1, napx
       xv1(j)  = c1e3*xv1(j) + torbx(ie)
@@ -3984,96 +3985,5 @@ subroutine coll_hdf5_writeCollScatter(icoll,iturn,ipart,nabs,dp,dx,dy)
 
 end subroutine coll_hdf5_writeCollScatter
 #endif
-
-!========================================================================
-!
-!     RB: new routine to sample part of matched phase ellipse which is outside
-!     the cut of the jaws
-!     Assuming cut of the jaw at mynex for hor plane.
-!     largest amplitude outside of jaw is mynex + mdex.  Analog for vertical plane.
-
-!     same routine as makedis_st, but rejection sampling to get
-!     only particles hitting the collimator on the same turn.
-
-!     Treat as a pencil beam in main routine.
-
-subroutine makedis_coll(myalphax, myalphay, mybetax, mybetay, mynex, myney)
-
-  use crcoall
-  use mathlib_bouncer
-  use mod_ranlux
-  use mod_common, only : napx
-  use mod_common_main, only : xv1, xv2, yv1, yv2, ejv, sigmv
-  use coll_dist
-
-  implicit none
-
-  integer :: j
-
-  real(kind=fPrec) myalphax,mybetax,myemitx0,myemitx,mynex,myalphay,mybetay,&
-    myemity0,myemity,myney,xsigmax,ysigmay
-
-  real(kind=fPrec) iix, iiy, phix,phiy,cutoff
-
-  myemitx0 = myemitx0_collgap
-  myemity0 = myemity0_collgap
-
-  ! Calculate cutoff in x or y from the collimator jaws.
-  if((mynex.gt.zero).and.(myney.eq.zero)) then
-    cutoff=mynex*sqrt(mybetax*myemitx0)
-  else
-    cutoff=myney*sqrt(mybetay*myemity0)
-  end if
-
-  do j=1,napx
-    if(mynex > zero .and. myney == zero) then ! halo in x
-10    continue
-      myemitx = myemitx0*(mynex+(rndm4()*cdist_smearX))**2
-      xsigmax = sqrt(mybetax*myemitx)
-      xv1(j)  = xsigmax * sin_mb(twopi*rndm4())
-      if(abs(xv1(j)).lt.cutoff) goto 10
-
-      if(rndm4() > half) then
-        yv1(j) = sqrt(myemitx/mybetax-xv1(j)**2/mybetax**2)-(myalphax*xv1(j))/mybetax
-      else
-        yv1(j) = -one*sqrt(myemitx/mybetax-xv1(j)**2/mybetax**2)-(myalphax*xv1(j))/mybetax
-      end if
-
-      phiy   = twopi*rndm4()
-      iiy    = (-one*myemity0) * log_mb(rndm4())
-      xv2(j) = sqrt((two*iiy)*mybetay) * cos_mb(phiy)
-      yv2(j) = (-one*sqrt((two*iiy)/mybetay)) * (sin_mb(phiy) + myalphay * cos_mb(phiy))
-
-    else if(mynex == zero .and. myney > zero) then ! halo in y
-20    continue
-      myemity = myemity0*(myney+(rndm4()*cdist_smearY))**2
-      ysigmay = sqrt(mybetay*myemity)
-      xv2(j)  = ysigmay * sin_mb(twopi*rndm4())
-      if(abs(xv2(j)).lt.cutoff) goto 20
-
-      if(rndm4() > half) then
-        yv2(j) = sqrt(myemity/mybetay-xv2(j)**2/mybetay**2)-(myalphay*xv2(j))/mybetay
-      else
-        yv2(j) = -one*sqrt(myemity/mybetay-xv2(j)**2/mybetay**2)-(myalphay*xv2(j))/mybetay
-      end if
-
-      phix   = twopi*rndm4()
-      iix    = (-one* myemitx0) * log_mb(rndm4())
-      xv1(j) = sqrt((two*iix)*mybetax) * cos_mb(phix)
-      yv1(j) = (-one*sqrt((two*iix)/mybetax)) * (sin_mb(phix) + myalphax * cos_mb(phix))
-
-    ! nominal bunches centered in the aperture - can't apply rejection sampling. return with error
-    else if(mynex == zero .and. myney == zero) then
-      write(lerr,"(a)") "COLL> ERROR in makedis_coll. Attempting to use halo type 3 with Gaussian dist."
-      call prror
-    else
-      write(lerr,"(a)") "COLL> ERROR Beam parameters not correctly set!"
-    end if
-
-    ejv(j)   = myenom
-    sigmv(j) = zero
-  end do
-
-end subroutine makedis_coll
 
 end module collimation
