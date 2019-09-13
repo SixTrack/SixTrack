@@ -381,6 +381,7 @@ subroutine collimate_init
   use mod_common_track
   use mod_common_da
   use mod_settings
+  use mod_time
   use string_tools
   use coll_k2
   use coll_db
@@ -577,7 +578,7 @@ subroutine collimate_init
   write(lout,"(a)")
 
   ! Initialize random number generator
-  if(rnd_seed == 0) rnd_seed = mclock_liar()
+  if(rnd_seed == 0) rnd_seed = time_getSysClock()
   if(rnd_seed <  0) rnd_seed = abs(rnd_seed)
   rnd_lux = 3
   rnd_k1  = 0
@@ -4074,39 +4075,5 @@ subroutine makedis_coll(myalphax, myalphay, mybetax, mybetay, mynex, myney)
   end do
 
 end subroutine makedis_coll
-
-!*********************************************************************
-!
-! Define INTEGER function MCLOCK that can differ from system to system
-! For re-initializtion of random generator
-!
-!*********************************************************************
-integer function mclock_liar( )
-  use crcoall
-  implicit none
-
-  save
-
-  integer    mclock
-  integer    count_rate, count_max
-  logical    clock_ok
-
-!        MCLOCK_LIAR = MCLOCK()
-
-  clock_ok = .true.
-
-  if (clock_ok) then
-    call system_clock( mclock, count_rate, count_max )
-    if ( count_max .eq. 0 ) then
-      clock_ok = .false.
-      write(lout,"(a)") 'COLL> System Clock not present or not Responding'
-      write(lout,"(a)") 'COLL> R.N.G. Reseed operation disabled.'
-    endif
-  endif
-
-  mclock_liar = mclock
-
-  return
-end function mclock_liar
 
 end module collimation
