@@ -5,7 +5,6 @@
 module coll_common
 
   use floatPrecision
-  use numerical_constants
 
   implicit none
 
@@ -73,6 +72,7 @@ contains
 subroutine coll_expandArrays(npart_new, nblz_new)
 
   use mod_alloc
+  use numerical_constants
 
   integer, intent(in) :: npart_new
   integer, intent(in) :: nblz_new

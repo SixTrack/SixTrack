@@ -287,9 +287,11 @@ list(APPEND FORT90_LIB
   bouncy_castle
   cheby
   close
+  coll_common
   coll_db
   coll_dist
   coll_jawfit
+  coll_k2
   collimation
   common_modules
   constants

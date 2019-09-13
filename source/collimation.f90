@@ -15,6 +15,7 @@ module collimation
   use parpro
   use floatPrecision
   use numerical_constants
+  use coll_common
 
   implicit none
 
@@ -4578,7 +4579,7 @@ subroutine collimate2(c_material, c_length, c_rotation, c_aperture, c_offset, c_
       nhit = nhit + 1
 !            WRITE(*,*) J,X,XP,Z,ZP,SP,DPOP
 !     RB: add new input arguments to jaw icoll,iturn,partID for writeout
-      call jaw(s,nabs,icoll,iturn,partID(j),dowrite_impact)
+      call jaw(s,nabs,icoll,iturn,partID(j))
 
       nabs_type(j) = nabs
 !JUNE2005
@@ -5111,7 +5112,7 @@ end subroutine scatin
 !!     nabs=1....absorption
 !!
 !<
-subroutine jaw(s,nabs,icoll,iturn,ipart,dowrite_impact)
+subroutine jaw(s,nabs,icoll,iturn,ipart)
 
   use mathlib_bouncer
   use mod_ranlux
@@ -5123,7 +5124,6 @@ subroutine jaw(s,nabs,icoll,iturn,ipart,dowrite_impact)
   implicit none
 
   integer nabs,inter,iturn,icoll,ipart,nabs_tmp ! RB: added variables icoll,iturn,ipart for writeout
-  logical dowrite_impact
   real(kind=fPrec) m_dpodx     !CT, RB, DM
   real(kind=fPrec) p,rlen,s,t,dxp,dzp,p1,zpBef,xpBef,pBef
 !...cne=1/(sqrt(b))
