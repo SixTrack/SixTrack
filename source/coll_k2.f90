@@ -107,7 +107,35 @@ module coll_k2
   data cprob(0,1:nmat)/nmat*zero/
   data cprob(5,1:nmat)/nmat*one/
 
+  ! Electron density and plasma energy
+  real(kind=fPrec), private, save :: edens(nmat)
+  real(kind=fPrec), private, save :: pleng(nmat)
+
 contains
+
+!>
+!! "Merlin" scattering collimation configuration
+!! This routine pre-calcuates some varibles for
+!! the nuclear properties
+!<
+subroutine collimate_init_merlin
+
+  integer i
+
+! compute the electron densnity and plasma energy for each material
+  do i=1, nmat
+    edens(i) = CalcElectronDensity(zatom(i),rho(i),anuc(i))
+    pleng(i) = CalcPlasmaEnergy(edens(i))
+  end do
+
+end subroutine collimate_init_merlin
+
+!>
+!! K2 scattering collimation configuration
+!<
+subroutine collimate_init_k2
+!nothing currently
+end subroutine collimate_init_k2
 
 !>
 !! subroutine collimate2(c_material, c_length, c_rotation,           &
@@ -1599,5 +1627,64 @@ function ichoix(ma)
     ichoix=i
     return
 end function ichoix
+
+!>
+!! CalcElectronDensity(AtomicNumber, Density, AtomicMass)
+!! Function to calculate the electron density in a material
+!! Should give the number per cubic meter
+!<
+function CalcElectronDensity(AtomicNumber, Density, AtomicMass)
+  implicit none
+
+  real(kind=fPrec) AtomicNumber, Density, AtomicMass
+  real(kind=fPrec) Avogadro
+  real(kind=fPrec) CalcElectronDensity
+  real(kind=fPrec) PartA, PartB
+  parameter (Avogadro = 6.022140857e23_fPrec)
+  PartA = AtomicNumber * Avogadro * Density
+  !1e-6 factor converts to n/m^-3
+  PartB = AtomicMass * c1m6
+  CalcElectronDensity = PartA/PartB
+  return
+end function CalcElectronDensity
+
+!>
+!! CalcPlasmaEnergy(ElectronDensity)
+!! Function to calculate the plasma energy in a material
+!! CalculatePlasmaEnergy = (PlanckConstantBar * sqrt((ElectronDensity *(ElectronCharge**2)) / &
+!!& (ElectronMass * FreeSpacePermittivity)))/ElectronCharge*eV;
+!<
+function CalcPlasmaEnergy(ElectronDensity)
+
+  implicit none
+
+  real(kind=fPrec) ElectronDensity
+  real(kind=fPrec) CalcPlasmaEnergy
+  real(kind=fPrec) sqrtAB,PartA,PartB,FSPC2
+
+  !Values from the 2016 PDG
+  real(kind=fPrec) PlanckConstantBar,ElectronCharge,ElectronMass
+  real(kind=fPrec) ElectronCharge2
+  real(kind=fPrec) FreeSpacePermittivity,FreeSpacePermeability
+  real(kind=fPrec) SpeedOfLight,SpeedOfLight2
+
+  parameter (PlanckConstantBar = 1.054571800e-34_fPrec)
+  parameter (ElectronCharge = 1.6021766208e-19_fPrec)
+  parameter (ElectronCharge2 = ElectronCharge*ElectronCharge)
+  parameter (ElectronMass = 9.10938356e-31_fPrec)
+  parameter (SpeedOfLight = 299792458.0_fPrec)
+  parameter (SpeedOfLight2 = SpeedOfLight*SpeedOfLight)
+
+  parameter (FreeSpacePermeability = 16.0e-7_fPrec*atan(one)) ! Henry per meter
+  parameter (FSPC2 = FreeSpacePermeability*SpeedOfLight2)
+  parameter (FreeSpacePermittivity = one/FSPC2)
+  parameter (PartB = ElectronMass * FreeSpacePermittivity)
+
+  PartA = ElectronDensity * ElectronCharge2
+
+  sqrtAB = sqrt(PartA/PartB)
+  CalcPlasmaEnergy=PlanckConstantBar*sqrtAB/ElectronCharge*c1m9
+  return
+end function CalcPlasmaEnergy
 
 end module coll_k2

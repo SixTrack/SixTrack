@@ -20,6 +20,9 @@ module coll_common
   logical, save :: dowrite_amplitude = .false.
   logical, save :: dowritetracks     = .false.
 
+  ! Various Variables
+  integer, save :: rnd_seed   = 0
+
   ! Collimation Particle Arrays
   real(kind=fPrec), allocatable, save :: rcx(:)
   real(kind=fPrec), allocatable, save :: rcxp(:)
@@ -27,6 +30,10 @@ module coll_common
   real(kind=fPrec), allocatable, save :: rcyp(:)
   real(kind=fPrec), allocatable, save :: rcp(:)
   real(kind=fPrec), allocatable, save :: rcs(:)
+
+  ! Collimator Materials
+  character(4), private, save :: mname(nmat) = &
+    ["Be  ","Al  ","Cu  ","W   ","Pb  ","C   ","C2  ","MoGR","CuCD","Mo  ","Glid","Iner","vacu","blac"]
 
   ! Pencil Beam
   integer,          save :: ipencil       = 0

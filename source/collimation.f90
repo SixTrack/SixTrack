@@ -37,7 +37,6 @@ module collimation
 
   integer, private, save :: icoll      = 0
   integer, private, save :: nloop      = 1
-  integer, private, save :: rnd_seed   = 0
   integer, private, save :: ibeam      = 1
   integer, private, save :: jobnumber  = 0
 
@@ -251,32 +250,6 @@ module collimation
   real(kind=fPrec), save :: tiltOffsPos1,tiltOffsPos2,tiltOffsNeg1,tiltOffsNeg2
   real(kind=fPrec), save :: beamsize1, beamsize2,betax1,betax2,betay1,betay2, alphax1, alphax2,alphay1,alphay2,minAmpl
 
-  ! Electron density and plasma energy
-  real(kind=fPrec), private, save :: edens(nmat)
-  real(kind=fPrec), private, save :: pleng(nmat)
-
-  ! Cross section inputs and material property database
-  ! GRD CHANGED ON 2/2003 TO INCLUDE CODE FOR C, C2 from JBJ (rwa)
-  ! Total number of materials are defined in nmat
-  ! Number of real materials are defined in nrmat
-  ! The last materials in nmat are 'vacuum' and 'black',see in sub. SCATIN
-  ! Reference data at pRef=450Gev
-
-  ! pp cross-sections and parameters for energy dependence
-  real(kind=fPrec), private, save :: pperef = 0.007_fPrec
-  real(kind=fPrec), private, save :: sdcoe  = 0.00068_fPrec
-  real(kind=fPrec), private, save :: pref   = 450.0_fPrec
-  real(kind=fPrec), private, save :: pptco  = 0.05788_fPrec
-  real(kind=fPrec), private, save :: ppeco  = 0.04792_fPrec
-
-  character(4), private, save :: mname(nmat) = &
-    ["Be  ","Al  ","Cu  ","W   ","Pb  ","C   ","C2  ","MoGR","CuCD","Mo  ","Glid","Iner","vacu","blac"]
-
-  real(kind=fPrec), private, save :: dpodx(nmat) = &
-    [ 0.55_fPrec,   0.81_fPrec,   2.69_fPrec,   5.79_fPrec,    3.40_fPrec,    0.75_fPrec,   1.50_fPrec,  &
-      zero,         zero,         zero,         zero,          zero,          zero,         zero         ]
-
-
 #ifdef HDF5
   ! Variables to save hdf5 dataset indices
   integer, private, save :: coll_hdf5_survival
@@ -409,6 +382,7 @@ subroutine collimate_init
   use mod_common_da
   use mod_settings
   use string_tools
+  use coll_k2
   use coll_db
   use coll_dist
   use mod_units
@@ -3988,32 +3962,6 @@ subroutine collimate_end_turn
 !=======================================================================
 end subroutine collimate_end_turn
 
-!>
-!! "Merlin" scattering collimation configuration
-!! This routine pre-calcuates some varibles for
-!! the nuclear properties
-!<
-subroutine collimate_init_merlin()
-
-  use coll_k2
-
-  integer i
-
-! compute the electron densnity and plasma energy for each material
-  do i=1, nmat
-    edens(i) = CalcElectronDensity(zatom(i),rho(i),anuc(i))
-    pleng(i) = CalcPlasmaEnergy(edens(i))
-  end do
-
-end subroutine collimate_init_merlin
-
-!>
-!! K2 scattering collimation configuration
-!<
-subroutine collimate_init_k2()
-!nothing currently
-end subroutine collimate_init_k2
-
 #ifdef HDF5
 subroutine coll_hdf5_writeCollScatter(icoll,iturn,ipart,nabs,dp,dx,dy)
 
@@ -4034,99 +3982,6 @@ subroutine coll_hdf5_writeCollScatter(icoll,iturn,ipart,nabs,dp,dx,dy)
 
 end subroutine coll_hdf5_writeCollScatter
 #endif
-
-! !>
-! !! get_dpodx(p,mat_i)
-! !! calculate mean ionization energy loss according to Bethe-Bloch
-! !<
-! function get_dpodx(p, mat_i)          !Claudia
-!   use physical_constants
-!   use mathlib_bouncer
-
-!   implicit none
-
-!   real(kind=fPrec), intent(in) :: p
-!   integer, intent(in) :: mat_i
-
-!   real(kind=fPrec) PE,K,gamma_p
-!   real(kind=fPrec) beta_p,gamma_s,beta_s,me2,mp2,T,part_1,part_2,I_s,delta
-!   parameter(K=0.307075)
-!   real(kind=fPrec) get_dpodx
-
-!   mp2       = pmap**2
-!   me2       = pmae**2
-!   beta_p    = one
-!   gamma_p   = p/pmap
-!   beta_s    = beta_p**2
-!   gamma_s   = gamma_p**2
-!   T         = (2*pmae*beta_s*gamma_s)/(1+(2*gamma_p*pmae/pmap)+me2/mp2)
-!   PE        = sqrt(rho(mat_i)*zatom(mat_i)/anuc(mat_i))*28.816e-9_fPrec
-!   I_s       = exenergy(mat_i)**2
-!   part_1    = K*zatom(mat_i)/(anuc(mat_i)*beta_s)
-!   delta     = log_mb(PE/exenergy(mat_i))+log_mb(beta_p*gamma_p)-half
-!   part_2    = half*log_mb((two*pmae*beta_s*gamma_s*T)/I_s)
-!   get_dpodx = part_1*(part_2-beta_s-delta)*rho(mat_i)*c1m1
-!   return
-! end function get_dpodx
-
-!>
-!! CalcElectronDensity(AtomicNumber, Density, AtomicMass)
-!! Function to calculate the electron density in a material
-!! Should give the number per cubic meter
-!<
-function CalcElectronDensity(AtomicNumber, Density, AtomicMass)
-  implicit none
-
-  real(kind=fPrec) AtomicNumber, Density, AtomicMass
-  real(kind=fPrec) Avogadro
-  real(kind=fPrec) CalcElectronDensity
-  real(kind=fPrec) PartA, PartB
-  parameter (Avogadro = 6.022140857e23_fPrec)
-  PartA = AtomicNumber * Avogadro * Density
-  !1e-6 factor converts to n/m^-3
-  PartB = AtomicMass * c1m6
-  CalcElectronDensity = PartA/PartB
-  return
-end function CalcElectronDensity
-
-!>
-!! CalcPlasmaEnergy(ElectronDensity)
-!! Function to calculate the plasma energy in a material
-!! CalculatePlasmaEnergy = (PlanckConstantBar * sqrt((ElectronDensity *(ElectronCharge**2)) / &
-!!& (ElectronMass * FreeSpacePermittivity)))/ElectronCharge*eV;
-!<
-function CalcPlasmaEnergy(ElectronDensity)
-
-  implicit none
-
-  real(kind=fPrec) ElectronDensity
-  real(kind=fPrec) CalcPlasmaEnergy
-  real(kind=fPrec) sqrtAB,PartA,PartB,FSPC2
-
-  !Values from the 2016 PDG
-  real(kind=fPrec) PlanckConstantBar,ElectronCharge,ElectronMass
-  real(kind=fPrec) ElectronCharge2
-  real(kind=fPrec) FreeSpacePermittivity,FreeSpacePermeability
-  real(kind=fPrec) SpeedOfLight,SpeedOfLight2
-
-  parameter (PlanckConstantBar = 1.054571800e-34_fPrec)
-  parameter (ElectronCharge = 1.6021766208e-19_fPrec)
-  parameter (ElectronCharge2 = ElectronCharge*ElectronCharge)
-  parameter (ElectronMass = 9.10938356e-31_fPrec)
-  parameter (SpeedOfLight = 299792458.0_fPrec)
-  parameter (SpeedOfLight2 = SpeedOfLight*SpeedOfLight)
-
-  parameter (FreeSpacePermeability = 16.0e-7_fPrec*atan(one)) ! Henry per meter
-  parameter (FSPC2 = FreeSpacePermeability*SpeedOfLight2)
-  parameter (FreeSpacePermittivity = one/FSPC2)
-  parameter (PartB = ElectronMass * FreeSpacePermittivity)
-
-  PartA = ElectronDensity * ElectronCharge2
-
-  sqrtAB = sqrt(PartA/PartB)
-  CalcPlasmaEnergy=PlanckConstantBar*sqrtAB/ElectronCharge*c1m9
-  return
-end function CalcPlasmaEnergy
 
 !========================================================================
 !
