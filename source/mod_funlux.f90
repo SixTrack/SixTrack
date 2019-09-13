@@ -1,6 +1,11 @@
 module mod_funlux
 
+  use floatPrecision
+  use numerical_constants, only : zero, two
+
   implicit none
+
+  real(kind=fPrec), private, save :: tftot
 
 contains
 

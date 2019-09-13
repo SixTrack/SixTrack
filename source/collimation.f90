@@ -232,7 +232,6 @@ module collimation
 
   ! RB DM 2014 added variables for FLUKA output
   real(kind=fPrec), private, save :: xInt,xpInt,yInt,ypInt,sInt
-  real(kind=fPrec), private, save :: tftot
 
   integer, save :: num_surhit
   integer, save :: numbin
