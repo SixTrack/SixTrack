@@ -42,7 +42,7 @@ module coll_k2
   ! GRD CHANGED ON 2/2003 TO INCLUDE CODE FOR C, C2 from JBJ (rwa)
   ! Total number of materials are defined in nmat
   ! Number of real materials are defined in nrmat
-  ! The last materials in nmat are 'vacuum' and 'black',see in sub. SCATIN
+  ! The last materials in nmat are 'vacuum' and 'black',see in sub. k2coll_scatin
   ! Reference data at pRef=450Gev
 
   ! pp cross-sections and parameters for energy dependence
@@ -118,27 +118,27 @@ contains
 !! This routine pre-calcuates some varibles for
 !! the nuclear properties
 !<
-subroutine collimate_init_merlin
+subroutine k2coll_merlinInit
 
   integer i
 
 ! compute the electron densnity and plasma energy for each material
   do i=1, nmat
-    edens(i) = CalcElectronDensity(zatom(i),rho(i),anuc(i))
-    pleng(i) = CalcPlasmaEnergy(edens(i))
+    edens(i) = k2coll_calcElectronDensity(zatom(i),rho(i),anuc(i))
+    pleng(i) = k2coll_calcPlasmaEnergy(edens(i))
   end do
 
-end subroutine collimate_init_merlin
+end subroutine k2coll_merlinInit
 
 !>
 !! K2 scattering collimation configuration
 !<
-subroutine collimate_init_k2
+subroutine k2coll_init
 !nothing currently
-end subroutine collimate_init_k2
+end subroutine k2coll_init
 
 !>
-!! subroutine collimate2(c_material, c_length, c_rotation,           &
+!! subroutine k2coll_collimate(c_material, c_length, c_rotation,           &
 !!-----GRD-----GRD-----GRD-----GRD-----GRD-----GRD-----GRD-----GRD-----GRD-----
 !!----                                                                    -----
 !!-----  NEW ROUTINES PROVIDED FOR THE COLLIMATION STUDIES VIA SIXTRACK   -----
@@ -169,8 +169,8 @@ end subroutine collimate_init_k2
 !!++  - Added debug comments
 !!++  - Put real dp/dx
 !<
-subroutine collimate2(icoll, iturn, ie, c_material, c_length, c_rotation, c_aperture, c_offset, c_tilt,      &
-  x_in, xp_in, y_in, yp_in, p_in, s_in, np, enom, lhit_pos, lhit_turn, part_abs_pos_local,   &
+subroutine k2coll_collimate(icoll, iturn, ie, c_material, c_length, c_rotation, c_aperture, c_offset, c_tilt, &
+  x_in, xp_in, y_in, yp_in, p_in, s_in, np, enom, lhit_pos, lhit_turn, part_abs_pos_local, &
   part_abs_turn_local, impact, indiv, lint, onesided, flagsec, j_slices, nabs_type, linside)
 
   use crcoall
@@ -280,7 +280,7 @@ subroutine collimate2(icoll, iturn, ie, c_material, c_length, c_rotation, c_aper
     mat = nmat
   else
     write(lout,*)
-    write(lout,*) 'ERR>  In subroutine collimate2:'
+    write(lout,*) 'ERR>  In subroutine k2coll_collimate:'
     write(lout,*) 'ERR>  Material "', c_material, '" not found.'
     write(lout,*) 'ERR>  Check your CollDB! Stopping now.'
     call prror
@@ -291,7 +291,7 @@ subroutine collimate2(icoll, iturn, ie, c_material, c_length, c_rotation, c_aper
   p0  = enom
 
 !++  Initialize scattering processes
-  call scatin(p0)
+  call k2coll_scatin(p0)
 
 ! EVENT LOOP,  initial distribution is here a flat distribution with
 ! xmin=x-, xmax=x+, etc. from the input file
@@ -592,7 +592,7 @@ subroutine collimate2(icoll, iturn, ie, c_material, c_length, c_rotation, c_aper
       nhit = nhit + 1
 !            WRITE(*,*) J,X,XP,Z,ZP,SP,DPOP
 !     RB: add new input arguments to jaw icoll,iturn,partID for writeout
-      call jaw(s,nabs,icoll,iturn,partID(j))
+      call k2coll_jaw(s,nabs,icoll,iturn,partID(j))
 
       nabs_type(j) = nabs
 !JUNE2005
@@ -869,14 +869,14 @@ subroutine collimate2(icoll, iturn, ie, c_material, c_length, c_rotation, c_aper
 !      WRITE(*,*) 'Number of escaped particles:    ', Nhit-fracab
 !      WRITE(*,*) 'Fraction of absorped particles: ', 100.*fracab/Nhit
 !
-end subroutine collimate2
+end subroutine k2coll_collimate
 
 !>
-!! scatin(plab)
+!! k2coll_scatin(plab)
 !! Configure the K2 scattering routine cross sections
 !!
 !<
-subroutine scatin(plab)
+subroutine k2coll_scatin(plab)
 
   use physical_constants
   use mathlib_bouncer
@@ -927,7 +927,7 @@ subroutine scatin(plab)
     mcurr=ma
 ! prepare for Rutherford differential distribution
     thigh=hcut(ma)
-    call funlxp ( ruth , cgen(1,ma) ,tlow, thigh )
+    call funlxp ( k2coll_ruth , cgen(1,ma) ,tlow, thigh )
 
 ! freep: number of nucleons involved in single scattering
     freep(ma) = freeco * anuc(ma)**(one/three)
@@ -964,7 +964,7 @@ subroutine scatin(plab)
   xintl(nmat-1)   = c1e12
   xintl(nmat)     = zero
   return
-end subroutine scatin
+end subroutine k2coll_scatin
 
 !>
 !! jaw(s,nabs,icoll,iturn,ipart,dowrite_impact)
@@ -987,7 +987,7 @@ end subroutine scatin
 !!     nabs=1....absorption
 !!
 !<
-subroutine jaw(s,nabs,icoll,iturn,ipart)
+subroutine k2coll_jaw(s,nabs,icoll,iturn,ipart)
 
   use mathlib_bouncer
   use mod_ranlux
@@ -1072,14 +1072,13 @@ subroutine jaw(s,nabs,icoll,iturn,ipart)
 !++  LAST STEP IN ITERATION LOOP
   if(zlm1.gt.rlen) then
     zlm1=rlen
-    call mcs(s)
+    call k2coll_mcs(s)
     s=(zlm-rlen)+s
 #ifndef MERLINSCATTER
-    call calc_ion_loss(mat,p,rlen,m_dpodx)  ! DM routine to include tail
+    call k2coll_calcIonLoss(mat,p,rlen,m_dpodx)  ! DM routine to include tail
     p=p-m_dpodx*s
 #endif
 #ifdef MERLINSCATTER
-!void calc_ion_loss_merlin_(double* p, double* ElectronDensity, double* PlasmaEnergy, double* MeanIonisationEnergy, double* result)
     call merlinscatter_calc_ion_loss(p,edens(mat), pleng(mat),exenergy(mat),s,m_dpodx)
     p=p-m_dpodx
 #endif
@@ -1102,7 +1101,7 @@ subroutine jaw(s,nabs,icoll,iturn,ipart)
 
 !++  Otherwise do multi-coulomb scattering.
 !++  REGULAR STEP IN ITERATION LOOP
-  call mcs(s)
+  call k2coll_mcs(s)
 
 !++  Check if particle is outside of collimator (X.LT.0) after
 !++  MCS. If yes, calculate output longitudinal position (s),
@@ -1112,7 +1111,7 @@ subroutine jaw(s,nabs,icoll,iturn,ipart)
     s=(zlm-rlen)+s
 
 #ifndef MERLINSCATTER
-    call calc_ion_loss(mat,p,rlen,m_dpodx)
+    call k2coll_calcIonLoss(mat,p,rlen,m_dpodx)
     p=p-m_dpodx*s
 #endif
 #ifdef MERLINSCATTER
@@ -1142,7 +1141,7 @@ subroutine jaw(s,nabs,icoll,iturn,ipart)
 !++  and return.
 !++  PARTICLE WAS ABSORBED INSIDE COLLIMATOR DURING MCS.
 
-  inter=ichoix(mat)
+  inter=k2coll_ichoix(mat)
   nabs=inter
   nabs_tmp=nabs
 
@@ -1157,7 +1156,7 @@ subroutine jaw(s,nabs,icoll,iturn,ipart)
     s=(zlm-rlen)+zlm1
 
 #ifndef MERLINSCATTER
-    call calc_ion_loss(mat,p,rlen,m_dpodx)
+    call k2coll_calcIonLoss(mat,p,rlen,m_dpodx)
     p=p-m_dpodx*s
 #endif
 #ifdef MERLINSCATTER
@@ -1193,12 +1192,12 @@ subroutine jaw(s,nabs,icoll,iturn,ipart)
 
 !++  Gettran returns some monte carlo number, that, as I believe, gives
 !++  the rms transverse momentum transfer.
-  t = gettran(inter,mat,p)
+  t = k2coll_gettran(inter,mat,p)
 
 !++  Tetat calculates from the rms transverse momentum transfer in
 !++  monte-carlo fashion the angle changes for x and z planes. The
 !++  angle change is proportional to SQRT(t) and 1/p, as expected.
-  call tetat(t,p,dxp,dzp)
+  call k2coll_tetat(t,p,dxp,dzp)
 
 !++  Apply angle changes
   xp=xp+dxp
@@ -1237,7 +1236,7 @@ subroutine jaw(s,nabs,icoll,iturn,ipart)
   rlen=rlen-zlm1
   goto 10
 
-end subroutine jaw
+end subroutine k2coll_jaw
 
 !>
 !! mcs(s)
@@ -1249,7 +1248,7 @@ end subroutine jaw
 !!
 !!     collimator: x>0 and y<zlm1
 !<
-subroutine mcs(s)
+subroutine k2coll_mcs(s)
   implicit none
 !      save h,dh,bn
   real(kind=fPrec) h,dh,theta,rlen0,rlen,ae,be,bn0,s
@@ -1271,9 +1270,9 @@ subroutine mcs(s)
   rlen=rlen0
 10    ae=bn0*x
   be=bn0*xp
-  call soln3(ae,be,dh,rlen,s)
+  call k2coll_soln3(ae,be,dh,rlen,s)
   if(s.lt.h) s=h
-  call scamcs(x,xp,s,radl_mat)
+  call k2coll_scamcs(x,xp,s,radl_mat)
   if(x.le.0.d0) then
    s=(rlen0-rlen)+s
    goto 20
@@ -1284,21 +1283,21 @@ subroutine mcs(s)
   end if
   rlen=rlen-s
   goto 10
-20    call scamcs(z,zp,s,radl_mat)
+20    call k2coll_scamcs(z,zp,s,radl_mat)
   s=s*radl(mat)
   x=(x*theta)*radl(mat)
   xp=xp*theta
   z=(z*theta)*radl(mat)
   zp=zp*theta
-end subroutine mcs
+end subroutine k2coll_mcs
 
 !>
-!! calc_ion_loss(IS,PC,DZ,EnLo)
+!! k2coll_calcIonLoss(IS,PC,DZ,EnLo)
 !! subroutine for the calculazion of the energy loss by ionization
 !! Either mean energy loss from Bethe-Bloch, or higher energy loss, according to finite probability from cross section
 !! written by DM for crystals, introduced in main code by RB
 !<
-subroutine calc_ion_loss(IS, PC, DZ, EnLo)
+subroutine k2coll_calcIonLoss(IS, PC, DZ, EnLo)
 
 ! IS material ID
 ! PC momentum in GeV
@@ -1381,14 +1380,14 @@ subroutine calc_ion_loss(IS, PC, DZ, EnLo)
 
   RETURN
 
-end subroutine calc_ion_loss
+end subroutine k2coll_calcIonLoss
 
 !>
-!! tetat(t,p,tx,tz)
+!! k2coll_tetat(t,p,tx,tz)
 !! ???
 !!
 !<
-subroutine tetat(t,p,tx,tz)
+subroutine k2coll_tetat(t,p,tx,tz)
 
   use mod_ranlux
 
@@ -1407,13 +1406,13 @@ subroutine tetat(t,p,tx,tz)
   tx = teta * ((two*va)*vb) / r2
   tz = teta * (va2 - vb2) / r2
   return
-end subroutine tetat
+end subroutine k2coll_tetat
 
 !>
-!! soln3(a,b,dh,smax,s)
+!! k2coll_soln3(a,b,dh,smax,s)
 !! ???
 !<
-subroutine soln3(a,b,dh,smax,s)
+subroutine k2coll_soln3(a,b,dh,smax,s)
 
   implicit none
 
@@ -1441,7 +1440,7 @@ subroutine soln3(a,b,dh,smax,s)
       return
     else
       s=smax*half
-      call iterat(a,b,dh,s)
+      call k2coll_iterat(a,b,dh,s)
     end if
   else
     c=(-one*a)/b
@@ -1451,21 +1450,21 @@ subroutine soln3(a,b,dh,smax,s)
         return
       else
         s=smax*half
-        call iterat(a,b,dh,s)
+        call k2coll_iterat(a,b,dh,s)
       end if
     else
       s=c*half
-      call iterat(a,b,dh,s)
+      call k2coll_iterat(a,b,dh,s)
     end if
   end if
 
-end subroutine soln3
+end subroutine k2coll_soln3
 
 !>
-!! scamcs(xx,xxp,s,radl_mat)
+!! k2coll_scamcs(xx,xxp,s,radl_mat)
 !! ???
 !<
-subroutine scamcs(xx,xxp,s,radl_mat)
+subroutine k2coll_scamcs(xx,xxp,s,radl_mat)
 
   use mathlib_bouncer
   use mod_ranlux
@@ -1489,9 +1488,9 @@ subroutine scamcs(xx,xxp,s,radl_mat)
   ss=sqrt(s)
   xx=x0+s*(xp0+(half*ss)*(one+0.038_fPrec*log_mb(s))*(z2+z1*0.577350269_fPrec)) !Claudia: added logarithmic part in mcs formula
   xxp=xp0+ss*z2*(one+0.038_fPrec*log_mb(s))
-end subroutine scamcs
+end subroutine k2coll_scamcs
 
-subroutine iterat(a,b,dh,s)
+subroutine k2coll_iterat(a,b,dh,s)
 
   implicit none
 
@@ -1512,32 +1511,31 @@ subroutine iterat(a,b,dh,s)
     goto 10
   end if
 
-end subroutine iterat
+end subroutine k2coll_iterat
 
 !>
-!! ruth(t)
+!! k2coll_ruth(t)
 !! Calculate the rutherford scattering cross section
 !<
-function ruth(t)
+real(kind=fPrec) function k2coll_ruth(t)
 
   use mathlib_bouncer
 
   implicit none
 
-  real(kind=fPrec) ruth,t
-  real(kind=fPrec) cnorm,cnform
+  real(kind=fPrec) t,cnorm,cnform
   parameter(cnorm=2.607e-5_fPrec,cnform=0.8561e3_fPrec) ! DM: changed 2.607d-4 to 2.607d-5 to fix Rutherford bug
 
-  ruth=(cnorm*exp_mb(((-one*real(t,fPrec))*cnform)*emr(mcurr)**2))*(zatom(mcurr)/real(t,fPrec))**2
-end function ruth
+  k2coll_ruth=(cnorm*exp_mb(((-one*real(t,fPrec))*cnform)*emr(mcurr)**2))*(zatom(mcurr)/real(t,fPrec))**2
+end function k2coll_ruth
 
 !>
-!! gettran(inter,xmat,p)
+!! k2coll_gettran(inter,xmat,p)
 !! This function determines: GETTRAN - rms transverse momentum transfer
 !! Note: For single-diffractive scattering the vector p of momentum
 !! is modified (energy loss is applied)
 !<
-real(kind=fPrec) function gettran(inter,xmat,p)
+real(kind=fPrec) function k2coll_gettran(inter,xmat,p)
 
   use mathlib_bouncer
   use mod_ranlux
@@ -1553,15 +1551,15 @@ real(kind=fPrec) function gettran(inter,xmat,p)
   real(kind=fPrec) :: truth,xran(1)
 
   ! Neither if-statements below have an else, so defaultingfuction return to zero.
-  gettran = zero ! -Wmaybe-uninitialized
+  k2coll_gettran = zero ! -Wmaybe-uninitialized
 
 ! inter=2: Nuclear Elastic, 3: pp Elastic, 4: Single Diffractive, 5:Coulomb
 #ifndef MERLINSCATTER
   if( inter.eq.2 ) then
-    gettran = (-one*log_mb(real(rndm4(),fPrec)))/bn(xmat)
+    k2coll_gettran = (-one*log_mb(real(rndm4(),fPrec)))/bn(xmat)
 
   else if( inter .eq. 3 ) then
-    gettran = (-one*log_mb(real(rndm4(),fPrec)))/bpp
+    k2coll_gettran = (-one*log_mb(real(rndm4(),fPrec)))/bpp
 
   else if( inter .eq. 4 ) then
     xm2 = exp_mb( real(rndm4(),fPrec) * xln15s )
@@ -1574,26 +1572,26 @@ real(kind=fPrec) function gettran(inter,xmat,p)
     else !makes the compiler more happy
       bsd = (seven * bpp) / 12.0_fPrec
     end if
-      gettran = (-one*log_mb(real(rndm4(),fPrec)))/bsd
+      k2coll_gettran = (-one*log_mb(real(rndm4(),fPrec)))/bsd
 
   else if( inter.eq.5 ) then
     length=1
     call funlux( cgen(1,mat), xran, length)
     truth=xran(1)
     t=real(truth,fPrec)
-    gettran = t
+    k2coll_gettran = t
   end if
 #else
 
   if( inter.eq.2 ) then
-    gettran = (-one*log_mb(real(rndm4(),fPrec)))/bn(xmat)
+    k2coll_gettran = (-one*log_mb(real(rndm4(),fPrec)))/bn(xmat)
 
   else if( inter .eq. 3 ) then
-    call merlinscatter_get_elastic_t(gettran)
+    call merlinscatter_get_elastic_t(k2coll_gettran)
 
   else if( inter .eq. 4 ) then
     call merlinscatter_get_sd_xi(xm2)
-    call merlinscatter_get_sd_t(gettran)
+    call merlinscatter_get_sd_t(k2coll_gettran)
     p = p  * (one - (xm2/ecmsq))
 
   else if ( inter.eq.5 ) then
@@ -1601,65 +1599,56 @@ real(kind=fPrec) function gettran(inter,xmat,p)
     call funlux( cgen(1,mat) , xran, length)
     truth=xran(1)
     t=real(truth,fPrec)
-    gettran = t
+    k2coll_gettran = t
   end if
 
 #endif
   return
-end function gettran
+end function k2coll_gettran
 
 !>
-!! ichoix(ma)
+!! k2coll_ichoix(ma)
 !! Select a scattering type (elastic, sd, inelastic, ...)
 !<
-function ichoix(ma)
+integer function k2coll_ichoix(ma)
   use mod_ranlux
-  implicit none
-  integer ma,i,ichoix
+  integer ma,i
   real(kind=fPrec) aran
   aran=real(rndm4(),fPrec)
   i=1
-10  if( aran.gt.cprob(i,ma) ) then
-      i=i+1
-      goto 10
-    end if
-
-    ichoix=i
-    return
-end function ichoix
+10 if( aran.gt.cprob(i,ma) ) then
+    i=i+1
+    goto 10
+  end if
+  k2coll_ichoix=i
+end function k2coll_ichoix
 
 !>
-!! CalcElectronDensity(AtomicNumber, Density, AtomicMass)
+!! k2coll_calcElectronDensity(AtomicNumber, Density, AtomicMass)
 !! Function to calculate the electron density in a material
 !! Should give the number per cubic meter
 !<
-function CalcElectronDensity(AtomicNumber, Density, AtomicMass)
-  implicit none
-
+real(kind=fPrec) function k2coll_calcElectronDensity(AtomicNumber, Density, AtomicMass)
   real(kind=fPrec) AtomicNumber, Density, AtomicMass
   real(kind=fPrec) Avogadro
-  real(kind=fPrec) CalcElectronDensity
   real(kind=fPrec) PartA, PartB
   parameter (Avogadro = 6.022140857e23_fPrec)
   PartA = AtomicNumber * Avogadro * Density
   !1e-6 factor converts to n/m^-3
   PartB = AtomicMass * c1m6
-  CalcElectronDensity = PartA/PartB
+  k2coll_calcElectronDensity = PartA/PartB
   return
-end function CalcElectronDensity
+end function k2coll_calcElectronDensity
 
 !>
-!! CalcPlasmaEnergy(ElectronDensity)
+!! k2coll_calcPlasmaEnergy(ElectronDensity)
 !! Function to calculate the plasma energy in a material
 !! CalculatePlasmaEnergy = (PlanckConstantBar * sqrt((ElectronDensity *(ElectronCharge**2)) / &
 !!& (ElectronMass * FreeSpacePermittivity)))/ElectronCharge*eV;
 !<
-function CalcPlasmaEnergy(ElectronDensity)
-
-  implicit none
+real(kind=fPrec) function k2coll_calcPlasmaEnergy(ElectronDensity)
 
   real(kind=fPrec) ElectronDensity
-  real(kind=fPrec) CalcPlasmaEnergy
   real(kind=fPrec) sqrtAB,PartA,PartB,FSPC2
 
   !Values from the 2016 PDG
@@ -1683,8 +1672,8 @@ function CalcPlasmaEnergy(ElectronDensity)
   PartA = ElectronDensity * ElectronCharge2
 
   sqrtAB = sqrt(PartA/PartB)
-  CalcPlasmaEnergy=PlanckConstantBar*sqrtAB/ElectronCharge*c1m9
-  return
-end function CalcPlasmaEnergy
+  k2coll_calcPlasmaEnergy=PlanckConstantBar*sqrtAB/ElectronCharge*c1m9
+
+end function k2coll_calcPlasmaEnergy
 
 end module coll_k2

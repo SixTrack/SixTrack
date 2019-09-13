@@ -221,11 +221,11 @@ module collimation
   real(kind=fPrec), save :: c_tilt(2)   !tilt in radian
   character(len=4), save :: c_material  !material
 
-  real(kind=fPrec), allocatable, private, save :: rcx0(:) !(npart)
+  real(kind=fPrec), allocatable, private, save :: rcx0(:)  !(npart)
   real(kind=fPrec), allocatable, private, save :: rcxp0(:) !(npart)
-  real(kind=fPrec), allocatable, private, save :: rcy0(:) !(npart)
+  real(kind=fPrec), allocatable, private, save :: rcy0(:)  !(npart)
   real(kind=fPrec), allocatable, private, save :: rcyp0(:) !(npart)
-  real(kind=fPrec), allocatable, private, save :: rcp0(:) !(npart)
+  real(kind=fPrec), allocatable, private, save :: rcp0(:)  !(npart)
 
   real(kind=fPrec), private, save :: xj, xpj, yj, ypj, pj
 
@@ -673,10 +673,10 @@ subroutine collimate_init
 
   ! Then do any implementation specific initial loading
 #ifdef COLLIMATE_K2
-  call collimate_init_k2
+  call k2coll_init
 #endif
 #ifdef MERLINSCATTER
-  call collimate_init_merlin
+  call k2coll_merlinInit
 #endif
 
 #ifdef G4COLLIMATION
@@ -2196,7 +2196,7 @@ subroutine collimate_do_collimator(stracki)
 !     &           icoll.le.nprim .and. (j.ge.(icoll-1)*nev/nprim)        &
 !     &           .and. (j.le.(icoll)*nev/nprim))) then
 ! this is done for every bunch (64 particle bucket)
-! important: Sixtrack calculates in "mm" and collimate2 in "m"
+! important: Sixtrack calculates in "mm" and k2coll_collimate in "m"
 ! therefore 1E-3 is used to
 
 ! RB: added condition that pencil_distr.ne.3 in order to do the tilt
@@ -2434,7 +2434,7 @@ subroutine collimate_do_collimator(stracki)
   linside(:) = .false.
 
   if(cdb_cSliced(icoll) > 0) then ! Treatment of sliced collimators
-    ! Now, loop over the number of slices and call collimate2 each time.
+    ! Now, loop over the number of slices and call k2coll_collimate each time.
     ! For each slice, the corresponding offset and angle are to be used.
     do iSlice=1,nSlices
       jawAperture = c_aperture
@@ -2442,23 +2442,23 @@ subroutine collimate_do_collimator(stracki)
       jawTilt     = c_tilt
       call jaw_getFitSliceValues(cdb_cSliced(icoll), iSlice, jawLength, jawAperture, jawOffset, jawTilt)
       if(firstrun) then
-        write(coll_settingsUnit,"(a20,1x,i10,5(1x,1pe13.6),1x,a)") cdb_cName(icoll)(1:20), iSlice, &
+        write(coll_settingsUnit,"(a20,1x,i10,5(1x,1pe13.6),1x,a)") cdb_cName(icoll)(1:20), iSlice,  &
           jawAperture/two, jawOffset, jawTilt(1), jawTilt(2), jawLength, cdb_cMaterial(icoll)
       end if
-      call collimate2(icoll, iturn, ie, c_material, jawLength, c_rotation, jawAperture, jawOffset, jawTilt, &
-        rcx, rcxp, rcy, rcyp, rcp, rcs, napx, enom_gev, part_hit_pos, part_hit_turn,      &
-        part_abs_pos, part_abs_turn, part_impact, part_indiv, part_linteract, onesided,   &
-        secondary, iSlice, nabs_type, linside)
+      call k2coll_collimate(icoll, iturn, ie, c_material, jawLength, c_rotation, jawAperture,       &
+        jawOffset, jawTilt, rcx, rcxp, rcy, rcyp, rcp, rcs, napx, enom_gev, part_hit_pos,           &
+        part_hit_turn, part_abs_pos, part_abs_turn, part_impact, part_indiv, part_linteract,        &
+        onesided, secondary, iSlice, nabs_type, linside)
     end do
 
   else ! Treatment of non-sliced collimators
 
 #ifndef G4COLLIMATION
 
-    call collimate2(icoll, iturn, ie, c_material, c_length, c_rotation, c_aperture, c_offset, c_tilt, &
-      rcx, rcxp, rcy, rcyp, rcp, rcs, napx, enom_gev, part_hit_pos,part_hit_turn,   &
-      part_abs_pos, part_abs_turn, part_impact, part_indiv, part_linteract,         &
-      onesided, secondary, 1, nabs_type, linside)
+    call k2coll_collimate(icoll, iturn, ie, c_material, c_length, c_rotation, c_aperture, c_offset, &
+      c_tilt, rcx, rcxp, rcy, rcyp, rcp, rcs, napx, enom_gev, part_hit_pos,part_hit_turn,           &
+      part_abs_pos, part_abs_turn, part_impact, part_indiv, part_linteract, onesided, secondary, 1, &
+      nabs_type, linside)
 
 #else
 
