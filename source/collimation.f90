@@ -253,12 +253,6 @@ module collimation
   real(kind=fPrec), save :: c_tilt(2)   !tilt in radian
   character(len=4), save :: c_material  !material
 
-  real(kind=fPrec), allocatable, private, save :: rcx(:) !(npart)
-  real(kind=fPrec), allocatable, private, save :: rcxp(:) !(npart)
-  real(kind=fPrec), allocatable, private, save :: rcy(:) !(npart)
-  real(kind=fPrec), allocatable, private, save :: rcyp(:) !(npart)
-  real(kind=fPrec), allocatable, private, save :: rcp(:) !(npart)
-  real(kind=fPrec), allocatable, private, save :: rcs(:) !(npart)
   real(kind=fPrec), allocatable, private, save :: rcx0(:) !(npart)
   real(kind=fPrec), allocatable, private, save :: rcxp0(:) !(npart)
   real(kind=fPrec), allocatable, private, save :: rcy0(:) !(npart)
@@ -393,57 +387,6 @@ module collimation
   data cprob(0,1:nmat)/nmat*zero/
   data cprob(5,1:nmat)/nmat*one/
 
-  ! Output Files
-  character(len=12), parameter :: coll_survivalFile   = "survival.dat"
-  character(len=12), parameter :: coll_gapsFile       = "collgaps.dat"
-  character(len=10), parameter :: coll_impactFile     = "impact.dat"
-  character(len=11), parameter :: coll_tracksFile     = "tracks2.dat"
-  character(len=17), parameter :: coll_positionsFile  = "CollPositions.dat"
-  character(len=20), parameter :: coll_pencilFile     = "pencilbeam_distr.dat"
-  character(len=16), parameter :: coll_ellipseFile    = "coll_ellipse.dat"
-  character(len=15), parameter :: coll_allImpactFile  = "all_impacts.dat"
-  character(len=19), parameter :: coll_allAbsorbFile  = "all_absorptions.dat"
-  character(len=16), parameter :: coll_scatterFile    = "Coll_Scatter.dat"
-  character(len=16), parameter :: coll_fstImpactFile  = "FirstImpacts.dat"
-  character(len=17), parameter :: coll_flukImpFile    = "FLUKA_impacts.dat"
-  character(len=21), parameter :: coll_flukImpAllFile = "FLUKA_impacts_all.dat"
-  character(len=13), parameter :: coll_twissLikeFile  = "twisslike.out"
-  character(len=17), parameter :: coll_sigmaSetFile   = "sigmasettings.out"
-  character(len=16), parameter :: coll_settingsFile   = "collsettings.dat"
-  character(len=16), parameter :: coll_jawProfileFile = "jaw_profiles.dat"
-  character(len=13), parameter :: coll_ampFile        = "amplitude.dat"
-  character(len=17), parameter :: coll_orbitCheckFile = "orbitchecking.dat"
-  character(len=16), parameter :: coll_summaryFile    = "coll_summary.dat"
-  character(len=14), parameter :: coll_efficFile      = "efficiency.dat"
-  character(len=19), parameter :: coll_efficDPFile    = "efficiency_dpop.dat"
-  character(len=17), parameter :: coll_effic2DFile    = "efficiency_2d.dat"
-
-  integer, private, save :: coll_survivalUnit   = -1
-  integer, private, save :: coll_gapsUnit       = -1
-  integer, private, save :: coll_impactUnit     = -1
-  integer, private, save :: coll_tracksUnit     = -1
-  integer, private, save :: coll_positionsUnit  = -1
-  integer, private, save :: coll_pencilUnit     = -1
-  integer, private, save :: coll_ellipseUnit    = -1
-  integer, private, save :: coll_allImpactUnit  = -1
-  integer, private, save :: coll_allAbsorbUnit  = -1
-  integer, private, save :: coll_scatterUnit    = -1
-  integer, private, save :: coll_fstImpactUnit  = -1
-  integer, private, save :: coll_flukImpUnit    = -1
-  integer, private, save :: coll_flukImpAllUnit = -1
-  integer, private, save :: coll_twissLikeUnit  = -1
-  integer, private, save :: coll_sigmaSetUnit   = -1
-  integer, private, save :: coll_settingsUnit   = -1
-  integer, private, save :: coll_jawProfileUnit = -1
-  integer, private, save :: coll_ampUnit        = -1
-  integer, private, save :: coll_orbitCheckUnit = -1
-  integer, private, save :: coll_summaryUnit    = -1
-  integer, private, save :: coll_efficUnit      = -1
-  integer, private, save :: coll_efficDPUnit    = -1
-  integer, private, save :: coll_effic2DUnit    = -1
-
-  integer, private, save :: outlun              = -1
-
 #ifdef HDF5
   ! Variables to save hdf5 dataset indices
   integer, private, save :: coll_hdf5_survival
@@ -499,8 +442,7 @@ end subroutine collimation_allocate_arrays
 subroutine collimation_expand_arrays(npart_new, nblz_new)
 
   use mod_alloc
-
-  implicit none
+  use coll_common
 
   integer, intent(in) :: npart_new
   integer, intent(in) :: nblz_new
@@ -511,12 +453,9 @@ subroutine collimation_expand_arrays(npart_new, nblz_new)
   if(.not. do_coll) return
   ! Arrays that are only needed if Collimation is enabled
 
-  call alloc(rcx,   npart_new, zero, "rcx") !(npart)
-  call alloc(rcxp,  npart_new, zero, "rcxp") !(npart)
-  call alloc(rcy,   npart_new, zero, "rcy") !(npart)
-  call alloc(rcyp,  npart_new, zero, "rcyp") !(npart)
-  call alloc(rcp,   npart_new, zero, "rcp") !(npart)
-  call alloc(rcs,   npart_new, zero, "rcs") !(npart)
+  ! Allocate Common Variables
+  call coll_expandArrays(npart_new, nblz_new)
+
   call alloc(rcx0,  npart_new, zero, "rcx0") !(npart)
   call alloc(rcxp0, npart_new, zero, "rcxp0") !(npart)
   call alloc(rcy0,  npart_new, zero, "rcy0") !(npart)
@@ -576,6 +515,7 @@ subroutine collimate_init
 
   use crcoall
   use parpro
+  use coll_common
   use mod_common
   use mod_common_main
   use mod_commons
@@ -1646,6 +1586,7 @@ subroutine collimate_openFiles
   use mod_units
   use string_tools
   use mod_common, only : numl
+  use coll_common
 #ifdef HDF5
   use hdf5_output
   use hdf5_tracks2
@@ -1814,6 +1755,7 @@ subroutine collimate_start
 
   use parpro
   use crcoall
+  use coll_common
   use mod_common
   use mod_common_main
   use mod_common_track
@@ -2260,6 +2202,7 @@ subroutine collimate_do_collimator(stracki)
 
   use crcoall
   use parpro
+  use coll_common
   use mod_common
   use mod_commons
   use mod_common_da
@@ -2841,6 +2784,7 @@ subroutine collimate_end_collimator(stracki)
 
   use crcoall
   use parpro
+  use coll_common
   use mod_common
   use mod_commons
   use mod_common_da
@@ -3265,6 +3209,7 @@ end subroutine collimate_end_collimator
 subroutine collimate_exit
 
   use parpro
+  use coll_common
   use mod_common
   use mod_commons
   use mod_common_da
@@ -3667,6 +3612,7 @@ subroutine collimate_end_element
 
   use crcoall
   use parpro
+  use coll_common
   use mod_common
   use mod_commons
   use mod_common_da
@@ -3795,6 +3741,7 @@ end subroutine collimate_end_element
 subroutine collimate_end_turn
 
   use parpro
+  use coll_common
   use mod_common
   use mod_commons
   use mod_common_da
@@ -4218,6 +4165,7 @@ subroutine collimate2(c_material, c_length, c_rotation, c_aperture, c_offset, c_
 
   use crcoall
   use parpro
+  use coll_common
   use mod_common, only : iexact, napx
   use mod_common_main, only : partID
   use mathlib_bouncer
@@ -5167,6 +5115,7 @@ subroutine jaw(s,nabs,icoll,iturn,ipart,dowrite_impact)
 
   use mathlib_bouncer
   use mod_ranlux
+  use coll_common
 #ifdef HDF5
   use hdf5_output
 #endif

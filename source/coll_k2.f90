@@ -4,6 +4,7 @@
 ! ============================================================================ !
 module coll_k2
 
+  use coll_common
   use floatPrecision
   use numerical_constants
 
