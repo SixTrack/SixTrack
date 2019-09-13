@@ -312,6 +312,7 @@ list(APPEND FORT90_LIB
   mod_ffield_aux
   mod_find
   mod_fluc
+  mod_funlux
   mod_geometry
   mod_meta
   mod_particles
