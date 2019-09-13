@@ -227,6 +227,7 @@ subroutine k2coll_collimate(icoll, iturn, ie, c_material, c_length, c_rotation, 
 
   real(kind=fPrec) x_flk,xp_flk,y_flk,yp_flk,zpj
   real(kind=fPrec) x_Dump,xpDump,y_Dump,ypDump,s_Dump
+  real(kind=fPrec) cRot,sRot
 
   real(kind=fPrec) s_impact
   integer flagsec(npart)
@@ -279,10 +280,7 @@ subroutine k2coll_collimate(icoll, iturn, ie, c_material, c_length, c_rotation, 
   else if(c_material.eq.'BL') then
     mat = nmat
   else
-    write(lout,*)
-    write(lout,*) 'ERR>  In subroutine k2coll_collimate:'
-    write(lout,*) 'ERR>  Material "', c_material, '" not found.'
-    write(lout,*) 'ERR>  Check your CollDB! Stopping now.'
+    write(lerr,"(a)") "COLLK2> ERROR Material '"//trim(c_material),"' not supported. Check your CollDB."
     call prror
   end if
 
@@ -299,10 +297,9 @@ subroutine k2coll_collimate(icoll, iturn, ie, c_material, c_length, c_rotation, 
   nhit    = 0
   fracab  = zero
   mirror  = one
+  cRot    = cos_mb(c_rotation)
+  sRot    = sin_mb(c_rotation)
 
-!==> SLICE here
-
-!- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
   do j = 1, nev
 ! SR-GRD (04-08-2005):
 !   Don't do scattering process for particles already absorbed
@@ -330,10 +327,10 @@ subroutine k2coll_collimate(icoll, iturn, ie, c_material, c_length, c_rotation, 
 !++  First check whether particle was lost before
 !        if (x.lt.99d-3 .and. z.lt.99d-3) then
 !++  First do rotation into collimator frame
-    x  = x_in(j) *cos_mb(c_rotation)+sin_mb(c_rotation)*y_in(j)
-    z  = y_in(j) *cos_mb(c_rotation)-sin_mb(c_rotation)*x_in(j)
-    xp = xp_in(j)*cos_mb(c_rotation)+sin_mb(c_rotation)*yp_in(j)
-    zp = yp_in(j)*cos_mb(c_rotation)-sin_mb(c_rotation)*xp_in(j)
+    x  =  x_in(j)*cRot + sRot*y_in(j)
+    z  =  y_in(j)*cRot - sRot*x_in(j)
+    xp = xp_in(j)*cRot + sRot*yp_in(j)
+    zp = yp_in(j)*cRot - sRot*xp_in(j)
 !
 !++  For one-sided collimators consider only positive X. For negative
 !++  X jump to the next particle
@@ -479,8 +476,8 @@ subroutine k2coll_collimate(icoll, iturn, ie, c_material, c_length, c_rotation, 
 !++  Include collimator tilt
 ! this is propably not correct
 !
-!             xp =  (xp_pencil0*cos_mb(c_rotation)+                         &
-!     &            sin_mb(c_rotation)*yp_pencil0)
+!             xp =  (xp_pencil0*cRot+                         &
+!     &            sRot*yp_pencil0)
 !             if (tiltangle.gt.0.) then
 !                xp = xp - tiltangle
 !!             endif
@@ -668,10 +665,10 @@ subroutine k2coll_collimate(icoll, iturn, ie, c_material, c_length, c_rotation, 
 ! ----- Maybe a warning would be nice that c_tilt is overwritten !!!!!
 ! changed xp_pencil0(icoll) to xp_pencil0 due to definition mismatch
 ! this has to be solved if necassary and understood
-!                 c_tilt(1) = xp_pencil0(icoll)*cos_mb(c_rotation)+         &
-!     &                       sin_mb(c_rotation)*yp_pencil0(icoll)
-!                 c_tilt(1) = xp_pencil0*cos_mb(c_rotation)+                &
-!     &                       sin_mb(c_rotation)*yp_pencil0
+!                 c_tilt(1) = xp_pencil0(icoll)*cRot+         &
+!     &                       sRot*yp_pencil0(icoll)
+!                 c_tilt(1) = xp_pencil0*cRot+                &
+!     &                       sRot*yp_pencil0
 !                 write(*,*) "INFO> Changed tilt1  ICOLL  to  ANGLE  ",  &
 !     &                   icoll, c_tilt(1), j
 !                 changed_tilt1(icoll) = .true.
@@ -679,10 +676,10 @@ subroutine k2coll_collimate(icoll, iturn, ie, c_material, c_length, c_rotation, 
 !     &                                   .and. mirror.lt.0.) then
 ! changed xp_pencil0(icoll) to xp_pencil0 due to definition mismatch
 ! this has to be solved if necassary and understood
-!                 c_tilt(2) = -1.*(xp_pencil0(icoll)*cos_mb(c_rotation)+    &
-!     &                       sin_mb(c_rotation)*yp_pencil0(icoll))
-!                 c_tilt(2) = -1.*(xp_pencil0*cos_mb(c_rotation)+           &
-!     &                       sin_mb(c_rotation)*yp_pencil0)
+!                 c_tilt(2) = -1.*(xp_pencil0(icoll)*cRot+    &
+!     &                       sRot*yp_pencil0(icoll))
+!                 c_tilt(2) = -1.*(xp_pencil0*cRot+           &
+!     &                       sRot*yp_pencil0)
 !                 write(*,*) "INFO> Changed tilt2  ICOLL  to  ANGLE  ",  &
 !     &                   icoll, c_tilt(2), j
 !                 changed_tilt2(icoll) = .true.
