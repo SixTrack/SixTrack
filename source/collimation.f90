@@ -19,31 +19,21 @@ module collimation
 
   implicit none
 
-  integer, parameter :: max_ncoll  = 100
   integer, parameter :: numeff     = 32
   integer, parameter :: numeffdpop = 29
   integer, parameter :: nc         = 32
 
-  ! Variables for collimator material numbers
-  integer, parameter :: nmat       = 14
-  integer, parameter :: nrmat      = 12
-
   ! Logical Flags
-  logical, public,  save :: do_coll           = .false.
-  logical, public,  save :: coll_oldBlock     = .false.
-  logical, private, save :: do_select         = .false.
-  logical, private, save :: do_nominal        = .false.
-  logical, private, save :: dowrite_dist      = .false.
-  logical, private, save :: do_oneside        = .false.
-  logical, private, save :: dowrite_impact    = .false.
-  logical, private, save :: dowrite_secondary = .false.
-  logical, private, save :: dowrite_amplitude = .false.
-  logical, private, save :: systilt_antisymm  = .false.
-  logical, private, save :: dowritetracks     = .false.
-  logical, private, save :: cern              = .false.
-  logical, private, save :: do_mingap         = .false.
-  logical, public,  save :: firstrun          = .true.
-  logical, private, save :: cut_input         = .false. ! Not in use?
+  logical, public,  save :: do_coll          = .false.
+  logical, public,  save :: coll_oldBlock    = .false.
+  logical, private, save :: do_select        = .false.
+  logical, private, save :: do_nominal       = .false.
+  logical, private, save :: do_oneside       = .false.
+  logical, private, save :: systilt_antisymm = .false.
+  logical, private, save :: cern             = .false.
+  logical, private, save :: do_mingap        = .false.
+  logical, public,  save :: firstrun         = .true.
+  logical, private, save :: cut_input        = .false. ! Not in use?
 
   integer, private, save :: icoll      = 0
   integer, private, save :: nloop      = 1
@@ -88,13 +78,6 @@ module collimation
   real(kind=fPrec), private, save :: driftsx = zero
   real(kind=fPrec), private, save :: driftsy = zero
 
-  ! Pencil Beam
-  integer,          private, save :: ipencil       = 0
-  real(kind=fPrec), private, save :: pencil_offset = zero
-  real(kind=fPrec), private, save :: pencil_rmsx   = zero
-  real(kind=fPrec), private, save :: pencil_rmsy   = zero
-  integer,          private, save :: pencil_distr  = 0
-
   real(kind=fPrec), private, save :: sigsecut3 = one
   real(kind=fPrec), private, save :: sigsecut2 = one
 
@@ -102,7 +85,6 @@ module collimation
   real(kind=fPrec), private, save :: emitny0_dist = zero
   real(kind=fPrec), private, save :: emitnx0_collgap = zero
   real(kind=fPrec), private, save :: emitny0_collgap = zero
-
 
   character(len=mNameLen),  private, save :: name_sel  = " "
   character(len=16),        private, save :: castordir = " "
@@ -123,10 +105,10 @@ module collimation
   real(kind=fPrec), private, save :: rselect = 64.0 ! Not set anywhere, but used in if statements
   real(kind=fPrec), private, save :: myemitx
 
-! M. Fiascaris for the collimation team
-! variables for global inefficiencies studies
-! of normalized and off-momentum halo
-! Last modified: July 2016
+  ! M. Fiascaris for the collimation team
+  ! variables for global inefficiencies studies
+  ! of normalized and off-momentum halo
+  ! Last modified: July 2016
 
   real(kind=fPrec), allocatable, save :: neff(:) !(numeff)
   real(kind=fPrec), allocatable, save :: rsig(:) !(numeff)
@@ -220,19 +202,6 @@ module collimation
   real(kind=fPrec), allocatable, save :: mux(:) !(nblz)
   real(kind=fPrec), allocatable, save :: muy(:) !(nblz)
 
-  real(kind=fPrec), save :: xp_pencil0,yp_pencil0
-  real(kind=fPrec), allocatable, save :: x_pencil(:) !(max_ncoll)
-  real(kind=fPrec), allocatable, save :: y_pencil(:) !(max_ncoll)
-  real(kind=fPrec), allocatable, save :: pencil_dx(:) !(max_ncoll)
-
-  ! Mean excitation energy (GeV) values added by Claudia for Bethe-Bloch implementation:
-  real(kind=fPrec), parameter :: exenergy(nmat) = [ &
-    63.7e-9_fPrec, 166.0e-9_fPrec, 322.0e-9_fPrec, 727.0e-9_fPrec, 823.0e-9_fPrec, 78.0e-9_fPrec, 78.0e-9_fPrec, &
-    87.1e-9_fPrec, 152.9e-9_fPrec, 424.0e-9_fPrec, 320.8e-9_fPrec, 682.2e-9_fPrec, zero, c1e10 ]
-
-  ! RB DM 2014 added variables for FLUKA output
-  real(kind=fPrec), private, save :: xInt,xpInt,yInt,ypInt,sInt
-
   integer, save :: num_surhit
   integer, save :: numbin
   integer, save :: ibin
@@ -282,33 +251,6 @@ module collimation
   real(kind=fPrec), save :: tiltOffsPos1,tiltOffsPos2,tiltOffsNeg1,tiltOffsNeg2
   real(kind=fPrec), save :: beamsize1, beamsize2,betax1,betax2,betay1,betay2, alphax1, alphax2,alphay1,alphay2,minAmpl
 
-  integer,          private, save :: nev
-  integer,          private, save :: mat
-  real(kind=fPrec), private, save :: length
-  real(kind=fPrec), private, save :: x,xp,z,zp,dpop
-  real(kind=fPrec), private, save :: p0
-  real(kind=fPrec), private, save :: zlm
-
-  real(kind=fPrec), parameter :: tlcut = 0.0009982_fPrec
-
-  integer,          private, save :: mcurr
-  real(kind=fPrec), private, save :: xintl(nmat)
-  real(kind=fPrec), private, save :: zlm1
-  real(kind=fPrec), private, save :: xpsd
-  real(kind=fPrec), private, save :: zpsd
-  real(kind=fPrec), private, save :: psd
-  real(kind=fPrec), private, save :: csect(0:5,nmat)
-  real(kind=fPrec), private, save :: freep(nmat)
-  real(kind=fPrec), private, save :: cprob(0:5,nmat)
-  real(kind=fPrec), private, save :: bn(nmat)
-  real(kind=fPrec), private, save :: bpp
-  real(kind=fPrec), private, save :: xln15s
-  real(kind=fPrec), private, save :: ecmsq
-  real(kind=fPrec), private, save :: pptot
-  real(kind=fPrec), private, save :: ppel
-  real(kind=fPrec), private, save :: ppsd
-  real(kind=fPrec), private, save :: cgen(200,nmat)
-
   ! Electron density and plasma energy
   real(kind=fPrec), private, save :: edens(nmat)
   real(kind=fPrec), private, save :: pleng(nmat)
@@ -321,71 +263,19 @@ module collimation
   ! Reference data at pRef=450Gev
 
   ! pp cross-sections and parameters for energy dependence
-  real(kind=fPrec), private, save :: pptref = 0.04_fPrec
   real(kind=fPrec), private, save :: pperef = 0.007_fPrec
   real(kind=fPrec), private, save :: sdcoe  = 0.00068_fPrec
   real(kind=fPrec), private, save :: pref   = 450.0_fPrec
   real(kind=fPrec), private, save :: pptco  = 0.05788_fPrec
   real(kind=fPrec), private, save :: ppeco  = 0.04792_fPrec
-  real(kind=fPrec), private, save :: freeco = 1.618_fPrec
 
   character(4), private, save :: mname(nmat) = &
     ["Be  ","Al  ","Cu  ","W   ","Pb  ","C   ","C2  ","MoGR","CuCD","Mo  ","Glid","Iner","vacu","blac"]
 
-  ! GRD IMPLEMENT CHANGES FROM JBJ, 2/2003 RWA
-  real(kind=fPrec), private, save :: anuc(nmat)  = &
-    [ 9.01_fPrec,  26.98_fPrec,  63.55_fPrec, 183.85_fPrec, 207.19_fPrec,    12.01_fPrec,  12.01_fPrec,  &
-     13.53_fPrec,  25.24_fPrec,  95.96_fPrec,  63.15_fPrec, 166.70_fPrec,     zero,         zero         ]
-  real(kind=fPrec), private, save :: zatom(nmat) = &
-    [ 4.00_fPrec,  13.00_fPrec,  29.00_fPrec,  74.00_fPrec,  82.00_fPrec,     6.00_fPrec,   6.00_fPrec,  &
-      6.65_fPrec,  11.90_fPrec,  42.00_fPrec,  28.80_fPrec,  67.70_fPrec,     zero,         zero         ]
-  real(kind=fPrec), private, save :: rho(nmat)   = &
-    [ 1.848_fPrec,  2.70_fPrec,   8.96_fPrec,  19.30_fPrec,   11.35_fPrec,    1.67_fPrec,   4.52_fPrec,  &
-      2.500_fPrec,  5.40_fPrec,  10.22_fPrec,   8.93_fPrec,   18.00_fPrec,    zero,         zero         ]
-  real(kind=fPrec), private, save :: radl(nmat)  = &
-    [ 0.353_fPrec,  0.089_fPrec,  0.0143_fPrec, 0.0035_fPrec,  0.0056_fPrec,  0.2557_fPrec, 0.094_fPrec, &
-      0.1193_fPrec, 0.0316_fPrec, 0.0096_fPrec, 0.0144_fPrec,  0.00385_fPrec, 1.0e12_fPrec, 1.0e12_fPrec ]
-  real(kind=fPrec), private, save :: emr(nmat)   = &
-    [ 0.22_fPrec,   0.302_fPrec,  0.366_fPrec,  0.520_fPrec,   0.542_fPrec,   0.25_fPrec,   0.25_fPrec,  &
-      0.25_fPrec,   0.308_fPrec,  0.481_fPrec,  0.418_fPrec,   0.578_fPrec,   zero,         zero         ]
-  real(kind=fPrec), private, save :: hcut(nmat)  = &
-    [ 0.02_fPrec,   0.02_fPrec,   0.01_fPrec,   0.01_fPrec,    0.01_fPrec,    0.02_fPrec,    0.02_fPrec, &
-      0.02_fPrec,   0.02_fPrec,   0.02_fPrec,   0.02_fPrec,    0.02_fPrec,    zero,          zero        ]
   real(kind=fPrec), private, save :: dpodx(nmat) = &
     [ 0.55_fPrec,   0.81_fPrec,   2.69_fPrec,   5.79_fPrec,    3.40_fPrec,    0.75_fPrec,   1.50_fPrec,  &
       zero,         zero,         zero,         zero,          zero,          zero,         zero         ]
 
-  ! Nuclear elastic slope from Schiz et al.,PRD 21(3010)1980
-  ! MAY06-GRD value for Tungsten (W) not stated. Last 2 ones interpolated
-  real(kind=fPrec), private, save :: bnref(nmat) = &
-    [74.7_fPrec, 120.3_fPrec, 217.8_fPrec, 440.3_fPrec, 455.3_fPrec, 70.0_fPrec, 70.0_fPrec, &
-     76.7_fPrec, 115.0_fPrec, 273.9_fPrec, 208.7_fPrec, 392.1_fPrec, zero,       zero        ]
-
-  ! All cross-sections are in barns,nuclear values from RPP at 20geV
-  ! Coulomb is integerated above t=tLcut[Gev2] (+-1% out Gauss mcs)
-
-  ! in Cs and CsRef,1st index: Cross-sections for processes
-  ! 0:Total, 1:absorption, 2:nuclear elastic, 3:pp or pn elastic
-  ! 4:Single Diffractive pp or pn, 5:Coulomb for t above mcs
-
-  ! Claudia 2013: updated cross section values. Unit: Barn. New 2013:
-  real(kind=fPrec), private, save :: csref(0:5,nmat)
-  data csref(0,1), csref(1,1), csref(5,1) /0.271_fPrec, 0.192_fPrec, 0.0035e-2_fPrec/
-  data csref(0,2), csref(1,2), csref(5,2) /0.643_fPrec, 0.418_fPrec, 0.0340e-2_fPrec/
-  data csref(0,3), csref(1,3), csref(5,3) /1.253_fPrec, 0.769_fPrec, 0.1530e-2_fPrec/
-  data csref(0,4), csref(1,4), csref(5,4) /2.765_fPrec, 1.591_fPrec, 0.7680e-2_fPrec/
-  data csref(0,5), csref(1,5), csref(5,5) /3.016_fPrec, 1.724_fPrec, 0.9070e-2_fPrec/
-  data csref(0,6), csref(1,6), csref(5,6) /0.337_fPrec, 0.232_fPrec, 0.0076e-2_fPrec/
-  data csref(0,7), csref(1,7), csref(5,7) /0.337_fPrec, 0.232_fPrec, 0.0076e-2_fPrec/
-  data csref(0,8), csref(1,8), csref(5,8) /0.362_fPrec, 0.247_fPrec, 0.0094e-2_fPrec/
-  data csref(0,9), csref(1,9), csref(5,9) /0.572_fPrec, 0.370_fPrec, 0.0279e-2_fPrec/
-  data csref(0,10),csref(1,10),csref(5,10)/1.713_fPrec, 1.023_fPrec, 0.2650e-2_fPrec/
-  data csref(0,11),csref(1,11),csref(5,11)/1.246_fPrec, 0.765_fPrec, 0.1390e-2_fPrec/
-  data csref(0,12),csref(1,12),csref(5,12)/2.548_fPrec, 1.473_fPrec, 0.5740e-2_fPrec/
-
-  ! Cprob to choose an interaction in iChoix
-  data cprob(0,1:nmat)/nmat*zero/
-  data cprob(5,1:nmat)/nmat*one/
 
 #ifdef HDF5
   ! Variables to save hdf5 dataset indices
@@ -413,10 +303,6 @@ subroutine collimation_allocate_arrays
   call alloc(yp_pencil, max_ncoll, zero, "yp_pencil")
   call alloc(csum,      max_ncoll, zero, "csum")
   call alloc(csqsum,    max_ncoll, zero, "csqsum")
-
-  call alloc(x_pencil,  max_ncoll, zero, "x_pencil") !(max_ncoll)
-  call alloc(y_pencil,  max_ncoll, zero, "y_pencil") !(max_ncoll)
-  call alloc(pencil_dx, max_ncoll, zero, "pencil_dx") !(max_ncoll)
 
   call alloc(npartdpop, numeffdpop, 0, "npartdpop") !(numeffdpop)
   call alloc(neff, numeff, zero, "neff") !(numeff)
@@ -2210,6 +2096,7 @@ subroutine collimate_do_collimator(stracki)
   use mod_common_track
   use numerical_constants, only : c5m4
   use coll_db
+  use coll_k2
   use coll_jawfit
   use coll_dist
   use mod_units
@@ -2584,7 +2471,7 @@ subroutine collimate_do_collimator(stracki)
         write(coll_settingsUnit,"(a20,1x,i10,5(1x,1pe13.6),1x,a)") cdb_cName(icoll)(1:20), iSlice, &
           jawAperture/two, jawOffset, jawTilt(1), jawTilt(2), jawLength, cdb_cMaterial(icoll)
       end if
-      call collimate2(c_material, jawLength, c_rotation, jawAperture, jawOffset, jawTilt, &
+      call collimate2(icoll, iturn, ie, c_material, jawLength, c_rotation, jawAperture, jawOffset, jawTilt, &
         rcx, rcxp, rcy, rcyp, rcp, rcs, napx, enom_gev, part_hit_pos, part_hit_turn,      &
         part_abs_pos, part_abs_turn, part_impact, part_indiv, part_linteract, onesided,   &
         secondary, iSlice, nabs_type, linside)
@@ -2594,7 +2481,7 @@ subroutine collimate_do_collimator(stracki)
 
 #ifndef G4COLLIMATION
 
-    call collimate2(c_material, c_length, c_rotation, c_aperture, c_offset, c_tilt, &
+    call collimate2(icoll, iturn, ie, c_material, c_length, c_rotation, c_aperture, c_offset, c_tilt, &
       rcx, rcxp, rcy, rcyp, rcp, rcs, napx, enom_gev, part_hit_pos,part_hit_turn,   &
       part_abs_pos, part_abs_turn, part_impact, part_indiv, part_linteract,         &
       onesided, secondary, 1, nabs_type, linside)
@@ -4108,7 +3995,7 @@ end subroutine collimate_end_turn
 !<
 subroutine collimate_init_merlin()
 
-  implicit none
+  use coll_k2
 
   integer i
 

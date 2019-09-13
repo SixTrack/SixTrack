@@ -5,8 +5,20 @@
 module coll_common
 
   use floatPrecision
+  use numerical_constants, only : zero
 
   implicit none
+
+  integer, parameter :: max_ncoll  = 100
+  integer, parameter :: nmat       = 14  ! Materials
+  integer, parameter :: nrmat      = 12  ! Materials
+
+  ! Logical Flags
+  logical, save :: dowrite_impact    = .false.
+  logical, save :: dowrite_dist      = .false.
+  logical, save :: dowrite_secondary = .false.
+  logical, save :: dowrite_amplitude = .false.
+  logical, save :: dowritetracks     = .false.
 
   ! Collimation Particle Arrays
   real(kind=fPrec), allocatable, save :: rcx(:)
@@ -15,6 +27,18 @@ module coll_common
   real(kind=fPrec), allocatable, save :: rcyp(:)
   real(kind=fPrec), allocatable, save :: rcp(:)
   real(kind=fPrec), allocatable, save :: rcs(:)
+
+  ! Pencil Beam
+  integer,          save :: ipencil       = 0
+  integer,          save :: pencil_distr  = 0
+  real(kind=fPrec), save :: pencil_offset = zero
+  real(kind=fPrec), save :: pencil_rmsx   = zero
+  real(kind=fPrec), save :: pencil_rmsy   = zero
+  real(kind=fPrec), save :: xp_pencil0    = zero
+  real(kind=fPrec), save :: yp_pencil0    = zero
+  real(kind=fPrec), allocatable, save :: x_pencil(:)
+  real(kind=fPrec), allocatable, save :: y_pencil(:)
+  real(kind=fPrec), allocatable, save :: pencil_dx(:)
 
   ! Output File Names
   character(len=12), parameter :: coll_survivalFile   = "survival.dat"
@@ -83,6 +107,10 @@ subroutine coll_expandArrays(npart_new, nblz_new)
   call alloc(rcyp, npart_new, zero, "rcyp")
   call alloc(rcp,  npart_new, zero, "rcp")
   call alloc(rcs,  npart_new, zero, "rcs")
+
+  call alloc(x_pencil,  max_ncoll, zero, "x_pencil")
+  call alloc(y_pencil,  max_ncoll, zero, "y_pencil")
+  call alloc(pencil_dx, max_ncoll, zero, "pencil_dx")
 
 end subroutine coll_expandArrays
 
