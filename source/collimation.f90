@@ -15,7 +15,7 @@ module collimation
   use parpro
   use floatPrecision
   use numerical_constants
-  use coll_common
+  use coll_common, only : max_ncoll
 
   implicit none
 
@@ -735,6 +735,7 @@ subroutine collimate_parseInputLine(inLine, iLine, iErr)
   use coll_db
   use coll_dist
   use string_tools
+  use coll_common
   use mod_common, only : napx
 
   implicit none
