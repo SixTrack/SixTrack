@@ -142,29 +142,29 @@ For the convention on signs for the last three (optional) aperture specifiers, p
     Rectangle & \texttt{RE} & \texttt{aper\_1} & hor.~half-size [mm] \\*
     & & \texttt{aper\_2} & ver.~half-size [mm] \\*
     \hline
-    
+
     Ellipse & \texttt{EL} & \texttt{aper\_1} & hor.~semi-axis [mm] \\*
     & & \texttt{aper\_2} & ver.~semi-axis [mm] \\*
     \hline
-    
+
     RectEllipse & \texttt{RL} & \texttt{aper\_1} & hor.~half-size [mm] \\*
     & & \texttt{aper\_2} & ver.~half-size [mm] \\*
     & & \texttt{aper\_3} & hor.~semi-axis [mm] \\*
     & & \texttt{aper\_4} & ver.~semi-axis [mm] \\*
     \hline
-    
+
     Octagon & \texttt{OC} & \texttt{aper\_1} & hor.~position of ver.~side [mm] \\*
     & & \texttt{aper\_2} & ver.~position of hor.~side [mm] \\*
     & & \texttt{aper\_3} & angle of first cut corner [rad] \\*
     & & \texttt{aper\_4} & angle of second cut corner [rad] \\*
     \hline
-    
+
     Ractetrack & \texttt{RT} & \texttt{aper\_1} & hor.~displ.~of ellypse centre [mm] \\*
     & & \texttt{aper\_2} & ver.~displ.~of ellypse centre [mm] \\*
     & & \texttt{aper\_3} & hor.~semi-axis [mm] \\*
     & & \texttt{aper\_4} & ver.~semi-axis [mm] \\*
     \hline
-    
+
     Transition & \texttt{TR} & \texttt{aper\_1} & hor.~half-size [mm] \\*
     & & \texttt{aper\_2} & ver.~half-size [mm] \\*
     & & \texttt{aper\_3} & hor.~semi-axis [mm] \\*
@@ -322,9 +322,9 @@ NEXT
 
 In the above example, the content of \texttt{fort3.limi} is the following:
 \begin{cverbatim}
-aper.1        EL     29.0      29.0            
+aper.1        EL     29.0      29.0
 aper.2        OC     40.0      30.0       0.5236    1.0472       -10.0       -2.0        0.174533
-aper.3        RL     18.95     23.85      23.85      23.85  
+aper.3        RL     18.95     23.85      23.85      23.85
 \end{cverbatim}
 \begin{itemize}
 \item \texttt{aper.1} specifies an ellyptical aperture with both axes of 29~mm. Effectively, it is a circular aperture;
@@ -692,7 +692,7 @@ Because of this, SixTrack does not accept a real single element in \texttt{fort.
     & \texttt{harmonic}    & --      & Harmonic number of the cavity \\
     & \texttt{lag\_angle}  & degrees & Lag angle of the cavity \\
   \hline
-    
+
    \multirow{3}{*}{\parbox{4cm}{Beam-Beam 6d (expert) \index{Beam-Beam}\\ (20),\\ Section~\ref{BeamBeam}}}
     & \texttt{h-sep}     & mm      & Horizontal offset \\
     & \texttt{v-sep}     & mm      & Vertical offset \\
@@ -744,7 +744,7 @@ Because of this, SixTrack does not accept a real single element in \texttt{fort.
   \hline
 
 \caption{Element types and attributes available in \texttt{DYNK} .}
-\label{tab:DYNK_SET} 
+\label{tab:DYNK_SET}
 
 \end{longtable}
 
@@ -1352,7 +1352,7 @@ Currently, the ideal electron lens is implemented, i.e.
     & \texttt{name} & -- & Name of e-lens. Must be the same as that in the list of single elements\index{single elements}.\\*
     \hline
 
-    & \texttt{type} & -- & Type of e-lens - either \texttt{UNIFORM} or  \texttt{GAUSSIAN}. \\* 
+    & \texttt{type} & -- & Type of e-lens - either \texttt{UNIFORM} or  \texttt{GAUSSIAN}. \\*
     \hline
 
     & \texttt{theta\_r2} & mrad & Kick\footnote{Total, \emph{not} per charge.} received at $r=r_2$ where $r_2$ is the outer radius of the e-lens.\\*
@@ -1369,17 +1369,17 @@ Currently, the ideal electron lens is implemented, i.e.
 
     & \texttt{offset\_y} & mm & Vertical offset of the e-lens.\\*
     \hline
-    
+
     \hline
     \rowcolor{blue!15}
     \multicolumn{4}{|l|}{Specific to \texttt{GAUSSIAN} type} \\*
-    
+
     & \texttt{sig\_el} & mm & $\sigma$ of the electron beam.\\*
     \hline
 
     \rowcolor{blue!15}
     \multicolumn{4}{|l|}{Specific to \texttt{RADIAL} type} \\*
-    
+
     & \texttt{filename} & & filename of the radial profile. Please see Sec.~\ref{sec:elen_rad_prof} for proper formatting of the file. The profile is read from the file, radially integrated and normalised to the total current. Hence, the kick at \texttt{r2} is given by the value of \texttt{theta\_r2} (or by the optional parameters) and not by integration of the radial profile. The domain of the profile must be larger than the domain identified by $R_1$ and $R_2$. \\*
     \hline
 
@@ -1389,10 +1389,10 @@ Currently, the ideal electron lens is implemented, i.e.
 
     & \texttt{L} & m & Length of the e-lens. Must be positive. \\*
     \hline
-    
+
     & \texttt{I} & A & Electron current of the e-lens. Must be non--zero. If negative, the electron beam is considered travelling in the direction opposite to that of the main beam. \\*
     \hline
-    
+
     & \texttt{E\_k} & keV & kinetic energy of electrons in the e-lens. Must be positive.\\*
     \hline
 
@@ -1474,7 +1474,7 @@ The file format of the radial profile is
 
 Formatting rules:
 \begin{itemize}
-\item every non-commented line with a non-negative value of current density is taken as a point in the profile;
+\item every non-commented line is taken as a point in the profile;
 \item values of the radius must be in \emph{increasing} order. Otherwise, the program stops.
 \end{itemize}
 
@@ -1625,29 +1625,6 @@ $b$ typically equals $1\mu m$ at the first impact.
 This database including the name, length, orientation and material of every single collimator of the ring (1 file per Collimation System Phase though).
 Apart from these two, the other required SixTrack files are produced via MAD-X and its conversion module.
 
-\paragraph{Collimator Database}~\\
-
-The collimator database is stored in files named \texttt{CollDB\_V6.500\_[type]\_st.[beam].data}, with \texttt{[type]} being either inj for injection case or low $b$ for collision case, and \texttt{[beam]} being $b1$ or $b2$.
-These files contain mechanical and optical data related to the collimators planned for LHC. (Note that at present only Phase I collimators have a length different from zero)
-
-A sample block of either one of these input files follows:
-
-\begin{cverbatim}
-TCP.D6L7.B1             <-- collimator name in capital letters
-tcp.d6l7.b1             <-- collimator name in minimal letters
-5.7                     <-- collimator nominal opening (in sigma units)
-C                       <-- collimator material (C = graphite, CU = copper, W=tungsten)
-  0.2000000000000000    <-- collimator length [m]
-  1.5710000000000000    <-- collimator angle [rad]
-  0.0000000000000000    <-- collimator offset [m]
- 90.4467000000000070    <-- design Beta x [m]
-156.4360000000000070    <-- design Beta y [m]
-#                       <-- line jump to next block
-\end{cverbatim}
-
-The introduction of the optic parameter $\beta$ allows studies of error scenarios (orbit distortion, beta-beating\index{beta-beating}) and/or to see the effect of misaligned collimators.
-This structure is then repeated within the file for each of the collimators to be included in the study.
-
 % ================================================================================================================================ %
 
 \subsection{Collimation Input Block} \label{sec:coll:input}
@@ -1664,7 +1641,6 @@ The collimation module is controlled by the \texttt{COLL} block in \texttt{fort.
 \paragraph{Format Description:}~\\
 
 From SixTrack version 5.2.5 and on, the main format of the \texttt(COLL) block is a set of keyword/value lines.
-This format is described in Section~\ref(sec:coll:newfmt).
 
 For backwards compatibility, the old format is still supported, and it is described in Section~\ref{sec:coll:oldfmt}.
 When encountering the \texttt{COLL} block, the parser will check if the first line of the block is a single value, and if it is, it will conclude that the block is in the old format.
@@ -1672,8 +1648,6 @@ The old block format consists of 17 lines of varying number of values, and the f
 
 Note that the old and new format cannot be inter-mixed.
 The old format is parsed based on the line number, and must follow exactly the format described in Table~\ref{tab:COLL_INP}.
-
-\subsubsection{New Format}\label{sec:coll:newfmt}
 
 The keyword/value formated block is described below.
 The keywords mostly correspond to the keywords listed in Table~\ref{tab:COLL_INP}.
@@ -1688,6 +1662,9 @@ This entry is required for collimation to be enabled, but if ommitted, defaults 
 
 The filename of the database of collimators.
 This entry is required.
+The format of the database is described in Section~\ref{Sec:CollDB}.
+It is also possible to load the old style database format.
+If so, a converted database is written to the simulation folder with an added file extension \texttt{.new}.
 
 \paragraph{Beam Energy (Required)} \texttt{ENERGY energy[MeV]}\\
 
@@ -1799,32 +1776,17 @@ The default value is the sigma gap specified in the collimator database.
     \texttt{tcryo}   & The collimators in the DS regions.
 \end{longtabu}
 
-\paragraph{Set Jaw Slicing} \texttt{JAW\_SLICE nslice smin smax recenter1 recenter2}\\
+\paragraph{Jaw Slicing}~\\
 
-The surface model of the jaw.
-Specify the slicing of the jaw.
-All values default to 0.
+This feature has been removed from the main collimation block.
+The collimators or collimator families that are to be sliced are now set in the collimator database file.
+See Section~\ref{Sec:CollDB}.
 
-\bigskip
-\begin{tabular}{@{}llp{0.7\linewidth}}
-    \texttt{nslice}    & integer & Number of slices in which each jaw should be cut. \\
-    \texttt{smin}      & float   & S-position for the start of the slicing. \\
-    \texttt{smax}      & float   & S-position for the end of the slicing. \\
-    \texttt{recenter1} & float   & Moving the 1st jaw to the new smallest opening. \\
-    \texttt{recenter2} & float   & Moving the 2nd jaw to the new smallest opening.
-\end{tabular}
+\paragraph{One-Sided Collimators}~\\
 
-\paragraph{Set Jaw Fits} \texttt{JAW\_FIT[1|2] 0th 1st 2nd 3rd 4th 5th scale}\\
-
-Specifies the polynomial fit of the first or second jaw for the 0th to the 5th order, as well as the scaling of the polynomial.
-All values default to 0.
-
-\paragraph{One-Sided Collimators} \texttt{DO\_ONESIDE true|false}\\
-
-Switches on or off the collimator being one-sided.
-That is, only positive jaw.
-If the negative jaw is to be used, it is necessary to turn collimator by 180 degrees in the collimator database file.
-Default value is \texttt{false}.
+This feature has been removed from the main collimation block.
+The collimators or collimator families that are to be treated as one-sided are now set in the collimator database file.
+See Section~\ref{Sec:CollDB}.
 
 \paragraph{Beta-Beating} \texttt{BETA\_BEAT xbeat xbeat\_phase ybeat ybeat\_phase}\\
 
@@ -1912,11 +1874,6 @@ This value defaults to 0.
 Deduce \texttt{SYSTILT} to \texttt{RMSTILT} instead of adding.
 This value defaults to \texttt{false}.
 
-% \paragraph{Cut Halo File (CERN Flag)} \texttt{CERN true|false}\\
-
-% Switches on or off whether to cut halo files in separate pieces, one per 64 particles.
-% This value defaults to \texttt{false}.
-
 \paragraph{Cut Sigmas} \texttt{SIGSECUT sigma\_xy sigma\_r}\\
 
 Sigma cuts for \texttt{tracks2.dat} controlled by the \texttt{WRITE\_TRACKS} flag.
@@ -1940,7 +1897,220 @@ All flags default to \texttt{false}.
 
 % ================================================================================================================================ %
 
-\subsubsection{Old Format}\label{sec:coll:oldfmt}
+\subsection{The Collimator Database}\label{Sec:CollDB}
+
+Collimators require specific settings, which are provided in a dedicated collimator database.
+The file is specified with the \texttt{COLLDB} keyword in the \texttt{COLL} block in \texttt{fort.3}.
+See Section~\ref{sec:coll:input}.
+
+Only the new database format is described in this section, but it is possible to load a file with the old format.
+The old format has been deprecated due to having a single column of parameters that are not straight-forward to read (by humans) and difficult to extend with new features.
+If an old database file is specified, a converted database is written with the same file name plus an added extension \texttt{.new}.
+New features added to the collimation module will not be supported by the old format.
+
+\paragraph{Database Structure}~\\
+
+The database is split into two sections.
+The first (main) section lists all the collimators and their default parameters.
+The second section, separated from the first by the keyword \texttt{SETTINGS}, contains additional settings for specific collimators or families of collimators.
+The second section is parsed following similar logic to the \texttt{fort.3} input block, but has a different set of keywords.
+The second section is optional.
+
+\subsubsection{Main Database Section}
+
+The main section of the database consists of a list of collimator family declarations, followed by a list of collimators.
+The family declaration is optional, but it makes it easier to assign parameters to a group of collimators instead of specifying each one individually.
+In the main section, this is used to provide the default collimator opening.
+
+The collimator family settings are povided in exactly the same way as the \texttt{NISG\_FAM} keyword in the \texttt{COLL} block in \texttt{fort.3}.
+The keyword takes a family name and a collimator opening setting as input parameters.
+The settings in \texttt{fort.3} overrides the settings of the database.
+
+The collimator key settings are provided in a table of either 6 or 8 columns.
+The latter two columns are optional.
+The formats are as follows:
+
+\bigskip
+\begin{tabular}{@{}llp{0.7\linewidth}}
+    \texttt{elemname} & char       & The single element name of the collimator. \\
+    \texttt{opening}  & char/float & The family name as defined above, or if no family, the collimator opening in units of sigma. \\
+    \texttt{material} & char(4)    & The material of the collimator. \\
+    \texttt{length}   & float      & The length of the collimator in metres. \\
+    \texttt{angle}    & float      & The skew angle (i.e. about the longitudinal axis) of the collimator in degrees. \\
+    \texttt{offset}   & float      & The offset of the collimator on the cleaning plane in metres. \\
+    \texttt{beta\_x}  & float      & The Twiss $\beta_x$ of the collimator in metres (optional). \\
+    \texttt{beta\_y}  & float      & The Twiss $\beta_y$ of the collimator in metres (optional). \\
+\end{tabular}
+
+\paragraph{Example}~
+
+\begin{cverbatim}
+# Families
+NSIG_FAM tcp3      12.000000
+NSIG_FAM tcsg3     15.600000
+NSIG_FAM tcsm3    999.000000
+NSIG_FAM tcla3     17.600000
+# Collimators
+# name          opening mat.   length[m]  angle[deg]  offset[m]    beta_x[m]    beta_y[m]
+tclx.4r1.b1        tclp Iner    1.000000    0.000000   0.000000  6812.605863  4597.092632
+tcl.5r1.b1         tclp CU      1.000000    0.000000   0.000000   902.616764  1935.588447
+tcl.6r1.b1         tclp Iner    1.000000    0.000000   0.000000   142.965006  1166.200842
+tctph.4l2.b1      tcth2 Iner    1.000000    0.000000   0.000000    84.519178   104.259232
+tctpv.4l2.b1      tctv2 Iner    1.000000   90.000000   0.000000    86.619339   103.111681
+tdi.4l2.b1          tdi CU      4.000000   90.000000   0.000000   144.175250    96.678174
+tclia.4r2          tcli C       1.000000   90.000000   0.000000    98.565386   160.118523
+tclib.6r2.b1       tcli C       1.000000   90.000000   0.000000   149.324152    63.396485
+tcp.6l3.b1         tcp3 C       0.600000    0.000000   0.000000   131.520626   144.694013
+tcsg.5l3.b1       tcsg3 C       1.000000    0.000000   0.000000    54.604612   298.623904
+tcsg.4r3.b1       tcsg3 C       1.000000    0.000000   0.000000    26.209714   395.196297
+tcsg.a5r3.b1      tcsg3 C       1.000000  170.799865   0.000000    35.867692   344.111324
+tcsg.b5r3.b1      tcsg3 C       1.000000   11.400000   0.000000    45.537821   312.677533
+tcla.a5r3.b1      tcla3 Iner    1.000000   90.000000   0.000000   142.529342   176.013077
+tcla.b5r3.b1      tcla3 Iner    1.000000    0.000000   0.000000   151.614782   168.687046
+tcla.6r3.b1       tcla3 Iner    1.000000    0.000000   0.000000   129.435749   168.706418
+tcla.7r3.b1       tcla3 Iner    1.000000    0.000000   0.000000    66.935067    92.241046
+tcth.6l5.b1       tcth5 CuCD    1.000000    0.000000   0.000000  1262.953872   303.824116
+tctv.6l5.b1       tctv5 CuCD    1.000000   90.000000   0.000000  1322.390819   361.810773
+tctxh.4l5.b1      tcth5 CuCD    1.000000    0.000000   0.000000  4673.450003  7076.790857
+\end{cverbatim}
+
+\subsubsection{Additional Collimator Settings}
+
+Further collimator settings can be provided at the bottom of the database file separated by the \texttt{SETTINGS} keyword.
+Currently, only one-sided collimators can be specified in this section.
+
+\paragraph{One-Sided Collimators} \texttt{ONESIDED name 1|2}\\
+
+One-sided treatment of collimators can be achieved by setting this flag.\index{one-sided collimator}
+The \texttt{name} can either be a collimator name or a family name.
+The last parameter specifies either jaw 1 (i.e. at $x$>0 in the collimator reference system) or jaw 2 (i.e. at $x$<0 in the collimator reference system).
+If jaw 2 is selected, the collimator is rotated by 180 degrees, as only the positive $x$ side is treated when one-sided is enabled.
+
+\bigskip
+\noindent\textit{Example}
+\begin{cverbatim}
+SETTINGS
+ONESIDED tcdqa.a4r6.b1    1
+ONESIDED tcdqa.c4r6.b1    1
+ONESIDED tcdqa.b4r6.b1    1
+\end{cverbatim}
+
+\paragraph{Jaw Fit Profile} \texttt{JAW\_PROFILE name fac0 [... fac5]}\\
+
+Adds a named fit profile with factors $s_i$ up to fifth order on the form:\index{collimator jaw fit}
+\begin{equation}
+    P_i = A\left[s_0 + s_1 x_i + \frac{s_2 x_i^2}{L} + s_3 x_i^3 + s_4 x_i^4 + s_5 x_i^5\right]
+\end{equation}
+where $P_i$ is the profile of the $i$-th slice, $A$ is a scaling factor, $L$ is the length of the collimator, and
+\begin{equation}
+    x_i = \frac{L(i-1)}{N}
+\end{equation}
+where $N$ is the number of slices.
+The scaling factors default to zero, and only the $0$-th order factor is required.
+
+\paragraph{Jaw Fit} \texttt{JAW\_FIT target nslices fit1 fit2 [scale1 scale2 [recentre1 recentre2]]}\\
+
+Apply a fit defined with \texttt{JAW\_PROFILE} to the two jaws of a \texttt{target} collimator or family of collimators.
+The number of slices is required, and so are the prfoile names \texttt{fit1} and \texttt{fit2} for collimator jaw 1 and 2, respectively.
+The scaling factors \texttt{scale1} and \texttt{scale2} are optional, and default to one.
+It is also possible to move the collimator such that the opening corresponds to the smallest gap after the jaw fit profile has been applied.
+This can be enabled by setting the logical flags \texttt{recentre1} and \texttt{recentre2} for the two jaws.
+These flags default to \texttt{off}.
+
+\bigskip
+\noindent\textit{Example}
+\begin{cverbatim}
+SETTINGS
+JAW_PROFILE FIT_A -1.0e-5 -2.4e-3 4.3e-3 -4.1e-3 1.8e-3 3.0e-4
+JAW_PROFILE FIT_B -1.0e-5 -2.4e-3 4.3e-3 -4.1e-3 1.8e-3 3.0e-4
+JAW_FIT tcsg7 15 FIT_A FIT_B 1.0 1.0 on on
+\end{cverbatim}
+
+% ================================================================================================================================ %
+
+\subsection{Collimation with Geant4}
+
+It is possible to use the particle-matter scattering physics of Geant4 within SixTrack.
+To do this, the G4COLLIMATION flag must be added at build time, with an appropriate Geant4 library existing in your path.
+Many standard collimation features are currently not implemented.
+Particle longitudinal dynamics are also not currently implemented.
+The \texttt{GNT4} block specified below must be used in addition to the standard collimation block in the standard \texttt{fort.3} file. \index{GNT4} \index{Geant4}
+
+\bigskip
+\begin{tabular}{@{}lp{0.8\linewidth}}
+    \textbf{Keyword}    & \texttt{GNT4}\index{GNT4} \\
+    \textbf{Data lines} & Variable, see below. \\
+    \textbf{Format}     & This module uses a keyword, value format. See below.
+\end{tabular}
+
+\bigskip
+
+\paragraph{Select Physics List} \texttt{PHYSICS phys}\\
+
+The \texttt{PHYSICS} flag selects which physics list to use in Geant4.
+If no flag is specified, the simulation will default to FTFP\_BERT.
+Any Geant4 physics list is allowed.
+Please see \url{http://geant4-userdoc.web.cern.ch/geant4-userdoc/UsersGuides/PhysicsListGuide/html/index.html} for more details.
+
+\bigskip
+\begin{tabular}{@{}llp{0.7\linewidth}}
+    \texttt{phys} & char    & The name of the physics list to use.
+\end{tabular}
+
+\paragraph{Select Particles to Return to SixTrack} \texttt{RETURN type}\\
+
+The \texttt{RETURN} flag selects which types of particles to return back to SixTrack after performing collimation.
+Only charged particles are returned; neutral particles are always killed.
+Possible options are \texttt{STABLE}, which will return all stable particles, \texttt{IONS}, which takes back all ions (not including protons), and to specify by individual PDG id numbers.
+Both particles and anti-particles should be specified separately.
+Multiple copies of the \texttt{RETURN} flag can be used to precisely select which particles are of interest.
+
+If no flag is specified, all particles are returned, including ones that should decay.
+
+\bigskip
+\begin{tabular}{@{}llp{0.7\linewidth}}
+    \texttt{type} & char/int & The particles to send back to SixTrack after tracking through Geant4.
+\end{tabular}
+
+\paragraph{Select Relative Energy Cut} \texttt{RELENERGYCUT cut}\\
+
+The \texttt{RELENERGYCUT} flag selects an energy cut as a fraction of the energy of the reference particle.
+For example, 0.5 will cut at half the energy of the reference particle.
+
+\bigskip
+\begin{tabular}{@{}llp{0.7\linewidth}}
+    \texttt{cut} & float    & The cut value to use.
+\end{tabular}
+
+\paragraph{Select Absolute Energy Cut} \texttt{ABSENERGYCUT cut}\\
+
+The \texttt{ABSENERGYCUT} flag selects an absolute energy cut, and if a particle's energy goes below this value, it will be killed.
+This value is specified in GeV.
+
+\bigskip
+\begin{tabular}{@{}llp{0.7\linewidth}}
+    \texttt{cut} & float    & The cut value to use in GeV.
+\end{tabular}
+
+\paragraph{Select Range Cut} \texttt{RANGECUT\_MM cut}\\
+
+The \texttt{RANGECUT\_MM} flag selects a range cut for particle production in Geant4.
+This value is specified in mm.
+The unit of this cut may change in the future.
+
+\bigskip
+\begin{tabular}{@{}llp{0.7\linewidth}}
+    \texttt{cut} & float    & The cut value to use in mm.
+\end{tabular}
+
+\paragraph{Enable Debugging Output} \texttt{DEBUG}\\
+
+The \texttt{DEBUG} flag enables some additional debugging output in Geant4.
+Warning: the level of output can be very verbose with a large number of particles.
+
+% ================================================================================================================================ %
+
+\subsection{Old Input Format}\label{sec:coll:oldfmt}
 
 The old input block format is illustrated in the following example, and the associated variable which each value is described in Table~\ref{tab:COLL_INP}.
 
@@ -1966,6 +2136,29 @@ COLLIMATION----------------------------------------------------------------
    .true. .false. WAbsVertLowbcoll  101  1  1.
 NEXT-----------------------------------------------------------------------------
 \end{cverbatim}
+
+\paragraph{Old Collimator Database Format}~\\
+
+The collimator database is stored in files named \texttt{CollDB\_V6.500\_[type]\_st.[beam].data}, with \texttt{[type]} being either inj for injection case or low $b$ for collision case, and \texttt{[beam]} being $b1$ or $b2$.
+These files contain mechanical and optical data related to the collimators planned for LHC. (Note that at present only Phase I collimators have a length different from zero)
+
+A sample block of either one of these input files follows:
+
+\begin{cverbatim}
+TCP.D6L7.B1             <-- collimator name in capital letters
+tcp.d6l7.b1             <-- collimator name in minimal letters
+5.7                     <-- collimator nominal opening (in sigma units)
+C                       <-- collimator material (C = graphite, CU = copper, W=tungsten)
+  0.2000000000000000    <-- collimator length [m]
+  1.5710000000000000    <-- collimator angle [rad]
+  0.0000000000000000    <-- collimator offset [m]
+ 90.4467000000000070    <-- design Beta x [m]
+156.4360000000000070    <-- design Beta y [m]
+#                       <-- line jump to next block
+\end{cverbatim}
+
+The introduction of the optic parameter $\beta$ allows studies of error scenarios (orbit distortion, beta-beating\index{beta-beating}) and/or to see the effect of misaligned collimators.
+This structure is then repeated within the file for each of the collimators to be included in the study.
 
 \bigskip
 \begin{center}
@@ -2127,7 +2320,7 @@ NEXT----------------------------------------------------------------------------
         \cline{2-4}
         & \texttt{NAME\_SEL}     & char    & Name as in the \texttt{fort.2} file of the collimator one wants a dedicated study. \\
         \cline{2-4}
-        & \texttt{DO\_ONESIDE}   & logical & Switches on/off the collimator being one-sided. Only positive jaw. If the negative jaw is to be used, it is necessary to turn collimator by 180 degrees in the collimator database file \texttt{CollDB\_V6.500\_[type]\_st.[beam].data}. \\
+        & \texttt{DO\_ONESIDE}   & logical & Switches on/off all TCPs being one-sided. Only positive jaw. If the negative jaw is to be used, it is necessary to turn collimator by 180 degrees in the collimator database file \texttt{CollDB\_V6.500\_[type]\_st.[beam].data}. \\
         \cline{2-4}
         & \texttt{DOWRT\_IMPACT} & logical & Saves the impact parameters for each collimator. \\
         \cline{2-4}
@@ -2214,88 +2407,6 @@ NEXT----------------------------------------------------------------------------
     \hline
 \end{longtable}
 \end{center}
-
-\subsection{Collimation with Geant4}
-
-It is possible to use the beam-material scattering physics engine from Geant4 with SixTrack.
-To do this, the G4COLLIMATION flag must be added at build time, with an appropriate Geant4 library exiting in your path.
-Many standard collimation features are currently not implemented.
-Particle longitudinal dynamics are also not currently implemented.
-The \texttt{GNT4} block specified below must be used in addition to the standard collimation block. \index{GNT4} \index{Geant4}
-
-\bigskip
-\begin{tabular}{@{}lp{0.8\linewidth}}
-    \textbf{Keyword}    & \texttt{GNT4}\index{GNT4} \\
-    \textbf{Data lines} & Variable, see below. \\
-    \textbf{Format}     & This module uses a keyword, value format. See below.
-\end{tabular}
-
-\bigskip
-
-\paragraph{Select Physics List} \texttt{PHYSICS phys}\\
-
-The \texttt{PHYSICS} flag selects which physics list to use in Geant4.
-If no flag is specified, the simulation will default to FTFP\_BERT.
-Any Geant4 physics list is allowed.
-Please see \url{http://geant4-userdoc.web.cern.ch/geant4-userdoc/UsersGuides/PhysicsListGuide/html/index.html} for more details.
-
-\bigskip
-\begin{tabular}{@{}llp{0.7\linewidth}}
-    \texttt{phys} & char    & The name of the physics list to use.
-\end{tabular}
-
-\paragraph{Select Particles to Return to SixTrack} \texttt{RETURN type}\\
-
-The \texttt{RETURN} flag selects which types of particles to return back to SixTrack after performing collimation.
-Only charged particles are returned; neutral particles are always killed.
-Possible options are \texttt{STABLE}, which will return all stable particles, \texttt{IONS}, which takes back all ions (not including protons), and to specify by individual PDG id numbers.
-Both particles and anti-particles should be specified separately.
-Multiple copies of the \texttt{RETURN} flag can be used to precisely select which particles are of interest.
-
-If no flag is specified, all particles are returned, including ones that should decay.
-
-\bigskip
-\begin{tabular}{@{}llp{0.7\linewidth}}
-    \texttt{type} & char/int & The particles to send back to SixTrack after tracking through Geant4.
-\end{tabular}
-
-
-\paragraph{Select Relative Energy Cut} \texttt{RELENERGYCUT cut}\\
-
-The \texttt{RELENERGYCUT} flag selects an energy cut as a fraction of the energy of the reference particle.
-For example, 0.5 will cut at half the energy of the reference particle.
-
-\bigskip
-\begin{tabular}{@{}llp{0.7\linewidth}}
-    \texttt{cut} & float    & The cut value to use.
-\end{tabular}
-
-\paragraph{Select Absolute Energy Cut} \texttt{ABSENERGYCUT cut}\\
-
-The \texttt{ABSENERGYCUT} flag selects an absolute energy cut, and if a particle's energy goes below this value, it will be killed.
-This value is specified in GeV.
-
-\bigskip
-\begin{tabular}{@{}llp{0.7\linewidth}}
-    \texttt{cut} & float    & The cut value to use in GeV.
-\end{tabular}
-
-\paragraph{Select Range Cut} \texttt{RANGECUT\_MM cut}\\
-
-The \texttt{RANGECUT\_MM} flag selects a range cut for particle production in Geant4.
-This value is specified in mm.
-The unit of this cut may change in the future.
-
-\bigskip
-\begin{tabular}{@{}llp{0.7\linewidth}}
-    \texttt{cut} & float    & The cut value to use in mm.
-\end{tabular}
-
-\paragraph{Enable Debugging Output} \texttt{DEBUG}\\
-
-The \texttt{DEBUG} flag enables some additional debugging output in Geant4.
-Warning: the level of output can be very verbose with a large number of particles.
-
 % ================================================================================================================================ %
 
 \section{Fringe Fields} \label{sec:ffield}

@@ -780,7 +780,7 @@ subroutine aperture_reportLoss(turn, i, ix)
   use root_output
 #endif
 
-  use collimation, only : do_coll, part_abs_turn, ipart
+  use collimation, only : do_coll, part_abs_turn
 
   implicit none
 
@@ -1003,8 +1003,7 @@ subroutine aperture_reportLoss(turn, i, ix)
               lparID=.true.
             end if
 #else
-            if ( (     do_coll .and. (  ipart(j) .eq. plost(jj) )) .or. &
-                 (.not.do_coll .and. ( partID(j) .eq. plost(jj) ))       ) then
+            if (partID(j) == plost(jj)) then
               lparID=.true.
             end if
 #endif
@@ -1022,7 +1021,7 @@ subroutine aperture_reportLoss(turn, i, ix)
           plost(jjx) = fluka_uid(j)
 #else
           if (do_coll) then
-            plost(jjx) = ipart(j)
+            plost(jjx) = partID(j)
           else
             plost(jjx) = j
           endif
@@ -1051,14 +1050,8 @@ subroutine aperture_reportLoss(turn, i, ix)
         call h5_writeData(aper_setLostPart, 15, 1, fluka_uid(j))
         call h5_writeData(aper_setLostPart, 16, 1, fluka_gen(j))
         call h5_writeData(aper_setLostPart, 17, 1, fluka_weight(j))
-#endif
-        if (do_coll) then
-          call h5_writeData(aper_setLostPart, 15, 1, ipart(j))
-        endif
-#ifndef FLUKA
-        if (.not. do_coll) then
-          call h5_writeData(aper_setLostPart, 15, 1, partID(j))
-        endif
+#else
+        call h5_writeData(aper_setLostPart, 15, 1, partID(j))
 #endif
         call h5_finaliseWrite(aper_setLostPart)
       else

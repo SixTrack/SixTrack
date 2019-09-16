@@ -1,5 +1,24 @@
 # SixTrack Changelog
 
+### Version 5.3.3 [09.09.2019] - Release
+
+**Bug Fixes**
+
+* Fixed bug in the `DIST` module with conversion of longitudinal emittance from eVs to µm. The conversion was off by a factor `1e6` due to the energy variable being in `MeV` not `eV`. PR #950 (V.K. Berglyd Olsen)
+* Fixed bug in the `DIST` module where emittance was sent to `DISTLIB` as normalised emittance, while `DISTLIB` expected geometric emittance. PR #952 (V.K. Berglyd Olsen)
+* Fixed a bug in binary particle state files where the internal normalisation matrix was written to file instead of the ones which have all elements scaled to the same unit. PR #952 (V.K. Berglyd Olsen)
+
+**Documentation**
+
+* Minor changes to the documentation (LaTeX manual and markdown files) to correct outdated information. PR #948 (V.K. Berglyd Olsen)
+* Updated the README to add a paper that can be cited by studies using SixTrack 5. PR #949 (V.K. Berglyd Olsen, R. De Maria)
+
+**Code Improvements and Changes**
+
+* The way SixTrack keeps track of particle pairs for DA studies has changed. Earlier, the pairing was preserved by a reverse map from original particle index to the current index. The index of a particle changes when it is lost in an aperture, collimator or interaction point. The reverse map was effectively a record of the particle ID. However, since the new `DIST` module makes it possible to set the particle ID to any value, the reverse map has now been replaced by a map containing a particle pairID as well as whether it is particle 1 or 2 of the pair. This map is not under the user's control, and therefore preserves the pair structure through tracking. Rewriting the code to use this map eliminates a potential memory access violation due to a corner case when particles are lost and initiated with a non-incremental particle ID. The rewrite is otherwise identical to old functionality, and shouldn't alter any results. The main benefit is cleaner code, and the particle ID now being entirely passthrough as far as SixTrack is concerned, making it easier to interface with external codes that inject new particles into SixTrack. PR #938 (V.K. Berglyd Olsen, A. Mereghetti)
+* Added a check in the parsing of multi-column `STRUCT` input blocks that ensures that the element position of a given lattice element has a position larger or equal to the previous element. This prevents the accidental initialisation of negative length elements. PR #955 (V.K. Berglyd Olsen)
+* Moved a number of subroutines related to initialisation of beam--beam elements and elements in general out of the main `sixtrack` source file and to more appropriate files. PRs #957 and #960 (V.K. Berglyd Olsen)
+
 ### Version 5.3.2 [23.08.2019] - Release
 
 **Bug Fixes**

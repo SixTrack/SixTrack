@@ -38,8 +38,9 @@ subroutine allocate_arrays
   nblo  = nblo_initial
   nblz  = nblz_initial
   npart = npart_initial
+  nbb   = nbb_initial
 
-  call mod_common_expand_arrays(nele,nblo,nblz,npart)
+  call mod_common_expand_arrays(nele,nblo,nblz,npart,nbb)
   call mod_commont_expand_arrays(nblz,npart)
   call mod_commonmn_expand_arrays(nblz,npart)
   call mod_commond2_expand_arrays(nele)
@@ -62,7 +63,7 @@ subroutine allocate_arrays
 end subroutine allocate_arrays
 
 ! Change the allocation of the arrays scaling with the main memry parameter nele, npart, etc.
-subroutine expand_arrays(nele_new, npart_new, nblz_new, nblo_new)
+subroutine expand_arrays(nele_new, npart_new, nblz_new, nblo_new, nbb_new)
 
 #ifdef DEBUG
   use mod_alloc, only : alloc_log
@@ -99,13 +100,14 @@ subroutine expand_arrays(nele_new, npart_new, nblz_new, nblo_new)
   integer, intent(in) :: npart_new
   integer, intent(in) :: nblz_new
   integer, intent(in) :: nblo_new
+  integer, intent(in) :: nbb_new
 
 #ifdef DEBUG
-  write(alloc_log,"(a,4(1x,i0))") "ALLOC> Expanding (nele,npart,nblz,nblo):",nele_new,npart_new,nblz_new,nblo_new
+  write(alloc_log,"(a,5(1x,i0))") "ALLOC> Expanding (nele,npart,nblz,nblo,nbb):",nele_new,npart_new,nblz_new,nblo_new,nbb_new
 #endif
 
   !Call sub-subroutines to actually expand
-  call mod_common_expand_arrays(nele_new,nblo_new,nblz_new,npart_new)
+  call mod_common_expand_arrays(nele_new,nblo_new,nblz_new,npart_new,nbb_new)
   call mod_commont_expand_arrays(nblz_new,npart_new)
   call mod_commonmn_expand_arrays(nblz_new,npart_new)
   call mod_commond2_expand_arrays(nele_new)
@@ -135,6 +137,7 @@ subroutine expand_arrays(nele_new, npart_new, nblz_new, nblo_new)
   npart = npart_new
   nblz  = nblz_new
   nblo  = nblo_new
+  nbb   = nbb_new
 
 end subroutine expand_arrays
 
@@ -283,8 +286,6 @@ subroutine shuffleLostParticles
       other(j:tnapx)                = cshift(other(j:tnapx),                1)
       scatterhit(j:tnapx)           = cshift(scatterhit(j:tnapx),           1)
       nabs_type(j:tnapx)            = cshift(nabs_type(j:tnapx),            1)
-      ipart(j:tnapx)                = cshift(ipart(j:tnapx),                1)
-      flukaname(j:tnapx)            = cshift(flukaname(j:tnapx),            1)
 
       counted_r(j:tnapx,:)          = cshift(counted_r(j:tnapx,:),          1, 1)
       counted_x(j:tnapx,:)          = cshift(counted_x(j:tnapx,:),          1, 1)

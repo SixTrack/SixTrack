@@ -11,29 +11,30 @@ module coll_dist
   implicit none
 
   ! Other Settings
-  integer,                  public,  save :: cdist_logUnit  = -1
-  real(kind=fPrec),         public,  save :: cdist_energy   = zero
+  real(kind=fPrec),         public,  save :: cdist_energy    = zero
 
   ! Twiss
-  real(kind=fPrec),         public,  save :: cdist_alphaX   = zero
-  real(kind=fPrec),         public,  save :: cdist_alphaY   = zero
-  real(kind=fPrec),         public,  save :: cdist_betaX    = zero
-  real(kind=fPrec),         public,  save :: cdist_betaY    = zero
-  real(kind=fPrec),         public,  save :: cdist_emitX    = zero
-  real(kind=fPrec),         public,  save :: cdist_emitY    = zero
+  real(kind=fPrec),         public,  save :: cdist_alphaX    = zero
+  real(kind=fPrec),         public,  save :: cdist_alphaY    = zero
+  real(kind=fPrec),         public,  save :: cdist_betaX     = zero
+  real(kind=fPrec),         public,  save :: cdist_betaY     = zero
+  real(kind=fPrec),         public,  save :: cdist_emitX     = zero
+  real(kind=fPrec),         public,  save :: cdist_emitY     = zero
+  real(kind=fPrec),         public,  save :: cdist_emitXColl = zero
+  real(kind=fPrec),         public,  save :: cdist_emitYColl = zero
 
   ! Distribution Settings
-  real(kind=fPrec),         public,  save :: cdist_ampX     = zero
-  real(kind=fPrec),         public,  save :: cdist_ampY     = zero
-  real(kind=fPrec),         public,  save :: cdist_ampR     = zero
-  real(kind=fPrec),         public,  save :: cdist_smearX   = zero
-  real(kind=fPrec),         public,  save :: cdist_smearY   = zero
-  real(kind=fPrec),         public,  save :: cdist_smearR   = zero
-  real(kind=fPrec),         public,  save :: cdist_spreadE  = zero ! Energy spread for longitudinal phase-space
-  real(kind=fPrec),         public,  save :: cdist_bunchLen = zero ! Bunch length in longitudinal phase-space
-  real(kind=fPrec),         public,  save :: cdist_longCut  = 2    ! Cut in sigma for longitudinal phase-space
+  real(kind=fPrec),         public,  save :: cdist_ampX      = zero
+  real(kind=fPrec),         public,  save :: cdist_ampY      = zero
+  real(kind=fPrec),         public,  save :: cdist_ampR      = zero
+  real(kind=fPrec),         public,  save :: cdist_smearX    = zero
+  real(kind=fPrec),         public,  save :: cdist_smearY    = zero
+  real(kind=fPrec),         public,  save :: cdist_smearR    = zero
+  real(kind=fPrec),         public,  save :: cdist_spreadE   = zero ! Energy spread for longitudinal phase-space
+  real(kind=fPrec),         public,  save :: cdist_bunchLen  = zero ! Bunch length in longitudinal phase-space
+  real(kind=fPrec),         public,  save :: cdist_longCut   = 2    ! Cut in sigma for longitudinal phase-space
 
-  character(len=mFileName), public,  save :: cdist_fileName = " "
+  character(len=mFileName), public,  save :: cdist_fileName  = " "
 
 contains
 
@@ -437,5 +438,91 @@ subroutine cdist_makeDist_fmt6
   end do
 
 end subroutine cdist_makeDist_fmt6
+
+! ================================================================================================ !
+!  RB: new routine to sample part of matched phase ellipse which is outside the cut of the jaws
+!  Assuming cut of the jaw at mynex for hor plane.
+!  Largest amplitude outside of jaw is mynex + mdex.  Analog for vertical plane.
+!  Same routine as makedis_st, but rejection sampling to get
+!  Only particles hitting the collimator on the same turn.
+!  Treat as a pencil beam in main routine.
+! ================================================================================================ !
+subroutine cdist_makeDist_coll(alphaX, alphaY, betaX, betaY, neX, neY)
+
+  use crcoall
+  use mod_ranlux
+  use mathlib_bouncer
+  use mod_common, only : napx
+  use mod_common_main, only : xv1, xv2, yv1, yv2, ejv, sigmv
+
+  real(kind=fPrec), intent(in) :: alphaX
+  real(kind=fPrec), intent(in) :: alphaY
+  real(kind=fPrec), intent(in) :: betaX
+  real(kind=fPrec), intent(in) :: betaY
+  real(kind=fPrec), intent(in) :: neX
+  real(kind=fPrec), intent(in) :: neY
+
+  integer j
+  real(kind=fPrec) emitX,emitY,sigmaX,sigmaY
+  real(kind=fPrec) iiX,iiY,phiX,phiY,cutoff
+
+  ! Calculate cutoff in x or y from the collimator jaws.
+  if(neX > zero .and. neY == zero) then
+    cutoff = neX*sqrt(betaX*cdist_emitXColl)
+  else
+    cutoff = neY*sqrt(betaY*cdist_emitYColl)
+  end if
+
+  do j=1,napx
+    if(neX > zero .and. neY == zero) then ! Halo in x
+10    continue
+      emitX  = cdist_emitXColl*(neX+(rndm4()*cdist_smearX))**2
+      sigmaX = sqrt(betaX*emitX)
+      xv1(j) = sigmaX * sin_mb(twopi*rndm4())
+      if(abs(xv1(j)) < cutoff) goto 10
+
+      if(rndm4() > half) then
+        yv1(j) = sqrt(emitX/betaX-xv1(j)**2/betaX**2)-(alphaX*xv1(j))/betaX
+      else
+        yv1(j) = -one*sqrt(emitX/betaX-xv1(j)**2/betaX**2)-(alphaX*xv1(j))/betaX
+      end if
+
+      phiY   = twopi*rndm4()
+      iiY    = (-one*cdist_emitYColl) * log_mb(rndm4())
+      xv2(j) = sqrt((two*iiY)*betaY) * cos_mb(phiY)
+      yv2(j) = (-one*sqrt((two*iiY)/betaY)) * (sin_mb(phiY) + alphaY * cos_mb(phiY))
+
+    else if(neX == zero .and. neY > zero) then ! Halo in y
+20    continue
+      emitY  = cdist_emitYColl*(neY+(rndm4()*cdist_smearY))**2
+      sigmaY = sqrt(betaY*emitY)
+      xv2(j) = sigmaY * sin_mb(twopi*rndm4())
+      if(abs(xv2(j)) < cutoff) goto 20
+
+      if(rndm4() > half) then
+        yv2(j) = sqrt(emitY/betaY-xv2(j)**2/betaY**2)-(alphaY*xv2(j))/betaY
+      else
+        yv2(j) = -one*sqrt(emitY/betaY-xv2(j)**2/betaY**2)-(alphaY*xv2(j))/betaY
+      end if
+
+      phiX   = twopi*rndm4()
+      iiX    = (-one* cdist_emitXColl) * log_mb(rndm4())
+      xv1(j) = sqrt((two*iiX)*betaX) * cos_mb(phiX)
+      yv1(j) = (-one*sqrt((two*iiX)/betaX)) * (sin_mb(phiX) + alphaX * cos_mb(phiX))
+
+    else if(neX == zero .and. neY == zero) then
+      ! Nominal bunches centered in the aperture - can't apply rejection sampling. return with error
+      write(lerr,"(a)") "COLLDIST> ERROR Attempting to use halo type 3 with Gaussian dist."
+      call prror
+    else
+      write(lerr,"(a)") "COLLDIST> ERROR Beam parameters not correctly set!"
+      call prror
+    end if
+
+    ejv(j)   = cdist_energy
+    sigmv(j) = zero
+  end do
+
+end subroutine cdist_makeDist_coll
 
 end module coll_dist

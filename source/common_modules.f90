@@ -27,7 +27,6 @@ module parpro
   integer, parameter :: nran  = 2000000   ! Maximum size for scaling nzfz
   integer, parameter :: nrco  = 5         ! Maximum order of compensation (RESO block)
   integer, parameter :: mmul  = 20        ! Maximum order of multipoles
-  integer, parameter :: nbb   = 500       ! Beam-beam lenses
   integer, parameter :: nelb  = 280       ! Maximum elements per BLOC
 
   ! Maximum length of strings
@@ -45,11 +44,13 @@ module parpro
   integer :: nblo  = -1   ! Number of allocated BLOCs
   integer :: nblz  = -1   ! Number of allocated STRUcture elements
   integer :: npart = -1   ! Number of allocated particles
+  integer :: nbb   = -1   ! Beam-beam lenses
 
   integer, parameter :: nele_initial  = 500
   integer, parameter :: nblo_initial  = 100
   integer, parameter :: nblz_initial  = 1000
   integer, parameter :: npart_initial = 2
+  integer, parameter :: nbb_initial   = 100
 
   ! Dividing line for output
   character(len=mDivLen), parameter :: str_divLine = repeat("-",mDivLen)
@@ -73,12 +74,10 @@ module parbeam
   integer,          parameter :: ny   = 470
   integer,          parameter :: idim = (nx+2)*(ny+2)
 
-  ! common /wzcom1/
-  real(kind=fPrec), save :: hrecip
   integer,          save :: kstep
-
-  ! common /wzcom2/
-  real(kind=fPrec), save :: wtreal(idim),wtimag(idim)
+  real(kind=fPrec), save :: hrecip
+  real(kind=fPrec), save :: wtreal(idim)
+  real(kind=fPrec), save :: wtimag(idim)
 
   ! common /beam_exp/
   integer,          save :: beam_expflag      = 0       ! 0: Old BEAM block, 1: New BEAM::EXPERT
@@ -129,10 +128,7 @@ module mod_common
   implicit none
 
   ! Parameters
-  real(kind=fPrec),  parameter :: cc         = 1.12837916709551_fPrec ! Used in errf
-  real(kind=fPrec),  parameter :: xlim       = 5.33_fPrec             ! Used in errf
-  real(kind=fPrec),  parameter :: ylim       = 4.29_fPrec             ! Used in errf
-  real(kind=fPrec),  parameter :: eps_dcum   = c1m6                   ! Tolerance for machine length mismatch [m]
+  real(kind=fPrec),  parameter :: eps_dcum   = c1m6    ! Tolerance for machine length mismatch [m]
 
   ! Various Flags and Variables
   character(len=80), save      :: toptit(5)  = " "     ! DANGER: If the len changes, CRCHECK will break
@@ -147,9 +143,11 @@ module mod_common
   character(len=mFileName), public, save :: fort6   = "fort.6"   ! Name of main output file (stdout)
   character(len=mFileName), public, save :: fort10  = "fort.10"  ! Name of main postprocessing file (text)
   character(len=mFileName), public, save :: fort110 = "fort.110" ! Name of main postprocessing file (binary)
+  character(len=mFileName), public, save :: fort208 = "fort.208" ! Collimation/FLUKA
 
   integer,                  public, save :: unit10  = -1         ! Unit of main postprocessing file (text)
   integer,                  public, save :: unit110 = -1         ! Unit of main postprocessing file (binary)
+  integer,                  public, save :: unit208 = -1         ! Collimation/FLUKA
 
   !  GENERAL VARIABLES
   ! ===================
@@ -570,7 +568,7 @@ module mod_common
 
 contains
 
-subroutine mod_common_expand_arrays(nele_new, nblo_new, nblz_new, npart_new)
+subroutine mod_common_expand_arrays(nele_new, nblo_new, nblz_new, npart_new, nbb_new)
 
   use mod_alloc
   use mod_settings
@@ -582,12 +580,14 @@ subroutine mod_common_expand_arrays(nele_new, nblo_new, nblz_new, npart_new)
   integer, intent(in) :: nblo_new
   integer, intent(in) :: nblz_new
   integer, intent(in) :: npart_new
+  integer, intent(in) :: nbb_new
 
   logical :: firstRun   = .true.
   integer :: nele_prev  = -2
   integer :: nblo_prev  = -2
   integer :: nblz_prev  = -2
   integer :: npart_prev = -2
+  integer :: nbb_prev   = -2
 
   if(nele_new /= nele_prev) then
     call alloc(ed,                   nele_new,       zero,   "ed")
@@ -680,6 +680,15 @@ subroutine mod_common_expand_arrays(nele_new, nblo_new, nblz_new, npart_new)
     call alloc(track6d, 6,           npart_new,      zero,   "track6d")
   end if
 
+  if(nbb_new /= nbb_prev) then
+    call alloc(sigman,            2, nbb,            zero,   "sigman")
+    call alloc(sigman2,           2, nbb,            zero,   "sigman2")
+    call alloc(sigmanq,           2, nbb,            zero,   "sigmanq")
+    call alloc(clobeam,           6, nbb,            zero,   "clobeam")
+    call alloc(beamoff,           6, nbb,            zero,   "beamoff")
+    call alloc(bbcu,                 nbb, 12,        zero,   "bbcu")
+  end if
+
   ! The arrays that don't currently have scalable sizes only need to be allocated once
   if(firstRun) then
     call alloc(betam,                nmon1, 2,       zero,   "betam")
@@ -691,13 +700,6 @@ subroutine mod_common_expand_arrays(nele_new, nblo_new, nblz_new, npart_new)
 
     call alloc(ratio,                ncom,  20,      zero,   "ratio")
     call alloc(icomb,                ncom,  20,      0,      "icomb")
-
-    call alloc(sigman,            2, nbb,            zero,   "sigman")
-    call alloc(sigman2,           2, nbb,            zero,   "sigman2")
-    call alloc(sigmanq,           2, nbb,            zero,   "sigmanq")
-    call alloc(clobeam,           6, nbb,            zero,   "clobeam")
-    call alloc(beamoff,           6, nbb,            zero,   "beamoff")
-    call alloc(bbcu,                 nbb, 12,        zero,   "bbcu")
 
     call alloc(field_cos,         2, mmul,           zero,   "field_cos")
     call alloc(fsddida,           2, mmul,           zero,   "fsddida")
@@ -791,6 +793,20 @@ module mod_common_track
   real(kind=fPrec), allocatable, save :: strackz(:) ! (nblz)
   real(kind=fPrec), allocatable, save :: dpsv1(:)   ! (npart)
 
+  ! Linear Optics
+  real(kind=fPrec), allocatable, save :: tbetax(:)  ! (nblz)
+  real(kind=fPrec), allocatable, save :: tbetay(:)  ! (nblz)
+  real(kind=fPrec), allocatable, save :: talphax(:) ! (nblz)
+  real(kind=fPrec), allocatable, save :: talphay(:) ! (nblz)
+  real(kind=fPrec), allocatable, save :: torbx(:)   ! (nblz)
+  real(kind=fPrec), allocatable, save :: torby(:)   ! (nblz)
+  real(kind=fPrec), allocatable, save :: torbxp(:)  ! (nblz)
+  real(kind=fPrec), allocatable, save :: torbyp(:)  ! (nblz)
+  real(kind=fPrec), allocatable, save :: tdispx(:)  ! (nblz)
+  real(kind=fPrec), allocatable, save :: tdispy(:)  ! (nblz)
+  real(kind=fPrec), allocatable, save :: tdispxp(:) ! (nblz)
+  real(kind=fPrec), allocatable, save :: tdispyp(:) ! (nblz)
+
   ! Substitute variables for x,y and is for DA version
   real(kind=fPrec), save :: xxtr(mpa,2)
   real(kind=fPrec), save :: yytr(mpa,2)
@@ -813,6 +829,19 @@ subroutine mod_commont_expand_arrays(nblz_new,npart_new)
   call alloc(stracks, nblz_new,  zero, "stracks")
   call alloc(strackx, nblz_new,  zero, "strackx")
   call alloc(strackz, nblz_new,  zero, "strackz")
+
+  call alloc(tbetax,  nblz_new,  zero, "tbetax")
+  call alloc(tbetay,  nblz_new,  zero, "tbetay")
+  call alloc(talphax, nblz_new,  zero, "talphax")
+  call alloc(talphay, nblz_new,  zero, "talphay")
+  call alloc(torbx,   nblz_new,  zero, "torbx")
+  call alloc(torby,   nblz_new,  zero, "torby")
+  call alloc(torbxp,  nblz_new,  zero, "torbxp")
+  call alloc(torbyp,  nblz_new,  zero, "torbyp")
+  call alloc(tdispx,  nblz_new,  zero, "tdispx")
+  call alloc(tdispy,  nblz_new,  zero, "tdispy")
+  call alloc(tdispxp, nblz_new,  zero, "tdispxp")
+  call alloc(tdispyp, nblz_new,  zero, "tdispyp")
 
   call alloc(dpsv1,   npart_new, zero, "dpsv1")
 

@@ -1,5 +1,5 @@
 ! M. Fitterer, FNAL, A. Mereghtti, CERN
-! last modified: 25-02-2019
+! last modified: 10-09-2019
 ! Common block for electron lens definition
 module elens
 
@@ -57,9 +57,9 @@ module elens
   integer, save          :: melens_radial_profiles    ! radial profiles available in memory
   integer, parameter     :: elens_radial_dim=500      ! max number of points in radial profiles
   character(len=mFileName), save:: elens_radial_filename(nelens_radial_profiles) ! names
-  real(kind=fPrec), save :: elens_radial_profile_R(0:elens_radial_dim,nelens_radial_profiles)
-  real(kind=fPrec), save :: elens_radial_profile_J(0:elens_radial_dim,nelens_radial_profiles)
-  integer, save          :: elens_radial_profile_nPoints(nelens_radial_profiles)
+  real(kind=fPrec), save :: elens_radial_profile_R(0:elens_radial_dim,nelens_radial_profiles) ! [mm]
+  real(kind=fPrec), save :: elens_radial_profile_J(0:elens_radial_dim,nelens_radial_profiles) ! [A]
+  integer, save          :: elens_radial_profile_nPoints(nelens_radial_profiles)=0
 
 contains
 
@@ -354,7 +354,7 @@ end subroutine elens_parseInputDone
 subroutine elens_postInput
 
   use mathlib_bouncer
-  use utils
+  use mod_utils
   use mod_common, only : bez,kz,fort3
 
   integer j, jj, nlens
@@ -558,34 +558,37 @@ subroutine parseRadialProfile(ifile)
     write(lerr,"(a,i0)") "ELENS> ERROR radius not in increasing order at ii=",ii
     goto 30
   end if
-  if(tmpJ>=0.0) then
-    ii=ii+1
-    if(ii>elens_radial_dim) then
-      iErr = 2
-      write(lerr,"(a,i0,a,i0)") "ELENS> ERROR too many points in radial profile: ",ii, &
-           ". Max is ",elens_radial_dim
-      goto 30
-    end if
-    elens_radial_profile_nPoints(ifile) = ii
-    elens_radial_profile_R(ii,ifile) = tmpR
-    elens_radial_profile_J(ii,ifile) = tmpJ
+  ii=ii+1
+  if(ii>elens_radial_dim) then
+    iErr = 2
+    write(lerr,"(a,i0,a,i0)") "ELENS> ERROR too many points in radial profile: ",ii, &
+         ". Max is ",elens_radial_dim
+    goto 30
   end if
+  elens_radial_profile_nPoints(ifile) = ii
+  elens_radial_profile_R(ii,ifile) = tmpR
+  elens_radial_profile_J(ii,ifile) = tmpJ/c1e2 ! from [A/cm2] to [A/mm2]
 
   goto 10
 
 20 continue
 
   call f_freeUnit(fUnit)
-  write(lout,"(a,i0,a)") "ELENS> ...acquired ",elens_radial_profile_nPoints(ifile),"points."
+  if ( elens_radial_profile_nPoints(ifile).eq.0 ) then
+    write(lerr,"(a,i0,a,i0)") "ELENS> ERROR no points in radial profile"
+    go to 30
+  end if
 
+  ! set current density at r=0 as at r=r1, to avoid 
+  elens_radial_profile_J(0,ifile)=elens_radial_profile_J(1,ifile)
+  
+  write(lout,"(a,i0,a)") "ELENS> ...acquired ",elens_radial_profile_nPoints(ifile)," points."
   if(st_quiet < 2) then
     ! Echo parsed data (unless told to be quiet!)
-    write(lout,"(a,i0)") "ELENS> Radial profile as from file "//&
-      trim(elens_radial_filename(ifile))//" - #",ifile
+    write(lout,"(a,i0,a)") "ELENS> Radial profile as from file "//&
+      trim(elens_radial_filename(ifile))//" - #",ifile," - showing: ii, R[mm], J[A/mm2]"
     do ii=0,elens_radial_profile_nPoints(ifile)
-      if(elens_radial_profile_J(ii,ifile)/= zero) then
-        write(lout,"((a,i4),2(a,e22.15))") "ELENS> ",ii,",",elens_radial_profile_R(ii,ifile),",",elens_radial_profile_J(ii,ifile)
-      end if
+      write(lout,"((a,i4),2(a,e22.15))") "ELENS> ",ii,",",elens_radial_profile_R(ii,ifile),",",elens_radial_profile_J(ii,ifile)
     end do
   end if
   return
@@ -612,22 +615,37 @@ subroutine integrateRadialProfile(ifile)
   use numerical_constants
   use physical_constants
   use crcoall
+  use mod_settings, only : st_quiet
 
   implicit none
 
   integer, intent(in) :: ifile
 
   integer ii
-  real(kind=fPrec) tmpTot
+  real(kind=fPrec) tmpTot, tmpOld
 
-  write(lout,"(a)") "ELENS> Normalising radial profile described in "//trim(elens_radial_filename(ifile))
+  write(lout,"(a)") "ELENS> Integrating radial profile described in "//trim(elens_radial_filename(ifile))
+
+  ! first, remove offset
+  elens_radial_profile_J(0:elens_radial_profile_nPoints(ifile),ifile)= &
+       elens_radial_profile_J(0:elens_radial_profile_nPoints(ifile),ifile)-elens_radial_profile_J(0,ifile)
+  ! then, integrate
   tmpTot=zero
+  tmpOld=elens_radial_profile_J(0,ifile)
   do ii=1,elens_radial_profile_nPoints(ifile)
-    tmpTot=tmpTot+((elens_radial_profile_J(ii,ifile)*pi)* &
-         ( elens_radial_profile_R(ii,ifile)-elens_radial_profile_R(ii-1,ifile) ))* &
-         ( elens_radial_profile_R(ii,ifile)+elens_radial_profile_R(ii-1,ifile) )
+    tmpTot=tmpTot+((((elens_radial_profile_J(ii,ifile)+tmpOld)/two)*pi)* &
+         (( elens_radial_profile_R(ii,ifile)-elens_radial_profile_R(ii-1,ifile) )* &
+          ( elens_radial_profile_R(ii,ifile)+elens_radial_profile_R(ii-1,ifile) )))
+    tmpOld=elens_radial_profile_J(ii,ifile)
     elens_radial_profile_J(ii,ifile)=tmpTot
   end do
+  if(st_quiet < 2) then
+    write(lout,"(a,i0,a)") "ELENS> Integrated radial profile read from file "//&
+      trim(elens_radial_filename(ifile))//" - #",ifile," - showing: ii, R[mm], J[A]"
+    do ii=0,elens_radial_profile_nPoints(ifile)
+      write(lout,"((a,i4),2(a,1pe22.15))") "ELENS> ",ii,",",elens_radial_profile_R(ii,ifile),",",elens_radial_profile_J(ii,ifile)
+    end do
+  end if
   write(lout,"(a,e22.15)") "ELENS> Total current in radial profile [A]: ", &
          elens_radial_profile_J(elens_radial_profile_nPoints(ifile),ifile)
 
