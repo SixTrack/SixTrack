@@ -227,7 +227,7 @@ subroutine k2coll_collimate(icoll, iturn, ie, c_length, c_rotation, c_aperture, 
 
   real(kind=fPrec) x_flk,xp_flk,y_flk,yp_flk,zpj
   real(kind=fPrec) x_Dump,xpDump,y_Dump,ypDump,s_Dump
-  real(kind=fPrec) cRot,sRot
+  real(kind=fPrec) cRot,sRot,cRRot,sRRot
 
   real(kind=fPrec) s_impact
   integer flagsec(npart)
@@ -260,11 +260,15 @@ subroutine k2coll_collimate(icoll, iturn, ie, c_length, c_rotation, c_aperture, 
   mirror  = one
   cRot    = cos_mb(c_rotation)
   sRot    = sin_mb(c_rotation)
+  cRRot   = cos_mb(-c_rotation)
+  sRRot   = sin_mb(-c_rotation)
 
   do j = 1, nev
-! SR-GRD (04-08-2005):
-!   Don't do scattering process for particles already absorbed
-    if ( part_abs_pos_local(j) .ne. 0 .and. part_abs_turn_local(j) .ne. 0) goto 777
+
+    if(part_abs_pos_local(j) /= 0 .and. part_abs_turn_local(j) /= 0) then
+      ! Don't do scattering process for particles already absorbed
+      cycle
+    end if
 
     impact(j) = -one
     lint(j)   = -one
@@ -297,8 +301,10 @@ subroutine k2coll_collimate(icoll, iturn, ie, c_length, c_rotation, c_aperture, 
 !++  X jump to the next particle
 
 
-! RB: adding exception from goto if it's
-    if ((onesided .and. x.lt.zero).and. ((icoll.ne.ipencil) .or. (iturn.ne.1))) goto 777
+    if((onesided .and. x < zero) .and. ((icoll /= ipencil) .or. (iturn /= 1))) then
+      ! RB: Adding exception from goto if it's
+      cycle
+    end if
 
 !++  Now mirror at the horizontal axis for negative X offset
     if(x.lt.zero) then
@@ -313,13 +319,7 @@ subroutine k2coll_collimate(icoll, iturn, ie, c_length, c_rotation, c_aperture, 
 
     x  = mirror * x
     xp = mirror * xp
-!
-!          if (j.eq.1) then
-!             write(*,*) 'INFOtilt',
-!     &            icoll, j_slices, c_tilt(1), c_tilt(2),
-!     &            mirror, tiltangle, c_offset, c_aperture/2
-!          endif
-!
+
 !++  Shift with opening and offset
 !
     x  = (x - c_aperture/two) - mirror*c_offset
@@ -410,8 +410,6 @@ subroutine k2coll_collimate(icoll, iturn, ie, c_length, c_rotation, c_aperture, 
       if(onesided) then
         mirror = one
       else
-!     if(rndm4().lt.0.5) mirror = -1d0
-!     if(rndm4().ge.0.5) mirror = 1d0  => using two different random
         if(rndm4().lt.half) then
           mirror = -one
         else
@@ -452,10 +450,6 @@ subroutine k2coll_collimate(icoll, iturn, ie, c_length, c_rotation, c_aperture, 
 
     end if !if(( (icoll.eq.ipencil .and. iturn.eq.1) .or. (itu
 
-!          if(rndm4().lt.0.5) mirror = -abs(mirror)
-!          if(rndm4().ge.0.5) mirror = abs(mirror)
-!        endif
-!
 !     SR, 18-08-2005: after finishing the coordinate transformation,
 !     or the coordinate manipulations in case of pencil beams,
 !     write down the initial coordinates of the impacting particles
@@ -548,7 +542,6 @@ subroutine k2coll_collimate(icoll, iturn, ie, c_length, c_rotation, c_aperture, 
       s_impact = sp
 !JUNE2005
       nhit = nhit + 1
-!            WRITE(*,*) J,X,XP,Z,ZP,SP,DPOP
 !     RB: add new input arguments to jaw icoll,iturn,partID for writeout
       call k2coll_jaw(s,nabs,icoll,iturn,partID(j))
 
@@ -594,59 +587,11 @@ subroutine k2coll_collimate(icoll, iturn, ie, c_length, c_rotation, c_aperture, 
       end if
 !!     SR, 18-08-2005: add also the initial coordinates of the
 !!                     impacting particles!
-!            if(flagsec(j).eq.0) then
-!              write(333,'(i5,1x,i7,1x,i2,1x,i1,2(1x,f5.3),8(1x,e17.9))')&
-!     +              name(j),iturn,icoll,nabs,s_impact,s+sp,
-!     +              xinn,xpinn,yinn,ypinn,
-!     +              x,xp,z,zp
-!            endif
-!     !Old format...
-!            if(flagsec(j).eq.0) then
-!              write(333,'(i5,1x,i4,1x,i2,1x,i1,2(1x,f5.3),2(1x,e16.7))')
-!     &name(j),iturn,icoll,nabs,s_impact,s+sp,impact(j),x
-!            endif
 !JUNE2005
 
       lhit_pos(j)  = ie
       lhit_turn(j) = iturn
 
-!-- September2006  TW added from Ralphs code
-!--------------------------------------------------------------
-!++ Change tilt for pencil beam impact
-!
-!            if ( (icoll.eq.ipencil                                      &
-!     &           .and. iturn.eq.1)   .or.                               &
-!     &           (iturn.eq.1 .and. ipencil.eq.999 .and.                 &
-!     &                             icoll.le.nprim .and.                 &
-!     &            (j.ge.(icoll-1)*nev/nprim) .and.                      &
-!     &            (j.le.(icoll)*nev/nprim)                              &
-!     &           )  ) then
-!
-!               if (.not. changed_tilt1(icoll) .and. mirror.gt.0.) then
-! ----- Maybe a warning would be nice that c_tilt is overwritten !!!!!
-! changed xp_pencil0(icoll) to xp_pencil0 due to definition mismatch
-! this has to be solved if necassary and understood
-!                 c_tilt(1) = xp_pencil0(icoll)*cRot+         &
-!     &                       sRot*yp_pencil0(icoll)
-!                 c_tilt(1) = xp_pencil0*cRot+                &
-!     &                       sRot*yp_pencil0
-!                 write(*,*) "INFO> Changed tilt1  ICOLL  to  ANGLE  ",  &
-!     &                   icoll, c_tilt(1), j
-!                 changed_tilt1(icoll) = .true.
-!               elseif (.not. changed_tilt2(icoll)                       &
-!     &                                   .and. mirror.lt.0.) then
-! changed xp_pencil0(icoll) to xp_pencil0 due to definition mismatch
-! this has to be solved if necassary and understood
-!                 c_tilt(2) = -1.*(xp_pencil0(icoll)*cRot+    &
-!     &                       sRot*yp_pencil0(icoll))
-!                 c_tilt(2) = -1.*(xp_pencil0*cRot+           &
-!     &                       sRot*yp_pencil0)
-!                 write(*,*) "INFO> Changed tilt2  ICOLL  to  ANGLE  ",  &
-!     &                   icoll, c_tilt(2), j
-!                 changed_tilt2(icoll) = .true.
-!               endif
-!            endif
-!
 !----------------------------------------------------------------
 !-- September 2006
 !
@@ -675,10 +620,10 @@ subroutine k2coll_collimate(icoll, iturn, ie, c_length, c_rotation, c_aperture, 
       x_flk  = (x_flk + c_aperture/two) + mirror*c_offset
       x_flk  = mirror * x_flk
       xp_flk = mirror * xp_flk
-      y_flk  = yInt   * cos_mb(-one*c_rotation) - x_flk  * sin_mb(-one*c_rotation)
-      yp_flk = ypInt  * cos_mb(-one*c_rotation) - xp_flk * sin_mb(-one*c_rotation)
-      x_flk  = x_flk  * cos_mb(-one*c_rotation) + yInt   * sin_mb(-one*c_rotation)
-      xp_flk = xp_flk * cos_mb(-one*c_rotation) + ypInt  * sin_mb(-one*c_rotation)
+      y_flk  = yInt   * cRRot - x_flk  * sRRot
+      yp_flk = ypInt  * cRRot - xp_flk * sRRot
+      x_flk  = x_flk  * cRRot + yInt   * sRRot
+      xp_flk = xp_flk * cRRot + ypInt  * sRRot
 
 ! write out all impacts to all_impacts.dat
       if(dowrite_impact) then
@@ -770,19 +715,18 @@ subroutine k2coll_collimate(icoll, iturn, ie, c_length, c_rotation, c_aperture, 
       xp = mirror * xp
 
 !++  Last do rotation into collimator frame
-      x_in(j)  = x  *cos_mb(-one*c_rotation) + z  *sin_mb(-one*c_rotation)
-      y_in(j)  = z  *cos_mb(-one*c_rotation) - x  *sin_mb(-one*c_rotation)
-      xp_in(j) = xp *cos_mb(-one*c_rotation) + zp *sin_mb(-one*c_rotation)
-      yp_in(j) = zp *cos_mb(-one*c_rotation) - xp *sin_mb(-one*c_rotation)
+      x_in(j)  =  x*cRRot +  z*sRRot
+      y_in(j)  =  z*cRRot -  x*sRRot
+      xp_in(j) = xp*cRRot + zp*sRRot
+      yp_in(j) = zp*cRRot - xp*sRRot
 
       if(( (icoll.eq.ipencil.and. iturn.eq.1).or. &
   &        (iturn.eq.1 .and.ipencil.eq.999 .and.icoll.le.nprim .and.(j.ge.(icoll-1)*nev/nprim) .and.(j.le.(icoll)*nev/nprim)))&
   &             .and.(pencil_distr.ne.3)) then    ! RB: adding condition that this shouldn't be done if pencil_distr=3
 
-        x00  = mirror * x00
-        x_in(j)  = x00  *cos_mb(-one*c_rotation) + z00  *sin_mb(-one*c_rotation)
-        y_in(j)  = z00  *cos_mb(-one*c_rotation) - x00  *sin_mb(-one*c_rotation)
-
+        x00      = mirror * x00
+        x_in(j)  = x00*cRRot + z00*sRRot
+        y_in(j)  = z00*cRRot - x00*sRRot
         xp_in(j) = xp_in(j) + mirror*xp_pencil0
         yp_in(j) = yp_in(j) + mirror*yp_pencil0
         x_in(j)  = x_in(j)  + mirror*x_pencil(icoll)
@@ -798,35 +742,8 @@ subroutine k2coll_collimate(icoll, iturn, ie, c_length, c_rotation, c_aperture, 
       y_in(j) = z
     end if !if(x.lt.99.0d-3) then
 
-! output for comparing the particle in accelerator frame
-!
-!c$$$          if(dowrite_impact) then
-!c$$$             write(9996,'(i5,1x,i7,1x,i2,1x,i1,2(1x,f5.3),8(1x,e17.9))')  &
-!c$$$     &            name(j),iturn,icoll,nabs,                             &
-!c$$$     &            s_in(j),                                              &
-!c$$$     &            s+sp + (dble(j_slices)-1d0) * c_length,               &
-!c$$$     &            x_in(j),xp_in(j),y_in(j),yp_in(j),                    &
-!c$$$     &            x,xp,z,zp
-!c$$$          endif
-!
-!++  End of check for particles not being lost before
-!
-!        endif
-!
-!        IF (X.GT.99.00) WRITE(*,*) 'After : ', X, X_IN(J)
-!
-!++  End of loop over all particles
-!
- 777  continue
-  end do
-!- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-!
-!      WRITE(*,*) 'Number of particles:            ', Nev
-!      WRITE(*,*) 'Number of particle hits:        ', Nhit
-!      WRITE(*,*) 'Number of absorped particles:   ', fracab
-!      WRITE(*,*) 'Number of escaped particles:    ', Nhit-fracab
-!      WRITE(*,*) 'Fraction of absorped particles: ', 100.*fracab/Nhit
-!
+  end do ! End of loop over all particles
+
 end subroutine k2coll_collimate
 
 !>
