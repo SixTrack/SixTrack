@@ -8,6 +8,7 @@ module coll_db
 
   use floatPrecision
   use parpro, only : mFileName
+  use coll_common, only : nmat
   use numerical_constants, only : zero
 
   implicit none
@@ -40,6 +41,7 @@ module coll_db
 
   ! Additional Settings Arrays
   real(kind=fPrec), allocatable, public, save :: cdb_cTilt(:,:)     ! Collimator jaw tilt
+  integer,          allocatable, public, save :: cdb_cMaterialID(:) ! Collimator material ID number
   integer,          allocatable, public, save :: cdb_cJawFit(:,:)   ! Collimator jaw fit index
   integer,          allocatable, public, save :: cdb_cSliced(:)     ! Collimator jaw fit sliced data index
   integer,          allocatable, public, save :: cdb_cSides(:)      ! 0 = two-sided, or 1,2 for single side 1 or 2
@@ -51,6 +53,10 @@ module coll_db
 
   ! Element Map
   integer,          allocatable, public, save :: cdb_elemMap(:)     ! Map from single elements to DB
+
+  ! Collimator Materials
+  character(4), private, save :: cdb_colMat(nmat) = &
+    ["BE  ","AL  ","CU  ","W   ","PB  ","C   ","C2  ","MoGR","CuCD","Mo  ","Glid","Iner","VA  ","BL  "]
 
 contains
 
@@ -67,23 +73,24 @@ subroutine cdb_allocDB
   use numerical_constants
 
   ! Main Database Arrays
-  call alloc(cdb_cName,     mNameLen, cdb_nColl, " ",           "cdb_cName")
-  call alloc(cdb_cMaterial, 4,        cdb_nColl, " ",           "cdb_cMaterial")
-  call alloc(cdb_cFamily,             cdb_nColl, 0,             "cdb_cFamily")
-  call alloc(cdb_cNSig,               cdb_nColl, cdb_defColGap, "cdb_cNSig")
-  call alloc(cdb_cNSigOrig,           cdb_nColl, cdb_defColGap, "cdb_cNSigOrig")
-  call alloc(cdb_cLength,             cdb_nColl, zero,          "cdb_cLength")
-  call alloc(cdb_cOffset,             cdb_nColl, zero,          "cdb_cOffset")
-  call alloc(cdb_cRotation,           cdb_nColl, zero,          "cdb_cRotation")
-  call alloc(cdb_cBx,                 cdb_nColl, zero,          "cdb_cBx")
-  call alloc(cdb_cBy,                 cdb_nColl, zero,          "cdb_cBy")
-  call alloc(cdb_cFound,              cdb_nColl, .false.,       "cdb_cFound")
+  call alloc(cdb_cName,       mNameLen, cdb_nColl, " ",           "cdb_cName")
+  call alloc(cdb_cMaterial,   4,        cdb_nColl, " ",           "cdb_cMaterial")
+  call alloc(cdb_cFamily,               cdb_nColl, 0,             "cdb_cFamily")
+  call alloc(cdb_cNSig,                 cdb_nColl, cdb_defColGap, "cdb_cNSig")
+  call alloc(cdb_cNSigOrig,             cdb_nColl, cdb_defColGap, "cdb_cNSigOrig")
+  call alloc(cdb_cLength,               cdb_nColl, zero,          "cdb_cLength")
+  call alloc(cdb_cOffset,               cdb_nColl, zero,          "cdb_cOffset")
+  call alloc(cdb_cRotation,             cdb_nColl, zero,          "cdb_cRotation")
+  call alloc(cdb_cBx,                   cdb_nColl, zero,          "cdb_cBx")
+  call alloc(cdb_cBy,                   cdb_nColl, zero,          "cdb_cBy")
+  call alloc(cdb_cFound,                cdb_nColl, .false.,       "cdb_cFound")
 
   ! Additional Settings Arrays
-  call alloc(cdb_cTilt,     2,        cdb_nColl, zero,          "cdb_cTilt")
-  call alloc(cdb_cJawFit,   2,        cdb_nColl, 0,             "cdb_cJawFit")
-  call alloc(cdb_cSliced,             cdb_nColl, 0,             "cdb_cSliced")
-  call alloc(cdb_cSides,              cdb_nColl, 0,             "cdb_cSides")
+  call alloc(cdb_cTilt,       2,        cdb_nColl, zero,          "cdb_cTilt")
+  call alloc(cdb_cMaterialID,           cdb_nColl, 0,             "cdb_cMaterialID")
+  call alloc(cdb_cJawFit,     2,        cdb_nColl, 0,             "cdb_cJawFit")
+  call alloc(cdb_cSliced,               cdb_nColl, 0,             "cdb_cSliced")
+  call alloc(cdb_cSides,                cdb_nColl, 0,             "cdb_cSides")
 
 end subroutine cdb_allocDB
 
@@ -235,7 +242,7 @@ subroutine cdb_readDB_newFormat
   character(len=:), allocatable :: lnSplit(:)
   character(len=mInputLn) inLine
   real(kind=fPrec) nSig
-  integer i, dbUnit, ioStat, nSplit, iLine, famID, iColl
+  integer i, dbUnit, ioStat, nSplit, iLine, famID, iColl, matID
   logical cErr, fErr, fExists
 
   fErr  = .false.
@@ -302,6 +309,14 @@ subroutine cdb_readDB_newFormat
   cdb_cName(iColl)     = lnSplit(1)
   cdb_cMaterial(iColl) = lnSplit(3)
 
+  matID = cdb_getCollMatID(cdb_cMaterial(iColl))
+  if(matID > 0) then
+    cdb_cMaterialID(iColl) = matID
+  else
+    write(lerr,"(a)") "COLLDB> ERROR Material '"//trim(lnSplit(3))//"' not supported. Check your CollDB."
+    call prror
+  end if
+
   call chr_cast(lnSplit(4),cdb_cLength(iColl),  cErr)
   call chr_cast(lnSplit(5),cdb_cRotation(iColl),cErr)
   call chr_cast(lnSplit(6),cdb_cOffset(iColl),  cErr)
@@ -358,7 +373,7 @@ subroutine cdb_readDB_oldFormat
   character(len=cdb_fNameLen) famName
   character(len=mNameLen) collDummy
   logical cErr
-  integer j, dbUnit, ioStat, iLine, famID
+  integer j, dbUnit, ioStat, iLine, famID, matID
 
   cErr = .false.
 
@@ -449,6 +464,14 @@ subroutine cdb_readDB_oldFormat
     end if
     cdb_cFamily(j) = famID
 
+    matID = cdb_getCollMatID(cdb_cMaterial(j))
+    if(matID > 0) then
+      cdb_cMaterialID(j) = matID
+    else
+      write(lerr,"(a)") "COLLDB> ERROR Material '"//trim(cdb_cMaterial(j))//"' not supported. Check your CollDB."
+      call prror
+    end if
+  
   end do
 
   call f_freeUnit(dbUnit)
@@ -936,6 +959,30 @@ subroutine cdb_getCollimatorOrFamilyID(itemName, iFam, iColl, isFam, fErr)
   isFam = iFam > 0
 
 end subroutine cdb_getCollimatorOrFamilyID
+
+! ================================================================================================ !
+!  V.K. Berglyd Olsen, BE-ABP-HSS
+!  Created: 2019-09-16
+!  Updated: 2019-09-16
+!  Get collimator material number from name (case sensitive)
+! ================================================================================================ !
+integer function cdb_getCollMatID(matName)
+
+  use string_tools
+
+  character(len=4), intent(in) :: matName
+  integer i, matID
+
+  matID = -1
+  do i=1,nmat
+    if(cdb_colMat(i) == matName) then
+      matID = i
+      exit
+    end if
+  end do
+  cdb_getCollMatID = matID
+
+end function cdb_getCollMatID
 
 ! ================================================================================================ !
 !  V.K. Berglyd Olsen, BE-ABP-HSS

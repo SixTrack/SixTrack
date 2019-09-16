@@ -31,10 +31,6 @@ module coll_common
   real(kind=fPrec), allocatable, save :: rcp(:)
   real(kind=fPrec), allocatable, save :: rcs(:)
 
-  ! Collimator Materials
-  character(4), private, save :: mname(nmat) = &
-    ["Be  ","Al  ","Cu  ","W   ","Pb  ","C   ","C2  ","MoGR","CuCD","Mo  ","Glid","Iner","vacu","blac"]
-
   ! Pencil Beam
   integer,          save :: ipencil       = 0
   integer,          save :: pencil_distr  = 0

@@ -169,13 +169,14 @@ end subroutine k2coll_init
 !!++  - Added debug comments
 !!++  - Put real dp/dx
 !<
-subroutine k2coll_collimate(icoll, iturn, ie, c_material, c_length, c_rotation, c_aperture, c_offset, c_tilt, &
+subroutine k2coll_collimate(icoll, iturn, ie, c_length, c_rotation, c_aperture, c_offset, c_tilt, &
   x_in, xp_in, y_in, yp_in, p_in, s_in, np, enom, lhit_pos, lhit_turn, part_abs_pos_local, &
   part_abs_turn_local, impact, indiv, lint, onesided, flagsec, j_slices, nabs_type, linside)
 
   use crcoall
   use parpro
   use coll_common
+  use coll_db
   use mod_common, only : iexact, napx
   use mod_common_main, only : partID
   use mathlib_bouncer
@@ -186,11 +187,10 @@ subroutine k2coll_collimate(icoll, iturn, ie, c_material, c_length, c_rotation, 
 
   implicit none
 
-  integer, intent(in) :: icoll
-  integer, intent(in) :: iturn
-  integer, intent(in) :: ie
+  integer,          intent(in) :: icoll ! Collimator ID
+  integer,          intent(in) :: iturn ! Turn number
+  integer,          intent(in) :: ie    ! Structure element index
 
-  character(len=4), intent(in)    :: c_material  ! material
   real(kind=fPrec), intent(in)    :: c_length    ! length in m
   real(kind=fPrec), intent(in)    :: c_rotation  ! rotation angle vs vertical in radian
   real(kind=fPrec), intent(in)    :: c_aperture  ! aperture in m
@@ -243,50 +243,11 @@ subroutine k2coll_collimate(icoll, iturn, ie, c_material, c_length, c_rotation, 
   integer j_slices
 
   save
-!      write(lout,*) 'In col2 ', c_material, c_length, c_aperture,       &
-!     &c_offset, c_tilt, x_in, xp_in, y_in,p_in, np, enom
-!=======================================================================
-! Be=1 Al=2 Cu=3 W=4 Pb=5
-! LHC uses:    Al, 0.2 m
-!              Cu, 1.0 m
 
-  if(c_material.eq.'BE') then
-    mat = 1
-  else if(c_material.eq.'AL') then
-    mat = 2
-  else if(c_material.eq.'CU') then
-    mat = 3
-  else if(c_material.eq.'W') then
-    mat = 4
-  else if(c_material.eq.'PB') then
-    mat = 5
-  else if(c_material.eq.'C') then
-    mat = 6
-  else if(c_material.eq.'C2') then
-    mat = 7
-  else if(c_material.eq.'MoGR') then
-    mat = 8
-  else if(c_material.eq.'CuCD') then
-    mat = 9
-  else if(c_material.eq.'Mo') then
-    mat = 10
-  else if(c_material.eq.'Glid') then
-    mat = 11
-  else if(c_material.eq.'Iner') then
-    mat = 12
-!02/2008 TW added vacuum and black absorber (was missing)
-  else if(c_material.eq.'VA') then
-    mat = nmat-1
-  else if(c_material.eq.'BL') then
-    mat = nmat
-  else
-    write(lerr,"(a)") "COLLK2> ERROR Material '"//trim(c_material),"' not supported. Check your CollDB."
-    call prror
-  end if
-
-  length  = c_length
-  nev = np
-  p0  = enom
+  mat    = cdb_cMaterialID(icoll)
+  length = c_length
+  nev    = np
+  p0     = enom
 
 !++  Initialize scattering processes
   call k2coll_scatin(p0)
