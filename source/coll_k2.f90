@@ -628,7 +628,7 @@ subroutine k2coll_scatin(plab)
 
     ! Now add Coulomb
     csect(0,ma) = csect(0,ma) + csect(5,ma)
-  
+
     ! Interaction length in meter
     xintl(ma) = (c1m2*anuc(ma))/(((fnavo * rho(ma))*csect(0,ma))*1e-24_fPrec)
 
@@ -651,22 +651,19 @@ end subroutine k2coll_scatin
 !!     RB: adding as input arguments to jaw variables icoll,iturn,ipart
 !!         these are only used for the writeout of particle histories
 !!
-!!++  Input:   ZLM is interaction length
-!!++           MAT is choice of material
+!! Input:   ZLM is interaction length
+!!          MAT is choice of material
 !!
-!!++  Output:  nabs = 1   Particle is absorped
-!!++           nabs = 4   Single-diffractive scattering
-!!++           dpop       Adjusted for momentum loss (dE/dx)
-!!++           s          Exit longitudinal position
+!! Output:  nabs = 1   Particle is absorped
+!!          nabs = 4   Single-diffractive scattering
+!!          dpop       Adjusted for momentum loss (dE/dx)
+!!          s          Exit longitudinal position
 !!
-!!++  Physics:  If monte carlo interaction length greater than input
-!!++            interaction length, then use input interaction length
-!!++            Is that justified???
-!!
-!!     nabs=1....absorption
-!!
+!! Physics:  If monte carlo interaction length greater than input
+!!           interaction length, then use input interaction length
+!!           Is that justified???
 !<
-subroutine k2coll_jaw(s,nabs,icoll,iturn,ipart)
+subroutine k2coll_jaw(s, nabs, icoll, iturn, ipart)
 
   use mod_ranlux
   use coll_common
@@ -676,26 +673,25 @@ subroutine k2coll_jaw(s,nabs,icoll,iturn,ipart)
   use hdf5_output
 #endif
 
-  implicit none
+  real(kind=fPrec), intent(inout) :: s
+  integer,          intent(inout) :: nabs
+  integer,          intent(in)    :: icoll
+  integer,          intent(in)    :: iturn
+  integer,          intent(in)    :: ipart
 
-  integer nabs,inter,iturn,icoll,ipart,nabs_tmp ! RB: added variables icoll,iturn,ipart for writeout
-  real(kind=fPrec) m_dpodx     !CT, RB, DM
-  real(kind=fPrec) p,rlen,s,t,dxp,dzp,p1,zpBef,xpBef,pBef
-!...cne=1/(sqrt(b))
-!...dpodx=dE/(dx*c)
+  real(kind=fPrec) m_dpodx,p,rlen,t,dxp,dzp,p1,zpBef,xpBef,pBef
+  integer inter,nabs_tmp
 
-!++  Note that the input parameter is dpop. Here the momentum p is
-!++  constructed out of this input.
+  ! Note that the input parameter is dpop. Here the momentum p is constructed out of this input.
+  p    = p0*(one+dpop)
+  nabs = 0
+  nabs_tmp = nabs
 
-  p=p0*(one+dpop)
-  nabs=0
-  nabs_tmp=nabs
-
-  if(mat.eq.nmat) then
-!++  Collimator treated as black absorber
-    nabs=1
-    nabs_tmp=nabs
-    s=zero
+  if(mat == nmat) then
+    ! Collimator treated as black absorber
+    nabs = 1
+    nabs_tmp = nabs
+    s = zero
 
     if(dowrite_impact) then
       ! write coll_scatter.dat for complete scattering histories
@@ -706,15 +702,15 @@ subroutine k2coll_jaw(s,nabs,icoll,iturn,ipart)
 #endif
       write(coll_scatterUnit,'(1x,i2,2x,i4,2x,i5,2x,i1,3(2x,e14.6))') icoll, iturn, ipart, nabs_tmp, -one, zero, zero
 #ifdef HDF5
-      endif
+      end if
 #endif
     end if
     return
-  else if(mat.eq.nmat-1) then
-!++  Collimator treated as drift
-    s=zlm
-    x=x+s*xp
-    z=z+s*zp
+  else if(mat == nmat-1) then
+    ! Collimator treated as drift
+    s = zlm
+    x = x+s*xp
+    z = z+s*zp
 
     if(dowrite_impact) then
       ! write coll_scatter.dat for complete scattering histories
@@ -732,38 +728,35 @@ subroutine k2coll_jaw(s,nabs,icoll,iturn,ipart)
     return
   end if
 
-!++  Initialize the interaction length to input interaction length
-  rlen=zlm
+  ! Initialize the interaction length to input interaction length
+  rlen = zlm
 
-!++  Do a step for a point-like interaction. This is a loop with
-!++  label 10!!!
-! - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-!++  Get monte-carlo interaction length.
+  ! Do a step for a point-like interaction.
+  ! Get monte-carlo interaction length.
+10 continue
+  zlm1     = (-one*xintl(mat))*log_mb(real(rndm4(),fPrec))
+  nabs_tmp = 0  ! type of interaction reset before following scattering process
+  xpBef    = xp ! save angles and momentum before scattering
+  zpBef    = zp
+  pBef     = p
 
-10  zlm1=(-one*xintl(mat))*log_mb(real(rndm4(),fPrec))
-  nabs_tmp=0 !! type of interaction reset before following scattering process
-  xpBef=xp ! save angles and momentum before scattering
-  zpBef=zp
-  pBef=p
-
-!++  If the monte-carlo interaction length is longer than the
-!++  remaining collimator length, then put it to the remaining
-!++  length, do multiple coulomb scattering and return.
-!++  LAST STEP IN ITERATION LOOP
-  if(zlm1.gt.rlen) then
-    zlm1=rlen
+  ! If the monte-carlo interaction length is longer than the
+  ! remaining collimator length, then put it to the remaining
+  ! length, do multiple coulomb scattering and return.
+  ! LAST STEP IN ITERATION LOOP
+  if(zlm1 > rlen) then
+    zlm1 = rlen
     call k2coll_mcs(s)
-    s=(zlm-rlen)+s
-#ifndef MERLINSCATTER
-    call k2coll_calcIonLoss(mat,p,rlen,m_dpodx)  ! DM routine to include tail
-    p=p-m_dpodx*s
-#endif
+    s = (zlm-rlen)+s
 #ifdef MERLINSCATTER
     call merlinscatter_calc_ion_loss(p,edens(mat), pleng(mat),exenergy(mat),s,m_dpodx)
-    p=p-m_dpodx
+    p = p-m_dpodx
+#else
+    call k2coll_calcIonLoss(mat,p,rlen,m_dpodx)  ! DM routine to include tail
+    p = p-m_dpodx*s
 #endif
 
-    dpop=(p-p0)/p0
+    dpop = (p-p0)/p0
     if(dowrite_impact) then
       ! write coll_scatter.dat for complete scattering histories
 #ifdef HDF5
@@ -773,32 +766,31 @@ subroutine k2coll_jaw(s,nabs,icoll,iturn,ipart)
 #endif
       write(coll_scatterUnit,'(1x,i2,2x,i4,2x,i5,2x,i1,3(2x,e18.10))') icoll,iturn,ipart,nabs_tmp,(p-pBef)/pBef,xp-xpBef,zp-zpBef
 #ifdef HDF5
-      endif
+      end if
 #endif
     end if
     return
   end if
 
-!++  Otherwise do multi-coulomb scattering.
-!++  REGULAR STEP IN ITERATION LOOP
+  ! Otherwise do multi-coulomb scattering.
+  ! REGULAR STEP IN ITERATION LOOP
   call k2coll_mcs(s)
 
-!++  Check if particle is outside of collimator (X.LT.0) after
-!++  MCS. If yes, calculate output longitudinal position (s),
-!++  reduce momentum (output as dpop) and return.
-!++  PARTICLE LEFT COLLIMATOR BEFORE ITS END.
-  if(x.le.zero) then
-    s=(zlm-rlen)+s
+  ! Check if particle is outside of collimator (X.LT.0) after
+  ! MCS. If yes, calculate output longitudinal position (s),
+  ! reduce momentum (output as dpop) and return.
+  ! PARTICLE LEFT COLLIMATOR BEFORE ITS END.
+  if(x <= zero) then
+    s = (zlm-rlen)+s
 
-#ifndef MERLINSCATTER
-    call k2coll_calcIonLoss(mat,p,rlen,m_dpodx)
-    p=p-m_dpodx*s
-#endif
 #ifdef MERLINSCATTER
     call merlinscatter_calc_ion_loss(p,edens(mat),pleng(mat),exenergy(mat),s,m_dpodx)
-    p=p-m_dpodx
+    p = p-m_dpodx
+#else
+    call k2coll_calcIonLoss(mat,p,rlen,m_dpodx)
+    p = p-m_dpodx*s
 #endif
-    dpop=(p-p0)/p0
+    dpop = (p-p0)/p0
 
     if(dowrite_impact) then
       ! write coll_scatter.dat for complete scattering histories
@@ -809,42 +801,41 @@ subroutine k2coll_jaw(s,nabs,icoll,iturn,ipart)
 #endif
       write(coll_scatterUnit,'(1x,i2,2x,i4,2x,i5,2x,i1,3(2x,e18.10))') icoll,iturn,ipart,nabs_tmp,(p-pBef)/pBef,xp-xpBef,zp-zpBef
 #ifdef HDF5
-      endif
+      end if
 #endif
     end if
 
     return
   end if
 
-!++  Check whether particle is absorbed. If yes, calculate output
-!++  longitudinal position (s), reduce momentum (output as dpop)
-!++  and return.
-!++  PARTICLE WAS ABSORBED INSIDE COLLIMATOR DURING MCS.
+  ! Check whether particle is absorbed. If yes, calculate output
+  ! longitudinal position (s), reduce momentum (output as dpop)
+  ! and return.
+  ! PARTICLE WAS ABSORBED INSIDE COLLIMATOR DURING MCS.
 
-  inter=k2coll_ichoix(mat)
-  nabs=inter
-  nabs_tmp=nabs
+  inter = k2coll_ichoix(mat)
+  nabs  = inter
+  nabs_tmp = nabs
 
-! RB, DM: save coordinates before interaction for writeout to FLUKA_impacts.dat
-  xInt=x
-  xpInt=xp
-  yInt=z
-  ypInt=zp
-  sInt=(zlm-rlen)+zlm1
+  ! RB, DM: save coordinates before interaction for writeout to FLUKA_impacts.dat
+  xInt  = x
+  xpInt = xp
+  yInt  = z
+  ypInt = zp
+  sInt  = (zlm-rlen)+zlm1
 
-  if(inter.eq.1) then
-    s=(zlm-rlen)+zlm1
+  if(inter == 1) then
+    s = (zlm-rlen)+zlm1
 
-#ifndef MERLINSCATTER
-    call k2coll_calcIonLoss(mat,p,rlen,m_dpodx)
-    p=p-m_dpodx*s
-#endif
 #ifdef MERLINSCATTER
     call merlinscatter_calc_ion_loss(p,edens(mat),pleng(mat),exenergy(mat),s,m_dpodx)
-    p=p-m_dpodx
+    p = p-m_dpodx
+#else
+    call k2coll_calcIonLoss(mat,p,rlen,m_dpodx)
+    p = p-m_dpodx*s
 #endif
 
-    dpop=(p-p0)/p0
+    dpop = (p-p0)/p0
 
     ! write coll_scatter.dat for complete scattering histories
 #ifdef HDF5
@@ -854,47 +845,44 @@ subroutine k2coll_jaw(s,nabs,icoll,iturn,ipart)
 #endif
     write(coll_scatterUnit,'(1x,i2,2x,i4,2x,i5,2x,i1,3(2x,e14.6))') icoll,iturn,ipart,nabs_tmp,-one,zero,zero
 #ifdef HDF5
-    endif
+    end if
 #endif
     return
   end if
 
-!++  Now treat the other types of interaction, as determined by ICHOIX:
+  ! Now treat the other types of interaction, as determined by ICHOIX:
 
-!++      Nuclear-Elastic:          inter = 2
-!++      pp Elastic:               inter = 3
-!++      Single-Diffractive:       inter = 4    (changes momentum p)
-!++      Coulomb:                  inter = 5
+  ! Nuclear-Elastic:          inter = 2
+  ! pp Elastic:               inter = 3
+  ! Single-Diffractive:       inter = 4    (changes momentum p)
+  ! Coulomb:                  inter = 5
 
-!++  As the single-diffractive interaction changes the momentum, save
-!++  input momentum in p1.
+  ! As the single-diffractive interaction changes the momentum, save input momentum in p1.
   p1 = p
 
-!++  Gettran returns some monte carlo number, that, as I believe, gives
-!++  the rms transverse momentum transfer.
+  ! Gettran returns some monte carlo number, that, as I believe, gives the rms transverse momentum transfer.
   t = k2coll_gettran(inter,mat,p)
 
-!++  Tetat calculates from the rms transverse momentum transfer in
-!++  monte-carlo fashion the angle changes for x and z planes. The
-!++  angle change is proportional to SQRT(t) and 1/p, as expected.
+  ! Tetat calculates from the rms transverse momentum transfer in
+  ! monte-carlo fashion the angle changes for x and z planes. The
+  ! angle change is proportional to SQRT(t) and 1/p, as expected.
   call k2coll_tetat(t,p,dxp,dzp)
 
-!++  Apply angle changes
-  xp=xp+dxp
-  zp=zp+dzp
+  ! Apply angle changes
+  xp = xp+dxp
+  zp = zp+dzp
 
-!++  Treat single-diffractive scattering.
-  if(inter.eq.4) then
+  ! Treat single-diffractive scattering.
+  if(inter == 4) then
 
-!++ added update for s
-    s=(zlm-rlen)+zlm1
-    xpsd=dxp
-    zpsd=dzp
-    psd=p1
-!
-!++  Add this code to get the momentum transfer also in the calling
-!++  routine...
-    dpop=(p-p0)/p0
+    ! added update for s
+    s    = (zlm-rlen)+zlm1
+    xpsd = dxp
+    zpsd = dzp
+    psd  = p1
+
+    ! Add this code to get the momentum transfer also in the calling routine
+    dpop = (p-p0)/p0
   end if
 
   if(dowrite_impact) then
@@ -907,13 +895,12 @@ subroutine k2coll_jaw(s,nabs,icoll,iturn,ipart)
 #endif
     write(coll_scatterUnit,'(1x,i2,2x,i4,2x,i5,2x,i1,3(2x,e18.10))') icoll,iturn,ipart,nabs_tmp,(p-pBef)/pBef,xp-xpBef,zp-zpBef
 #ifdef HDF5
-    endif
+    end if
 #endif
   end if
 
-!++  Calculate the remaining interaction length and close the iteration
-!++  loop.
-  rlen=rlen-zlm1
+  ! Calculate the remaining interaction length and close the iteration loop.
+  rlen = rlen-zlm1
   goto 10
 
 end subroutine k2coll_jaw
