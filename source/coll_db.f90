@@ -8,7 +8,6 @@ module coll_db
 
   use floatPrecision
   use parpro, only : mFileName
-  use coll_common, only : nmat
   use numerical_constants, only : zero
 
   implicit none
@@ -53,10 +52,6 @@ module coll_db
 
   ! Element Map
   integer,          allocatable, public, save :: cdb_elemMap(:)     ! Map from single elements to DB
-
-  ! Collimator Materials
-  character(4), private, save :: cdb_colMat(nmat) = &
-    ["BE  ","AL  ","CU  ","W   ","PB  ","C   ","C2  ","MoGR","CuCD","Mo  ","Glid","Iner","VA  ","BL  "]
 
 contains
 
@@ -969,13 +964,14 @@ end subroutine cdb_getCollimatorOrFamilyID
 integer function cdb_getCollMatID(matName)
 
   use string_tools
+  use coll_materials
 
   character(len=4), intent(in) :: matName
   integer i, matID
 
   matID = -1
   do i=1,nmat
-    if(cdb_colMat(i) == matName) then
+    if(colmats(i) == matName) then
       matID = i
       exit
     end if
