@@ -2449,7 +2449,7 @@ subroutine collimate_do_collimator(stracki)
           jawAperture/two, jawOffset, jawTilt(1), jawTilt(2), jawLength, cdb_cMaterial(icoll)
       end if
       call k2coll_collimate(icoll, iturn, ie, jawLength, c_rotation, jawAperture,       &
-        jawOffset, jawTilt, rcx, rcxp, rcy, rcyp, rcp, rcs, napx, enom_gev, part_hit_pos,           &
+        jawOffset, jawTilt, rcx, rcxp, rcy, rcyp, rcp, rcs, enom_gev, part_hit_pos,           &
         part_hit_turn, part_abs_pos, part_abs_turn, part_impact, part_indiv, part_linteract,        &
         onesided, secondary, iSlice, nabs_type, linside)
     end do
@@ -2459,7 +2459,7 @@ subroutine collimate_do_collimator(stracki)
 #ifndef G4COLLIMATION
 
     call k2coll_collimate(icoll, iturn, ie, c_length, c_rotation, c_aperture, c_offset, &
-      c_tilt, rcx, rcxp, rcy, rcyp, rcp, rcs, napx, enom_gev, part_hit_pos,part_hit_turn,           &
+      c_tilt, rcx, rcxp, rcy, rcyp, rcp, rcs, enom_gev, part_hit_pos,part_hit_turn,           &
       part_abs_pos, part_abs_turn, part_impact, part_indiv, part_linteract, onesided, secondary, 1, &
       nabs_type, linside)
 

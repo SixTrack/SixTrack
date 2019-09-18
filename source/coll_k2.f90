@@ -6,20 +6,13 @@ module coll_k2
 
   use floatPrecision
   use numerical_constants
-  use coll_common, only : nmat, nrmat
 
   implicit none
 
   real(kind=fPrec), parameter :: tlcut = 0.0009982_fPrec
 
-  integer,          private, save :: mat
-  integer,          private, save :: nev
   integer,          private, save :: mcurr
-  real(kind=fPrec), private, save :: csect(0:5,nmat)
-  real(kind=fPrec), private, save :: xintl(nmat)
-  real(kind=fPrec), private, save :: bn(nmat)
-  real(kind=fPrec), private, save :: freep(nmat)
-  real(kind=fPrec), private, save :: cgen(200,nmat)
+  integer,          private, save :: mat
   real(kind=fPrec), private, save :: zlm
   real(kind=fPrec), private, save :: zlm1
   real(kind=fPrec), private, save :: p0
@@ -38,79 +31,6 @@ module coll_k2
   real(kind=fPrec), private, save :: xInt,xpInt,yInt,ypInt,sInt
   real(kind=fPrec), private, save :: x,xp,z,zp,dpop
 
-  ! Cross section inputs and material property database
-  ! GRD CHANGED ON 2/2003 TO INCLUDE CODE FOR C, C2 from JBJ (rwa)
-  ! Total number of materials are defined in nmat
-  ! Number of real materials are defined in nrmat
-  ! The last materials in nmat are 'vacuum' and 'black',see in sub. k2coll_scatin
-  ! Reference data at pRef=450Gev
-
-  ! pp cross-sections and parameters for energy dependence
-  real(kind=fPrec), parameter :: pptref = 0.04_fPrec
-  real(kind=fPrec), parameter :: freeco = 1.618_fPrec
-
-  ! Mean excitation energy (GeV) values added by Claudia for Bethe-Bloch implementation:
-  real(kind=fPrec), parameter :: exenergy(nmat) = [ &
-    63.7e-9_fPrec, 166.0e-9_fPrec, 322.0e-9_fPrec, 727.0e-9_fPrec, 823.0e-9_fPrec, 78.0e-9_fPrec, 78.0e-9_fPrec, &
-    87.1e-9_fPrec, 152.9e-9_fPrec, 424.0e-9_fPrec, 320.8e-9_fPrec, 682.2e-9_fPrec, zero, c1e10 ]
-
-  ! GRD IMPLEMENT CHANGES FROM JBJ, 2/2003 RWA
-  real(kind=fPrec), public,  save :: anuc(nmat)  = &
-    [ 9.01_fPrec,  26.98_fPrec,  63.55_fPrec, 183.85_fPrec, 207.19_fPrec,    12.01_fPrec,  12.01_fPrec,  &
-     13.53_fPrec,  25.24_fPrec,  95.96_fPrec,  63.15_fPrec, 166.70_fPrec,     zero,         zero         ]
-  real(kind=fPrec), public , save :: zatom(nmat) = &
-    [ 4.00_fPrec,  13.00_fPrec,  29.00_fPrec,  74.00_fPrec,  82.00_fPrec,     6.00_fPrec,   6.00_fPrec,  &
-      6.65_fPrec,  11.90_fPrec,  42.00_fPrec,  28.80_fPrec,  67.70_fPrec,     zero,         zero         ]
-  real(kind=fPrec), public,  save :: rho(nmat)   = &
-    [ 1.848_fPrec,  2.70_fPrec,   8.96_fPrec,  19.30_fPrec,   11.35_fPrec,    1.67_fPrec,   4.52_fPrec,  &
-      2.500_fPrec,  5.40_fPrec,  10.22_fPrec,   8.93_fPrec,   18.00_fPrec,    zero,         zero         ]
-  real(kind=fPrec), private, save :: emr(nmat)   = &
-    [ 0.22_fPrec,   0.302_fPrec,  0.366_fPrec,  0.520_fPrec,   0.542_fPrec,   0.25_fPrec,   0.25_fPrec,  &
-      0.25_fPrec,   0.308_fPrec,  0.481_fPrec,  0.418_fPrec,   0.578_fPrec,   zero,         zero         ]
-  real(kind=fPrec), private, save :: hcut(nmat)  = &
-    [ 0.02_fPrec,   0.02_fPrec,   0.01_fPrec,   0.01_fPrec,    0.01_fPrec,    0.02_fPrec,    0.02_fPrec, &
-      0.02_fPrec,   0.02_fPrec,   0.02_fPrec,   0.02_fPrec,    0.02_fPrec,    zero,          zero        ]
-  real(kind=fPrec), private, save :: radl(nmat)  = &
-    [ 0.353_fPrec,  0.089_fPrec,  0.0143_fPrec, 0.0035_fPrec,  0.0056_fPrec,  0.2557_fPrec, 0.094_fPrec, &
-      0.1193_fPrec, 0.0316_fPrec, 0.0096_fPrec, 0.0144_fPrec,  0.00385_fPrec, 1.0e12_fPrec, 1.0e12_fPrec ]
-
-  ! Nuclear elastic slope from Schiz et al.,PRD 21(3010)1980
-  ! MAY06-GRD value for Tungsten (W) not stated. Last 2 ones interpolated
-  real(kind=fPrec), private, save :: bnref(nmat) = &
-    [74.7_fPrec, 120.3_fPrec, 217.8_fPrec, 440.3_fPrec, 455.3_fPrec, 70.0_fPrec, 70.0_fPrec, &
-     76.7_fPrec, 115.0_fPrec, 273.9_fPrec, 208.7_fPrec, 392.1_fPrec, zero,       zero        ]
-
-  ! All cross-sections are in barns,nuclear values from RPP at 20geV
-  ! Coulomb is integerated above t=tLcut[Gev2] (+-1% out Gauss mcs)
-
-  ! in Cs and CsRef,1st index: Cross-sections for processes
-  ! 0:Total, 1:absorption, 2:nuclear elastic, 3:pp or pn elastic
-  ! 4:Single Diffractive pp or pn, 5:Coulomb for t above mcs
-
-  ! Claudia 2013: updated cross section values. Unit: Barn. New 2013:
-  real(kind=fPrec), private, save :: csref(0:5,nmat)
-  data csref(0,1), csref(1,1), csref(5,1) /0.271_fPrec, 0.192_fPrec, 0.0035e-2_fPrec/
-  data csref(0,2), csref(1,2), csref(5,2) /0.643_fPrec, 0.418_fPrec, 0.0340e-2_fPrec/
-  data csref(0,3), csref(1,3), csref(5,3) /1.253_fPrec, 0.769_fPrec, 0.1530e-2_fPrec/
-  data csref(0,4), csref(1,4), csref(5,4) /2.765_fPrec, 1.591_fPrec, 0.7680e-2_fPrec/
-  data csref(0,5), csref(1,5), csref(5,5) /3.016_fPrec, 1.724_fPrec, 0.9070e-2_fPrec/
-  data csref(0,6), csref(1,6), csref(5,6) /0.337_fPrec, 0.232_fPrec, 0.0076e-2_fPrec/
-  data csref(0,7), csref(1,7), csref(5,7) /0.337_fPrec, 0.232_fPrec, 0.0076e-2_fPrec/
-  data csref(0,8), csref(1,8), csref(5,8) /0.362_fPrec, 0.247_fPrec, 0.0094e-2_fPrec/
-  data csref(0,9), csref(1,9), csref(5,9) /0.572_fPrec, 0.370_fPrec, 0.0279e-2_fPrec/
-  data csref(0,10),csref(1,10),csref(5,10)/1.713_fPrec, 1.023_fPrec, 0.2650e-2_fPrec/
-  data csref(0,11),csref(1,11),csref(5,11)/1.246_fPrec, 0.765_fPrec, 0.1390e-2_fPrec/
-  data csref(0,12),csref(1,12),csref(5,12)/2.548_fPrec, 1.473_fPrec, 0.5740e-2_fPrec/
-
-  ! Cprob to choose an interaction in iChoix
-  real(kind=fPrec), private, save :: cprob(0:5,nmat)
-  data cprob(0,1:nmat)/nmat*zero/
-  data cprob(5,1:nmat)/nmat*one/
-
-  ! Electron density and plasma energy
-  real(kind=fPrec), private, save :: edens(nmat)
-  real(kind=fPrec), private, save :: pleng(nmat)
-
 contains
 
 !>
@@ -120,9 +40,11 @@ contains
 !<
 subroutine k2coll_merlinInit
 
+  use coll_materials
+
   integer i
 
-! compute the electron densnity and plasma energy for each material
+  ! Compute the electron densnity and plasma energy for each material
   do i=1, nmat
     edens(i) = k2coll_calcElectronDensity(zatom(i),rho(i),anuc(i))
     pleng(i) = k2coll_calcPlasmaEnergy(edens(i))
@@ -137,46 +59,21 @@ subroutine k2coll_init
 !nothing currently
 end subroutine k2coll_init
 
-!>
-!! subroutine k2coll_collimate(c_material, c_length, c_rotation,           &
-!!-----GRD-----GRD-----GRD-----GRD-----GRD-----GRD-----GRD-----GRD-----GRD-----
-!!----                                                                    -----
-!!-----  NEW ROUTINES PROVIDED FOR THE COLLIMATION STUDIES VIA SIXTRACK   -----
-!!-----                                                                   -----
-!!-----          G. ROBERT-DEMOLAIZE, November 1st, 2004                  -----
-!!-----                                                                   -----
-!!-----GRD-----GRD-----GRD-----GRD-----GRD-----GRD-----GRD-----GRD-----GRD-----
-!!++  Based on routines by JBJ. Changed by RA 2001.
-!!GRD
-!!GRD MODIFIED VERSION FOR COLLIMATION SYSTEM: G. ROBERT-DEMOLAIZE
-!!GRD
-!!
-!!++  - Deleted all HBOOK stuff.
-!!++  - Deleted optics routine and all parser routines.
-!!++  - Replaced RANMAR call by RANLUX call
-!!++  - Included RANLUX code from CERNLIB into source
-!!++  - Changed dimensions from CGen(100,nmat) to CGen(200,nmat)
-!!++  - Replaced FUNPRE with FUNLXP
-!!++  - Replaced FUNRAN with FUNLUX
-!!++  - Included all CERNLIB code into source: RANLUX, FUNLXP, FUNLUX,
-!!++                                         FUNPCT, FUNLZ, RADAPT,
-!!++                                           RGS56P
-!!++    with additional entries:             RLUXIN, RLUXUT, RLUXAT,
-!!++                                           RLUXGO
-!!++
-!!++  - Changed program so that Nev is total number of particles
-!!++    (scattered and not-scattered)
-!!++  - Added debug comments
-!!++  - Put real dp/dx
-!<
-subroutine k2coll_collimate(icoll, iturn, ie, c_length, c_rotation, c_aperture, c_offset, c_tilt, &
-  x_in, xp_in, y_in, yp_in, p_in, s_in, np, enom, lhit_pos, lhit_turn, part_abs_pos_local, &
+! ================================================================================================ !
+!  Collimation K2 Routine
+! ~~~~~~~~~~~~~~~~~~~~~~~~
+!  G. ROBERT-DEMOLAIZE, November 1st, 2004
+!  Based on routines by JBJ. Changed by RA 2001
+! ================================================================================================ !
+subroutine k2coll_collimate(icoll, iturn, ie, c_length, c_rotation, c_aperture, c_offset, c_tilt,  &
+  x_in, xp_in, y_in, yp_in, p_in, s_in, enom, lhit_pos, lhit_turn, part_abs_pos_local,             &
   part_abs_turn_local, impact, indiv, lint, onesided, flagsec, j_slices, nabs_type, linside)
 
-  use crcoall
   use parpro
-  use coll_common
+  use crcoall
   use coll_db
+  use coll_common
+  use coll_materials
   use mod_common, only : iexact, napx
   use mod_common_main, only : partID
   use mathlib_bouncer
@@ -185,85 +82,69 @@ subroutine k2coll_collimate(icoll, iturn, ie, c_length, c_rotation, c_aperture, 
   use hdf5_output
 #endif
 
-  implicit none
+  integer,          intent(in)    :: icoll        ! Collimator ID
+  integer,          intent(in)    :: iturn        ! Turn number
+  integer,          intent(in)    :: ie           ! Structure element index
 
-  integer,          intent(in) :: icoll ! Collimator ID
-  integer,          intent(in) :: iturn ! Turn number
-  integer,          intent(in) :: ie    ! Structure element index
+  real(kind=fPrec), intent(in)    :: c_length     ! Collimator length in m
+  real(kind=fPrec), intent(in)    :: c_rotation   ! Collimator rotation angle vs vertical in radians
+  real(kind=fPrec), intent(in)    :: c_aperture   ! Collimator aperture in m
+  real(kind=fPrec), intent(in)    :: c_offset     ! Collimator offset in m
+  real(kind=fPrec), intent(inout) :: c_tilt(2)    ! Collimator tilt in radians
 
-  real(kind=fPrec), intent(in)    :: c_length    ! length in m
-  real(kind=fPrec), intent(in)    :: c_rotation  ! rotation angle vs vertical in radian
-  real(kind=fPrec), intent(in)    :: c_aperture  ! aperture in m
-  real(kind=fPrec), intent(in)    :: c_offset    ! offset in m
-  real(kind=fPrec), intent(inout) :: c_tilt(2)   ! tilt in radians
+  real(kind=fPrec), intent(inout) :: x_in(npart)  ! Particle coordinate
+  real(kind=fPrec), intent(inout) :: xp_in(npart) ! Particle coordinate
+  real(kind=fPrec), intent(inout) :: y_in(npart)  ! Particle coordinate
+  real(kind=fPrec), intent(inout) :: yp_in(npart) ! Particle coordinate
+  real(kind=fPrec), intent(inout) :: p_in(npart)  ! Particle coordinate
+  real(kind=fPrec), intent(inout) :: s_in(npart)  ! Particle coordinate
 
-  logical onesided,hit
-  integer nprim,j,nabs,nhit,np
+  real(kind=fPrec), intent(in)    :: enom         ! Reference momentum in GeV
+  logical,          intent(in)    :: onesided
 
-  integer, allocatable :: lhit_pos(:) !(npart)
-  integer, allocatable :: lhit_turn(:) !(npart)
-  integer, allocatable :: part_abs_pos_local(:) !(npart)
-  integer, allocatable :: part_abs_turn_local(:) !(npart)
-  integer, allocatable :: nabs_type(:) !(npart)
-!MAY2005
+  integer,          intent(inout) :: lhit_pos(npart)
+  integer,          intent(inout) :: lhit_turn(npart)
+  integer,          intent(inout) :: part_abs_pos_local(npart)
+  integer,          intent(inout) :: part_abs_turn_local(npart)
+  integer,          intent(inout) :: nabs_type(npart)
+  integer,          intent(inout) :: flagsec(npart)
+  real(kind=fPrec), intent(inout) :: indiv(npart)
+  real(kind=fPrec), intent(inout) :: lint(npart)
+  real(kind=fPrec), intent(inout) :: impact(npart)
+  logical,          intent(inout) :: linside(napx)
 
-  logical linside(napx)
-  real(kind=fPrec), allocatable :: x_in(:) !(npart)
-  real(kind=fPrec), allocatable :: xp_in(:) !(npart)
-  real(kind=fPrec), allocatable :: y_in(:) !(npart)
-  real(kind=fPrec), allocatable :: yp_in(:) !(npart)
-  real(kind=fPrec), allocatable :: p_in(:) !(npart)
-  real(kind=fPrec), allocatable :: s_in(:) !(npart)
-  real(kind=fPrec), allocatable :: indiv(:) !(npart)
-  real(kind=fPrec), allocatable :: lint(:) !(npart)
-  real(kind=fPrec), allocatable :: impact(:) !(npart)
+  ! Internal Variables
+
+  logical hit
+  integer nprim,j,nabs,nhit,j_slices
+
   real(kind=fPrec) keeps,fracab,drift_length,mirror,tiltangle
-
-  real(kind=fPrec) x00,z00,p,sp,s,enom
-
-!AUGUST2006 Added ran_gauss for generation of pencil/     ------- TW
-!           sheet beam distribution  (smear in x and y)
-!
-
+  real(kind=fPrec) x00,z00,p,sp,s
   real(kind=fPrec) x_flk,xp_flk,y_flk,yp_flk,zpj
   real(kind=fPrec) x_Dump,xpDump,y_Dump,ypDump,s_Dump
   real(kind=fPrec) cRot,sRot,cRRot,sRRot
+  real(kind=fPrec) s_impact,xinn,xpinn,yinn,ypinn
 
-  real(kind=fPrec) s_impact
-  integer flagsec(npart)
-
-!     SR, 18-08-2005: add temporary variable to write in FirstImpacts
-!     the initial distribution of the impacting particles in the
-!     collimator frame.
-  real(kind=fPrec) xinn,xpinn,yinn,ypinn
-
-!     SR, 29-08-2005: add the slice number to calculate the impact
-!     location within the collimator.
-!     j_slices = 1 for the a non sliced collimator!
-  integer j_slices
-
-  save
+  ! Initilaisation
 
   mat    = cdb_cMaterialID(icoll)
   length = c_length
-  nev    = np
   p0     = enom
 
-!++  Initialize scattering processes
+  ! Initialise scattering processes
   call k2coll_scatin(p0)
 
-! EVENT LOOP,  initial distribution is here a flat distribution with
-! xmin=x-, xmax=x+, etc. from the input file
+  nhit   = 0
+  fracab = zero
+  mirror = one
 
-  nhit    = 0
-  fracab  = zero
-  mirror  = one
-  cRot    = cos_mb(c_rotation)
-  sRot    = sin_mb(c_rotation)
-  cRRot   = cos_mb(-c_rotation)
-  sRRot   = sin_mb(-c_rotation)
+  ! Compute rotation factors for collimator rotation
+  cRot   = cos_mb(c_rotation)
+  sRot   = sin_mb(c_rotation)
+  cRRot  = cos_mb(-c_rotation)
+  sRRot  = sin_mb(-c_rotation)
 
-  do j = 1, nev
+  do j=1,napx
 
     if(part_abs_pos_local(j) /= 0 .and. part_abs_turn_local(j) /= 0) then
       ! Don't do scattering process for particles already absorbed
@@ -274,286 +155,227 @@ subroutine k2coll_collimate(icoll, iturn, ie, c_length, c_rotation, c_aperture, 
     lint(j)   = -one
     indiv(j)  = -one
 
-    x   = x_in(j)
-    xp  = xp_in(j)
-    z   = y_in(j)
-    zp  = yp_in(j)
-    p   = p_in(j)
-    sp   = zero
-    dpop = (p - p0)/p0
+    x      = x_in(j)
+    xp     = xp_in(j)
+    z      = y_in(j)
+    zp     = yp_in(j)
+    p      = p_in(j)
+    sp     = zero
+    dpop   = (p - p0)/p0
     x_flk  = zero
     y_flk  = zero
     xp_flk = zero
     yp_flk = zero
 
-!++  Transform particle coordinates to get into collimator coordinate
-!++  system
-!
-!++  First check whether particle was lost before
-!        if (x.lt.99d-3 .and. z.lt.99d-3) then
-!++  First do rotation into collimator frame
+    ! Transform particle coordinates to get into collimator coordinate  system
+    ! First do rotation into collimator frame
     x  =  x_in(j)*cRot + sRot*y_in(j)
     z  =  y_in(j)*cRot - sRot*x_in(j)
     xp = xp_in(j)*cRot + sRot*yp_in(j)
     zp = yp_in(j)*cRot - sRot*xp_in(j)
-!
-!++  For one-sided collimators consider only positive X. For negative
-!++  X jump to the next particle
 
-
+    ! For one-sided collimators consider only positive X. For negative X jump to the next particle
     if((onesided .and. x < zero) .and. ((icoll /= ipencil) .or. (iturn /= 1))) then
-      ! RB: Adding exception from goto if it's
       cycle
     end if
 
-!++  Now mirror at the horizontal axis for negative X offset
-    if(x.lt.zero) then
-      mirror = -one
+    ! Now mirror at the horizontal axis for negative X offset
+    if(x < zero) then
+      mirror    = -one
       tiltangle = -one*c_tilt(2)
     end if
-
-    if(x.ge.zero) then
-      mirror = one
+    if(x >= zero) then
+      mirror    = one
       tiltangle = c_tilt(1)
     end if
-
     x  = mirror * x
     xp = mirror * xp
 
-!++  Shift with opening and offset
-!
-    x  = (x - c_aperture/two) - mirror*c_offset
-!
-!++  Include collimator tilt
-!
-    if(tiltangle.gt.zero) then
+    ! Shift with opening and offset
+    x = (x - c_aperture/two) - mirror*c_offset
+
+    ! Include collimator tilt
+    if(tiltangle > zero) then
       xp = xp - tiltangle
     end if
-
-    if(tiltangle.lt.zero) then
+    if(tiltangle < zero) then
       x  = x + sin_mb(tiltangle) * c_length
       xp = xp - tiltangle
     end if
 
-!++  For selected collimator, first turn reset particle distribution
-!++  to simple pencil beam
-!
-! -- TW why did I set this to 0, seems to be needed for getting
-!       right amplitude => no "tilt" of jaw for the first turn !!!!
-!          c_tilt(1) = 0d0
-!          c_tilt(2) = 0d0
-
+    ! For selected collimator, first turn reset particle distribution to simple pencil beam
     nprim = 3
+    if(((icoll == ipencil .and. iturn == 1) .or. (iturn == 1 .and. ipencil == 999 .and. icoll <= nprim .and. &
+       (j >= (icoll-1)*napx/nprim) .and. (j <= icoll*napx/nprim))) .and. (pencil_distr /= 3)) then
+      ! RB addition : don't go in this if-statement if pencil_distr=3. This distribution is generated in main loop instead
 
-    if(( (icoll.eq.ipencil .and. iturn.eq.1) .or. (iturn.eq.1.and. ipencil.eq.999 .and. icoll.le.nprim .and. &
- &    (j.ge.(icoll-1)*nev/nprim) .and. (j.le.(icoll)*nev/nprim))).and.(pencil_distr.ne.3)) then
-! RB addition : don't go in this if-statement if pencil_distr=3. This distribution is generated in main loop instead
-
-! -- TW why did I set this to 0, seems to be needed for getting
-!       right amplitude => no "tilt" of jaw for the first turn !!!!
+      ! TW why did I set this to 0, seems to be needed for getting
+      !    right amplitude => no "tilt" of jaw for the first turn !!!!
       c_tilt(1) = zero
       c_tilt(2) = zero
 
-!AUGUST2006: Standard pencil beam as implemented by GRD ------- TW
-      if(pencil_rmsx.eq.zero .and. pencil_rmsy.eq.zero) then
+      ! Standard pencil beam as implemented by GRD ------- TW
+      if(pencil_rmsx == zero .and. pencil_rmsy == zero) then
         x  = pencil_dx(icoll)
         xp = zero
         z  = zero
         zp = zero
       end if
 
-!AUGUST2006: Rectangular (pencil-beam) sheet-beam with  ------ TW
-!            pencil_offset is the rectangulars center
-!            pencil_rmsx defines spread of impact parameter
-!            pencil_rmsy defines spread parallel to jaw surface
-
-      if(pencil_distr.eq.0 .and.(pencil_rmsx.ne.0..or.pencil_rmsy.ne.0.)) then
-! how to assure that all generated particles are on the jaw ?!
-        x  = pencil_dx(icoll)+pencil_rmsx*(real(rndm4(),fPrec)-half)
+      ! Rectangular (pencil-beam) sheet-beam with  ------ TW
+      ! pencil_offset is the rectangulars center
+      ! pencil_rmsx defines spread of impact parameter
+      ! pencil_rmsy defines spread parallel to jaw surface
+      if(pencil_distr == 0 .and. (pencil_rmsx /= zero .or. pencil_rmsy /= zero)) then
+        ! how to assure that all generated particles are on the jaw ?!
+        x  = pencil_dx(icoll) + pencil_rmsx*(rndm4() - half)
         xp = zero
-        z  = pencil_rmsy*(real(rndm4(),fPrec)-half)
+        z  = pencil_rmsy*(rndm4() - half)
         zp = zero
       end if
 
-!AUGUST2006: Gaussian (pencil-beam) sheet-beam with ------- TW
-!            pencil_offset is the mean  gaussian distribution
-!            pencil_rmsx defines spread of impact parameter
-!            pencil_rmsy defines spread parallel to jaw surface
-
-      if(pencil_distr.eq.1 .and.(pencil_rmsx.ne.zero.or.pencil_rmsy.ne.zero )) then
+      ! Gaussian (pencil-beam) sheet-beam with ------- TW
+      ! pencil_offset is the mean  gaussian distribution
+      ! pencil_rmsx defines spread of impact parameter
+      ! pencil_rmsy defines spread parallel to jaw surface
+      if(pencil_distr == 1 .and. (pencil_rmsx /= zero .or. pencil_rmsy /= zero)) then
         x  = pencil_dx(icoll) + pencil_rmsx*ran_gauss(two)
-! all generated particles are on the jaw now
+        ! all generated particles are on the jaw now
         x  = sqrt(x**2)
         xp = zero
         z  = pencil_rmsy*ran_gauss(two)
         zp = zero
       end if
 
-!AUGUST2006: Gaussian (pencil-beam) sheet-beam with ------- TW
-!            pencil_offset is the mean  gaussian distribution
-!            pencil_rmsx defines spread of impact parameter
-!                        here pencil_rmsx is not gaussian!!!
-!            pencil_rmsy defines spread parallel to jaw surface
-
-      if(pencil_distr.eq.2 .and.(pencil_rmsx.ne.zero.or.pencil_rmsy.ne.zero )) then
-        x  = pencil_dx(icoll) + pencil_rmsx*(real(rndm4(),fPrec)-half)
-! all generated particles are on the jaw now
+      ! Gaussian (pencil-beam) sheet-beam with ------- TW
+      ! pencil_offset is the mean  gaussian distribution
+      ! pencil_rmsx defines spread of impact parameter
+      !             here pencil_rmsx is not gaussian!!!
+      ! pencil_rmsy defines spread parallel to jaw surface
+      if(pencil_distr == 2 .and. (pencil_rmsx /= zero .or. pencil_rmsy /= zero)) then
+        x  = pencil_dx(icoll) + pencil_rmsx*(rndm4() - half)
+        ! all generated particles are on the jaw now
         x  = sqrt(x**2)
         xp = zero
         z  = pencil_rmsy*ran_gauss(two)
         zp = zero
       end if
 
-!JULY2007: Selection of pos./neg. jaw  implemented by GRD ---- TW
-
-! ensure that for onesided only particles on pos. jaw are created
+      ! Selection of pos./neg. jaw  implemented by GRD ---- TW
+      ! ensure that for onesided only particles on pos. jaw are created
       if(onesided) then
         mirror = one
       else
-        if(rndm4().lt.half) then
+        if(rndm4() < half) then
           mirror = -one
         else
           mirror = one
         end if
       end if
 
-! -- TW SEP07 if c_tilt is set to zero before entering pencil beam
-!             section the assigning of the tilt will result in
-!             assigning zeros
-      if(mirror.lt.zero) then
-!!     tiltangle = -one*c_tilt(2)
+      ! TW if c_tilt is set to zero before entering pencil beam
+      !    section the assigning of the tilt will result in assigning zeros
+      if(mirror < zero) then
         tiltangle = c_tilt(2)
       else
         tiltangle = c_tilt(1)
       end if
-!!!!--- commented this out since particle is tilted after leaving
-!!!!--- collimator -> remove this  code fragment in final verion
-!!             x  = mirror * x
-!!             xp = mirror * xp
-
-
-!++  Include collimator tilt
-! this is propably not correct
 !
-!             xp =  (xp_pencil0*cRot+                         &
-!     &            sRot*yp_pencil0)
-!             if (tiltangle.gt.0.) then
-!                xp = xp - tiltangle
-!!             endif
-!!             elseif (tiltangle.lt.0.) then
-!             else
-!               x  = x + sin_mb(tiltangle) * c_length
-!               xp = xp - tiltangle
-!             endif
-!
-      write(coll_pencilUnit,'(f10.8,(2x,f10.8),(2x,f10.8),(2x,f10.8),(2x,f10.8))') x, xp, z, zp, tiltangle
-
+      write(coll_pencilUnit,"(f10.8,4(2x,f10.8))") x, xp, z, zp, tiltangle
     end if !if(( (icoll.eq.ipencil .and. iturn.eq.1) .or. (itu
 
-!     SR, 18-08-2005: after finishing the coordinate transformation,
-!     or the coordinate manipulations in case of pencil beams,
-!     write down the initial coordinates of the impacting particles
+    ! SR, 18-08-2005: after finishing the coordinate transformation,
+    ! or the coordinate manipulations in case of pencil beams,
+    ! write down the initial coordinates of the impacting particles
     xinn  = x
     xpinn = xp
     yinn  = z
     ypinn = zp
-!
-!++  Possibility to slice here (RA,SR: 29-08-2005)
-!
-!++  particle passing above the jaw are discarded => take new event
-!++  entering by the face, shorten the length (zlm) and keep track of
-!++  entrance longitudinal coordinate (keeps) for histograms
-!
-!++  The definition is that the collimator jaw is at x>=0.
-!
-!++  1) Check whether particle hits the collimator
+
+    ! particle passing above the jaw are discarded => take new event
+    ! entering by the face, shorten the length (zlm) and keep track of
+    ! entrance longitudinal coordinate (keeps) for histograms
+
+    ! The definition is that the collimator jaw is at x>=0.
+
+    ! 1) Check whether particle hits the collimator
     hit   = .false.
     s     = zero
     keeps = zero
     zlm   = -one * length
 
-    if(x.ge.zero) then
-
-!++  Particle hits collimator and we assume interaction length ZLM equal
-!++  to collimator length (what if it would leave collimator after
-!++  small length due to angle???)
-      zlm = length
+    if(x >= zero) then
+      ! Particle hits collimator and we assume interaction length ZLM equal
+      ! to collimator length (what if it would leave collimator after
+      ! small length due to angle???)
+      zlm       = length
       impact(j) = x
-      indiv(j) = xp
-    else if(xp.le.zero) then
-
-!++  Particle does not hit collimator. Interaction length ZLM is zero.
+      indiv(j)  = xp
+    else if(xp <= zero) then
+      ! Particle does not hit collimator. Interaction length ZLM is zero.
       zlm = zero
     else
-!
-!++  Calculate s-coordinate of interaction point
-      s = (-one*x) / xp
-      if(s.le.0) then
-        write(lout,*) 'S.LE.0 -> This should not happen'
+      ! Calculate s-coordinate of interaction point
+      s = (-one*x)/xp
+      if(s <= zero) then
+        write(lerr,"(a)") "COLLK2> ERROR S <= zero. This should not happen!"
         call prror
       end if
-
-      if(s .lt. length) then
-        zlm = length - s
+      if(s < length) then
+        zlm       = length - s
         impact(j) = zero
-        indiv(j) = xp
+        indiv(j)  = xp
       else
         zlm = zero
       end if
-    end if !if(x.ge.0.d0) then
+    end if
 
-!++  First do the drift part
-! DRIFT PART
+    ! First do the drift part
+    ! DRIFT PART
     drift_length = length - zlm
-    if(drift_length.gt.zero) then
+    if(drift_length > zero) then
       if(iexact) then
         zpj = sqrt(one-xp**2-zp**2)
-        x = x + drift_length*(xp/zpj)
-        z = z + drift_length*(zp/zpj)
-        sp = sp + drift_length
+        x   = x  + drift_length*(xp/zpj)
+        z   = z  + drift_length*(zp/zpj)
+        sp  = sp + drift_length
       else
-        x  = x + xp* drift_length
-        z  = z + zp * drift_length
+        x  = x  + xp* drift_length
+        z  = z  + zp * drift_length
         sp = sp + drift_length
       end if
     end if
-!
-!++  Now do the scattering part
-!
-    if (zlm.gt.zero) then
+
+    ! Now do the scattering part
+    if(zlm > zero) then
       if(.not.linside(j)) then
         ! first time particle hits collimator: entering jaw
-        linside(j)=.true.
+        linside(j) = .true.
         if(dowrite_impact) then
-          if ( tiltangle.gt.zero ) then
-            x_Dump=(x+c_aperture/two+tiltangle*sp)*mirror+c_offset
+          if(tiltangle > zero) then
+            x_Dump = (x + c_aperture/two + tiltangle*sp)*mirror + c_offset
           else
-            x_Dump=(x+c_aperture/two+tiltangle*(sp-c_length))*mirror+c_offset
+            x_Dump = (x + c_aperture/two + tiltangle*(sp - c_length))*mirror + c_offset
           end if
-          xpDump=(xp+tiltangle)*mirror
-          y_Dump=z
-          ypDump=zp
-          s_Dump=sp+real(j_slices-1,fPrec)*c_length
+          xpDump = (xp + tiltangle)*mirror
+          y_Dump = z
+          ypDump = zp
+          s_Dump = sp+real(j_slices-1,fPrec)*c_length
           write(coll_jawProfileUnit,"(3(1x,i7),5(1x,e17.9),1x,i1)") &
             icoll,iturn,partID(j),x_Dump,xpDump,y_Dump,ypDump,s_Dump,1
         end if
       end if
-!JUNE2005
+
       s_impact = sp
-!JUNE2005
       nhit = nhit + 1
-!     RB: add new input arguments to jaw icoll,iturn,partID for writeout
       call k2coll_jaw(s,nabs,icoll,iturn,partID(j))
 
       nabs_type(j) = nabs
-!JUNE2005
-!JUNE2005 SR+GRD: CREATE A FILE TO CHECK THE VALUES OF IMPACT PARAMETERS
-!JUNE2005
-!     SR, 29-08-2005: Add to the longitudinal coordinates the position
-!     of the slice beginning
 
+      ! SR+GRD: CREATE A FILE TO CHECK THE VALUES OF IMPACT PARAMETERS
+      ! SR, 29-08-2005: Add to the longitudinal coordinates the position of the slice beginning
       if(dowrite_impact) then
-        if(flagsec(j).eq.0) then
+        if(flagsec(j) == 0) then
 #ifdef HDF5
           if(h5_useForCOLL) then
             call h5_prepareWrite(coll_hdf5_fstImpacts, 1)
@@ -574,7 +396,7 @@ subroutine k2coll_collimate(icoll, iturn, ie, c_length, c_rotation, c_aperture, 
             call h5_finaliseWrite(coll_hdf5_fstImpacts)
           else
 #endif
-            write(coll_fstImpactUnit,'(i5,1x,i7,1x,i2,1x,i1,2(1x,f5.3),8(1x,e17.9))') &
+            write(coll_fstImpactUnit,"(i5,1x,i7,1x,i2,1x,i1,2(1x,f5.3),8(1x,e17.9))") &
               partID(j),iturn,icoll,nabs,                             &
               s_impact + (real(j_slices,fPrec)-one) * c_length,       &
               s+sp + (real(j_slices,fPrec)-one) * c_length,           &
@@ -585,145 +407,135 @@ subroutine k2coll_collimate(icoll, iturn, ie, c_length, c_rotation, c_aperture, 
 #endif
         end if
       end if
-!!     SR, 18-08-2005: add also the initial coordinates of the
-!!                     impacting particles!
-!JUNE2005
 
+      ! SR, 18-08-2005: add also the initial coordinates of the impacting particles!
       lhit_pos(j)  = ie
       lhit_turn(j) = iturn
 
-!----------------------------------------------------------------
-!-- September 2006
-!
-!++  If particle is absorbed then set x and y to 99.99 mm
-!     SR: before assigning new (x,y) for nabs=1, write the
-!     inelastic impact file .
+      ! September 2006
+      ! If particle is absorbed then set x and y to 99.99 mm
+      ! SR: before assigning new (x,y) for nabs=1, write the inelastic impact file .
 
-!     RB: writeout should be done for both inelastic and single diffractive. doing all transformations
-!       in x_flk and making the set to 99.99 mm conditional for nabs=1
-!!! /* start RB fix */
+      ! RB: writeout should be done for both inelastic and single diffractive. doing all transformations
+      ! in x_flk and making the set to 99.99 mm conditional for nabs=1
 
-! transform back to lab system for writeout.
-! keep x,y,xp,yp unchanged for continued tracking, store lab system variables in x_flk etc
+      if(dowrite_impact .or. nabs == 1 .or. nabs == 4) then
+        ! transform back to lab system for writeout.
+        ! keep x,y,xp,yp unchanged for continued tracking, store lab system variables in x_flk etc
 
-      x_flk = xInt
-      xp_flk = xpInt
+        x_flk  = xInt
+        xp_flk = xpInt
 
-      if(tiltangle.gt.zero) then
-        x_flk  = x_flk  + tiltangle*(sInt+sp)
-        xp_flk = xp_flk + tiltangle
-      else if(tiltangle.lt.zero) then
-        xp_flk = xp_flk + tiltangle
-        x_flk  = x_flk - sin_mb(tiltangle) * ( length -(sInt+sp) )
-      end if
-
-      x_flk  = (x_flk + c_aperture/two) + mirror*c_offset
-      x_flk  = mirror * x_flk
-      xp_flk = mirror * xp_flk
-      y_flk  = yInt   * cRRot - x_flk  * sRRot
-      yp_flk = ypInt  * cRRot - xp_flk * sRRot
-      x_flk  = x_flk  * cRRot + yInt   * sRRot
-      xp_flk = xp_flk * cRRot + ypInt  * sRRot
-
-! write out all impacts to all_impacts.dat
-      if(dowrite_impact) then
-        write(coll_flukImpAllUnit,'(i4,(1x,f6.3),(1x,f8.6),4(1x,e19.10),i2,2(1x,i7))') &
-     &              icoll,c_rotation,                                   &
-     &              sInt + sp + (real(j_slices,fPrec)-one) * c_length,  &
-     &              x_flk*c1e3, xp_flk*c1e3, y_flk*c1e3, yp_flk*c1e3,   &
-     &              nabs,partID(j),iturn
-      end if
-
-! standard FLUKA_impacts writeout of inelastic and single diffractive
-      if((nabs.eq.1).OR.(nabs.eq.4)) then
-
-!     SR, 29-08-2005: Include the slice numer!
-        if(dowrite_impact) then
-          write(coll_flukImpUnit,'(i4,(1x,f6.3),(1x,f8.6),4(1x,e19.10),i2,2(1x,i7))') &
-     &icoll,c_rotation,                                                 &
-     &sInt + sp + (real(j_slices,fPrec)-one) * c_length,                &
-     &x_flk*c1e3, xp_flk*c1e3, y_flk*c1e3, yp_flk*c1e3,                 &
-     &nabs,partID(j),iturn
+        if(tiltangle > zero) then
+          x_flk  = x_flk  + tiltangle*(sInt+sp)
+          xp_flk = xp_flk + tiltangle
+        else if(tiltangle < zero) then
+          xp_flk = xp_flk + tiltangle
+          x_flk  = x_flk  - sin_mb(tiltangle) * (length-(sInt+sp))
         end if
-!
-!     Finally, the actual coordinate change to 99 mm
-        if(nabs.eq.1) then
-          fracab = fracab + 1
-          x = 99.99e-3_fPrec
-          z = 99.99e-3_fPrec
-          part_abs_pos_local(j) = ie
-          part_abs_turn_local(j) = iturn
-          lint(j) = zlm
-        end if
-      end if !if((nabs.eq.1).OR.(nabs.eq.4)) then
-    end if !if (zlm.gt.0.) then
-!!! /* end RB fix */
 
-!++  Do the rest drift, if particle left collimator early
-!  DRIFT PART
-    if(nabs.ne.1 .and. zlm.gt.zero) then
-      drift_length = (length-(s+sp))
-      if(drift_length.gt.c1m15) then
-        linside(j)=.false.
+        x_flk  = (x_flk + c_aperture/two) + mirror*c_offset
+        x_flk  = mirror * x_flk
+        xp_flk = mirror * xp_flk
+        y_flk  = yInt   * cRRot - x_flk  * sRRot
+        yp_flk = ypInt  * cRRot - xp_flk * sRRot
+        x_flk  = x_flk  * cRRot + yInt   * sRRot
+        xp_flk = xp_flk * cRRot + ypInt  * sRRot
+
         if(dowrite_impact) then
-          if ( tiltangle.gt.zero ) then
-            x_Dump=(x+c_aperture/two+tiltangle*(s+sp))*mirror+c_offset
-          else
-            x_Dump=(x+c_aperture/two+tiltangle*(s+sp-c_length))*mirror+c_offset
+          ! write out all impacts to all_impacts.dat
+          write(coll_flukImpAllUnit,"(i4,(1x,f6.3),(1x,f8.6),4(1x,e19.10),i2,2(1x,i7))") &
+          icoll,c_rotation, (sInt+sp)+(real(j_slices,fPrec)-one)*c_length,             &
+          x_flk*c1e3, xp_flk*c1e3, y_flk*c1e3, yp_flk*c1e3, nabs, partID(j), iturn
+        end if
+
+        ! Standard FLUKA_impacts writeout of inelastic and single diffractive
+        if(nabs == 1 .or. nabs == 4) then
+          if(dowrite_impact) then
+            write(coll_flukImpUnit,"(i4,(1x,f6.3),(1x,f8.6),4(1x,e19.10),i2,2(1x,i7))") &
+              icoll,c_rotation,                                                 &
+              sInt + sp + (real(j_slices,fPrec)-one) * c_length,                &
+              x_flk*c1e3, xp_flk*c1e3, y_flk*c1e3, yp_flk*c1e3,                 &
+              nabs,partID(j),iturn
           end if
-          xpDump=(xp+tiltangle)*mirror
-          y_Dump=z
-          ypDump=zp
-          s_Dump=s+sp+real(j_slices-1,fPrec)*c_length
+
+          ! Finally, the actual coordinate change to 99 mm
+          if(nabs == 1) then
+            fracab = fracab + 1
+            x      = 99.99e-3_fPrec
+            z      = 99.99e-3_fPrec
+            part_abs_pos_local(j)  = ie
+            part_abs_turn_local(j) = iturn
+            lint(j) = zlm
+          end if
+        end if
+      end if
+    end if !if (zlm.gt.0.) then
+
+    ! Do the rest drift, if particle left collimator early
+    ! DRIFT PART
+    if(nabs /= 1 .and. zlm > zero) then
+      drift_length = (length-(s+sp))
+      if(drift_length > c1m15) then
+        linside(j) = .false.
+        if(dowrite_impact) then
+          if(tiltangle > zero) then
+            x_Dump = (x + c_aperture/two + tiltangle*(s+sp))*mirror + c_offset
+          else
+            x_Dump = (x + c_aperture/two + tiltangle*(s+sp-c_length))*mirror + c_offset
+          end if
+          xpDump = (xp+tiltangle)*mirror
+          y_Dump = z
+          ypDump = zp
+          s_Dump = s+sp+real(j_slices-1,fPrec)*c_length
           write(coll_jawProfileUnit,"(3(1x,i7),5(1x,e17.9),1x,i1)") &
             icoll,iturn,partID(j),x_Dump,xpDump,y_Dump,ypDump,s_Dump,2
         end if
         if(iexact) then
           zpj = sqrt(one-xp**2-zp**2)
-          x   = x + drift_length*(xp/zpj)
-          z   = z + drift_length*(zp/zpj)
+          x   = x  + drift_length*(xp/zpj)
+          z   = z  + drift_length*(zp/zpj)
           sp  = sp + drift_length
         else
-          x  = x + xp * drift_length
-          z  = z + zp * drift_length
+          x  = x  + xp * drift_length
+          z  = z  + zp * drift_length
           sp = sp + drift_length
         end if
       end if
       lint(j) = zlm - drift_length
     end if
 
-!++  Transform back to particle coordinates with opening and offset
-    if(x.lt.99.0d-3) then
-
-!++  Include collimator tilt
-      if(tiltangle.gt.zero) then
+    !++  Transform back to particle coordinates with opening and offset
+    if(x < 99.0d-3) then
+      ! Include collimator tilt
+      if(tiltangle > zero) then
         x  = x  + tiltangle*c_length
         xp = xp + tiltangle
-      else if(tiltangle.lt.zero) then
-        x  = x + tiltangle*c_length
+      else if(tiltangle < zero) then
+        x  = x  + tiltangle*c_length
         xp = xp + tiltangle
-        x  = x - sin_mb(tiltangle) * c_length
+        x  = x  - sin_mb(tiltangle) * c_length
       end if
 
-!++  Transform back to particle coordinates with opening and offset
+      ! Transform back to particle coordinates with opening and offset
       z00 = z
       x00 = x + mirror*c_offset
-      x = (x + c_aperture/two) + mirror*c_offset
+      x   = (x + c_aperture/two) + mirror*c_offset
 
-!++  Now mirror at the horizontal axis for negative X offset
+      ! Now mirror at the horizontal axis for negative X offset
       x  = mirror * x
       xp = mirror * xp
 
-!++  Last do rotation into collimator frame
+      ! Last do rotation into collimator frame
       x_in(j)  =  x*cRRot +  z*sRRot
       y_in(j)  =  z*cRRot -  x*sRRot
       xp_in(j) = xp*cRRot + zp*sRRot
       yp_in(j) = zp*cRRot - xp*sRRot
 
-      if(( (icoll.eq.ipencil.and. iturn.eq.1).or. &
-  &        (iturn.eq.1 .and.ipencil.eq.999 .and.icoll.le.nprim .and.(j.ge.(icoll-1)*nev/nprim) .and.(j.le.(icoll)*nev/nprim)))&
-  &             .and.(pencil_distr.ne.3)) then    ! RB: adding condition that this shouldn't be done if pencil_distr=3
-
+      if(((icoll == ipencil .and. iturn == 1) .or. &
+         (iturn == 1 .and. ipencil == 999 .and. icoll <= nprim .and. (j >= (icoll-1)*napx/nprim) .and. &
+         (j <= (icoll)*napx/nprim))) .and.(pencil_distr /= 3)) then
+        ! RB: adding condition that this shouldn't be done if pencil_distr=3
         x00      = mirror * x00
         x_in(j)  = x00*cRRot + z00*sRRot
         y_in(j)  = z00*cRRot - x00*sRRot
@@ -734,14 +546,11 @@ subroutine k2coll_collimate(icoll, iturn, ie, c_length, c_rotation, c_aperture, 
       end if
 
       p_in(j) = (one + dpop) * p0
-!     SR, 30-08-2005: add the initial position of the slice
       s_in(j) = sp + (real(j_slices,fPrec)-one) * c_length
-
     else
       x_in(j) = x
       y_in(j) = z
-    end if !if(x.lt.99.0d-3) then
-
+    end if
   end do ! End of loop over all particles
 
 end subroutine k2coll_collimate
@@ -749,148 +558,140 @@ end subroutine k2coll_collimate
 !>
 !! k2coll_scatin(plab)
 !! Configure the K2 scattering routine cross sections
-!!
 !<
 subroutine k2coll_scatin(plab)
 
-  use physical_constants
-  use mathlib_bouncer
   use mod_funlux
-#ifdef HDF5
-  use hdf5_output
-  use hdf5_tracks2
-#endif
+  use coll_materials
+  use mathlib_bouncer
+  use physical_constants
 
-  implicit none
+  real(kind=fPrec), intent(in) :: plab
 
-  integer ma,i
-  real(kind=fPrec) plab
   real(kind=fPrec) tlow,thigh
+  integer ma,i
 
   ecmsq = (two * pmap) * plab
 #ifndef MERLINSCATTER
-  xln15s=log_mb(0.15_fPrec*ecmsq)
-
-!Claudia Fit from COMPETE collaboration points "arXiv:hep-ph/0206172v1 19Jun2002"
-  pptot=0.041084_fPrec-0.0023302_fPrec*log_mb(ecmsq)+0.00031514_fPrec*log_mb(ecmsq)**2
-
-!Claudia used the fit from TOTEM for ppel (in barn)
-  ppel=(11.7_fPrec-1.59_fPrec*log_mb(ecmsq)+0.134_fPrec*log_mb(ecmsq)**2)/c1e3
-
-!Claudia updated SD cross that cointains renormalized pomeron flux (in barn)
-  ppsd=(4.3_fPrec+0.3_fPrec*log_mb(ecmsq))/c1e3
+  xln15s = log_mb(0.15_fPrec*ecmsq)
+  ! Claudia Fit from COMPETE collaboration points "arXiv:hep-ph/0206172v1 19Jun2002"
+  pptot = 0.041084_fPrec-0.0023302_fPrec*log_mb(ecmsq)+0.00031514_fPrec*log_mb(ecmsq)**2
+  ! Claudia used the fit from TOTEM for ppel (in barn)
+  ppel = (11.7_fPrec-1.59_fPrec*log_mb(ecmsq)+0.134_fPrec*log_mb(ecmsq)**2)/c1e3
+  ! Claudia updated SD cross that cointains renormalized pomeron flux (in barn)
+  ppsd = (4.3_fPrec+0.3_fPrec*log_mb(ecmsq))/c1e3
 #endif
 
 #ifdef MERLINSCATTER
-!No crlibm...
+  ! No crlibm...
   call merlinscatter_setup(plab,rnd_seed)
   call merlinscatter_setdata(pptot,ppel,ppsd)
 #endif
 
-!Claudia new fit for the slope parameter with new data at sqrt(s)=7 TeV from TOTEM
-  bpp=7.156_fPrec+1.439_fPrec*log_mb(sqrt(ecmsq))
+  ! Claudia new fit for the slope parameter with new data at sqrt(s)=7 TeV from TOTEM
+  bpp = 7.156_fPrec + 1.439_fPrec*log_mb(sqrt(ecmsq))
 
-! unmeasured tungsten data,computed with lead data and power laws
-  bnref(4) = bnref(5)*(anuc(4) / anuc(5))**(two/three)
-  emr(4) = emr(5) * (anuc(4)/anuc(5))**(one/three)
+  ! unmeasured tungsten data,computed with lead data and power laws
+  bnref(4) = (bnref(5)*(anuc(4))/anuc(5))**(two/three)
+  emr(4)   = (emr(5)  *(anuc(4))/anuc(5))**(one/three)
 
-! Compute cross-sections (CS) and probabilities + Interaction length
-! Last two material treated below statement number 100
+  ! Compute cross-sections (CS) and probabilities + Interaction length
+  ! Last two material treated below statement number 100
 
-  tlow=tlcut
+  tlow = tlcut
   do ma=1,nrmat
-    mcurr=ma
-! prepare for Rutherford differential distribution
-    thigh=hcut(ma)
-    call funlxp ( k2coll_ruth , cgen(1,ma) ,tlow, thigh )
 
-! freep: number of nucleons involved in single scattering
+    mcurr = ma
+    ! prepare for Rutherford differential distribution
+    thigh = hcut(ma)
+    call funlxp(k2coll_ruth, cgen(1,ma), tlow, thigh)
+
+    ! freep: number of nucleons involved in single scattering
     freep(ma) = freeco * anuc(ma)**(one/three)
 
-! compute pp and pn el+single diff contributions to cross-section
-! (both added : quasi-elastic or qel later)
+    ! compute pp and pn el+single diff contributions to cross-section
+    ! (both added : quasi-elastic or qel later)
     csect(3,ma) = freep(ma) * ppel
     csect(4,ma) = freep(ma) * ppsd
 
-! correct TOT-CSec for energy dependence of qel
-! TOT CS is here without a Coulomb contribution
+    ! correct TOT-CSec for energy dependence of qel
+    ! TOT CS is here without a Coulomb contribution
     csect(0,ma) = csref(0,ma) + freep(ma) * (pptot - pptref)
-    bn(ma) = (bnref(ma) * csect(0,ma)) / csref(0,ma)
-! also correct inel-CS
+    bn(ma)      = (bnref(ma) * csect(0,ma)) / csref(0,ma)
+
+    ! also correct inel-CS
     csect(1,ma) = (csref(1,ma) * csect(0,ma)) / csref(0,ma)
-!
-! Nuclear Elastic is TOT-inel-qel ( see definition in RPP)
+
+    ! Nuclear Elastic is TOT-inel-qel ( see definition in RPP)
     csect(2,ma) = ((csect(0,ma) - csect(1,ma)) - csect(3,ma)) - csect(4,ma)
     csect(5,ma) = csref(5,ma)
-! Now add Coulomb
-    csect(0,ma) = csect(0,ma) + csect(5,ma)
-! Interaction length in meter
-  xintl(ma) = (c1m2*anuc(ma))/(((fnavo * rho(ma))*csect(0,ma))*1d-24)
 
-! Filling CProb with cumulated normalised Cross-sections
+    ! Now add Coulomb
+    csect(0,ma) = csect(0,ma) + csect(5,ma)
+
+    ! Interaction length in meter
+    xintl(ma) = (c1m2*anuc(ma))/(((fnavo * rho(ma))*csect(0,ma))*1e-24_fPrec)
+
+    ! Filling CProb with cumulated normalised Cross-sections
     do i=1,4
       cprob(i,ma)=cprob(i-1,ma)+csect(i,ma)/csect(0,ma)
     end do
   end do
 
-! Last two materials for 'vaccum' (nmat-1) and 'full black' (nmat)
+  ! Last two materials for 'vaccum' (nmat-1) and 'full black' (nmat)
   cprob(1,nmat-1) = one
   cprob(1,nmat)   = one
   xintl(nmat-1)   = c1e12
   xintl(nmat)     = zero
-  return
+
 end subroutine k2coll_scatin
 
 !>
-!! jaw(s,nabs,icoll,iturn,ipart,dowrite_impact)
-!! ???
+!! jaw(s,nabs,icoll,iturn,ipart)
 !!     RB: adding as input arguments to jaw variables icoll,iturn,ipart
 !!         these are only used for the writeout of particle histories
 !!
-!!++  Input:   ZLM is interaction length
-!!++           MAT is choice of material
+!! Input:   ZLM is interaction length
+!!          MAT is choice of material
 !!
-!!++  Output:  nabs = 1   Particle is absorped
-!!++           nabs = 4   Single-diffractive scattering
-!!++           dpop       Adjusted for momentum loss (dE/dx)
-!!++           s          Exit longitudinal position
+!! Output:  nabs = 1   Particle is absorped
+!!          nabs = 4   Single-diffractive scattering
+!!          dpop       Adjusted for momentum loss (dE/dx)
+!!          s          Exit longitudinal position
 !!
-!!++  Physics:  If monte carlo interaction length greater than input
-!!++            interaction length, then use input interaction length
-!!++            Is that justified???
-!!
-!!     nabs=1....absorption
-!!
+!! Physics:  If monte carlo interaction length greater than input
+!!           interaction length, then use input interaction length
+!!           Is that justified???
 !<
-subroutine k2coll_jaw(s,nabs,icoll,iturn,ipart)
+subroutine k2coll_jaw(s, nabs, icoll, iturn, ipart)
 
-  use mathlib_bouncer
   use mod_ranlux
   use coll_common
+  use coll_materials
+  use mathlib_bouncer
 #ifdef HDF5
   use hdf5_output
 #endif
 
-  implicit none
+  real(kind=fPrec), intent(inout) :: s
+  integer,          intent(inout) :: nabs
+  integer,          intent(in)    :: icoll
+  integer,          intent(in)    :: iturn
+  integer,          intent(in)    :: ipart
 
-  integer nabs,inter,iturn,icoll,ipart,nabs_tmp ! RB: added variables icoll,iturn,ipart for writeout
-  real(kind=fPrec) m_dpodx     !CT, RB, DM
-  real(kind=fPrec) p,rlen,s,t,dxp,dzp,p1,zpBef,xpBef,pBef
-!...cne=1/(sqrt(b))
-!...dpodx=dE/(dx*c)
+  real(kind=fPrec) m_dpodx,p,rlen,t,dxp,dzp,p1,zpBef,xpBef,pBef
+  integer inter,nabs_tmp
 
-!++  Note that the input parameter is dpop. Here the momentum p is
-!++  constructed out of this input.
+  ! Note that the input parameter is dpop. Here the momentum p is constructed out of this input.
+  p    = p0*(one+dpop)
+  nabs = 0
+  nabs_tmp = nabs
 
-  p=p0*(one+dpop)
-  nabs=0
-  nabs_tmp=nabs
-
-  if(mat.eq.nmat) then
-!++  Collimator treated as black absorber
-    nabs=1
-    nabs_tmp=nabs
-    s=zero
+  if(mat == nmat) then
+    ! Collimator treated as black absorber
+    nabs = 1
+    nabs_tmp = nabs
+    s = zero
 
     if(dowrite_impact) then
       ! write coll_scatter.dat for complete scattering histories
@@ -901,15 +702,15 @@ subroutine k2coll_jaw(s,nabs,icoll,iturn,ipart)
 #endif
       write(coll_scatterUnit,'(1x,i2,2x,i4,2x,i5,2x,i1,3(2x,e14.6))') icoll, iturn, ipart, nabs_tmp, -one, zero, zero
 #ifdef HDF5
-      endif
+      end if
 #endif
     end if
     return
-  else if(mat.eq.nmat-1) then
-!++  Collimator treated as drift
-    s=zlm
-    x=x+s*xp
-    z=z+s*zp
+  else if(mat == nmat-1) then
+    ! Collimator treated as drift
+    s = zlm
+    x = x+s*xp
+    z = z+s*zp
 
     if(dowrite_impact) then
       ! write coll_scatter.dat for complete scattering histories
@@ -927,38 +728,35 @@ subroutine k2coll_jaw(s,nabs,icoll,iturn,ipart)
     return
   end if
 
-!++  Initialize the interaction length to input interaction length
-  rlen=zlm
+  ! Initialize the interaction length to input interaction length
+  rlen = zlm
 
-!++  Do a step for a point-like interaction. This is a loop with
-!++  label 10!!!
-! - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-!++  Get monte-carlo interaction length.
+  ! Do a step for a point-like interaction.
+  ! Get monte-carlo interaction length.
+10 continue
+  zlm1     = (-one*xintl(mat))*log_mb(rndm4())
+  nabs_tmp = 0  ! type of interaction reset before following scattering process
+  xpBef    = xp ! save angles and momentum before scattering
+  zpBef    = zp
+  pBef     = p
 
-10  zlm1=(-one*xintl(mat))*log_mb(real(rndm4(),fPrec))
-  nabs_tmp=0 !! type of interaction reset before following scattering process
-  xpBef=xp ! save angles and momentum before scattering
-  zpBef=zp
-  pBef=p
-
-!++  If the monte-carlo interaction length is longer than the
-!++  remaining collimator length, then put it to the remaining
-!++  length, do multiple coulomb scattering and return.
-!++  LAST STEP IN ITERATION LOOP
-  if(zlm1.gt.rlen) then
-    zlm1=rlen
+  ! If the monte-carlo interaction length is longer than the
+  ! remaining collimator length, then put it to the remaining
+  ! length, do multiple coulomb scattering and return.
+  ! LAST STEP IN ITERATION LOOP
+  if(zlm1 > rlen) then
+    zlm1 = rlen
     call k2coll_mcs(s)
-    s=(zlm-rlen)+s
-#ifndef MERLINSCATTER
-    call k2coll_calcIonLoss(mat,p,rlen,m_dpodx)  ! DM routine to include tail
-    p=p-m_dpodx*s
-#endif
+    s = (zlm-rlen)+s
 #ifdef MERLINSCATTER
     call merlinscatter_calc_ion_loss(p,edens(mat), pleng(mat),exenergy(mat),s,m_dpodx)
-    p=p-m_dpodx
+    p = p-m_dpodx
+#else
+    call k2coll_calcIonLoss(mat,p,rlen,m_dpodx)  ! DM routine to include tail
+    p = p-m_dpodx*s
 #endif
 
-    dpop=(p-p0)/p0
+    dpop = (p-p0)/p0
     if(dowrite_impact) then
       ! write coll_scatter.dat for complete scattering histories
 #ifdef HDF5
@@ -968,32 +766,31 @@ subroutine k2coll_jaw(s,nabs,icoll,iturn,ipart)
 #endif
       write(coll_scatterUnit,'(1x,i2,2x,i4,2x,i5,2x,i1,3(2x,e18.10))') icoll,iturn,ipart,nabs_tmp,(p-pBef)/pBef,xp-xpBef,zp-zpBef
 #ifdef HDF5
-      endif
+      end if
 #endif
     end if
     return
   end if
 
-!++  Otherwise do multi-coulomb scattering.
-!++  REGULAR STEP IN ITERATION LOOP
+  ! Otherwise do multi-coulomb scattering.
+  ! REGULAR STEP IN ITERATION LOOP
   call k2coll_mcs(s)
 
-!++  Check if particle is outside of collimator (X.LT.0) after
-!++  MCS. If yes, calculate output longitudinal position (s),
-!++  reduce momentum (output as dpop) and return.
-!++  PARTICLE LEFT COLLIMATOR BEFORE ITS END.
-  if(x.le.zero) then
-    s=(zlm-rlen)+s
+  ! Check if particle is outside of collimator (X.LT.0) after
+  ! MCS. If yes, calculate output longitudinal position (s),
+  ! reduce momentum (output as dpop) and return.
+  ! PARTICLE LEFT COLLIMATOR BEFORE ITS END.
+  if(x <= zero) then
+    s = (zlm-rlen)+s
 
-#ifndef MERLINSCATTER
-    call k2coll_calcIonLoss(mat,p,rlen,m_dpodx)
-    p=p-m_dpodx*s
-#endif
 #ifdef MERLINSCATTER
     call merlinscatter_calc_ion_loss(p,edens(mat),pleng(mat),exenergy(mat),s,m_dpodx)
-    p=p-m_dpodx
+    p = p-m_dpodx
+#else
+    call k2coll_calcIonLoss(mat,p,rlen,m_dpodx)
+    p = p-m_dpodx*s
 #endif
-    dpop=(p-p0)/p0
+    dpop = (p-p0)/p0
 
     if(dowrite_impact) then
       ! write coll_scatter.dat for complete scattering histories
@@ -1004,42 +801,41 @@ subroutine k2coll_jaw(s,nabs,icoll,iturn,ipart)
 #endif
       write(coll_scatterUnit,'(1x,i2,2x,i4,2x,i5,2x,i1,3(2x,e18.10))') icoll,iturn,ipart,nabs_tmp,(p-pBef)/pBef,xp-xpBef,zp-zpBef
 #ifdef HDF5
-      endif
+      end if
 #endif
     end if
 
     return
   end if
 
-!++  Check whether particle is absorbed. If yes, calculate output
-!++  longitudinal position (s), reduce momentum (output as dpop)
-!++  and return.
-!++  PARTICLE WAS ABSORBED INSIDE COLLIMATOR DURING MCS.
+  ! Check whether particle is absorbed. If yes, calculate output
+  ! longitudinal position (s), reduce momentum (output as dpop)
+  ! and return.
+  ! PARTICLE WAS ABSORBED INSIDE COLLIMATOR DURING MCS.
 
-  inter=k2coll_ichoix(mat)
-  nabs=inter
-  nabs_tmp=nabs
+  inter    = k2coll_ichoix(mat)
+  nabs     = inter
+  nabs_tmp = nabs
 
-! RB, DM: save coordinates before interaction for writeout to FLUKA_impacts.dat
-  xInt=x
-  xpInt=xp
-  yInt=z
-  ypInt=zp
-  sInt=(zlm-rlen)+zlm1
+  ! RB, DM: save coordinates before interaction for writeout to FLUKA_impacts.dat
+  xInt  = x
+  xpInt = xp
+  yInt  = z
+  ypInt = zp
+  sInt  = (zlm-rlen)+zlm1
 
-  if(inter.eq.1) then
-    s=(zlm-rlen)+zlm1
+  if(inter == 1) then
+    s = (zlm-rlen)+zlm1
 
-#ifndef MERLINSCATTER
-    call k2coll_calcIonLoss(mat,p,rlen,m_dpodx)
-    p=p-m_dpodx*s
-#endif
 #ifdef MERLINSCATTER
     call merlinscatter_calc_ion_loss(p,edens(mat),pleng(mat),exenergy(mat),s,m_dpodx)
-    p=p-m_dpodx
+    p = p-m_dpodx
+#else
+    call k2coll_calcIonLoss(mat,p,rlen,m_dpodx)
+    p = p-m_dpodx*s
 #endif
 
-    dpop=(p-p0)/p0
+    dpop = (p-p0)/p0
 
     ! write coll_scatter.dat for complete scattering histories
 #ifdef HDF5
@@ -1049,47 +845,44 @@ subroutine k2coll_jaw(s,nabs,icoll,iturn,ipart)
 #endif
     write(coll_scatterUnit,'(1x,i2,2x,i4,2x,i5,2x,i1,3(2x,e14.6))') icoll,iturn,ipart,nabs_tmp,-one,zero,zero
 #ifdef HDF5
-    endif
+    end if
 #endif
     return
   end if
 
-!++  Now treat the other types of interaction, as determined by ICHOIX:
+  ! Now treat the other types of interaction, as determined by ICHOIX:
 
-!++      Nuclear-Elastic:          inter = 2
-!++      pp Elastic:               inter = 3
-!++      Single-Diffractive:       inter = 4    (changes momentum p)
-!++      Coulomb:                  inter = 5
+  ! Nuclear-Elastic:          inter = 2
+  ! pp Elastic:               inter = 3
+  ! Single-Diffractive:       inter = 4    (changes momentum p)
+  ! Coulomb:                  inter = 5
 
-!++  As the single-diffractive interaction changes the momentum, save
-!++  input momentum in p1.
+  ! As the single-diffractive interaction changes the momentum, save input momentum in p1.
   p1 = p
 
-!++  Gettran returns some monte carlo number, that, as I believe, gives
-!++  the rms transverse momentum transfer.
+  ! Gettran returns some monte carlo number, that, as I believe, gives the rms transverse momentum transfer.
   t = k2coll_gettran(inter,mat,p)
 
-!++  Tetat calculates from the rms transverse momentum transfer in
-!++  monte-carlo fashion the angle changes for x and z planes. The
-!++  angle change is proportional to SQRT(t) and 1/p, as expected.
+  ! Tetat calculates from the rms transverse momentum transfer in
+  ! monte-carlo fashion the angle changes for x and z planes. The
+  ! angle change is proportional to SQRT(t) and 1/p, as expected.
   call k2coll_tetat(t,p,dxp,dzp)
 
-!++  Apply angle changes
-  xp=xp+dxp
-  zp=zp+dzp
+  ! Apply angle changes
+  xp = xp+dxp
+  zp = zp+dzp
 
-!++  Treat single-diffractive scattering.
-  if(inter.eq.4) then
+  ! Treat single-diffractive scattering.
+  if(inter == 4) then
 
-!++ added update for s
-    s=(zlm-rlen)+zlm1
-    xpsd=dxp
-    zpsd=dzp
-    psd=p1
-!
-!++  Add this code to get the momentum transfer also in the calling
-!++  routine...
-    dpop=(p-p0)/p0
+    ! added update for s
+    s    = (zlm-rlen)+zlm1
+    xpsd = dxp
+    zpsd = dzp
+    psd  = p1
+
+    ! Add this code to get the momentum transfer also in the calling routine
+    dpop = (p-p0)/p0
   end if
 
   if(dowrite_impact) then
@@ -1102,13 +895,12 @@ subroutine k2coll_jaw(s,nabs,icoll,iturn,ipart)
 #endif
     write(coll_scatterUnit,'(1x,i2,2x,i4,2x,i5,2x,i1,3(2x,e18.10))') icoll,iturn,ipart,nabs_tmp,(p-pBef)/pBef,xp-xpBef,zp-zpBef
 #ifdef HDF5
-    endif
+    end if
 #endif
   end if
 
-!++  Calculate the remaining interaction length and close the iteration
-!++  loop.
-  rlen=rlen-zlm1
+  ! Calculate the remaining interaction length and close the iteration loop.
+  rlen = rlen-zlm1
   goto 10
 
 end subroutine k2coll_jaw
@@ -1124,211 +916,213 @@ end subroutine k2coll_jaw
 !!     collimator: x>0 and y<zlm1
 !<
 subroutine k2coll_mcs(s)
-  implicit none
-!      save h,dh,bn
-  real(kind=fPrec) h,dh,theta,rlen0,rlen,ae,be,bn0,s
-  real(kind=fPrec) radl_mat,rad_len ! Claudia 2013 added variables
 
+  use coll_materials
 
-!   bn=sqrt(3)/(number of sigmas for s-determination(=4))
-  data h/.001d0/dh/.0001d0/bn0/.4330127019d0/
+  real(kind=fPrec), intent(inout) :: s
 
-  radl_mat=radl(mat)
-  theta=13.6d-3/(p0*(1.d0+dpop))      !Claudia added log part
-  rad_len=radl(mat)                    !Claudia
+  real(kind=fPrec) theta,rlen0,rlen,ae,be,radl_mat,rad_len
 
-  x=(x/theta)/radl(mat)
-  xp=xp/theta
-  z=(z/theta)/radl(mat)
-  zp=zp/theta
-  rlen0=zlm1/radl(mat)
-  rlen=rlen0
-10    ae=bn0*x
-  be=bn0*xp
+  real(kind=fPrec), parameter :: h   = 0.001_fPrec
+  real(kind=fPrec), parameter :: dh  = 0.0001_fPrec
+  real(kind=fPrec), parameter :: bn0 = 0.4330127019_fPrec
+
+  radl_mat = radl(mat)
+  theta    = 13.6e-3_fPrec/(p0*(one+dpop))
+  rad_len  = radl(mat)
+
+  x     = (x/theta)/radl(mat)
+  xp    = xp/theta
+  z     = (z/theta)/radl(mat)
+  zp    = zp/theta
+  rlen0 = zlm1/radl(mat)
+  rlen  = rlen0
+
+10 continue
+  ae = bn0*x
+  be = bn0*xp
+
   call k2coll_soln3(ae,be,dh,rlen,s)
-  if(s.lt.h) s=h
-  call k2coll_scamcs(x,xp,s,radl_mat)
-  if(x.le.0.d0) then
-   s=(rlen0-rlen)+s
-   goto 20
+  if(s < h) s = h
+
+  call k2coll_scamcs(x,xp,s)
+  if(x <= zero) then
+    s = (rlen0-rlen)+s
+    goto 20
   end if
-  if(s+dh.ge.rlen) then
-   s=rlen0
-   goto 20
+  if(s+dh >= rlen) then
+    s = rlen0
+    goto 20
   end if
-  rlen=rlen-s
+  rlen = rlen-s
   goto 10
-20    call k2coll_scamcs(z,zp,s,radl_mat)
-  s=s*radl(mat)
-  x=(x*theta)*radl(mat)
-  xp=xp*theta
-  z=(z*theta)*radl(mat)
-  zp=zp*theta
+
+20 continue
+  call k2coll_scamcs(z,zp,s)
+  s  = s*radl(mat)
+  x  = (x*theta)*radl(mat)
+  xp = xp*theta
+  z  = (z*theta)*radl(mat)
+  zp = zp*theta
+
 end subroutine k2coll_mcs
 
 !>
 !! k2coll_calcIonLoss(IS,PC,DZ,EnLo)
 !! subroutine for the calculazion of the energy loss by ionization
 !! Either mean energy loss from Bethe-Bloch, or higher energy loss, according to finite probability from cross section
-!! written by DM for crystals, introduced in main code by RB
+!! Written by DM for crystals, introduced in main code by RB
+!! Updated and improved for numerical stability by VKBO
 !<
 subroutine k2coll_calcIonLoss(IS, PC, DZ, EnLo)
 
-! IS material ID
-! PC momentum in GeV
-! DZ length traversed in material (meters)
-! EnLo energy loss in GeV/meter
-
-  use physical_constants
-  use mathlib_bouncer
   use mod_ranlux
+  use coll_materials
+  use mathlib_bouncer
+  use physical_constants
 
-  implicit none
+  integer,          intent(in)  :: IS   ! IS material ID
+  real(kind=fPrec), intent(in)  :: PC   ! PC momentum in GeV
+  real(kind=fPrec), intent(in)  :: DZ   ! DZ length traversed in material (meters)
+  real(kind=fPrec), intent(out) :: EnLo ! EnLo energy loss in GeV/meter
 
-  integer IS
+  real(kind=fPrec) exEn,thl,Tt,cs_tail,prob_tail,enr,mom,betar,gammar,bgr,kine,Tmax,plen
+  real(kind=fPrec), parameter :: k = 0.307075_fPrec ! Constant in front of Bethe-Bloch [MeV g^-1 cm^2]
 
-  real(kind=fPrec) PC,DZ,EnLo,exEn
-  real(kind=fPrec) k !Daniele: parameters for dE/dX calculation (const,electron radius,el. mass, prot.mass)
-  real(kind=fPrec) enr,mom,betar,gammar,bgr !Daniele: energy,momentum,beta relativistic, gamma relativistic
-  real(kind=fPrec) Tmax,plen !Daniele: maximum energy tranfer in single collision, plasma energy (see pdg)
-  real(kind=fPrec) thl,Tt,cs_tail,prob_tail
-  real(kind=fPrec) ranc
-
-  data k/0.307075_fPrec/      !constant in front bethe-bloch [MeV g^-1 cm^2]
-! The following values are now taken from physical_constants
-!  data re/2.818d-15/    !electron radius [m]
-!  data me/0.510998910/  !electron mass [MeV/c^2]
-!  data mp/938.272013/   !proton mass [MeV/c^2]
-
-  mom    = PC*c1e3                    ! [GeV/c] -> [MeV/c]
-  enr    = (mom*mom+pmap*pmap)**half  ! [MeV]
+  mom    = PC*c1e3                     ! [GeV/c] -> [MeV/c]
+  enr    = (mom*mom + pmap*pmap)**half ! [MeV]
   gammar = enr/pmap
   betar  = mom/enr
   bgr    = betar*gammar
+  kine   = ((two*pmae)*bgr)*bgr
 
-! mean excitation energy - convert to MeV
-  exEn=exenergy(IS)*c1e3
+  ! Mean excitation energy
+  exEn = exenergy(IS)*c1e3 ! [MeV]
 
-! Tmax is max energy loss from kinematics
-  Tmax=(two*pmae*bgr**2)/(one+two*gammar*pmae/pmap+(pmae/pmap)**2) ![MeV]
+  ! Tmax is max energy loss from kinematics
+  Tmax = kine/(one + (two*gammar)*(pmae/pmap) + (pmae/pmap)**2) ! [MeV]
 
-! plasma energy - see PDG 2010 table 27.1
-  plen = ((rho(IS)*zatom(IS)/anuc(IS))**half)*28.816e-6_fPrec ![MeV]
+  ! Plasma energy - see PDG 2010 table 27.1
+  plen = (((rho(IS)*zatom(IS))/anuc(IS))**half)*28.816e-6_fPrec ! [MeV]
 
-! calculate threshold energy
-! Above this threshold, the cross section for high energy loss is calculated and then
-! a random number is generated to determine if tail energy loss should be applied, or only mean from Bethe-Bloch
-! below threshold, only the standard bethe-bloch is used (all particles get average energy loss)
+  ! Calculate threshold energy
+  ! Above this threshold, the cross section for high energy loss is calculated and then
+  ! a random number is generated to determine if tail energy loss should be applied, or only mean from Bethe-Bloch
+  ! below threshold, only the standard Bethe-Bloch is used (all particles get average energy loss)
 
-! thl is 2* width of landau distribution (as in fig 27.7 in PDG 2010). See Alfredo's presentation for derivation
-  thl = four*k*zatom(IS)*DZ*c1e2*rho(IS)/(anuc(IS)*betar**2) ![MeV]
-!     write(3456,*) thl     ! should typically be >0.06MeV for approximations to be valid - check!
+  ! thl is 2*width of Landau distribution (as in fig 27.7 in PDG 2010). See Alfredo's presentation for derivation
+  thl = ((((four*(k*zatom(IS)))*DZ)*c1e2)*rho(IS))/(anuc(IS)*betar**2) ! [MeV]
 
-! Bethe Bloch mean energy loss
-  EnLo = ((k*zatom(IS))/(anuc(IS)*betar**2))*(half*log_mb((two*pmae*bgr*bgr*Tmax)/(exEn*exEn))-betar**two-&
-& log_mb(plen/exEn)-log_mb(bgr)+half)
+  ! Bethe-Bloch mean energy loss
+  EnLo = ((k*zatom(IS))/(anuc(IS)*betar**2)) * ( &
+    half*log_mb((kine*Tmax)/(exEn*exEn)) - betar**2 - log_mb(plen/exEn) - log_mb(bgr) + half &
+  )
+  EnLo = ((EnLo*rho(IS))*c1m1)*DZ ! [GeV]
 
-  EnLo = EnLo*rho(IS)*c1m1*DZ  ![GeV]
+  ! Threshold Tt is Bethe-Bloch + 2*width of Landau distribution
+  Tt = EnLo*c1e3 + thl ! [MeV]
 
-! threshold Tt is bethe bloch + 2*width of Landau distribution
-  Tt = EnLo*c1e3+thl      ![MeV]
+  ! Cross section - see Alfredo's presentation for derivation
+  cs_tail = ((k*zatom(IS))/(anuc(IS)*betar**2)) * ( &
+    half*((one/Tt)-(one/Tmax)) - (log_mb(Tmax/Tt)*betar**2)/(two*Tmax) + (Tmax-Tt)/((four*gammar**2)*pmap**2) &
+  )
 
-! cross section - see Alfredo's presentation for derivation
-  cs_tail = ((k*zatom(IS))/(anuc(IS)*betar**2))*((half*((one/Tt)-(one/Tmax)))-(log_mb(Tmax/Tt)*(betar**2) &
- &        /(two*Tmax))+((Tmax-Tt)/(four*(gammar**2)*(pmap**2))))
+  ! Probability of being in tail: cross section * density * path length
+  prob_tail = ((cs_tail*rho(IS))*DZ)*c1e2
 
-! probability of being in tail: cross section * density * path length
-  prob_tail = cs_tail*rho(IS)*DZ*c1e2;
-
-  ranc = real(rndm4(),fPrec)
-
-! determine based on random number if tail energy loss occurs.
-  if(ranc.lt.prob_tail) then
-    EnLo = ((k*zatom(IS))/(anuc(IS)*betar**2))*(half*log_mb((two*pmae*bgr*bgr*Tmax)/(exEn*exEn))-betar**two- &
- &       log_mb(plen/exEn)-log_mb(bgr)+half+(TMax**2)/(eight*(gammar**2)*(pmap**2)))
-
-    EnLo = EnLo*rho(IS)*c1m1 ![GeV/m]
+  ! Determine based on random number if tail energy loss occurs.
+  if(rndm4() < prob_tail) then
+    EnLo = ((k*zatom(IS))/(anuc(IS)*betar**2)) * ( &
+      half*log_mb((kine*Tmax)/(exEn*exEn)) - betar**2 - log_mb(plen/exEn) - log_mb(bgr) + &
+      half + TMax**2/((eight*gammar**2)*pmap**2) &
+    )
+    EnLo = (EnLo*rho(IS))*c1m1 ! [GeV/m]
   else
-    ! if tial energy loss does not occur, just use the standard Bethe Bloch
-    EnLo = EnLo/DZ  ![GeV/m]
-  endif
-
-  RETURN
+    ! If tail energy loss does not occur, just use the standard Bethe-Bloch
+    EnLo = EnLo/DZ  ! [GeV/m]
+  end if
 
 end subroutine k2coll_calcIonLoss
 
 !>
 !! k2coll_tetat(t,p,tx,tz)
-!! ???
-!!
+!! Generate sine and cosine of an angle uniform in [0,2pi](see RPP)
 !<
-subroutine k2coll_tetat(t,p,tx,tz)
+subroutine k2coll_tetat(t, p, tx, tz)
 
   use mod_ranlux
 
-  implicit none
+  real(kind=fPrec), intent(in)  :: t
+  real(kind=fPrec), intent(in)  :: p
+  real(kind=fPrec), intent(out) :: tx
+  real(kind=fPrec), intent(out) :: tz
 
-  real(kind=fPrec) t,p,tx,tz,va,vb,va2,vb2,r2,teta
+  real(kind=fPrec) va,vb,va2,vb2,r2,teta
+
   teta = sqrt(t)/p
 
-! Generate sine and cosine of an angle uniform in [0,2pi](see RPP)
-10 va  =(two*real(rndm4(),fPrec))-one
-  vb = real(rndm4(),fPrec)
+10 continue
+  va  = two*rndm4() - one
+  vb  = rndm4()
   va2 = va**2
   vb2 = vb**2
-  r2 = va2 + vb2
-  if ( r2.gt.one) go to 10
-  tx = teta * ((two*va)*vb) / r2
-  tz = teta * (va2 - vb2) / r2
-  return
+  r2  = va2 + vb2
+  if(r2 > one) goto 10
+  tx  = (teta*((two*va)*vb))/r2
+  tz  = (teta*(va2 - vb2))/r2
+
 end subroutine k2coll_tetat
 
 !>
 !! k2coll_soln3(a,b,dh,smax,s)
-!! ???
 !<
-subroutine k2coll_soln3(a,b,dh,smax,s)
+subroutine k2coll_soln3(a, b, dh, smax, s)
 
-  implicit none
+  real(kind=fPrec), intent(in)    :: a
+  real(kind=fPrec), intent(in)    :: b
+  real(kind=fPrec), intent(in)    :: dh
+  real(kind=fPrec), intent(in)    :: smax
+  real(kind=fPrec), intent(inout) :: s
 
-  real(kind=fPrec) b,a,s,smax,c,dh
-  if(b.eq.zero) then
-    s=a**0.6666666666666667_fPrec
-!      s=a**(two/three)
-    if(s.gt.smax) s=smax
+  real(kind=fPrec) c
+
+  if(b == zero) then
+    s = a**0.6666666666666667_fPrec
+  ! s = a**(two/three)
+    if(s > smax) s = smax
     return
   end if
 
-  if(a.eq.zero) then
-    if(b.gt.zero) then
-      s=b**2
+  if(a == zero) then
+    if(b > zero) then
+      s = b**2
     else
-      s=zero
+      s = zero
     end if
-    if(s.gt.smax) s=smax
+    if(s > smax) s=smax
     return
   end if
 
-  if(b.gt.zero) then
-    if(smax**3.le.(a+b*smax)**2) then
-      s=smax
+  if(b > zero) then
+    if(smax**3 <= (a + b*smax)**2) then
+      s = smax
       return
     else
-      s=smax*half
+      s = smax*half
       call k2coll_iterat(a,b,dh,s)
     end if
   else
-    c=(-one*a)/b
-    if(smax.lt.c) then
-      if(smax**3.le.(a+b*smax)**2) then
-        s=smax
+    c = (-one*a)/b
+    if(smax < c) then
+      if(smax**3 <= (a + b*smax)**2) then
+        s = smax
         return
       else
-        s=smax*half
+        s = smax*half
         call k2coll_iterat(a,b,dh,s)
       end if
     else
-      s=c*half
+      s = c*half
       call k2coll_iterat(a,b,dh,s)
     end if
   end if
@@ -1336,51 +1130,59 @@ subroutine k2coll_soln3(a,b,dh,smax,s)
 end subroutine k2coll_soln3
 
 !>
-!! k2coll_scamcs(xx,xxp,s,radl_mat)
-!! ???
+!! k2coll_scamcs(xx,xxp,s)
 !<
-subroutine k2coll_scamcs(xx,xxp,s,radl_mat)
+subroutine k2coll_scamcs(xx, xxp, s)
 
   use mathlib_bouncer
   use mod_ranlux
 
-  implicit none
+  real(kind=fPrec), intent(inout) :: xx
+  real(kind=fPrec), intent(inout) :: xxp
+  real(kind=fPrec), intent(in)    :: s
 
-  real(kind=fPrec) v1,v2,r2,a,z1,z2,ss,s,xx,xxp,x0,xp0
-  real(kind=fPrec) radl_mat
+  real(kind=fPrec) v1,v2,r2,a,z1,z2,ss,x0,xp0,sss
 
-  x0=xx
-  xp0=xxp
+  x0  = xx
+  xp0 = xxp
 
-5 v1=2d0*real(rndm4(),fPrec)-1d0
-  v2=2d0*real(rndm4(),fPrec)-1d0
-  r2=v1**2+v2**2
-  if(r2.ge.1.d0) goto 5
+10 continue
+  v1 = two*rndm4() - one
+  v2 = two*rndm4() - one
+  r2 = v1**2 + v2**2
+  if(r2 >= one) goto 10
 
-  a=sqrt((-2.d0*log_mb(r2))/r2)
-  z1=v1*a
-  z2=v2*a
-  ss=sqrt(s)
-  xx=x0+s*(xp0+(half*ss)*(one+0.038_fPrec*log_mb(s))*(z2+z1*0.577350269_fPrec)) !Claudia: added logarithmic part in mcs formula
-  xxp=xp0+ss*z2*(one+0.038_fPrec*log_mb(s))
+  a   = sqrt((-two*log_mb(r2))/r2)
+  z1  = v1*a
+  z2  = v2*a
+  ss  = sqrt(s)
+  sss = one + 0.038_fPrec*log_mb(s)
+  xx  = x0  + s*(xp0 + ((half*ss)*sss)*(z2 + z1*0.577350269_fPrec))
+  xxp = xp0 + (ss*z2)*sss
+
 end subroutine k2coll_scamcs
 
-subroutine k2coll_iterat(a,b,dh,s)
+subroutine k2coll_iterat(a, b, dh, s)
 
-  implicit none
+  real(kind=fPrec), intent(in)    :: a
+  real(kind=fPrec), intent(in)    :: b
+  real(kind=fPrec), intent(in)    :: dh
+  real(kind=fPrec), intent(inout) :: s
 
-  real(kind=fPrec) ds,s,a,b,dh
+  real(kind=fPrec) ds
 
-  ds=s
-10 ds=ds*half
+  ds = s
 
-  if(s**3.lt.(a+b*s)**2) then
-    s=s+ds
+10 continue
+  ds = ds*half
+
+  if(s**3 < (a+b*s)**2) then
+    s = s+ds
   else
-    s=s-ds
+    s = s-ds
   end if
 
-  if(ds.lt.dh) then
+  if(ds < dh) then
     return
   else
     goto 10
@@ -1395,13 +1197,16 @@ end subroutine k2coll_iterat
 real(kind=fPrec) function k2coll_ruth(t)
 
   use mathlib_bouncer
+  use coll_materials
 
-  implicit none
+  real(kind=fPrec), intent(in) :: t
 
-  real(kind=fPrec) t,cnorm,cnform
-  parameter(cnorm=2.607e-5_fPrec,cnform=0.8561e3_fPrec) ! DM: changed 2.607d-4 to 2.607d-5 to fix Rutherford bug
+  ! DM: changed 2.607d-4 to 2.607d-5 to fix Rutherford bug
+  real(kind=fPrec), parameter :: cnorm=2.607e-5_fPrec
+  real(kind=fPrec), parameter :: cnform=0.8561e3_fPrec
 
-  k2coll_ruth=(cnorm*exp_mb(((-one*real(t,fPrec))*cnform)*emr(mcurr)**2))*(zatom(mcurr)/real(t,fPrec))**2
+  k2coll_ruth = (cnorm*exp_mb(((-one*t)*cnform)*emr(mcurr)**2)) * (zatom(mcurr)/t)**2
+
 end function k2coll_ruth
 
 !>
@@ -1410,75 +1215,59 @@ end function k2coll_ruth
 !! Note: For single-diffractive scattering the vector p of momentum
 !! is modified (energy loss is applied)
 !<
-real(kind=fPrec) function k2coll_gettran(inter,xmat,p)
+real(kind=fPrec) function k2coll_gettran(inter, xmat, p)
 
   use mathlib_bouncer
   use mod_ranlux
   use mod_funlux
+  use coll_materials
 
-  implicit none
+  integer,          intent(in)    :: inter
+  integer,          intent(in)    :: xmat
+  real(kind=fPrec), intent(inout) :: p
 
-  integer, intent(in) :: inter,xmat
-  real(kind=fPrec) :: p
+  real(kind=fPrec) xm2,bsd,xran(1)
 
-  integer :: length
-  real(kind=fPrec) :: t,xm2,bsd
-  real(kind=fPrec) :: truth,xran(1)
+  ! Neither if-statements below have an else, so defaulting function return to zero.
+  k2coll_gettran = zero
 
-  ! Neither if-statements below have an else, so defaultingfuction return to zero.
-  k2coll_gettran = zero ! -Wmaybe-uninitialized
-
-! inter=2: Nuclear Elastic, 3: pp Elastic, 4: Single Diffractive, 5:Coulomb
 #ifndef MERLINSCATTER
-  if( inter.eq.2 ) then
-    k2coll_gettran = (-one*log_mb(real(rndm4(),fPrec)))/bn(xmat)
-
-  else if( inter .eq. 3 ) then
-    k2coll_gettran = (-one*log_mb(real(rndm4(),fPrec)))/bpp
-
-  else if( inter .eq. 4 ) then
-    xm2 = exp_mb( real(rndm4(),fPrec) * xln15s )
-    p = p  * (one - xm2/ecmsq)
-    if( xm2 .lt. two ) then
+  select case(inter)
+  case(2) ! Nuclear Elastic
+    k2coll_gettran = (-one*log_mb(rndm4()))/bn(xmat)
+  case(3) ! pp Elastic
+    k2coll_gettran = (-one*log_mb(rndm4()))/bpp
+  case(4) ! Single Diffractive
+    xm2 = exp_mb(rndm4() * xln15s)
+    p   = p * (one - xm2/ecmsq)
+    if(xm2 < two) then
       bsd = two * bpp
-    else if (( xm2 .ge. two ).and. ( xm2 .le. five )) then
-      bsd = ((106.0_fPrec-17.0_fPrec*xm2) *  bpp )/ 36.0_fPrec
-!    else if ( xm2 .gt. five ) then
-    else !makes the compiler more happy
-      bsd = (seven * bpp) / 12.0_fPrec
+    else if(xm2 >= two .and. xm2 <= five) then
+      bsd = ((106.0_fPrec - 17.0_fPrec*xm2)*bpp)/36.0_fPrec
+    else
+      bsd = (seven*bpp)/12.0_fPrec
     end if
-      k2coll_gettran = (-one*log_mb(real(rndm4(),fPrec)))/bsd
-
-  else if( inter.eq.5 ) then
-    length=1
-    call funlux( cgen(1,mat), xran, length)
-    truth=xran(1)
-    t=real(truth,fPrec)
-    k2coll_gettran = t
-  end if
+    k2coll_gettran = (-one*log_mb(rndm4()))/bsd
+  case(5) ! Coulomb
+    call funlux(cgen(1,mat), xran, 1)
+    k2coll_gettran = xran(1)
+  end select
 #else
-
-  if( inter.eq.2 ) then
-    k2coll_gettran = (-one*log_mb(real(rndm4(),fPrec)))/bn(xmat)
-
-  else if( inter .eq. 3 ) then
+  select case(inter)
+  case(2)
+    k2coll_gettran = (-one*log_mb(rndm4()))/bn(xmat)
+  case(3)
     call merlinscatter_get_elastic_t(k2coll_gettran)
-
-  else if( inter .eq. 4 ) then
+  case(4)
     call merlinscatter_get_sd_xi(xm2)
     call merlinscatter_get_sd_t(k2coll_gettran)
-    p = p  * (one - (xm2/ecmsq))
-
-  else if ( inter.eq.5 ) then
-    length=1
-    call funlux( cgen(1,mat) , xran, length)
-    truth=xran(1)
-    t=real(truth,fPrec)
-    k2coll_gettran = t
-  end if
-
+    p = p * (one - (xm2/ecmsq))
+  case(5)
+    call funlux(cgen(1,mat), xran, 1)
+    k2coll_gettran = xran(1)
+  end select
 #endif
-  return
+
 end function k2coll_gettran
 
 !>
@@ -1486,16 +1275,24 @@ end function k2coll_gettran
 !! Select a scattering type (elastic, sd, inelastic, ...)
 !<
 integer function k2coll_ichoix(ma)
+
   use mod_ranlux
-  integer ma,i
+  use coll_materials
+
+  integer, intent(in) :: ma
+  integer i
   real(kind=fPrec) aran
-  aran=real(rndm4(),fPrec)
-  i=1
-10 if( aran.gt.cprob(i,ma) ) then
-    i=i+1
+
+  aran = rndm4()
+  i    = 1
+10 continue
+  if(aran > cprob(i,ma)) then
+    i = i+1
     goto 10
   end if
-  k2coll_ichoix=i
+
+  k2coll_ichoix = i
+
 end function k2coll_ichoix
 
 !>
@@ -1504,15 +1301,18 @@ end function k2coll_ichoix
 !! Should give the number per cubic meter
 !<
 real(kind=fPrec) function k2coll_calcElectronDensity(AtomicNumber, Density, AtomicMass)
-  real(kind=fPrec) AtomicNumber, Density, AtomicMass
-  real(kind=fPrec) Avogadro
+
+  real(kind=fPrec) , intent(in) :: AtomicNumber
+  real(kind=fPrec) , intent(in) :: Density
+  real(kind=fPrec) , intent(in) :: AtomicMass
+
+  real(kind=fPrec), parameter :: Avogadro = 6.022140857e23_fPrec
   real(kind=fPrec) PartA, PartB
-  parameter (Avogadro = 6.022140857e23_fPrec)
-  PartA = AtomicNumber * Avogadro * Density
-  !1e-6 factor converts to n/m^-3
-  PartB = AtomicMass * c1m6
+
+  PartA = (AtomicNumber*Avogadro) * Density
+  PartB = AtomicMass * c1m6 ! 1e-6 factor converts to n/m^-3
   k2coll_calcElectronDensity = PartA/PartB
-  return
+
 end function k2coll_calcElectronDensity
 
 !>
@@ -1523,31 +1323,26 @@ end function k2coll_calcElectronDensity
 !<
 real(kind=fPrec) function k2coll_calcPlasmaEnergy(ElectronDensity)
 
-  real(kind=fPrec) ElectronDensity
-  real(kind=fPrec) sqrtAB,PartA,PartB,FSPC2
+  real(kind=fPrec), intent(in) :: ElectronDensity
 
-  !Values from the 2016 PDG
-  real(kind=fPrec) PlanckConstantBar,ElectronCharge,ElectronMass
-  real(kind=fPrec) ElectronCharge2
-  real(kind=fPrec) FreeSpacePermittivity,FreeSpacePermeability
-  real(kind=fPrec) SpeedOfLight,SpeedOfLight2
+  real(kind=fPrec) sqrtAB,PartA
 
-  parameter (PlanckConstantBar = 1.054571800e-34_fPrec)
-  parameter (ElectronCharge = 1.6021766208e-19_fPrec)
-  parameter (ElectronCharge2 = ElectronCharge*ElectronCharge)
-  parameter (ElectronMass = 9.10938356e-31_fPrec)
-  parameter (SpeedOfLight = 299792458.0_fPrec)
-  parameter (SpeedOfLight2 = SpeedOfLight*SpeedOfLight)
+  ! Values from the 2016 PDG
+  real(kind=fPrec), parameter :: PlanckConstantBar = 1.054571800e-34_fPrec
+  real(kind=fPrec), parameter :: ElectronCharge = 1.6021766208e-19_fPrec
+  real(kind=fPrec), parameter :: ElectronCharge2 = ElectronCharge*ElectronCharge
+  real(kind=fPrec), parameter :: ElectronMass = 9.10938356e-31_fPrec
+  real(kind=fPrec), parameter :: SpeedOfLight = 299792458.0_fPrec
+  real(kind=fPrec), parameter :: SpeedOfLight2 = SpeedOfLight*SpeedOfLight
+  real(kind=fPrec), parameter :: FreeSpacePermeability = 16.0e-7_fPrec*atan(one)
+  real(kind=fPrec), parameter :: FSPC2 = FreeSpacePermeability*SpeedOfLight2
+  real(kind=fPrec), parameter :: FreeSpacePermittivity = one/FSPC2
+  real(kind=fPrec), parameter :: PartB = ElectronMass * FreeSpacePermittivity
 
-  parameter (FreeSpacePermeability = 16.0e-7_fPrec*atan(one)) ! Henry per meter
-  parameter (FSPC2 = FreeSpacePermeability*SpeedOfLight2)
-  parameter (FreeSpacePermittivity = one/FSPC2)
-  parameter (PartB = ElectronMass * FreeSpacePermittivity)
-
-  PartA = ElectronDensity * ElectronCharge2
-
+  PartA  = ElectronDensity * ElectronCharge2
   sqrtAB = sqrt(PartA/PartB)
-  k2coll_calcPlasmaEnergy=PlanckConstantBar*sqrtAB/ElectronCharge*c1m9
+
+  k2coll_calcPlasmaEnergy = ((PlanckConstantBar*sqrtAB)/ElectronCharge)*c1m9
 
 end function k2coll_calcPlasmaEnergy
 

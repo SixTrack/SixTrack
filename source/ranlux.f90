@@ -468,14 +468,14 @@ real(kind=fPrec) function ran_gauss(cut)
   save
 
 1 if (flag) then
-    r = real(rndm4(),fPrec)
-    r = max(r, half**32)
-    r = min(r, one-half**32)
+    r  = rndm4()
+    r  = max(r, half**32)
+    r  = min(r, one-half**32)
     u1 = sqrt(-two*log_mb( r ))
-    u2 = real(rndm4(),fPrec)
-    x = u1 * cos_mb(twopi*u2)
+    u2 = rndm4()
+    x  = u1 * cos_mb(twopi*u2)
   else
-    x = u1 * sin_mb(twopi*u2)
+    x  = u1 * sin_mb(twopi*u2)
   end if
 
   flag = .not. flag
