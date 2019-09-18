@@ -1162,7 +1162,7 @@ subroutine k2coll_scamcs(xx, xxp, s)
 
 end subroutine k2coll_scamcs
 
-subroutine k2coll_iterat(a,b,dh,s)
+subroutine k2coll_iterat(a, b, dh, s)
 
   real(kind=fPrec), intent(in)    :: a
   real(kind=fPrec), intent(in)    :: b
@@ -1199,12 +1199,14 @@ real(kind=fPrec) function k2coll_ruth(t)
   use mathlib_bouncer
   use coll_materials
 
-  implicit none
+  real(kind=fPrec), intent(in) :: t
 
-  real(kind=fPrec) t,cnorm,cnform
-  parameter(cnorm=2.607e-5_fPrec,cnform=0.8561e3_fPrec) ! DM: changed 2.607d-4 to 2.607d-5 to fix Rutherford bug
+  ! DM: changed 2.607d-4 to 2.607d-5 to fix Rutherford bug
+  real(kind=fPrec), parameter :: cnorm=2.607e-5_fPrec
+  real(kind=fPrec), parameter :: cnform=0.8561e3_fPrec
 
-  k2coll_ruth=(cnorm*exp_mb(((-one*real(t,fPrec))*cnform)*emr(mcurr)**2))*(zatom(mcurr)/real(t,fPrec))**2
+  k2coll_ruth = (cnorm*exp_mb(((-one*t)*cnform)*emr(mcurr)**2)) * (zatom(mcurr)/t)**2
+
 end function k2coll_ruth
 
 !>
@@ -1213,76 +1215,69 @@ end function k2coll_ruth
 !! Note: For single-diffractive scattering the vector p of momentum
 !! is modified (energy loss is applied)
 !<
-real(kind=fPrec) function k2coll_gettran(inter,xmat,p)
+real(kind=fPrec) function k2coll_gettran(inter, xmat, p)
 
   use mathlib_bouncer
   use mod_ranlux
   use mod_funlux
   use coll_materials
 
-  implicit none
+  integer,          intent(in)    :: inter
+  integer,          intent(in)    :: xmat
+  real(kind=fPrec), intent(inout) :: p
 
-  integer, intent(in) :: inter,xmat
-  real(kind=fPrec) :: p
+  real(kind=fPrec) t,xm2,bsd,truth,xran(1)
+  integer length
 
-  integer :: length
-  real(kind=fPrec) :: t,xm2,bsd
-  real(kind=fPrec) :: truth,xran(1)
+  ! Neither if-statements below have an else, so defaulting function return to zero.
+  k2coll_gettran = zero
 
-  ! Neither if-statements below have an else, so defaultingfuction return to zero.
-  k2coll_gettran = zero ! -Wmaybe-uninitialized
-
-! inter=2: Nuclear Elastic, 3: pp Elastic, 4: Single Diffractive, 5:Coulomb
 #ifndef MERLINSCATTER
-  if( inter.eq.2 ) then
-    k2coll_gettran = (-one*log_mb(real(rndm4(),fPrec)))/bn(xmat)
+  select case(inter)
+  case(2) ! Nuclear Elastic
+    k2coll_gettran = (-one*log_mb(rndm4()))/bn(xmat)
 
-  else if( inter .eq. 3 ) then
-    k2coll_gettran = (-one*log_mb(real(rndm4(),fPrec)))/bpp
+  case(3) ! pp Elastic
+    k2coll_gettran = (-one*log_mb(rndm4()))/bpp
 
-  else if( inter .eq. 4 ) then
-    xm2 = exp_mb( real(rndm4(),fPrec) * xln15s )
-    p = p  * (one - xm2/ecmsq)
-    if( xm2 .lt. two ) then
+  case(4) ! Single Diffractive
+    xm2 = exp_mb(rndm4() * xln15s)
+    p   = p * (one - xm2/ecmsq)
+    if(xm2 < two) then
       bsd = two * bpp
-    else if (( xm2 .ge. two ).and. ( xm2 .le. five )) then
-      bsd = ((106.0_fPrec-17.0_fPrec*xm2) *  bpp )/ 36.0_fPrec
-!    else if ( xm2 .gt. five ) then
-    else !makes the compiler more happy
-      bsd = (seven * bpp) / 12.0_fPrec
+    else if(xm2 >= two .and. xm2 <= five) then
+      bsd = ((106.0_fPrec - 17.0_fPrec*xm2)*bpp )/36.0_fPrec
+    else
+      bsd = (seven*bpp)/12.0_fPrec
     end if
-      k2coll_gettran = (-one*log_mb(real(rndm4(),fPrec)))/bsd
+    k2coll_gettran = (-one*log_mb(rndm4()))/bsd
 
-  else if( inter.eq.5 ) then
-    length=1
-    call funlux( cgen(1,mat), xran, length)
-    truth=xran(1)
-    t=real(truth,fPrec)
+  case(5) ! Coulomb
+    length = 1
+    call funlux(cgen(1,mat), xran, length)
+    truth = xran(1)
+    t = truth
     k2coll_gettran = t
-  end if
+  end select
 #else
-
-  if( inter.eq.2 ) then
-    k2coll_gettran = (-one*log_mb(real(rndm4(),fPrec)))/bn(xmat)
-
-  else if( inter .eq. 3 ) then
+  select case(inter)
+  case(2)
+    k2coll_gettran = (-one*log_mb(rndm4()))/bn(xmat)
+  case(3)
     call merlinscatter_get_elastic_t(k2coll_gettran)
-
-  else if( inter .eq. 4 ) then
+  case(4)
     call merlinscatter_get_sd_xi(xm2)
     call merlinscatter_get_sd_t(k2coll_gettran)
-    p = p  * (one - (xm2/ecmsq))
-
-  else if ( inter.eq.5 ) then
-    length=1
-    call funlux( cgen(1,mat) , xran, length)
-    truth=xran(1)
-    t=real(truth,fPrec)
+    p = p * (one - (xm2/ecmsq))
+  case(5)
+    length = 1
+    call funlux(cgen(1,mat), xran, length)
+    truth = xran(1)
+    t = truth
     k2coll_gettran = t
-  end if
-
+  end select
 #endif
-  return
+
 end function k2coll_gettran
 
 !>
@@ -1290,17 +1285,22 @@ end function k2coll_gettran
 !! Select a scattering type (elastic, sd, inelastic, ...)
 !<
 integer function k2coll_ichoix(ma)
+
   use mod_ranlux
   use coll_materials
-  integer ma,i
-  real(kind=fPrec) aran
-  aran=real(rndm4(),fPrec)
-  i=1
-10 if( aran.gt.cprob(i,ma) ) then
-    i=i+1
+
+  integer, intent(in) :: ma
+  integer i
+
+  i = 1
+10 continue
+  if(rndm4() > cprob(i,ma)) then
+    i = i+1
     goto 10
   end if
-  k2coll_ichoix=i
+
+  k2coll_ichoix = i
+
 end function k2coll_ichoix
 
 !>
