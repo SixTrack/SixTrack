@@ -1301,15 +1301,18 @@ end function k2coll_ichoix
 !! Should give the number per cubic meter
 !<
 real(kind=fPrec) function k2coll_calcElectronDensity(AtomicNumber, Density, AtomicMass)
-  real(kind=fPrec) AtomicNumber, Density, AtomicMass
-  real(kind=fPrec) Avogadro
+
+  real(kind=fPrec) , intent(in) :: AtomicNumber
+  real(kind=fPrec) , intent(in) :: Density
+  real(kind=fPrec) , intent(in) :: AtomicMass
+
+  real(kind=fPrec), parameter :: Avogadro = 6.022140857e23_fPrec
   real(kind=fPrec) PartA, PartB
-  parameter (Avogadro = 6.022140857e23_fPrec)
-  PartA = AtomicNumber * Avogadro * Density
-  !1e-6 factor converts to n/m^-3
-  PartB = AtomicMass * c1m6
+
+  PartA = (AtomicNumber*Avogadro) * Density
+  PartB = AtomicMass * c1m6 ! 1e-6 factor converts to n/m^-3
   k2coll_calcElectronDensity = PartA/PartB
-  return
+
 end function k2coll_calcElectronDensity
 
 !>
@@ -1320,31 +1323,26 @@ end function k2coll_calcElectronDensity
 !<
 real(kind=fPrec) function k2coll_calcPlasmaEnergy(ElectronDensity)
 
-  real(kind=fPrec) ElectronDensity
-  real(kind=fPrec) sqrtAB,PartA,PartB,FSPC2
+  real(kind=fPrec), intent(in) :: ElectronDensity
 
-  !Values from the 2016 PDG
-  real(kind=fPrec) PlanckConstantBar,ElectronCharge,ElectronMass
-  real(kind=fPrec) ElectronCharge2
-  real(kind=fPrec) FreeSpacePermittivity,FreeSpacePermeability
-  real(kind=fPrec) SpeedOfLight,SpeedOfLight2
+  real(kind=fPrec) sqrtAB,PartA
 
-  parameter (PlanckConstantBar = 1.054571800e-34_fPrec)
-  parameter (ElectronCharge = 1.6021766208e-19_fPrec)
-  parameter (ElectronCharge2 = ElectronCharge*ElectronCharge)
-  parameter (ElectronMass = 9.10938356e-31_fPrec)
-  parameter (SpeedOfLight = 299792458.0_fPrec)
-  parameter (SpeedOfLight2 = SpeedOfLight*SpeedOfLight)
+  ! Values from the 2016 PDG
+  real(kind=fPrec), parameter :: PlanckConstantBar = 1.054571800e-34_fPrec
+  real(kind=fPrec), parameter :: ElectronCharge = 1.6021766208e-19_fPrec
+  real(kind=fPrec), parameter :: ElectronCharge2 = ElectronCharge*ElectronCharge
+  real(kind=fPrec), parameter :: ElectronMass = 9.10938356e-31_fPrec
+  real(kind=fPrec), parameter :: SpeedOfLight = 299792458.0_fPrec
+  real(kind=fPrec), parameter :: SpeedOfLight2 = SpeedOfLight*SpeedOfLight
+  real(kind=fPrec), parameter :: FreeSpacePermeability = 16.0e-7_fPrec*atan(one)
+  real(kind=fPrec), parameter :: FSPC2 = FreeSpacePermeability*SpeedOfLight2
+  real(kind=fPrec), parameter :: FreeSpacePermittivity = one/FSPC2
+  real(kind=fPrec), parameter :: PartB = ElectronMass * FreeSpacePermittivity
 
-  parameter (FreeSpacePermeability = 16.0e-7_fPrec*atan(one)) ! Henry per meter
-  parameter (FSPC2 = FreeSpacePermeability*SpeedOfLight2)
-  parameter (FreeSpacePermittivity = one/FSPC2)
-  parameter (PartB = ElectronMass * FreeSpacePermittivity)
-
-  PartA = ElectronDensity * ElectronCharge2
-
+  PartA  = ElectronDensity * ElectronCharge2
   sqrtAB = sqrt(PartA/PartB)
-  k2coll_calcPlasmaEnergy=PlanckConstantBar*sqrtAB/ElectronCharge*c1m9
+
+  k2coll_calcPlasmaEnergy = ((PlanckConstantBar*sqrtAB)/ElectronCharge)*c1m9
 
 end function k2coll_calcPlasmaEnergy
 
