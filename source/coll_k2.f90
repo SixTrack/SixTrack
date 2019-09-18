@@ -44,7 +44,7 @@ subroutine k2coll_merlinInit
 
   integer i
 
-! compute the electron densnity and plasma energy for each material
+  ! Compute the electron densnity and plasma energy for each material
   do i=1, nmat
     edens(i) = k2coll_calcElectronDensity(zatom(i),rho(i),anuc(i))
     pleng(i) = k2coll_calcPlasmaEnergy(edens(i))
@@ -206,7 +206,7 @@ subroutine k2coll_collimate(icoll, iturn, ie, c_length, c_rotation, c_aperture, 
     ! For selected collimator, first turn reset particle distribution to simple pencil beam
     nprim = 3
     if(((icoll == ipencil .and. iturn == 1) .or. (iturn == 1 .and. ipencil == 999 .and. icoll <= nprim .and. &
-       (j >= (icoll-1)*napx/nprim) .and. (j <= (icoll)*napx/nprim))) .and. (pencil_distr /= 3)) then
+       (j >= (icoll-1)*napx/nprim) .and. (j <= icoll*napx/nprim))) .and. (pencil_distr /= 3)) then
       ! RB addition : don't go in this if-statement if pencil_distr=3. This distribution is generated in main loop instead
 
       ! TW why did I set this to 0, seems to be needed for getting
@@ -226,11 +226,11 @@ subroutine k2coll_collimate(icoll, iturn, ie, c_length, c_rotation, c_aperture, 
       ! pencil_offset is the rectangulars center
       ! pencil_rmsx defines spread of impact parameter
       ! pencil_rmsy defines spread parallel to jaw surface
-      if(pencil_distr == 0 .and.(pencil_rmsx /= zero .or. pencil_rmsy /= zero)) then
+      if(pencil_distr == 0 .and. (pencil_rmsx /= zero .or. pencil_rmsy /= zero)) then
         ! how to assure that all generated particles are on the jaw ?!
-        x  = pencil_dx(icoll)+pencil_rmsx*(real(rndm4(),fPrec)-half)
+        x  = pencil_dx(icoll) + pencil_rmsx*(rndm4() - half)
         xp = zero
-        z  = pencil_rmsy*(real(rndm4(),fPrec)-half)
+        z  = pencil_rmsy*(rndm4() - half)
         zp = zero
       end if
 
@@ -253,7 +253,7 @@ subroutine k2coll_collimate(icoll, iturn, ie, c_length, c_rotation, c_aperture, 
       !             here pencil_rmsx is not gaussian!!!
       ! pencil_rmsy defines spread parallel to jaw surface
       if(pencil_distr == 2 .and. (pencil_rmsx /= zero .or. pencil_rmsy /= zero)) then
-        x  = pencil_dx(icoll) + pencil_rmsx*(real(rndm4(),fPrec)-half)
+        x  = pencil_dx(icoll) + pencil_rmsx*(rndm4() - half)
         ! all generated particles are on the jaw now
         x  = sqrt(x**2)
         xp = zero
@@ -336,12 +336,12 @@ subroutine k2coll_collimate(icoll, iturn, ie, c_length, c_rotation, c_aperture, 
     if(drift_length > zero) then
       if(iexact) then
         zpj = sqrt(one-xp**2-zp**2)
-        x   = x + drift_length*(xp/zpj)
-        z   = z + drift_length*(zp/zpj)
+        x   = x  + drift_length*(xp/zpj)
+        z   = z  + drift_length*(zp/zpj)
         sp  = sp + drift_length
       else
-        x  = x + xp* drift_length
-        z  = z + zp * drift_length
+        x  = x  + xp* drift_length
+        z  = z  + zp * drift_length
         sp = sp + drift_length
       end if
     end if
@@ -353,11 +353,11 @@ subroutine k2coll_collimate(icoll, iturn, ie, c_length, c_rotation, c_aperture, 
         linside(j) = .true.
         if(dowrite_impact) then
           if(tiltangle > zero) then
-            x_Dump = (x+c_aperture/two+tiltangle*sp)*mirror+c_offset
+            x_Dump = (x + c_aperture/two + tiltangle*sp)*mirror + c_offset
           else
-            x_Dump = (x+c_aperture/two+tiltangle*(sp-c_length))*mirror+c_offset
+            x_Dump = (x + c_aperture/two + tiltangle*(sp - c_length))*mirror + c_offset
           end if
-          xpDump = (xp+tiltangle)*mirror
+          xpDump = (xp + tiltangle)*mirror
           y_Dump = z
           ypDump = zp
           s_Dump = sp+real(j_slices-1,fPrec)*c_length
@@ -431,7 +431,7 @@ subroutine k2coll_collimate(icoll, iturn, ie, c_length, c_rotation, c_aperture, 
           xp_flk = xp_flk + tiltangle
         else if(tiltangle < zero) then
           xp_flk = xp_flk + tiltangle
-          x_flk  = x_flk - sin_mb(tiltangle) * (length -(sInt+sp))
+          x_flk  = x_flk  - sin_mb(tiltangle) * (length-(sInt+sp))
         end if
 
         x_flk  = (x_flk + c_aperture/two) + mirror*c_offset
@@ -480,9 +480,9 @@ subroutine k2coll_collimate(icoll, iturn, ie, c_length, c_rotation, c_aperture, 
         linside(j) = .false.
         if(dowrite_impact) then
           if(tiltangle > zero) then
-            x_Dump = (x+c_aperture/two+tiltangle*(s+sp))*mirror+c_offset
+            x_Dump = (x + c_aperture/two + tiltangle*(s+sp))*mirror + c_offset
           else
-            x_Dump = (x+c_aperture/two+tiltangle*(s+sp-c_length))*mirror+c_offset
+            x_Dump = (x + c_aperture/two + tiltangle*(s+sp-c_length))*mirror + c_offset
           end if
           xpDump = (xp+tiltangle)*mirror
           y_Dump = z
@@ -493,12 +493,12 @@ subroutine k2coll_collimate(icoll, iturn, ie, c_length, c_rotation, c_aperture, 
         end if
         if(iexact) then
           zpj = sqrt(one-xp**2-zp**2)
-          x   = x + drift_length*(xp/zpj)
-          z   = z + drift_length*(zp/zpj)
+          x   = x  + drift_length*(xp/zpj)
+          z   = z  + drift_length*(zp/zpj)
           sp  = sp + drift_length
         else
-          x  = x + xp * drift_length
-          z  = z + zp * drift_length
+          x  = x  + xp * drift_length
+          z  = z  + zp * drift_length
           sp = sp + drift_length
         end if
       end if
@@ -512,9 +512,9 @@ subroutine k2coll_collimate(icoll, iturn, ie, c_length, c_rotation, c_aperture, 
         x  = x  + tiltangle*c_length
         xp = xp + tiltangle
       else if(tiltangle < zero) then
-        x  = x + tiltangle*c_length
+        x  = x  + tiltangle*c_length
         xp = xp + tiltangle
-        x  = x - sin_mb(tiltangle) * c_length
+        x  = x  - sin_mb(tiltangle) * c_length
       end if
 
       ! Transform back to particle coordinates with opening and offset
@@ -589,11 +589,11 @@ subroutine k2coll_scatin(plab)
 #endif
 
   ! Claudia new fit for the slope parameter with new data at sqrt(s)=7 TeV from TOTEM
-  bpp = 7.156_fPrec+1.439_fPrec*log_mb(sqrt(ecmsq))
+  bpp = 7.156_fPrec + 1.439_fPrec*log_mb(sqrt(ecmsq))
 
   ! unmeasured tungsten data,computed with lead data and power laws
-  bnref(4) = bnref(5)*(anuc(4) / anuc(5))**(two/three)
-  emr(4) = emr(5) * (anuc(4)/anuc(5))**(one/three)
+  bnref(4) = (bnref(5)*(anuc(4))/anuc(5))**(two/three)
+  emr(4)   = (emr(5)  *(anuc(4))/anuc(5))**(one/three)
 
   ! Compute cross-sections (CS) and probabilities + Interaction length
   ! Last two material treated below statement number 100
@@ -617,7 +617,7 @@ subroutine k2coll_scatin(plab)
     ! correct TOT-CSec for energy dependence of qel
     ! TOT CS is here without a Coulomb contribution
     csect(0,ma) = csref(0,ma) + freep(ma) * (pptot - pptref)
-    bn(ma) = (bnref(ma) * csect(0,ma)) / csref(0,ma)
+    bn(ma)      = (bnref(ma) * csect(0,ma)) / csref(0,ma)
 
     ! also correct inel-CS
     csect(1,ma) = (csref(1,ma) * csect(0,ma)) / csref(0,ma)
@@ -734,7 +734,7 @@ subroutine k2coll_jaw(s, nabs, icoll, iturn, ipart)
   ! Do a step for a point-like interaction.
   ! Get monte-carlo interaction length.
 10 continue
-  zlm1     = (-one*xintl(mat))*log_mb(real(rndm4(),fPrec))
+  zlm1     = (-one*xintl(mat))*log_mb(rndm4())
   nabs_tmp = 0  ! type of interaction reset before following scattering process
   xpBef    = xp ! save angles and momentum before scattering
   zpBef    = zp
@@ -813,8 +813,8 @@ subroutine k2coll_jaw(s, nabs, icoll, iturn, ipart)
   ! and return.
   ! PARTICLE WAS ABSORBED INSIDE COLLIMATOR DURING MCS.
 
-  inter = k2coll_ichoix(mat)
-  nabs  = inter
+  inter    = k2coll_ichoix(mat)
+  nabs     = inter
   nabs_tmp = nabs
 
   ! RB, DM: save coordinates before interaction for writeout to FLUKA_impacts.dat
@@ -931,10 +931,10 @@ subroutine k2coll_mcs(s)
   theta    = 13.6e-3_fPrec/(p0*(one+dpop))
   rad_len  = radl(mat)
 
-  x  = (x/theta)/radl(mat)
-  xp = xp/theta
-  z  = (z/theta)/radl(mat)
-  zp = zp/theta
+  x     = (x/theta)/radl(mat)
+  xp    = xp/theta
+  z     = (z/theta)/radl(mat)
+  zp    = zp/theta
   rlen0 = zlm1/radl(mat)
   rlen  = rlen0
 
@@ -1066,10 +1066,10 @@ subroutine k2coll_tetat(t, p, tx, tz)
   vb  = rndm4()
   va2 = va**2
   vb2 = vb**2
-  r2 = va2 + vb2
+  r2  = va2 + vb2
   if(r2 > one) goto 10
-  tx = (teta*((two*va)*vb))/r2
-  tz = (teta*(va2 - vb2))/r2
+  tx  = (teta*((two*va)*vb))/r2
+  tz  = (teta*(va2 - vb2))/r2
 
 end subroutine k2coll_tetat
 
