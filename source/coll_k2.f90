@@ -971,7 +971,8 @@ end subroutine k2coll_mcs
 !! k2coll_calcIonLoss(IS,PC,DZ,EnLo)
 !! subroutine for the calculazion of the energy loss by ionization
 !! Either mean energy loss from Bethe-Bloch, or higher energy loss, according to finite probability from cross section
-!! written by DM for crystals, introduced in main code by RB
+!! Written by DM for crystals, introduced in main code by RB
+!! Updated and improved for numerical stability by VKBO
 !<
 subroutine k2coll_calcIonLoss(IS, PC, DZ, EnLo)
 
@@ -985,61 +986,61 @@ subroutine k2coll_calcIonLoss(IS, PC, DZ, EnLo)
   real(kind=fPrec), intent(in)  :: DZ   ! DZ length traversed in material (meters)
   real(kind=fPrec), intent(out) :: EnLo ! EnLo energy loss in GeV/meter
 
-  real(kind=fPrec) exEn,thl,Tt,cs_tail,prob_tail
-  real(kind=fPrec) enr,mom,betar,gammar,bgr ! Daniele: energy,momentum,beta relativistic, gamma relativistic
-  real(kind=fPrec) Tmax,plen ! Daniele: maximum energy tranfer in single collision, plasma energy (see pdg)
-
-  real(kind=fPrec), parameter :: k = 0.307075_fPrec ! Constant in front bethe-bloch [MeV g^-1 cm^2]
+  real(kind=fPrec) exEn,thl,Tt,cs_tail,prob_tail,enr,mom,betar,gammar,bgr,kine,Tmax,plen
+  real(kind=fPrec), parameter :: k = 0.307075_fPrec ! Constant in front of Bethe-Bloch [MeV g^-1 cm^2]
 
   mom    = PC*c1e3                     ! [GeV/c] -> [MeV/c]
   enr    = (mom*mom + pmap*pmap)**half ! [MeV]
   gammar = enr/pmap
   betar  = mom/enr
   bgr    = betar*gammar
+  kine   = ((two*pmae)*bgr)*bgr
 
-  ! mean excitation energy - convert to MeV
-  exEn = exenergy(IS)*c1e3
+  ! Mean excitation energy
+  exEn = exenergy(IS)*c1e3 ! [MeV]
 
   ! Tmax is max energy loss from kinematics
-  Tmax = ((two*pmae)*bgr**2)/(one + (two*gammar)*(pmae/pmap) + (pmae/pmap)**2) ![MeV]
+  Tmax = kine/(one + (two*gammar)*(pmae/pmap) + (pmae/pmap)**2) ! [MeV]
 
-  ! plasma energy - see PDG 2010 table 27.1
-  plen = ((rho(IS)*zatom(IS)/anuc(IS))**half)*28.816e-6_fPrec ![MeV]
+  ! Plasma energy - see PDG 2010 table 27.1
+  plen = (((rho(IS)*zatom(IS))/anuc(IS))**half)*28.816e-6_fPrec ! [MeV]
 
-  ! calculate threshold energy
+  ! Calculate threshold energy
   ! Above this threshold, the cross section for high energy loss is calculated and then
   ! a random number is generated to determine if tail energy loss should be applied, or only mean from Bethe-Bloch
-  ! below threshold, only the standard bethe-bloch is used (all particles get average energy loss)
+  ! below threshold, only the standard Bethe-Bloch is used (all particles get average energy loss)
 
-  ! thl is 2* width of landau distribution (as in fig 27.7 in PDG 2010). See Alfredo's presentation for derivation
-  thl = ((((four*k)*zatom(IS)*DZ)*c1e2)*rho(IS))/((anuc(IS)*betar**2)) ![MeV]
+  ! thl is 2*width of Landau distribution (as in fig 27.7 in PDG 2010). See Alfredo's presentation for derivation
+  thl = ((((four*(k*zatom(IS)))*DZ)*c1e2)*rho(IS))/(anuc(IS)*betar**2) ! [MeV]
 
-  ! Bethe Bloch mean energy loss
-  EnLo = ((k*zatom(IS))/(anuc(IS)*betar**2))*(half*log_mb((two*pmae*bgr*bgr*Tmax)/(exEn*exEn))-betar**two-&
-         log_mb(plen/exEn)-log_mb(bgr)+half)
+  ! Bethe-Bloch mean energy loss
+  EnLo = ((k*zatom(IS))/(anuc(IS)*betar**2)) * ( &
+    half*log_mb((kine*Tmax)/(exEn*exEn)) - betar**2 - log_mb(plen/exEn) - log_mb(bgr) + half &
+  )
+  EnLo = ((EnLo*rho(IS))*c1m1)*DZ ! [GeV]
 
-  EnLo = EnLo*rho(IS)*c1m1*DZ  ![GeV]
+  ! Threshold Tt is Bethe-Bloch + 2*width of Landau distribution
+  Tt = EnLo*c1e3 + thl ! [MeV]
 
-  ! threshold Tt is bethe bloch + 2*width of Landau distribution
-  Tt = EnLo*c1e3+thl      ![MeV]
+  ! Cross section - see Alfredo's presentation for derivation
+  cs_tail = ((k*zatom(IS))/(anuc(IS)*betar**2)) * ( &
+    half*((one/Tt)-(one/Tmax)) - (log_mb(Tmax/Tt)*betar**2)/(two*Tmax) + (Tmax-Tt)/((four*gammar**2)*pmap**2) &
+  )
 
-  ! cross section - see Alfredo's presentation for derivation
-  cs_tail = ((k*zatom(IS))/(anuc(IS)*betar**2))*((half*((one/Tt)-(one/Tmax)))-(log_mb(Tmax/Tt)*(betar**2) &
-          /(two*Tmax))+((Tmax-Tt)/(four*(gammar**2)*(pmap**2))))
+  ! Probability of being in tail: cross section * density * path length
+  prob_tail = ((cs_tail*rho(IS))*DZ)*c1e2
 
-  ! probability of being in tail: cross section * density * path length
-  prob_tail = cs_tail*rho(IS)*DZ*c1e2;
-
-  ! determine based on random number if tail energy loss occurs.
+  ! Determine based on random number if tail energy loss occurs.
   if(rndm4() < prob_tail) then
-    EnLo = ((k*zatom(IS))/(anuc(IS)*betar**2))*(half*log_mb((two*pmae*bgr*bgr*Tmax)/(exEn*exEn))-betar**two- &
-         log_mb(plen/exEn)-log_mb(bgr)+half+(TMax**2)/(eight*(gammar**2)*(pmap**2)))
-
-    EnLo = EnLo*rho(IS)*c1m1 ![GeV/m]
+    EnLo = ((k*zatom(IS))/(anuc(IS)*betar**2)) * ( &
+      half*log_mb((kine*Tmax)/(exEn*exEn)) - betar**2 - log_mb(plen/exEn) - log_mb(bgr) + &
+      half + TMax**2/((eight*gammar**2)*pmap**2) &
+    )
+    EnLo = (EnLo*rho(IS))*c1m1 ! [GeV/m]
   else
-    ! if tial energy loss does not occur, just use the standard Bethe Bloch
-    EnLo = EnLo/DZ  ![GeV/m]
-  endif
+    ! If tail energy loss does not occur, just use the standard Bethe-Bloch
+    EnLo = EnLo/DZ  ! [GeV/m]
+  end if
 
 end subroutine k2coll_calcIonLoss
 
