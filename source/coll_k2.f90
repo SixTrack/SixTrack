@@ -945,7 +945,7 @@ subroutine k2coll_mcs(s)
   call k2coll_soln3(ae,be,dh,rlen,s)
   if(s < h) s = h
 
-  call k2coll_scamcs(x,xp,s,radl_mat)
+  call k2coll_scamcs(x,xp,s)
   if(x <= zero) then
     s = (rlen0-rlen)+s
     goto 20
@@ -958,7 +958,7 @@ subroutine k2coll_mcs(s)
   goto 10
 
 20 continue
-  call k2coll_scamcs(z,zp,s,radl_mat)
+  call k2coll_scamcs(z,zp,s)
   s  = s*radl(mat)
   x  = (x*theta)*radl(mat)
   xp = xp*theta
@@ -1130,51 +1130,59 @@ subroutine k2coll_soln3(a, b, dh, smax, s)
 end subroutine k2coll_soln3
 
 !>
-!! k2coll_scamcs(xx,xxp,s,radl_mat)
-!! ???
+!! k2coll_scamcs(xx,xxp,s)
 !<
-subroutine k2coll_scamcs(xx,xxp,s,radl_mat)
+subroutine k2coll_scamcs(xx, xxp, s)
 
   use mathlib_bouncer
   use mod_ranlux
 
-  implicit none
+  real(kind=fPrec), intent(inout) :: xx
+  real(kind=fPrec), intent(inout) :: xxp
+  real(kind=fPrec), intent(in)    :: s
 
-  real(kind=fPrec) v1,v2,r2,a,z1,z2,ss,s,xx,xxp,x0,xp0
-  real(kind=fPrec) radl_mat
+  real(kind=fPrec) v1,v2,r2,a,z1,z2,ss,x0,xp0,sss
 
-  x0=xx
-  xp0=xxp
+  x0  = xx
+  xp0 = xxp
 
-5 v1=2d0*real(rndm4(),fPrec)-1d0
-  v2=2d0*real(rndm4(),fPrec)-1d0
-  r2=v1**2+v2**2
-  if(r2.ge.1.d0) goto 5
+10 continue
+  v1 = two*rndm4() - one
+  v2 = two*rndm4() - one
+  r2 = v1**2 + v2**2
+  if(r2 >= one) goto 10
 
-  a=sqrt((-2.d0*log_mb(r2))/r2)
-  z1=v1*a
-  z2=v2*a
-  ss=sqrt(s)
-  xx=x0+s*(xp0+(half*ss)*(one+0.038_fPrec*log_mb(s))*(z2+z1*0.577350269_fPrec)) !Claudia: added logarithmic part in mcs formula
-  xxp=xp0+ss*z2*(one+0.038_fPrec*log_mb(s))
+  a   = sqrt((-two*log_mb(r2))/r2)
+  z1  = v1*a
+  z2  = v2*a
+  ss  = sqrt(s)
+  sss = one + 0.038_fPrec*log_mb(s)
+  xx  = x0  + s*(xp0 + ((half*ss)*sss)*(z2 + z1*0.577350269_fPrec))
+  xxp = xp0 + (ss*z2)*sss
+
 end subroutine k2coll_scamcs
 
 subroutine k2coll_iterat(a,b,dh,s)
 
-  implicit none
+  real(kind=fPrec), intent(in)    :: a
+  real(kind=fPrec), intent(in)    :: b
+  real(kind=fPrec), intent(in)    :: dh
+  real(kind=fPrec), intent(inout) :: s
 
-  real(kind=fPrec) ds,s,a,b,dh
+  real(kind=fPrec) ds
 
-  ds=s
-10 ds=ds*half
+  ds = s
 
-  if(s**3.lt.(a+b*s)**2) then
-    s=s+ds
+10 continue
+  ds = ds*half
+
+  if(s**3 < (a+b*s)**2) then
+    s = s+ds
   else
-    s=s-ds
+    s = s-ds
   end if
 
-  if(ds.lt.dh) then
+  if(ds < dh) then
     return
   else
     goto 10
