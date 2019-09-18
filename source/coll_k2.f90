@@ -558,7 +558,6 @@ end subroutine k2coll_collimate
 !>
 !! k2coll_scatin(plab)
 !! Configure the K2 scattering routine cross sections
-!!
 !<
 subroutine k2coll_scatin(plab)
 
@@ -566,94 +565,89 @@ subroutine k2coll_scatin(plab)
   use coll_materials
   use mathlib_bouncer
   use physical_constants
-#ifdef HDF5
-  use hdf5_output
-  use hdf5_tracks2
-#endif
 
-  implicit none
+  real(kind=fPrec), intent(in) :: plab
 
-  integer ma,i
-  real(kind=fPrec) plab
   real(kind=fPrec) tlow,thigh
+  integer ma,i
 
   ecmsq = (two * pmap) * plab
 #ifndef MERLINSCATTER
-  xln15s=log_mb(0.15_fPrec*ecmsq)
-
-!Claudia Fit from COMPETE collaboration points "arXiv:hep-ph/0206172v1 19Jun2002"
-  pptot=0.041084_fPrec-0.0023302_fPrec*log_mb(ecmsq)+0.00031514_fPrec*log_mb(ecmsq)**2
-
-!Claudia used the fit from TOTEM for ppel (in barn)
-  ppel=(11.7_fPrec-1.59_fPrec*log_mb(ecmsq)+0.134_fPrec*log_mb(ecmsq)**2)/c1e3
-
-!Claudia updated SD cross that cointains renormalized pomeron flux (in barn)
-  ppsd=(4.3_fPrec+0.3_fPrec*log_mb(ecmsq))/c1e3
+  xln15s = log_mb(0.15_fPrec*ecmsq)
+  ! Claudia Fit from COMPETE collaboration points "arXiv:hep-ph/0206172v1 19Jun2002"
+  pptot = 0.041084_fPrec-0.0023302_fPrec*log_mb(ecmsq)+0.00031514_fPrec*log_mb(ecmsq)**2
+  ! Claudia used the fit from TOTEM for ppel (in barn)
+  ppel = (11.7_fPrec-1.59_fPrec*log_mb(ecmsq)+0.134_fPrec*log_mb(ecmsq)**2)/c1e3
+  ! Claudia updated SD cross that cointains renormalized pomeron flux (in barn)
+  ppsd = (4.3_fPrec+0.3_fPrec*log_mb(ecmsq))/c1e3
 #endif
 
 #ifdef MERLINSCATTER
-!No crlibm...
+  ! No crlibm...
   call merlinscatter_setup(plab,rnd_seed)
   call merlinscatter_setdata(pptot,ppel,ppsd)
 #endif
 
-!Claudia new fit for the slope parameter with new data at sqrt(s)=7 TeV from TOTEM
-  bpp=7.156_fPrec+1.439_fPrec*log_mb(sqrt(ecmsq))
+  ! Claudia new fit for the slope parameter with new data at sqrt(s)=7 TeV from TOTEM
+  bpp = 7.156_fPrec+1.439_fPrec*log_mb(sqrt(ecmsq))
 
-! unmeasured tungsten data,computed with lead data and power laws
+  ! unmeasured tungsten data,computed with lead data and power laws
   bnref(4) = bnref(5)*(anuc(4) / anuc(5))**(two/three)
   emr(4) = emr(5) * (anuc(4)/anuc(5))**(one/three)
 
-! Compute cross-sections (CS) and probabilities + Interaction length
-! Last two material treated below statement number 100
+  ! Compute cross-sections (CS) and probabilities + Interaction length
+  ! Last two material treated below statement number 100
 
-  tlow=tlcut
+  tlow = tlcut
   do ma=1,nrmat
-    mcurr=ma
-! prepare for Rutherford differential distribution
-    thigh=hcut(ma)
-    call funlxp ( k2coll_ruth , cgen(1,ma) ,tlow, thigh )
 
-! freep: number of nucleons involved in single scattering
+    mcurr = ma
+    ! prepare for Rutherford differential distribution
+    thigh = hcut(ma)
+    call funlxp(k2coll_ruth, cgen(1,ma), tlow, thigh)
+
+    ! freep: number of nucleons involved in single scattering
     freep(ma) = freeco * anuc(ma)**(one/three)
 
-! compute pp and pn el+single diff contributions to cross-section
-! (both added : quasi-elastic or qel later)
+    ! compute pp and pn el+single diff contributions to cross-section
+    ! (both added : quasi-elastic or qel later)
     csect(3,ma) = freep(ma) * ppel
     csect(4,ma) = freep(ma) * ppsd
 
-! correct TOT-CSec for energy dependence of qel
-! TOT CS is here without a Coulomb contribution
+    ! correct TOT-CSec for energy dependence of qel
+    ! TOT CS is here without a Coulomb contribution
     csect(0,ma) = csref(0,ma) + freep(ma) * (pptot - pptref)
     bn(ma) = (bnref(ma) * csect(0,ma)) / csref(0,ma)
-! also correct inel-CS
+
+    ! also correct inel-CS
     csect(1,ma) = (csref(1,ma) * csect(0,ma)) / csref(0,ma)
-!
-! Nuclear Elastic is TOT-inel-qel ( see definition in RPP)
+
+    ! Nuclear Elastic is TOT-inel-qel ( see definition in RPP)
     csect(2,ma) = ((csect(0,ma) - csect(1,ma)) - csect(3,ma)) - csect(4,ma)
     csect(5,ma) = csref(5,ma)
-! Now add Coulomb
-    csect(0,ma) = csect(0,ma) + csect(5,ma)
-! Interaction length in meter
-  xintl(ma) = (c1m2*anuc(ma))/(((fnavo * rho(ma))*csect(0,ma))*1d-24)
 
-! Filling CProb with cumulated normalised Cross-sections
+    ! Now add Coulomb
+    csect(0,ma) = csect(0,ma) + csect(5,ma)
+  
+    ! Interaction length in meter
+    xintl(ma) = (c1m2*anuc(ma))/(((fnavo * rho(ma))*csect(0,ma))*1e-24_fPrec)
+
+    ! Filling CProb with cumulated normalised Cross-sections
     do i=1,4
       cprob(i,ma)=cprob(i-1,ma)+csect(i,ma)/csect(0,ma)
     end do
   end do
 
-! Last two materials for 'vaccum' (nmat-1) and 'full black' (nmat)
+  ! Last two materials for 'vaccum' (nmat-1) and 'full black' (nmat)
   cprob(1,nmat-1) = one
   cprob(1,nmat)   = one
   xintl(nmat-1)   = c1e12
   xintl(nmat)     = zero
-  return
+
 end subroutine k2coll_scatin
 
 !>
-!! jaw(s,nabs,icoll,iturn,ipart,dowrite_impact)
-!! ???
+!! jaw(s,nabs,icoll,iturn,ipart)
 !!     RB: adding as input arguments to jaw variables icoll,iturn,ipart
 !!         these are only used for the writeout of particle histories
 !!
