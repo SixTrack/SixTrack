@@ -1046,76 +1046,83 @@ end subroutine k2coll_calcIonLoss
 
 !>
 !! k2coll_tetat(t,p,tx,tz)
-!! ???
-!!
+!! Generate sine and cosine of an angle uniform in [0,2pi](see RPP)
 !<
-subroutine k2coll_tetat(t,p,tx,tz)
+subroutine k2coll_tetat(t, p, tx, tz)
 
   use mod_ranlux
 
-  implicit none
+  real(kind=fPrec), intent(in)  :: t
+  real(kind=fPrec), intent(in)  :: p
+  real(kind=fPrec), intent(out) :: tx
+  real(kind=fPrec), intent(out) :: tz
 
-  real(kind=fPrec) t,p,tx,tz,va,vb,va2,vb2,r2,teta
+  real(kind=fPrec) va,vb,va2,vb2,r2,teta
+
   teta = sqrt(t)/p
 
-! Generate sine and cosine of an angle uniform in [0,2pi](see RPP)
-10 va  =(two*real(rndm4(),fPrec))-one
-  vb = real(rndm4(),fPrec)
+10 continue
+  va  = two*rndm4() - one
+  vb  = rndm4()
   va2 = va**2
   vb2 = vb**2
   r2 = va2 + vb2
-  if ( r2.gt.one) go to 10
-  tx = teta * ((two*va)*vb) / r2
-  tz = teta * (va2 - vb2) / r2
-  return
+  if(r2 > one) goto 10
+  tx = (teta*((two*va)*vb))/r2
+  tz = (teta*(va2 - vb2))/r2
+
 end subroutine k2coll_tetat
 
 !>
 !! k2coll_soln3(a,b,dh,smax,s)
-!! ???
 !<
-subroutine k2coll_soln3(a,b,dh,smax,s)
+subroutine k2coll_soln3(a, b, dh, smax, s)
 
-  implicit none
+  real(kind=fPrec), intent(in)    :: a
+  real(kind=fPrec), intent(in)    :: b
+  real(kind=fPrec), intent(in)    :: dh
+  real(kind=fPrec), intent(in)    :: smax
+  real(kind=fPrec), intent(inout) :: s
 
-  real(kind=fPrec) b,a,s,smax,c,dh
-  if(b.eq.zero) then
-    s=a**0.6666666666666667_fPrec
-!      s=a**(two/three)
-    if(s.gt.smax) s=smax
+  real(kind=fPrec) c
+
+  if(b == zero) then
+    s = a**0.6666666666666667_fPrec
+  ! s = a**(two/three)
+    if(s > smax) s = smax
     return
   end if
 
-  if(a.eq.zero) then
-    if(b.gt.zero) then
-      s=b**2
+  if(a == zero) then
+    if(b > zero) then
+      s = b**2
     else
-      s=zero
+      s = zero
     end if
-    if(s.gt.smax) s=smax
+    if(s > smax) s=smax
     return
   end if
 
-  if(b.gt.zero) then
-    if(smax**3.le.(a+b*smax)**2) then
-      s=smax
+  if(b > zero) then
+    if(smax**3 <= (a + b*smax)**2) then
+      s = smax
       return
     else
-      s=smax*half
+      s = smax*half
       call k2coll_iterat(a,b,dh,s)
     end if
   else
-    c=(-one*a)/b
-    if(smax.lt.c) then
-      if(smax**3.le.(a+b*smax)**2) then
-        s=smax
+    c = (-one*a)/b
+    if(smax < c) then
+      if(smax**3 <= (a + b*smax)**2) then
+        s = smax
         return
       else
-        s=smax*half
+        s = smax*half
         call k2coll_iterat(a,b,dh,s)
       end if
     else
-      s=c*half
+      s = c*half
       call k2coll_iterat(a,b,dh,s)
     end if
   end if
