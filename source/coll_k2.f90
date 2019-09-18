@@ -11,7 +11,6 @@ module coll_k2
 
   real(kind=fPrec), parameter :: tlcut = 0.0009982_fPrec
 
-  integer,          private, save :: nev
   integer,          private, save :: mcurr
   integer,          private, save :: mat
   real(kind=fPrec), private, save :: zlm
@@ -60,40 +59,14 @@ subroutine k2coll_init
 !nothing currently
 end subroutine k2coll_init
 
-!>
-!! subroutine k2coll_collimate(c_material, c_length, c_rotation,           &
-!!-----GRD-----GRD-----GRD-----GRD-----GRD-----GRD-----GRD-----GRD-----GRD-----
-!!----                                                                    -----
-!!-----  NEW ROUTINES PROVIDED FOR THE COLLIMATION STUDIES VIA SIXTRACK   -----
-!!-----                                                                   -----
-!!-----          G. ROBERT-DEMOLAIZE, November 1st, 2004                  -----
-!!-----                                                                   -----
-!!-----GRD-----GRD-----GRD-----GRD-----GRD-----GRD-----GRD-----GRD-----GRD-----
-!!++  Based on routines by JBJ. Changed by RA 2001.
-!!GRD
-!!GRD MODIFIED VERSION FOR COLLIMATION SYSTEM: G. ROBERT-DEMOLAIZE
-!!GRD
-!!
-!!++  - Deleted all HBOOK stuff.
-!!++  - Deleted optics routine and all parser routines.
-!!++  - Replaced RANMAR call by RANLUX call
-!!++  - Included RANLUX code from CERNLIB into source
-!!++  - Changed dimensions from CGen(100,nmat) to CGen(200,nmat)
-!!++  - Replaced FUNPRE with FUNLXP
-!!++  - Replaced FUNRAN with FUNLUX
-!!++  - Included all CERNLIB code into source: RANLUX, FUNLXP, FUNLUX,
-!!++                                         FUNPCT, FUNLZ, RADAPT,
-!!++                                           RGS56P
-!!++    with additional entries:             RLUXIN, RLUXUT, RLUXAT,
-!!++                                           RLUXGO
-!!++
-!!++  - Changed program so that Nev is total number of particles
-!!++    (scattered and not-scattered)
-!!++  - Added debug comments
-!!++  - Put real dp/dx
-!<
-subroutine k2coll_collimate(icoll, iturn, ie, c_length, c_rotation, c_aperture, c_offset, c_tilt, &
-  x_in, xp_in, y_in, yp_in, p_in, s_in, np, enom, lhit_pos, lhit_turn, part_abs_pos_local, &
+! ================================================================================================ !
+!  Collimation K2 Routine
+! ~~~~~~~~~~~~~~~~~~~~~~~~
+!  G. ROBERT-DEMOLAIZE, November 1st, 2004
+!  Based on routines by JBJ. Changed by RA 2001
+! ================================================================================================ !
+subroutine k2coll_collimate(icoll, iturn, ie, c_length, c_rotation, c_aperture, c_offset, c_tilt,  &
+  x_in, xp_in, y_in, yp_in, p_in, s_in, enom, lhit_pos, lhit_turn, part_abs_pos_local,             &
   part_abs_turn_local, impact, indiv, lint, onesided, flagsec, j_slices, nabs_type, linside)
 
   use parpro
@@ -114,7 +87,7 @@ subroutine k2coll_collimate(icoll, iturn, ie, c_length, c_rotation, c_aperture, 
   integer,          intent(in)    :: ie           ! Structure element index
 
   real(kind=fPrec), intent(in)    :: c_length     ! Collimator length in m
-  real(kind=fPrec), intent(in)    :: c_rotation   ! Collimator rotation angle vs vertical in radian
+  real(kind=fPrec), intent(in)    :: c_rotation   ! Collimator rotation angle vs vertical in radians
   real(kind=fPrec), intent(in)    :: c_aperture   ! Collimator aperture in m
   real(kind=fPrec), intent(in)    :: c_offset     ! Collimator offset in m
   real(kind=fPrec), intent(inout) :: c_tilt(2)    ! Collimator tilt in radians
@@ -126,46 +99,39 @@ subroutine k2coll_collimate(icoll, iturn, ie, c_length, c_rotation, c_aperture, 
   real(kind=fPrec), intent(inout) :: p_in(npart)  ! Particle coordinate
   real(kind=fPrec), intent(inout) :: s_in(npart)  ! Particle coordinate
 
-  integer,          intent(in)    :: np           ! Number of particles
+  real(kind=fPrec), intent(in)    :: enom         ! Reference momentum in GeV
+  logical,          intent(in)    :: onesided
 
-  logical onesided,hit
-  integer nprim,j,nabs,nhit
+  integer,          intent(inout) :: lhit_pos(npart)
+  integer,          intent(inout) :: lhit_turn(npart)
+  integer,          intent(inout) :: part_abs_pos_local(npart)
+  integer,          intent(inout) :: part_abs_turn_local(npart)
+  integer,          intent(inout) :: nabs_type(npart)
+  integer,          intent(inout) :: flagsec(npart)
+  real(kind=fPrec), intent(inout) :: indiv(npart)
+  real(kind=fPrec), intent(inout) :: lint(npart)
+  real(kind=fPrec), intent(inout) :: impact(npart)
+  logical,          intent(inout) :: linside(napx)
 
-  integer, allocatable :: lhit_pos(:) !(npart)
-  integer, allocatable :: lhit_turn(:) !(npart)
-  integer, allocatable :: part_abs_pos_local(:) !(npart)
-  integer, allocatable :: part_abs_turn_local(:) !(npart)
-  integer, allocatable :: nabs_type(:) !(npart)
+  ! Internal Variables
 
-  logical linside(napx)
-  real(kind=fPrec), allocatable :: indiv(:) !(npart)
-  real(kind=fPrec), allocatable :: lint(:) !(npart)
-  real(kind=fPrec), allocatable :: impact(:) !(npart)
+  logical hit
+  integer nprim,j,nabs,nhit,j_slices
+
   real(kind=fPrec) keeps,fracab,drift_length,mirror,tiltangle
-
-  real(kind=fPrec) x00,z00,p,sp,s,enom
+  real(kind=fPrec) x00,z00,p,sp,s
   real(kind=fPrec) x_flk,xp_flk,y_flk,yp_flk,zpj
   real(kind=fPrec) x_Dump,xpDump,y_Dump,ypDump,s_Dump
   real(kind=fPrec) cRot,sRot,cRRot,sRRot
+  real(kind=fPrec) s_impact,xinn,xpinn,yinn,ypinn
 
-  real(kind=fPrec) s_impact
-  integer flagsec(npart)
-
-  ! SR, 18-08-2005: add temporary variable to write in FirstImpacts
-  ! the initial distribution of the impacting particles in the collimator frame.
-  real(kind=fPrec) xinn,xpinn,yinn,ypinn
-
-  ! SR, 29-08-2005: add the slice number to calculate the impact
-  ! location within the collimator.
-  ! j_slices = 1 for the a non sliced collimator!
-  integer j_slices
+  ! Initilaisation
 
   mat    = cdb_cMaterialID(icoll)
   length = c_length
-  nev    = np
   p0     = enom
 
-  ! Initialize scattering processes
+  ! Initialise scattering processes
   call k2coll_scatin(p0)
 
   nhit   = 0
@@ -178,7 +144,7 @@ subroutine k2coll_collimate(icoll, iturn, ie, c_length, c_rotation, c_aperture, 
   cRRot  = cos_mb(-c_rotation)
   sRRot  = sin_mb(-c_rotation)
 
-  do j=1,nev
+  do j=1,napx
 
     if(part_abs_pos_local(j) /= 0 .and. part_abs_turn_local(j) /= 0) then
       ! Don't do scattering process for particles already absorbed
@@ -240,7 +206,7 @@ subroutine k2coll_collimate(icoll, iturn, ie, c_length, c_rotation, c_aperture, 
     ! For selected collimator, first turn reset particle distribution to simple pencil beam
     nprim = 3
     if(((icoll == ipencil .and. iturn == 1) .or. (iturn == 1 .and. ipencil == 999 .and. icoll <= nprim .and. &
-       (j >= (icoll-1)*nev/nprim) .and. (j <= (icoll)*nev/nprim))) .and. (pencil_distr /= 3)) then
+       (j >= (icoll-1)*napx/nprim) .and. (j <= (icoll)*napx/nprim))) .and. (pencil_distr /= 3)) then
       ! RB addition : don't go in this if-statement if pencil_distr=3. This distribution is generated in main loop instead
 
       ! TW why did I set this to 0, seems to be needed for getting
@@ -384,17 +350,17 @@ subroutine k2coll_collimate(icoll, iturn, ie, c_length, c_rotation, c_aperture, 
     if(zlm > zero) then
       if(.not.linside(j)) then
         ! first time particle hits collimator: entering jaw
-        linside(j)=.true.
+        linside(j) = .true.
         if(dowrite_impact) then
           if(tiltangle > zero) then
-            x_Dump=(x+c_aperture/two+tiltangle*sp)*mirror+c_offset
+            x_Dump = (x+c_aperture/two+tiltangle*sp)*mirror+c_offset
           else
-            x_Dump=(x+c_aperture/two+tiltangle*(sp-c_length))*mirror+c_offset
+            x_Dump = (x+c_aperture/two+tiltangle*(sp-c_length))*mirror+c_offset
           end if
-          xpDump=(xp+tiltangle)*mirror
-          y_Dump=z
-          ypDump=zp
-          s_Dump=sp+real(j_slices-1,fPrec)*c_length
+          xpDump = (xp+tiltangle)*mirror
+          y_Dump = z
+          ypDump = zp
+          s_Dump = sp+real(j_slices-1,fPrec)*c_length
           write(coll_jawProfileUnit,"(3(1x,i7),5(1x,e17.9),1x,i1)") &
             icoll,iturn,partID(j),x_Dump,xpDump,y_Dump,ypDump,s_Dump,1
         end if
@@ -554,7 +520,7 @@ subroutine k2coll_collimate(icoll, iturn, ie, c_length, c_rotation, c_aperture, 
       ! Transform back to particle coordinates with opening and offset
       z00 = z
       x00 = x + mirror*c_offset
-      x = (x + c_aperture/two) + mirror*c_offset
+      x   = (x + c_aperture/two) + mirror*c_offset
 
       ! Now mirror at the horizontal axis for negative X offset
       x  = mirror * x
@@ -567,8 +533,8 @@ subroutine k2coll_collimate(icoll, iturn, ie, c_length, c_rotation, c_aperture, 
       yp_in(j) = zp*cRRot - xp*sRRot
 
       if(((icoll == ipencil .and. iturn == 1) .or. &
-         (iturn == 1 .and. ipencil == 999 .and. icoll <= nprim .and. (j >= (icoll-1)*nev/nprim) .and. &
-         (j <= (icoll)*nev/nprim))) .and.(pencil_distr /= 3)) then
+         (iturn == 1 .and. ipencil == 999 .and. icoll <= nprim .and. (j >= (icoll-1)*napx/nprim) .and. &
+         (j <= (icoll)*napx/nprim))) .and.(pencil_distr /= 3)) then
         ! RB: adding condition that this shouldn't be done if pencil_distr=3
         x00      = mirror * x00
         x_in(j)  = x00*cRRot + z00*sRRot
