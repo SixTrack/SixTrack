@@ -919,46 +919,52 @@ subroutine k2coll_mcs(s)
 
   use coll_materials
 
-  implicit none
-!      save h,dh,bn
-  real(kind=fPrec) h,dh,theta,rlen0,rlen,ae,be,bn0,s
-  real(kind=fPrec) radl_mat,rad_len ! Claudia 2013 added variables
+  real(kind=fPrec), intent(inout) :: s
 
+  real(kind=fPrec) theta,rlen0,rlen,ae,be,radl_mat,rad_len
 
-!   bn=sqrt(3)/(number of sigmas for s-determination(=4))
-  data h/.001d0/dh/.0001d0/bn0/.4330127019d0/
+  real(kind=fPrec), parameter :: h   = 0.001_fPrec
+  real(kind=fPrec), parameter :: dh  = 0.0001_fPrec
+  real(kind=fPrec), parameter :: bn0 = 0.4330127019_fPrec
 
-  radl_mat=radl(mat)
-  theta=13.6d-3/(p0*(1.d0+dpop))      !Claudia added log part
-  rad_len=radl(mat)                    !Claudia
+  radl_mat = radl(mat)
+  theta    = 13.6e-3_fPrec/(p0*(one+dpop))
+  rad_len  = radl(mat)
 
-  x=(x/theta)/radl(mat)
-  xp=xp/theta
-  z=(z/theta)/radl(mat)
-  zp=zp/theta
-  rlen0=zlm1/radl(mat)
-  rlen=rlen0
-10    ae=bn0*x
-  be=bn0*xp
+  x  = (x/theta)/radl(mat)
+  xp = xp/theta
+  z  = (z/theta)/radl(mat)
+  zp = zp/theta
+  rlen0 = zlm1/radl(mat)
+  rlen  = rlen0
+
+10 continue
+  ae = bn0*x
+  be = bn0*xp
+
   call k2coll_soln3(ae,be,dh,rlen,s)
-  if(s.lt.h) s=h
+  if(s < h) s = h
+
   call k2coll_scamcs(x,xp,s,radl_mat)
-  if(x.le.0.d0) then
-   s=(rlen0-rlen)+s
-   goto 20
+  if(x <= zero) then
+    s = (rlen0-rlen)+s
+    goto 20
   end if
-  if(s+dh.ge.rlen) then
-   s=rlen0
-   goto 20
+  if(s+dh >= rlen) then
+    s = rlen0
+    goto 20
   end if
-  rlen=rlen-s
+  rlen = rlen-s
   goto 10
-20    call k2coll_scamcs(z,zp,s,radl_mat)
-  s=s*radl(mat)
-  x=(x*theta)*radl(mat)
-  xp=xp*theta
-  z=(z*theta)*radl(mat)
-  zp=zp*theta
+
+20 continue
+  call k2coll_scamcs(z,zp,s,radl_mat)
+  s  = s*radl(mat)
+  x  = (x*theta)*radl(mat)
+  xp = xp*theta
+  z  = (z*theta)*radl(mat)
+  zp = zp*theta
+
 end subroutine k2coll_mcs
 
 !>
