@@ -1226,8 +1226,7 @@ real(kind=fPrec) function k2coll_gettran(inter, xmat, p)
   integer,          intent(in)    :: xmat
   real(kind=fPrec), intent(inout) :: p
 
-  real(kind=fPrec) t,xm2,bsd,truth,xran(1)
-  integer length
+  real(kind=fPrec) xm2,bsd,xran(1)
 
   ! Neither if-statements below have an else, so defaulting function return to zero.
   k2coll_gettran = zero
@@ -1236,28 +1235,22 @@ real(kind=fPrec) function k2coll_gettran(inter, xmat, p)
   select case(inter)
   case(2) ! Nuclear Elastic
     k2coll_gettran = (-one*log_mb(rndm4()))/bn(xmat)
-
   case(3) ! pp Elastic
     k2coll_gettran = (-one*log_mb(rndm4()))/bpp
-
   case(4) ! Single Diffractive
     xm2 = exp_mb(rndm4() * xln15s)
     p   = p * (one - xm2/ecmsq)
     if(xm2 < two) then
       bsd = two * bpp
     else if(xm2 >= two .and. xm2 <= five) then
-      bsd = ((106.0_fPrec - 17.0_fPrec*xm2)*bpp )/36.0_fPrec
+      bsd = ((106.0_fPrec - 17.0_fPrec*xm2)*bpp)/36.0_fPrec
     else
       bsd = (seven*bpp)/12.0_fPrec
     end if
     k2coll_gettran = (-one*log_mb(rndm4()))/bsd
-
   case(5) ! Coulomb
-    length = 1
-    call funlux(cgen(1,mat), xran, length)
-    truth = xran(1)
-    t = truth
-    k2coll_gettran = t
+    call funlux(cgen(1,mat), xran, 1)
+    k2coll_gettran = xran(1)
   end select
 #else
   select case(inter)
@@ -1270,11 +1263,8 @@ real(kind=fPrec) function k2coll_gettran(inter, xmat, p)
     call merlinscatter_get_sd_t(k2coll_gettran)
     p = p * (one - (xm2/ecmsq))
   case(5)
-    length = 1
-    call funlux(cgen(1,mat), xran, length)
-    truth = xran(1)
-    t = truth
-    k2coll_gettran = t
+    call funlux(cgen(1,mat), xran, 1)
+    k2coll_gettran = xran(1)
   end select
 #endif
 
@@ -1291,10 +1281,12 @@ integer function k2coll_ichoix(ma)
 
   integer, intent(in) :: ma
   integer i
+  real(kind=fPrec) aran
 
-  i = 1
+  aran = rndm4()
+  i    = 1
 10 continue
-  if(rndm4() > cprob(i,ma)) then
+  if(aran > cprob(i,ma)) then
     i = i+1
     goto 10
   end if
