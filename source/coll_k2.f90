@@ -9,10 +9,8 @@ module coll_k2
 
   implicit none
 
-  real(kind=fPrec), parameter :: tlcut = 0.0009982_fPrec
-
-  integer,          private, save :: mcurr
-  integer,          private, save :: mat
+  integer,          private, save :: mat   ! Current material
+  integer,          private, save :: mcurr ! Current material, used for Rutherford scattering integration
   real(kind=fPrec), private, save :: zlm
   real(kind=fPrec), private, save :: zlm1
   real(kind=fPrec), private, save :: p0
@@ -568,10 +566,10 @@ subroutine k2coll_scatin(plab)
 
   real(kind=fPrec), intent(in) :: plab
 
-  real(kind=fPrec) tlow,thigh
+  real(kind=fPrec), parameter :: tlcut = 0.0009982_fPrec
   integer ma,i
 
-  ecmsq = (two * pmap) * plab
+  ecmsq = (two*pmap) * plab
 #ifndef MERLINSCATTER
   xln15s = log_mb(0.15_fPrec*ecmsq)
   ! Claudia Fit from COMPETE collaboration points "arXiv:hep-ph/0206172v1 19Jun2002"
@@ -583,7 +581,6 @@ subroutine k2coll_scatin(plab)
 #endif
 
 #ifdef MERLINSCATTER
-  ! No crlibm...
   call merlinscatter_setup(plab,rnd_seed)
   call merlinscatter_setdata(pptot,ppel,ppsd)
 #endif
@@ -591,20 +588,17 @@ subroutine k2coll_scatin(plab)
   ! Claudia new fit for the slope parameter with new data at sqrt(s)=7 TeV from TOTEM
   bpp = 7.156_fPrec + 1.439_fPrec*log_mb(sqrt(ecmsq))
 
-  ! unmeasured tungsten data,computed with lead data and power laws
+  ! Unmeasured tungsten data, computed with lead data and power laws
   bnref(4) = (bnref(5)*(anuc(4))/anuc(5))**(two/three)
   emr(4)   = (emr(5)  *(anuc(4))/anuc(5))**(one/three)
 
   ! Compute cross-sections (CS) and probabilities + Interaction length
   ! Last two material treated below statement number 100
-
-  tlow = tlcut
   do ma=1,nrmat
 
     mcurr = ma
-    ! prepare for Rutherford differential distribution
-    thigh = hcut(ma)
-    call funlxp(k2coll_ruth, cgen(1,ma), tlow, thigh)
+    ! Prepare for Rutherford differential distribution
+    call funlxp(k2coll_ruth, cgen(1,ma), tlcut, hcut(ma))
 
     ! freep: number of nucleons involved in single scattering
     freep(ma) = freeco * anuc(ma)**(one/three)
@@ -687,44 +681,36 @@ subroutine k2coll_jaw(s, nabs, icoll, iturn, ipart)
   nabs = 0
   nabs_tmp = nabs
 
-  if(mat == nmat) then
-    ! Collimator treated as black absorber
+  if(mat == nmat) then ! Collimator treated as black absorber
     nabs = 1
-    nabs_tmp = nabs
-    s = zero
-
-    if(dowrite_impact) then
-      ! write coll_scatter.dat for complete scattering histories
+    s    = zero
+    if(dowrite_impact) then ! Write coll_scatter.dat for complete scattering histories
 #ifdef HDF5
       if(h5_useForCOLL) then
-        call coll_hdf5_writeCollScatter(icoll, iturn, ipart, nabs_tmp, -one, zero, zero)
+        call coll_hdf5_writeCollScatter(icoll, iturn, ipart, 1, -one, zero, zero)
       else
 #endif
-      write(coll_scatterUnit,'(1x,i2,2x,i4,2x,i5,2x,i1,3(2x,e14.6))') icoll, iturn, ipart, nabs_tmp, -one, zero, zero
+      write(coll_scatterUnit,"(1x,i2,2x,i4,2x,i5,2x,i1,3(2x,e14.6))") icoll, iturn, ipart, 1, -one, zero, zero
 #ifdef HDF5
       end if
 #endif
     end if
     return
-  else if(mat == nmat-1) then
-    ! Collimator treated as drift
+  else if(mat == nmat-1) then ! Collimator treated as drift
     s = zlm
     x = x+s*xp
     z = z+s*zp
-
-    if(dowrite_impact) then
-      ! write coll_scatter.dat for complete scattering histories
+    if(dowrite_impact) then ! Write coll_scatter.dat for complete scattering histories
 #ifdef HDF5
       if(h5_useForCOLL) then
-        call coll_hdf5_writeCollScatter(icoll, iturn, ipart, nabs_tmp, -one, zero, zero)
+        call coll_hdf5_writeCollScatter(icoll, iturn, ipart, 0, -one, zero, zero)
       else
 #endif
-      write(coll_scatterUnit,'(1x,i2,2x,i4,2x,i5,2x,i1,3(2x,e14.6))') icoll, iturn, ipart, nabs_tmp, -one, zero, zero
+      write(coll_scatterUnit,"(1x,i2,2x,i4,2x,i5,2x,i1,3(2x,e14.6))") icoll, iturn, ipart, 0, -one, zero, zero
 #ifdef HDF5
-      endif
+      end if
 #endif
     end if
-
     return
   end if
 
@@ -804,7 +790,6 @@ subroutine k2coll_jaw(s, nabs, icoll, iturn, ipart)
       end if
 #endif
     end if
-
     return
   end if
 
@@ -1202,8 +1187,8 @@ real(kind=fPrec) function k2coll_ruth(t)
   real(kind=fPrec), intent(in) :: t
 
   ! DM: changed 2.607d-4 to 2.607d-5 to fix Rutherford bug
-  real(kind=fPrec), parameter :: cnorm=2.607e-5_fPrec
-  real(kind=fPrec), parameter :: cnform=0.8561e3_fPrec
+  real(kind=fPrec), parameter :: cnorm  = 2.607e-5_fPrec
+  real(kind=fPrec), parameter :: cnform = 0.8561e3_fPrec
 
   k2coll_ruth = (cnorm*exp_mb(((-one*t)*cnform)*emr(mcurr)**2)) * (zatom(mcurr)/t)**2
 
