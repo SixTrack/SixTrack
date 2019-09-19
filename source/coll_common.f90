@@ -131,50 +131,25 @@ module coll_materials
   integer, parameter :: nmat  = 14 ! Total number of materials
   integer, parameter :: nrmat = 12 ! Number of real materials
 
-  real(kind=fPrec), public, save :: csect(0:5,nmat)
-  real(kind=fPrec), public, save :: xintl(nmat)
-  real(kind=fPrec), public, save :: bn(nmat)
-  real(kind=fPrec), public, save :: freep(nmat)
-  real(kind=fPrec), public, save :: cgen(200,nmat)
-
   ! pp cross-sections and parameters for energy dependence
   real(kind=fPrec), parameter :: pptref = 0.04_fPrec
   real(kind=fPrec), parameter :: freeco = 1.618_fPrec
 
-  ! Collimator Materials
-  character(4), parameter :: colmats(nmat) = &
-    ["BE  ","AL  ","CU  ","W   ","PB  ","C   ","C2  ","MoGR","CuCD","Mo  ","Glid","Iner","VA  ","BL  "]
-
-  ! Mean excitation energy (GeV) values added by Claudia for Bethe-Bloch implementation:
-  real(kind=fPrec), public, save :: exenergy(nmat) = [ &
-    63.7e-9_fPrec, 166.0e-9_fPrec, 322.0e-9_fPrec, 727.0e-9_fPrec, 823.0e-9_fPrec, 78.0e-9_fPrec, 78.0e-9_fPrec, &
-    87.1e-9_fPrec, 152.9e-9_fPrec, 424.0e-9_fPrec, 320.8e-9_fPrec, 682.2e-9_fPrec, zero, c1e10 ]
-
-  ! GRD: Implement changes from JBJ, 2/2003 RWA
-  real(kind=fPrec), public, save :: anuc(nmat)  = &
-    [ 9.01_fPrec,  26.98_fPrec,  63.55_fPrec, 183.85_fPrec, 207.19_fPrec,    12.01_fPrec,  12.01_fPrec,  &
-     13.53_fPrec,  25.24_fPrec,  95.96_fPrec,  63.15_fPrec, 166.70_fPrec,     zero,         zero         ]
-  real(kind=fPrec), public, save :: zatom(nmat) = &
-    [ 4.00_fPrec,  13.00_fPrec,  29.00_fPrec,  74.00_fPrec,  82.00_fPrec,     6.00_fPrec,   6.00_fPrec,  &
-      6.65_fPrec,  11.90_fPrec,  42.00_fPrec,  28.80_fPrec,  67.70_fPrec,     zero,         zero         ]
-  real(kind=fPrec), public, save :: rho(nmat)   = &
-    [ 1.848_fPrec,  2.70_fPrec,   8.96_fPrec,  19.30_fPrec,   11.35_fPrec,    1.67_fPrec,   4.52_fPrec,  &
-      2.500_fPrec,  5.40_fPrec,  10.22_fPrec,   8.93_fPrec,   18.00_fPrec,    zero,         zero         ]
-  real(kind=fPrec), public, save :: emr(nmat)   = &
-    [ 0.22_fPrec,   0.302_fPrec,  0.366_fPrec,  0.520_fPrec,   0.542_fPrec,   0.25_fPrec,   0.25_fPrec,  &
-      0.25_fPrec,   0.308_fPrec,  0.481_fPrec,  0.418_fPrec,   0.578_fPrec,   zero,         zero         ]
-  real(kind=fPrec), public, save :: hcut(nmat)  = &
-    [ 0.02_fPrec,   0.02_fPrec,   0.01_fPrec,   0.01_fPrec,    0.01_fPrec,    0.02_fPrec,    0.02_fPrec, &
-      0.02_fPrec,   0.02_fPrec,   0.02_fPrec,   0.02_fPrec,    0.02_fPrec,    zero,          zero        ]
-  real(kind=fPrec), public, save :: radl(nmat)  = &
-    [ 0.353_fPrec,  0.089_fPrec,  0.0143_fPrec, 0.0035_fPrec,  0.0056_fPrec,  0.2557_fPrec, 0.094_fPrec, &
-      0.1193_fPrec, 0.0316_fPrec, 0.0096_fPrec, 0.0144_fPrec,  0.00385_fPrec, 1.0e12_fPrec, 1.0e12_fPrec ]
-
-  ! Nuclear elastic slope from Schiz et al., PRD 21(3010)1980
-  ! GRD: Value for Tungsten (W) not stated. Last 2 ones interpolated
-  real(kind=fPrec), public, save :: bnref(nmat) = &
-    [74.7_fPrec, 120.3_fPrec, 217.8_fPrec, 440.3_fPrec, 455.3_fPrec, 70.0_fPrec, 70.0_fPrec, &
-     76.7_fPrec, 115.0_fPrec, 273.9_fPrec, 208.7_fPrec, 392.1_fPrec, zero,       zero        ]
+  ! Collimator Material Arrays
+  character(4),     public, save :: colmats(nmat)   ! Material Names
+  real(kind=fPrec), public, save :: exenergy(nmat)  ! Mean excitation energy [GeV]
+  real(kind=fPrec), public, save :: anuc(nmat)      ! Atomic mass
+  real(kind=fPrec), public, save :: zatom(nmat)     ! Atomic Z
+  real(kind=fPrec), public, save :: rho(nmat)       ! Density
+  real(kind=fPrec), public, save :: emr(nmat)       ! Nuclear radius
+  real(kind=fPrec), public, save :: hcut(nmat)      ! T cut (upper)
+  real(kind=fPrec), public, save :: radl(nmat)      ! Remaining length
+  real(kind=fPrec), public, save :: bnref(nmat)     ! Nuclear elastic slope from Schiz et al., PRD 21(3010)1980
+  real(kind=fPrec), public, save :: csect(0:5,nmat) ! Cross section
+  real(kind=fPrec), public, save :: xintl(nmat)     ! Interaction length
+  real(kind=fPrec), public, save :: bn(nmat)        ! Nuclear elastic related
+  real(kind=fPrec), public, save :: freep(nmat)     ! Number of nucleons involved in single scattering
+  real(kind=fPrec), public, save :: cgen(200,nmat)  ! Used by FUNLUX / Rutherford routine
 
   ! All cross-sections are in barns. Nuclear values from RPP at 20 GeV
   ! Coulomb is integerated above t=tLcut[Gev2] (+-1% out Gauss mcs)
@@ -222,5 +197,210 @@ module coll_materials
   ! Electron density and plasma energy
   real(kind=fPrec), public, save :: edens(nmat) = zero
   real(kind=fPrec), public, save :: pleng(nmat) = zero
+
+contains
+
+! ================================================================================================ !
+!  Initialise Material Database Values
+!  V.K. Berglyd Olsen, BE-ABP-HSS
+!  Created: 2019-09-19
+!  Updated: 2019-09-19
+!  Rewritten to make it easier to add new materials.
+! ================================================================================================ !
+subroutine collmat_init
+
+  use crcoall
+
+  integer iMat
+
+  iMat = 1
+  colmats(iMat)  = "BE"
+  exenergy(iMat) =  63.7e-9_fPrec
+  anuc(iMat)     =   9.01_fPrec
+  zatom(iMat)    =   4.00_fPrec
+  rho(iMat)      =   1.848_fPrec
+  emr(iMat)      =   0.22_fPrec
+  hcut(iMat)     =   0.02_fPrec
+  radl(iMat)     =   0.353_fPrec
+  bnref(iMat)    =  74.7_fPrec
+
+  iMat = iMat + 1
+  colmats(iMat)  = "AL"
+  exenergy(iMat) = 166.0e-9_fPrec
+  anuc(iMat)     =  26.98_fPrec
+  zatom(iMat)    =  13.00_fPrec
+  rho(iMat)      =   2.70_fPrec
+  emr(iMat)      =   0.302_fPrec
+  hcut(iMat)     =   0.02_fPrec
+  radl(iMat)     =   0.089_fPrec
+  bnref(iMat)    = 120.3_fPrec
+
+  iMat = iMat + 1
+  colmats(iMat)  = "CU"
+  exenergy(iMat) = 322.0e-9_fPrec
+  anuc(iMat)     =  63.55_fPrec
+  zatom(iMat)    =  29.00_fPrec
+  rho(iMat)      =   8.96_fPrec
+  emr(iMat)      =   0.366_fPrec
+  hcut(iMat)     =   0.01_fPrec
+  radl(iMat)     =   0.0143_fPrec
+  bnref(iMat)    = 217.8_fPrec
+
+  iMat = iMat + 1
+  colmats(iMat)  = "W"
+  exenergy(iMat) = 727.0e-9_fPrec
+  anuc(iMat)     = 183.85_fPrec
+  zatom(iMat)    =  74.00_fPrec
+  rho(iMat)      =  19.30_fPrec
+  emr(iMat)      =   0.520_fPrec
+  hcut(iMat)     =   0.01_fPrec
+  radl(iMat)     =   0.0035_fPrec
+  bnref(iMat)    = 440.3_fPrec
+
+  iMat = iMat + 1
+  colmats(iMat)  = "PB"
+  exenergy(iMat) = 823.0e-9_fPrec
+  anuc(iMat)     = 207.19_fPrec
+  zatom(iMat)    =  82.00_fPrec
+  rho(iMat)      =  11.35_fPrec
+  emr(iMat)      =   0.542_fPrec
+  hcut(iMat)     =   0.01_fPrec
+  radl(iMat)     =   0.0056_fPrec
+  bnref(iMat)    = 455.3_fPrec
+
+  iMat = iMat + 1
+  colmats(iMat)  = "C"
+  exenergy(iMat) =  78.0e-9_fPrec
+  anuc(iMat)     =  12.01_fPrec
+  zatom(iMat)    =   6.00_fPrec
+  rho(iMat)      =   1.67_fPrec
+  emr(iMat)      =   0.25_fPrec
+  hcut(iMat)     =   0.02_fPrec
+  radl(iMat)     =   0.2557_fPrec
+  bnref(iMat)    =  70.0_fPrec
+
+  iMat = iMat + 1
+  colmats(iMat)  = "C2"
+  exenergy(iMat) =  78.0e-9_fPrec
+  anuc(iMat)     =  12.01_fPrec
+  zatom(iMat)    =   6.00_fPrec
+  rho(iMat)      =   4.52_fPrec
+  emr(iMat)      =   0.25_fPrec
+  hcut(iMat)     =   0.02_fPrec
+  radl(iMat)     =   0.094_fPrec
+  bnref(iMat)    =  70.0_fPrec
+
+  iMat = iMat + 1
+  colmats(iMat)  = "MoGR"
+  exenergy(iMat) =  87.1e-9_fPrec
+  anuc(iMat)     =  13.53_fPrec
+  zatom(iMat)    =   6.65_fPrec
+  rho(iMat)      =   2.500_fPrec
+  emr(iMat)      =   0.25_fPrec
+  hcut(iMat)     =   0.02_fPrec
+  radl(iMat)     =   0.1193_fPrec
+  bnref(iMat)    =  76.7_fPrec
+
+  iMat = iMat + 1
+  colmats(iMat)  = "CuCD"
+  exenergy(iMat) = 152.9e-9_fPrec
+  anuc(iMat)     =  25.24_fPrec
+  zatom(iMat)    =  11.90_fPrec
+  rho(iMat)      =   5.40_fPrec
+  emr(iMat)      =   0.308_fPrec
+  hcut(iMat)     =   0.02_fPrec
+  radl(iMat)     =   0.0316_fPrec
+  bnref(iMat)    = 115.0_fPrec
+
+  iMat = iMat + 1
+  colmats(iMat)  = "Mo"
+  exenergy(iMat) = 424.0e-9_fPrec
+  anuc(iMat)     =  95.96_fPrec
+  zatom(iMat)    =  42.00_fPrec
+  rho(iMat)      =  10.22_fPrec
+  emr(iMat)      =   0.481_fPrec
+  hcut(iMat)     =   0.02_fPrec
+  radl(iMat)     =   0.0096_fPrec
+  bnref(iMat)    = 273.9_fPrec
+
+  iMat = iMat + 1
+  colmats(iMat)  = "Glid"
+  exenergy(iMat) = 320.8e-9_fPrec
+  anuc(iMat)     =  63.15_fPrec
+  zatom(iMat)    =  28.80_fPrec
+  rho(iMat)      =   8.93_fPrec
+  emr(iMat)      =   0.418_fPrec
+  hcut(iMat)     =   0.02_fPrec
+  radl(iMat)     =   0.0144_fPrec
+  bnref(iMat)    = 208.7_fPrec
+
+  iMat = iMat + 1
+  colmats(iMat)  = "Iner"
+  exenergy(iMat) = 682.2e-9_fPrec
+  anuc(iMat)     = 166.70_fPrec
+  zatom(iMat)    =  67.70_fPrec
+  rho(iMat)      =  18.00_fPrec
+  emr(iMat)      =   0.578_fPrec
+  hcut(iMat)     =   0.02_fPrec
+  radl(iMat)     =   0.00385_fPrec
+  bnref(iMat)    = 392.1_fPrec
+
+  if(iMat > nrmat) then
+    write(lerr,"(a)") "COLL> ERROR Variable imat > nrmat in collmat_init. Please increase nrmat."
+    call prror
+  end if
+
+  ! The following two must always be the last two materials
+
+  iMat = iMat + 1
+  colmats(iMat)  = "VA"
+  exenergy(iMat) = zero
+  anuc(iMat)     = zero
+  zatom(iMat)    = zero
+  rho(iMat)      = zero
+  emr(iMat)      = zero
+  hcut(iMat)     = zero
+  radl(iMat)     = 1.0e12_fPrec
+  bnref(iMat)    = zero
+
+  iMat = iMat + 1
+  colmats(iMat)  = "BL"
+  exenergy(iMat) = c1e10
+  anuc(iMat)     = zero
+  zatom(iMat)    = zero
+  rho(iMat)      = zero
+  emr(iMat)      = zero
+  hcut(iMat)     = zero
+  radl(iMat)     = 1.0e12_fPrec
+  bnref(iMat)    = zero
+
+  if(iMat > nmat) then
+    write(lerr,"(a)") "COLL> ERROR Variable imat > nmat in collmat_init. Please increase nmat."
+    call prror
+  end if
+
+end subroutine collmat_init
+
+! ================================================================================================ !
+!  V.K. Berglyd Olsen, BE-ABP-HSS
+!  Created: 2019-09-16
+!  Updated: 2019-09-16
+!  Get collimator material number from name (case sensitive)
+! ================================================================================================ !
+integer function collmat_getCollMatID(matName)
+
+  character(len=4), intent(in) :: matName
+  integer i, matID
+
+  matID = -1
+  do i=1,nmat
+    if(colmats(i) == matName) then
+      matID = i
+      exit
+    end if
+  end do
+  collmat_getCollMatID = matID
+
+end function collmat_getCollMatID
 
 end module coll_materials

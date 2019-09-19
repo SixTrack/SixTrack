@@ -386,6 +386,7 @@ subroutine collimate_init
   use coll_k2
   use coll_db
   use coll_dist
+  use coll_materials
   use mod_units
   use mod_ranlux
   use mod_particles
@@ -395,8 +396,6 @@ subroutine collimate_init
 #ifdef G4COLLIMATION
   use geant4
 #endif
-
-  implicit none
 
 #ifdef HDF5
   type(h5_dataField), allocatable :: fldDist0(:)
@@ -668,7 +667,8 @@ subroutine collimate_init
   ie    = 1
   n_tot_absorbed = 0
 
-  ! Collimator Database
+  ! Collimator Database and Materials
+  call collmat_init                   ! Set default values for collimator materials
   call cdb_readCollDB                 ! Read the collimator DB
   call cdb_setLHCOnesided(do_oneside) ! Set LHC onesided collimators
   call cdb_writeDB_newFromOld         ! Write a copy of the db in new format, if provided in old format

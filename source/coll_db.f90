@@ -249,9 +249,10 @@ subroutine cdb_readDB_newFormat
 
   use parpro
   use crcoall
-  use string_tools
-  use mod_units
   use mod_alloc
+  use mod_units
+  use string_tools
+  use coll_materials
   use numerical_constants
 
   character(len=:), allocatable :: lnSplit(:)
@@ -324,7 +325,7 @@ subroutine cdb_readDB_newFormat
   cdb_cName(iColl)     = lnSplit(1)
   cdb_cMaterial(iColl) = lnSplit(3)
 
-  matID = cdb_getCollMatID(cdb_cMaterial(iColl))
+  matID = collmat_getCollMatID(cdb_cMaterial(iColl))
   if(matID > 0) then
     cdb_cMaterialID(iColl) = matID
   else
@@ -378,10 +379,11 @@ end subroutine cdb_readDB_newFormat
 ! ================================================================================================ !
 subroutine cdb_readDB_oldFormat
 
-  use crcoall
   use parpro
-  use string_tools
+  use crcoall
   use mod_units
+  use string_tools
+  use coll_materials
   use numerical_constants
 
   character(len=mInputLn) inLine
@@ -479,7 +481,7 @@ subroutine cdb_readDB_oldFormat
     end if
     cdb_cFamily(j) = famID
 
-    matID = cdb_getCollMatID(cdb_cMaterial(j))
+    matID = collmat_getCollMatID(cdb_cMaterial(j))
     if(matID > 0) then
       cdb_cMaterialID(j) = matID
     else
@@ -1023,31 +1025,6 @@ subroutine cdb_getCollimatorOrFamilyID(itemName, iFam, iColl, isFam, fErr)
   isFam = iFam > 0
 
 end subroutine cdb_getCollimatorOrFamilyID
-
-! ================================================================================================ !
-!  V.K. Berglyd Olsen, BE-ABP-HSS
-!  Created: 2019-09-16
-!  Updated: 2019-09-16
-!  Get collimator material number from name (case sensitive)
-! ================================================================================================ !
-integer function cdb_getCollMatID(matName)
-
-  use string_tools
-  use coll_materials
-
-  character(len=4), intent(in) :: matName
-  integer i, matID
-
-  matID = -1
-  do i=1,nmat
-    if(colmats(i) == matName) then
-      matID = i
-      exit
-    end if
-  end do
-  cdb_getCollMatID = matID
-
-end function cdb_getCollMatID
 
 ! ================================================================================================ !
 !  V.K. Berglyd Olsen, BE-ABP-HSS
