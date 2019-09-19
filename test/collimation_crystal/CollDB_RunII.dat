@@ -84,4 +84,5 @@ ONESIDED tcdqa.a4r6.b1  1
 ONESIDED tcdqa.c4r6.b1  1
 ONESIDED tcdqa.b4r6.b1  1
 
-CRYSTAL cry.h.b1 61.54 0.002 0.050 0.0 -0.000005 0.0 1
+CRYSTAL  cry.h.b1 61.54 2.0e-3 50.0e-3 0.0 0.0 0.0 1
+ONESIDED cry.h.b1       1
