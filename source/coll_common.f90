@@ -128,8 +128,8 @@ module coll_materials
 
   implicit none
 
-  integer, parameter :: nmat  = 14 ! Total number of materials
-  integer, parameter :: nrmat = 12 ! Number of real materials
+  integer, parameter :: nmat  = 15 ! Total number of materials
+  integer, parameter :: nrmat = 13 ! Number of real materials
 
   ! pp cross-sections and parameters for energy dependence
   real(kind=fPrec), parameter :: pptref = 0.04_fPrec
@@ -167,6 +167,8 @@ module coll_materials
     [3.016_fPrec, 1.724_fPrec, zero, zero, zero, 0.9070e-2_fPrec], & ! PB
     [0.337_fPrec, 0.232_fPrec, zero, zero, zero, 0.0076e-2_fPrec], & ! C
     [0.337_fPrec, 0.232_fPrec, zero, zero, zero, 0.0076e-2_fPrec], & ! C2
+    [0.664_fPrec, 0.430_fPrec, zero, zero, zero, 0.0390e-2_fPrec], & ! Si
+  ! [       zero,        zero, zero, zero, zero,            zero], & ! Ge
     [0.362_fPrec, 0.247_fPrec, zero, zero, zero, 0.0094e-2_fPrec], & ! MoGR
     [0.572_fPrec, 0.370_fPrec, zero, zero, zero, 0.0279e-2_fPrec], & ! CuCD
     [1.713_fPrec, 1.023_fPrec, zero, zero, zero, 0.2650e-2_fPrec], & ! Mo
@@ -185,6 +187,8 @@ module coll_materials
     [zero, zero, zero, zero, zero, one], & ! PB
     [zero, zero, zero, zero, zero, one], & ! C
     [zero, zero, zero, zero, zero, one], & ! C2
+    [zero, zero, zero, zero, zero, one], & ! Si
+  ! [zero, zero, zero, zero, zero, one], & ! Ge
     [zero, zero, zero, zero, zero, one], & ! MoGR
     [zero, zero, zero, zero, zero, one], & ! CuCD
     [zero, zero, zero, zero, zero, one], & ! Mo
@@ -235,6 +239,7 @@ subroutine collmat_init
   radl(iMat)     =   0.089_fPrec
   bnref(iMat)    = 120.3_fPrec
 
+  ! Copper
   iMat = iMat + 1
   colmats(iMat)  = "CU"
   exenergy(iMat) = 322.0e-9_fPrec
@@ -246,6 +251,7 @@ subroutine collmat_init
   radl(iMat)     =   0.0143_fPrec
   bnref(iMat)    = 217.8_fPrec
 
+  ! Tungsten
   iMat = iMat + 1
   colmats(iMat)  = "W"
   exenergy(iMat) = 727.0e-9_fPrec
@@ -257,6 +263,7 @@ subroutine collmat_init
   radl(iMat)     =   0.0035_fPrec
   bnref(iMat)    = 440.3_fPrec
 
+  ! Lead
   iMat = iMat + 1
   colmats(iMat)  = "PB"
   exenergy(iMat) = 823.0e-9_fPrec
@@ -268,6 +275,7 @@ subroutine collmat_init
   radl(iMat)     =   0.0056_fPrec
   bnref(iMat)    = 455.3_fPrec
 
+  ! Carbon
   iMat = iMat + 1
   colmats(iMat)  = "C"
   exenergy(iMat) =  78.0e-9_fPrec
@@ -279,6 +287,7 @@ subroutine collmat_init
   radl(iMat)     =   0.2557_fPrec
   bnref(iMat)    =  70.0_fPrec
 
+  ! Carbon2
   iMat = iMat + 1
   colmats(iMat)  = "C2"
   exenergy(iMat) =  78.0e-9_fPrec
@@ -289,6 +298,30 @@ subroutine collmat_init
   hcut(iMat)     =   0.02_fPrec
   radl(iMat)     =   0.094_fPrec
   bnref(iMat)    =  70.0_fPrec
+
+  ! Silicon
+  iMat = iMat + 1
+  colmats(iMat)  = "Si"
+  exenergy(iMat) = 173.0e-9_fPrec
+  anuc(iMat)     =  28.08_fPrec
+  zatom(iMat)    =  14.00_fPrec
+  rho(iMat)      =   2.33_fPrec
+  emr(iMat)      =   0.306_fPrec
+  hcut(iMat)     =   0.02_fPrec
+  radl(iMat)     = one
+  bnref(iMat)    = 123.2_fPrec
+
+  ! ! Germanium
+  ! iMat = iMat + 1
+  ! colmats(iMat)  = "Ge"
+  ! exenergy(iMat) = one
+  ! anuc(iMat)     = one
+  ! zatom(iMat)    = one
+  ! rho(iMat)      = one
+  ! emr(iMat)      = one
+  ! hcut(iMat)     =   0.02_fPrec
+  ! radl(iMat)     = one
+  ! bnref(iMat)    = one
 
   iMat = iMat + 1
   colmats(iMat)  = "MoGR"
@@ -352,6 +385,7 @@ subroutine collmat_init
 
   ! The following two must always be the last two materials
 
+  ! Vacuum
   iMat = iMat + 1
   colmats(iMat)  = "VA"
   exenergy(iMat) = zero
@@ -363,6 +397,7 @@ subroutine collmat_init
   radl(iMat)     = 1.0e12_fPrec
   bnref(iMat)    = zero
 
+  ! Black Absorber
   iMat = iMat + 1
   colmats(iMat)  = "BL"
   exenergy(iMat) = c1e10

@@ -3094,23 +3094,16 @@ subroutine collimate_exit
   use geant4
 #endif
 
-  implicit none
-
-  ! integer, intent(in) :: j
-
 #ifdef HDF5
   type(h5_dataField), allocatable :: fldHdf(:)
   integer fmtHdf, setHdf
 #endif
   integer i,k,ix
 
-!++  Save particle offsets to a file
   call f_close(coll_survivalUnit)
-
   if(dowrite_impact) then
     call f_close(coll_impactUnit)
   end if
-
   if(dowritetracks) then
     call f_close(coll_tracksUnit)
 #ifdef HDF5
@@ -3151,10 +3144,10 @@ subroutine collimate_exit
     write(lout,"(a,f20.12)") 'COLL> Eff_r @ 10-20 sigma [e-4] : ', ((neff(9)-neff(19))/real(n_tot_absorbed,fPrec))/c1m4
   else
     write(lout,"(a)") 'COLL> No particle absorbed'
-  endif
+  end if
   write(lout,"(a)")
 
-! Write efficiency file
+  ! Write efficiency file
 #ifdef HDF5
   if(h5_useForCOLL .and. n_tot_absorbed /= 0) then
     allocate(fldHdf(8))
@@ -3198,7 +3191,7 @@ subroutine collimate_exit
   end if
 #endif
 
-! Write efficiency vs dp/p file
+  ! Write efficiency vs dp/p file
 #ifdef HDF5
   if(h5_useForCOLL .and. n_tot_absorbed /= 0) then
     allocate(fldHdf(5))
@@ -3235,7 +3228,7 @@ subroutine collimate_exit
   end if
 #endif
 
-! Write 2D efficiency file (eff vs. A_r and dp/p)
+  ! Write 2D efficiency file (eff vs. A_r and dp/p)
 #ifdef HDF5
   if(h5_useForCOLL .and. n_tot_absorbed /= 0) then
     allocate(fldHdf(5))
@@ -3276,7 +3269,7 @@ subroutine collimate_exit
   end if
 #endif
 
-! Write collimation summary file
+  ! Write collimation summary file
 #ifdef HDF5
   if(h5_useForCOLL) then
     allocate(fldHdf(7))

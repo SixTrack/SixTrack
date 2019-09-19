@@ -1265,7 +1265,7 @@ program maincr
   time2=0.
   call time_timerCheck(time2)
 
-  if(iclo6 > 0 .and. ithick == 0 .and. do_coll) then
+  if(ithick == 0 .and. do_coll) then
     ! Only if thin 6D and collimation enabled
     call collimate_exit
   endif
