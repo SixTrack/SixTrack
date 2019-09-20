@@ -917,6 +917,7 @@ subroutine initialise_element(ix,lfirst)
 
   use parpro
   use parbeam
+  use tracking
   use mod_common
   use mod_common_main
   use mod_common_track
@@ -948,25 +949,25 @@ subroutine initialise_element(ix,lfirst)
           smi(i)  = smiv(i)         ! Also done in program maincr
           select case(abs(kz(ix)))
           case(1)
-#include "include/stra01.f90"
+            call setStrack(1,i)
           case(2)
-#include "include/stra02.f90"
+            call setStrack(2,i)
           case(3)
-#include "include/stra03.f90"
+            call setStrack(3,i)
           case(4)
-#include "include/stra04.f90"
+            call setStrack(4,i)
           case(5)
-#include "include/stra05.f90"
+            call setStrack(5,i)
           case(6)
-#include "include/stra06.f90"
+            call setStrack(6,i)
           case(7)
-#include "include/stra07.f90"
+            call setStrack(7,i)
           case(8)
-#include "include/stra08.f90"
+            call setStrack(8,i)
           case(9)
-#include "include/stra09.f90"
+            call setStrack(9,i)
           case(10)
-#include "include/stra10.f90"
+            call setStrack(10,i)
           end select
         end if
       end do

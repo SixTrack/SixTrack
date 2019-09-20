@@ -78,7 +78,6 @@ subroutine preTracking
 
   use collimation, only : do_coll
   use mod_fluc,    only : fluc_writeFort4, fluc_errAlign
-  use beam_beam,   only : bb_trackInit
   use cheby,       only : cheby_kz, cheby_ktrack
   use dynk,        only : dynk_enabled, dynk_isused, dynk_pretrack
   use scatter,     only : scatter_elemPointer
@@ -95,183 +94,189 @@ subroutine preTracking
   end if
 
   if(mout2 == 1) call fluc_writeFort4
-  ! if(isThick)    call bb_trackInit
 
   ! BEGIN Loop over structure elements
-  do 290 i=1,iu
-    ix=ic(i)
+  do i=1,iu
+
+    ix = ic(i) ! Single element index
     if(ix <= nblo) then
-      !BLOC
-      ktrack(i)=1
+      ! This is a block element
+      ktrack(i) = 1
       do jb=1,mel(ix)
-        jx=mtyp(ix,jb)
-        strack(i)=strack(i)+el(jx)
+        jx        = mtyp(ix,jb)
+        strack(i) = strack(i)+el(jx)
       end do
-      if(abs(strack(i)).le.pieni) ktrack(i)=31
-      !Non-linear/NOT BLOC
-      goto 290
+      if(abs(strack(i)) <= pieni) then
+        ktrack(i) = 31
+      end if
+      ! Non-linear/NOT BLOC
+      cycle
     end if
-    ix=ix-nblo
-    kpz=abs(kp(ix))
-    if(kpz.eq.6) then
-      ktrack(i)=2
-      goto 290
-    end if
-    kzz=kz(ix)
-    if(kzz.eq.0) then
-      ktrack(i)=31
-      goto 290
-    else if(kzz == 12) then
-      ! Disabled cavity; enabled cavities have kp=6 and are handled above
-      ! Note: kz=-12 are transformed into +12 in daten after reading ENDE.
-      ktrack(i)=31
-      goto 290
-    end if
+    ix = ix-nblo ! Remove the block index offset
 
-    !Beam-beam element
-    if(kzz.eq.20) then
-      call initialise_element(ix,.false.)
-      goto 290
-    endif
-
-    ! wire
-    if(kzz.eq.15) then
-      ktrack(i)=45
-      goto 290
-    endif
-    ! acdip1
-    if(kzz.eq.16) then
-      ktrack(i)=51
-      goto 290
-    else if(kzz.eq.-16) then
-      ktrack(i)=52
-      goto 290
-    endif
-    ! crab
-    if(kzz.eq.23) then
-      ktrack(i)=53
-      goto 290
-    else if(kzz.eq.-23) then
-      ktrack(i)=54
-      goto 290
-    endif
-    ! JBG RF CC Multipoles
-    if(kzz.eq.26) then
-      ktrack(i)=57
-      goto 290
-    else if(kzz.eq.-26) then
-      ktrack(i)=58
-      goto 290
-    endif
-    if(kzz.eq.27) then
-      ktrack(i)=59
-      goto 290
-    else if(kzz.eq.-27) then
-      ktrack(i)=60
-      goto 290
-    endif
-    if(kzz.eq.28) then
-      ktrack(i)=61
-      goto 290
-    else if(kzz.eq.-28) then
-      ktrack(i)=62
-      goto 290
-    endif
-    !electron lens (HEL)
-    if(kzz.eq.29) then
-      ktrack(i)=63
-      goto 290
-    endif
-    ! Chebyshev lens
-    if(kzz.eq.cheby_kz) then
-      ktrack(i)=cheby_ktrack
-      goto 290
-    endif
-    ! SCATTER block
-    if (kzz.eq.40 .and. scatter_elemPointer(ix).ne.0) then
-      ! FOR NOW, ASSUME THIN SCATTER; ktrack(i)=65 RESERVED FOR THICK SCATTER
-      ktrack(i)=64
-      goto 290
-    endif
-    if(kzz.eq.22) then
-      ktrack(i)=3
-      goto 290
-    endif
     if(mout2 == 1 .and. icextal(i) > 0) then
       write(27,"(a16,2x,1p,2d14.6,d17.9)") bez(ix),&
         fluc_errAlign(1,icextal(i)),fluc_errAlign(2,icextal(i)),fluc_errAlign(3,icextal(i))
     end if
 
-    select case (kzz)
+    kpz = abs(kp(ix))
+    if(kpz == 6) then
+      ktrack(i) = 2
+      cycle
+    end if
+
+    kzz = kz(ix)
+    select case(kzz)
+
+    case(0)
+      ktrack(i) = 31
+
+    case(12)
+      ! Disabled cavity; enabled cavities have kp=6 and are handled above
+      ! Note: kz=-12 are transformed into +12 in daten after reading ENDE.
+      ktrack(i) = 31
+
+    case(13,14,17,18,19,21)
+      cycle
+
+    case(20) ! Beam-beam element
+      call initialise_element(ix,.false.)
+
+    case(15) ! Wire
+      ktrack(i) = 45
+
+    case(16) ! AC Dipole
+      ktrack(i) = 51
+
+    case(-16) ! AC Dipole
+      ktrack(i) = 52
+
+    case(22)
+      ktrack(i) = 3
+  
+    case(23) ! Crab Cavity
+      ktrack(i) = 53
+
+    case(-23) ! Crab Cavity
+      ktrack(i) = 54
+
+    case(24) ! DIPEDGE ELEMENT
+#include "include/stra2dpe.f90"
+      ktrack(i) = 55
+
+    case (25) ! Solenoid
+#include "include/solenoid.f90"
+      ktrack(i) = 56
+
+    case(26) ! JBG RF CC Multipoles
+      ktrack(i) = 57
+
+    case(-26) ! JBG RF CC Multipoles
+      ktrack(i) = 58
+
+    case(27)
+      ktrack(i) = 59
+
+    case(-27)
+      ktrack(i) = 60
+  
+    case(28)
+      ktrack(i) = 61
+    
+    case(-28)
+      ktrack(i) = 62
+
+    case(29) ! Electron lens (HEL)
+      ktrack(i) = 63
+
+    case(cheby_kz) ! Chebyshev lens
+      ktrack(i) = cheby_ktrack
+  
+    case(40) ! Scatter
+      if(scatter_elemPointer(ix) /= 0) then
+        ktrack(i) = 64 ! Scatter thin
+      else
+        ktrack(i) = 31
+      end if
+
+    case(41) ! RF Multipole
+      ktrack(i) = 66
+    case(43) ! X Rotation
+      ktrack(i) = 68
+    case(44) ! Y Rotation
+      ktrack(i) = 69
+    case(45) ! S Rotation
+      ktrack(i) = 70
+
     case (1)
       if(abs(smiv(i)).le.pieni .and. .not.dynk_isused(i)) then
         ktrack(i) = 31
       else
         ktrack(i) = 11
-#include "include/stra01.f90"
+        call setStrack(1,i)
       end if
     case (2)
       if(abs(smiv(i)).le.pieni .and. .not.dynk_isused(i)) then
         ktrack(i) = 31
       else
         ktrack(i) = 12
-#include "include/stra02.f90"
+        call setStrack(2,i)
       end if
     case (3)
       if(abs(smiv(i)).le.pieni .and. .not.dynk_isused(i)) then
         ktrack(i) = 31
       else
         ktrack(i) = 13
-#include "include/stra03.f90"
+        call setStrack(3,i)
       end if
     case (4)
       if(abs(smiv(i)).le.pieni .and. .not.dynk_isused(i)) then
         ktrack(i) = 31
       else
         ktrack(i) = 14
-#include "include/stra04.f90"
+        call setStrack(4,i)
       end if
     case (5)
       if(abs(smiv(i)).le.pieni .and. .not.dynk_isused(i)) then
         ktrack(i) = 31
       else
         ktrack(i) = 15
-#include "include/stra05.f90"
+        call setStrack(5,i)
       end if
     case (6)
       if(abs(smiv(i)).le.pieni .and. .not.dynk_isused(i)) then
         ktrack(i) = 31
       else
         ktrack(i) = 16
-#include "include/stra06.f90"
+        call setStrack(6,i)
       end if
     case (7)
       if(abs(smiv(i)).le.pieni .and. .not.dynk_isused(i)) then
         ktrack(i) = 31
       else
         ktrack(i) = 17
-#include "include/stra07.f90"
+        call setStrack(7,i)
       end if
     case (8)
       if(abs(smiv(i)).le.pieni .and. .not.dynk_isused(i)) then
         ktrack(i) = 31
       else
         ktrack(i) = 18
-#include "include/stra08.f90"
+        call setStrack(8,i)
       end if
     case (9)
       if(abs(smiv(i)).le.pieni .and. .not.dynk_isused(i)) then
         ktrack(i) = 31
       else
         ktrack(i) = 19
-#include "include/stra09.f90"
+        call setStrack(9,i)
       end if
     case (10)
       if(abs(smiv(i)).le.pieni .and. .not.dynk_isused(i)) then
         ktrack(i) = 31
       else
         ktrack(i) = 20
-#include "include/stra10.f90"
+        call setStrack(10,i)
       end if
     case (11) ! Multipole block (also in initialise_element)
       r0  = ek(ix)
@@ -323,7 +328,7 @@ subroutine preTracking
           end if
         end if
       end if
-      if(abs(r0).le.pieni.or.nmz.eq.0) goto 290
+      if(abs(r0).le.pieni.or.nmz.eq.0) cycle
       if(mout2.eq.1) then
         benkcc = ed(ix)*benkc(irm(ix))
         r0a    = one
@@ -356,22 +361,6 @@ subroutine preTracking
           fake(2,j)=zero
         end do
       end if
-    case (12,13,14,15,16,17,18,19,20,21,22,23)
-      goto 290
-    case (24) ! DIPEDGE ELEMENT
-#include "include/stra2dpe.f90"
-      ktrack(i) = 55
-    case (25) ! Solenoid
-#include "include/solenoid.f90"
-      ktrack(i) = 56
-    case (41) ! RF Multipole
-      ktrack(i) = 66
-    case (43) ! xrot
-      ktrack(i) = 68
-    case (44) ! yrot
-      ktrack(i) = 69
-    case (45) ! srot
-      ktrack(i) = 70
 
     !----------------
     !--Negative KZZ--
@@ -381,78 +370,164 @@ subroutine preTracking
         ktrack(i) = 31
       else
         ktrack(i) = 21
-#include "include/stra01.f90"
+        call setStrack(1,i)
       end if
     case (-2)
       if(abs(smiv(i)).le.pieni .and. .not.dynk_isused(i)) then
         ktrack(i) = 31
       else
         ktrack(i) = 22
-#include "include/stra02.f90"
+        call setStrack(2,i)
       end if
     case (-3)
       if(abs(smiv(i)).le.pieni .and. .not.dynk_isused(i)) then
         ktrack(i) = 31
       else
         ktrack(i) = 23
-#include "include/stra03.f90"
+        call setStrack(3,i)
       end if
     case (-4)
       if(abs(smiv(i)).le.pieni .and. .not.dynk_isused(i)) then
         ktrack(i) = 31
       else
         ktrack(i) = 24
-#include "include/stra04.f90"
+        call setStrack(4,i)
       end if
     case (-5)
       if(abs(smiv(i)).le.pieni .and. .not.dynk_isused(i)) then
         ktrack(i) = 31
       else
         ktrack(i) = 25
-#include "include/stra05.f90"
+        call setStrack(5,i)
       end if
     case (-6)
       if(abs(smiv(i)).le.pieni .and. .not.dynk_isused(i)) then
         ktrack(i) = 31
       else
         ktrack(i) = 26
-#include "include/stra06.f90"
+        call setStrack(6,i)
       end if
     case (-7)
       if(abs(smiv(i)).le.pieni .and. .not.dynk_isused(i)) then
         ktrack(i) = 31
       else
         ktrack(i) = 27
-#include "include/stra07.f90"
+        call setStrack(7,i)
       end if
     case (-8)
       if(abs(smiv(i)).le.pieni .and. .not.dynk_isused(i)) then
         ktrack(i) = 31
       else
         ktrack(i) = 28
-#include "include/stra08.f90"
+        call setStrack(8,i)
       end if
     case (-9)
       if(abs(smiv(i)).le.pieni .and. .not.dynk_isused(i)) then
         ktrack(i) = 31
       else
         ktrack(i) = 29
-#include "include/stra09.f90"
+        call setStrack(9,i)
       end if
     case (-10)
       if(abs(smiv(i)).le.pieni .and. .not.dynk_isused(i)) then
         ktrack(i) = 31
       else
         ktrack(i) = 30
-#include "include/stra10.f90"
+        call setStrack(10,i)
       end if
 
     case default
       ktrack(i) = 31
     end select
-290 continue
+  end do
   ! END Loop over structure elements
 
 end subroutine preTracking
+
+subroutine setStrack(kzz, i)
+
+  use mod_common,       only : tiltc, tilts
+  use mod_common_main,  only : smiv
+  use mod_common_track, only : strack, strackc, stracks
+  use numerical_constants
+
+  integer, intent(in) :: kzz
+  integer, intent(in) :: i
+
+  select case(kzz)
+
+  case(1)
+    strack(i)  = smiv(i)*c1e3
+#ifdef TILT
+    strackc(i) = strack(i)*tiltc(i)
+    stracks(i) = strack(i)*tilts(i)
+#endif
+
+  case(2)
+    strack(i)  = smiv(i)
+#ifdef TILT
+    strackc(i) = strack(i)*tiltc(i)
+    stracks(i) = strack(i)*tilts(i)
+#endif
+
+  case(3)
+    strack(i)  = smiv(i)*c1m3
+#ifdef TILT
+    strackc(i) = strack(i)*tiltc(i)
+    stracks(i) = strack(i)*tilts(i)
+#endif
+
+  case(4)
+    strack(i)  = smiv(i)*c1m6
+#ifdef TILT
+    strackc(i) = strack(i)*tiltc(i)
+    stracks(i) = strack(i)*tilts(i)
+#endif
+
+  case(5)
+    strack(i)  = smiv(i)*c1m9
+#ifdef TILT
+    strackc(i) = strack(i)*tiltc(i)
+    stracks(i) = strack(i)*tilts(i)
+#endif
+
+  case(6)
+    strack(i)  = smiv(i)*c1m12
+#ifdef TILT
+    strackc(i) = strack(i)*tiltc(i)
+    stracks(i) = strack(i)*tilts(i)
+#endif
+
+  case(7)
+    strack(i)  = smiv(i)*c1m15
+#ifdef TILT
+    strackc(i) = strack(i)*tiltc(i)
+    stracks(i) = strack(i)*tilts(i)
+#endif
+
+  case(8)
+    strack(i)  = smiv(i)*c1m18
+#ifndef TILT
+    strackc(i) = strack(i)*tiltc(i)
+    stracks(i) = strack(i)*tilts(i)
+#endif
+
+  case(9)
+    strack(i)  = smiv(i)*c1m21
+#ifdef TILT
+    strackc(i) = strack(i)*tiltc(i)
+    stracks(i) = strack(i)*tilts(i)
+#endif
+
+  case(10)
+    strack(i)  = smiv(i)*c1m24
+#ifdef TILT
+    strackc(i) = strack(i)*tiltc(i)
+    stracks(i) = strack(i)*tilts(i)
+#endif
+    
+  end select
+
+end subroutine setStrack
 
 end module tracking
