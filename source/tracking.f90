@@ -208,118 +208,60 @@ subroutine preTracking
     case(45) ! S Rotation
       ktrack(i) = 70
 
-    case (1)
-      if(abs(smiv(i)).le.pieni .and. .not.dynk_isused(i)) then
+    case(-10,-9,-8,-7,-6,-5,-4,-3,-2,-1,1,2,3,4,5,6,7,8,9,10)
+      if(abs(smiv(i)) <= pieni .and. .not.dynk_isused(i)) then
         ktrack(i) = 31
       else
-        ktrack(i) = 11
-        call setStrack(1,i)
+        if(kzz > 0) then
+          ktrack(i) = 10 + kzz
+        else
+          ktrack(i) = 20 - kzz
+        end if
+        call setStrack(abs(kzz),i)
       end if
-    case (2)
-      if(abs(smiv(i)).le.pieni .and. .not.dynk_isused(i)) then
-        ktrack(i) = 31
-      else
-        ktrack(i) = 12
-        call setStrack(2,i)
-      end if
-    case (3)
-      if(abs(smiv(i)).le.pieni .and. .not.dynk_isused(i)) then
-        ktrack(i) = 31
-      else
-        ktrack(i) = 13
-        call setStrack(3,i)
-      end if
-    case (4)
-      if(abs(smiv(i)).le.pieni .and. .not.dynk_isused(i)) then
-        ktrack(i) = 31
-      else
-        ktrack(i) = 14
-        call setStrack(4,i)
-      end if
-    case (5)
-      if(abs(smiv(i)).le.pieni .and. .not.dynk_isused(i)) then
-        ktrack(i) = 31
-      else
-        ktrack(i) = 15
-        call setStrack(5,i)
-      end if
-    case (6)
-      if(abs(smiv(i)).le.pieni .and. .not.dynk_isused(i)) then
-        ktrack(i) = 31
-      else
-        ktrack(i) = 16
-        call setStrack(6,i)
-      end if
-    case (7)
-      if(abs(smiv(i)).le.pieni .and. .not.dynk_isused(i)) then
-        ktrack(i) = 31
-      else
-        ktrack(i) = 17
-        call setStrack(7,i)
-      end if
-    case (8)
-      if(abs(smiv(i)).le.pieni .and. .not.dynk_isused(i)) then
-        ktrack(i) = 31
-      else
-        ktrack(i) = 18
-        call setStrack(8,i)
-      end if
-    case (9)
-      if(abs(smiv(i)).le.pieni .and. .not.dynk_isused(i)) then
-        ktrack(i) = 31
-      else
-        ktrack(i) = 19
-        call setStrack(9,i)
-      end if
-    case (10)
-      if(abs(smiv(i)).le.pieni .and. .not.dynk_isused(i)) then
-        ktrack(i) = 31
-      else
-        ktrack(i) = 20
-        call setStrack(10,i)
-      end if
+
     case (11) ! Multipole block (also in initialise_element)
       r0  = ek(ix)
       nmz = nmu(ix)
-      if(abs(r0).le.pieni.or.nmz.eq.0) then
-        if(abs(dki(ix,1)).le.pieni.and.abs(dki(ix,2)).le.pieni) then
-          if ( dynk_isused(i) ) then
+      if(abs(r0) <= pieni .or. nmz == 0) then
+        if(abs(dki(ix,1)) <= pieni .and. abs(dki(ix,2)) <= pieni) then
+          if(dynk_isused(i)) then
             write(lerr,"(a)") "TRACKING> ERROR Element of type 11 (bez = '"//trim(bez(ix))//&
               "') is off in "//trim(fort2)//", but on in DYNK. Not implemented."
             call prror
           end if
           ktrack(i) = 31
-        else if(abs(dki(ix,1)).gt.pieni.and.abs(dki(ix,2)).le.pieni) then
-          if(abs(dki(ix,3)).gt.pieni) then
-            ktrack(i) = 33 !Horizontal Bend with a fictive length
+        else if(abs(dki(ix,1)) > pieni .and. abs(dki(ix,2)) <= pieni) then
+          if(abs(dki(ix,3)) > pieni) then
+            ktrack(i) = 33 ! Horizontal Bend with a fictive length
 #include "include/stra11.f90"
           else
-            ktrack(i) = 35 !Horizontal Bend without a ficitve length
+            ktrack(i) = 35 ! Horizontal Bend without a ficitve length
 #include "include/stra12.f90"
           end if
-        else if(abs(dki(ix,1)).le.pieni.and.abs(dki(ix,2)).gt.pieni) then
-          if(abs(dki(ix,3)).gt.pieni) then
-            ktrack(i) = 37 !Vertical bending with fictive length
+        else if(abs(dki(ix,1)) <= pieni.and.abs(dki(ix,2)) > pieni) then
+          if(abs(dki(ix,3)) > pieni) then
+            ktrack(i) = 37 ! Vertical bending with fictive length
 #include "include/stra13.f90"
           else
-            ktrack(i) = 39 !Vertical bending without fictive length
+            ktrack(i) = 39 ! Vertical bending without fictive length
 #include "include/stra14.f90"
           end if
         end if
       else
-      !These are the same as above with the difference that they also will have multipoles associated with them.
-        if(abs(dki(ix,1)).le.pieni.and.abs(dki(ix,2)).le.pieni) then
+        ! These are the same as above with the difference that they also will have multipoles associated with them.
+        if(abs(dki(ix,1)) <= pieni .and. abs(dki(ix,2)) <= pieni) then
           ktrack(i) = 32
-        else if(abs(dki(ix,1)).gt.pieni.and.abs(dki(ix,2)).le.pieni) then
-          if(abs(dki(ix,3)).gt.pieni) then
+        else if(abs(dki(ix,1)) > pieni .and. abs(dki(ix,2)) <= pieni) then
+          if(abs(dki(ix,3)) > pieni) then
             ktrack(i) = 34
 #include "include/stra11.f90"
           else
             ktrack(i) = 36
 #include "include/stra12.f90"
           end if
-        else if(abs(dki(ix,1)).le.pieni.and.abs(dki(ix,2)).gt.pieni) then
-          if(abs(dki(ix,3)).gt.pieni) then
+        else if(abs(dki(ix,1)) <= pieni .and. abs(dki(ix,2)) > pieni) then
+          if(abs(dki(ix,3)) > pieni) then
             ktrack(i) = 38
 #include "include/stra13.f90"
           else
@@ -328,8 +270,10 @@ subroutine preTracking
           end if
         end if
       end if
-      if(abs(r0).le.pieni.or.nmz.eq.0) cycle
-      if(mout2.eq.1) then
+      if(abs(r0) <= pieni .or. nmz == 0) then
+        cycle
+      end if
+      if(mout2 == 1) then
         benkcc = ed(ix)*benkc(irm(ix))
         r0a    = one
         r000   = r0*r00(irm(ix))
@@ -362,82 +306,9 @@ subroutine preTracking
         end do
       end if
 
-    !----------------
-    !--Negative KZZ--
-    !----------------
-    case (-1)
-      if(abs(smiv(i)).le.pieni .and. .not.dynk_isused(i)) then
-        ktrack(i) = 31
-      else
-        ktrack(i) = 21
-        call setStrack(1,i)
-      end if
-    case (-2)
-      if(abs(smiv(i)).le.pieni .and. .not.dynk_isused(i)) then
-        ktrack(i) = 31
-      else
-        ktrack(i) = 22
-        call setStrack(2,i)
-      end if
-    case (-3)
-      if(abs(smiv(i)).le.pieni .and. .not.dynk_isused(i)) then
-        ktrack(i) = 31
-      else
-        ktrack(i) = 23
-        call setStrack(3,i)
-      end if
-    case (-4)
-      if(abs(smiv(i)).le.pieni .and. .not.dynk_isused(i)) then
-        ktrack(i) = 31
-      else
-        ktrack(i) = 24
-        call setStrack(4,i)
-      end if
-    case (-5)
-      if(abs(smiv(i)).le.pieni .and. .not.dynk_isused(i)) then
-        ktrack(i) = 31
-      else
-        ktrack(i) = 25
-        call setStrack(5,i)
-      end if
-    case (-6)
-      if(abs(smiv(i)).le.pieni .and. .not.dynk_isused(i)) then
-        ktrack(i) = 31
-      else
-        ktrack(i) = 26
-        call setStrack(6,i)
-      end if
-    case (-7)
-      if(abs(smiv(i)).le.pieni .and. .not.dynk_isused(i)) then
-        ktrack(i) = 31
-      else
-        ktrack(i) = 27
-        call setStrack(7,i)
-      end if
-    case (-8)
-      if(abs(smiv(i)).le.pieni .and. .not.dynk_isused(i)) then
-        ktrack(i) = 31
-      else
-        ktrack(i) = 28
-        call setStrack(8,i)
-      end if
-    case (-9)
-      if(abs(smiv(i)).le.pieni .and. .not.dynk_isused(i)) then
-        ktrack(i) = 31
-      else
-        ktrack(i) = 29
-        call setStrack(9,i)
-      end if
-    case (-10)
-      if(abs(smiv(i)).le.pieni .and. .not.dynk_isused(i)) then
-        ktrack(i) = 31
-      else
-        ktrack(i) = 30
-        call setStrack(10,i)
-      end if
-
     case default
       ktrack(i) = 31
+
     end select
   end do
   ! END Loop over structure elements
