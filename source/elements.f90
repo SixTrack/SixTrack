@@ -13,10 +13,6 @@
 !  Never delete an element from the lattice, even if it is not making a kick.
 !  If the element is not recognized, do nothing (for now).
 !  If trying to initialize an element (not lfirst) which is disabled, print an error and exit.
-!
-!  This subroutine belongs with mod_geometry, but is outside the module due to circular dependency
-!  with the DYNK module. If further issues with dependencies are encountered, it can also be moved
-!  to the mainarrays.f90 file.
 ! ================================================================================================ !
 subroutine initialise_element(ix,lfirst)
 

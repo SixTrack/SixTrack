@@ -1,8 +1,12 @@
-! ============================================================================ !
+! ================================================================================================ !
 !  Tracking Module
 ! ~~~~~~~~~~~~~~~~~
 !  Module holding various routines used by the main tracking routines
-! ============================================================================ !
+!
+!  V.K. Bergyld Olsen, BE-ABP-HSS
+!  Created: 2019-09-20
+!  Updated: 2019-09-20
+! ================================================================================================ !
 module tracking
 
   use floatPrecision
@@ -33,13 +37,13 @@ subroutine preTracking
 
   use mod_particles, only : part_isTracking
   use collimation,   only : do_coll
-  use mod_fluc,      only : fluc_writeFort4, fluc_errAlign
+  use mod_fluc,      only : fluc_writeFort4, fluc_writeAlignErrFile
   use cheby,         only : cheby_kz, cheby_ktrack
   use dynk,          only : dynk_enabled, dynk_isused, dynk_pretrack
   use scatter,       only : scatter_elemPointer
 
-  real(kind=fPrec) benkcc, r0, r000, r0a
   integer i, j, ix, jb, jx, kpz, kzz, nmz, oPart, oTurn
+  real(kind=fPrec) benkcc, r0, r000, r0a
 
   tr_is4D    = idp == 0 .or. ition == 0
   tr_isThick = ithick == 1
@@ -68,7 +72,10 @@ subroutine preTracking
   if(dynk_enabled) call dynk_pretrack
   call time_timeStamp(time_afterPreTrack)
 
-  if(mout2 == 1) call fluc_writeFort4
+  if(mout2 == 1) then
+    call fluc_writeFort4
+    call fluc_writeAlignErrFile
+  end if
 
   ! BEGIN Loop over structure elements
   do i=1,iu
@@ -84,16 +91,11 @@ subroutine preTracking
       if(abs(strack(i)) <= pieni) then
         ktrack(i) = 31
       end if
-      ! Non-linear/NOT BLOC
-      cycle
-    end if
-    ix = ix-nblo ! Remove the block index offset
-
-    if(mout2 == 1 .and. icextal(i) > 0) then
-      write(27,"(a16,2x,1p,2d14.6,d17.9)") bez(ix),&
-        fluc_errAlign(1,icextal(i)),fluc_errAlign(2,icextal(i)),fluc_errAlign(3,icextal(i))
+      cycle ! Nothing more needed for BLOC element
     end if
 
+    ! Single element
+    ix  = ix-nblo ! Remove the block index offset
     kpz = abs(kp(ix))
     if(kpz == 6) then
       ktrack(i) = 2
@@ -147,13 +149,24 @@ subroutine preTracking
     case(-23) ! Crab Cavity
       ktrack(i) = 54
 
-    case(24) ! DIPEDGE ELEMENT
-#include "include/stra2dpe.f90"
+    case(24) ! Dipedge Element
       ktrack(i) = 55
+      strack(i) = zero
+#ifdef TILT
+      strackx(i) = ed(ix)*tiltc(i)
+      stracks(i) = ed(ix)*tilts(i)
+      strackz(i) = ek(ix)*tiltc(i)
+      strackc(i) = ek(ix)*tilts(i)
+#else
+      strackx(i) = ed(ix)
+      strackz(i) = ek(ix)
+#endif
 
     case (25) ! Solenoid
-#include "include/solenoid.f90"
-      ktrack(i) = 56
+      ktrack(i)  = 56
+      strack(i)  = zero
+      strackx(i) = ed(ix)
+      strackz(i) = ek(ix)
 
     case(26) ! JBG RF CC Multipoles
       ktrack(i) = 57
@@ -214,7 +227,7 @@ subroutine preTracking
             ktrack(i) = 35 ! Horizontal Bend without a ficitve length
             call setStrack(12,i)
           end if
-        else if(abs(dki(ix,1)) <= pieni.and.abs(dki(ix,2)) > pieni) then
+        else if(abs(dki(ix,1)) <= pieni .and. abs(dki(ix,2)) > pieni) then
           if(abs(dki(ix,3)) > pieni) then
             ktrack(i) = 37 ! Vertical bending with fictive length
             call setStrack(13,i)
@@ -259,7 +272,7 @@ subroutine preTracking
           r0a = r0a*r000
         end do
 
-        write(9,"(a)") bez(ix)
+        write(9,"(a)") trim(bez(ix))
         write(9,"(1p,3d23.15)") (fake(1,j), j=1,3)
         write(9,"(1p,3d23.15)") (fake(1,j), j=4,6)
         write(9,"(1p,3d23.15)") (fake(1,j), j=7,9)
@@ -275,7 +288,7 @@ subroutine preTracking
         write(9,"(1p,3d23.15)") (fake(2,j), j=16,18)
         write(9,"(1p,2d23.15)") (fake(2,j), j=19,20)
 
-        fake(1:2,1:20) = zero
+        fake(:,:) = zero
       end if
 
     case default

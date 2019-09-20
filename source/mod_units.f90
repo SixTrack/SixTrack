@@ -498,7 +498,7 @@ subroutine f_writeLog(action,unit,status,file)
   end if
 
   call cpu_time(cpuTime)
-  write(units_logUnit,"(f10.3,2x,a8,2x,i4,2x,a8,2x,a)") cpuTime,adjustl(wAction),unit,adjustl(wStatus),adjustl(wFile)
+  write(units_logUnit,"(f10.3,2x,a8,2x,i4,2x,a8,2x,a)") cpuTime,adjustl(wAction),unit,adjustl(wStatus),trim(wFile)
   flush(units_logUnit)
 
 end subroutine f_writeLog
