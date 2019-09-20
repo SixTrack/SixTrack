@@ -1259,10 +1259,8 @@ program maincr
   ! time1 is now pre-processing CPU
   ! Note that this will be reset every restart as we redo pre-processing
   pretime = time1-time0
-  part_isTracking = .true.
-  call trackInit
-  if(ithick == 0) call trauthin(nthinerr)
-  if(ithick == 1) call trauthck(nthinerr)
+  call preTracking
+  call startTracking(nthinerr)
 
   time2 = 0.0
   call time_timerCheck(time2)

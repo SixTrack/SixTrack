@@ -16,82 +16,50 @@ module tracking
 contains
 
 ! ================================================================================================ !
-!  V.K. Berglyd Olsen, BE-ABP-HSS
-!  Created: 2019-09-20
-!  Updated: 2019-09-20
-!  Initialisation of variables needed for tracking
-! ================================================================================================ !
-subroutine trackInit
-
-  use mod_common
-  use mathlib_bouncer
-
-  integer oPart, oTurn
-
-  ! Check whether this is 4D or 6D
-  tr_is4D = idp == 0 .or. ition == 0
-
-  ! Define the label of the tracking mode
-  if(ithick == 1) then
-    trackMode = "Thick"
-  else
-    trackMode = "Thin"
-  end if
-  if(tr_is4D) then
-    trackMode = trim(trackMode)//" 4D"
-  else
-    trackMode = trim(trackMode)//" 6D"
-  end if
-  oPart = int(log10_mb(real(napxo, kind=fPrec))) + 1
-  oTurn = int(log10_mb(real(numl,  kind=fPrec))) + 1
-  write(trackFmt,"(2(a,i0),a)") "(2(a,i",oTurn,"),2(a,i",oPart,"))"
-
-end subroutine trackInit
-
-! ================================================================================================ !
-!  V.K. Berglyd Olsen, BE-ABP-HSS
-!  Updated: 2019-09-20
-! ================================================================================================ !
-subroutine trackReport(n)
-
-  use crcoall
-  use mod_common, only : numl, napx, napxo
-
-  integer, intent(in) :: n
-
-  write(lout,trackFmt) "TRACKING> "//trim(trackMode)//": Turn ",n," / ",numl,", Particles: ",napx," / ",napxo
-  flush(lout)
-
-end subroutine trackReport
-
-! ================================================================================================ !
 !  Prepare for Tracking
-!  Code merged from old trauthin and trauthick routines
+!  Code merged from old trauthin and trauthck routines
 ! ================================================================================================ !
 subroutine preTracking
 
   use crcoall
+  use mod_time
   use mod_common
   use mod_common_main
   use mod_common_track
   use numerical_constants
+  use mathlib_bouncer
 
-  use collimation, only : do_coll
-  use mod_fluc,    only : fluc_writeFort4, fluc_errAlign
-  use cheby,       only : cheby_kz, cheby_ktrack
-  use dynk,        only : dynk_enabled, dynk_isused, dynk_pretrack
-  use scatter,     only : scatter_elemPointer
+  use mod_particles, only : part_isTracking
+  use collimation,   only : do_coll
+  use mod_fluc,      only : fluc_writeFort4, fluc_errAlign
+  use cheby,         only : cheby_kz, cheby_ktrack
+  use dynk,          only : dynk_enabled, dynk_isused, dynk_pretrack
+  use scatter,       only : scatter_elemPointer
 
   real(kind=fPrec) benkcc, r0, r000, r0a
-  integer i, j, ix, jb, jx, kpz, kzz, nmz
+  integer i, j, ix, jb, jx, kpz, kzz, nmz, oPart, oTurn
   logical isThick
 
+  tr_is4D = idp == 0 .or. ition == 0
   isThick = ithick == 1
+  part_isTracking = .true.
 
   if(isThick .and. do_coll) then
     write(lerr,"(a)") "TRACKING> ERROR Collimation is not supported for thick tracking"
     call prror
   end if
+
+  ! Set up the tracking format for printout
+  oPart = int(log10_mb(real(napxo, kind=fPrec))) + 1
+  oTurn = int(log10_mb(real(numl,  kind=fPrec))) + 1
+  write(trackFmt,"(2(a,i0),a)") "(2(a,i",oTurn,"),2(a,i",oPart,"))"
+
+  do j=1,napx
+    dpsv1(j) = (dpsv(j)*c1e3)/(one+dpsv(j))
+  end do
+
+  if(dynk_enabled) call dynk_pretrack
+  call time_timeStamp(time_afterPreTrack)
 
   if(mout2 == 1) call fluc_writeFort4
 
@@ -313,66 +281,84 @@ subroutine preTracking
 end subroutine preTracking
 
 ! ================================================================================================ !
-!  Calculate strack for magnet types
-!  Code merged from include files stra01.f90 to stra14.f90
-!  V.K. Berglyd Olsen, BE-ABP-HSS
+!  Begin Tracking
 !  Updated: 2019-09-20
 ! ================================================================================================ !
-subroutine setStrack(skz, i)
+subroutine startTracking(nthinerr)
 
   use parpro
   use crcoall
-  use mod_common,       only : tiltc, tilts, ic, dki
-  use mod_common_main,  only : smiv
-  use mod_common_track, only : strack, strackc, stracks
+  use mod_common
   use numerical_constants
 
-  integer, intent(in) :: skz
-  integer, intent(in) :: i
+  use collimation, only : do_coll
 
-  integer ix
+  integer, intent(inout) :: nthinerr
 
-  ix = ic(i) - nblo
+  integer i
 
-  select case(skz)
-  case(1)
-    strack(i) = smiv(i)*c1e3
-  case(2)
-    strack(i) = smiv(i)
-  case(3)
-    strack(i) = smiv(i)*c1m3
-  case(4)
-    strack(i) = smiv(i)*c1m6
-  case(5)
-    strack(i) = smiv(i)*c1m9
-  case(6)
-    strack(i) = smiv(i)*c1m12
-  case(7)
-    strack(i) = smiv(i)*c1m15
-  case(8)
-    strack(i) = smiv(i)*c1m18
-  case(9)
-    strack(i) = smiv(i)*c1m21
-  case(10)
-    strack(i) = smiv(i)*c1m24
-  case(11)
-    strack(i) = dki(ix,1)/dki(ix,3)
-  case(12)
-    strack(i) = dki(ix,1)
-  case(13)
-    strack(i) = dki(ix,2)/dki(ix,3)
-  case(14)
-    strack(i) = dki(ix,2)
-  case default
-    write(lerr,"(a,i0,a)") "TRACKING> ERROR Setting strack for type ",skz," not possible. This is a bug."
-    call prror
-  end select
+  if(tr_is4D .eqv. .false.) then
+    hsy(3)=(c1m3*hsy(3))*real(ition,fPrec)
+    do i=1,nele
+      if(abs(kz(i)) == 12) then
+        hsyc(i) = (c1m3*hsyc(i)) * real(sign(1,kz(i)),kind=fPrec)
+      end if
+    end do
+    if(abs(phas) >= pieni) then
+      write(lerr,"(a)") "TRACKING> ERROR thin/thck6dua no longer supported. Please use DYNK instead."
+      call prror
+    end if
+  end if
 
-#ifdef TILT
-  strackc(i) = strack(i)*tiltc(i)
-  stracks(i) = strack(i)*tilts(i)
-#endif
+  if(ithick == 1) then
+    if(idp == 0 .or. ition == 0) then
+      write(lout,"(a)") ""
+      write(lout,"(a)") "TRACKING> Starting Thick 4D Tracking"
+      write(lout,"(a)") ""
+      trackMode = "Thick 4D"
+      call thck4d(nthinerr)
+    else
+      write(lout,"(a)") ""
+      write(lout,"(a)") "TRACKING> Starting Thick 6D Tracking"
+      write(lout,"(a)") ""
+      trackMode = "Thick 6D"
+      call thck6d(nthinerr)
+    end if
+  else
+    if((idp == 0 .or. ition == 0) .and. .not.do_coll) then ! 4D tracking (not collimat compatible)
+      write(lout,"(a)") ""
+      write(lout,"(a)") "TRACKING> Starting Thin 4D Tracking"
+      write(lout,"(a)") ""
+      trackMode = "Thin 4D"
+      call thin4d(nthinerr)
+    else
+      if(do_coll .and. (idp == 0 .or. ition == 0)) then ! Actually 4D, but collimation needs 6D so goto 6D.
+        write(lout,"(a)") "TRACKING> WARNING Calling 6D tracking due to collimation! Would normally have called thin4d"
+      endif
+      write(lout,"(a)") ""
+      write(lout,"(a)") "TRACKING> Starting Thin 6D Tracking"
+      write(lout,"(a)") ""
+      trackMode = "Thin 6D"
+      call thin6d(nthinerr)
+    end if
+  end if
 
-end subroutine setStrack
+end subroutine startTracking
+
+! ================================================================================================ !
+!  V.K. Berglyd Olsen, BE-ABP-HSS
+!  Updated: 2019-09-20
+! ================================================================================================ !
+subroutine trackReport(n)
+
+  use crcoall
+  use mod_common, only : numl, napx, napxo
+
+  integer, intent(in) :: n
+
+  write(lout,trackFmt) "TRACKING> "//trim(trackMode)//": Turn ",n," / ",numl,", Particles: ",napx," / ",napxo
+  flush(lout)
+
+end subroutine trackReport
 
 end module tracking
