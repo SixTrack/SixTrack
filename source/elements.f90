@@ -355,7 +355,7 @@ subroutine initialise_element(ix,lfirst)
 
   ! Error handlers
 100 continue
-  write(lerr,"(a,i0)") "INITELEM> ERROR Tried to set the strength of an element which is disabled. bez = ", bez(ix)
+  write(lerr,"(a)") "INITELEM> ERROR Tried to set the strength of an element which is disabled. bez = '",trim(bez(ix)),"'"
   call prror
 
 end subroutine initialise_element
