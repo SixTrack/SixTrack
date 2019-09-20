@@ -201,10 +201,13 @@ subroutine preTracking
 
     case(41) ! RF Multipole
       ktrack(i) = 66
+
     case(43) ! X Rotation
       ktrack(i) = 68
+
     case(44) ! Y Rotation
       ktrack(i) = 69
+
     case(45) ! S Rotation
       ktrack(i) = 70
 
@@ -333,12 +336,12 @@ subroutine startTracking(nthinerr)
 
   nthinerr = 0
 #ifdef FLUKA
-    napxto = 0
+  napxto = 0
 #endif
   if(lbacktracking) call aperture_backTrackingInit
 
   if(ithick == 1) then
-    if(idp == 0 .or. ition == 0) then
+    if(tr_is4D) then
       write(lout,"(a)") ""
       write(lout,"(a)") "TRACKING> Starting Thick 4D Tracking"
       write(lout,"(a)") ""
@@ -352,16 +355,16 @@ subroutine startTracking(nthinerr)
       call thck6d(nthinerr)
     end if
   else
-    if((idp == 0 .or. ition == 0) .and. .not.do_coll) then ! 4D tracking (not collimat compatible)
+    if(tr_is4D .and. .not.do_coll) then ! 4D tracking is not collimat compatible
       write(lout,"(a)") ""
       write(lout,"(a)") "TRACKING> Starting Thin 4D Tracking"
       write(lout,"(a)") ""
       trackMode = "Thin 4D"
       call thin4d(nthinerr)
     else
-      if(do_coll .and. (idp == 0 .or. ition == 0)) then ! Actually 4D, but collimation needs 6D so goto 6D.
-        write(lout,"(a)") "TRACKING> WARNING Calling 6D tracking due to collimation! Would normally have called thin4d"
-      endif
+      if(tr_is4D .and. do_coll) then
+        write(lout,"(a)") "TRACKING> WARNING Calling 6D tracking due to collimation - would normally have called 4D"
+      end if
       write(lout,"(a)") ""
       write(lout,"(a)") "TRACKING> Starting Thin 6D Tracking"
       write(lout,"(a)") ""
@@ -431,6 +434,7 @@ end subroutine trackBeginTurn
 ! ================================================================================================ !
 !  F. Schmidt
 !  Created: 1999-02-03
+!  Added pair mapping: V.K. Berglyd Olsen
 ! ================================================================================================ !
 subroutine trackDistance
 
