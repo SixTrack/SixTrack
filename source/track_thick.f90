@@ -636,9 +636,9 @@ subroutine thck4d(nthinerr)
 480 continue
 
     if(nthinerr.ne.0) return
-    if(ntwin.ne.2) call dist1
+    if(ntwin.ne.2) call trackDistance
 #ifndef FLUKA
-    if(mod(n,nwr(4)).eq.0) call write6(n)
+    if(mod(n,nwr(4)).eq.0) call trackPairReport(n)
 #endif
 
 #ifdef FLUKA
@@ -1344,9 +1344,9 @@ subroutine thck6d(nthinerr)
 !===================================================================
 
     if(nthinerr.ne.0) return
-    if(ntwin.ne.2) call dist1
+    if(ntwin.ne.2) call trackDistance
 #ifndef FLUKA
-    if(mod(n,nwr(4)).eq.0) call write6(n)
+    if(mod(n,nwr(4)).eq.0) call trackPairReport(n)
 #endif
 
 #ifdef FLUKA

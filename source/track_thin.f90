@@ -605,9 +605,9 @@ subroutine thin4d(nthinerr)
 #endif
 
     if(nthinerr.ne.0) return
-    if(ntwin.ne.2) call dist1
+    if(ntwin.ne.2) call trackDistance
 #ifndef FLUKA
-    if(mod(n,nwr(4)).eq.0) call write6(n)
+    if(mod(n,nwr(4)).eq.0) call trackPairReport(n)
 #endif
 
 #ifdef FLUKA
@@ -1582,11 +1582,11 @@ subroutine thin6d(nthinerr)
 
     if (.not. do_coll) then
       if(ntwin.ne.2) then
-        call dist1
+        call trackDistance
       end if
 #ifndef FLUKA
       if(mod(n,nwr(4)).eq.0) then
-        call write6(n) ! Write to fort.12
+        call trackPairReport(n) ! Write to fort.12
       end if
 #endif
     endif
@@ -1607,110 +1607,3 @@ subroutine thin6d(nthinerr)
 660 continue !END loop over turns
 
 end subroutine thin6d
-
-!-----------------------------------------------------------------------
-!
-!  F. SCHMIDT
-!-----------------------------------------------------------------------
-!  3 February 1999
-!-----------------------------------------------------------------------
-subroutine dist1
-
-  use crcoall
-  use mod_common
-  use mod_common_main
-  use floatPrecision
-  use numerical_constants
-
-  implicit none
-
-  integer ia,ib2,ib3,ie,ip
-  real(kind=fPrec) dam1
-
-  do ip=1,(napxo+1)/2
-    ia = pairMap(1,ip)
-    ie = pairMap(2,ip)
-    if(ia == 0 .or. ie == 0) then
-      ! Check that the map does not contain a 0 index, which means something is wrong in the record keeping of lost particles
-      write(lerr,"(a,i0)") "WRITEBIN> ERROR The map of particle pairs is missing one or both particles for pair ",ip
-      call prror
-    end if
-    if(.not.pstop(ia) .and. .not.pstop(ie)) then
-      dam(ia)  = zero
-      dam(ie)  = zero
-      xau(1,1) = xv1(ia)
-      xau(1,2) = yv1(ia)
-      xau(1,3) = xv2(ia)
-      xau(1,4) = yv2(ia)
-      xau(1,5) = sigmv(ia)
-      xau(1,6) = dpsv(ia)
-      xau(2,1) = xv1(ie)
-      xau(2,2) = yv1(ie)
-      xau(2,3) = xv2(ie)
-      xau(2,4) = yv2(ie)
-      xau(2,5) = sigmv(ie)
-      xau(2,6) = dpsv(ie)
-      cloau(1) = clo6v(1)
-      cloau(2) = clop6v(1)
-      cloau(3) = clo6v(2)
-      cloau(4) = clop6v(2)
-      cloau(5) = clo6v(3)
-      cloau(6) = clop6v(3)
-      di0au(1) = di0xs
-      di0au(2) = dip0xs
-      di0au(3) = di0zs
-      di0au(4) = dip0zs
-      tau(:,:) = tasau(:,:)
-
-      call distance(xau,cloau,di0au,tau,dam1)
-      dam(ia) = dam1
-      dam(ie) = dam1
-    end if
-  end do
-
-end subroutine dist1
-
-!-----------------------------------------------------------------------
-!
-!  F. SCHMIDT
-!  Write to fort.12
-!  TODO: Not using chr_fromreal as it should
-!-----------------------------------------------------------------------
-!  3 February 1999
-!-----------------------------------------------------------------------
-subroutine write6(n)
-
-  use crcoall
-  use mod_common
-  use mod_common_main
-  use read_write
-  use mod_settings
-
-  implicit none
-
-  integer ia,ig,n
-
-  call writeFort12
-
-  do ia=1,napxo,2
-    ig=ia+1
-#ifndef CR
-#ifndef STF
-    flush(91-(ig/2))
-#else
-    flush(90)
-#endif
-#endif
-    !-- PARTICLES STABLE (Only if QUIET < 2)
-    if(.not.pstop(ia).and..not.pstop(ig)) then
-      if(st_quiet < 2) write(lout,10000) ia,izu0,dpsv(ia),n
-      if(st_quiet < 1) write(lout,10010)                    &
-        xv1(ia),yv1(ia),xv2(ia),yv2(ia),sigmv(ia),dpsv(ia), &
-        xv1(ig),yv1(ig),xv2(ig),yv2(ig),sigmv(ig),dpsv(ig), &
-        e0,ejv(ia),ejv(ig)
-    end if
-  end do
-  return
-10000 format(1x/5x,'PARTICLE ',i7,' RANDOM SEED ',i8,' MOMENTUM DEVIATION ',g12.5 /5x,'REVOLUTION ',i8/)
-10010 format(10x,f47.33)
-end subroutine write6
