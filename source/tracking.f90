@@ -363,19 +363,57 @@ end subroutine startTracking
 !  V.K. Berglyd Olsen, BE-ABP-HSS
 !  Updated: 2019-09-20
 ! ================================================================================================ !
-subroutine trackReport(n)
+subroutine trackBeginTurn(n, nthinerr)
 
   use crcoall
-  use mod_common, only : numl, napx, napxo
+  use mod_meta
+  use mod_common
+  use mod_common_track
+  use mod_settings
 
-  integer, intent(in) :: n
+  use dynk
+  use dump
+  use postprocessing
+#ifdef CR
+  use checkpoint_restart
+#endif
+#ifdef BOINC
+  use mod_boinc
+#endif
 
-  if(mod(n,turnReport) == 0) then
+  integer, intent(in)    :: n
+  integer, intent(inout) :: nthinerr
+
+  ! Tracking Progress Report
+  if(mod(n,turnReport) == 0 .and. st_quiet < 2) then
     write(lout,trackFmt) "TRACKING> "//trim(trackMode)//": Turn ",n," / ",numl,", Particles: ",napx," / ",napxo
     flush(lout)
   end if
 
-end subroutine trackReport
+  meta_nPartTurn = meta_nPartTurn + napx
+  numx = n-1
+
+#ifndef FLUKA
+  if(mod(numx,nwri) == 0) call writebin(nthinerr)
+  if(nthinerr /= 0) return
+#endif
+
+#ifdef CR
+#ifdef BOINC
+  call boinc_turn(n)
+#else
+  if(mod(numx,numlcp) == 0) call crpoint
+#endif
+  cr_restart = .false.
+  if(st_killswitch) call cr_killSwitch(n)
+#endif
+
+  if(dynk_enabled) then
+    call dynk_apply(n)
+  end if
+  call dump_linesFirst(n)
+
+end subroutine trackBeginTurn
 
 ! ================================================================================================ !
 !  F. Schmidt

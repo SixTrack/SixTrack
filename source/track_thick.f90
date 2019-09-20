@@ -82,36 +82,8 @@ subroutine thck4d(nthinerr)
   nfirst = 1
 #endif
   do 490 n=nfirst,numl
-    if(st_quiet < 3) then
-      call trackReport(n)
-    end if
-    meta_nPartTurn = meta_nPartTurn + napx
-    numx=n-1
-
-#ifndef FLUKA
-    if(mod(numx,nwri) == 0) call writebin(nthinerr)
+    call trackBeginTurn(n, nthinerr)
     if(nthinerr /= 0) return
-#endif
-
-#ifdef CR
-#ifdef BOINC
-    call boinc_turn(n)
-#else
-    if(mod(numx,numlcp) == 0) call crpoint
-#endif
-    cr_restart = .false.
-    if(st_killswitch) call cr_killSwitch(n)
-#endif
-
-!       A.Mereghetti, for the FLUKA Team
-!       last modified: 03-09-2014
-!       apply dynamic kicks
-!       always in main code
-    if ( dynk_enabled ) then
-      call dynk_apply(n)
-    end if
-
-    call dump_linesFirst(n)
 
     do 480 i=1,iu
       if(ktrack(i).eq.1) then
@@ -612,17 +584,12 @@ subroutine thck4d(nthinerr)
 
 480 continue
 
-    if(nthinerr.ne.0) return
-    if(ntwin.ne.2) call trackDistance
+    if(nthinerr /= 0) return
+    if(ntwin /= 2) call trackDistance
 #ifndef FLUKA
-    if(mod(n,nwr(4)).eq.0) call trackPairReport(n)
-#endif
-
-#ifdef FLUKA
-    ! A.Mereghetti, for the FLUKA Team
-    ! last modified: 14-06-2014
+    if(mod(n,nwr(4)) == 0) call trackPairReport(n)
+#else
     ! increase napxto, to get an estimation of particles*turns
-    ! inserted in main code by the 'fluka' compilation flag
     napxto = napxto + napx
 #endif
 
@@ -723,35 +690,8 @@ subroutine thck6d(nthinerr)
   nfirst = 1
 #endif
   do 510 n=nfirst,numl
-    if(st_quiet < 3) then
-      call trackReport(n)
-    end if
-    meta_nPartTurn = meta_nPartTurn + napx
-    numx=n-1
-
-#ifndef FLUKA
-    if(mod(numx,nwri) == 0) call writebin(nthinerr)
+    call trackBeginTurn(n, nthinerr)
     if(nthinerr /= 0) return
-#endif
-
-#ifdef CR
-#ifdef BOINC
-    call boinc_turn(n)
-#else
-    if(mod(numx,numlcp) == 0) call crpoint
-#endif
-    cr_restart = .false.
-    if(st_killswitch) call cr_killSwitch(n)
-#endif
-
-!       A.Mereghetti, for the FLUKA Team
-!       last modified: 03-09-2014
-!       apply dynamic kicks
-!       always in main code
-    if ( dynk_enabled ) then
-      call dynk_apply(n)
-    end if
-    call dump_linesFirst(n)
 
     do 500 i=1,iu
       if(ktrack(i).eq.1) then
@@ -1291,35 +1231,17 @@ subroutine thck6d(nthinerr)
 500 continue
 ! End of loop over elements
 
-!===================================================================
-!===================================================================
-! Eric beginthck6dend
-!===================================================================
-!===================================================================
-
-    if(nthinerr.ne.0) return
-    if(ntwin.ne.2) call trackDistance
+    if(nthinerr /= 0) return
+    if(ntwin /= 2) call trackDistance
 #ifndef FLUKA
-    if(mod(n,nwr(4)).eq.0) call trackPairReport(n)
-#endif
-
-#ifdef FLUKA
-    ! A.Mereghetti, for the FLUKA Team
-    ! last modified: 14-06-2014
+    if(mod(n,nwr(4)) == 0) call trackPairReport(n)
+#else
     ! increase napxto, to get an estimation of particles*turns
-    ! inserted in main code by the 'fluka' compilation flag
     napxto = napxto + napx
 #endif
 
 510 continue
 ! end loop over turns
-
-!===================================================================
-!===================================================================
-! Eric endthck6dend
-!===================================================================
-!===================================================================
-  return
 
 end subroutine thck6d
 

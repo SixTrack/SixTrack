@@ -81,35 +81,8 @@ subroutine thin4d(nthinerr)
   nfirst = 1
 #endif
   do 640 n=nfirst,numl
-    if(st_quiet < 3) then
-      call trackReport(n)
-    end if
-    meta_nPartTurn = meta_nPartTurn + napx
-    numx=n-1
-
-#ifndef FLUKA
-    if(mod(numx,nwri) == 0) call writebin(nthinerr)
+    call trackBeginTurn(n, nthinerr)
     if(nthinerr /= 0) return
-#endif
-
-#ifdef CR
-#ifdef BOINC
-    call boinc_turn(n)
-#else
-    if(mod(numx,numlcp) == 0) call crpoint
-#endif
-    cr_restart = .false.
-    if(st_killswitch) call cr_killSwitch(n)
-#endif
-
-    ! A.Mereghetti, for the FLUKA Team
-    ! last modified: 03-09-2014
-    ! apply dynamic kicks
-    ! always in main code
-    if ( dynk_enabled ) then
-      call dynk_apply(n)
-    end if
-    call dump_linesFirst(n)
 
     ! loop over structure elements, single element: name + type + parameter,
     ! structure element = order of single elements/blocks
@@ -587,23 +560,16 @@ subroutine thin4d(nthinerr)
     end if
 #endif
 
-    if(nthinerr.ne.0) return
-    if(ntwin.ne.2) call trackDistance
+    if(nthinerr /= 0) return
+    if(ntwin /= 2) call trackDistance
 #ifndef FLUKA
-    if(mod(n,nwr(4)).eq.0) call trackPairReport(n)
-#endif
-
-#ifdef FLUKA
-  ! A.Mereghetti, for the FLUKA Team
-  ! last modified: 14-06-2014
-  ! increase napxto, to get an estimation of particles*turns
-  ! inserted in main code by the 'fluka' compilation flag
-  napxto = napxto + napx
+    if(mod(n,nwr(4)) == 0) call trackPairReport(n)
+#else
+    ! increase napxto, to get an estimation of particles*turns
+    napxto = napxto + napx
 #endif
 
   640 continue
-
-  return
 
 end subroutine thin4d
 
@@ -690,47 +656,18 @@ subroutine thin6d(nthinerr)
   nfirst = 1
 #endif
   do 660 n=nfirst,numl
-    if(st_quiet < 3) then
-      call trackReport(n)
-    end if
-    meta_nPartTurn = meta_nPartTurn + napx
+    call trackBeginTurn(n, nthinerr)
+    if(nthinerr /= 0) return
 
-    if (do_coll) then
+    if(do_coll) then
       ! This subroutine sets variables iturn and totals
       call collimate_start_turn(n)
     endif
 
-    numx=n-1
-
-#ifndef FLUKA
-    if(mod(numx,nwri) == 0) call writebin(nthinerr)
-    if(nthinerr /= 0) return
-#endif
-
-#ifdef CR
-#ifdef BOINC
-    call boinc_turn(n)
-#else
-    if(mod(numx,numlcp) == 0) call crpoint
-#endif
-    cr_restart = .false.
-    if(st_killswitch) call cr_killSwitch(n)
-#endif
-
-    ! A.Mereghetti, for the FLUKA Team
-    ! last modified: 03-09-2014
-    ! apply dynamic kicks
-    ! always in main code
-    if ( dynk_enabled ) then
-      call dynk_apply(n)
-    end if
-
-    call dump_linesFirst(n)
-
     !! This is the loop over each element: label 650
     do 650 i=1,iu !Loop over elements
 
-      if (do_coll) then
+      if(do_coll) then
         ! This subroutine sets variables myktrack and myix
         call collimate_start_element(i)
       endif
@@ -1517,7 +1454,7 @@ subroutine thin6d(nthinerr)
 
 640   continue ! end of the SELECT CASE over element type (dotrack)
 
-      if (do_coll) then
+      if(do_coll) then
         call collimate_end_element
       end if
 
@@ -1525,49 +1462,34 @@ subroutine thin6d(nthinerr)
 
 645   continue
 
-      if (.not. ldumpfront) then
+      if(.not. ldumpfront) then
         call dump_lines(n,i,ix)
       end if
 
 650 continue !END loop over structure elements
 
-    if (do_coll) then
+    if(do_coll) then
       call collimate_end_turn
-    endif
-
-#if defined(ROOT)
-    if(root_flag .and. root_Collimation.eq.1) then
+    end if
+#ifdef ROOT
+    if(root_flag .and. root_Collimation == 1) then
       call SurvivalRootWrite(n, napx)
     end if
 #endif
 
-    if(nthinerr.ne.0) then
-      return
-    end if
-
-    if (.not. do_coll) then
-      if(ntwin.ne.2) then
-        call trackDistance
-      end if
+    if(nthinerr /= 0) return
+    if(do_coll) then
+      firstrun = .false.
+    else
+      if(ntwin /= 2) call trackDistance
 #ifndef FLUKA
-      if(mod(n,nwr(4)).eq.0) then
-        call trackPairReport(n) ! Write to fort.12
-      end if
+      if(mod(n,nwr(4)) == 0) call trackPairReport(n)
 #endif
-    endif
-
+    end if
 #ifdef FLUKA
-!   A.Mereghetti, for the FLUKA Team
-!   last modified: 14-06-2014
-!   increase napxto, to get an estimation of particles*turns
-!   inserted in main code by the 'fluka' compilation flag
+    ! increase napxto, to get an estimation of particles*turns
     napxto = napxto + napx
 #endif
-
-    if (do_coll) then
-      !GRD HERE WE SET THE FLAG FOR INITIALIZATION TO FALSE AFTER TURN 1
-      firstrun = .false.
-    endif
 
 660 continue !END loop over turns
 
