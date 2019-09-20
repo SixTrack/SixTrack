@@ -54,7 +54,7 @@ subroutine thin4d(nthinerr)
 
   implicit none
 
-  integer i,irrtr,ix,j,k,n,nmz,nthinerr,xory,nac,nfree,nramp1,nplato,nramp2,turnrep,kxxa,nfirst
+  integer i,irrtr,ix,j,k,n,nmz,nthinerr,xory,nac,nfree,nramp1,nplato,nramp2,kxxa,nfirst
   real(kind=fPrec) pz,cccc,cikve,crkve,crkveuk,r0,stracki,xlvj,yv1j,yv2j,zlvj,acdipamp,qd,acphase,  &
     acdipamp2,acdipamp1,crabamp,crabfreq,kcrab,RTWO,NNORM,l,cur,dx,dy,tx,ty,embl,chi,xi,yi,dxi,dyi, &
     rrelens,frrelens,xelens,yelens,onedp,fppsig,tan_t,sin_t,cos_t,costh_temp,sinth_temp,pxf,pyf,    &
@@ -69,21 +69,6 @@ subroutine thin4d(nthinerr)
 
   save
 !-----------------------------------------------------------------------
-  nthinerr=0
-
-  ! initialise variables for back-tracking particles
-  if (lbacktracking) call aperture_backTrackingInit
-
-#ifdef FLUKA
-  napxto = 0
-#endif
-
-  ! Determine which turns to print tracking report on
-  if(numl > 1000) then
-    turnrep = nint(numl/1000.0)
-  else
-    turnrep = 1
-  end if
 
 #ifdef CR
   if(cr_restart) then
@@ -97,9 +82,7 @@ subroutine thin4d(nthinerr)
 #endif
   do 640 n=nfirst,numl
     if(st_quiet < 3) then
-      if(mod(n,turnrep) == 0) then
-        call trackReport(n)
-      end if
+      call trackReport(n)
     end if
     meta_nPartTurn = meta_nPartTurn + napx
     numx=n-1
@@ -678,7 +661,7 @@ subroutine thin6d(nthinerr)
 
   implicit none
 
-  integer i,irrtr,ix,j,k,n,nmz,nthinerr,dotrack,xory,nac,nfree,nramp1,nplato,nramp2,turnrep,elemEnd,&
+  integer i,irrtr,ix,j,k,n,nmz,nthinerr,dotrack,xory,nac,nfree,nramp1,nplato,nramp2,elemEnd,&
     kxxa,nfirst
   real(kind=fPrec) pz,cccc,cikve,crkve,crkveuk,r0,stracki,xlvj,yv1j,yv2j,zlvj,acdipamp,qd,          &
     acphase,acdipamp2,acdipamp1,crabamp,crabfreq,crabamp2,crabamp3,crabamp4,kcrab,RTWO,NNORM,l,cur, &
@@ -692,22 +675,6 @@ subroutine thin6d(nthinerr)
   complex(kind=fPrec) :: Cp0, Sp1
   complex(kind=fPrec), parameter :: imag=(zero,one)
   save
-
-  nthinerr=0
-
-  ! initialise variables for back-tracking particles
-  if (lbacktracking) call aperture_backTrackingInit
-
-#ifdef FLUKA
-  napxto = 0
-#endif
-
-  ! Determine which turns to print tracking report on
-  if(numl > 1000) then
-    turnrep = nint(numl/1000.0)
-  else
-    turnrep = 1
-  end if
 
   call ffield_genAntiQuad()
 
@@ -724,9 +691,7 @@ subroutine thin6d(nthinerr)
 #endif
   do 660 n=nfirst,numl
     if(st_quiet < 3) then
-      if(mod(n,turnrep) == 0) then
-        call trackReport(n)
-      end if
+      call trackReport(n)
     end if
     meta_nPartTurn = meta_nPartTurn + napx
 

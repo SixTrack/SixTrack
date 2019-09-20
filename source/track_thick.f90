@@ -51,7 +51,7 @@ subroutine thck4d(nthinerr)
   implicit none
 
   integer i,idz1,idz2,irrtr,ix,j,jb,jmel,jx,k,n,nmz,nthinerr,xory,nac,nfree,nramp1,nplato,nramp2,   &
-    turnrep,kxxa,nfirst
+    kxxa,nfirst
   real(kind=fPrec) cccc,cikve,crkve,crkveuk,puxve,puxve1,puxve2,puzve1,puzve2,puzve,r0,xlvj,yv1j,   &
     yv2j,zlvj,acdipamp,qd,acphase, acdipamp2,acdipamp1,crabamp,crabfreq,kcrab,RTWO,NNORM,l,cur,dx,  &
     dy,tx,ty,embl,chi,xi,yi,dxi,dyi,rrelens,frrelens,xelens,yelens,onedp,fppsig,costh_temp,         &
@@ -68,29 +68,8 @@ subroutine thck4d(nthinerr)
 
   save
 
-  nthinerr=0
   idz1=idz(1)
   idz2=idz(2)
-
-  ! A.Mereghetti and P.Garcia Ortega, for the FLUKA Team
-  ! last modified: 24-11-2016
-  ! initialise variables for back-tracking particles
-  if (lbacktracking) call aperture_backTrackingInit
-
-#ifdef FLUKA
-
-!     A.Mereghetti, for the FLUKA Team
-!     last modified: 14-06-2014
-!     initialise napxto
-!     inserted in main code by the 'fluka' compilation flag
-  napxto = 0
-#endif
-  ! Determine which turns to print tracking report on
-  if(numl > 1000) then
-    turnrep = nint(numl/1000.0)
-  else
-    turnrep = 1
-  end if
 
 #ifdef CR
   if(cr_restart) then
@@ -104,9 +83,7 @@ subroutine thck4d(nthinerr)
 #endif
   do 490 n=nfirst,numl
     if(st_quiet < 3) then
-      if(mod(n,turnrep) == 0) then
-        call trackReport(n)
-      end if
+      call trackReport(n)
     end if
     meta_nPartTurn = meta_nPartTurn + napx
     numx=n-1
@@ -707,7 +684,7 @@ subroutine thck6d(nthinerr)
   implicit none
 
   integer i,idz1,idz2,irrtr,ix,j,jb,jmel,jx,k,n,nmz,nthinerr,xory,nac,nfree,nramp1,nplato,nramp2,   &
-    turnrep,kxxa,nfirst
+    kxxa,nfirst
   real(kind=fPrec) cccc,cikve,crkve,crkveuk,puxve1,puxve2,puzve1,puzve2,r0,xlvj,yv1j,yv2j,zlvj,     &
     acdipamp,qd,acphase,acdipamp2,acdipamp1,crabamp,crabfreq,kcrab,RTWO,NNORM,l,cur,dx,dy,tx,ty,    &
     embl,chi,xi,yi,dxi,dyi,rrelens,frrelens,xelens,yelens,onedp,fppsig,costh_temp,sinth_temp,pxf,   &
@@ -723,7 +700,6 @@ subroutine thck6d(nthinerr)
 
   save
 
-  nthinerr=0
   idz1=idz(1)
   idz2=idz(2)
 
@@ -735,27 +711,7 @@ subroutine thck6d(nthinerr)
   recompute_linear_matrices = .false.
 #endif
 
-  ! A.Mereghetti and P.Garcia Ortega, for the FLUKA Team
-  ! last modified: 24-11-2016
-  ! initialise variables for back-tracking particles
-  if (lbacktracking) call aperture_backTrackingInit
-
-#ifdef FLUKA
-!     A.Mereghetti, for the FLUKA Team
-!     last modified: 14-06-2014
-!     initialise napxto
-!     inserted in main code by the 'fluka' compilation flag
-  napxto = 0
-#endif
-
-  ! Determine which turns to print tracking report on
-  if(numl > 1000) then
-    turnrep = nint(numl/1000.0)
-  else
-    turnrep = 1
-  end if
-
-! Now the outer loop over turns
+  ! Now the outer loop over turns
 #ifdef CR
   if(cr_restart) then
     call crstart
@@ -768,9 +724,7 @@ subroutine thck6d(nthinerr)
 #endif
   do 510 n=nfirst,numl
     if(st_quiet < 3) then
-      if(mod(n,turnrep) == 0) then
-        call trackReport(n)
-      end if
+      call trackReport(n)
     end if
     meta_nPartTurn = meta_nPartTurn + napx
     numx=n-1

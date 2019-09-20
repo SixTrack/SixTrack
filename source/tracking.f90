@@ -9,9 +9,11 @@ module tracking
 
   implicit none
 
-  logical,           public,  save :: tr_is4D   = .false.
-  character(len=8),  private, save :: trackMode = " "
-  character(len=32), private, save :: trackFmt  = " "
+  logical,           public,  save :: tr_is4D    = .false.
+  logical,           public,  save :: tr_isThick = .false.
+  character(len=8),  private, save :: trackMode  = " "
+  character(len=32), private, save :: trackFmt   = " "
+  integer,           private, save :: turnReport = 0
 
 contains
 
@@ -38,13 +40,12 @@ subroutine preTracking
 
   real(kind=fPrec) benkcc, r0, r000, r0a
   integer i, j, ix, jb, jx, kpz, kzz, nmz, oPart, oTurn
-  logical isThick
 
-  tr_is4D = idp == 0 .or. ition == 0
-  isThick = ithick == 1
+  tr_is4D    = idp == 0 .or. ition == 0
+  tr_isThick = ithick == 1
   part_isTracking = .true.
 
-  if(isThick .and. do_coll) then
+  if(tr_isThick .and. do_coll) then
     write(lerr,"(a)") "TRACKING> ERROR Collimation is not supported for thick tracking"
     call prror
   end if
@@ -53,6 +54,12 @@ subroutine preTracking
   oPart = int(log10_mb(real(napxo, kind=fPrec))) + 1
   oTurn = int(log10_mb(real(numl,  kind=fPrec))) + 1
   write(trackFmt,"(2(a,i0),a)") "(2(a,i",oTurn,"),2(a,i",oPart,"))"
+
+  if(numl > 1000) then
+    turnReport = nint(numl/1000.0)
+  else
+    turnReport = 1
+  end if
 
   do j=1,napx
     dpsv1(j) = (dpsv(j)*c1e3)/(one+dpsv(j))
@@ -292,6 +299,7 @@ subroutine startTracking(nthinerr)
   use numerical_constants
 
   use collimation, only : do_coll
+  use aperture,    only : lbacktracking, aperture_backTrackingInit
 
   integer, intent(inout) :: nthinerr
 
@@ -309,6 +317,12 @@ subroutine startTracking(nthinerr)
       call prror
     end if
   end if
+
+  nthinerr = 0
+#ifdef FLUKA
+    napxto = 0
+#endif
+  if(lbacktracking) call aperture_backTrackingInit
 
   if(ithick == 1) then
     if(idp == 0 .or. ition == 0) then
@@ -356,8 +370,10 @@ subroutine trackReport(n)
 
   integer, intent(in) :: n
 
-  write(lout,trackFmt) "TRACKING> "//trim(trackMode)//": Turn ",n," / ",numl,", Particles: ",napx," / ",napxo
-  flush(lout)
+  if(mod(n,turnReport) == 0) then
+    write(lout,trackFmt) "TRACKING> "//trim(trackMode)//": Turn ",n," / ",numl,", Particles: ",napx," / ",napxo
+    flush(lout)
+  end if
 
 end subroutine trackReport
 
