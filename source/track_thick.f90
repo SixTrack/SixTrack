@@ -21,6 +21,7 @@ subroutine trauthck(nthinerr)
 #endif
 
   use collimation
+  use tracking
   use mod_time
   use mod_units
   use mod_utils
@@ -41,22 +42,12 @@ subroutine trauthck(nthinerr)
   xrb(npart),zrb(npart),xbb(npart),zbb(npart),crxb(npart),crzb(npart),cbxb(npart),cbzb(npart),nbeaux(nbb)
   save
 
-  if (do_coll) then
-    write(lerr,"(a)") "TRACKING> ERROR Collimation is not supported for thick tracking"
-    call prror
-  endif
+  call preTracking
 
-  do i=1,nblz
-    ktrack(i)=0
-    strack(i)=zero
-    strackc(i)=zero
-    stracks(i)=zero
-  end do
 #include "include/beams1.f90"
   do 290 i=1,iu
-    if(mout2.eq.1.and.i.eq.1) call fluc_writeFort4
     ix=ic(i)
-    if(ix.le.nblo) then
+    if(ix <= nblo) then
       !BLOC
       ktrack(i)=1
       do jb=1,mel(ix)
@@ -202,7 +193,7 @@ subroutine trauthck(nthinerr)
       end if
     case (3)
       if(abs(smiv(i)).le.pieni .and. .not.dynk_isused(i)) then
-        ktrack(i) =31
+        ktrack(i) = 31
       else
         ktrack(i) = 13
 #include "include/stra03.f90"
@@ -257,8 +248,8 @@ subroutine trauthck(nthinerr)
 #include "include/stra10.f90"
       end if
     case (11) ! Multipole block (also in initialise_element)
-      r0=ek(ix)
-      nmz=nmu(ix)
+      r0  = ek(ix)
+      nmz = nmu(ix)
       if(abs(r0).le.pieni.or.nmz.eq.0) then
         if(abs(dki(ix,1)).le.pieni.and.abs(dki(ix,2)).le.pieni) then
           if ( dynk_isused(i) ) then
@@ -266,50 +257,51 @@ subroutine trauthck(nthinerr)
               "') is off in "//trim(fort2)//", but on in DYNK. Not implemented."
             call prror
           end if
-          ktrack(i)=31
+          ktrack(i) = 31
         else if(abs(dki(ix,1)).gt.pieni.and.abs(dki(ix,2)).le.pieni) then
           if(abs(dki(ix,3)).gt.pieni) then
-            ktrack(i)=33
+            ktrack(i) = 33 !Horizontal Bend with a fictive length
 #include "include/stra11.f90"
           else
-            ktrack(i)=35
+            ktrack(i) = 35 !Horizontal Bend without a ficitve length
 #include "include/stra12.f90"
           end if
         else if(abs(dki(ix,1)).le.pieni.and.abs(dki(ix,2)).gt.pieni) then
           if(abs(dki(ix,3)).gt.pieni) then
-            ktrack(i)=37
+            ktrack(i) = 37 !Vertical bending with fictive length
 #include "include/stra13.f90"
           else
-            ktrack(i)=39
+            ktrack(i) = 39 !Vertical bending without fictive length
 #include "include/stra14.f90"
           end if
         end if
       else
         if(abs(dki(ix,1)).le.pieni.and.abs(dki(ix,2)).le.pieni) then
-          ktrack(i)=32
+          ktrack(i) = 32
         else if(abs(dki(ix,1)).gt.pieni.and.abs(dki(ix,2)).le.pieni) then
           if(abs(dki(ix,3)).gt.pieni) then
-            ktrack(i)=34
+            ktrack(i) = 34
 #include "include/stra11.f90"
           else
-            ktrack(i)=36
+            ktrack(i) = 36
 #include "include/stra12.f90"
           end if
         else if(abs(dki(ix,1)).le.pieni.and.abs(dki(ix,2)).gt.pieni) then
           if(abs(dki(ix,3)).gt.pieni) then
-            ktrack(i)=38
+            ktrack(i) = 38
 #include "include/stra13.f90"
           else
-            ktrack(i)=40
+            ktrack(i) = 40
 #include "include/stra14.f90"
           end if
         end if
       end if
       if(abs(r0).le.pieni.or.nmz.eq.0) goto 290
       if(mout2.eq.1) then
-        benkcc=ed(ix)*benkc(irm(ix))
-        r0a=one
-        r000=r0*r00(irm(ix))
+        benkcc = ed(ix)*benkc(irm(ix))
+        r0a    = one
+        r000   = r0*r00(irm(ix))
+
         do j=1,mmul
           fake(1,j)=(bbiv(j,i)*r0a)/benkcc
           fake(2,j)=(aaiv(j,i)*r0a)/benkcc

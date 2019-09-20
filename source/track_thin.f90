@@ -21,6 +21,7 @@ subroutine trauthin(nthinerr)
 #endif
 
   use collimation
+  use tracking
 
   use crcoall
   use parpro
@@ -68,42 +69,37 @@ subroutine trauthin(nthinerr)
   call alloc(cbxb, npart, zero, "cbxb")
   call alloc(cbzb, npart, zero, "cbzb")
 
-  do i=1,nblz
-    ktrack(i)=0
-    strack(i)=zero
-    strackc(i)=zero
-    stracks(i)=zero
-  end do
+  call preTracking
 
   do 290 i=1,iu
-    if(mout2.eq.1.and.i.eq.1) call fluc_writeFort4
     ix=ic(i)
-    if(ix.gt.nblo) goto 30
-    !BLOC
-    ktrack(i)=1
-    do 20 jb=1,mel(ix)
-      jx=mtyp(ix,jb)
-      strack(i)=strack(i)+el(jx)
-20   continue
-    if(abs(strack(i)).le.pieni) ktrack(i)=31
-    goto 290
-    !Non-linear/NOT BLOC
-30   ix=ix-nblo
+    if(ix <= nblo) then
+      !BLOC
+      ktrack(i)=1
+      do jb=1,mel(ix)
+        jx=mtyp(ix,jb)
+        strack(i)=strack(i)+el(jx)
+      end do
+      if(abs(strack(i)).le.pieni) ktrack(i)=31
+      !Non-linear/NOT BLOC
+      goto 290
+    end if
+    ix=ix-nblo
     kpz=abs(kp(ix))
     if(kpz.eq.6) then
       ktrack(i)=2
       goto 290
-    endif
+    end if
     kzz=kz(ix)
     if(kzz.eq.0) then
       ktrack(i)=31
       goto 290
-    else if(kzz.eq.12) then
-      !Disabled cavity; enabled cavities have kp=6 and are handled above
+    else if(kzz == 12) then
+      ! Disabled cavity; enabled cavities have kp=6 and are handled above
       ! Note: kz=-12 are transformed into +12 in daten after reading ENDE.
       ktrack(i)=31
       goto 290
-    endif
+    end if
 
     !Beam-beam element
     !41 --round beam
@@ -195,7 +191,7 @@ subroutine trauthin(nthinerr)
       if(abs(smiv(i)).le.pieni .and. .not.dynk_isused(i)) then
         ktrack(i) = 31
       else
-        ktrack(i)=12
+        ktrack(i) = 12
 #include "include/stra02.f90"
       end if
     case (3)
@@ -427,11 +423,12 @@ subroutine trauthin(nthinerr)
         ktrack(i) = 30
 #include "include/stra10.f90"
       end if
-    case default
-      ktrack(i)=31
-    end select
 
+    case default
+      ktrack(i) = 31
+    end select
 290 continue
+
   do j=1,napx
     dpsv1(j)=(dpsv(j)*c1e3)/(one+dpsv(j))
   end do

@@ -37,10 +37,10 @@ subroutine trackInit
   else
     trackMode = "Thin"
   end if
-  if(iclo6 > 0) then
-    trackMode = trim(trackMode)//" 6D"
-  else
+  if(tr_is4D) then
     trackMode = trim(trackMode)//" 4D"
+  else
+    trackMode = trim(trackMode)//" 6D"
   end if
   oPart = int(log10_mb(real(napxo, kind=fPrec))) + 1
   oTurn = int(log10_mb(real(numl,  kind=fPrec))) + 1
@@ -50,11 +50,10 @@ end subroutine trackInit
 
 ! ================================================================================================ !
 !  V.K. Berglyd Olsen, BE-ABP-HSS
-!  Write a turn report.
-!  The isFirst if statement is only computed the first time the routine is called.
+!  Updated: 2019-09-20
 ! ================================================================================================ !
 subroutine trackReport(n)
-  
+
   use crcoall
   use mod_common, only : numl, napx, napxo
 
@@ -64,5 +63,58 @@ subroutine trackReport(n)
   flush(lout)
 
 end subroutine trackReport
+
+! ================================================================================================ !
+!  Prepare for Tracking
+!  Code merged from old trauthin and trauthick routines
+! ================================================================================================ !
+subroutine preTracking
+
+  use crcoall
+  use mod_common
+  use mod_common_track
+  use numerical_constants
+
+  use collimation, only : do_coll
+  use mod_fluc,    only : fluc_writeFort4
+
+  integer i, ix, jb, jx, kpz
+  logical isThick
+
+  isThick = ithick == 1
+
+  if(isThick .and. do_coll) then
+    write(lerr,"(a)") "TRACKING> ERROR Collimation is not supported for thick tracking"
+    call prror
+  end if
+
+  if(mout2 == 1) call fluc_writeFort4
+
+  return
+
+  ! BEGIN Loop over structure elements
+  do i=1,iu
+
+    ! Get single and block element index
+    ix = ic(i)
+    if(ix <= nblo) then
+      ! BLOC element
+      ktrack(i) = 1
+      do jb=1,mel(ix)
+        jx        = mtyp(ix,jb)
+        strack(i) = strack(i) + el(jx)
+      end do
+      if(abs(strack(i)) <= pieni) then
+        ktrack(i) = 31
+      end if
+      cycle
+    end if
+
+    ix  = ix-nblo     ! Single element index
+    kpz = abs(kp(ix)) ! Element type
+  end do
+  ! END Loop over structure elements
+
+end subroutine preTracking
 
 end module tracking
