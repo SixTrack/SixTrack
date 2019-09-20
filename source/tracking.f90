@@ -131,13 +131,25 @@ subroutine preTracking
     case(0)
       ktrack(i) = 31
 
+    case(13,14,17,18,19,21)
+      cycle
+
+    case(-10,-9,-8,-7,-6,-5,-4,-3,-2,-1,1,2,3,4,5,6,7,8,9,10)
+      if(abs(smiv(i)) <= pieni .and. .not.dynk_isused(i)) then
+        ktrack(i) = 31
+      else
+        if(kzz > 0) then
+          ktrack(i) = 10 + kzz
+        else
+          ktrack(i) = 20 - kzz
+        end if
+        call setStrack(abs(kzz),i)
+      end if
+
     case(12)
       ! Disabled cavity; enabled cavities have kp=6 and are handled above
       ! Note: kz=-12 are transformed into +12 in daten after reading ENDE.
       ktrack(i) = 31
-
-    case(13,14,17,18,19,21)
-      cycle
 
     case(20) ! Beam-beam element
       call initialise_element(ix,.false.)
@@ -208,19 +220,7 @@ subroutine preTracking
     case(45) ! S Rotation
       ktrack(i) = 70
 
-    case(-10,-9,-8,-7,-6,-5,-4,-3,-2,-1,1,2,3,4,5,6,7,8,9,10)
-      if(abs(smiv(i)) <= pieni .and. .not.dynk_isused(i)) then
-        ktrack(i) = 31
-      else
-        if(kzz > 0) then
-          ktrack(i) = 10 + kzz
-        else
-          ktrack(i) = 20 - kzz
-        end if
-        call setStrack(abs(kzz),i)
-      end if
-
-    case (11) ! Multipole block (also in initialise_element)
+    case(11) ! Multipole block (also in initialise_element)
       r0  = ek(ix)
       nmz = nmu(ix)
       if(abs(r0) <= pieni .or. nmz == 0) then
@@ -234,18 +234,18 @@ subroutine preTracking
         else if(abs(dki(ix,1)) > pieni .and. abs(dki(ix,2)) <= pieni) then
           if(abs(dki(ix,3)) > pieni) then
             ktrack(i) = 33 ! Horizontal Bend with a fictive length
-#include "include/stra11.f90"
+            call setStrack(11,i)
           else
             ktrack(i) = 35 ! Horizontal Bend without a ficitve length
-#include "include/stra12.f90"
+            call setStrack(12,i)
           end if
         else if(abs(dki(ix,1)) <= pieni.and.abs(dki(ix,2)) > pieni) then
           if(abs(dki(ix,3)) > pieni) then
             ktrack(i) = 37 ! Vertical bending with fictive length
-#include "include/stra13.f90"
+            call setStrack(13,i)
           else
             ktrack(i) = 39 ! Vertical bending without fictive length
-#include "include/stra14.f90"
+            call setStrack(14,i)
           end if
         end if
       else
@@ -255,18 +255,18 @@ subroutine preTracking
         else if(abs(dki(ix,1)) > pieni .and. abs(dki(ix,2)) <= pieni) then
           if(abs(dki(ix,3)) > pieni) then
             ktrack(i) = 34
-#include "include/stra11.f90"
+            call setStrack(11,i)
           else
             ktrack(i) = 36
-#include "include/stra12.f90"
+            call setStrack(12,i)
           end if
         else if(abs(dki(ix,1)) <= pieni .and. abs(dki(ix,2)) > pieni) then
           if(abs(dki(ix,3)) > pieni) then
             ktrack(i) = 38
-#include "include/stra13.f90"
+            call setStrack(13,i)
           else
             ktrack(i) = 40
-#include "include/stra14.f90"
+            call setStrack(14,i)
           end if
         end if
       end if
@@ -279,31 +279,28 @@ subroutine preTracking
         r000   = r0*r00(irm(ix))
 
         do j=1,mmul
-          fake(1,j)=(bbiv(j,i)*r0a)/benkcc
-          fake(2,j)=(aaiv(j,i)*r0a)/benkcc
-          r0a=r0a*r000
+          fake(1,j) = (bbiv(j,i)*r0a)/benkcc
+          fake(2,j) = (aaiv(j,i)*r0a)/benkcc
+          r0a = r0a*r000
         end do
 
-        write(9,'(a16)') bez(ix)
-        write(9,'(1p,3d23.15)') (fake(1,j), j=1,3)
-        write(9,'(1p,3d23.15)') (fake(1,j), j=4,6)
-        write(9,'(1p,3d23.15)') (fake(1,j), j=7,9)
-        write(9,'(1p,3d23.15)') (fake(1,j), j=10,12)
-        write(9,'(1p,3d23.15)') (fake(1,j), j=13,15)
-        write(9,'(1p,3d23.15)') (fake(1,j), j=16,18)
-        write(9,'(1p,2d23.15)') (fake(1,j), j=19,20)
-        write(9,'(1p,3d23.15)') (fake(2,j), j=1,3)
-        write(9,'(1p,3d23.15)') (fake(2,j), j=4,6)
-        write(9,'(1p,3d23.15)') (fake(2,j), j=7,9)
-        write(9,'(1p,3d23.15)') (fake(2,j), j=10,12)
-        write(9,'(1p,3d23.15)') (fake(2,j), j=13,15)
-        write(9,'(1p,3d23.15)') (fake(2,j), j=16,18)
-        write(9,'(1p,2d23.15)') (fake(2,j), j=19,20)
+        write(9,"(a)") bez(ix)
+        write(9,"(1p,3d23.15)") (fake(1,j), j=1,3)
+        write(9,"(1p,3d23.15)") (fake(1,j), j=4,6)
+        write(9,"(1p,3d23.15)") (fake(1,j), j=7,9)
+        write(9,"(1p,3d23.15)") (fake(1,j), j=10,12)
+        write(9,"(1p,3d23.15)") (fake(1,j), j=13,15)
+        write(9,"(1p,3d23.15)") (fake(1,j), j=16,18)
+        write(9,"(1p,2d23.15)") (fake(1,j), j=19,20)
+        write(9,"(1p,3d23.15)") (fake(2,j), j=1,3)
+        write(9,"(1p,3d23.15)") (fake(2,j), j=4,6)
+        write(9,"(1p,3d23.15)") (fake(2,j), j=7,9)
+        write(9,"(1p,3d23.15)") (fake(2,j), j=10,12)
+        write(9,"(1p,3d23.15)") (fake(2,j), j=13,15)
+        write(9,"(1p,3d23.15)") (fake(2,j), j=16,18)
+        write(9,"(1p,2d23.15)") (fake(2,j), j=19,20)
 
-        do j=1,20
-          fake(1,j)=zero
-          fake(2,j)=zero
-        end do
+        fake(1:2,1:20) = zero
       end if
 
     case default
@@ -315,18 +312,29 @@ subroutine preTracking
 
 end subroutine preTracking
 
-subroutine setStrack(kzz, i)
+! ================================================================================================ !
+!  Calculate strack for magnet types
+!  Code merged from include files stra01.f90 to stra14.f90
+!  V.K. Berglyd Olsen, BE-ABP-HSS
+!  Updated: 2019-09-20
+! ================================================================================================ !
+subroutine setStrack(skz, i)
 
+  use parpro
   use crcoall
-  use mod_common,       only : tiltc, tilts
+  use mod_common,       only : tiltc, tilts, ic, dki
   use mod_common_main,  only : smiv
   use mod_common_track, only : strack, strackc, stracks
   use numerical_constants
 
-  integer, intent(in) :: kzz
+  integer, intent(in) :: skz
   integer, intent(in) :: i
 
-  select case(kzz)
+  integer ix
+
+  ix = ic(i) - nblo
+
+  select case(skz)
   case(1)
     strack(i) = smiv(i)*c1e3
   case(2)
@@ -347,8 +355,16 @@ subroutine setStrack(kzz, i)
     strack(i) = smiv(i)*c1m21
   case(10)
     strack(i) = smiv(i)*c1m24
+  case(11)
+    strack(i) = dki(ix,1)/dki(ix,3)
+  case(12)
+    strack(i) = dki(ix,1)
+  case(13)
+    strack(i) = dki(ix,2)/dki(ix,3)
+  case(14)
+    strack(i) = dki(ix,2)
   case default
-    write(lerr,"(a,i0,a)") "TRACKING> ERROR Setting strack for type ",kzz," not possible. This is a bug."
+    write(lerr,"(a,i0,a)") "TRACKING> ERROR Setting strack for type ",skz," not possible. This is a bug."
     call prror
   end select
 
