@@ -1,4 +1,4 @@
-! start include/acdipkick.f90
+! start include/acdipkick2.f90
 nfree=nturn1(ix)
 if(n.gt.nfree) then
   nac=n-nfree
@@ -45,4 +45,4 @@ if(n.gt.nfree) then
 #endif
   enddo
 endif
-! end include/acdipkick.f90
+! end include/acdipkick2.f90
