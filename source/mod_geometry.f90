@@ -947,28 +947,7 @@ subroutine initialise_element(ix,lfirst)
           sm(ix)  = ed(ix)          ! Also done in envar() which is called from clorb()
           smiv(i) = sm(ix)+smizf(i) ! Also done in program maincr
           smi(i)  = smiv(i)         ! Also done in program maincr
-          select case(abs(kz(ix)))
-          case(1)
-            call setStrack(1,i)
-          case(2)
-            call setStrack(2,i)
-          case(3)
-            call setStrack(3,i)
-          case(4)
-            call setStrack(4,i)
-          case(5)
-            call setStrack(5,i)
-          case(6)
-            call setStrack(6,i)
-          case(7)
-            call setStrack(7,i)
-          case(8)
-            call setStrack(8,i)
-          case(9)
-            call setStrack(9,i)
-          case(10)
-            call setStrack(10,i)
-          end select
+          call setStrack(abs(kz(ix)),i)
         end if
       end do
     end if

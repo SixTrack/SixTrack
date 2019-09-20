@@ -153,7 +153,7 @@ subroutine preTracking
 
     case(22)
       ktrack(i) = 3
-  
+
     case(23) ! Crab Cavity
       ktrack(i) = 53
 
@@ -179,10 +179,10 @@ subroutine preTracking
 
     case(-27)
       ktrack(i) = 60
-  
+
     case(28)
       ktrack(i) = 61
-    
+
     case(-28)
       ktrack(i) = 62
 
@@ -191,7 +191,7 @@ subroutine preTracking
 
     case(cheby_kz) ! Chebyshev lens
       ktrack(i) = cheby_ktrack
-  
+
     case(40) ! Scatter
       if(scatter_elemPointer(ix) /= 0) then
         ktrack(i) = 64 ! Scatter thin
@@ -446,6 +446,7 @@ end subroutine preTracking
 
 subroutine setStrack(kzz, i)
 
+  use crcoall
   use mod_common,       only : tiltc, tilts
   use mod_common_main,  only : smiv
   use mod_common_track, only : strack, strackc, stracks
@@ -455,78 +456,35 @@ subroutine setStrack(kzz, i)
   integer, intent(in) :: i
 
   select case(kzz)
-
   case(1)
-    strack(i)  = smiv(i)*c1e3
-#ifdef TILT
-    strackc(i) = strack(i)*tiltc(i)
-    stracks(i) = strack(i)*tilts(i)
-#endif
-
+    strack(i) = smiv(i)*c1e3
   case(2)
-    strack(i)  = smiv(i)
-#ifdef TILT
-    strackc(i) = strack(i)*tiltc(i)
-    stracks(i) = strack(i)*tilts(i)
-#endif
-
+    strack(i) = smiv(i)
   case(3)
-    strack(i)  = smiv(i)*c1m3
-#ifdef TILT
-    strackc(i) = strack(i)*tiltc(i)
-    stracks(i) = strack(i)*tilts(i)
-#endif
-
+    strack(i) = smiv(i)*c1m3
   case(4)
-    strack(i)  = smiv(i)*c1m6
-#ifdef TILT
-    strackc(i) = strack(i)*tiltc(i)
-    stracks(i) = strack(i)*tilts(i)
-#endif
-
+    strack(i) = smiv(i)*c1m6
   case(5)
-    strack(i)  = smiv(i)*c1m9
-#ifdef TILT
-    strackc(i) = strack(i)*tiltc(i)
-    stracks(i) = strack(i)*tilts(i)
-#endif
-
+    strack(i) = smiv(i)*c1m9
   case(6)
-    strack(i)  = smiv(i)*c1m12
-#ifdef TILT
-    strackc(i) = strack(i)*tiltc(i)
-    stracks(i) = strack(i)*tilts(i)
-#endif
-
+    strack(i) = smiv(i)*c1m12
   case(7)
-    strack(i)  = smiv(i)*c1m15
-#ifdef TILT
-    strackc(i) = strack(i)*tiltc(i)
-    stracks(i) = strack(i)*tilts(i)
-#endif
-
+    strack(i) = smiv(i)*c1m15
   case(8)
-    strack(i)  = smiv(i)*c1m18
-#ifndef TILT
-    strackc(i) = strack(i)*tiltc(i)
-    stracks(i) = strack(i)*tilts(i)
-#endif
-
+    strack(i) = smiv(i)*c1m18
   case(9)
-    strack(i)  = smiv(i)*c1m21
-#ifdef TILT
-    strackc(i) = strack(i)*tiltc(i)
-    stracks(i) = strack(i)*tilts(i)
-#endif
-
+    strack(i) = smiv(i)*c1m21
   case(10)
-    strack(i)  = smiv(i)*c1m24
-#ifdef TILT
-    strackc(i) = strack(i)*tiltc(i)
-    stracks(i) = strack(i)*tilts(i)
-#endif
-    
+    strack(i) = smiv(i)*c1m24
+  case default
+    write(lerr,"(a,i0,a)") "TRACKING> ERROR Setting strack for type ",kzz," not possible. This is a bug."
+    call prror
   end select
+
+#ifdef TILT
+  strackc(i) = strack(i)*tiltc(i)
+  stracks(i) = strack(i)*tilts(i)
+#endif
 
 end subroutine setStrack
 
