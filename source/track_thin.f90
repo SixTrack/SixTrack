@@ -502,6 +502,7 @@ subroutine thin4d(nthinerr)
   use dump, only : dump_linesFirst, dump_lines, ldumpfront
   use collimation, only: do_coll, part_abs_turn
   use aperture
+  use tracking
 
 #ifdef FLUKA
   ! A.Mereghetti and D.Sinuela Pastor, for the FLUKA Team
@@ -1122,6 +1123,7 @@ subroutine thin6d(nthinerr)
   use numerical_constants
   use mathlib_bouncer
   use mod_particles
+  use tracking
 
   use bdex,       only : bdex_track, bdex_enable, bdex_elementAction
   use scatter,    only : scatter_thin, scatter_debug
@@ -2092,51 +2094,6 @@ subroutine thin6d(nthinerr)
 660 continue !END loop over turns
 
 end subroutine thin6d
-
-! ================================================================================================ !
-!  V.K. Berglyd Olsen, BE-ABP-HSS
-!  Write a turn report.
-!  The isFirst if statement is only computed the first time the routine is called.
-! ================================================================================================ !
-subroutine trackReport(n)
-
-  use crcoall
-  use floatPrecision
-  use mathlib_bouncer
-  use parpro,     only : npart
-  use mod_common, only : ithick, iclo6, numl, napx, napxo
-
-  implicit none
-
-  integer, intent(in) :: n
-
-  character(len=8)  :: trackMode = " "
-  character(len=32) :: trackFmt  = " "
-  integer           :: oPart     = 0
-  integer           :: oTurn     = 0
-  logical           :: isFirst   = .true.
-
-  if(isFirst) then
-    if(ithick == 1) then
-      trackMode = "Thick"
-    else
-      trackMode = "Thin"
-    end if
-    if(iclo6 > 0) then
-      trackMode = trim(trackMode)//" 6D"
-    else
-      trackMode = trim(trackMode)//" 4D"
-    end if
-    oPart   = int(log10_mb(real(napxo, kind=fPrec))) + 1
-    oTurn   = int(log10_mb(real(numl,  kind=fPrec))) + 1
-    isFirst = .false.
-    write(trackFmt,"(2(a,i0),a)") "(2(a,i",oTurn,"),2(a,i",oPart,"))"
-  end if
-
-  write(lout,trackFmt) "TRACKING> "//trim(trackMode)//": Turn ",n," / ",numl,", Particles: ",napx," / ",napxo
-  flush(lout)
-
-end subroutine trackReport
 
 !-----------------------------------------------------------------------
 !

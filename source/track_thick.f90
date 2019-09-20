@@ -478,6 +478,7 @@ subroutine thck4d(nthinerr)
   use dump, only : dump_linesFirst, dump_lines, ldumpfront
   use collimation, only: do_coll, part_abs_turn
   use aperture
+  use tracking
 
 #ifdef FLUKA
   ! A.Mereghetti and D.Sinuela Pastor, for the FLUKA Team
@@ -1132,6 +1133,7 @@ subroutine thck6d(nthinerr)
   use dump, only : dump_linesFirst, dump_lines, ldumpfront
   use collimation, only: do_coll, part_abs_turn
   use aperture
+  use tracking
 
 #ifdef FLUKA
 !     A.Mereghetti and D.Sinuela Pastor, for the FLUKA Team

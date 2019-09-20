@@ -31,6 +31,7 @@ program maincr
   use mod_meta
   use mod_time
   use aperture
+  use tracking
   use mod_ranecu
   use mod_particles
   use mod_geometry,   only : geom_calcDcum, geom_reshuffleLattice
@@ -1256,13 +1257,14 @@ program maincr
   call time_timerCheck(time1)
 
   ! time1 is now pre-processing CPU
-  ! note that this will be reset every restart as we redo pre-processing
-  pretime=time1-time0
+  ! Note that this will be reset every restart as we redo pre-processing
+  pretime = time1-time0
   part_isTracking = .true.
+  call trackInit
   if(ithick == 0) call trauthin(nthinerr)
   if(ithick == 1) call trauthck(nthinerr)
 
-  time2=0.
+  time2 = 0.0
   call time_timerCheck(time2)
 
   if(ithick == 0 .and. do_coll) then
