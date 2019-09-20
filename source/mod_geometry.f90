@@ -930,7 +930,7 @@ subroutine initialise_element(ix,lfirst)
   integer, intent(in) :: ix
   logical, intent(in) :: lfirst
 
-  integer i,m,k,im,nmz,izu,ibb,ii,j,nbeaux(nbb)
+  integer i,m,k,im,nmz,izu,ibb,ii,j
   real(kind=fPrec) r0,r0a,bkitemp,sfac1,sfac2,sfac2s,sfac3,sfac4,sfac5,crkveb_d,cikveb_d,rho2b_d,   &
     tkb_d,r2b_d,rb_d,rkb_d,xrb_d,zrb_d,cbxb_d,cbzb_d,crxb_d,crzb_d,xbb_d,zbb_d,napx0
   real(kind=fPrec) crkveb(npart),cikveb(npart),rho2b(npart),tkb(npart),r2b(npart),rb(npart),        &
