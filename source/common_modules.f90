@@ -27,7 +27,6 @@ module parpro
   integer, parameter :: nran  = 2000000   ! Maximum size for scaling nzfz
   integer, parameter :: nrco  = 5         ! Maximum order of compensation (RESO block)
   integer, parameter :: mmul  = 20        ! Maximum order of multipoles
-  integer, parameter :: nbb   = 500       ! Beam-beam lenses
   integer, parameter :: nelb  = 280       ! Maximum elements per BLOC
 
   ! Maximum length of strings
@@ -45,11 +44,13 @@ module parpro
   integer :: nblo  = -1   ! Number of allocated BLOCs
   integer :: nblz  = -1   ! Number of allocated STRUcture elements
   integer :: npart = -1   ! Number of allocated particles
+  integer :: nbb   = -1   ! Beam-beam lenses
 
   integer, parameter :: nele_initial  = 500
   integer, parameter :: nblo_initial  = 100
   integer, parameter :: nblz_initial  = 1000
   integer, parameter :: npart_initial = 2
+  integer, parameter :: nbb_initial   = 100
 
   ! Dividing line for output
   character(len=mDivLen), parameter :: str_divLine = repeat("-",mDivLen)
@@ -567,7 +568,7 @@ module mod_common
 
 contains
 
-subroutine mod_common_expand_arrays(nele_new, nblo_new, nblz_new, npart_new)
+subroutine mod_common_expand_arrays(nele_new, nblo_new, nblz_new, npart_new, nbb_new)
 
   use mod_alloc
   use mod_settings
@@ -579,12 +580,14 @@ subroutine mod_common_expand_arrays(nele_new, nblo_new, nblz_new, npart_new)
   integer, intent(in) :: nblo_new
   integer, intent(in) :: nblz_new
   integer, intent(in) :: npart_new
+  integer, intent(in) :: nbb_new
 
   logical :: firstRun   = .true.
   integer :: nele_prev  = -2
   integer :: nblo_prev  = -2
   integer :: nblz_prev  = -2
   integer :: npart_prev = -2
+  integer :: nbb_prev   = -2
 
   if(nele_new /= nele_prev) then
     call alloc(ed,                   nele_new,       zero,   "ed")
@@ -677,6 +680,15 @@ subroutine mod_common_expand_arrays(nele_new, nblo_new, nblz_new, npart_new)
     call alloc(track6d, 6,           npart_new,      zero,   "track6d")
   end if
 
+  if(nbb_new /= nbb_prev) then
+    call alloc(sigman,            2, nbb,            zero,   "sigman")
+    call alloc(sigman2,           2, nbb,            zero,   "sigman2")
+    call alloc(sigmanq,           2, nbb,            zero,   "sigmanq")
+    call alloc(clobeam,           6, nbb,            zero,   "clobeam")
+    call alloc(beamoff,           6, nbb,            zero,   "beamoff")
+    call alloc(bbcu,                 nbb, 12,        zero,   "bbcu")
+  end if
+
   ! The arrays that don't currently have scalable sizes only need to be allocated once
   if(firstRun) then
     call alloc(betam,                nmon1, 2,       zero,   "betam")
@@ -688,13 +700,6 @@ subroutine mod_common_expand_arrays(nele_new, nblo_new, nblz_new, npart_new)
 
     call alloc(ratio,                ncom,  20,      zero,   "ratio")
     call alloc(icomb,                ncom,  20,      0,      "icomb")
-
-    call alloc(sigman,            2, nbb,            zero,   "sigman")
-    call alloc(sigman2,           2, nbb,            zero,   "sigman2")
-    call alloc(sigmanq,           2, nbb,            zero,   "sigmanq")
-    call alloc(clobeam,           6, nbb,            zero,   "clobeam")
-    call alloc(beamoff,           6, nbb,            zero,   "beamoff")
-    call alloc(bbcu,                 nbb, 12,        zero,   "bbcu")
 
     call alloc(field_cos,         2, mmul,           zero,   "field_cos")
     call alloc(fsddida,           2, mmul,           zero,   "fsddida")

@@ -564,7 +564,7 @@ subroutine sixin_parseInputLineSIMU(inLine, iLine, iErr)
     end if
     napx = numPart/2
     if(numPart > npart) then
-      call expand_arrays(nele, numPart, nblz, nblo)
+      call expand_arrays(nele, numPart, nblz, nblo, nbb)
     end if
     if(napx > 32 .and. .not. sixin_forcePartSummary) then
       write(lout,"(a)") "SIMU> NOTE More than 64 particles requested, switching off printing of particle summary."
@@ -1321,7 +1321,7 @@ subroutine sixin_parseInputLineTRAC(inLine, iLine, iErr)
     if(iErr) return
 
     if(napx*2 > npart) then
-      call expand_arrays(nele, napx*2, nblz, nblo)
+      call expand_arrays(nele, napx*2, nblz, nblo, nbb)
     end if
 
     if(napx > 32 .and. .not. sixin_forcePartSummary) then

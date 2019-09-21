@@ -328,7 +328,7 @@ program maincr
   damp  = zero
   if(napx /= 1) damp=((amp00-amp0)/real(napx-1,fPrec))/two
   napx  = 2*napx
-  call expand_arrays(nele, napx, nblz, nblo)
+  call expand_arrays(nele, napx, nblz, nblo, nbb)
 
   ! Log some meta data
   meta_nPartInit = napx
@@ -1216,7 +1216,7 @@ program maincr
   time2=0.
   call time_timerCheck(time2)
 
-  if(iclo6 > 0 .and. ithick == 0 .and. do_coll) then
+  if(ithick == 0 .and. do_coll) then
     ! Only if thin 6D and collimation enabled
     call collimate_exit
   endif

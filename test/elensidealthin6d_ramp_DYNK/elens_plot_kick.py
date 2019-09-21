@@ -9,7 +9,7 @@ theta_r2=4.920e-04 # max. kick [mrad]
 names=['turn','hel3','hel4','GLOBAL-VARS']
 milli2micro=1000
 
-plt.figure('elens kick',figsize=(10,10))
+plt.figure('elens kick',figsize=(13,13))
 for fnin,fnout,offx,offy,R,R2f,peakT in [(1,2,0,0,0.5,7,7),(2,3,offsetx,offsety,1,12,9.75),(3,4,-offsetx,0,1,5,2.91604),(4,5,0,-offsety,1/2.,3,3.48995)]:
   theta_max=theta_r2*R
   plt.subplot(2,2,fnin)
