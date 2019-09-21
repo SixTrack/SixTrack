@@ -66,9 +66,6 @@ program mainda
 #ifdef TILT
   featList = featList//" TILT"
 #endif
-#ifdef STF
-  featList = featList//" STF"
-#endif
 #ifdef CRLIBM
   featList = featList//" CRLIBM"
   call disable_xp()

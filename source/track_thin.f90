@@ -2225,11 +2225,7 @@ subroutine write6(n)
   do ia=1,napxo,2
     ig=ia+1
 #ifndef CR
-#ifndef STF
-    flush(91-(ig/2))
-#else
     flush(90)
-#endif
 #endif
     !-- PARTICLES STABLE (Only if QUIET < 2)
     if(.not.pstop(ia).and..not.pstop(ig)) then
