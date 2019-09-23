@@ -24,6 +24,7 @@ subroutine daten
   use mod_alloc
   use mod_units
   use mod_linopt
+  use mod_random
 
   use mod_dist,  only : dist_enable, dist_parseInputLine
   use scatter,   only : scatter_active,scatter_debug,scatter_parseInputLine
@@ -474,6 +475,16 @@ subroutine daten
       continue
     else
       call sixin_parseInputLineORGA(inLine,blockLine,inErr)
+      if(inErr) goto 9999
+    end if
+
+  case("RAND") ! Random Numbers
+    if(openBlock) then
+      continue
+    elseif(closeBlock) then
+      continue
+    else
+      call rnd_parseInputLine(inLine,blockLine,inErr)
       if(inErr) goto 9999
     end if
 

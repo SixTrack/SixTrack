@@ -314,14 +314,14 @@ list(APPEND FORT90_LIB
   mod_meta
   mod_particles
   mod_random
+  mod_ranecu
+  mod_ranlux
   mod_time
   mod_units
   mod_utils
   pdgid
   plato_seq
   postprocessing
-  ranecu
-  ranlux
   read_write
   scatter
   six_fox

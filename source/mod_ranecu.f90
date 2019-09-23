@@ -67,12 +67,12 @@ subroutine ranecu(rvec, len, mode, cut)
   do j = 1,2
     k = iseed1/53668
     iseed1 = 40014*(iseed1-k*53668) - k*12211
-    if (iseed1 < 0) iseed1 = iseed1+2147483563
+    if(iseed1 < 0) iseed1 = iseed1+2147483563
     k = iseed2/52774
     iseed2 = 40692*(iseed2-k*52774) - k*3791
-    if (iseed2 < 0) iseed2 = iseed2+2147483399
+    if(iseed2 < 0) iseed2 = iseed2+2147483399
     iz = iseed1-iseed2
-    if (iz < 1) iz = iz+2147483562
+    if(iz < 1) iz = iz+2147483562
     r(j) = real(iz,fPrec)*4.656613e-10_fPrec
   end do
 
@@ -91,6 +91,30 @@ subroutine ranecu(rvec, len, mode, cut)
   if(i <= len) goto 10
 
 end subroutine ranecu
+
+! Uniform-only version of the above
+subroutine ranecuu(rvec, len)
+
+  use floatPrecision
+
+  real(kind=fPrec), intent(out) :: rvec(*)
+  integer,          intent(in)  :: len
+
+  integer i, iz, j, k
+
+  do j=1,len
+    k = iseed1/53668
+    iseed1 = 40014*(iseed1-k*53668) - k*12211
+    if(iseed1 < 0) iseed1 = iseed1+2147483563
+    k = iseed2/52774
+    iseed2 = 40692*(iseed2-k*52774) - k*3791
+    if(iseed2 < 0) iseed2 = iseed2+2147483399
+    iz = iseed1-iseed2
+    if(iz < 1) iz = iz+2147483562
+    rvec(j) = real(iz,fPrec)*4.656613e-10_fPrec
+  end do
+
+end subroutine ranecuu
 
 ! Init the random generator, that is, set seeds with proper value checks as described in [2]
 subroutine recuinit(is1,is2)

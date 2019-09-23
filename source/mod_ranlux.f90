@@ -1,4 +1,10 @@
-
+!                               default
+!  Luxury Level   0     1     2   *3*    4
+!      data ndskip/0,   24,   73,  199,  365 /
+!Corresponds to p=24    48    97   223   389
+!     time factor 1     2     3     6    10   on slow workstation
+!                 1    1.5    2     3     5   on fast mainframe
+!
 module mod_ranlux
 
   use floatPrecision
@@ -22,7 +28,7 @@ module mod_ranlux
   integer, save :: iseeds(24)
   integer, save :: next(24)
 
-  real(kind=fPrec), parameter :: twop12 = 4096
+  real(kind=fPrec), parameter :: twop12 = 4096.0
   real(kind=fPrec), save :: seeds(24)
   real(kind=fPrec), save :: twom12
   real(kind=fPrec), save :: twom24
@@ -39,21 +45,6 @@ module mod_ranlux
   integer, save :: inseed
   integer, save :: nskip
 
-!  data notyet, luxlev, in24, kount, mkount /.true., lxdflt, 0,0,0/
-!  data in24, kount, mkount / 0,0,0/
-!  data i24,j24,carry/24,10,0./
-
-!  save i24, j24, carry, seeds, twom24, twom12, luxlev
-!  save nskip, ndskip, in24, next, kount, mkount, inseed
-
-!                               default
-!  Luxury Level   0     1     2   *3*    4
-!      data ndskip/0,   24,   73,  199,  365 /
-!Corresponds to p=24    48    97   223   389
-!     time factor 1     2     3     6    10   on slow workstation
-!                 1    1.5    2     3     5   on fast mainframe
-!
-
   public ranlux
   public rluxin
   public rluxut
@@ -66,7 +57,6 @@ module mod_ranlux
 
 contains
 
-subroutine ranlux(rvec,lenv)
 !         Subtract-and-borrow random number generator proposed by
 !         Marsaglia and Zaman, implemented by F. James with the name
 !         RCARRY in 1991, and later improved by Martin Luescher
@@ -110,6 +100,7 @@ subroutine ranlux(rvec,lenv)
 !!!                 32-bit integer seeds, to be used for restarting ++
 !!!      ISVEC must be dimensioned 25 in the calling program        ++
 !!! ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+subroutine ranlux(rvec,lenv)
 
   use crcoall
 
@@ -139,7 +130,7 @@ subroutine ranlux(rvec,lenv)
       if(jseed < 0) jseed = jseed+icons
       iseeds(i) = mod(jseed,itwo24)
     end do
-    twom12 = twom24 * 4096.
+    twom12 = twom24 * twop12
     do i= 1,24
       seeds(i) = real(iseeds(i))*twom24
       next(i) = i-1
@@ -212,21 +203,21 @@ subroutine rluxin(isdext_tmp)
 
   isdext = isdext_tmp
   notyet = .false.
-  twom24 = 1.
+  twom24 = 1.0
   do i=1,24
     next(i) = i-1
     twom24 = twom24 * 0.5
   end do
   next(1) = 24
-  twom12 = twom24 * 4096.
-  write(lout,"(a)")      "RANLUX> Full initialisation of ranlux with 25 integers: "
-  write(lout,"(a,5i12)") "RANLUX> ",isdext
+  twom12 = twom24 * twop12
+  write(lout,"(a)")       "RANLUX> Full initialisation of ranlux with 25 integers: "
+! write(lout,"(a,25i12)") "RANLUX> ",isdext
   do i=1,24
     seeds(i) = real(isdext(i))*twom24
   end do
 
-  carry = 0.
-  if (isdext(25) .lt. 0)  carry = twom24
+  carry = 0.0
+  if(isdext(25) < 0) carry = twom24
   isd = iabs(isdext(25))
   i24 = mod(isd,100)
   isd = isd/100
@@ -253,21 +244,17 @@ end subroutine rluxin
 ! Entry to ouput seeds as integers
 subroutine rluxut(isdext_tmp)
 
-  integer, intent(in) :: isdext_tmp(25)
+  integer, intent(out) :: isdext_tmp(25)
 
-  isdext = isdext_tmp
-  do i= 1,24
-    isdext(i) = int(seeds(i)*twop12*twop12)
+  do i=1,24
+    isdext_tmp(i) = int(seeds(i)*twop12*twop12)
   end do
-  isdext(25) = i24 + 100*j24 + 10000*in24 + 1000000*luxlev
-  if(carry > 0.) isdext(25) = -isdext(25)
+  isdext_tmp(25) = i24 + 100*j24 + 10000*in24 + 1000000*luxlev
+  if(carry > 0.0) isdext_tmp(25) = -isdext_tmp(25)
 
 end subroutine rluxut
 
 ! Entry to output the "convenient" restart point
-! Note: The first argument was originall called "lout";
-! however this conflicts with the variable name used for selecting output unit.
-! It was therefore renamed to "lout2".
 subroutine rluxat(lout2,inout,k1,k2)
 
   integer lout2
@@ -297,7 +284,7 @@ subroutine rluxgo(lux,ins,k1,k2)
     write(lout,"(a,i0)") "RANLUX> Illegal luxury rluxgo ",lux
   else
     luxlev = lux
-    do ilx= 0, maxlev
+    do ilx=0,maxlev
       if(lux == ndskip(ilx)+24) luxlev = ilx
     end do
   end if
@@ -324,16 +311,16 @@ subroutine rluxgo(lux,ins,k1,k2)
   inseed = jseed
   notyet = .false.
   twom24 = 1.
-  do i= 1,24
+  do i=1,24
     twom24 = twom24 * 0.5
     k = jseed/53668
-    jseed = 40014*(jseed-k*53668) -k*12211
+    jseed = 40014*(jseed-k*53668) - k*12211
     if(jseed < 0) jseed = jseed+icons
     iseeds(i) = mod(jseed,itwo24)
   end do
 
-  twom12 = twom24 * 4096.
-  do i= 1,24
+  twom12 = twom24 * twop12
+  do i=1,24
     seeds(i) = real(iseeds(i))*twom24
     next(i) = i-1
   end do
