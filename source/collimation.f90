@@ -2458,10 +2458,18 @@ subroutine collimate_do_collimator(stracki)
 
 #ifndef G4COLLIMATION
 
+  write(*,*) torbx(ie)
+
+  if(cdb_isCrystal(icoll)) then
+    call collimate_cry(icoll, " ", cdb_cMaterial(icoll), c_length, c_rotation, c_aperture, c_offset, &
+      c_tilt, rcx, rcxp, rcy, rcyp, rcp, rcs, napx, enom_gev, part_hit_pos, part_abs_pos, part_impact, &
+      part_indiv, part_linteract, 0, 0, 0, 0, 0, 0, partID, partID, dowrite_impact, npart)
+  else
     call k2coll_collimate(icoll, iturn, ie, c_length, c_rotation, c_aperture, c_offset, &
       c_tilt, rcx, rcxp, rcy, rcyp, rcp, rcs, enom_gev, part_hit_pos,part_hit_turn,           &
       part_abs_pos, part_abs_turn, part_impact, part_indiv, part_linteract, onesided, secondary, 1, &
       nabs_type, linside)
+  end if
 
 #else
 

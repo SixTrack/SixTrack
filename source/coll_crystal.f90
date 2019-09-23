@@ -16,8 +16,9 @@ contains
 end module coll_crystal
 
 !===============================================================
+! MDA: added icoll and MAX_NPART parameters
 !
-      SUBROUTINE collimate_cry(name_coll,C_MATERIAL, C_LENGTH, &
+      SUBROUTINE collimate_cry(icoll,name_coll,C_MATERIAL, C_LENGTH, &
      &                   C_ROTATION, &
      &                   C_APERTURE, C_OFFSET, C_TILT, &
      &                   X_IN, XP_IN, Y_IN,   &
@@ -25,7 +26,8 @@ end module coll_crystal
      &                   PART_ABS, IMPACT, INDIV, LINT, &
      &                   BX,BY,AX, &
      &                   AY,EMITX0,EMITY0, &
-     &                   name,flagsec,dowrite_impact)!
+     &                   name,flagsec,dowrite_impact,MAX_NPART)!
+
 !
 !++  Based on routines by JBJ-R.assmann... Re-written for the crystal
 ! case by V.previtali in september 2008
@@ -53,11 +55,17 @@ end module coll_crystal
 !      1- the pencil beam is not working in the 6track version (I did not change
 !      the colltrack version yet)
 !
+      use coll_db
+      use mod_ranlux
+      use mod_funlux
+      use coll_k2
+
       IMPLICIT NONE
 !
       integer     MAX_NCOLL
       PARAMETER     (MAX_NCOLL = 99)
 !
+         integer         icoll      ! MDA: collimator ID to read parameters from new CollDB format
          integer         mat
          integer         Nev
          integer         j
@@ -65,7 +73,7 @@ end module coll_crystal
          integer         NHIT
          integer         MAX_NPART
          integer         NP
-         PARAMETER         (MAX_NPART=1500000)
+!        PARAMETER         (MAX_NPART=1500000)
 !
          double precision            p0
          double precision            xp_pencil0(MAX_NCOLL)
@@ -152,8 +160,8 @@ end module coll_crystal
 !
          COMMON /tilt/ CHANGED_TILT1, CHANGED_TILT2
 !
-         REAL      rndm4
-         REAL      RAN_GAUSS
+!         REAL      rndm4
+!         REAL      RAN_GAUSS
 !
          common/materia/mat
          common/nommom/p0
@@ -162,8 +170,8 @@ end module coll_crystal
         COMMON  /INFO/ IE, ITURN, nabs_total
 !
         integer   IPENCIL
-        integer   ICOLL
-        common  /icoll/  icoll
+!        integer   ICOLL
+!        common  /icoll/  icoll
 
         common  /pencil/  xp_pencil0,yp_pencil0,pencil_dx,ipencil
 !
@@ -185,12 +193,12 @@ end module coll_crystal
 !                                           !instead of this parameter, I use (mat-7)
 !
 
-      integer bool_proc(MAX_NPART)
-      integer bool_proc_old(MAX_NPART)
+      integer bool_proc(1000)
+      integer bool_proc_old(1000)
       integer n_chan
       integer n_VR
       integer n_amorphous
-      character(len=50) name_coll
+      character(len=*) name_coll             ! MDA: length to be defined by input
       CHARACTER(len=50) PROC                     !string that contains the physical process
 !                                            !=' ' if the particle does not pass by crystal, ='*' if there is interaction
       logical  bool_create
@@ -215,6 +223,19 @@ end module coll_crystal
 
 !----------------------
 
+! MDA: parameters assignment from new CollDB format
+
+      Rcurv = cdb_cryBend(icoll)
+      Alayer = cdb_cryThick(icoll)
+      C_xmax = cdb_cryXDim(icoll)
+      C_ymax = cdb_cryYDim(icoll)
+      C_orient = cdb_cryOrient(icoll)
+      Cry_tilt = cdb_cryTilt(icoll)
+      Cry_length = cdb_cLength(icoll)
+      miscut = cdb_cryMisCut(icoll)
+
+!      write(*,*) Rcurv, Alayer, C_xmax, C_ymax, C_orient, Cry_tilt, Cry_length, miscut
+!      stop
 
 !
   666 FORMAT(A,1x,e20.10,1x,A,1x,e20.10,A,1x,e20.10,1x,A,1x,e20.10)
@@ -223,7 +244,7 @@ end module coll_crystal
 !      write(*,*) 'enter collimate_cry routine, rotation ',C_ROTATION
 
 !      open(unit=9999,file='debug.dat')
-      IF (C_MATERIAL.eq.'CRY-Si')THEN
+      IF (C_MATERIAL(1:4).eq.'Si')THEN           ! MDA: changed the label for silicon from CRY-Si to Si to fit new format
            mat = 8
       ELSEIF (C_MATERIAL.eq.'CRY-W')THEN
            mat = 9
@@ -252,7 +273,7 @@ end module coll_crystal
 !
 !++  Initialize scattering processes
 !
-       call scatin(p0)
+       call k2coll_scatin(p0)
 
 ! EVENT LOOP,  initial distribution is here a flat distribution with
 ! xmin=x-, xmax=x+, etc. from the input file
@@ -490,7 +511,7 @@ end module coll_crystal
 
          if (Cry_tilt .lt. 0) then
            S_shift=S
-!           write(*,*) j,'- s=',s
+           write(*,*) j,'- s=',s
            shift=Rcurv*(1-cos(Cry_tilt))
            if (Cry_tilt .lt. (-Cry_bend) ) then
                 shift= ( Rcurv * &
@@ -502,29 +523,29 @@ end module coll_crystal
            S_shift=S
            X_shift=X
          endif
-!          write(*,*) "debug - S shift" ,  S_shift
-!          write(*,*) "debug - X shift" ,  X_shift
+          write(*,*) "debug - S shift" ,  S_shift
+          write(*,*) "debug - X shift" ,  X_shift
 !
 !    2nd transformation: rotation
          S_rot =X_shift*sin(Cry_tilt)+S_shift*cos(Cry_tilt)
          X_rot = X_shift*cos(Cry_tilt)-S_shift*sin(Cry_tilt)
          XP_rot= XP - Cry_tilt
-!          write(*,*) "debug - S rot" ,  S_rot
-!          write(*,*) "debug - X rot" ,  X_rot
-!          write(*,*) "debug - XP rot" ,  XP_rot
+          write(*,*) "debug - S rot" ,  S_rot
+          write(*,*) "debug - X rot" ,  X_rot
+          write(*,*) "debug - XP rot" ,  XP_rot
 !    3rd transformation: drift to the new coordinate s=0
          XP=XP_rot
          X= X_rot - XP_rot*S_rot
          Z= Z - ZP*S_rot
          S=0
-!          write(*,*) "debug - S cryRF" ,  S_rot
-!          write(*,*) "debug - X cryRF" ,  X_rot
-!          write(*,*) "debug - XP cryRF" ,  XP_rot
+          write(*,*) "debug - S cryRF" ,  S_rot
+          write(*,*) "debug - X cryRF" ,  X_rot
+          write(*,*) "debug - XP cryRF" ,  XP_rot
 !
 !  NOW CHECK IF THE PARTICLE HIT the crystal
 !
 
-
+          write(*,*) "debug - checking if crystal hit"
 
          if (x .ge. 0 .and. x.lt.C_xmax) then !Daniele: check that part. hit cry
            s_impact=s_in0(j) !(for the first impact)
@@ -546,6 +567,9 @@ end module coll_crystal
            endif
          else
            XP_tangent=sqrt((-2*X*Rcurv+X**2)/(Rcurv**2))
+           write(*,*) 'NOT HIT'
+           write(*,*) x, C_xmax
+           stop
 !           write(*,*)j,'-','tangent',xp_tangent,'angle',xp
 !           write(*,*)'s tan',Rcurv*sin(XP_tangent)
 !           write(*,*) 's tot', c_length,Rcurv*sin(cry_bend)
@@ -913,6 +937,9 @@ end module coll_crystal
 !     SUBROUTINE FOR THE MOVEMENTS OF THE PARTICLES IN THE CRYSTAL
 !.**************************************************************************
       SUBROUTINE CRYST(IS,x,xp,y,yp,PC,Length)
+
+      use mod_ranlux
+      use mod_funlux
 !
 !     Simple tranport protons in crystal 2
 !-----------------------------------------------------------C
@@ -971,9 +998,9 @@ end module coll_crystal
       double precision miscut               !miscut angle in rad
       double precision L_chan, tchan
       double precision xp_rel               !xp-miscut angle in mrad
-      REAL RNDM                           !random numbers
-      REAL      rndm4
-      REAL      RAN_GAUSS
+!      REAL RNDM                           !random numbers
+!      REAL      rndm4
+!      REAL      RAN_GAUSS
       double precision eUm(4)                !maximum potential
       CHARACTER(LEN=50) PROC        !string that contains the physical process
 
@@ -985,7 +1012,7 @@ end module coll_crystal
       double precision alpha !Daniele: par for new chann prob
       double precision Pvr !Daniele: prob for VR->AM transition
 
-      real emr_cry(4)
+      double precision emr_cry(4)
 
       common /Par_Cry1/ Cry_length, Rcurv,C_xmax,C_ymax,Alayer,C_orient
       common /miscut/ miscut
@@ -1252,7 +1279,7 @@ end module coll_crystal
             CALL CALC_ION_LOSS_CRY(IS,PC,Length,DESt)
             PC = PC - DESt*Length       ! energy loss to ionization [GeV]
             else
-            Dxp= L_chan/Rcurv + 0.5*RAN_GAUSS(1.)*xpcrit ! change angle[rad]
+            Dxp= L_chan/Rcurv + 0.5*RAN_GAUSS(1.0d0)*xpcrit ! change angle[rad]
             xp = Dxp
             !next line new from sasha
             x  = x+ L_chan*(sin(0.5*Dxp+miscut)) ! trajectory at channeling exit
@@ -1293,7 +1320,7 @@ end module coll_crystal
             x = x + xp * Srefl
             y = y + yp * Srefl
             Dxp= Ang_avr
-            xp = xp + Dxp + Ang_rms*RAN_GAUSS(1.)
+            xp = xp + Dxp + Ang_rms*RAN_GAUSS(1.0d0)
             x = x + 0.5* xp * (s_length - Srefl)
             y = y + 0.5* yp * (s_length - Srefl)     !
 !            CALL MOVE_AM_(IS,NAM,s_length-Srefl,DES(IS),DLYi(IS),DLRi(IS),xp ,yp,PC)
@@ -1317,7 +1344,7 @@ end module coll_crystal
             Sdech=Ldech*cos(xp+0.5*tdech)
             IF(Ldech .LT. (Length-Lrefl)) then
               PROC='DC'
-              Dxp= Ldech/Rcurv + 0.5*ran_gauss(1)*xpcrit
+              Dxp= Ldech/Rcurv + 0.5*ran_gauss(1.0d0)*xpcrit
               x  = x+ Ldech*(sin(0.5*Dxp+xp))   ! trajectory at channeling exit
               y = y + Sdech * yp
               xp =  Dxp
@@ -1355,7 +1382,7 @@ end module coll_crystal
               Dxp = (Length-Lrefl)/Rcurv
               x  = x+ sin(0.5*Dxp+xp)*Rlength     ! trajectory at channeling exit
               y = y + red_S * yp
-              xp =  Length/Rcurv + 0.5*ran_gauss(1)*xpcrit ! [mrad]
+              xp =  Length/Rcurv + 0.5*ran_gauss(1.0d0)*xpcrit ! [mrad]
               CALL CALC_ION_LOSS_CRY(IS,PC,Rlength,DESt)
               PC=PC - 0.5*DESt*Rlength  !Daniele: "added" energy loss once captured
               endif
@@ -1443,6 +1470,9 @@ end module coll_crystal
 !.**************************************************************************
       SUBROUTINE CALC_ION_LOSS_CRY(IS,PC,DZ,EnLo)
 
+      use mod_ranlux
+      use mod_funlux
+
       IMPLICIT none
       integer IS
       double precision PC,DZ,EnLo
@@ -1451,10 +1481,10 @@ end module coll_crystal
       double precision enr,mom,betar,gammar,bgr !Daniele: energy,momentum,beta relativistic, gamma relativistic
       double precision Tmax,plen !Daniele: maximum energy tranfer in single collision, plasma energy (see pdg)
       double precision anuc_cry2(4)
-      real emr_cry(4)
+      double precision emr_cry(4)
       double precision thl,Tt,cs_tail,prob_tail
       double precision ranc
-      REAL RNDM4
+!      REAL RNDM4
 
       common/ion/rho,z,Ime,k,re,me,mp,anuc_cry2,emr_cry
       common/ion2/enr,mom,gammar,betar,bgr,Tmax,plen
@@ -1501,6 +1531,10 @@ end module coll_crystal
 !     subroutine for the movement in the amorphous
 !.**************************************************************************
       SUBROUTINE MOVE_AM_(IS,NAM,DZ,DEI,DLY,DLr, XP,YP,PC)
+
+      use mod_ranlux
+      use mod_funlux
+
 !. Moving in amorphous substance...........................
       IMPLICIT none
       integer IS,NAM
@@ -1510,8 +1544,8 @@ end module coll_crystal
       double precision AM(30),QP(30),NPAI
       double precision Dc(4),eUm(4)
       double precision DYA,W_p
-      REAL RNDM4
-         REAL      RAN_GAUSS
+!      REAL RNDM4
+!         REAL      RAN_GAUSS
       CHARACTER(LEN=50) PROC              !string that contains the physical process
       COMMON /ALAST/DLAI,SAI
       COMMON/CRYS/ DLRI,DLYI,AI,DES
@@ -1544,14 +1578,14 @@ end module coll_crystal
       common/scat_cry/pptco_cry,ppeco_cry,freeco_cry
 
       double precision tlcut_cry,hcut_cry(4)
-      real cgen_cry(200,4),tlow,thigh,ruth_cry
+      double precision cgen_cry(200,4),tlow,thigh,ruth_cry
       external ruth_cry
 
       common/ruth_scat_cry/tlcut_cry,hcut_cry
       common/ruth_scat_cry/cgen_cry,mcurr_cry
 
       integer length_cry,mcurr_cry
-      real xran_cry(1)
+      double precision xran_cry(1)
 
 !-------daniele--------------
 ! adding new variables to study the energy loss when the routine is called
@@ -1645,8 +1679,8 @@ end module coll_crystal
       DYA = (13.6/PC)*SQRT(DZ/DLr)             !MCS (mrad)
 !      write(*,*)'dya=',dya
 
-      kxmcs = DYA*RAN_GAUSS(1.)
-      kymcs = DYA*RAN_GAUSS(1.)
+      kxmcs = DYA*RAN_GAUSS(1.0d0)
+      kymcs = DYA*RAN_GAUSS(1.0d0)
 
       XP = xp+kxmcs
       yp = yp+kymcs
@@ -1749,8 +1783,8 @@ end module coll_crystal
 !c      tz = teta*f*vb
 
 
-      tx= teta * RAN_GAUSS(1.)
-      tz= teta * RAN_GAUSS(1.)
+      tx= teta * RAN_GAUSS(1.0d0)
+      tz= teta * RAN_GAUSS(1.0d0)
 
       tx = tx * 1000
       tz = tz * 1000
@@ -1838,6 +1872,9 @@ end module coll_crystal
 !.**************************************************************************
       SUBROUTINE MOVE_CH_(IS,NAM,DZ,X,XP,YP,PC,R,Rc)
 
+      use mod_ranlux
+      use mod_funlux
+
       IMPLICIT none
       integer IS,NAM
       double precision DZ,X,XP,YP,PC,R,Rc
@@ -1846,8 +1883,8 @@ end module coll_crystal
       double precision AM(30),QP(30),NPAI
       double precision Dc(4),eUm(4)
       double precision DYA,W_p
-      REAL RNDM4
-         REAL      RAN_GAUSS
+!      REAL RNDM4
+!         REAL      RAN_GAUSS
       CHARACTER(LEN=50) PROC              !string that contains the physical process
       COMMON /ALAST/DLAI,SAI
       COMMON/CRYS/ DLRI,DLYI,AI,DES
@@ -1880,14 +1917,14 @@ end module coll_crystal
       common/scat_cry/pptco_cry,ppeco_cry,freeco_cry
 
       double precision tlcut_cry,hcut_cry(4)
-      real cgen_cry(200,4),tlow,thigh,ruth_cry
+      double precision cgen_cry(200,4),tlow,thigh,ruth_cry
       external ruth_cry
 
       common/ruth_scat_cry/tlcut_cry,hcut_cry
       common/ruth_scat_cry/cgen_cry,mcurr_cry
 
       integer length_cry,mcurr_cry
-      real xran_cry(1)
+      double precision xran_cry(1)
 
 
 
@@ -1905,7 +1942,7 @@ end module coll_crystal
       double precision rho(4),z(4),Ime(4)
       double precision k,re,me,mp
       double precision anuc_cry2(4)
-      real emr_cry(4)
+      double precision emr_cry(4)
 
       common/ion/rho,z,Ime,k,re,me,mp,anuc_cry2,emr_cry
 
@@ -2165,8 +2202,8 @@ end module coll_crystal
 !c      tz = teta*f*vb
 
 
-      tx= teta * RAN_GAUSS(1.)
-      tz= teta * RAN_GAUSS(1.)
+      tx= teta * RAN_GAUSS(1.0d0)
+      tz= teta * RAN_GAUSS(1.0d0)
 
       tx = tx * 1000
       tz = tz * 1000
@@ -2295,7 +2332,7 @@ end module coll_crystal
       double precision rho(4),z(4),Ime(4),anuc_cry2(4) !Daniele: material parameters for dE/dX calculation
       double precision k,re,me,mp !Daniele: parameters for dE/dX calculation (const,electron radius,el. mass, prot.mass)
 
-      real emr_cry(4) !nuclear radius for Ruth scatt.
+      double precision emr_cry(4) !nuclear radius for Ruth scatt.
 
       common/ion/rho,z,Ime,k,re,me,mp,anuc_cry2,emr_cry
 
@@ -2322,7 +2359,7 @@ end module coll_crystal
       data u1/0.075d-10/  !thermal vibrations amplitude
 
       double precision tlcut_cry,hcut_cry(4)   !param. for Ruth scatt.
-      real cgen_cry(200,4)
+      double precision cgen_cry(200,4)
       integer mcurr_cry
 
       common/ruth_scat_cry/tlcut_cry,hcut_cry
@@ -2346,9 +2383,9 @@ end module coll_crystal
       double precision rho(4),z(4),Ime(4),anuc_cry2(4) !Daniele: material parameters for dE/dX calculation
       double precision k,re,me,mp !Daniele: parameters for dE/dX calculation (const,electron radius,el. mass, prot.mass)
 
-      real emr_cry(4)
+      double precision emr_cry(4)
 
-      real cgen_cry(200,4)
+      double precision cgen_cry(200,4)
 
       common/ion/rho,z,Ime,k,re,me,mp,anuc_cry2,emr_cry
 
@@ -2356,7 +2393,7 @@ end module coll_crystal
       common/ruth_scat_cry/tlcut_cry,hcut_cry
       common/ruth_scat_cry/cgen_cry,mcurr_cry
 
-      real ruth_cry,t_cry
+      double precision ruth_cry,t_cry
       double precision cnorm,cnform
       parameter(cnorm=2.607d-4,cnform=0.8561d3)
 !      parameter(cnorm=2.607d-5,cnform=0.8561d3) !daniele: corrected constant

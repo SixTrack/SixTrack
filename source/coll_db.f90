@@ -50,7 +50,7 @@ module coll_db
   real(kind=fPrec), allocatable, public, save :: cdb_cryBend(:)     ! Crystal collimator bending radius [m]
   real(kind=fPrec), allocatable, public, save :: cdb_cryXDim(:)     ! Crystal collimator x dimension [m]
   real(kind=fPrec), allocatable, public, save :: cdb_cryYDim(:)     ! Crystal collimator y dimension [m]
-  real(kind=fPrec), allocatable, public, save :: cdb_cryThick(:)    ! Crystal collimator thickness [m]
+  real(kind=fPrec), allocatable, public, save :: cdb_cryThick(:)    ! Crystal collimator amorphous layer thickness [m]
   real(kind=fPrec), allocatable, public, save :: cdb_cryTilt(:)     ! Crystal collimator tilt [rad]
   real(kind=fPrec), allocatable, public, save :: cdb_cryMisCut(:)   ! Crystal collimator miscut [rad]
   integer,          allocatable, public, save :: cdb_cryOrient(:)   ! Crystal collimator orientation 1:Si110, 2:Si111
