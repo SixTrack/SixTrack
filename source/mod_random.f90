@@ -114,7 +114,12 @@ end subroutine rnd_parseInputLine
 !  V.K. Berglyd Olsen, BE-ABP-HSS
 !  Created: 2019-09-23
 !  Updated: 2019-09-23
-!  Run a self-test
+!  Run a self-test. The test will first generate an array of integer values from 10 to 20, then
+!  generate sequences of random numbers of varying length based on these integers. The length is
+!  randomised with a time seed, so should be different each time the test is run. However, since
+!  the sequences should be able to continue from any interuption, the series generated with a fixed
+!  seed should remain the same. In other words, this subroutine should write a file that does not
+!  change even if the generators are called with different length of the random number arrays.
 ! ================================================================================================ !
 subroutine rnd_runSelfTest
 
@@ -124,47 +129,66 @@ subroutine rnd_runSelfTest
   use mod_ranlux
 
   character(len=19), parameter :: fFile = "rnd_selftest.dat"
-  integer fUnit, rndInt(25), i, j, iLine, rndSeeds(25)
-  real(kind=fPrec) rndReal(20,2)
+  integer fUnit, rndInt(25), i, j, k, iLine, rndSeeds(25), currSeed
+  real(kind=fPrec) rndReal(20,2), rndOut(250,6)
 
   call f_requestUnit(fFile,fUnit)
   call f_open(unit=fUnit,file=fFile,formatted=.true.,mode="w")
 
-  write(fUnit,"(a3,2(1x,a13))") "###","RANECU", "RANLUX"
-  write(fUnit,"(a3,2(1x,a13))") "###","Uniform","Uniform"
+  write(fUnit,"(a3,6(1x,a13))") "###","RANECU", "RANLUX", "RANECU","RANLUX","RANECU", "RANLUX"
+  write(fUnit,"(a3,6(1x,a13))") "###","Uniform","Uniform","Normal","Normal","Normal2","Normal2"
 
-  call rnd_uniformInt(rndser_timeSeed1, rndSeeds, 25,  0, 99) ! Some random values to send as "seeds"
-  call rnd_uniformInt(rndser_timeSeed1, rndInt,   25, 10, 20) ! The sizes of each sequence
+  call rnd_uniformInt(rndser_timeSeed1, rndSeeds, 25, 0, 99) ! Some random values to send as "seeds"
+  call rnd_uniformInt(rndser_timeSeed1, rndInt,   25, 5, 10) ! The sizes of each sequence
   rndSeeds(25) = 0
-  iLine = 1
-  do i=1,25
+  do k=1,5,2
 
-    rndReal(:,:) = -1.0_fPrec
-    write(lout,"(a,i0,a)") "RND> Running RANECU selftest with ",rndInt(i)," random numbers"
+    iLine = 1
+    call rnd_setSeed(rndser_selfTest1, 1, currSeed, .true.)
+    call rnd_setSeed(rndser_selfTest2, 2, currSeed, .true.)
+  
+    do i=1,25
 
-    ! Interupt the series of random seeds currently in the generators
-    call recuin(rndSeeds(1),rndSeeds(2))
-    call rluxin(rndSeeds)
+      rndReal(:,:) = -1.0_fPrec
+      write(lout,"(a,i0,a)") "RND> Running selftest with ",2*rndInt(i)," random numbers"
 
-    ! Generate numbers from each generator with a random sequence length
-    ! These should continue frokm stored seeds regardless of what was already there
-    call rnd_uniform(rndser_selfTest1, rndReal(:,1), rndInt(i))
-    call rnd_uniform(rndser_selfTest2, rndReal(:,2), rndInt(i))
+      ! Interupt the series of random seeds currently in the generators
+      call recuin(rndSeeds(1),rndSeeds(2))
+      call rluxin(rndSeeds)
 
-    ! Write the 100 first values to file
-    do j=1,rndInt(i)
-      write(fUnit,"(i3,2(1x,f13.9))") iLine,rndReal(j,1:2)
-      iLine = iLine + 1
-      if(iLine > 250) goto 10
+      ! Generate numbers from each generator with a random sequence length
+      ! These should continue from stored seeds regardless of what was already there
+      select case(k)
+      case(1)
+        call rnd_uniform(rndser_selfTest1, rndReal(:,1), 2*rndInt(i))
+        call rnd_uniform(rndser_selfTest2, rndReal(:,2), 2*rndInt(i))
+      case(3)
+        call rnd_normal (rndser_selfTest1, rndReal(:,1), 2*rndInt(i))
+        call rnd_normal (rndser_selfTest2, rndReal(:,2), 2*rndInt(i))
+      case(5)
+        call rnd_normal2(rndser_selfTest1, rndReal(:,1), 2*rndInt(i))
+        call rnd_normal2(rndser_selfTest2, rndReal(:,2), 2*rndInt(i))
+      end select
+
+      do j=1,2*rndInt(i)
+        rndOut(iLine,k)   = rndReal(j,1)
+        rndOut(iLine,k+1) = rndReal(j,2)
+        iLine = iLine + 1
+        if(iLine > 250) goto 10
+      end do
+
     end do
-
+10 continue
   end do
 
-10 continue
-  ! Zero everyhting and close file
-  rndSeeds(:) = 0
-  call recuin(rndSeeds(1),rndSeeds(2))
-  call rluxin(rndSeeds)
+  do i=1,250
+    write(fUnit,"(i3,6(1x,f13.9))") i,rndOut(i,1:6)
+  end do
+
+  ! Reset seeds and close file
+  call rnd_setSeed(rndser_selfTest1, 1, currSeed, .true.)
+  call rnd_setSeed(rndser_selfTest2, 2, currSeed, .true.)
+
   call f_close(fUnit)
 
 end subroutine rnd_runSelfTest
@@ -363,7 +387,7 @@ subroutine rnd_uniformInt(seriesID, rndVec, vLen, iStart, iEnd)
 
   rSize = iEnd - iStart + 1
   if(rSize < 1) then
-    write(lerr,"(a)") "RND> ERROR Uniform int requires end value to be alrger than start value"
+    write(lerr,"(a)") "RND> ERROR Uniform int requires end value to be larger than start value"
     call prror
   end if
 
@@ -372,5 +396,65 @@ subroutine rnd_uniformInt(seriesID, rndVec, vLen, iStart, iEnd)
   end do
 
 end subroutine rnd_uniformInt
+
+! ================================================================================================ !
+!  V.K. Berglyd Olsen, BE-ABP-HSS
+!  Created: 2019-09-23
+!  Updated: 2019-09-23
+!  Normal distribution with Box-Muller using both sine and cosine
+! ================================================================================================ !
+subroutine rnd_normal2(seriesID, rndVec, vLen)
+
+  use crcoall
+  use mathlib_bouncer
+  use numerical_constants, only : twopi, two
+
+  integer,          intent(in)  :: seriesID
+  real(kind=fPrec), intent(out) :: rndVec(*)
+  integer,          intent(in)  :: vLen
+
+  integer i
+  real(kind=fPrec) radVal, rndTmp(vLen)
+
+  if(mod(vLen,2) /= 0) then
+    write(lerr,"(a)") "RND> ERROR The rnd_normal2 routine can only return an even number of random numbers"
+    call prror
+  end if
+
+  call rnd_uniform(seriesID, rndTmp, vLen)
+
+  do i=1,vLen,2
+    radVal      = sqrt((-two)*log_mb(rndTmp(i)))
+    rndVec(i)   = radVal * cos_mb(twopi*rndTmp(i+1))
+    rndVec(i+1) = radVal * sin_mb(twopi*rndTmp(i+1))
+  end do
+
+end subroutine rnd_normal2
+
+! ================================================================================================ !
+!  V.K. Berglyd Olsen, BE-ABP-HSS
+!  Created: 2019-09-23
+!  Updated: 2019-09-23
+!  Normal distribution with Box-Muller using only cosine
+! ================================================================================================ !
+subroutine rnd_normal(seriesID, rndVec, vLen)
+
+  use mathlib_bouncer
+  use numerical_constants, only : twopi, two
+
+  integer,          intent(in)  :: seriesID
+  real(kind=fPrec), intent(out) :: rndVec(*)
+  integer,          intent(in)  :: vLen
+
+  integer i
+  real(kind=fPrec) rndTmp(vLen*2)
+
+  call rnd_uniform(seriesID, rndTmp, vLen*2)
+
+  do i=1,vLen
+    rndVec(i) = sqrt((-two)*log_mb(rndTmp(2*i-1))) * cos_mb(twopi*rndTmp(2*i))
+  end do
+
+end subroutine rnd_normal
 
 end module mod_random
