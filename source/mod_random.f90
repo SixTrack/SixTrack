@@ -135,13 +135,13 @@ subroutine rnd_runSelfTest
   call f_requestUnit(fFile,fUnit)
   call f_open(unit=fUnit,file=fFile,formatted=.true.,mode="w")
 
-  write(fUnit,"(a3,6(1x,a13))") "###","RANECU", "RANLUX", "RANECU","RANLUX","RANECU", "RANLUX"
-  write(fUnit,"(a3,6(1x,a13))") "###","Uniform","Uniform","Normal","Normal","Normal2","Normal2"
+  write(fUnit,"(a3,4(1x,a13))") "###","RANECU", "RANLUX", "RANECU","RANLUX"
+  write(fUnit,"(a3,4(1x,a13))") "###","Uniform","Uniform","Normal","Normal"
 
   call rnd_uniformInt(rndser_timeSeed1, rndSeeds, 25, 0, 99) ! Some random values to send as "seeds"
   call rnd_uniformInt(rndser_timeSeed1, rndInt,   25, 5, 10) ! The sizes of each sequence
   rndSeeds(25) = 0
-  do k=1,5,2
+  do k=1,3,2
 
     iLine = 1
     call rnd_setSeed(rndser_selfTest1, 1, currSeed, .true.)
@@ -165,9 +165,6 @@ subroutine rnd_runSelfTest
       case(3)
         call rnd_normal (rndser_selfTest1, rndReal(:,1), 2*rndInt(i))
         call rnd_normal (rndser_selfTest2, rndReal(:,2), 2*rndInt(i))
-      case(5)
-        call rnd_normal2(rndser_selfTest1, rndReal(:,1), 2*rndInt(i))
-        call rnd_normal2(rndser_selfTest2, rndReal(:,2), 2*rndInt(i))
       end select
 
       do j=1,2*rndInt(i)
@@ -182,7 +179,7 @@ subroutine rnd_runSelfTest
   end do
 
   do i=1,250
-    write(fUnit,"(i3,6(1x,f13.9))") i,rndOut(i,1:6)
+    write(fUnit,"(i3,4(1x,f13.9))") i,rndOut(i,1:4)
   end do
 
   ! Reset seeds and close file
@@ -401,9 +398,10 @@ end subroutine rnd_uniformInt
 !  V.K. Berglyd Olsen, BE-ABP-HSS
 !  Created: 2019-09-23
 !  Updated: 2019-09-23
-!  Normal distribution with Box-Muller using both sine and cosine
+!  Normal distribution with Box-Muller using both sine and cosine.
+!  At 64-bit, tail truncation occurs at 9.42 sigmas, and 6.66 sigmas at 32-bit.
 ! ================================================================================================ !
-subroutine rnd_normal2(seriesID, rndVec, vLen)
+subroutine rnd_normal(seriesID, rndVec, vLen)
 
   use crcoall
   use mathlib_bouncer
@@ -414,46 +412,20 @@ subroutine rnd_normal2(seriesID, rndVec, vLen)
   integer,          intent(in)  :: vLen
 
   integer i
-  real(kind=fPrec) radVal, rndTmp(vLen)
-
-  if(mod(vLen,2) /= 0) then
-    write(lerr,"(a)") "RND> ERROR The rnd_normal2 routine can only return an even number of random numbers"
-    call prror
-  end if
+  real(kind=fPrec) radVal, rndTmp(vLen), rndAdd(2)
 
   call rnd_uniform(seriesID, rndTmp, vLen)
 
-  do i=1,vLen,2
+  do i=1,vLen-1,2
     radVal      = sqrt((-two)*log_mb(rndTmp(i)))
     rndVec(i)   = radVal * cos_mb(twopi*rndTmp(i+1))
     rndVec(i+1) = radVal * sin_mb(twopi*rndTmp(i+1))
   end do
-
-end subroutine rnd_normal2
-
-! ================================================================================================ !
-!  V.K. Berglyd Olsen, BE-ABP-HSS
-!  Created: 2019-09-23
-!  Updated: 2019-09-23
-!  Normal distribution with Box-Muller using only cosine
-! ================================================================================================ !
-subroutine rnd_normal(seriesID, rndVec, vLen)
-
-  use mathlib_bouncer
-  use numerical_constants, only : twopi, two
-
-  integer,          intent(in)  :: seriesID
-  real(kind=fPrec), intent(out) :: rndVec(*)
-  integer,          intent(in)  :: vLen
-
-  integer i
-  real(kind=fPrec) rndTmp(vLen*2)
-
-  call rnd_uniform(seriesID, rndTmp, vLen*2)
-
-  do i=1,vLen
-    rndVec(i) = sqrt((-two)*log_mb(rndTmp(2*i-1))) * cos_mb(twopi*rndTmp(2*i))
-  end do
+  if(mod(vLen,2) /= 0) then
+    call rnd_uniform(seriesID, rndAdd, 2)
+    radVal       = sqrt((-two)*log_mb(rndAdd(1)))
+    rndVec(vLen) = radVal * cos_mb(twopi*rndAdd(2))
+  end if
 
 end subroutine rnd_normal
 
