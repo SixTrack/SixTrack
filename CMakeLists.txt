@@ -313,6 +313,7 @@ list(APPEND FORT90_LIB
   mod_geometry
   mod_meta
   mod_particles
+  mod_random
   mod_time
   mod_units
   mod_utils
