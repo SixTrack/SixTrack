@@ -16,17 +16,22 @@ module mod_random
   implicit none
 
   logical, private, save :: rnd_debug       = .false. ! Master debug flag
+  logical, private, save :: rnd_selfTest    = .false. ! Run self test?
   integer, private, save :: rnd_masterSeed  = 0       ! The master seed
   integer, private, save :: rnd_genOverride = 0       ! Whether or not to override the default generators for modules
   integer, private, save :: rnd_luxuryLev   = 3       ! The luxury level for the ranlux generator
 
   ! Series indices for modules (add new series to the end, otherwise the order is disrupted)
-  integer, parameter :: rndser_flucErr  = 1 ! Fluc module magnet errors (zfz array)
-  integer, parameter :: rndser_scatMain = 2 ! Scatter module scatter generator
-  integer, parameter :: rndser_scatPart = 3 ! Scatter module beam sample
-  integer, parameter :: rndser_distGen  = 4 ! Dist module generator
-  integer, parameter :: rndser_collDist = 5 ! Collimation module dist generator
-  integer, parameter :: rnd_nSeries     = 5 ! Number of random number series to store
+  integer, parameter :: rndser_timeSeed1 = 1 ! Series using ranecu that is always time seeded
+  integer, parameter :: rndser_timeSeed2 = 2 ! Series using ranlux that is always time seeded
+  integer, parameter :: rndser_selfTest1 = 3 ! Self test of the ranecu generator
+  integer, parameter :: rndser_selfTest2 = 4 ! Self test of the ranlux generator
+  integer, parameter :: rndser_flucErr   = 5 ! Fluc module magnet errors (zfz array)
+  integer, parameter :: rndser_scatMain  = 6 ! Scatter module scatter generator
+  integer, parameter :: rndser_scatPart  = 7 ! Scatter module beam sample
+  integer, parameter :: rndser_distGen   = 8 ! Dist module generator
+  integer, parameter :: rndser_collDist  = 9 ! Collimation module dist generator
+  integer, parameter :: rnd_nSeries      = 9 ! Number of random number series to store
 
   integer,           parameter :: rnd_seedStep   = 77377 ! When seeding from a master seed, this is the step between them
   character(len=6),  parameter :: rnd_genName(2) = ["RANECU","RANLUX"]
@@ -81,6 +86,10 @@ subroutine rnd_parseInputLine(inLine, iLine, iErr)
     rnd_debug = .true.
     write(lout,"(a)") "RND> DEBUG mode enabled"
 
+  case("SELFTEST")
+    rnd_selfTest = .true.
+    write(lout,"(a)") "RND> Module will run self-test"
+
   case("SEED")
     if(nSplit /= 2) then
       write(lerr,"(a,i0)") "RND> ERROR SEED takes one argument, got ",nSplit-1
@@ -107,11 +116,58 @@ end subroutine rnd_parseInputLine
 !  Updated: 2019-09-23
 !  Run a self-test
 ! ================================================================================================ !
-subroutine rnd_selfTest
+subroutine rnd_runSelfTest
 
+  use crcoall
   use mod_units
+  use mod_ranecu
+  use mod_ranlux
 
-end subroutine rnd_selfTest
+  character(len=19), parameter :: fFile = "rnd_selftest.dat"
+  integer fUnit, rndInt(25), i, j, iLine, rndSeeds(25)
+  real(kind=fPrec) rndReal(20,2)
+
+  call f_requestUnit(fFile,fUnit)
+  call f_open(unit=fUnit,file=fFile,formatted=.true.,mode="w")
+
+  write(fUnit,"(a3,2(1x,a13))") "###","RANECU", "RANLUX"
+  write(fUnit,"(a3,2(1x,a13))") "###","Uniform","Uniform"
+
+  call rnd_uniformInt(rndser_timeSeed1, rndSeeds, 25,  0, 99) ! Some random values to send as "seeds"
+  call rnd_uniformInt(rndser_timeSeed1, rndInt,   25, 10, 20) ! The sizes of each sequence
+  rndSeeds(25) = 0
+  iLine = 1
+  do i=1,25
+
+    rndReal(:,:) = -1.0_fPrec
+    write(lout,"(a,i0,a)") "RND> Running RANECU selftest with ",rndInt(i)," random numbers"
+
+    ! Interupt the series of random seeds currently in the generators
+    call recuin(rndSeeds(1),rndSeeds(2))
+    call rluxin(rndSeeds)
+
+    ! Generate numbers from each generator with a random sequence length
+    ! These should continue frokm stored seeds regardless of what was already there
+    call rnd_uniform(rndser_selfTest1, rndReal(:,1), rndInt(i))
+    call rnd_uniform(rndser_selfTest2, rndReal(:,2), rndInt(i))
+
+    ! Write the 100 first values to file
+    do j=1,rndInt(i)
+      write(fUnit,"(i3,2(1x,f13.9))") iLine,rndReal(j,1:2)
+      iLine = iLine + 1
+      if(iLine > 250) goto 10
+    end do
+
+  end do
+
+10 continue
+  ! Zero everyhting and close file
+  rndSeeds(:) = 0
+  call recuin(rndSeeds(1),rndSeeds(2))
+  call rluxin(rndSeeds)
+  call f_close(fUnit)
+
+end subroutine rnd_runSelfTest
 
 ! ================================================================================================ !
 !  V.K. Berglyd Olsen, BE-ABP-HSS
@@ -122,8 +178,9 @@ end subroutine rnd_selfTest
 subroutine rnd_initSeries
 
   use mod_units
+  use mod_time
 
-  integer genRanecu, genRanlux, currSeed
+  integer genRanecu, genRanlux, currSeed, currTime
 
   call f_requestUnit(rnd_seedFile, rnd_seedUnit)
   call f_open(unit=rnd_seedUnit,file=rnd_seedFile,formatted=.true.,mode="w")
@@ -143,11 +200,20 @@ subroutine rnd_initSeries
   write(rnd_seedUnit, "(a)")    "#"
   write(rnd_seedUnit, "(a)")    "# Number Series                  Gen           Seed"
 
-  call rnd_setSeed(rndser_flucErr,  genRanecu, currSeed, .true.)
-  call rnd_setSeed(rndser_scatMain, genRanecu, currSeed, .true.)
-  call rnd_setSeed(rndser_scatPart, genRanecu, currSeed, .true.)
-  call rnd_setSeed(rndser_distGen,  genRanecu, currSeed, .true.)
-  call rnd_setSeed(rndser_collDist, genRanlux, currSeed, .true.)
+  currTime = time_getSysClock()
+  call rnd_setSeed(rndser_timeSeed1, genRanecu, currTime, .false.)
+  call rnd_setSeed(rndser_timeSeed2, genRanlux, currTime, .false.)
+  call rnd_setSeed(rndser_selfTest1, genRanecu, currSeed, .true.)
+  call rnd_setSeed(rndser_selfTest2, genRanlux, currSeed, .true.)
+  call rnd_setSeed(rndser_flucErr,   genRanecu, currSeed, .true.)
+  call rnd_setSeed(rndser_scatMain,  genRanecu, currSeed, .true.)
+  call rnd_setSeed(rndser_scatPart,  genRanecu, currSeed, .true.)
+  call rnd_setSeed(rndser_distGen,   genRanecu, currSeed, .true.)
+  call rnd_setSeed(rndser_collDist,  genRanlux, currSeed, .true.)
+
+  if(rnd_selfTest) then
+    call rnd_runSelfTest
+  end if
 
 end subroutine rnd_initSeries
 
@@ -199,6 +265,14 @@ subroutine rnd_setSeed(seriesID, genID, seedVal, fromMaster)
   rnd_seriesData(seriesID)%seeds     = seedArr
 
   select case(seriesID)
+  case(rndser_timeSeed1)
+    serName = "RND:  Time seed ranecu"
+  case(rndser_timeSeed2)
+    serName = "RND:  Time seed ranlux"
+  case(rndser_selfTest1)
+    serName = "RND:  Self-test ranecu"
+  case(rndser_selfTest2)
+    serName = "RND:  Self-test ranlux"
   case(rndser_flucErr)
     serName = "FLUC: Magnet errors"
   case(rndser_scatMain)
@@ -216,6 +290,16 @@ subroutine rnd_setSeed(seriesID, genID, seedVal, fromMaster)
 
 end subroutine rnd_setSeed
 
+! ================================================================================================ !
+!  GENERATORS
+! ================================================================================================ !
+
+! ================================================================================================ !
+!  V.K. Berglyd Olsen, BE-ABP-HSS
+!  Created: 2019-09-23
+!  Updated: 2019-09-23
+!  Uniform distribution between 0 and 1
+! ================================================================================================ !
 subroutine rnd_uniform(seriesID, rndVec, vLen)
 
   use crcoall
@@ -255,5 +339,38 @@ subroutine rnd_uniform(seriesID, rndVec, vLen)
   rnd_seriesData(seriesID)%seeds = seedArr
 
 end subroutine rnd_uniform
+
+! ================================================================================================ !
+!  V.K. Berglyd Olsen, BE-ABP-HSS
+!  Created: 2019-09-23
+!  Updated: 2019-09-23
+!  Uniform distribution between 0 and 1
+! ================================================================================================ !
+subroutine rnd_uniformInt(seriesID, rndVec, vLen, iStart, iEnd)
+
+  use crcoall
+
+  integer, intent(in)  :: seriesID
+  integer, intent(out) :: rndVec(*)
+  integer, intent(in)  :: vLen
+  integer, intent(in)  :: iStart
+  integer, intent(in)  :: iEnd
+
+  real(kind=fPrec) randArr(vLen)
+  integer i, rSize
+
+  call rnd_uniform(seriesID, randArr, vLen)
+
+  rSize = iEnd - iStart + 1
+  if(rSize < 1) then
+    write(lerr,"(a)") "RND> ERROR Uniform int requires end value to be alrger than start value"
+    call prror
+  end if
+
+  do i=1,vLen
+    rndVec(i) = int(randArr(i)*real(rSize,fPrec)) + iStart
+  end do
+
+end subroutine rnd_uniformInt
 
 end module mod_random
