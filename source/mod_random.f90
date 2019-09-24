@@ -133,18 +133,18 @@ subroutine rnd_runSelfTest
 
   character(len=19), parameter :: fFile = "rnd_selftest.dat"
   integer fUnit, rndInt(25), i, j, k, iLine, rndSeeds(25), currSeed
-  real(kind=fPrec) rndReal(20,2), rndOut(250,6)
+  real(kind=fPrec) rndReal(20,2), rndOut(250,8)
 
   call f_requestUnit(fFile,fUnit)
   call f_open(unit=fUnit,file=fFile,formatted=.true.,mode="w")
 
-  write(fUnit,"(a3,6(1x,a13))") "###","RANECU", "RANLUX", "RANECU","RANLUX","RANECU",  "RANLUX"
-  write(fUnit,"(a3,6(1x,a13))") "###","Uniform","Uniform","Normal","Normal","Rayleigh","Rayleigh"
+  write(fUnit,"(a3,8(1x,a13))") "###","RANECU", "RANLUX", "RANECU","RANLUX","RANECU",  "RANLUX",  "RANECU",    "RANLUX"
+  write(fUnit,"(a3,8(1x,a13))") "###","Uniform","Uniform","Normal","Normal","Rayleigh","Rayleigh","Irwin-Hall","Irwin-Hall"
 
   call rnd_uniformInt(rndser_timeSeed1, rndSeeds, 25,  0, 99) ! Some random values to send as "seeds"
   call rnd_uniformInt(rndser_timeSeed1, rndInt,   25, 10, 20) ! The sizes of each sequence
   rndSeeds(25) = 0
-  do k=1,5,2
+  do k=1,7,2
 
     iLine = 1
     call rnd_setSeed(rndser_genSeq1, 1, currSeed, .true.)
@@ -171,6 +171,9 @@ subroutine rnd_runSelfTest
       case(5)
         call rnd_rayleigh(rndser_genSeq1, rndReal(:,1), rndInt(i))
         call rnd_rayleigh(rndser_genSeq2, rndReal(:,2), rndInt(i))
+      case(7)
+        call rnd_irwinHall(rndser_genSeq1, rndReal(:,1), rndInt(i), 4)
+        call rnd_irwinHall(rndser_genSeq2, rndReal(:,2), rndInt(i), 4)
       end select
 
       do j=1,rndInt(i)
@@ -185,7 +188,7 @@ subroutine rnd_runSelfTest
   end do
 
   do i=1,250
-    write(fUnit,"(i3,6(1x,f13.9))") i,rndOut(i,1:6)
+    write(fUnit,"(i3,8(1x,f13.9))") i,rndOut(i,1:8)
   end do
 
   ! Reset seeds and close file
@@ -335,9 +338,8 @@ subroutine rnd_uniform(seriesID, rndVec, vLen)
   use mod_ranecu
   use mod_ranlux
 
-  integer,          intent(in)  :: seriesID
-  real(kind=fPrec), intent(out) :: rndVec(*)
-  integer,          intent(in)  :: vLen
+  integer,          intent(in)  :: seriesID, vLen
+  real(kind=fPrec), intent(out) :: rndVec(vLen)
 
   integer seedArr(25), tmpArr(25), genID
 
@@ -379,11 +381,9 @@ subroutine rnd_uniformInt(seriesID, rndVec, vLen, iStart, iEnd)
 
   use crcoall
 
-  integer, intent(in)  :: seriesID
-  integer, intent(out) :: rndVec(*)
-  integer, intent(in)  :: vLen
-  integer, intent(in)  :: iStart
-  integer, intent(in)  :: iEnd
+  integer, intent(in)  :: seriesID, vLen
+  integer, intent(out) :: rndVec(vLen)
+  integer, intent(in)  :: iStart, iEnd
 
   real(kind=fPrec) randArr(vLen)
   integer i, rSize
@@ -418,9 +418,8 @@ subroutine rnd_normal(seriesID, rndVec, vLen)
   use mathlib_bouncer
   use numerical_constants, only : twopi, two
 
-  integer,          intent(in)  :: seriesID
-  real(kind=fPrec), intent(out) :: rndVec(*)
-  integer,          intent(in)  :: vLen
+  integer,          intent(in)  :: seriesID, vLen
+  real(kind=fPrec), intent(out) :: rndVec(vLen)
 
   integer i, iS, iGen, iRem
   real(kind=fPrec) radVal, remVal, rndTmp(vLen), rndAdd(2)
@@ -470,9 +469,8 @@ subroutine rnd_rayleigh(seriesID, rndVec, vLen)
   use mathlib_bouncer
   use numerical_constants, only : two
 
-  integer,          intent(in)  :: seriesID
-  real(kind=fPrec), intent(out) :: rndVec(*)
-  integer,          intent(in)  :: vLen
+  integer,          intent(in)  :: seriesID, vLen
+  real(kind=fPrec), intent(out) :: rndVec(vLen)
 
   integer i
   real(kind=fPrec) rndTmp(vLen)
@@ -483,5 +481,40 @@ subroutine rnd_rayleigh(seriesID, rndVec, vLen)
   end do
 
 end subroutine rnd_rayleigh
+
+! ================================================================================================ !
+!  V.K. Berglyd Olsen, BE-ABP-HSS
+!  Created: 2019-09-24
+!  Updated: 2019-09-24
+!  Irwin-Hall approximation of a normal distribution of order N = 1:10
+!  1st order is equivalen to uniform, 2nd order is triangtular, and 3rd order and up approaches a
+!  Gaussian distribution. First few orders should be faster than Box-Muller.
+! ================================================================================================ !
+subroutine rnd_irwinHall(seriesID, rndVec, vLen, nOrder)
+
+  use crcoall
+  use numerical_constants, only : two
+
+  integer,          intent(in)  :: seriesID, vLen
+  real(kind=fPrec), intent(out) :: rndVec(vLen)
+  integer,          intent(in)  :: nOrder
+
+  integer i, k
+  real(kind=fPrec) rMean
+  real(kind=fPrec) rndTmp(nOrder*vLen)
+  real(kind=fPrec) rndSum(nOrder,vLen)
+
+  if(nOrder < 1 .or. nOrder > 10) then
+    write(lerr,"(a)") "RND> ERROR Irwin-Hall generator must be between order 1 and 10 (inclusive)"
+    call prror
+  end if
+
+  rMean = real(nOrder,fPrec)/two
+  call rnd_uniform(seriesID, rndTmp, vLen*nOrder)
+
+  rndSum = reshape(rndTmp, [nOrder,vLen])
+  rndVec(1:vLen) = sum(rndSum,1)/rMean
+
+end subroutine rnd_irwinHall
 
 end module mod_random
