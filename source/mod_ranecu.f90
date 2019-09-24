@@ -97,8 +97,8 @@ subroutine ranecuu(rvec, len)
 
   use floatPrecision
 
-  real(kind=fPrec), intent(out) :: rvec(*)
   integer,          intent(in)  :: len
+  real(kind=fPrec), intent(out) :: rvec(len)
 
   integer i, iz, j, k
 
@@ -111,7 +111,8 @@ subroutine ranecuu(rvec, len)
     if(iseed2 < 0) iseed2 = iseed2+2147483399
     iz = iseed1-iseed2
     if(iz < 1) iz = iz+2147483562
-    rvec(j) = real(iz,fPrec)*4.656613e-10_fPrec
+    rvec(j) = real(iz,fPrec)*4.656613059560173e-10_fPrec ! Double Precision
+  ! rvec(j) = real(iz,fPrec)*4.656613e-10_fPrec          ! Single Precision
   end do
 
 end subroutine ranecuu

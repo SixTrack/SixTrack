@@ -104,26 +104,24 @@ subroutine ranlux(rvec,lenv)
 
   use crcoall
 
-  implicit none
+  integer,          intent(in)  :: lenv
+  real(kind=fPrec), intent(out) :: rvec(lenv)
 
-  integer :: lenv
-  real(kind=fPrec) :: rvec(lenv)
-
-!  NOTYET is .TRUE. if no initialization has been performed yet.
-!              Default Initialization by Multiplicative Congruential
+  ! NOTYET is .TRUE. if no initialization has been performed yet.
+  !             Default Initialization by Multiplicative Congruential
   if(notyet) then
     notyet = .false.
     jseed = jsdflt
     inseed = jseed
     write(lout,"(a,i0)") "RANLUX> Default initialization: ",jseed
     luxlev = lxdflt
-    nskip = ndskip(luxlev)
-    lp = nskip + 24
-    in24 = 0
-    kount = 0
+    nskip  = ndskip(luxlev)
+    lp     = nskip + 24
+    in24   = 0
+    kount  = 0
     mkount = 0
-    twom24 = 1.
-    do i= 1, 24
+    twom24 = 1.0
+    do i=1,24
       twom24 = twom24 * 0.5
       k = jseed/53668
       jseed = 40014*(jseed-k*53668) -k*12211
@@ -131,28 +129,28 @@ subroutine ranlux(rvec,lenv)
       iseeds(i) = mod(jseed,itwo24)
     end do
     twom12 = twom24 * twop12
-    do i= 1,24
+    do i=1,24
       seeds(i) = real(iseeds(i))*twom24
       next(i) = i-1
     end do
     next(1) = 24
-    i24 = 24
-    j24 = 10
-    carry = 0.
-    if (seeds(24) == 0.) carry = twom24
+    i24     = 24
+    j24     = 10
+    carry   = 0.0
+    if (seeds(24) == 0.0) carry = twom24
   end if
 
   ! The Generator proper: "Subtract-with-borrow",
   ! as proposed by Marsaglia and Zaman,
   ! Florida State University, March, 1989
 
-  do ivec= 1, lenv
+  do ivec=1,lenv
     uni = seeds(j24) - seeds(i24) - carry
-    if(uni < 0.)  then
-      uni = uni + 1.
+    if(uni < 0.0) then
+      uni = uni + 1.0
       carry = twom24
     else
-      carry = 0.
+      carry = 0.0
     end if
     seeds(i24) = uni
     i24 = next(i24)
@@ -163,7 +161,7 @@ subroutine ranlux(rvec,lenv)
     if(uni < twom12) then
       rvec(ivec) = rvec(ivec) + twom24*seeds(j24)
       ! and zero is forbidden in case someone takes a logarithm
-      if(rvec(ivec) == 0.) rvec(ivec) = twom24*twom24
+      if(rvec(ivec) == 0.0) rvec(ivec) = twom24*twom24
     end if
 
     ! Skipping to luxury.  As proposed by Martin Luscher.
@@ -171,13 +169,13 @@ subroutine ranlux(rvec,lenv)
     if(in24 == 24) then
       in24 = 0
       kount = kount + nskip
-      do isk= 1, nskip
+      do isk=1,nskip
         uni = seeds(j24) - seeds(i24) - carry
-        if(uni < 0.) then
-          uni = uni + 1.
+        if(uni < 0.0) then
+          uni = uni + 1.0
           carry = twom24
         else
-          carry = 0.
+          carry = 0.0
         end if
         seeds(i24) = uni
         i24 = next(i24)
@@ -194,7 +192,7 @@ subroutine ranlux(rvec,lenv)
 
 end subroutine ranlux
 
-!           Entry to input and float integer seeds from previous run
+! Entry to input and float integer seeds from previous run
 subroutine rluxin(isdext_tmp)
 
   use crcoall
@@ -257,14 +255,12 @@ end subroutine rluxut
 ! Entry to output the "convenient" restart point
 subroutine rluxat(lout2,inout,k1,k2)
 
-  integer lout2
-  integer inout
-  integer k1,k2
+  integer, intent(out) :: lout2,inout,k1,k2
 
   lout2 = luxlev
   inout = inseed
-  k1 = kount
-  k2 = mkount
+  k1    = kount
+  k2    = mkount
 
 end subroutine rluxat
 
@@ -273,7 +269,7 @@ subroutine rluxgo(lux,ins,k1,k2)
 
   use crcoall
 
-  integer lux,ins,k1,k2
+  integer, intent(in) :: lux,ins,k1,k2
 
   if(lux < 0) then
     luxlev = lxdflt
@@ -310,7 +306,7 @@ subroutine rluxgo(lux,ins,k1,k2)
 
   inseed = jseed
   notyet = .false.
-  twom24 = 1.
+  twom24 = 1.0
   do i=1,24
     twom24 = twom24 * 0.5
     k = jseed/53668
@@ -326,10 +322,10 @@ subroutine rluxgo(lux,ins,k1,k2)
   end do
 
   next(1) = 24
-  i24 = 24
-  j24 = 10
-  carry = 0.
-  if(seeds(24) == 0.) carry = twom24
+  i24     = 24
+  j24     = 10
+  carry   = 0.0
+  if(seeds(24) == 0.0) carry = twom24
 
   ! If restarting at a break point, skip K1 + IGIGA*K2
   ! Note that this is the number of numbers delivered to
@@ -337,16 +333,16 @@ subroutine rluxgo(lux,ins,k1,k2)
   kount = k1
   mkount = k2
   if(k1+k2 /= 0) then
-    do iouter= 1, k2+1
+    do iouter=1,k2+1
       inner = igiga
       if(iouter == k2+1) inner = k1
       do isk=1,inner
         uni = seeds(j24) - seeds(i24) - carry
         if(uni < 0.) then
-          uni = uni + 1.
+          uni = uni + 1.0
           carry = twom24
         else
-          carry = 0.
+          carry = 0.0
         end if
         seeds(i24) = uni
         i24 = next(i24)
