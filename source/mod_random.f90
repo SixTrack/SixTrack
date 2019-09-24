@@ -12,6 +12,7 @@
 module mod_random
 
   use floatPrecision
+  use numerical_constants, only : zero
 
   implicit none
 
@@ -22,10 +23,10 @@ module mod_random
   integer, private, save :: rnd_luxuryLev   = 3       ! The luxury level for the ranlux generator
 
   ! Series indices for modules (add new series to the end, otherwise the order is disrupted)
-  integer, parameter :: rndser_timeSeed1 = 1 ! Series using ranecu that is always time seeded
-  integer, parameter :: rndser_timeSeed2 = 2 ! Series using ranlux that is always time seeded
-  integer, parameter :: rndser_selfTest1 = 3 ! Self test of the ranecu generator
-  integer, parameter :: rndser_selfTest2 = 4 ! Self test of the ranlux generator
+  integer, parameter :: rndser_timeSeed1 = 1 ! Series using ranecu that is always time seeded (non-reproducible)
+  integer, parameter :: rndser_timeSeed2 = 2 ! Series using ranlux that is always time seeded (non-reproducible)
+  integer, parameter :: rndser_genSeq1   = 3 ! General sequence of ranecu random numbers that can be used by any module
+  integer, parameter :: rndser_genSeq2   = 4 ! General sequence of ranlux random numbers that can be used by any module
   integer, parameter :: rndser_flucErr   = 5 ! Fluc module magnet errors (zfz array)
   integer, parameter :: rndser_scatMain  = 6 ! Scatter module scatter generator
   integer, parameter :: rndser_scatPart  = 7 ! Scatter module beam sample
@@ -39,9 +40,11 @@ module mod_random
   integer,       private, save :: rnd_seedUnit   = -1
 
   type, private :: type_rndRecord
-    integer :: generator = 0 ! 1 for ranecu, 2 for ranlux
-    integer :: initseed  = 0 ! The initial seed
-    integer :: seeds(25) = 0 ! The current state of the seeds
+    integer          :: generator  = 0       ! 1 for ranecu, 2 for ranlux
+    integer          :: initseed   = 0       ! The initial seed
+    integer          :: seeds(25)  = 0       ! The current state of the seeds
+    real(kind=fPrec) :: normRemain = zero    ! Storage for last generated normal if requesting odd number
+    logical          :: hasNormR   = .false. ! A normal distributed remaining number is cached
   end type type_rndRecord
   type(type_rndRecord), private, save :: rnd_seriesData(rnd_nSeries)
 
@@ -113,7 +116,7 @@ end subroutine rnd_parseInputLine
 ! ================================================================================================ !
 !  V.K. Berglyd Olsen, BE-ABP-HSS
 !  Created: 2019-09-23
-!  Updated: 2019-09-23
+!  Updated: 2019-09-24
 !  Run a self-test. The test will first generate an array of integer values from 10 to 20, then
 !  generate sequences of random numbers of varying length based on these integers. The length is
 !  randomised with a time seed, so should be different each time the test is run. However, since
@@ -135,22 +138,22 @@ subroutine rnd_runSelfTest
   call f_requestUnit(fFile,fUnit)
   call f_open(unit=fUnit,file=fFile,formatted=.true.,mode="w")
 
-  write(fUnit,"(a3,4(1x,a13))") "###","RANECU", "RANLUX", "RANECU","RANLUX"
-  write(fUnit,"(a3,4(1x,a13))") "###","Uniform","Uniform","Normal","Normal"
+  write(fUnit,"(a3,6(1x,a13))") "###","RANECU", "RANLUX", "RANECU","RANLUX","RANECU",  "RANLUX"
+  write(fUnit,"(a3,6(1x,a13))") "###","Uniform","Uniform","Normal","Normal","Rayleigh","Rayleigh"
 
-  call rnd_uniformInt(rndser_timeSeed1, rndSeeds, 25, 0, 99) ! Some random values to send as "seeds"
-  call rnd_uniformInt(rndser_timeSeed1, rndInt,   25, 5, 10) ! The sizes of each sequence
+  call rnd_uniformInt(rndser_timeSeed1, rndSeeds, 25,  0, 99) ! Some random values to send as "seeds"
+  call rnd_uniformInt(rndser_timeSeed1, rndInt,   25, 10, 20) ! The sizes of each sequence
   rndSeeds(25) = 0
-  do k=1,3,2
+  do k=1,5,2
 
     iLine = 1
-    call rnd_setSeed(rndser_selfTest1, 1, currSeed, .true.)
-    call rnd_setSeed(rndser_selfTest2, 2, currSeed, .true.)
+    call rnd_setSeed(rndser_genSeq1, 1, currSeed, .true.)
+    call rnd_setSeed(rndser_genSeq2, 2, currSeed, .true.)
   
     do i=1,25
 
       rndReal(:,:) = -1.0_fPrec
-      write(lout,"(a,i0,a)") "RND> Running selftest with ",2*rndInt(i)," random numbers"
+      write(lout,"(a,i0,a)") "RND> Running selftest with ",rndInt(i)," random numbers"
 
       ! Interupt the series of random seeds currently in the generators
       call recuin(rndSeeds(1),rndSeeds(2))
@@ -160,14 +163,17 @@ subroutine rnd_runSelfTest
       ! These should continue from stored seeds regardless of what was already there
       select case(k)
       case(1)
-        call rnd_uniform(rndser_selfTest1, rndReal(:,1), 2*rndInt(i))
-        call rnd_uniform(rndser_selfTest2, rndReal(:,2), 2*rndInt(i))
+        call rnd_uniform(rndser_genSeq1, rndReal(:,1), rndInt(i))
+        call rnd_uniform(rndser_genSeq2, rndReal(:,2), rndInt(i))
       case(3)
-        call rnd_normal (rndser_selfTest1, rndReal(:,1), 2*rndInt(i))
-        call rnd_normal (rndser_selfTest2, rndReal(:,2), 2*rndInt(i))
+        call rnd_normal(rndser_genSeq1, rndReal(:,1), rndInt(i))
+        call rnd_normal(rndser_genSeq2, rndReal(:,2), rndInt(i))
+      case(5)
+        call rnd_rayleigh(rndser_genSeq1, rndReal(:,1), rndInt(i))
+        call rnd_rayleigh(rndser_genSeq2, rndReal(:,2), rndInt(i))
       end select
 
-      do j=1,2*rndInt(i)
+      do j=1,rndInt(i)
         rndOut(iLine,k)   = rndReal(j,1)
         rndOut(iLine,k+1) = rndReal(j,2)
         iLine = iLine + 1
@@ -179,12 +185,12 @@ subroutine rnd_runSelfTest
   end do
 
   do i=1,250
-    write(fUnit,"(i3,4(1x,f13.9))") i,rndOut(i,1:4)
+    write(fUnit,"(i3,6(1x,f13.9))") i,rndOut(i,1:6)
   end do
 
   ! Reset seeds and close file
-  call rnd_setSeed(rndser_selfTest1, 1, currSeed, .true.)
-  call rnd_setSeed(rndser_selfTest2, 2, currSeed, .true.)
+  call rnd_setSeed(rndser_genSeq1, 1, currSeed, .true.)
+  call rnd_setSeed(rndser_genSeq2, 2, currSeed, .true.)
 
   call f_close(fUnit)
 
@@ -224,8 +230,8 @@ subroutine rnd_initSeries
   currTime = time_getSysClock()
   call rnd_setSeed(rndser_timeSeed1, genRanecu, currTime, .false.)
   call rnd_setSeed(rndser_timeSeed2, genRanlux, currTime, .false.)
-  call rnd_setSeed(rndser_selfTest1, genRanecu, currSeed, .true.)
-  call rnd_setSeed(rndser_selfTest2, genRanlux, currSeed, .true.)
+  call rnd_setSeed(rndser_genSeq1, genRanecu, currSeed, .true.)
+  call rnd_setSeed(rndser_genSeq2, genRanlux, currSeed, .true.)
   call rnd_setSeed(rndser_flucErr,   genRanecu, currSeed, .true.)
   call rnd_setSeed(rndser_scatMain,  genRanecu, currSeed, .true.)
   call rnd_setSeed(rndser_scatPart,  genRanecu, currSeed, .true.)
@@ -281,19 +287,21 @@ subroutine rnd_setSeed(seriesID, genID, seedVal, fromMaster)
     call prror
   end select
 
-  rnd_seriesData(seriesID)%generator = genID
-  rnd_seriesData(seriesID)%initseed  = seedVal
-  rnd_seriesData(seriesID)%seeds     = seedArr
+  rnd_seriesData(seriesID)%generator  = genID
+  rnd_seriesData(seriesID)%initseed   = seedVal
+  rnd_seriesData(seriesID)%seeds      = seedArr
+  rnd_seriesData(seriesID)%normRemain = zero
+  rnd_seriesData(seriesID)%hasNormR   = .false.
 
   select case(seriesID)
   case(rndser_timeSeed1)
     serName = "RND:  Time seed ranecu"
   case(rndser_timeSeed2)
     serName = "RND:  Time seed ranlux"
-  case(rndser_selfTest1)
-    serName = "RND:  Self-test ranecu"
-  case(rndser_selfTest2)
-    serName = "RND:  Self-test ranlux"
+  case(rndser_genSeq1)
+    serName = "RND:  General sequence ranecu"
+  case(rndser_genSeq2)
+    serName = "RND:  General sequence ranlux"
   case(rndser_flucErr)
     serName = "FLUC: Magnet errors"
   case(rndser_scatMain)
@@ -397,8 +405,11 @@ end subroutine rnd_uniformInt
 ! ================================================================================================ !
 !  V.K. Berglyd Olsen, BE-ABP-HSS
 !  Created: 2019-09-23
-!  Updated: 2019-09-23
-!  Normal distribution with Box-Muller using both sine and cosine.
+!  Updated: 2019-09-24
+!  Normal distribution with Box-Muller.
+!  The two numbers generated are independent, so we generate the numbers in pairs. If the last one
+!  is not needed, we save it for the next call in order to ensure the sequence can be generated
+!  unintrupted. This will also hold after a restart from checkpoint.
 !  At 64-bit, tail truncation occurs at 9.42 sigmas, and 6.66 sigmas at 32-bit.
 ! ================================================================================================ !
 subroutine rnd_normal(seriesID, rndVec, vLen)
@@ -411,22 +422,66 @@ subroutine rnd_normal(seriesID, rndVec, vLen)
   real(kind=fPrec), intent(out) :: rndVec(*)
   integer,          intent(in)  :: vLen
 
-  integer i
-  real(kind=fPrec) radVal, rndTmp(vLen), rndAdd(2)
+  integer i, iS, iGen, iRem
+  real(kind=fPrec) radVal, remVal, rndTmp(vLen), rndAdd(2)
 
-  call rnd_uniform(seriesID, rndTmp, vLen)
+  if(rnd_seriesData(seriesID)%hasNormR) then
+    ! There's already a random number in the cache
+    ! Use this one first, and offset the generation of new ones
+    rndVec(1) = rnd_seriesData(seriesID)%normRemain
+    rnd_seriesData(seriesID)%hasNormR = .false.
+    if(vLen < 2) return
+    iS   = 1
+    iRem = vLen-1
+  else
+    iS   = 0
+    iRem = vLen
+  end if
 
-  do i=1,vLen-1,2
-    radVal      = sqrt((-two)*log_mb(rndTmp(i)))
-    rndVec(i)   = radVal * cos_mb(twopi*rndTmp(i+1))
-    rndVec(i+1) = radVal * sin_mb(twopi*rndTmp(i+1))
+  iGen = iRem-mod(iRem,2) ! Always request an even number of uniform numbers
+  call rnd_uniform(seriesID, rndTmp, iGen)
+  do i=1,iGen,2
+    ! Generate an even number of random numbers using Box-Muller
+    radVal         = sqrt((-two)*log_mb(rndTmp(i)))
+    rndVec(i+iS)   = radVal * cos_mb(twopi*rndTmp(i+1))
+    rndVec(i+iS+1) = radVal * sin_mb(twopi*rndTmp(i+1))
   end do
-  if(mod(vLen,2) /= 0) then
+  if(mod(iRem,2) /= 0) then
+    ! If we need one more, generate another pair and save the last for next time
     call rnd_uniform(seriesID, rndAdd, 2)
     radVal       = sqrt((-two)*log_mb(rndAdd(1)))
     rndVec(vLen) = radVal * cos_mb(twopi*rndAdd(2))
+    remVal       = radVal * sin_mb(twopi*rndAdd(2))
+    rnd_seriesData(seriesID)%normRemain = remVal
+    rnd_seriesData(seriesID)%hasNormR   = .true.
   end if
 
 end subroutine rnd_normal
+
+! ================================================================================================ !
+!  V.K. Berglyd Olsen, BE-ABP-HSS
+!  Created: 2019-09-24
+!  Updated: 2019-09-24
+!  Rayleigh distribution with radial part of Box-Muller.
+! ================================================================================================ !
+subroutine rnd_rayleigh(seriesID, rndVec, vLen)
+
+  use crcoall
+  use mathlib_bouncer
+  use numerical_constants, only : two
+
+  integer,          intent(in)  :: seriesID
+  real(kind=fPrec), intent(out) :: rndVec(*)
+  integer,          intent(in)  :: vLen
+
+  integer i
+  real(kind=fPrec) rndTmp(vLen)
+
+  call rnd_uniform(seriesID, rndTmp, vLen)
+  do i=1,vLen
+    rndVec(i) = sqrt((-two)*log_mb(rndTmp(i)))
+  end do
+
+end subroutine rnd_rayleigh
 
 end module mod_random
