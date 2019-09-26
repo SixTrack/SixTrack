@@ -25,10 +25,23 @@
 ! ================================================================================================ !
 module mod_ranecu
 
+  use floatPrecision
+
   implicit none
 
   integer, private, save :: iseed1 = 12345
   integer, private, save :: iseed2 = 67890
+
+  ! Constants for converting the integer range 1 to 2147483563 to a real between 0 and 1.0 (non-inclusive)
+#ifdef SINGLE_MATH
+  real(kind=fPrec), parameter :: rScale = 4.65661287e-10_fPrec ! 0x30000000
+#endif
+#ifdef DOUBLE_MATH
+  real(kind=fPrec), parameter :: rScale = 4.65661305739176810e-10_fPrec ! 0x3e0000000aa00006
+#endif
+#ifdef QUAD_MATH
+  real(kind=fPrec), parameter :: rScale = 4.6566130573917691960466940253828613e-10_fPrec ! 0x3fe0000000aa000070e4004af76831c8
+#endif
 
 contains
 
@@ -38,12 +51,11 @@ contains
 subroutine ranecu(rvec, len, mode, cut)
 
   use crcoall
-  use floatPrecision
   use mathlib_bouncer
   use numerical_constants
 
-  real(kind=fPrec),           intent(out) :: rvec(*)
   integer,                    intent(in)  :: len
+  real(kind=fPrec),           intent(out) :: rvec(len)
   integer,                    intent(in)  :: mode
   real(kind=fPrec), optional, intent(in)  :: cut
 
@@ -73,7 +85,7 @@ subroutine ranecu(rvec, len, mode, cut)
     if(iseed2 < 0) iseed2 = iseed2+2147483399
     iz = iseed1-iseed2
     if(iz < 1) iz = iz+2147483562
-    r(j) = real(iz,fPrec)*4.656613e-10_fPrec
+    r(j) = real(iz,fPrec)*4.656613e-10_fPrec ! Note: this is still single precision
   end do
 
   if(mode == 1) then
@@ -95,13 +107,10 @@ end subroutine ranecu
 ! Uniform-only version of the above
 subroutine ranecuu(rvec, len)
 
-  use floatPrecision
-
   integer,          intent(in)  :: len
   real(kind=fPrec), intent(out) :: rvec(len)
 
   integer i, iz, j, k
-
   do j=1,len
     k = iseed1/53668
     iseed1 = 40014*(iseed1-k*53668) - k*12211
@@ -111,9 +120,7 @@ subroutine ranecuu(rvec, len)
     if(iseed2 < 0) iseed2 = iseed2+2147483399
     iz = iseed1-iseed2
     if(iz < 1) iz = iz+2147483562
-    ! Multiply by the inverse of the prime 2147483563 [1]
-    rvec(j) = real(iz,fPrec)*4.656613057391769e-10_fPrec ! Double Precision
-  ! rvec(j) = real(iz,fPrec)*4.656613e-10_fPrec          ! Single Precision
+    rvec(j) = real(iz,fPrec)*rScale
   end do
 
 end subroutine ranecuu
