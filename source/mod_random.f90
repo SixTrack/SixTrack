@@ -214,7 +214,75 @@ subroutine rnd_runSelfTest
 
   call f_close(fUnit)
 
+  ! The call all possible combinations ad write a test file
+  do i=1,9
+    call rnd_runSelfTestFull(rndser_genSeq1, i, 10000)
+    call rnd_runSelfTestFull(rndser_genSeq2, i, 10000)
+    call rnd_setSeed(rndser_genSeq1, 1, currSeed, .true.)
+    call rnd_setSeed(rndser_genSeq2, 2, currSeed, .true.)
+  end do
+
 end subroutine rnd_runSelfTest
+
+! ================================================================================================ !
+!  V.K. Berglyd Olsen, BE-ABP-HSS
+!  Created: 2019-09-26
+!  Updated: 2019-09-26
+!  Writes a series of values to file for a given seriesID and algorithm.
+! ================================================================================================ !
+subroutine rnd_runSelfTestFull(seriesID, algID, vLen)
+
+  use mod_units
+  use string_tools
+  use numerical_constants
+
+  integer, intent(in) :: seriesID
+  integer, intent(in) :: algID
+  integer, intent(in) :: vLen
+
+  integer i, fUnit
+  character(len=64) fName
+  real(kind=fPrec) :: rndVal(vLen)
+
+  fName = "rnd_sample_"//chr_toLower(trim(rnd_genName(rnd_seriesData(seriesID)%generator)))//"_"
+  select case(algID)
+  case(1)
+    fName = trim(fName)//"uniform.dat"
+    call rnd_uniform(seriesID, rndVal, vLen)
+  case(2)
+    fName = trim(fName)//"normal_nocut.dat"
+    call rnd_normal_nocut(seriesID, rndVal, vLen)
+  case(3)
+    fName = trim(fName)//"normal_cut.dat"
+    call rnd_normal_cut(seriesID, rndVal, vLen, two)
+  case(4)
+    fName = trim(fName)//"rayleigh_nocut.dat"
+    call rnd_rayleigh_nocut(seriesID, rndVal, vLen)
+  case(5)
+    fName = trim(fName)//"rayleigh_maxcut.dat"
+    call rnd_rayleigh_maxcut(seriesID, rndVal, vLen, three)
+  case(6)
+    fName = trim(fName)//"rayleigh_maxmincut.dat"
+    call rnd_rayleigh_maxmincut(seriesID, rndVal, vLen, three, one)
+  case(7)
+    fName = trim(fName)//"irwinhall_2.dat"
+    call rnd_irwinHall(seriesID, rndVal, vLen, 2)
+  case(8)
+    fName = trim(fName)//"irwinhall_4.dat"
+    call rnd_irwinHall(seriesID, rndVal, vLen, 4)
+  case(9)
+    fName = trim(fName)//"irwinhall_6.dat"
+    call rnd_irwinHall(seriesID, rndVal, vLen, 6)
+  end select
+
+  call f_requestUnit(fName,fUnit)
+  call f_open(unit=fUnit,file=fName,formatted=.true.,mode="w")
+  do i=1,vLen
+    write(fUnit,"(f13.9)") rndVal(i)
+  end do
+  call f_freeUnit(fUnit)
+
+end subroutine rnd_runSelfTestFull
 
 ! ================================================================================================ !
 !  V.K. Berglyd Olsen, BE-ABP-HSS
@@ -490,7 +558,8 @@ subroutine rnd_normal_cut(seriesID, rndVec, vLen, sCut)
   use numerical_constants, only : twopi, one, two
 
   integer,          intent(in)  :: seriesID, vLen
-  real(kind=fPrec), intent(out) :: rndVec(vLen), sCut
+  real(kind=fPrec), intent(out) :: rndVec(vLen)
+  real(kind=fPrec), intent(in)  :: sCut
 
   integer i
   real(kind=fPrec) radVal, cFac, rndTmp(vLen*2)
@@ -542,7 +611,8 @@ subroutine rnd_rayleigh_maxcut(seriesID, rndVec, vLen, sMax)
   use numerical_constants, only : one, two
 
   integer,          intent(in)  :: seriesID, vLen
-  real(kind=fPrec), intent(out) :: rndVec(vLen), sMax
+  real(kind=fPrec), intent(out) :: rndVec(vLen)
+  real(kind=fPrec), intent(in)  :: sMax
 
   integer i
   real(kind=fPrec) rndTmp(vLen), cFac
@@ -568,7 +638,8 @@ subroutine rnd_rayleigh_maxmincut(seriesID, rndVec, vLen, sMax, sMin)
   use numerical_constants, only : one, two
 
   integer,          intent(in)  :: seriesID, vLen
-  real(kind=fPrec), intent(out) :: rndVec(vLen), sMax, sMin
+  real(kind=fPrec), intent(out) :: rndVec(vLen)
+  real(kind=fPrec), intent(in)  :: sMax, sMin
 
   integer i
   real(kind=fPrec) rndTmp(vLen), cFac, sMin2
@@ -614,7 +685,7 @@ subroutine rnd_irwinHall(seriesID, rndVec, vLen, nOrder)
   call rnd_uniform(seriesID, rndTmp, vLen*nOrder)
 
   rndSum = reshape(rndTmp, [nOrder,vLen])
-  rndVec(1:vLen) = sum(rndSum,1)/rMean
+  rndVec(1:vLen) = sum(rndSum,1)-rMean
 
 end subroutine rnd_irwinHall
 
