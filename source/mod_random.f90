@@ -7,7 +7,7 @@
 !
 !  V.K. Berglyd Olsen, BE-ABP-HSS
 !  Created: 2019-09-23
-!  Updated: 2019-09-23
+!  Updated: 2019-09-26
 ! ================================================================================================ !
 module mod_random
 
@@ -134,12 +134,17 @@ end subroutine rnd_parseInputLine
 !  V.K. Berglyd Olsen, BE-ABP-HSS
 !  Created: 2019-09-23
 !  Updated: 2019-09-24
-!  Run a self-test. The test will first generate an array of integer values from 10 to 20, then
-!  generate sequences of random numbers of varying length based on these integers. The length is
-!  randomised with a time seed, so should be different each time the test is run. However, since
-!  the sequences should be able to continue from any interuption, the series generated with a fixed
-!  seed should remain the same. In other words, this subroutine should write a file that does not
-!  change even if the generators are called with different length of the random number arrays.
+!  Step 1:
+!      The test will first generate an array of integer values from 10 to 20, then generate
+!  sequences of random numbers of varying length based on these integers. The length is randomised
+!  with a time seed, so should be different each time the test is run. However, since the sequences
+!  should be able to continue from any interuption, the series generated with a fixed seed should
+!  remain the same. In other words, this subroutine should write a file that does not change even if
+!  the generators are called with different length of the random number arrays.
+!  Step 2:
+!      Write a file of 10000 values for each of the generators, testing varying parameters. The
+!  results can be plotted with plotRand.py script in the test/random_numbers folder. This generates
+!  the numbers in one go, so does not test continuation.
 ! ================================================================================================ !
 subroutine rnd_runSelfTest
 
@@ -214,7 +219,7 @@ subroutine rnd_runSelfTest
 
   call f_close(fUnit)
 
-  ! The call all possible combinations ad write a test file
+  ! The call (almost) all possible combinations and write a test file
   do i=1,9
     call rnd_runSelfTestFull(rndser_genSeq1, i, 10000)
     call rnd_runSelfTestFull(rndser_genSeq2, i, 10000)
@@ -658,7 +663,7 @@ end subroutine rnd_rayleigh_maxmincut
 !  Created: 2019-09-24
 !  Updated: 2019-09-24
 !  Irwin-Hall approximation of a normal distribution of order N = 1:10
-!  The distribution is centred around nOrder/2 and extends from - nOrder/2 to + nOrder/2
+!  The distribution is centred around zero and extends from - nOrder/2 to + nOrder/2
 !  1st order is equivalen to uniform, 2nd order is triangular, and 3rd order and up approaches a
 !  Gaussian distribution. First few orders should be faster than Box-Muller.
 ! ================================================================================================ !
