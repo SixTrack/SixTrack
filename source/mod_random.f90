@@ -48,6 +48,23 @@ module mod_random
   end type type_rndRecord
   type(type_rndRecord), private, save :: rnd_seriesData(rnd_nSeries)
 
+  interface rnd_normal
+    module procedure rnd_normal_cut
+    module procedure rnd_normal_nocut
+  end interface rnd_normal
+
+  interface rnd_rayleigh
+    module procedure rnd_rayleigh_nocut
+    module procedure rnd_rayleigh_maxcut
+    module procedure rnd_rayleigh_maxmincut
+  end interface rnd_rayleigh
+
+  private :: rnd_normal_cut
+  private :: rnd_normal_nocut
+  private :: rnd_rayleigh_nocut
+  private :: rnd_rayleigh_maxcut
+  private :: rnd_rayleigh_maxmincut
+
 contains
 
 ! ================================================================================================ !
@@ -412,7 +429,7 @@ end subroutine rnd_uniformInt
 !  unintrupted. This will also hold after a restart from checkpoint.
 !  At 64-bit, tail truncation occurs at 9.42 sigmas, and 6.66 sigmas at 32-bit.
 ! ================================================================================================ !
-subroutine rnd_normal(seriesID, rndVec, vLen)
+subroutine rnd_normal_nocut(seriesID, rndVec, vLen)
 
   use crcoall
   use mathlib_bouncer
@@ -455,7 +472,37 @@ subroutine rnd_normal(seriesID, rndVec, vLen)
     rnd_seriesData(seriesID)%hasNormR   = .true.
   end if
 
-end subroutine rnd_normal
+end subroutine rnd_normal_nocut
+
+! ================================================================================================ !
+!  V.K. Berglyd Olsen, BE-ABP-HSS
+!  Created: 2019-09-26
+!  Updated: 2019-09-26
+!  Normal distribution with Box-Muller, and with a maximum cut in the Rayleigh distribution.
+!  Since the remaining number, in case of a request of en odd number of values, cannot be saved for
+!  next time (due to the cut potentially being changed) we only use the cosine part. This is less
+!  efficient than the uncut Box-Muller.
+! ================================================================================================ !
+subroutine rnd_normal_cut(seriesID, rndVec, vLen, sCut)
+
+  use crcoall
+  use mathlib_bouncer
+  use numerical_constants, only : twopi, one, two
+
+  integer,          intent(in)  :: seriesID, vLen
+  real(kind=fPrec), intent(out) :: rndVec(vLen), sCut
+
+  integer i
+  real(kind=fPrec) radVal, cFac, rndTmp(vLen*2)
+
+  cFac = one - exp_mb(-(sCut**2/two))
+  call rnd_uniform(seriesID, rndTmp, vLen*2)
+  do i=1,vLen
+    radVal    = sqrt((-two)*log_mb(one-cFac*rndTmp(2*i-1)))
+    rndVec(i) = radVal * cos_mb(twopi*rndTmp(2*i))
+  end do
+
+end subroutine rnd_normal_cut
 
 ! ================================================================================================ !
 !  V.K. Berglyd Olsen, BE-ABP-HSS
@@ -463,7 +510,7 @@ end subroutine rnd_normal
 !  Updated: 2019-09-24
 !  Rayleigh distribution with radial part of Box-Muller.
 ! ================================================================================================ !
-subroutine rnd_rayleigh(seriesID, rndVec, vLen)
+subroutine rnd_rayleigh_nocut(seriesID, rndVec, vLen)
 
   use crcoall
   use mathlib_bouncer
@@ -480,14 +527,68 @@ subroutine rnd_rayleigh(seriesID, rndVec, vLen)
     rndVec(i) = sqrt((-two)*log_mb(rndTmp(i)))
   end do
 
-end subroutine rnd_rayleigh
+end subroutine rnd_rayleigh_nocut
+
+! ================================================================================================ !
+!  V.K. Berglyd Olsen, BE-ABP-HSS
+!  Created: 2019-09-26
+!  Updated: 2019-09-26
+!  Rayleigh distribution with radial part of Box-Muller and a max cut.
+! ================================================================================================ !
+subroutine rnd_rayleigh_maxcut(seriesID, rndVec, vLen, sMax)
+
+  use crcoall
+  use mathlib_bouncer
+  use numerical_constants, only : one, two
+
+  integer,          intent(in)  :: seriesID, vLen
+  real(kind=fPrec), intent(out) :: rndVec(vLen), sMax
+
+  integer i
+  real(kind=fPrec) rndTmp(vLen), cFac
+
+  cFac = one - exp_mb(-(sMax**2/two))
+  call rnd_uniform(seriesID, rndTmp, vLen)
+  do i=1,vLen
+    rndVec(i) = sqrt((-two)*log_mb(one - cFac*rndTmp(i)))
+  end do
+
+end subroutine rnd_rayleigh_maxcut
+
+! ================================================================================================ !
+!  V.K. Berglyd Olsen, BE-ABP-HSS
+!  Created: 2019-09-26
+!  Updated: 2019-09-26
+!  Rayleigh distribution with radial part of Box-Muller and a min and max cut.
+! ================================================================================================ !
+subroutine rnd_rayleigh_maxmincut(seriesID, rndVec, vLen, sMax, sMin)
+
+  use crcoall
+  use mathlib_bouncer
+  use numerical_constants, only : one, two
+
+  integer,          intent(in)  :: seriesID, vLen
+  real(kind=fPrec), intent(out) :: rndVec(vLen), sMax, sMin
+
+  integer i
+  real(kind=fPrec) rndTmp(vLen), cFac, sMin2
+
+  cFac  = one - exp_mb(-((sMax+sMin)*(sMax-sMin)/two))
+  sMin2 = sMin**2
+  call rnd_uniform(seriesID, rndTmp, vLen)
+  do i=1,vLen
+    rndVec(i) = sqrt(sMin2 - two*log_mb(one - cFac*rndTmp(i)))
+  end do
+
+end subroutine rnd_rayleigh_maxmincut
 
 ! ================================================================================================ !
 !  V.K. Berglyd Olsen, BE-ABP-HSS
 !  Created: 2019-09-24
 !  Updated: 2019-09-24
 !  Irwin-Hall approximation of a normal distribution of order N = 1:10
-!  1st order is equivalen to uniform, 2nd order is triangtular, and 3rd order and up approaches a
+!  The distribution is centred around nOrder/2 and extends from - nOrder/2 to + nOrder/2
+!  1st order is equivalen to uniform, 2nd order is triangular, and 3rd order and up approaches a
 !  Gaussian distribution. First few orders should be faster than Box-Muller.
 ! ================================================================================================ !
 subroutine rnd_irwinHall(seriesID, rndVec, vLen, nOrder)
