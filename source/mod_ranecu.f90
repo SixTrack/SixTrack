@@ -111,7 +111,8 @@ subroutine ranecuu(rvec, len)
     if(iseed2 < 0) iseed2 = iseed2+2147483399
     iz = iseed1-iseed2
     if(iz < 1) iz = iz+2147483562
-    rvec(j) = real(iz,fPrec)*4.656613059560173e-10_fPrec ! Double Precision
+    ! Multiply by the inverse of the prime 2147483563 [1]
+    rvec(j) = real(iz,fPrec)*4.656613057391769e-10_fPrec ! Double Precision
   ! rvec(j) = real(iz,fPrec)*4.656613e-10_fPrec          ! Single Precision
   end do
 
