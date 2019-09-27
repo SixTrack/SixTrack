@@ -16,8 +16,8 @@ module mod_random
 
   implicit none
 
-  logical, private, save :: rnd_enabled     = .false. ! Has the block been seen?
-  logical, private, save :: rnd_initOK      = .false. ! Has the master seeds been populated?
+  logical, public,  save :: rnd_enabled     = .false. ! Has the block been seen?
+  logical, public,  save :: rnd_initOK      = .false. ! Has the master seeds been populated?
   logical, private, save :: rnd_debug       = .false. ! Master debug flag
   logical, private, save :: rnd_selfTest    = .false. ! Run self test?
   integer, private, save :: rnd_masterSeed  = 0       ! The master seed
@@ -387,7 +387,7 @@ subroutine rnd_initSeries
   call rnd_setSeed(rndser_genSeq2,   genRanlux, currSeed, .true.)
   call rnd_setSeed(rndser_scatMain,  genRanecu, currSeed, .true.)
   call rnd_setSeed(rndser_scatPart,  genRanecu, currSeed, .true.)
-  call rnd_setSeed(rndser_distGen,   genRanecu, currSeed, .true.)
+  call rnd_setSeed(rndser_distGen,   genRanlux, currSeed, .true.)
   call rnd_setSeed(rndser_collDist,  genRanlux, currSeed, .true.)
 
   if(rnd_selfTest) then
