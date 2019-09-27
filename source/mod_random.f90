@@ -390,7 +390,7 @@ end subroutine rnd_initSeries
 ! ================================================================================================ !
 !  V.K. Berglyd Olsen, BE-ABP-HSS
 !  Created: 2019-09-23
-!  Updated: 2019-09-23
+!  Updated: 2019-09-27
 !  Set the initial seeds for a random number series
 ! ================================================================================================ !
 subroutine rnd_setSeed(seriesID, genID, seedVal, fromMaster)
@@ -543,9 +543,7 @@ subroutine rnd_uniformInt(seriesID, rndVec, vLen, iStart, iEnd)
     call prror
   end if
 
-  do i=1,vLen
-    rndVec(i) = int(randArr(i)*real(rSize,fPrec)) + iStart
-  end do
+  rndVec = int(randArr*real(rSize,fPrec)) + iStart
 
 end subroutine rnd_uniformInt
 
