@@ -65,6 +65,10 @@ module mod_random
   private :: rnd_rayleigh_maxcut
   private :: rnd_rayleigh_maxmincut
 
+#ifdef CR
+  type(type_rndRecord), private, save :: rnd_seriesData_CR(rnd_nSeries)
+#endif
+
 contains
 
 ! ================================================================================================ !
@@ -325,13 +329,13 @@ subroutine rnd_initSeries
   write(rnd_seedUnit, "(a,i0)") "# Master Seed         : ",rnd_masterSeed
   write(rnd_seedUnit, "(a,i0)") "# RANLUX Luxury Level : ",rnd_luxuryLev
   write(rnd_seedUnit, "(a)")    "#"
-  write(rnd_seedUnit, "(a)")    "# Number Series                  Gen           Seed"
+  write(rnd_seedUnit, "(a)")    "# Number Series                   Gen     Action         Seed"
 
   currTime = time_getSysClock()
   call rnd_setSeed(rndser_timeSeed1, genRanecu, currTime, .false.)
   call rnd_setSeed(rndser_timeSeed2, genRanlux, currTime, .false.)
-  call rnd_setSeed(rndser_genSeq1, genRanecu, currSeed, .true.)
-  call rnd_setSeed(rndser_genSeq2, genRanlux, currSeed, .true.)
+  call rnd_setSeed(rndser_genSeq1,   genRanecu, currSeed, .true.)
+  call rnd_setSeed(rndser_genSeq2,   genRanlux, currSeed, .true.)
   call rnd_setSeed(rndser_flucErr,   genRanecu, currSeed, .true.)
   call rnd_setSeed(rndser_scatMain,  genRanecu, currSeed, .true.)
   call rnd_setSeed(rndser_scatPart,  genRanecu, currSeed, .true.)
@@ -363,10 +367,17 @@ subroutine rnd_setSeed(seriesID, genID, seedVal, fromMaster)
 
   integer seedArr(25)
   character(len=32) serName
+  character(len=6)  jMode
 
   if(fromMaster) then
     ! Set seed from master seed
     seedVal = rnd_masterSeed + rnd_seedStep*seriesID
+    jMode   = "MASTER"
+  else
+    jMode   = "CUSTOM"
+  end if
+  if(seedVal == rnd_seriesData(seriesID)%initseed) then
+    jMode   = "RESET"
   end if
 
   if(seriesID < 1 .or. seriesID > rnd_nSeries) then
@@ -415,7 +426,7 @@ subroutine rnd_setSeed(seriesID, genID, seedVal, fromMaster)
   case default
     serName = "Undefined"
   end select
-  write(rnd_seedUnit,"(a32,1x,a6,1x,i11)") serName, rnd_genName(genID), seedVal
+  write(rnd_seedUnit,"(a32,2(2x,a6),2x,i11)") serName, rnd_genName(genID), jMode, seedVal
 
 end subroutine rnd_setSeed
 
@@ -700,5 +711,68 @@ subroutine rnd_irwinHall(seriesID, rndVec, vLen, nOrder)
   rndVec(1:vLen) = sum(rndSum,1)-rMean
 
 end subroutine rnd_irwinHall
+
+#ifdef CR
+! ================================================================================================ !
+!  CheckPoint/Restart Routines
+!  V.K. Berglyd Olsen, BE-ABP-HSS
+!  Created: 2019-09-27
+!  Updated: 2019-09-27
+! ================================================================================================ !
+subroutine rnd_crcheck(fileUnit, readErr)
+
+  use crcoall
+
+  integer, intent(in)  :: fileUnit
+  logical, intent(out) :: readErr
+
+  integer i
+  do i=1,rnd_nSeries
+    read(fileUnit, err=10, end=10) rnd_seriesData_CR(i)
+  end do
+
+  readErr = .false.
+  return
+
+10 continue
+  readErr = .true.
+  write(lout, "(a,i0,a)") "SIXTRACR> ERROR Reading C/R file unit ",fileUnit," in RND"
+  write(crlog,"(a,i0,a)") "SIXTRACR> ERROR Reading C/R file unit ",fileUnit," in RND"
+  flush(crlog)
+
+end subroutine rnd_crcheck
+
+subroutine rnd_crpoint(fileUnit, writeErr)
+
+  use crcoall
+
+  integer, intent(in)  :: fileUnit
+  logical, intent(out) :: writeErr
+
+  integer i
+  do i=1,rnd_nSeries
+    write(fileunit,err=10) rnd_seriesData(i)
+  end do
+  flush(fileUnit)
+
+  writeErr = .false.
+
+  return
+
+10 continue
+  writeErr = .true.
+  write(lout, "(a,i0,a)") "SIXTRACR> ERROR Writing C/R file unit ",fileUnit," in RND"
+  write(crlog,"(a,i0,a)") "SIXTRACR> ERROR Writing C/R file unit ",fileUnit," in RND"
+  flush(crlog)
+
+end subroutine rnd_crpoint
+
+subroutine rnd_crstart
+  integer i
+  do i=1,rnd_nSeries
+    rnd_seriesData(i) = rnd_seriesData_CR(i)
+  end do
+end subroutine rnd_crstart
+#endif
 
 end module mod_random
