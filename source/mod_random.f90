@@ -16,6 +16,8 @@ module mod_random
 
   implicit none
 
+  logical, private, save :: rnd_enabled     = .false. ! Has the block been seen?
+  logical, private, save :: rnd_initOK      = .false. ! Has the master seeds been populated?
   logical, private, save :: rnd_debug       = .false. ! Master debug flag
   logical, private, save :: rnd_selfTest    = .false. ! Run self test?
   integer, private, save :: rnd_masterSeed  = 0       ! The master seed
@@ -27,12 +29,11 @@ module mod_random
   integer, parameter :: rndser_timeSeed2 = 2 ! Series using ranlux that is always time seeded (non-reproducible)
   integer, parameter :: rndser_genSeq1   = 3 ! General sequence of ranecu random numbers that can be used by any module
   integer, parameter :: rndser_genSeq2   = 4 ! General sequence of ranlux random numbers that can be used by any module
-  integer, parameter :: rndser_flucErr   = 5 ! Fluc module magnet errors (zfz array)
-  integer, parameter :: rndser_scatMain  = 6 ! Scatter module scatter generator
-  integer, parameter :: rndser_scatPart  = 7 ! Scatter module beam sample
-  integer, parameter :: rndser_distGen   = 8 ! Dist module generator
-  integer, parameter :: rndser_collDist  = 9 ! Collimation module dist generator
-  integer, parameter :: rnd_nSeries      = 9 ! Number of random number series to store
+  integer, parameter :: rndser_scatMain  = 5 ! Scatter module scatter generator
+  integer, parameter :: rndser_scatPart  = 6 ! Scatter module beam sample
+  integer, parameter :: rndser_distGen   = 7 ! Dist module generator
+  integer, parameter :: rndser_collDist  = 8 ! Collimation module dist generator
+  integer, parameter :: rnd_nSeries      = 8 ! Number of random number series to store
 
   integer,           parameter :: rnd_seedStep   = 77377 ! When seeding from a master seed, this is the step between them
   character(len=6),  parameter :: rnd_genName(2) = ["RANECU","RANLUX"]
@@ -101,8 +102,9 @@ subroutine rnd_parseInputLine(inLine, iLine, iErr)
   end if
   if(nSplit == 0) return
 
-  spErr = .false.
-  cErr  = .false.
+  spErr       = .false.
+  cErr        = .false.
+  rnd_enabled = .true.
 
   select case(lnSplit(1))
 
@@ -342,15 +344,23 @@ end subroutine rnd_runSelfTestFull
 ! ================================================================================================ !
 !  V.K. Berglyd Olsen, BE-ABP-HSS
 !  Created: 2019-09-23
-!  Updated: 2019-09-23
+!  Updated: 2019-09-27
 !  Initialise the random number generator by setting all of the storage values
 ! ================================================================================================ !
 subroutine rnd_initSeries
 
-  use mod_units
+  use crcoall
   use mod_time
+  use mod_units
 
   integer genRanecu, genRanlux, currSeed, currTime
+
+  if(rnd_enabled) then
+    rnd_initOK = .true.
+  else
+    write(lout,"(a)") "RND> RANDOM NUMBERS block not present, not initialising seeds"
+    return
+  end if
 
   call f_requestUnit(rnd_seedFile, rnd_seedUnit)
   call f_open(unit=rnd_seedUnit,file=rnd_seedFile,formatted=.true.,mode="w")
@@ -375,7 +385,6 @@ subroutine rnd_initSeries
   call rnd_setSeed(rndser_timeSeed2, genRanlux, currTime, .false.)
   call rnd_setSeed(rndser_genSeq1,   genRanecu, currSeed, .true.)
   call rnd_setSeed(rndser_genSeq2,   genRanlux, currSeed, .true.)
-  call rnd_setSeed(rndser_flucErr,   genRanecu, currSeed, .true.)
   call rnd_setSeed(rndser_scatMain,  genRanecu, currSeed, .true.)
   call rnd_setSeed(rndser_scatPart,  genRanecu, currSeed, .true.)
   call rnd_setSeed(rndser_distGen,   genRanecu, currSeed, .true.)
@@ -452,8 +461,6 @@ subroutine rnd_setSeed(seriesID, genID, seedVal, fromMaster)
     serName = "RND:  General sequence ranecu"
   case(rndser_genSeq2)
     serName = "RND:  General sequence ranlux"
-  case(rndser_flucErr)
-    serName = "FLUC: Magnet errors"
   case(rndser_scatMain)
     serName = "SCAT: Scattering events"
   case(rndser_scatPart)
@@ -476,7 +483,7 @@ end subroutine rnd_setSeed
 ! ================================================================================================ !
 !  V.K. Berglyd Olsen, BE-ABP-HSS
 !  Created: 2019-09-23
-!  Updated: 2019-09-23
+!  Updated: 2019-09-27
 !  Uniform distribution between 0 and 1
 ! ================================================================================================ !
 subroutine rnd_uniform(seriesID, rndVec, vLen)
@@ -489,6 +496,11 @@ subroutine rnd_uniform(seriesID, rndVec, vLen)
   real(kind=fPrec), intent(out) :: rndVec(vLen)
 
   integer seedArr(25), tmpArr(25), genID
+
+  if(rnd_initOK .eqv. .false.) then
+    write(lerr,"(a)") "RND> ERROR Trying to generate random numbers, but random numbers module has not been initialised"
+    call prror
+  end if
 
   seedArr = rnd_seriesData(seriesID)%seeds
   genID   = rnd_seriesData(seriesID)%generator
