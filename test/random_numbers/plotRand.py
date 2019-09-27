@@ -30,5 +30,8 @@ pHist, pG = np.histogram(aData, bins=200, density=True)
 pC = (pG[:-1] + pG[1:])/2
 plt.step(pC,pHist,where="mid",label="Mean: %6.3f\nStd: %6.3f" % (np.mean(aData), np.std(aData)))
 plt.legend()
+plt.title("File: %s" % fName)
+plt.savefig(fName[:-4]+".png")
+# plt.ylim((0.0,1.5))
 
 plt.show(block=True)

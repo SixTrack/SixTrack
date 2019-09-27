@@ -237,6 +237,7 @@ end subroutine rnd_runSelfTest
 ! ================================================================================================ !
 subroutine rnd_runSelfTestFull(seriesID, algID, vLen)
 
+  use crcoall
   use mod_units
   use string_tools
   use numerical_constants
@@ -247,8 +248,9 @@ subroutine rnd_runSelfTestFull(seriesID, algID, vLen)
 
   integer i, fUnit
   character(len=64) fName
-  real(kind=fPrec) :: rndVal(vLen)
+  real(kind=fPrec) :: rndVal(vLen), tStart, tEnd
 
+  call cpu_time(tStart)
   fName = "rnd_sample_"//chr_toLower(trim(rnd_genName(rnd_seriesData(seriesID)%generator)))//"_"
   select case(algID)
   case(1)
@@ -279,6 +281,11 @@ subroutine rnd_runSelfTestFull(seriesID, algID, vLen)
     fName = trim(fName)//"irwinhall_6.dat"
     call rnd_irwinHall(seriesID, rndVal, vLen, 6)
   end select
+  call cpu_time(tEnd)
+
+  write(lout,"(a,i0,a,f0.6,a)") "RND> SELFTEST Generated ",vLen," random numbers in ",(tEnd-tStart)*c1e3," ms"
+  write(lout,"(a,f0.6,a)")      "RND>          Average time was ",(tEnd-tStart)/real(vlen,fPrec)*c1e9," ns"
+  write(lout,"(a)")             "RND>          Results written to file '"//trim(fName)//"'"
 
   call f_requestUnit(fName,fUnit)
   call f_open(unit=fUnit,file=fName,formatted=.true.,mode="w")
