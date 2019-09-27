@@ -1,10 +1,17 @@
-!                               default
-!  Luxury Level   0     1     2   *3*    4
-!      data ndskip/0,   24,   73,  199,  365 /
-!Corresponds to p=24    48    97   223   389
-!     time factor 1     2     3     6    10   on slow workstation
-!                 1    1.5    2     3     5   on fast mainframe
+! ================================================================================================ !
+!  RANLUX
+! ~~~~~~~~
+!                                 default
+!   Luxury Level    0     1     2   *3*    4
+!    data ndskip    0    24    73   199   365
+! Corresponds to p=24    48    97   223   389
+!      time factor  1    2     3     6    10   on slow workstation
+!                   1   1.5    2     3     5   on fast mainframe
 !
+! Reference:
+! James, F. ‘RANLUX: A FORTRAN Implementation of the High Quality Pseudorandom Number Generator of
+!     Luscher’. Comput.Phys.Commun. 79 (1994): 111–14. https://doi.org/10.1016/0010-4655(94)90233-X.
+! ================================================================================================ !
 module mod_ranlux
 
   use floatPrecision

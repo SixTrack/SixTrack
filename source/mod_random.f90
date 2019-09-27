@@ -362,6 +362,11 @@ subroutine rnd_initSeries
     return
   end if
 
+  if(rnd_masterSeed == 0) then
+    write(lout,"(a)") "RND> ERROR No seed provided in the RANDOM NUMBERS block"
+    call prror
+  end if
+
   call f_requestUnit(rnd_seedFile, rnd_seedUnit)
   call f_open(unit=rnd_seedUnit,file=rnd_seedFile,formatted=.true.,mode="w")
 
