@@ -116,7 +116,7 @@ subroutine rnd_parseInputLine(inLine, iLine, iErr)
 
   case("SEED")
     if(nSplit /= 2) then
-      write(lerr,"(a,i0)") "RND> ERROR SEED takes one argument, got ",nSplit-1
+      write(lerr,"(a,i0)") "RND> ERROR SEED takes 1 argument, got ",nSplit-1
       write(lerr,"(a)")    "RND>       SEED seedval|'TIME'"
       iErr = .true.
       return
@@ -127,8 +127,47 @@ subroutine rnd_parseInputLine(inLine, iLine, iErr)
       call chr_cast(lnSplit(2), rnd_masterSeed, cErr)
       if(rnd_masterSeed < 0 .or. rnd_masterSeed > 2147483562-rnd_seedStep) then
         write(lerr,"(a,i0)") "RND> ERROR SEED must be an integer between 0 and ",2147483562-rnd_seedStep
+        iErr = .true.
+        return
       end if
     end if
+
+  case("LUXLEVEL")
+    if(nSplit /= 2) then
+      write(lerr,"(a,i0)") "RND> ERROR LUXLEVEL takes 1 argument, got ",nSplit-1
+      write(lerr,"(a)")    "RND>       LUXLEVEL 0-4"
+      iErr = .true.
+      return
+    end if
+    call chr_cast(lnSplit(2), rnd_luxuryLev, cErr)
+    if(rnd_luxuryLev < 0 .or. rnd_luxuryLev > 4) then
+      write(lerr,"(a,i0)") "RND> ERROR LUXLEVEL for ranlux generator must be between between 0 and 4, got ",rnd_luxuryLev
+      iErr = .true.
+      return
+    end if
+
+  case("OVERRIDE")
+    if(nSplit /= 2) then
+      write(lerr,"(a,i0)") "RND> ERROR OVERRIDE takes 1 argument, got ",nSplit-1
+      write(lerr,"(a)")    "RND>       OVERRIDE ranecu|ranlux"
+      iErr = .true.
+      return
+    end if
+    select case(chr_toLower(lnSplit(2)))
+    case("ranecu")
+      rnd_genOverride = 1
+    case("ranlux")
+      rnd_genOverride = 2
+    case default
+      write(lerr,"(a)") "RND> ERROR Unknown generator '"//trim(lnSplit(2))//"'"
+      iErr = .true.
+      return
+    end select
+
+  case default
+    write(lerr,"(a)") "RND> ERROR Unknown keyword '"//trim(lnSplit(1))//"'"
+    iErr = .true.
+    return
 
   end select
 
@@ -175,7 +214,7 @@ subroutine rnd_runSelfTest
     iLine = 1
     call rnd_setSeed(rndser_genSeq1, 1, currSeed, .true.)
     call rnd_setSeed(rndser_genSeq2, 2, currSeed, .true.)
-  
+
     do i=1,25
 
       rndReal(:,:) = -1.0_fPrec
