@@ -224,7 +224,7 @@ subroutine aperture_init
       apefilepos=0
 #endif
 
-      write(losses_unit,"(a)") chr_lpad('turn',9) // chr_lpad('block',9) // chr_lpad('bezid',9) // chr_rpad(' bez',49) //&
+      write(losses_unit,"(a)") '#' // chr_lpad('turn',9) // chr_lpad('block',9) // chr_lpad('bezid',9) // chr_rpad(' bez',49) //&
 &                              chr_lpad('slos',13) // &
 #ifdef FLUKA
 &        chr_lpad('fluka_uid',10) // chr_lpad('fluka_gen',10) // chr_lpad('fluka_weight',15) //  &
