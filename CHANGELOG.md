@@ -1,5 +1,27 @@
 # SixTrack Changelog
 
+### Version 5.3.4 [01.10.2019] - Release
+
+**Bug Fixes**
+
+* Fixing an error in the integration of the electron lens radial profiles from files. The error was two-folded: (1) it had the wrong unit conversion from A/cm2 to A/mm2, and (2) integration was not deploying the rule of the trapezoid on the radius, but the lower square. PR #968 (A. Mereghetti)
+* Minor fix where the collimation exit routine was not run if SixTrack was run in thin 4D mode. This only prevented some final summary files to be written, and had no effect on the simulation itself. PR #976 (V.K. Berglyd Olsen, M. D'Andrea)
+
+**User Side Changes**
+
+* Onesided collimators can now be set in the new collimation database. The LHC hard coded naming convention restrictions have been removed for the new database format, but are still in place for the old format. PRs #958 and #966 (V.K. Berglyd Olsen, A. Mereghetti)
+* The option to slice the collimator jaw and apply a deformation has been added to the new collimator database format. The previous restriction on naming convention has been removed, and the slicing can now be applied to any collimator, with different fit models as needed. PR #969 (V.K Berglyd Olsen, A. Mereghetti)
+* The number of beam--beam elements now scale dynamically with user input. It was previously restricted to 500 elements. PR #974 (V.K. Berglyd Olsen)
+
+**Test Suite**
+
+* A series of tests of the collimator jaw profiling has been added to ensure the code is stable through development stages. An additional output file for the jaw was added as well. PR #961 (A. Mereghetti)
+
+**Code Improvements and Changes**
+
+* The collimation jaw fit code has been cleaned up, improved, and moved to a separate module. PRs #933 and #966 (V.K. Berglyd Olsen)
+* The separate tracking initialisation routines for thick and thin tracking have now been merged into one routine in a dedicated tracking module. PR #977 (V.K. Berglyd Olsen)
+
 ### Version 5.3.3 [09.09.2019] - Release
 
 **Bug Fixes**
