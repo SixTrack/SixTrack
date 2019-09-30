@@ -20,7 +20,7 @@ subroutine CalculatePDGid(id, a, z)
     id = 2212
     return
   end if
-  id = 1000000000 + (a * 10) + (z * 10000)
+  id = 1000000000 + int(a,int32)*10 + int(z,int32)*10000
 
 end subroutine CalculatePDGid
 
