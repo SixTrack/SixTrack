@@ -5,7 +5,7 @@
 !  this module is used to set the start value for the random generator.
 !
 !  Moved from main code and updated by V.K. Berglyd Olsen, June 2018
-!  Last modified: 2018-06-14
+!  Last modified: 2019-09-20
 ! ================================================================================================ !
 module mod_fluc
 
@@ -120,7 +120,6 @@ subroutine fluc_readInputs
   if(iand(fluc_mRead, 2) == 2) then
     mout2 = 1
     call f_open(unit=9, file="fort.9", formatted=.true., mode="w")
-    call f_open(unit=27,file="fort.27",formatted=.true., mode="w")
   end if
   if(iand(fluc_mRead, 4) == 4) call fluc_readFort8
   if(iand(fluc_mRead, 8) == 8) call fluc_readFort30
@@ -575,7 +574,8 @@ end subroutine fluc_readFort30
 
 ! ================================================================================================ !
 !  Write modified geometry file fort.4
-!  Last modified: 2018-06-17
+!  Created: 2018-06-17
+!  Updated: 2018-06-17
 ! ================================================================================================ !
 subroutine fluc_writeFort4
 
@@ -584,8 +584,6 @@ subroutine fluc_writeFort4
   use numerical_constants, only : zero,pieni
   use string_tools
   use mod_units
-
-  implicit none
 
   character(len=:), allocatable :: lnSplit(:)
   character(len=1024) inLine
@@ -662,7 +660,41 @@ subroutine fluc_writeFort4
 90 continue
   call f_close(2)
   call f_close(4)
-  return
+
 end subroutine fluc_writeFort4
+
+! ================================================================================================ !
+!  Write alignment error file, formerly fort.27
+!  V.K. Berglyd Olsen
+!  Created: 2019-09-20
+!  Updated: 2019-09-20
+! ================================================================================================ !
+subroutine fluc_writeAlignErrFile
+
+  use mod_units
+  use mod_common
+  use mod_common_main
+  use string_tools
+
+  integer i, fUnit
+
+  call f_requestUnit("align_error.dat",fUnit)
+  call f_open(unit=fUnit,file="align_error.dat",formatted=.true.,mode="w")
+
+  write(fUnit,"(a1,1x,a46,3(1x,a17))") "#",chr_rPad("element",46),"hor_error","vert_error","tilt_error"
+  if(fluc_nAlign == 0) then
+    write(fUnit,"(a)") "No alignment errors"
+  end if
+
+  do i=1,iu
+    if(icextal(i) > 0) then
+      write(fUnit,"(a48,3(1x,1pe17.9))") bezs(i),&
+        fluc_errAlign(1,icextal(i)),fluc_errAlign(2,icextal(i)),fluc_errAlign(3,icextal(i))
+    end if
+  end do
+
+  call f_close(fUnit)
+
+end subroutine fluc_writeAlignErrFile
 
 end module mod_fluc

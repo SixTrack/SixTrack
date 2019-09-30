@@ -1,4 +1,5 @@
-parbe(ix,4)=(((-one*crad)*ptnfac(ix))*half)*c1m6               !hr08
+! start include/beam6dfi.f90
+parbe(ix,4)=(((-one*crad)*ptnfac(ix))*half)*c1m6
 !--Hirata's 6D beam-beam kick
 dummy=dare(x(1))
 !FOX      TRACKI(1)=(X(1)+PARBE(IX,5)-DUMMY)*C1M3 ;
@@ -59,3 +60,4 @@ dummy=dare(dpda)
 dummy=dare(sigmda)  !Added 14.03.2018
 !FOX      SIGMDA=TRACKI(5)*C1E3+DUMMY-BEAMOFF3 ;
 if(ithick.eq.1) call envada
+! end include/beam6dfi.f90
