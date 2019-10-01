@@ -11,7 +11,6 @@ BOINC=false
 ZLIB=false
 HDF5=false
 PYTHIA=false
-NAFF=false
 
 for ARG in "$@"; do
     if [[ $ARG == "boinc" ]]; then
@@ -22,8 +21,6 @@ for ARG in "$@"; do
         echo "HDF5 depends on zlib, zlib enabled as well."
     elif [[ $ARG == "pythia" ]]; then
         PYTHIA=true
-    elif [[ $ARG == "naff" ]]; then
-        NAFF=true
     elif [[ $ARG == "zlib" ]]; then
         ZLIB=true
     else
@@ -58,11 +55,5 @@ fi
 if [ $PYTHIA = true ] || [ $ALL = true ]; then
     cd lib
     ./buildPythia.sh
-    cd ..
-fi
-
-if [ $NAFF = true ] || [ $ALL = true ]; then
-    cd lib
-    ./buildNAFF.sh
     cd ..
 fi
