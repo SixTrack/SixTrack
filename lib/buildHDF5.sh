@@ -2,6 +2,9 @@
 
 set -e #Exit on error
 
+# First, build ZLIB
+source ./buildZlib.sh
+
 echo ""
 echo " Building HDF5"
 echo "==============="

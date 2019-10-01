@@ -8,7 +8,6 @@ echo ""
 
 ALL=true
 BOINC=false
-ZLIB=false
 HDF5=false
 PYTHIA=false
 
@@ -17,12 +16,8 @@ for ARG in "$@"; do
         BOINC=true
     elif [[ $ARG == "hdf5" ]]; then
         HDF5=true
-        ZLIB=true
-        echo "HDF5 depends on zlib, zlib enabled as well."
     elif [[ $ARG == "pythia" ]]; then
         PYTHIA=true
-    elif [[ $ARG == "zlib" ]]; then
-        ZLIB=true
     else
         echo "Unknown library $ARG requested."
         exit 1
@@ -36,13 +31,6 @@ if [ $BOINC = true ] || [ $ALL = true ]; then
     git submodule update lib/boinc
     cd lib
     ./buildBoinc.sh
-    cd ..
-fi
-
-# If building HDF5, ZLib must be built first!
-if [ $ZLIB = true ] || [ $ALL = true ]; then
-    cd lib
-    source ./buildZlib.sh
     cd ..
 fi
 
