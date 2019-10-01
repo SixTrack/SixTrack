@@ -4,7 +4,7 @@ NSIG_FAM tcsg3                18.0
 NSIG_FAM tcsm3                18.0
 NSIG_FAM tcla3                20.0
 NSIG_FAM tcp7                  6.2
-NSIG_FAM tcsg7                 7.0
+NSIG_FAM tcsg7                 7.5
 NSIG_FAM cry7                  5.5
 NSIG_FAM tcsm7                 7.0
 NSIG_FAM tcla7                10.0
@@ -85,4 +85,4 @@ ONESIDED tcdqa.c4r6.b1  1
 ONESIDED tcdqa.b4r6.b1  1
 
 CRYSTAL  cry.h.b1 61.54 2.0e-3 50.0e-3 0.0 0.0 0.0 1
-ONESIDED cry.h.b1       2
+ONESIDED cry.h.b1       1

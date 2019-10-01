@@ -55,6 +55,10 @@ SYNC--------------------------------------------------------------------
   1 1
 NEXT
 
+DUMP--------------------------------------------------------------------
+  cry_dump 1 0 2 cry_dump.dat 1 -1
+NEXT
+
 COLLIMATION-------------------------------------------------------------
   DO_COLL .true.
   COLLDB  "CollDB_RunII.dat"
@@ -62,8 +66,11 @@ COLLIMATION-------------------------------------------------------------
   EMIT    3.75 3.75 3.75 3.75
   SEED    42
 
+!  DIST_TYPE 4
+!  DIST_FILE dist_in.dat
+
   DIST_TYPE  2
-  DIST_PARAM 5.45 0.1 0.0 0.0
+  DIST_PARAM 5.45 0.01 0.0 0.0
 
   WRITE_DIST   on
   WRITE_IMPACT on

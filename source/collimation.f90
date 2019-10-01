@@ -2095,6 +2095,7 @@ subroutine collimate_do_collimator(stracki)
   logical onesided, linside(napx)
   real(kind=fPrec) jawLength, jawAperture, jawOffset, jawTilt(2)
   real(kind=fPrec) x_Dump,xpDump,y_Dump,ypDump,s_Dump
+  real(kind=fPrec) cry_tilt0,cry_tilt,cry_bendangle
 
 #ifdef G4COLLIMATION
   integer :: g4_lostc
@@ -2458,12 +2459,26 @@ subroutine collimate_do_collimator(stracki)
 
 #ifndef G4COLLIMATION
 
-  write(*,*) torbx(ie)
-
   if(cdb_isCrystal(icoll)) then
-    call collimate_cry(icoll, " ", cdb_cMaterial(icoll), c_length, c_rotation, c_aperture, c_offset, &
-      c_tilt, rcx, rcxp, rcy, rcyp, rcp, rcs, napx, enom_gev, part_hit_pos, part_abs_pos, part_impact, &
-      part_indiv, part_linteract, 0, 0, 0, 0, 0, 0, partID, partID, dowrite_impact, npart)
+    if (abs(cdb_cRotation(icoll)).lt.c1m9) then
+      cry_tilt0 = (-one)*sqrt(myemitx0_dist/tbetax(ie))*talphax(ie)*nsig
+    elseif (abs(cdb_cRotation(icoll)-pi2).lt.c1m9) then
+      cry_tilt0 = (-one)*sqrt(myemity0_dist/tbetay(ie)*talphay(ie))*nsig
+    else
+      write(lerr,"(a)") "COLL> ERROR Crystal collimator has to be horizontal or vertical"
+      call prror
+    end if
+    cry_tilt = cdb_cryTilt(icoll) + cry_tilt0
+    cry_bendangle = cdb_cLength(icoll)/cdb_cryBend(icoll)
+    if(cry_tilt.ge.(-one)*cry_bendangle) then
+      c_length = cdb_cryBend(icoll)*(sin_mb(cry_bendangle+cry_tilt) - sin_mb(cry_tilt))
+    else
+      c_length = cdb_cryBend(icoll)*(sin_mb(cry_bendangle-cry_tilt) + sin_mb(cry_tilt))
+    end if
+    call collimate_cry(icoll, iturn, ie, " ", cdb_cMaterial(icoll), c_length, c_rotation, c_aperture, c_offset, &
+      c_tilt, rcx, rcxp, rcy, rcyp, rcp, rcs, napx, enom_gev, part_hit_pos, part_hit_turn, part_abs_pos,&
+      part_abs_turn, part_impact, part_indiv, part_linteract, 0, 0, 0, 0, 0, 0, partID, partID,&
+      dowrite_impact, npart, cry_tilt, c_length)
   else
     call k2coll_collimate(icoll, iturn, ie, c_length, c_rotation, c_aperture, c_offset, &
       c_tilt, rcx, rcxp, rcy, rcyp, rcp, rcs, enom_gev, part_hit_pos,part_hit_turn,           &

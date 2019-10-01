@@ -18,15 +18,15 @@ end module coll_crystal
 !===============================================================
 ! MDA: added icoll and MAX_NPART parameters
 !
-      SUBROUTINE collimate_cry(icoll,name_coll,C_MATERIAL, C_LENGTH, &
+      SUBROUTINE collimate_cry(icoll, iturn, ie, name_coll,C_MATERIAL, C_LENGTH, &
      &                   C_ROTATION, &
      &                   C_APERTURE, C_OFFSET, C_TILT, &
      &                   X_IN, XP_IN, Y_IN,   &
-     &                   YP_IN, P_IN, S_IN, NP, ENOM, LHIT, &
-     &                   PART_ABS, IMPACT, INDIV, LINT, &
+     &                   YP_IN, P_IN, S_IN, NP, ENOM, LHIT, LHIT_TURN, &
+     &                   PART_ABS, PART_ABS_TURN, IMPACT, INDIV, LINT, &
      &                   BX,BY,AX, &
      &                   AY,EMITX0,EMITY0, &
-     &                   name,flagsec,dowrite_impact,MAX_NPART)!
+     &                   name,flagsec,dowrite_impact,MAX_NPART, Cry_tilt, Cry_length)!
 
 !
 !++  Based on routines by JBJ-R.assmann... Re-written for the crystal
@@ -104,7 +104,9 @@ end module coll_crystal
          double precision            EMITY0
 !
          integer         LHIT(MAX_NPART)
+         integer         LHIT_TURN(MAX_NPART)
          integer         PART_ABS(MAX_NPART)
+         integer         PART_ABS_TURN(MAX_NPART)
 !
 !
          double precision            x_in(MAX_NPART)
@@ -143,7 +145,7 @@ end module coll_crystal
          double precision            tiltangle
          double precision            tiltangle2
 !
-         CHARACTER(LEN=6) C_MATERIAL     !Material
+         CHARACTER(LEN=4) C_MATERIAL     !Material
          double precision      C_LENGTH       !Length in m
          double precision      C_ROTATION     !Rotation angle vs vertical in radian
          double precision      C_APERTURE     !Aperture in m
@@ -167,7 +169,7 @@ end module coll_crystal
          common/nommom/p0
 !
         integer ie,iturn,nabs_total
-        COMMON  /INFO/ IE, ITURN, nabs_total
+!        COMMON  /INFO/ IE, ITURN, nabs_total
 !
         integer   IPENCIL
 !        integer   ICOLL
@@ -203,9 +205,10 @@ end module coll_crystal
 !                                            !=' ' if the particle does not pass by crystal, ='*' if there is interaction
       logical  bool_create
       common /miscut/ miscut
-      common /Par_Cry1/ Cry_length, Rcurv,C_xmax,C_ymax,Alayer,C_orient
+!      common /Par_Cry1/ Cry_length, Rcurv,C_xmax,C_ymax,Alayer,C_orient
+      common /Par_Cry1/ Rcurv,C_xmax,C_ymax,Alayer,C_orient
 
-      common /Par_Cry2/ Cry_tilt,Cry_tilt0
+!      common /Par_Cry2/ Cry_tilt,Cry_tilt0
       common /Process/ bool_proc,bool_create
       common /Process_old/ bool_proc_old
       common/Proc2/PROC
@@ -226,12 +229,13 @@ end module coll_crystal
 ! MDA: parameters assignment from new CollDB format
 
       Rcurv = cdb_cryBend(icoll)
+!      write(*,*) "Rcurv", Rcurv
       Alayer = cdb_cryThick(icoll)
       C_xmax = cdb_cryXDim(icoll)
       C_ymax = cdb_cryYDim(icoll)
       C_orient = cdb_cryOrient(icoll)
-      Cry_tilt = cdb_cryTilt(icoll)
-      Cry_length = cdb_cLength(icoll)
+!      Cry_tilt = cdb_cryTilt(icoll)
+!      Cry_length = cdb_cLength(icoll)
       miscut = cdb_cryMisCut(icoll)
 
 !      write(*,*) Rcurv, Alayer, C_xmax, C_ymax, C_orient, Cry_tilt, Cry_length, miscut
@@ -260,6 +264,7 @@ end module coll_crystal
 
 !          write(*,*) "debug - length  bent" , C_LENGTH
 !          write(*,*) "debug - length  unbent" , CRY_LENGTH
+!      write(*,*) "Cry_length", Cry_length
       Cry_bend =  Cry_length/Rcurv !cry_length longitudinal estension of the straight crystal
 !          write(*,*) "debug - bend angle" , CRY_BEND
 !          write(*,*) "debug - C_xmax" , C_xmax
@@ -306,6 +311,17 @@ end module coll_crystal
 
         nabs = 0
 !
+!        xp_in(j) = 1.4291566891454061E-005_fPrec
+!        x_in(j) = 2.3678668975404154E-003_fPrec
+!        y_in(j) = 9.7959100975990727E-005_fPrec
+!        yp_in(j) = -3.0041857465904482E-006_fPrec
+!        p_in(j) = 6499.9999993204920_fPrec
+!        s_in(j) = 0.0000000000000000_fPrec
+
+        write(*,*) "Coordinates after entering"
+        write(*,*) x_in(j), xp_in(j), y_in(j), yp_in(j)
+        write(*,*) p_in(j), s_in(j)
+
         s   = 0
         x   = x_in(j)
         xp  = xp_in(j)
@@ -371,24 +387,26 @@ end module coll_crystal
           xp = xp_in(j)*cos(c_rotation)+sin(c_rotation)*yp_in(j)
           zp = yp_in(j)*cos(c_rotation)-sin(c_rotation)*xp_in(j)
 
+!          write(*,*) x, xp, z, zp
+
 !
 !++  for one-sided collimators consider only positive x. for negative
 !++  x jump to the next particle
 
-          if ((name_coll(1:10) .eq. "CRY.SPSEXP")) then
-          mirror=-1
-!             write(*,*) "valentina crsitallo SPS riconosciuto"
-             if (x .gt. 0) then
-                goto 777
-             endif
-          else
-             mirror=1
-             if  (x.lt.0 ) then
-                 goto 777
-             endif
-          endif
-          x  = mirror * x
-          xp = mirror * xp
+!          if ((name_coll(1:10) .eq. "CRY.SPSEXP")) then
+!          mirror=-1
+!!             write(*,*) "valentina crsitallo SPS riconosciuto"
+!             if (x .gt. 0) then
+!                goto 777
+!             endif
+!          else
+!             mirror=1
+!             if  (x.lt.0 ) then
+!                 goto 777
+!             endif
+!          endif
+!          x  = mirror * x
+!          xp = mirror * xp
 
 
 
@@ -530,6 +548,7 @@ end module coll_crystal
          S_rot =X_shift*sin(Cry_tilt)+S_shift*cos(Cry_tilt)
          X_rot = X_shift*cos(Cry_tilt)-S_shift*sin(Cry_tilt)
          XP_rot= XP - Cry_tilt
+          write(*,*) "debug - cry tilt", Cry_tilt
           write(*,*) "debug - S rot" ,  S_rot
           write(*,*) "debug - X rot" ,  X_rot
           write(*,*) "debug - XP rot" ,  XP_rot
@@ -545,10 +564,13 @@ end module coll_crystal
 !  NOW CHECK IF THE PARTICLE HIT the crystal
 !
 
-          write(*,*) "debug - checking if crystal hit"
+!          write(*,*) "debug - checking if crystal hit"
 
          if (x .ge. 0 .and. x.lt.C_xmax) then !Daniele: check that part. hit cry
            s_impact=s_in0(j) !(for the first impact)
+!           write(*,*) "HIT", x, C_xmax
+          write(*,*) "HIT"
+!           stop
 !           write(*,*)'hit the cry entrance face', x, C_xmax
 !           write(*,*)'impact at s,x = ', s_impact,x_in0(j)
 !           write(*,*)'with angle xp = ',xp
@@ -561,15 +583,15 @@ end module coll_crystal
 !           write(*,*)'hit the crystal'
            if (PROC(1:3).ne.'out')then
              NHIT = NHIT + 1
-             LHIT(j) = 100000000*ie + ITURN
+             LHIT(j) = ie
+             LHIT_TURN(j) = ITURN
              IMPACT(j) = X_in0(j)
              INDIV(j) = XP_in0(j)
            endif
          else
            XP_tangent=sqrt((-2*X*Rcurv+X**2)/(Rcurv**2))
-           write(*,*) 'NOT HIT'
-           write(*,*) x, C_xmax
-           stop
+!           write(*,*) "NOT hit the cry entrance face", x, C_xmax
+!           stop
 !           write(*,*)j,'-','tangent',xp_tangent,'angle',xp
 !           write(*,*)'s tan',Rcurv*sin(XP_tangent)
 !           write(*,*) 's tot', c_length,Rcurv*sin(cry_bend)
@@ -631,7 +653,8 @@ end module coll_crystal
                    XP_in0(j)=XP_shift
                  endif
                  NHIT = NHIT + 1
-                 LHIT(j) = 100000000*ie + ITURN
+                 LHIT(j) = ie
+                 LHIT_TURN(j) = ITURN
                  IMPACT(j) = X_in0(j)
                  INDIV(j) = XP_in0(j)
                endif
@@ -874,7 +897,8 @@ end module coll_crystal
 !
           if (nabs.eq.1) then
              fracab = fracab + 1
-             part_abs(j) = 100000000*ie + iturn
+             part_abs(j) = ie
+             part_abs_turn(j) = iturn
              lint(j) = zlm
              if (dowrite_impact) then
                write(48,'(i4,(1x,f6.3),(1x,f8.6),4(1x,e19.10),i2, &
@@ -1014,7 +1038,8 @@ end module coll_crystal
 
       double precision emr_cry(4)
 
-      common /Par_Cry1/ Cry_length, Rcurv,C_xmax,C_ymax,Alayer,C_orient
+!      common /Par_Cry1/ Cry_length, Rcurv,C_xmax,C_ymax,Alayer,C_orient
+      common /Par_Cry1/ Rcurv,C_xmax,C_ymax,Alayer,C_orient
       common /miscut/ miscut
       common /Proc2/PROC
       COMMON/NPC/     NAM,ZN
@@ -1069,6 +1094,7 @@ end module coll_crystal
 !      write(*,*) 'Random:', rndm4()
 !      write(*,*)'xp',xp,'x',x , 's', s
       s=0
+!      write(*,*) "s_length", Rcurv, length
       s_length=Rcurv*(sin(length/Rcurv)) !
       L_chan=length
 
@@ -1088,8 +1114,7 @@ end module coll_crystal
         PROC='out'
         GOTO 111
 ! SECOND CASE: p hits the amorphous layer
-      ELSEIF ( (x.LT.Alayer) .or.  ((y-ymin).LT.Alayer) .or. &
-     &  ((ymax-y).lt.Alayer)  ) THEN
+      ELSEIF ( (x.LT.Alayer) .or.  ((y-ymin).LT.Alayer) .or. ((ymax-y).lt.Alayer)  ) THEN
         x0=x
         y0=y
         a_eq=(1+(xp)**2)
@@ -1117,6 +1142,7 @@ end module coll_crystal
         PROC='AM'
 !        CALL MOVE_AM_(IS,NAM,Am_Length,DES(IS),DLYi(IS),DLRi(IS),xp,yp
 !     + ,PC)
+!        write(*,*) "Am_length", Am_Length
         CALL CALC_ION_LOSS_CRY(IS,PC,AM_Length,DESt)
         CALL MOVE_AM_(IS,NAM,Am_Length,DESt,DLYi(IS),DLRi(IS),xp,yp,PC)
         x=x+xp*(s_length-s)
@@ -1125,10 +1151,13 @@ end module coll_crystal
       ELSEIF ((x.GT.(C_xmax-Alayer)) .and. x.LT.(C_xmax)  ) THEN
         PROC='AM'
 !        CALL MOVE_AM_(IS,NAM,s_length,DES(IS),DLYi(IS),DLRi(IS), xp,yp,PC)
+!        write(*,*) "s_length 1137", s_length
         CALL CALC_ION_LOSS_CRY(IS,PC,s_length,DESt)
         CALL MOVE_AM_(IS,NAM,s_length,DESt,DLYi(IS),DLRi(IS), xp,yp,PC)
         WRITE(*,*)'Fix here!'
         GOTO 111
+      ELSE
+        DESt = 0   ! temporary solution in case DESt is not initialized
       END IF
 !
 ! THIRD CASE: the p interacts with the crystal.
@@ -1246,16 +1275,17 @@ end module coll_crystal
             x  = x+ Ldech*(sin(0.5*Dxp+miscut))   ! trajectory at channeling exit
             xp = xp + Dxp + 2.0*(rndm4()-0.5)*xpcrit
             y= y + yp * Sdech
-            CALL CALC_ION_LOSS_CRY(IS,PC,Ldech,DESt)
+            write(*,*) "Ldech", Ldech
+            write(*,*) "DESt", DESt
+!            CALL CALC_ION_LOSS_CRY(IS,PC,Ldech,DESt)
             PC = PC - 0.5*DESt*Ldech          ! energy loss to ionization while in CH [GeV]
 
             x = x + 0.5*(s_length-Sdech)*xp
             y = y + 0.5*(s_length-Sdech)*yp
 
-            CALL CALC_ION_LOSS_CRY(IS,PC,s_length-Sdech,DESt)
-            CALL &
-!     +MOVE_AM_(IS,NAM,s_length-Sdech,DES(IS),DLYi(IS),DLRi(IS),xp,yp,PC)
-     & MOVE_AM_(IS,NAM,s_length-Sdech,DESt,DLYi(IS),DLRi(IS),xp,yp,PC)
+            write(*,*) "s_length-Sdech", s_length-Sdech
+!            CALL CALC_ION_LOSS_CRY(IS,PC,s_length-Sdech,DESt)
+            CALL MOVE_AM_(IS,NAM,s_length-Sdech,DESt,DLYi(IS),DLRi(IS),xp,yp,PC)
            !next line new from sasha
 !            PC = PC - 0.5*DES(IS)*y          ! energy loss to ionization [GeV]
             x = x + 0.5*(s_length-Sdech)*xp
@@ -1266,7 +1296,7 @@ end module coll_crystal
             ypin=YP
 
 !            write(*,*) PROC
-
+!            write(*,*) "MOVE CH", IS, NAM, L_chan, X, XP, YP, PC, Rcurv, Rcrit
             CALL MOVE_CH_(IS,NAM,L_chan,X,XP,YP,PC,Rcurv,Rcrit)  !daniele:check if a nuclear interaction happen while in CH
 
 !            write(*,*) PROC
@@ -1276,6 +1306,7 @@ end module coll_crystal
             y = y + 0.5 * L_chan * ypin           !accordingly with the rest of the code in "thin lens approx"
             x = x + 0.5 * L_chan * XP
             y = y + 0.5 * L_chan * YP
+!            write(*,*) "Length", Length
             CALL CALC_ION_LOSS_CRY(IS,PC,Length,DESt)
             PC = PC - DESt*Length       ! energy loss to ionization [GeV]
             else
@@ -1287,6 +1318,7 @@ end module coll_crystal
             y = y + s_length * yp
 !            !next line new from sasha
 !            PC = PC - 0.5*DES(IS)*Length       ! energy loss to ionization [GeV]
+!            write(*,*) "Length", Length
             CALL CALC_ION_LOSS_CRY(IS,PC,Length,DESt)
             PC = PC - 0.5*DESt*Length       ! energy loss to ionization [GeV]
             endif
@@ -1302,6 +1334,7 @@ end module coll_crystal
           x = x + 0.5*s_length * xp
           y = y + 0.5*s_length * yp
 !          CALL MOVE_AM_(IS,NAM,s_length,DES(IS),DLYi(IS),DLRi(IS),  xp ,yp,PC)
+!          write(*,*) "s_length 1319", s_length
           CALL CALC_ION_LOSS_CRY(IS,PC,s_length,DESt)
           CALL MOVE_AM_(IS,NAM,s_length,DESt,DLYi(IS),DLRi(IS),xp ,yp,PC)
           x = x + 0.5*s_length * xp
@@ -1324,6 +1357,7 @@ end module coll_crystal
             x = x + 0.5* xp * (s_length - Srefl)
             y = y + 0.5* yp * (s_length - Srefl)     !
 !            CALL MOVE_AM_(IS,NAM,s_length-Srefl,DES(IS),DLYi(IS),DLRi(IS),xp ,yp,PC)
+!            write(*,*) "s_length-Srefl", s_length-Srefl
             CALL CALC_ION_LOSS_CRY(IS,PC,s_length-Srefl,DESt)
             CALL MOVE_AM_(IS,NAM,s_length-Srefl,DESt,DLYi(IS),DLRi(IS),xp ,yp,PC)
             x = x + 0.5 * xp * (s_length - Srefl)
@@ -1351,11 +1385,14 @@ end module coll_crystal
               Red_S = s_length-Srefl -Sdech
               x = x + 0.5 * xp * Red_S
               y = y + 0.5 * yp * Red_S
+!              write(*,*) "Srefl", Srefl
               CALL CALC_ION_LOSS_CRY(IS,PC,Srefl,DESt)
               PC=PC - DESt * Srefl !Daniele: "added" energy loss before capture
+!              write(*,*) "Sdech", Sdech
               CALL CALC_ION_LOSS_CRY(IS,PC,Sdech,DESt)
               PC=PC - 0.5 * DESt * Sdech !Daniele: "added" energy loss while captured
 !              CALL MOVE_AM_(IS,NAM,Red_S,DES(IS),DLYi(IS),DLRi(IS),xp,yp,PC)
+!              write(*,*) "Red_S", Red_S
               CALL CALC_ION_LOSS_CRY(IS,PC,Red_S,DESt)
               CALL MOVE_AM_(IS,NAM,Red_S,DESt,DLYi(IS),DLRi(IS),xp,yp,PC)
               x = x + 0.5 * xp * Red_S
@@ -1365,6 +1402,7 @@ end module coll_crystal
               Rlength = Length-Lrefl
               tchan = Rlength / Rcurv
               Red_S=Rlength*cos(xp+0.5*tchan)
+              write(*,*) "Lrefl", Lrefl
               CALL CALC_ION_LOSS_CRY(IS,PC,Lrefl,DESt)
               PC=PC - DESt*Lrefl  !Daniele: "added" energy loss before capture
               xpin=XP
@@ -1376,6 +1414,7 @@ end module coll_crystal
               y = y + 0.5 * Rlength * ypin           !accordingly with the rest of the code in "thin lens approx"
               x = x + 0.5 * Rlength * XP
               y = y + 0.5 * Rlength * YP
+!              write(*,*) "Rlength", Rlength
               CALL CALC_ION_LOSS_CRY(IS,PC,Rlength,DESt)
               PC=PC - DESt*Rlength
               else
@@ -1383,6 +1422,7 @@ end module coll_crystal
               x  = x+ sin(0.5*Dxp+xp)*Rlength     ! trajectory at channeling exit
               y = y + red_S * yp
               xp =  Length/Rcurv + 0.5*ran_gauss(1.0d0)*xpcrit ! [mrad]
+!              write(*,*) "Rlength", Rlength
               CALL CALC_ION_LOSS_CRY(IS,PC,Rlength,DESt)
               PC=PC - 0.5*DESt*Rlength  !Daniele: "added" energy loss once captured
               endif
@@ -1396,6 +1436,7 @@ end module coll_crystal
              y = y + 0.5 * s_length * yp
             if(ZN .gt. 0) then
 !           CALL MOVE_AM_(IS,NAM,s_length,DES(IS),DLYi(IS),DLRi(IS), xp,yp,PC)
+!              write(*,*) "s_length 1421", s_length
              CALL CALC_ION_LOSS_CRY(IS,PC,s_length,DESt)
              CALL MOVE_AM_(IS,NAM,s_length,DESt,DLYi(IS),DLRi(IS), xp,yp,PC)
             endif
@@ -1418,6 +1459,7 @@ end module coll_crystal
             xp=xp+Dxp
             x=x+0.5*xp*(s_length-Srefl)
             y=y+0.5*yp*(s_length-Srefl)
+!            write(*,*) "s_length-Srefl", s_length-Srefl
             CALL CALC_ION_LOSS_CRY(IS,PC,s_length-Srefl,DESt)
             CALL MOVE_AM_(IS,NAM,s_length-Srefl,DESt,DLYi(IS),DLRi(IS),xp ,yp,PC)
             x = x + 0.5 * xp * (s_length - Srefl)
@@ -1437,6 +1479,7 @@ end module coll_crystal
             xp=xp+Dxp
             x=x+0.5*xp*(s_length-Srefl)
             y=y+0.5*yp*(s_length-Srefl)
+!            write(*,*) "s_length-Srefl", s_length-Srefl
             CALL CALC_ION_LOSS_CRY(IS,PC,s_length-Srefl,DESt)
             CALL MOVE_AM_(IS,NAM,s_length-Srefl,DESt,DLYi(IS),DLRi(IS),xp ,yp,PC)
             x = x + 0.5 * xp * (s_length - Srefl)
@@ -1489,24 +1532,31 @@ end module coll_crystal
       common/ion/rho,z,Ime,k,re,me,mp,anuc_cry2,emr_cry
       common/ion2/enr,mom,gammar,betar,bgr,Tmax,plen
 
-
+      write(*,*) "Entering CALC_ION_LOSS_CRY"
+!      write(*,*) "thl", DZ
        thl= 4.0d0*k*z(IS)*DZ*100.0d0*rho(IS)/(anuc_cry2(IS)*betar**2) ![MeV]
 
+!      write(*,*) "EnLo", me, bgr, plen, Ime(IS)
        EnLo=((k*z(IS))/(anuc_cry2(IS)*betar**2))*          &
      & (0.5*log((2.0d0*me*bgr*bgr*Tmax)/(Ime(IS)*Ime(IS))) &
      & -betar**2.0-log(plen/Ime(IS))-log(bgr)+0.5);
 
+!      write(*,*) "EnLo"
        EnLo=EnLo*rho(IS)*0.1*DZ ![GeV]
 
+!      write(*,*) "Tt", EnLo, thl
        Tt=EnLo*1000.0d0+thl  ![MeV]
 
+!      write(*,*) "cs_tail", k, z(IS), anuc_cry2(IS), betar, Tt, Tmax, gammar, mp
        cs_tail=((k*z(IS))/(anuc_cry2(IS)*betar**2))* &
      & ((0.5*((1.0d0/Tt)-(1.0d0/Tmax)))-             &
      & (log(Tmax/Tt)*(betar**2)/(2.0d0*Tmax))+       &
      & ((Tmax-Tt)/(4.0d0*(gammar**2)*(mp**2))))
 
+!      write(*,*) "prob_tail"
        prob_tail=cs_tail*rho(IS)*DZ*100.0d0;
 
+!      write(*,*) "ranc"
        ranc=dble(rndm4())
 
        if(ranc.lt.prob_tail)then
@@ -1522,6 +1572,7 @@ end module coll_crystal
        endif
 
 !      write(*,*)cs_tail,prob_tail,ranc,EnLo*DZ
+       write(*,*) "CALC_ION_LOSS_CRY done"
 
       RETURN
       END
@@ -1595,6 +1646,8 @@ end module coll_crystal
       integer PROC_dan    !daniele
       double precision xp_in,yp_in,kxmcs,kymcs
 
+      write(*,*) "Entering MOVE_AM"
+
 
       PC_in_dan=PC                   !daniele
 
@@ -1610,6 +1663,7 @@ end module coll_crystal
 !------- useful calculations for cross-section and event topology calculation --------------
 
       ecmsq = 2 * 0.93828d0 * PC
+      write(*,*) ecmsq, PC
       xln15s=log(0.15*ecmsq)
 ! pp(pn) data
 !      pptot = pptref_cry *(PC / pref_cry)** pptco_cry
@@ -1836,6 +1890,8 @@ end module coll_crystal
 !     & xp-xp_in-(kxmcs/1000), yp-yp_in-(kymcs/1000)
 
 
+               write(*,*) "MOVE_AM done"
+
       RETURN
       END
 
@@ -1957,6 +2013,8 @@ end module coll_crystal
       integer PROC_dan    !daniele
       double precision xp_in,yp_in,kxmcs,kymcs
 
+      write(*,*) "Entering MOVE_CH"
+
 
       PC_in_dan=PC                   !daniele
 
@@ -1971,7 +2029,9 @@ end module coll_crystal
 
 !------- useful calculations for cross-section and event topology calculation --------------
 
+      write(*,*) "ecmsq"
       ecmsq = 2 * 0.93828d0 * PC
+      write(*,*) "xln15s"
       xln15s=log(0.15*ecmsq)
 ! pp(pn) data
 !      pptot = pptref_cry *(PC / pref_cry)** pptco_cry
@@ -1981,6 +2041,7 @@ end module coll_crystal
 
 !new models, see Claudia's thesis
 
+      write(*,*) "models for cross sections"
       pptot=0.041084d0-0.0023302d0*log(ecmsq)+0.00031514d0*log(ecmsq)**2
       ppel=(11.7d0-1.59d0*log(ecmsq)+0.134d0*log(ecmsq)**2)/1000
       ppsd=(4.3d0+0.3d0*log(ecmsq))/1000
@@ -1988,14 +2049,19 @@ end module coll_crystal
 
 !------ distribution for Ruth. scatt.---------
 
+      write(*,*) "tlow"
       tlow=tlcut_cry
+      write(*,*) "mcurr"
       mcurr_cry=IS
+      write(*,*) "thigh"
       thigh=hcut_cry(IS)
 !      write(*,*)tlow,thigh
+      write(*,*) "funlxp"
       call funlxp(ruth_cry,cgen_cry(1,IS),tlow,thigh)
 
 !---------- rescale the total and inelastic cross-section accordigly to the average density seen
 
+      write(*,*) "rescaling calculation"
       x_i=X
 
       Np=INT(x_i/dP)       !calculate in which cristalline plane the particle enters
@@ -2014,6 +2080,7 @@ end module coll_crystal
 
       xminU=-dP*dP*PC*1e9/(8.d0*eUm(IS)*R)
       Umin=abs(eUm(IS)*(2.d0*xminU/dP)*(2.d0*xminU/dP)+pv*xminU/R)
+      write(*,*) "Umin", Umin
       Et=Et+Umin
       Ec=Ec+Umin
 
@@ -2026,20 +2093,30 @@ end module coll_crystal
 
       x_min=x_min-dP/2.d0;                                    !change ref. frame and go back with 0 on the crystalline plane on the left
       x_Max=x_Max-dP/2.d0;
+      write(*,*) "x_min", x_min
+      write(*,*) "x_Max", x_Max
 
       N_am=rho(IS)*6.022d23*1.d6/anuc_cry2(IS)           !calculate the "normal density" in m^-3
 
+      write(*,*) N_am, dP, u1
       rho_Max=N_am*dP/2.d0*(erf(x_Max/sqrt(2.d0*u1*u1)) &      !calculate atomic density at min and max of the trajectory oscillation
      & -erf((dP-x_Max)/sqrt(2*u1*u1)))
 
       rho_min=N_am*dP/2.d0*(erf(x_min/sqrt(2.d0*u1*u1)) &
      & -erf((dP-x_min)/sqrt(2*u1*u1)));
 
+     write(*,*) "rho_Max", rho_Max
+     write(*,*) "rho_min", rho_min
       avrrho=(rho_Max-rho_min)/(x_Max-x_min)                        !"zero-approximation" of average nuclear density seen along the trajectory
+      write(*,*) "avrrho", avrrho
 
+      write(*,*) "N_am", N_am
       avrrho=2.d0*avrrho/N_am
+      write(*,*) "avrrho", avrrho
 
+      write(*,*) "csref_cry", csref_cry(0,IS)
       csref_tot_rsc=csref_cry(0,IS)*avrrho        !rescaled total ref cs
+      write(*,*) "csref_tot_rsc", csref_tot_rsc
       csref_inel_rsc=csref_cry(1,IS)*avrrho        !rescaled inelastic ref cs
 
 !      write(889,*) x_i,pv,Ueff,Et,Ec,N_am,avrrho,
@@ -2047,35 +2124,59 @@ end module coll_crystal
 
 !---------- cross-section calculation -----------
 
+      write(*,*) "cross sections calculation"
 !
 ! freep: number of nucleons involved in single scattering
+      write(*,*) "freep"
         freep(IS) = freeco_cry * anuc_cry(IS)**(1d0/3d0)
 ! compute pp and pn el+single diff contributions to cross-section
 ! (both added : quasi-elastic or qel later)
+        write(*,*) "cs(3)"
         cs(3,IS) = freep(IS) * ppel
+        write(*,*) "cs(4)"
         cs(4,IS) = freep(IS) * ppsd
 !
 ! correct TOT-CSec for energy dependence of qel
 ! TOT CS is here without a Coulomb contribution
+        write(*,*) "cs(0)"
         cs(0,IS) = csref_tot_rsc + freep(IS) * (pptot - pptref_cry)
-        bn(IS) = bnref_cry(IS) * cs(0,IS) / csref_tot_rsc
+        write(*,*) "bnref_cry", bnref_cry(IS)
+        write(*,*) "cs(0)", cs(0,IS)
+        write(*,*) "csref_tot_rsc", csref_tot_rsc
+!        write(*,*) "bn(IS)"
+!        bn(IS) = bnref_cry(IS) * cs(0,IS) / csref_tot_rsc
 ! also correct inel-CS
-        cs(1,IS) = csref_inel_rsc * cs(0,IS) / csref_tot_rsc
+        write(*,*) "cs(1)"
+        if (csref_tot_rsc == 0) then
+          cs(1,IS) = 0
+        else
+          cs(1,IS) = csref_inel_rsc * cs(0,IS) / csref_tot_rsc
+        end if
 !
 ! Nuclear Elastic is TOT-inel-qel ( see definition in RPP)
+        write(*,*) "cs(2)"
         cs(2,IS) = cs(0,IS) - cs(1,IS) - cs(3,IS) - cs(4,IS)
+        write(*,*) "cs(5)"
         cs(5,IS) = csref_cry(5,IS)
 ! Now add Coulomb
+        write(*,*) "cs(0)"
         cs(0,IS) = cs(0,IS) + cs(5,IS)
 ! Interaction length in meter
 !        xintl(ma) = 0.01d0*anuc(ma)/(fnavo * rho(ma)*cs(0,ma)*1d-24)  !don't need at the moment, take it from pdg
 
 
 ! Calculate cumulative probability
+        write(*,*) "cumulative probability"
 
-        do i=1,4
-          cprob_cry(i,IS)=cprob_cry(i-1,IS)+cs(i,IS)/cs(0,IS)
-        end do
+        if (cs(0,IS) == 0) then
+          do i=1,4
+            cprob_cry(i,IS)=cprob_cry(i-1,IS)
+          end do
+        else
+          do i=1,4
+            cprob_cry(i,IS)=cprob_cry(i-1,IS)+cs(i,IS)/cs(0,IS)
+          end do
+        end if
 
 
 !--------- Multiple Coulomb Scattering ---------
@@ -2108,8 +2209,11 @@ end module coll_crystal
 
 !--------- Can nuclear interaction happen? -----
 
-
-      nuc_cl_l=collnt_cry(IS)/avrrho        !rescaled nuclear collision length
+      if (avrrho == 0) then
+        nuc_cl_l=1.0d6        !rescaled nuclear collision length
+      else
+        nuc_cl_l=collnt_cry(IS)/avrrho        !rescaled nuclear collision length
+      end if
 
       zlm=-nuc_cl_l*log(dble(rndm4()))
 
@@ -2143,6 +2247,8 @@ end module coll_crystal
 
       if (ichoix.eq.2) then          ! p-n elastic
         PROC = 'ch_pne'
+        write(*,*) "bn(IS)"
+        bn(IS) = bnref_cry(IS) * cs(0,IS) / csref_tot_rsc
         t = -log(dble(rndm4()))/bn(IS)
       endif
 
@@ -2252,6 +2358,8 @@ end module coll_crystal
 !     & xp-xp_in-(kxmcs/1000), yp-yp_in-(kymcs/1000)
 
 !-------- Block Data ----------
+
+               write(*,*) "MOVE_CH done"
 
       RETURN
       END
