@@ -300,7 +300,7 @@ end module coll_crystal
         lint(j)   = -1.
         indiv(j)  = -1.
 
-        idx_proc = name(j)-100*samplenumber
+        idx_proc = j
 
         if (ITURN .eq. 1) then                                                          !daniele
                 bool_proc_old(idx_proc)=-1                                                     !daniele
@@ -310,6 +310,7 @@ end module coll_crystal
         endif                                                                           !daniele
         PROC='out' !the default process is 'out'                                        !daniele
         bool_proc(idx_proc)=-1                                                                 !daniele
+        cry_proc(idx_proc)=-1
 
 
         nabs = 0
@@ -578,7 +579,7 @@ end module coll_crystal
 !           write(*,*)'impact at s,x = ', s_impact,x_in0(j)
 !           write(*,*)'with angle xp = ',xp
 !           write(*,*)'s before', s
-           CALL CRYST(mat-7,X,XP,Z,ZP,p,cry_length)
+           CALL CRYST(mat-7,X,XP,Z,ZP,p,cry_length,j)
 !           write(*,*) "xp after crystal coll routine exit", XP
            s=Rcurv*sin(cry_bend)
            zlm=Rcurv*sin(cry_bend)
@@ -633,7 +634,7 @@ end module coll_crystal
 !               write(*,*) "debug - X minicry" ,  X
 !               write(*,*) "debug - XP minicry" ,  XP
 ! call cry routine
-              CALL CRYST(mat-7,X,XP,Z,ZP,p,(cry_length-(tilt_int*Rcurv)))
+              CALL CRYST(mat-7,X,XP,Z,ZP,p,(cry_length-(tilt_int*Rcurv)),j)
               s=Rcurv*sin(cry_bend-tilt_int)
               zlm=Rcurv*sin(cry_bend-tilt_int)
 !              write(*,*) 'process:',PROC
@@ -985,10 +986,11 @@ end module coll_crystal
 !.**************************************************************************
 !     SUBROUTINE FOR THE MOVEMENTS OF THE PARTICLES IN THE CRYSTAL
 !.**************************************************************************
-      SUBROUTINE CRYST(IS,x,xp,y,yp,PC,Length)
+      SUBROUTINE CRYST(IS,x,xp,y,yp,PC,Length,j)
 
       use mod_ranlux
       use mod_funlux
+      use mod_common_main
 !
 !     Simple tranport protons in crystal 2
 !-----------------------------------------------------------C
@@ -1010,7 +1012,7 @@ end module coll_crystal
       double precision s_length             !element length along s
       double precision Alayer               !amorphous layer [m]
       integer C_orient                      !crystal orientation
-      integer IS                            !index of the material
+      integer IS,j                            !index of the material
 !      integer counter
       double precision  DLRI(4),DLYI(4),AI(4),DES(4)!cry parameters:see line~270
       double precision DESt                  ! Daniele: changed energy loss by ionization now calculated and not tabulated
@@ -1118,6 +1120,7 @@ end module coll_crystal
 !      write(*,*) 'Length [m]:', Length
 !      write(*,*) 'Random:', rndm4()
 !      write(*,*)'xp',xp,'x',x , 's', s
+!      DESt = 0
       s=0
 !      write(*,*) "s_length", Rcurv, length
       s_length=Rcurv*(sin(length/Rcurv)) !
@@ -1181,8 +1184,6 @@ end module coll_crystal
         CALL MOVE_AM_(IS,NAM,s_length,DESt,DLYi(IS),DLRi(IS), xp,yp,PC)
         WRITE(*,*)'Fix here!'
         GOTO 111
-      ELSE
-        DESt = 0   ! temporary solution in case DESt is not initialized
       END IF
 !
 ! THIRD CASE: the p interacts with the crystal.
@@ -1302,14 +1303,14 @@ end module coll_crystal
             y= y + yp * Sdech
 !            write(*,*) "Ldech", Ldech
 !            write(*,*) "DESt", DESt
-!            CALL CALC_ION_LOSS_CRY(IS,PC,Ldech,DESt)
+            CALL CALC_ION_LOSS_CRY(IS,PC,Ldech,DESt)
             PC = PC - 0.5*DESt*Ldech          ! energy loss to ionization while in CH [GeV]
 
             x = x + 0.5*(s_length-Sdech)*xp
             y = y + 0.5*(s_length-Sdech)*yp
 
 !            write(*,*) "s_length-Sdech", s_length-Sdech
-!            CALL CALC_ION_LOSS_CRY(IS,PC,s_length-Sdech,DESt)
+            CALL CALC_ION_LOSS_CRY(IS,PC,s_length-Sdech,DESt)
             CALL MOVE_AM_(IS,NAM,s_length-Sdech,DESt,DLYi(IS),DLRi(IS),xp,yp,PC)
            !next line new from sasha
 !            PC = PC - 0.5*DES(IS)*y          ! energy loss to ionization [GeV]
