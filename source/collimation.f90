@@ -98,7 +98,6 @@ module collimation
   real(kind=fPrec), private, save :: mybetay
   real(kind=fPrec), private, save :: myalphax
   real(kind=fPrec), private, save :: mybetax
-  real(kind=fPrec), private, save :: rselect = 64.0 ! Not set anywhere, but used in if statements
   real(kind=fPrec), private, save :: myemitx
 
   ! M. Fiascaris for the collimation team
@@ -476,7 +475,6 @@ subroutine collimate_init
   write(lout,"(a,a)")     'COLL> Info: DIST_FILE           = ', trim(cdist_fileName)
   write(lout,"(a,e15.8)") 'COLL> Info: DIST_EN_ERROR       = ', cdist_spreadE
   write(lout,"(a,e15.8)") 'COLL> Info: DIST_BUNCHLENGTH    = ', cdist_bunchLen
-  write(lout,"(a,i0)")    'COLL> Info: RSELECT             = ', int(rselect)
   write(lout,"(a,l1)")    'COLL> Info: DO_COLL             = ', do_coll
   write(lout,"(a,l1)")    'COLL> Info: DO_NSIG             = ', cdb_doNSig
   do i=1,cdb_nFam
@@ -3482,47 +3480,45 @@ subroutine collimate_end_element
 #endif
 
   if(firstrun) then
-    if(rselect.gt.0 .and. rselect.lt.65) then
-      do j = 1, napx
-        xj  = (xv1(j)-torbx(ie)) /c1e3
-        xpj = (yv1(j)-torbxp(ie))/c1e3
-        yj  = (xv2(j)-torby(ie)) /c1e3
-        ypj = (yv2(j)-torbyp(ie))/c1e3
-        pj  = ejv(j)/c1e3
+    do j = 1, napx
+      xj  = (xv1(j)-torbx(ie)) /c1e3
+      xpj = (yv1(j)-torbxp(ie))/c1e3
+      yj  = (xv2(j)-torby(ie)) /c1e3
+      ypj = (yv2(j)-torbyp(ie))/c1e3
+      pj  = ejv(j)/c1e3
 
-        if(iturn.eq.1.and.j.eq.1) then
-          sum_ax(ie) = zero
-          sum_ay(ie) = zero
-        endif
+      if(iturn.eq.1.and.j.eq.1) then
+        sum_ax(ie) = zero
+        sum_ay(ie) = zero
+      endif
 
-        if(tbetax(ie).gt.zero) then
-          gammax = (one + talphax(ie)**2)/tbetax(ie)
-          gammay = (one + talphay(ie)**2)/tbetay(ie)
+      if(tbetax(ie).gt.zero) then
+        gammax = (one + talphax(ie)**2)/tbetax(ie)
+        gammay = (one + talphay(ie)**2)/tbetay(ie)
+      else
+        gammax = (one + talphax(ie-1)**2)/tbetax(ie-1)
+        gammay = (one + talphay(ie-1)**2)/tbetay(ie-1)
+      endif
+
+      if(part_abs_pos(j).eq.0 .and. part_abs_turn(j).eq.0) then
+        if(tbetax(ie).gt.0.) then
+          nspx = sqrt(abs( gammax*(xj)**2 + two*talphax(ie)*xj*xpj +   tbetax(ie)*xpj**2 )/myemitx0_collgap)
+          nspy = sqrt(abs( gammay*(yj)**2 + two*talphay(ie)*yj*ypj +   tbetay(ie)*ypj**2 )/myemity0_collgap)
         else
-          gammax = (one + talphax(ie-1)**2)/tbetax(ie-1)
-          gammay = (one + talphay(ie-1)**2)/tbetay(ie-1)
-        endif
-
-        if(part_abs_pos(j).eq.0 .and. part_abs_turn(j).eq.0) then
-          if(tbetax(ie).gt.0.) then
-            nspx = sqrt(abs( gammax*(xj)**2 + two*talphax(ie)*xj*xpj +   tbetax(ie)*xpj**2 )/myemitx0_collgap)
-            nspy = sqrt(abs( gammay*(yj)**2 + two*talphay(ie)*yj*ypj +   tbetay(ie)*ypj**2 )/myemity0_collgap)
-          else
-            nspx = sqrt(abs( gammax*(xj)**2 + two*talphax(ie-1)*xj*xpj + tbetax(ie-1)*xpj**2 )/myemitx0_collgap)
-            nspy = sqrt(abs( gammay*(yj)**2 + two*talphay(ie-1)*yj*ypj + tbetay(ie-1)*ypj**2 )/myemity0_collgap)
-          end if
-
-          sum_ax(ie)   = sum_ax(ie) + nspx
-          sqsum_ax(ie) = sqsum_ax(ie) + nspx**2
-          sum_ay(ie)   = sum_ay(ie) + nspy
-          sqsum_ay(ie) = sqsum_ay(ie) + nspy**2
-          nampl(ie)    = nampl(ie) + 1
-        else
-          nspx = zero
-          nspy = zero
+          nspx = sqrt(abs( gammax*(xj)**2 + two*talphax(ie-1)*xj*xpj + tbetax(ie-1)*xpj**2 )/myemitx0_collgap)
+          nspy = sqrt(abs( gammay*(yj)**2 + two*talphay(ie-1)*yj*ypj + tbetay(ie-1)*ypj**2 )/myemity0_collgap)
         end if
-      end do
-    end if
+
+        sum_ax(ie)   = sum_ax(ie) + nspx
+        sqsum_ax(ie) = sqsum_ax(ie) + nspx**2
+        sum_ay(ie)   = sum_ay(ie) + nspy
+        sqsum_ay(ie) = sqsum_ay(ie) + nspy**2
+        nampl(ie)    = nampl(ie) + 1
+      else
+        nspx = zero
+        nspy = zero
+      end if
+    end do
   end if
 
 !GRD THIS LOOP MUST NOT BE WRITTEN INTO THE "IF(FIRSTRUN)" LOOP !!!!
@@ -3852,47 +3848,45 @@ subroutine collimate_end_turn
   end if
 
   if(firstrun) then
-    if(rselect > 0 .and. rselect < 65) then ! The value rselect is fixed to 64, this if is probably redundant.
-      do j=1,napx
-        xj  = (xv1(j)-torbx(ie)) /c1e3
-        xpj = (yv1(j)-torbxp(ie))/c1e3
-        yj  = (xv2(j)-torby(ie)) /c1e3
-        ypj = (yv2(j)-torbyp(ie))/c1e3
-        pj  = ejv(j)/c1e3
+    do j=1,napx
+      xj  = (xv1(j)-torbx(ie)) /c1e3
+      xpj = (yv1(j)-torbxp(ie))/c1e3
+      yj  = (xv2(j)-torby(ie)) /c1e3
+      ypj = (yv2(j)-torbyp(ie))/c1e3
+      pj  = ejv(j)/c1e3
 
-        if(iturn == 1 .and. j == 1) then
-          sum_ax(ie) = zero
-          sum_ay(ie) = zero
-        end if
+      if(iturn == 1 .and. j == 1) then
+        sum_ax(ie) = zero
+        sum_ay(ie) = zero
+      end if
 
+      if(tbetax(ie) > 0.) then
+        gammax = (one + talphax(ie)**2)/tbetax(ie)
+        gammay = (one + talphay(ie)**2)/tbetay(ie)
+      else
+        gammax = (one + talphax(ie-1)**2)/tbetax(ie-1)
+        gammay = (one + talphay(ie-1)**2)/tbetay(ie-1)
+      end if
+
+      if(part_abs_pos(j) == 0 .and. part_abs_turn(j) == 0) then
         if(tbetax(ie) > 0.) then
-          gammax = (one + talphax(ie)**2)/tbetax(ie)
-          gammay = (one + talphay(ie)**2)/tbetay(ie)
+          nspx = sqrt(abs( gammax*(xj)**2 + two*talphax(ie)*xj*xpj + tbetax(ie)*xpj**2 )/myemitx0_collgap)
+          nspy = sqrt(abs( gammay*(yj)**2 + two*talphay(ie)*yj*ypj + tbetay(ie)*ypj**2 )/myemity0_collgap)
         else
-          gammax = (one + talphax(ie-1)**2)/tbetax(ie-1)
-          gammay = (one + talphay(ie-1)**2)/tbetay(ie-1)
+          nspx = sqrt(abs( gammax*(xj)**2 + two*talphax(ie-1)*xj*xpj +tbetax(ie-1)*xpj**2 )/myemitx0_collgap)
+          nspy = sqrt(abs( gammay*(yj)**2 + two*talphay(ie-1)*yj*ypj +tbetay(ie-1)*ypj**2 )/myemity0_collgap)
         end if
 
-        if(part_abs_pos(j) == 0 .and. part_abs_turn(j) == 0) then
-          if(tbetax(ie) > 0.) then
-            nspx = sqrt(abs( gammax*(xj)**2 + two*talphax(ie)*xj*xpj + tbetax(ie)*xpj**2 )/myemitx0_collgap)
-            nspy = sqrt(abs( gammay*(yj)**2 + two*talphay(ie)*yj*ypj + tbetay(ie)*ypj**2 )/myemity0_collgap)
-          else
-            nspx = sqrt(abs( gammax*(xj)**2 + two*talphax(ie-1)*xj*xpj +tbetax(ie-1)*xpj**2 )/myemitx0_collgap)
-            nspy = sqrt(abs( gammay*(yj)**2 + two*talphay(ie-1)*yj*ypj +tbetay(ie-1)*ypj**2 )/myemity0_collgap)
-          end if
-
-          sum_ax(ie)   = sum_ax(ie) + nspx
-          sqsum_ax(ie) = sqsum_ax(ie) + nspx**2
-          sum_ay(ie)   = sum_ay(ie) + nspy
-          sqsum_ay(ie) = sqsum_ay(ie) + nspy**2
-          nampl(ie)    = nampl(ie) + 1
-        else
-          nspx = zero
-          nspy = zero
-        end if !if(part_abs_pos(j).eq.0 .and. part_abs_turn(j).eq.0) then
-      end do !do j = 1, napx
-    end if !if(rselect.gt.0 .and. rselect.lt.65) then
+        sum_ax(ie)   = sum_ax(ie) + nspx
+        sqsum_ax(ie) = sqsum_ax(ie) + nspx**2
+        sum_ay(ie)   = sum_ay(ie) + nspy
+        sqsum_ay(ie) = sqsum_ay(ie) + nspy**2
+        nampl(ie)    = nampl(ie) + 1
+      else
+        nspx = zero
+        nspy = zero
+      end if !if(part_abs_pos(j).eq.0 .and. part_abs_turn(j).eq.0) then
+    end do !do j = 1, napx
   end if !if(firstrun) then
 
 !GRD THIS LOOP MUST NOT BE WRITTEN INTO THE "IF(FIRSTRUN)" LOOP !!!!
