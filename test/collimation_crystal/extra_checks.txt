@@ -1,2 +1,4 @@
 coll_summary.dat
 FirstImpacts.dat
+cry_interaction.dat
+hash.md5
