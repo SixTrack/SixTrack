@@ -16,6 +16,8 @@ module coll_common
   logical, save :: dowrite_secondary = .false.
   logical, save :: dowrite_amplitude = .false.
   logical, save :: dowritetracks     = .false.
+  logical, save :: dowrite_crycoord  = .false.
+  logical, save :: coll_hasCrystal   = .false.
 
   ! Various Variables
   integer, save :: rnd_seed   = 0
@@ -27,6 +29,9 @@ module coll_common
   real(kind=fPrec), allocatable, save :: rcyp(:)
   real(kind=fPrec), allocatable, save :: rcp(:)
   real(kind=fPrec), allocatable, save :: rcs(:)
+
+  ! Process index for interaction with crystals
+  integer, allocatable, save :: cry_proc(:)
 
   ! Pencil Beam
   integer,          save :: ipencil       = 0
@@ -64,6 +69,9 @@ module coll_common
   character(len=14), parameter :: coll_efficFile      = "efficiency.dat"
   character(len=19), parameter :: coll_efficDPFile    = "efficiency_dpop.dat"
   character(len=17), parameter :: coll_effic2DFile    = "efficiency_2d.dat"
+  character(len=16), parameter :: coll_cryEntFile     = "cry_entrance.dat"
+  character(len=12), parameter :: coll_cryExitFile    = "cry_exit.dat"
+  character(len=19), parameter :: coll_cryInterFile   = "cry_interaction.dat"
 
   ! Output File Units
   integer, save :: outlun              = -1
@@ -90,6 +98,9 @@ module coll_common
   integer, save :: coll_efficUnit      = -1
   integer, save :: coll_efficDPUnit    = -1
   integer, save :: coll_effic2DUnit    = -1
+  integer, save :: coll_cryEntUnit     = -1
+  integer, save :: coll_cryExitUnit    = -1
+  integer, save :: coll_cryInterUnit   = -1
 
 contains
 
@@ -107,6 +118,8 @@ subroutine coll_expandArrays(npart_new, nblz_new)
   call alloc(rcyp, npart_new, zero, "rcyp")
   call alloc(rcp,  npart_new, zero, "rcp")
   call alloc(rcs,  npart_new, zero, "rcs")
+
+  call alloc(cry_proc, npart_new, -1, "cry_proc")
 
   call alloc(x_pencil,  max_ncoll, zero, "x_pencil")
   call alloc(y_pencil,  max_ncoll, zero, "y_pencil")

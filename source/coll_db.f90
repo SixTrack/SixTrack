@@ -1,8 +1,8 @@
 ! ================================================================================================ !
 !  Collimator Database Module
-!  V.K. Berglyd Olsen, BE-ABP-HSS
+!  V.K. Berglyd Olsen, M. D'Andrea, BE-ABP-HSS
 !  Created: 2018-03-22
-!  Updated: 2019-09-10
+!  Updated: 2019-10-02
 ! ================================================================================================ !
 module coll_db
 
@@ -568,7 +568,7 @@ subroutine cdb_writeDB_newFromOld
 end subroutine cdb_writeDB_newFromOld
 
 ! ================================================================================================ !
-!  V.K. Berglyd Olsen, BE-ABP-HSS
+!  V.K. Berglyd Olsen, M. D'Andrea, BE-ABP-HSS
 !  Created: 2019-08-30
 !  Updated: 2019-08-30
 !  Parse additional settings from the collimator database. This is treated separately since this
@@ -582,6 +582,7 @@ subroutine cdb_readDBSettings
   use mod_units
   use mod_alloc
   use coll_jawfit
+  use coll_common
   use numerical_constants
 
   character(len=:), allocatable :: lnSplit(:)
@@ -774,6 +775,7 @@ subroutine cdb_readDBSettings
     if(isFam) then
       do i=1,cdb_nColl
         if(cdb_cFamily(i) == iFam) then
+          coll_hasCrystal  = .true.
           cdb_isCrystal(i) = .true.
           cdb_cryBend(i)   = rParam(1)
           cdb_cryXDim(i)   = rParam(2)
@@ -785,6 +787,7 @@ subroutine cdb_readDBSettings
         end if
       end do
     else
+      coll_hasCrystal      = .true.
       cdb_isCrystal(iColl) = .true.
       cdb_cryBend(iColl)   = rParam(1)
       cdb_cryXDim(iColl)   = rParam(2)

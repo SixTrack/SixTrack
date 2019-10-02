@@ -59,6 +59,7 @@ end module coll_crystal
       use mod_ranlux
       use mod_funlux
       use coll_k2
+      use coll_common, only : cry_proc
 
       IMPLICIT NONE
 !
@@ -320,8 +321,8 @@ end module coll_crystal
 !        p_in(j) = 6499.9999993204920_fPrec
 !        s_in(j) = 0.0000000000000000_fPrec
 
-        write(*,*) "Coordinates after entering"
-        write(*,*) x_in(j), xp_in(j), y_in(j), yp_in(j)
+!        write(*,*) "Coordinates after entering"
+!        write(*,*) x_in(j), xp_in(j), y_in(j), yp_in(j)
 !        write(*,*) p_in(j), s_in(j)
 
         s   = 0
@@ -531,7 +532,7 @@ end module coll_crystal
 
          if (Cry_tilt .lt. 0) then
            S_shift=S
-           write(*,*) j,'- s=',s
+!           write(*,*) j,'- s=',s
            shift=Rcurv*(1-cos(Cry_tilt))
            if (Cry_tilt .lt. (-Cry_bend) ) then
                 shift= ( Rcurv * &
@@ -571,14 +572,14 @@ end module coll_crystal
          if (x .ge. 0 .and. x.lt.C_xmax) then !Daniele: check that part. hit cry
            s_impact=s_in0(j) !(for the first impact)
 !           write(*,*) "HIT", x, C_xmax
-          write(*,*) "HIT"
+!          write(*,*) "HIT"
 !           stop
 !           write(*,*)'hit the cry entrance face', x, C_xmax
 !           write(*,*)'impact at s,x = ', s_impact,x_in0(j)
 !           write(*,*)'with angle xp = ',xp
 !           write(*,*)'s before', s
            CALL CRYST(mat-7,X,XP,Z,ZP,p,cry_length)
-           write(*,*) "xp after crystal coll routine exit", XP
+!           write(*,*) "xp after crystal coll routine exit", XP
            s=Rcurv*sin(cry_bend)
            zlm=Rcurv*sin(cry_bend)
 !           write(*,*) 'process:',PROC
@@ -769,46 +770,64 @@ end module coll_crystal
 
                if (PROC(1:2).eq.'AM')then
                  bool_proc(idx_proc)=1
+                 cry_proc(idx_proc)=1
                  n_amorphous = n_amorphous + 1
                elseif (PROC(1:2).eq.'VR') then
                  bool_proc(idx_proc)=2
+                 cry_proc(idx_proc)=2
                  n_VR = n_VR + 1
                elseif (PROC(1:2).eq.'CH')then
                  bool_proc(idx_proc) = 3
+                 cry_proc(idx_proc)=3
                  n_chan = n_Chan + 1
                elseif (PROC(1:2).eq.'VC') then
                  bool_proc(idx_proc)=4
+                 cry_proc(idx_proc)=4
                  !n_chan = n_Chan + 1
                elseif (PROC(1:3).eq.'out')then
                  bool_proc(idx_proc)=-1
+                 cry_proc(idx_proc)=-1
                elseif (PROC(1:8).eq.'absorbed') then
                  bool_proc(idx_proc)=5
+                 cry_proc(idx_proc)=5
                  NABS=1
                elseif (PROC(1:2).eq.'DC')then
                  bool_proc(idx_proc)=6
+                 cry_proc(idx_proc)=6
                elseif (PROC(1:3).eq.'pne')then
                  bool_proc(idx_proc)=7
+                 cry_proc(idx_proc)=7
                elseif (PROC(1:3).eq.'ppe')then
                  bool_proc(idx_proc)=8
+                 cry_proc(idx_proc)=8
                elseif (PROC(1:4).eq.'diff')then
                  bool_proc(idx_proc)=9
+                 cry_proc(idx_proc)=9
                elseif (PROC(1:4).eq.'ruth')then
                  bool_proc(idx_proc)=10
+                 cry_proc(idx_proc)=10
                elseif (PROC(1:11).eq.'ch_absorbed') then
                  bool_proc(idx_proc)=15
+                 cry_proc(idx_proc)=15
                  NABS=1
                elseif (PROC(1:6).eq.'ch_pne')then
                  bool_proc(idx_proc)=17
+                 cry_proc(idx_proc)=17
                elseif (PROC(1:6).eq.'ch_ppe')then
                  bool_proc(idx_proc)=18
+                 cry_proc(idx_proc)=18
                elseif (PROC(1:7).eq.'ch_diff')then
                  bool_proc(idx_proc)=19
+                 cry_proc(idx_proc)=19
                elseif (PROC(1:7).eq.'ch_ruth')then
                  bool_proc(idx_proc)=20
+                 cry_proc(idx_proc)=20
                elseif (PROC(1:4).eq.'TRVR')then
                  bool_proc(idx_proc)=100
+                 cry_proc(idx_proc)=100
                elseif (PROC(1:4).eq.'TRAM')then
                  bool_proc(idx_proc)=101
+                 cry_proc(idx_proc)=101
                else
                 write(*,*)'???????????????????',PROC(1:2)
                 stop
@@ -859,8 +878,8 @@ end module coll_crystal
          XP_IN(J) = XP *COS(-1.*C_ROTATION) + ZP *SIN(-1.*C_ROTATION)
          YP_IN(J) = ZP *COS(-1.*C_ROTATION) - XP *SIN(-1.*C_ROTATION)
 
-         write(*,*) "PROC ", PROC
-         write(*,*) "xp after counter transformation", XP_IN(J), X_IN(J)
+!         write(*,*) "PROC ", PROC
+!         write(*,*) "xp after counter transformation", XP_IN(J), X_IN(J)
 
 !----- other pencil beam stuff-------
          IF ( ICOLL.EQ.IPENCIL) then
@@ -1281,15 +1300,15 @@ end module coll_crystal
             x  = x+ Ldech*(sin(0.5*Dxp+miscut))   ! trajectory at channeling exit
             xp = xp + Dxp + 2.0*(rndm4()-0.5)*xpcrit
             y= y + yp * Sdech
-            write(*,*) "Ldech", Ldech
-            write(*,*) "DESt", DESt
+!            write(*,*) "Ldech", Ldech
+!            write(*,*) "DESt", DESt
 !            CALL CALC_ION_LOSS_CRY(IS,PC,Ldech,DESt)
             PC = PC - 0.5*DESt*Ldech          ! energy loss to ionization while in CH [GeV]
 
             x = x + 0.5*(s_length-Sdech)*xp
             y = y + 0.5*(s_length-Sdech)*yp
 
-            write(*,*) "s_length-Sdech", s_length-Sdech
+!            write(*,*) "s_length-Sdech", s_length-Sdech
 !            CALL CALC_ION_LOSS_CRY(IS,PC,s_length-Sdech,DESt)
             CALL MOVE_AM_(IS,NAM,s_length-Sdech,DESt,DLYi(IS),DLRi(IS),xp,yp,PC)
            !next line new from sasha
@@ -1304,9 +1323,9 @@ end module coll_crystal
 !            write(*,*) PROC
 !            write(*,*) "MOVE CH", IS, NAM, L_chan, X, XP, YP, PC, Rcurv, Rcrit            write(*,*) "angles after channeling (x,y):", xp, yp
 
-            write(*,*) "angles before entering CH subroutine (x,y):", xp, yp
+!            write(*,*) "angles before entering CH subroutine (x,y):", xp, yp
             CALL MOVE_CH_(IS,NAM,L_chan,X,XP,YP,PC,Rcurv,Rcrit)  !daniele:check if a nuclear interaction happen while in CH
-            write(*,*) "angles after exiting CH subroutine (x,y):", xp, yp
+!            write(*,*) "angles after exiting CH subroutine (x,y):", xp, yp
 !            stop
 
 
@@ -1414,7 +1433,7 @@ end module coll_crystal
               Rlength = Length-Lrefl
               tchan = Rlength / Rcurv
               Red_S=Rlength*cos(xp+0.5*tchan)
-              write(*,*) "Lrefl", Lrefl
+!              write(*,*) "Lrefl", Lrefl
               CALL CALC_ION_LOSS_CRY(IS,PC,Lrefl,DESt)
               PC=PC - DESt*Lrefl  !Daniele: "added" energy loss before capture
               xpin=XP
@@ -1431,11 +1450,11 @@ end module coll_crystal
               PC=PC - DESt*Rlength
               else
               Dxp = (Length-Lrefl)/Rcurv
-              write(*,*) "Dxp", Dxp
+!              write(*,*) "Dxp", Dxp
               x  = x+ sin(0.5*Dxp+xp)*Rlength     ! trajectory at channeling exit
               y = y + red_S * yp
               xp =  Length/Rcurv + 0.5*ran_gauss(1.0d0)*xpcrit ! [mrad]
-              write(*,*) "xp at channeling exit", xp
+!              write(*,*) "xp at channeling exit", xp
 !              write(*,*) "Rlength", Rlength
               CALL CALC_ION_LOSS_CRY(IS,PC,Rlength,DESt)
               PC=PC - 0.5*DESt*Rlength  !Daniele: "added" energy loss once captured
@@ -1468,7 +1487,7 @@ end module coll_crystal
 !     +         xp_rel+L_chan/Rcurv*(2.0*Ang_avr-Ang_rms)/
 !     +         (2.0*L_chan/Rcurv+2.0*xpcrit)-Ang_avr
             Dxp=-3.0*Ang_rms*xp_rel/(2.0*xpcrit)+Ang_avr+(3.0*Ang_rms*(L_chan/Rcurv)/(2.0*xpcrit))
-            write(*,*) xp_rel, Dxp, Ang_avr, Ang_rms
+!            write(*,*) xp_rel, Dxp, Ang_avr, Ang_rms
 !            xp=xp+Dxp+Ang_rms*RAN_GAUSS(1.)
             xp=xp+Dxp
             x=x+0.5*xp*(s_length-Srefl)
@@ -1520,7 +1539,7 @@ end module coll_crystal
 !      WRITE(*,*)'Crystal process: ',PROC,'Chann Angle',Ch_angle/1000,   +
 !     1'Critical angle: ', xpcrit/1000
 !     2 DLRI(IS),DLYI(IS),AI(IS),DES(IS),eUm(IS),IS,ZN,NAM,C_orient     !,W
-      write(*,*) "xp at end of crystal coll routine", xp
+!      write(*,*) "xp at end of crystal coll routine", xp
       END
 
 !.**************************************************************************
@@ -1678,7 +1697,7 @@ end module coll_crystal
 !------- useful calculations for cross-section and event topology calculation --------------
 
       ecmsq = 2 * 0.93828d0 * PC
-      write(*,*) ecmsq, PC
+!      write(*,*) ecmsq, PC
       xln15s=log(0.15*ecmsq)
 ! pp(pn) data
 !      pptot = pptref_cry *(PC / pref_cry)** pptco_cry

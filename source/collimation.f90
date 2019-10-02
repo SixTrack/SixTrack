@@ -1113,6 +1113,15 @@ subroutine collimate_parseInputLine(inLine, iLine, iErr)
     end if
     call chr_cast(lnSplit(2), dowritetracks, iErr)
 
+  case("WRITE_CRYCOORDS")
+    if(nSplit /= 2) then
+      write(lerr,"(a,i0)") "COLL> ERROR WRITE_CRYCOORDS expects 1 value, got ",nSplit-1
+      write(lerr,"(a)")    "COLL>       WRITE_CRYCOORDS true|false"
+      iErr = .true.
+      return
+    end if
+    call chr_cast(lnSplit(2), dowrite_crycoord, iErr)
+
   case("CERN")
     if(nSplit /= 2) then
       write(lerr,"(a,i0)") "COLL> ERROR CERN expects 1 value, got ",nSplit-1
@@ -1500,6 +1509,26 @@ subroutine collimate_openFiles
     call f_requestUnit(coll_pencilFile,coll_pencilUnit)
     call f_open(unit=coll_pencilUnit, file=coll_pencilFile,formatted=.true.,mode="w")
     write(coll_pencilUnit,"(a)") "# x xp y yp"
+  end if
+
+  ! Crystal Files
+  if(coll_hasCrystal) then
+    if(dowrite_crycoord) then
+      call f_requestUnit(coll_cryEntFile,coll_cryEntUnit)
+      call f_open(unit=coll_cryEntUnit,file=coll_cryEntFile,formatted=.true.,mode="w")
+      write(coll_cryEntUnit,"(a1,1x,a6,1x,a8,1x,a20,1x,a4,5(1x,a15))") &
+        "#","partID","turn",chr_rPad("collimator",20),"mat.","x","xp","y","yp","p"
+
+      call f_requestUnit(coll_cryExitFile,coll_cryExitUnit)
+      call f_open(unit=coll_cryExitUnit,file=coll_cryExitFile,formatted=.true.,mode="w")
+      write(coll_cryExitUnit,"(a1,1x,a6,1x,a8,1x,a20,1x,a4,5(1x,a15))") &
+        "#","partID","turn",chr_rPad("collimator",20),"mat.","x","xp","y","yp","p"
+    end if
+
+    call f_requestUnit(coll_cryInterFile,coll_cryInterUnit)
+    call f_open(unit=coll_cryInterUnit,file=coll_cryInterFile,formatted=.true.,mode="w")
+    write(coll_cryInterUnit,"(a1,1x,a6,1x,a8,1x,a20,1x,a4,10(1x,a15))") &
+        "#","partID","turn",chr_rPad("collimator",20),"proc","kickx","kicky","Ein","Eout","xpin","ypin","cryangle","xin","yin"
   end if
 
   if(do_select) then
@@ -2176,6 +2205,7 @@ subroutine collimate_do_collimator(stracki)
   c_offset   = cdb_cOffset(icoll)
   c_tilt(1)  = cdb_cTilt(1,icoll)
   c_tilt(2)  = cdb_cTilt(2,icoll)
+  cry_proc(:) = -1
 
   calc_aperture   = sqrt( xmax**2 * cos_mb(c_rotation)**2 + ymax**2 * sin_mb(c_rotation)**2 )
   nom_aperture    = sqrt( xmax_nom**2 * cos_mb(c_rotation)**2 + ymax_nom**2 * sin_mb(c_rotation)**2 )
@@ -2475,10 +2505,29 @@ subroutine collimate_do_collimator(stracki)
     else
       c_length = cdb_cryBend(icoll)*(sin_mb(cry_bendangle-cry_tilt) + sin_mb(cry_tilt))
     end if
+    if (dowrite_crycoord) then
+      do j=1, napx
+        write(coll_cryEntUnit,"(i8,1x,i8,1x,a20,1x,a4,5(1x,1pe15.8))") &
+          partID(j),iturn,cdb_cName(icoll)(1:20),cdb_cMaterial(icoll),rcx0(j),rcxp0(j),rcy0(j),rcyp0(j),rcp0(j)
+      end do
+    end if
     call collimate_cry(icoll, iturn, ie, " ", cdb_cMaterial(icoll), c_length, c_rotation, c_aperture, c_offset, &
       c_tilt, rcx, rcxp, rcy, rcyp, rcp, rcs, napx, enom_gev, part_hit_pos, part_hit_turn, part_abs_pos,&
       part_abs_turn, part_impact, part_indiv, part_linteract, 0, 0, 0, 0, 0, 0, partID, partID,&
       dowrite_impact, npart, cry_tilt, c_length)
+    if (dowrite_crycoord) then
+      do j=1, napx
+        write(coll_cryExitUnit,"(i8,1x,i8,1x,a20,1x,a4,5(1x,1pe15.8))") &
+          partID(j),iturn,cdb_cName(icoll)(1:20),cdb_cMaterial(icoll),rcx(j),rcxp(j),rcy(j),rcyp(j),rcp(j)
+      end do
+    end if
+    do j=1, napx
+      if(cry_proc(j) > 0) then
+        write(coll_cryInterUnit,"(i8,1x,i8,1x,a20,1x,i4,10(1x,1pe15.8))") &
+          partID(j), iturn, cdb_cName(icoll)(1:20),cry_proc(j),rcxp(j)-rcxp0(j), &
+          rcyp(j)-rcyp0(j),rcp0(j),rcp(j),rcxp0(j),rcyp0(j),cry_tilt,rcx0(j),rcy0(j)
+      end if
+    end do
   else
     call k2coll_collimate(icoll, iturn, ie, c_length, c_rotation, c_aperture, c_offset, &
       c_tilt, rcx, rcxp, rcy, rcyp, rcp, rcs, enom_gev, part_hit_pos,part_hit_turn,           &
@@ -3132,6 +3181,10 @@ subroutine collimate_exit
 #ifdef HDF5
     if(h5_writeTracks2) call h5tr2_finalise
 #endif
+  end if
+  if(coll_hasCrystal .and. dowrite_crycoord) then
+    call f_close(coll_cryEntUnit)
+    call f_close(coll_cryExitUnit)
   end if
 
 !------------------------------------------------------------------------
