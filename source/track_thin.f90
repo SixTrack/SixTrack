@@ -568,6 +568,7 @@ subroutine thin4d(nthinerr)
     ! increase napxto, to get an estimation of particles*turns
     napxto = napxto + napx
 #endif
+    firstrun = .false.
 
   640 continue
 
@@ -1415,11 +1416,7 @@ subroutine thin6d(nthinerr)
     ! increase napxto, to get an estimation of particles*turns
     napxto = napxto + napx
 #endif
-
-    if(do_coll) then
-      !GRD HERE WE SET THE FLAG FOR INITIALIZATION TO FALSE AFTER TURN 1
-      firstrun = .false.
-    end if
+    firstrun = .false.
 
 660 continue !END loop over turns
 

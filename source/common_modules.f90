@@ -179,6 +179,7 @@ module mod_common
   integer,          save :: napxto     = 0       ! Particles times turns
   integer,          save :: nnuml      = 0       ! Turn number for POSTPR
   logical,          save :: curveff    = .false. ! Enable the curvature effect in a combined function magnet
+  logical,          save :: firstrun   = .true.  ! Switched off after the first completed turn (not necessarily turn 1 if C/R)
   logical,          save :: iexact     = .false. ! Exact solution of the equation of motion
   logical,          save :: rdfort13   = .false. ! Wheteher to read distribution from fort.13 or not
 

@@ -32,7 +32,6 @@ module collimation
   logical, private, save :: systilt_antisymm = .false.
   logical, private, save :: cern             = .false.
   logical, private, save :: do_mingap        = .false.
-  logical, public,  save :: firstrun         = .true.
   logical, private, save :: cut_input        = .false. ! Not in use?
 
   integer, private, save :: icoll      = 0
