@@ -32,7 +32,6 @@ module collimation
   logical, private, save :: systilt_antisymm = .false.
   logical, private, save :: cern             = .false.
   logical, private, save :: do_mingap        = .false.
-  logical, private, save :: cut_input        = .false. ! Not in use?
 
   integer, private, save :: icoll      = 0
   integer, private, save :: nloop      = 1
@@ -547,7 +546,6 @@ subroutine collimate_init
   write(lout,"(a)")
   write(lout,"(a,e15.8)") 'COLL: Info: DRIFTSX             = ', driftsx
   write(lout,"(a,e15.8)") 'COLL: Info: DRIFTSY             = ', driftsy
-  write(lout,"(a,l1)")    'COLL: Info: CUT_INPUT           = ', cut_input
   write(lout,"(a,l1)")    'COLL: Info: SYSTILT_ANTISYMM    = ', systilt_antisymm
   write(lout,"(a)")
   write(lout,"(a,i0)")    'COLL> Info: IPENCIL             = ', ipencil
@@ -1365,7 +1363,7 @@ subroutine collimate_parseInputLine(inLine, iLine, iErr)
     end if
     call chr_cast(lnSplit(1), driftsx,         iErr)
     call chr_cast(lnSplit(2), driftsy,         iErr)
-    call chr_cast(lnSplit(3), cut_input,       iErr)
+    ! Value 3 is ignored
     call chr_cast(lnSplit(4), systilt_antisymm,iErr)
 
   case(15)
