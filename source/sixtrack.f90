@@ -5224,8 +5224,18 @@ subroutine umlauf(dpp,ium,ierr)
     xs=xpl(ix)+zfz(izu)*xrms(ix)
     izu=izu+1
     zs=zpl(ix)+zfz(izu)*zrms(ix)
-#include "include/alignu.f90"
-
+#ifndef TILT
+    xl=x(1,1)-xs
+    zl=x(1,2)-zs
+    crkve=xl
+    cikve=zl
+#else
+    xl=(x(1,1)-xs)*tiltc(k)+(x(1,2)-zs)*tilts(k)
+    zl=(x(1,2)-zs)*tiltc(k)-(x(1,1)-xs)*tilts(k)
+    crkve=xl
+    cikve=zl
+#endif
+  
     select case (kzz)
     case (1) ! HORIZONTAL DIPOLE
       ekk=ekk*c1e3

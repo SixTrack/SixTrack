@@ -1,3 +1,4 @@
+! start include/alignf.f90
 #ifndef TILT
 !FOX  XL=X(1)-XS ;
 !FOX  ZL=X(2)-ZS ;
@@ -9,3 +10,4 @@
 !FOX  CRKVE=XL ;
 !FOX  CIKVE=ZL ;
 #endif
+! end include/alignf.f90
