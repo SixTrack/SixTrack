@@ -30,7 +30,6 @@ module collimation
   logical, private, save :: do_nominal       = .false.
   logical, private, save :: do_oneside       = .false.
   logical, private, save :: systilt_antisymm = .false.
-  logical, private, save :: cern             = .false.
   logical, private, save :: do_mingap        = .false.
 
   integer, private, save :: icoll      = 0
@@ -558,8 +557,6 @@ subroutine collimate_init
   write(lout,"(a,i0)")    'COLL> Info: IBEAM               = ', ibeam
   write(lout,"(a)")
   write(lout,"(a,l1)")    'COLL> Info: DOWRITETRACKS       = ', dowritetracks
-  write(lout,"(a)")
-  write(lout,"(a,l1)")    'COLL> Info: CERN                = ', cern
   write(lout,"(a)")
   write(lout,"(a,a)")     'COLL> Info: CASTORDIR           = ', castordir
   write(lout,"(a)")
@@ -1110,15 +1107,6 @@ subroutine collimate_parseInputLine(inLine, iLine, iErr)
     end if
     call chr_cast(lnSplit(2), dowritetracks, iErr)
 
-  case("CERN")
-    if(nSplit /= 2) then
-      write(lerr,"(a,i0)") "COLL> ERROR CERN expects 1 value, got ",nSplit-1
-      write(lerr,"(a)")    "COLL>       CERN true|false"
-      iErr = .true.
-      return
-    end if
-    call chr_cast(lnSplit(2), cern, iErr)
-
   case("SIGSECUT")
     if(nSplit /= 3) then
       write(lerr,"(a,i0)") "COLL> ERROR SIGSECUT expects 2 values, got ",nSplit-1
@@ -1401,7 +1389,7 @@ subroutine collimate_parseInputLine(inLine, iLine, iErr)
       return
     end if
     call chr_cast(lnSplit(1), dowritetracks,iErr)
-    call chr_cast(lnSplit(2), cern,         iErr)
+    ! The second value is ignored
     castordir = lnSplit(3)
     call chr_cast(lnSplit(4), jobnumber,    iErr)
     call chr_cast(lnSplit(5), sigsecut2,    iErr)
