@@ -1516,13 +1516,13 @@ subroutine collimate_openFiles
     if(dowrite_crycoord) then
       call f_requestUnit(coll_cryEntFile,coll_cryEntUnit)
       call f_open(unit=coll_cryEntUnit,file=coll_cryEntFile,formatted=.true.,mode="w")
-      write(coll_cryEntUnit,"(a1,1x,a6,1x,a8,1x,a20,1x,a4,5(1x,a15))") &
-        "#","partID","turn",chr_rPad("collimator",20),"mat.","x","xp","y","yp","p"
+      write(coll_cryEntUnit,"(a1,1x,a6,1x,a8,1x,a20,1x,a4,2(1x,a3),5(1x,a15))") &
+        "#","partID","turn",chr_rPad("collimator",20),"mat.","hit","abs","x","xp","y","yp","p"
 
       call f_requestUnit(coll_cryExitFile,coll_cryExitUnit)
       call f_open(unit=coll_cryExitUnit,file=coll_cryExitFile,formatted=.true.,mode="w")
-      write(coll_cryExitUnit,"(a1,1x,a6,1x,a8,1x,a20,1x,a4,5(1x,a15))") &
-        "#","partID","turn",chr_rPad("collimator",20),"mat.","x","xp","y","yp","p"
+      write(coll_cryExitUnit,"(a1,1x,a6,1x,a8,1x,a20,1x,a4,2(1x,a3),5(1x,a15))") &
+        "#","partID","turn",chr_rPad("collimator",20),"mat.","hit","abs","x","xp","y","yp","p"
     end if
 
     call f_requestUnit(coll_cryInterFile,coll_cryInterUnit)
@@ -2121,7 +2121,7 @@ subroutine collimate_do_collimator(stracki)
   real(kind=fPrec), intent(in) :: stracki
 
   integer j, iSlice, nSlices
-  logical onesided, linside(napx)
+  logical onesided, linside(napx), isHit, isAbs
   real(kind=fPrec) jawLength, jawAperture, jawOffset, jawTilt(2)
   real(kind=fPrec) x_Dump,xpDump,y_Dump,ypDump,s_Dump
   real(kind=fPrec) cry_tilt0,cry_tilt,cry_bendangle
@@ -2506,10 +2506,6 @@ subroutine collimate_do_collimator(stracki)
       c_length = cdb_cryBend(icoll)*(sin_mb(cry_bendangle-cry_tilt) + sin_mb(cry_tilt))
     end if
     if (dowrite_crycoord) then
-      do j=1, napx
-        write(coll_cryEntUnit,"(i8,1x,i8,1x,a20,1x,a4,5(1x,1pe15.8))") &
-          partID(j),iturn,cdb_cName(icoll)(1:20),cdb_cMaterial(icoll),rcx0(j),rcxp0(j),rcy0(j),rcyp0(j),rcp0(j)
-      end do
     end if
     call collimate_cry(icoll, iturn, ie, " ", cdb_cMaterial(icoll), c_length, c_rotation, c_aperture, c_offset, &
       c_tilt, rcx, rcxp, rcy, rcyp, rcp, rcs, napx, enom_gev, part_hit_pos, part_hit_turn, part_abs_pos,&
@@ -2517,8 +2513,14 @@ subroutine collimate_do_collimator(stracki)
       dowrite_impact, npart, cry_tilt, c_length)
     if (dowrite_crycoord) then
       do j=1, napx
-        write(coll_cryExitUnit,"(i8,1x,i8,1x,a20,1x,a4,5(1x,1pe15.8))") &
-          partID(j),iturn,cdb_cName(icoll)(1:20),cdb_cMaterial(icoll),rcx(j),rcxp(j),rcy(j),rcyp(j),rcp(j)
+        isHit = part_hit_pos(j) == ie .and. part_hit_turn(j) == iturn
+        isAbs = part_abs_pos(j) == ie .and. part_abs_turn(j) == iturn
+        write(coll_cryEntUnit,"(i8,1x,i8,1x,a20,1x,a4,2(3x,l1),5(1x,1pe15.8))") &
+          partID(j),iturn,cdb_cName(icoll)(1:20),cdb_cMaterial(icoll),isHit,isAbs, &
+          rcx0(j),rcxp0(j),rcy0(j),rcyp0(j),rcp0(j)
+        write(coll_cryExitUnit,"(i8,1x,i8,1x,a20,1x,a4,2(3x,l1),5(1x,1pe15.8))") &
+          partID(j),iturn,cdb_cName(icoll)(1:20),cdb_cMaterial(icoll),isHit,isAbs, &
+          rcx(j),rcxp(j),rcy(j),rcyp(j),rcp(j)
       end do
     end if
     do j=1, napx

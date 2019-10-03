@@ -372,6 +372,8 @@ end module coll_crystal
 
 !/*----------------DANIELE------------------*/
 
+!        write(*,*) "p at entrance", p
+
 
 
 
@@ -580,6 +582,7 @@ end module coll_crystal
 !           write(*,*)'with angle xp = ',xp
 !           write(*,*)'s before', s
            CALL CRYST(mat-7,X,XP,Z,ZP,p,cry_length,j)
+!           write(*,*) "p after exit", p
 !           write(*,*) "xp after crystal coll routine exit", XP
            s=Rcurv*sin(cry_bend)
            zlm=Rcurv*sin(cry_bend)
@@ -635,6 +638,7 @@ end module coll_crystal
 !               write(*,*) "debug - XP minicry" ,  XP
 ! call cry routine
               CALL CRYST(mat-7,X,XP,Z,ZP,p,(cry_length-(tilt_int*Rcurv)),j)
+!              write(*,*) "p after exit", p
               s=Rcurv*sin(cry_bend-tilt_int)
               zlm=Rcurv*sin(cry_bend-tilt_int)
 !              write(*,*) 'process:',PROC
@@ -978,6 +982,8 @@ end module coll_crystal
 !     1/Nhit
 !        endif
 !
+!      write(*,*) p
+
       endif  !collimator with length = 0
       return
       end
@@ -1085,6 +1091,7 @@ end module coll_crystal
 !-------------Daniele: dE/dX and dechanneling length calculation--------------------
 
 
+!      write(*,*) "p entering routine", PC
       mom=PC*1.0d3 ! [GeV/c] -> [MeV/c]
       enr=(mom*mom+mp*mp)**0.5 ! [MeV]
       gammar=enr/mp
@@ -1522,6 +1529,8 @@ end module coll_crystal
           endif
         endif
        ENDIF
+
+!       write(*,*) "p at the end of routine", PC
 
 !      if (counter .eq. 0) then
 111   write(833,*)'crystal parameters:\n Length:',Length, '\n Rcurv:'   &
