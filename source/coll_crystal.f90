@@ -2420,13 +2420,13 @@ end module coll_crystal
       COMMON/CRYS/ DLRI,DLYI,AI,DES
       COMMON/eUc/  eUm
 !-----4 substances: Si(110),W(110),C,Ge----------------------------
-      DATA DLRI/0.0937,.0035,0.188,.023/         &! radiation  length(m), updated from pdg for Si
-     &    ,DLYI/.455, .096, .400, .162/          &! nuclear length(m)
-     &    ,AI /0.96E-7, 0.56E-7, 0.63E-7, 1.E-7/ & !Si110 1/2 interplan. dist. mm
+      DATA DLRI/0.0937,.0035,0.188,.02302/         &! radiation  length(m), updated from pdg for Si
+     &    ,DLYI/.4652, .096, .400, .2686/          &! nuclear length(m)
+     &    ,AI /0.96E-7, 0.56E-7, 0.63E-7, 1.0E-7/ & !Si110 1/2 interplan. dist. mm, Ge taken from A. Fomin, Si from initial implementation
      &    ,DES/0.56,  3.0,  0.6, 1./             & ! energy deposition in subst(GeV/m)
      &    ,DLAI/1.6,  0.57, 2.2, 1.0/            & ! elastic length(m)
      &    ,SAI /42.,  140.,  42., 50./           & ! elastic scat. r.m.s(mr)
-     &    ,eUm/21.34,  21.,   21.,   21./         ! only for Si(110) potent. [eV]
+     &    ,eUm/21.34,  21.,   21.,   40./         ! only for Si(110) and Ge(110) potent. [eV], Ge taken from A. Fomin, Si from initial implementation
 
 
 !------------- daniele, more data needed---------
@@ -2458,29 +2458,29 @@ end module coll_crystal
 
 ! Atomic mass [g/mole] from pdg
 
-      data (anuc_cry(i),i=1,4)/28.08d0,0.0d0,0.0d0,0.0d0/     !implemented only Si
+      data (anuc_cry(i),i=1,4)/28.08d0,0.0d0,0.0d0,72.63d0/     !implemented only Si and Ge
 
-! Total and nuclear cross-sections [barn], implemeted only Si
+! Total and nuclear cross-sections [barn], implemeted only Si and Ge (Ma / Lambda rho Na)
       data csref_cry(0,1),csref_cry(1,1)/0.664d0, 0.430d0/  !from pdg
 !      data csref_cry(0,1),csref_cry(1,1)/0.762d0, 0.504d0/  !with glauber's approx (NIMB 268 (2010) 2655-2659)
       data csref_cry(0,2),csref_cry(1,2)/0.0d0, 0.0d0/
       data csref_cry(0,3),csref_cry(1,3)/0.0d0, 0.0d0/
-      data csref_cry(0,4),csref_cry(1,4)/0.0d0, 0.0d0/
+      data csref_cry(0,4),csref_cry(1,4)/1.388d0, 0.844d0/
 
-      data csref_cry(5,1)/0.039d-2/
+      data csref_cry(5,1)/0.039d-2/ ! scaled with Z^2 from Al
       data csref_cry(5,2)/0.0d0/
       data csref_cry(5,3)/0.0d0/
-      data csref_cry(5,4)/0.0d0/
+      data csref_cry(5,4)/0.186d-2/ ! scaled with Z^2 from Cu
 
 
 
-! Nuclear Collision length [m] from pdg (only for Si for the moment)
+! Nuclear Collision length [m] from pdg (only for Si and Ge for the moment)
 
-      data (collnt_cry(i),i=1,4)/0.3016d0,0.0d0,0.0d0,0.0d0/
+      data (collnt_cry(i),i=1,4)/0.3016d0,0.0d0,0.0d0,0.1632d0/
 
 ! Nuclear elastic slope from Schiz et al.,PRD 21(3010)1980
 
-      data (bnref_cry(i),i=1,4)/123.2d0,0.0d0,0.0d0,0.0d0/      !(only for Si for the moment)
+      data (bnref_cry(i),i=1,4)/120.14d0,0.0d0,0.0d0,226.35d0/      !(only for Si and Ge for the moment)
 
 ! For calculation of dE/dX due to ionization
 
@@ -2491,11 +2491,11 @@ end module coll_crystal
 
       common/ion/rho,z,Ime,k,re,me,mp,anuc_cry2,emr_cry
 
-      data (rho(i),i=1,4)/2.33d0,0.0d0,0.0d0,0.0d0/  !material density [g/cm^3]
-      data (z(i),i=1,4)/14.0d0,0.0d0,0.0d0,0.0d0/    !atomic number
-      data (Ime(i),i=1,4)/173.0d-6,0.0d0,0.0d0,0.0d0/!mean exitation energy [MeV]
-      data (anuc_cry2(i),i=1,4)/28.08d0,0.0d0,0.0d0,0.0d0/     !implemented only Si
-      data (emr_cry(i),i=1,4)/0.306d0,0.0d0,0.0d0,0.0d0/      !nuclear radius take from R_Be*(A_Si/A_Be)^1/3, where R_Be=0.302
+      data (rho(i),i=1,4)/2.33d0,0.0d0,0.0d0,5.323d0/  !material density [g/cm^3]
+      data (z(i),i=1,4)/14.0d0,0.0d0,0.0d0,32.0d0/    !atomic number
+      data (Ime(i),i=1,4)/173.0d-6,0.0d0,0.0d0,350.0d-6/!mean exitation energy [MeV]
+      data (anuc_cry2(i),i=1,4)/28.08d0,0.0d0,0.0d0,72.63d0/     !implemented only Si
+      data (emr_cry(i),i=1,4)/0.441d0,0.0d0,0.0d0,0.605d0/      !nuclear radius take from R_Be*(A_Si/A_Be)^1/3, where R_Be=0.302
 
 
       data k/0.307075/ !constant in front bethe-bloch [MeV g^-1 cm^2]
@@ -2521,7 +2521,7 @@ end module coll_crystal
       common/ruth_scat_cry/cgen_cry,mcurr_cry
 
       data tlcut_cry/0.0009982d0/
-      data (hcut_cry(i),i=1,4)/0.02d0,0.0d0,0.0d0,0.0d0/
+      data (hcut_cry(i),i=1,4)/0.02d0,0.0d0,0.0d0,0.02d0/
 
 
       END
