@@ -417,13 +417,13 @@ subroutine thin4d(nthinerr)
         end do
         goto 390
       case (41)
-#include "include/beamco.f90"
+#include "include/beambeam41.f90"
         goto 620
       case (42)
-#include "include/beam11.f90"
+#include "include/beambeam42.f90"
         goto 620
       case (43)
-#include "include/beam21.f90"
+#include "include/beambeam43.f90"
         goto 620
       case (44,46,47,48,49,50,57,58,59,60,61,62)
         goto 630
@@ -1195,13 +1195,13 @@ subroutine thin6d(nthinerr)
           goto 640
         end if
       case (41) ! 4D BB kick
-#include "include/beamco.f90"
+#include "include/beambeam41.f90"
         goto 640
       case (42)
-#include "include/beam11.f90"
+#include "include/beambeam42.f90"
         goto 640
       case (43)
-#include "include/beam21.f90"
+#include "include/beambeam43.f90"
         goto 640
       case (44)
 #include "include/beam6d.f90"
