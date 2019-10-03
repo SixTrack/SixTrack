@@ -199,7 +199,7 @@ endif()
 
 if(NOT CR AND STF)
   list(APPEND SIXTRACK_TESTS
-    collimation_crystal
+    collimation_cry_si_ch_hor_b1
     collimation_jaw_fit
     collimation_jaw_fit_b4
     collimation_jaw_fit_b4_offsets_tilts
@@ -252,7 +252,7 @@ set(TESTS_NOFORT10
   beam-HO_6D-simple-oldstyle
   beambeam4dDYNK
   beambeamDYNK
-  collimation_crystal
+  collimation_cry_si_ch_hor_b1
   collimation_dist_1h
   collimation_dist_1v
   collimation_dist_2h
@@ -327,7 +327,7 @@ set(TESTS_NO_STF_FORT90
   chebythin6d_DYNK
   chebythin6d_ions
   chebythin6d_ramp_DYNK
-  collimation_crystal
+  collimation_cry_si_ch_hor_b1
   collimation_dist_1h
   collimation_dist_1v
   collimation_dist_2h
@@ -602,7 +602,7 @@ set(FAST_TESTS
   chebythin6d_DYNK
   chebythin6d_ions
   chebythin6d_ramp_DYNK
-  collimation_crystal
+  collimation_cry_si_ch_hor_b1
   collimation_dist_1h
   collimation_dist_1v
   collimation_dist_2h
