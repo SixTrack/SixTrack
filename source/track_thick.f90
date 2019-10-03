@@ -58,9 +58,8 @@ subroutine thck4d(nthinerr)
     sinth_temp,pxf,pyf,r_temp,z_temp,sigf,q_temp,xlv,zlv
 
   logical llost
-  real(kind=fPrec) crkveb(npart),cikveb(npart),rho2b(npart),tkb(npart),r2b(npart),rb(npart),        &
-    rkb(npart),xrb(npart),zrb(npart),xbb(npart),zbb(npart),crxb(npart),crzb(npart),cbxb(npart),     &
-    cbzb(npart)
+  real(kind=fPrec) crkveb(npart),cikveb(npart),rho2b(npart),tkb(npart),rb(npart),rkb(npart),        &
+    xrb(npart),zrb(npart),xbb(npart),zbb(npart),crxb(npart),crzb(npart),cbxb(npart),cbzb(npart)
 
 #ifdef FLUKA
   logical recompute_linear_matrices
@@ -617,9 +616,8 @@ subroutine thck6d(nthinerr)
     embl,chi,xi,yi,dxi,dyi,rrelens,frrelens,xelens,yelens,onedp,fppsig,costh_temp,sinth_temp,pxf,   &
     pyf,r_temp,z_temp,sigf,q_temp,pttemp,xlv,zlv
   logical llost
-  real(kind=fPrec) crkveb(npart),cikveb(npart),rho2b(npart),tkb(npart),r2b(npart),rb(npart),        &
-    rkb(npart),xrb(npart),zrb(npart),xbb(npart),zbb(npart),crxb(npart),crzb(npart),cbxb(npart),     &
-    cbzb(npart)
+  real(kind=fPrec) crkveb(npart),cikveb(npart),rho2b(npart),tkb(npart),rb(npart),rkb(npart),        &
+    xrb(npart),zrb(npart),xbb(npart),zbb(npart),crxb(npart),crzb(npart),cbxb(npart),cbzb(npart)
 
 #ifdef FLUKA
   logical recompute_linear_matrices

@@ -37,9 +37,6 @@ subroutine initialise_element(ix,lfirst)
   integer i,m,k,im,nmz,izu,ibb,ii,j
   real(kind=fPrec) r0,r0a,bkitemp,sfac1,sfac2,sfac2s,sfac3,sfac4,sfac5,crkveb_d,cikveb_d,rho2b_d,   &
     tkb_d,rb_d,rkb_d,xrb_d,zrb_d,cbxb_d,cbzb_d,crxb_d,crzb_d,xbb_d,zbb_d,napx0
-  real(kind=fPrec) crkveb(npart),cikveb(npart),rho2b(npart),tkb(npart),r2b(npart),rb(npart),        &
-    rkb(npart),xrb(npart),zrb(npart),xbb(npart),zbb(npart),crxb(npart),crzb(npart),cbxb(npart),     &
-    cbzb(npart)
 
   ! Nonlinear Elements
   if(abs(kz(ix)) >= 1 .and. abs(kz(ix)) <= 10) then

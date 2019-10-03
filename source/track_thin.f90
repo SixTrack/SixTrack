@@ -60,9 +60,8 @@ subroutine thin4d(nthinerr)
     rrelens,frrelens,xelens,yelens,onedp,fppsig,tan_t,sin_t,cos_t,costh_temp,sinth_temp,pxf,pyf,    &
     r_temp,z_temp,sigf,q_temp,pttemp,xlv,zlv,temp_angle
   logical llost
-  real(kind=fPrec) crkveb(npart),cikveb(npart),rho2b(npart),tkb(npart),r2b(npart),rb(npart),        &
-    rkb(npart),xrb(npart),zrb(npart),xbb(npart),zbb(npart),crxb(npart),crzb(npart),cbxb(npart),     &
-    cbzb(npart)
+  real(kind=fPrec) crkveb(npart),cikveb(npart),rho2b(npart),tkb(npart),rb(npart),rkb(npart),        &
+    xrb(npart),zrb(npart),xbb(npart),zbb(npart),crxb(npart),crzb(npart),cbxb(npart),cbzb(npart)
   real(kind=fPrec) :: krf, x_t, y_t
   complex(kind=fPrec) :: Cp0, Sp1
   complex(kind=fPrec), parameter :: imag=(zero,one)
@@ -593,9 +592,8 @@ subroutine thin6d(nthinerr)
     dx,dy,tx,ty,embl,chi,xi,yi,dxi,dyi,rrelens,frrelens,xelens,yelens, onedp,fppsig,costh_temp,     &
     sinth_temp,tan_t,sin_t,cos_t,pxf,pyf,r_temp,z_temp,sigf,q_temp,pttemp,xlv,zlv,temp_angle
   logical llost, doFField
-  real(kind=fPrec) crkveb(npart),cikveb(npart),rho2b(npart),tkb(npart),r2b(npart),rb(npart),        &
-    rkb(npart),xrb(npart),zrb(npart),xbb(npart),zbb(npart),crxb(npart),crzb(npart),cbxb(npart),     &
-    cbzb(npart)
+  real(kind=fPrec) crkveb(npart),cikveb(npart),rho2b(npart),tkb(npart),rb(npart),rkb(npart),        &
+    xrb(npart),zrb(npart),xbb(npart),zbb(npart),crxb(npart),crzb(npart),cbxb(npart),cbzb(npart)
   real(kind=fPrec) :: krf, x_t, y_t
   complex(kind=fPrec) :: Cp0, Sp1
   complex(kind=fPrec), parameter :: imag=(zero,one)
