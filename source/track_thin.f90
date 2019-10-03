@@ -66,9 +66,6 @@ subroutine thin4d(nthinerr)
   complex(kind=fPrec) :: Cp0, Sp1
   complex(kind=fPrec), parameter :: imag=(zero,one)
 
-  save
-!-----------------------------------------------------------------------
-
 #ifdef CR
   if(cr_restart) then
     call crstart
@@ -597,7 +594,6 @@ subroutine thin6d(nthinerr)
   real(kind=fPrec) :: krf, x_t, y_t
   complex(kind=fPrec) :: Cp0, Sp1
   complex(kind=fPrec), parameter :: imag=(zero,one)
-  save
 
   call ffield_genAntiQuad()
 

@@ -65,8 +65,6 @@ subroutine thck4d(nthinerr)
   logical recompute_linear_matrices
 #endif
 
-  save
-
   idz1=idz(1)
   idz2=idz(2)
 
@@ -623,8 +621,6 @@ subroutine thck6d(nthinerr)
   logical recompute_linear_matrices
 #endif
 
-  save
-
   idz1=idz(1)
   idz2=idz(2)
 
@@ -666,7 +662,6 @@ subroutine thck6d(nthinerr)
       end if
 
 #ifdef FLUKA
-
 !           A.Mereghetti and D.Sinuela Pastor, for the FLUKA Team
 !           last modified: 17-07-2013
 !           is the current entry an instance of a FLUKA element?
@@ -1187,8 +1182,6 @@ subroutine synuthck
   integer ih1,ih2,j,kz1,l
   real(kind=fPrec) fokm,fok,fok1,rho,si,co,sm1,sm2,sm3,sm12,sm23,as3,as4,as6,g,gl,rhoc,siq,aek,hi,  &
     fi,hi1,hp,hm,hc,hs,wf,afok,wfa,wfhi,rhoi,fokq
-
-  save
 
   do j=1,napx
     dpd(j)  = one+dpsv(j)
