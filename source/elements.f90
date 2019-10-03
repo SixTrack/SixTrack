@@ -280,8 +280,8 @@ subroutine initialise_element(ix,lfirst)
                 rkb_d = zero ! -Wmaybe-uninitialized
                 tkb_d = zero ! -Wmaybe-uninitialized
               end if
-              beamoff(4,imbb(i))=(rkb_d*(crzb_d-exp_mb(-one*tkb_d)*cbzb_d))*sign(one,crkveb_d)
-              beamoff(5,imbb(i))=(rkb_d*(crxb_d-exp_mb(-one*tkb_d)*cbxb_d))*sign(one,cikveb_d)
+              beamoff(4,imbb(i)) = (rkb_d*(crzb_d-exp_mb(-one*tkb_d)*cbzb_d))*sign(one,crkveb_d)
+              beamoff(5,imbb(i)) = (rkb_d*(crxb_d-exp_mb(-one*tkb_d)*cbxb_d))*sign(one,cikveb_d)
             end if
 
             if(ktrack(i) == 43) then

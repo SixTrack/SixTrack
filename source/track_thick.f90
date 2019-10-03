@@ -441,53 +441,13 @@ subroutine thck4d(nthinerr)
         end do
         goto 240
       case (41)
-        do 690 j=1,napx
 #include "include/beamco.f90"
-#include "include/beamr1.f90"
-     &goto 690
-#include "include/beamr2.f90"
-#include "include/beamr3.f90"
-690     continue
         goto 470
       case (42)
-        if(ibtyp.eq.0) then
 #include "include/beam11.f90"
-#include "include/beama1.f90"
-#include "include/beamco.f90"
-#include "include/beama2.f90"
-#include "include/beam12.f90"
-#include "include/beama3.f90"
-#include "include/beam13.f90"
-#include "include/beama4.f90"
-        else if(ibtyp.eq.1) then
-#include "include/beam11.f90"
-#include "include/beama1.f90"
-#include "include/beamco.f90"
-#include "include/beama2.f90"
-#include "include/beama3.f90"
-#include "include/beamwzf1.f90"
-#include "include/beama4.f90"
-        end if
         goto 470
       case (43)
-        if(ibtyp.eq.0) then
 #include "include/beam21.f90"
-#include "include/beama1.f90"
-#include "include/beamco.f90"
-#include "include/beama2.f90"
-#include "include/beam22.f90"
-#include "include/beama3.f90"
-#include "include/beam23.f90"
-#include "include/beama4.f90"
-        else if(ibtyp.eq.1) then
-#include "include/beam21.f90"
-#include "include/beama1.f90"
-#include "include/beamco.f90"
-#include "include/beama2.f90"
-#include "include/beama3.f90"
-#include "include/beamwzf2.f90"
-#include "include/beama4.f90"
-        end if
         goto 470
       case (44,46,47,48,49,50,57,58,59,60,61,62)
         goto 480
@@ -1089,53 +1049,13 @@ subroutine thck6d(nthinerr)
         end do
         goto 260
       case (41)
-        do 690 j=1,napx
 #include "include/beamco.f90"
-#include "include/beamr1.f90"
-     &goto 690
-#include "include/beamr2.f90"
-#include "include/beamr3.f90"
-690     continue
         goto 490
       case (42)
-        if(ibtyp.eq.0) then
 #include "include/beam11.f90"
-#include "include/beama1.f90"
-#include "include/beamco.f90"
-#include "include/beama2.f90"
-#include "include/beam12.f90"
-#include "include/beama3.f90"
-#include "include/beam13.f90"
-#include "include/beama4.f90"
-        else if(ibtyp.eq.1) then
-#include "include/beam11.f90"
-#include "include/beama1.f90"
-#include "include/beamco.f90"
-#include "include/beama2.f90"
-#include "include/beama3.f90"
-#include "include/beamwzf1.f90"
-#include "include/beama4.f90"
-        end if
         goto 490
       case (43)
-        if(ibtyp.eq.0) then
 #include "include/beam21.f90"
-#include "include/beama1.f90"
-#include "include/beamco.f90"
-#include "include/beama2.f90"
-#include "include/beam22.f90"
-#include "include/beama3.f90"
-#include "include/beam23.f90"
-#include "include/beama4.f90"
-        else if(ibtyp.eq.1) then
-#include "include/beam21.f90"
-#include "include/beama1.f90"
-#include "include/beamco.f90"
-#include "include/beama2.f90"
-#include "include/beama3.f90"
-#include "include/beamwzf2.f90"
-#include "include/beama4.f90"
-        end if
         goto 490
       case (44)
 #include "include/beam6d.f90"
