@@ -36,7 +36,7 @@ subroutine initialise_element(ix,lfirst)
 
   integer i,m,k,im,nmz,izu,ibb,ii,j
   real(kind=fPrec) r0,r0a,bkitemp,sfac1,sfac2,sfac2s,sfac3,sfac4,sfac5,crkveb_d,cikveb_d,rho2b_d,   &
-    tkb_d,r2b_d,rb_d,rkb_d,xrb_d,zrb_d,cbxb_d,cbzb_d,crxb_d,crzb_d,xbb_d,zbb_d,napx0
+    tkb_d,rb_d,rkb_d,xrb_d,zrb_d,cbxb_d,cbzb_d,crxb_d,crzb_d,xbb_d,zbb_d,napx0
   real(kind=fPrec) crkveb(npart),cikveb(npart),rho2b(npart),tkb(npart),r2b(npart),rb(npart),        &
     rkb(npart),xrb(npart),zrb(npart),xbb(npart),zbb(npart),crxb(npart),crzb(npart),cbxb(npart),     &
     cbzb(npart)
@@ -258,46 +258,34 @@ subroutine initialise_element(ix,lfirst)
 
             if(ktrack(i) == 42) then
               if(ibeco == 1) then
-                r2b_d = two*(sigman2(1,imbb(i))-sigman2(2,imbb(i)))
-                rb_d  = sqrt(r2b_d)
+                rb_d  = sqrt(two*(sigman2(1,imbb(i))-sigman2(2,imbb(i))))
                 rkb_d = (strack(i)*pisqrt)/rb_d
                 xrb_d = abs(crkveb_d)/rb_d
                 zrb_d = abs(cikveb_d)/rb_d
                 tkb_d = (crkveb_d**2/sigman2(1,imbb(i))+cikveb_d**2/sigman2(2,imbb(i)))*half
                 xbb_d = sigmanq(2,imbb(i))*xrb_d
                 zbb_d = sigmanq(1,imbb(i))*zrb_d
-                if(ibtyp == 0) then
-                  call errf(xrb_d,zrb_d,crxb_d,crzb_d)
-                  call errf(xbb_d,zbb_d,cbxb_d,cbzb_d)
-                end if
-              else
-                rkb_d = zero ! -Wmaybe-uninitialized
-                tkb_d = zero ! -Wmaybe-uninitialized
+                call errf(xrb_d,zrb_d,crxb_d,crzb_d) ! Was formerly only called for ibtyp == 0
+                call errf(xbb_d,zbb_d,cbxb_d,cbzb_d) ! Was formerly only called for ibtyp == 0
+                beamoff(4,imbb(i)) = (rkb_d*(crzb_d-exp_mb(-one*tkb_d)*cbzb_d))*sign(one,crkveb_d)
+                beamoff(5,imbb(i)) = (rkb_d*(crxb_d-exp_mb(-one*tkb_d)*cbxb_d))*sign(one,cikveb_d)
               end if
-              beamoff(4,imbb(i)) = (rkb_d*(crzb_d-exp_mb(-one*tkb_d)*cbzb_d))*sign(one,crkveb_d)
-              beamoff(5,imbb(i)) = (rkb_d*(crxb_d-exp_mb(-one*tkb_d)*cbxb_d))*sign(one,cikveb_d)
             end if
 
             if(ktrack(i) == 43) then
               if(ibeco == 1) then
-                r2b_d = two*(sigman2(2,imbb(i))-sigman2(1,imbb(i)))
-                rb_d  = sqrt(r2b_d)
+                rb_d  = sqrt(two*(sigman2(2,imbb(i))-sigman2(1,imbb(i))))
                 rkb_d = (strack(i)*pisqrt)/rb_d
                 xrb_d = abs(crkveb_d)/rb_d
                 zrb_d = abs(cikveb_d)/rb_d
                 tkb_d = (crkveb_d**2/sigman2(1,imbb(i))+cikveb_d**2/sigman2(2,imbb(i)))*half
                 xbb_d = sigmanq(2,imbb(i))*xrb_d
                 zbb_d = sigmanq(1,imbb(i))*zrb_d
-                if(ibtyp == 0) then
-                  call errf(zrb_d,xrb_d,crzb_d,crxb_d)
-                  call errf(zbb_d,xbb_d,cbzb_d,cbxb_d)
-                end if
-              else
-                rkb_d = zero ! -Wmaybe-uninitialized
-                tkb_d = zero ! -Wmaybe-uninitialized
+                call errf(zrb_d,xrb_d,crzb_d,crxb_d) ! Was formerly only called for ibtyp == 0
+                call errf(zbb_d,xbb_d,cbzb_d,cbxb_d) ! Was formerly only called for ibtyp == 0
+                beamoff(4,imbb(i)) = (rkb_d*(crzb_d-exp_mb(-one*tkb_d)*cbzb_d))*sign(one,crkveb_d)
+                beamoff(5,imbb(i)) = (rkb_d*(crxb_d-exp_mb(-one*tkb_d)*cbxb_d))*sign(one,cikveb_d)
               end if
-              beamoff(4,imbb(i)) = (rkb_d*(crzb_d-exp_mb(-one*tkb_d)*cbzb_d))*sign(one,crkveb_d)
-              beamoff(5,imbb(i)) = (rkb_d*(crxb_d-exp_mb(-one*tkb_d)*cbxb_d))*sign(one,cikveb_d)
             end if
           end if
         end if
