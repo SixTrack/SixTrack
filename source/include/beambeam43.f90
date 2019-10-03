@@ -14,19 +14,13 @@ do j=1,napx
   end if
   xrb(j) = abs(crkveb(j))/rb(j)
   zrb(j) = abs(cikveb(j))/rb(j)
-end do
-if(ibtyp == 0) then
-  do j=1,napx
-    call errf(zrb(j),xrb(j),crzb(j),crxb(j))
-  end do
-end if
-do j=1,napx
   tkb(j) = (crkveb(j)**2/sigman2(1,imbb(i))+cikveb(j)**2/sigman2(2,imbb(i)))*half
   xbb(j) = sigmanq(2,imbb(i))*xrb(j)
   zbb(j) = sigmanq(1,imbb(i))*zrb(j)
 end do
 if(ibtyp == 0) then
   do j=1,napx
+    call errf(zrb(j),xrb(j),crzb(j),crxb(j))
     call errf(zbb(j),xbb(j),cbzb(j),cbxb(j))
   end do
 else

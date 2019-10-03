@@ -238,7 +238,7 @@ subroutine initialise_element(ix,lfirst)
             end if
 
             strack(i) = crad*ptnfac(ix)
-            if(ibbc.eq.0) then
+            if(ibbc == 0) then
               crkveb_d = parbe(ix,5)
               cikveb_d = parbe(ix,6)
             else
@@ -263,18 +263,12 @@ subroutine initialise_element(ix,lfirst)
                 rkb_d = (strack(i)*pisqrt)/rb_d
                 xrb_d = abs(crkveb_d)/rb_d
                 zrb_d = abs(cikveb_d)/rb_d
+                tkb_d = (crkveb_d**2/sigman2(1,imbb(i))+cikveb_d**2/sigman2(2,imbb(i)))*half
+                xbb_d = sigmanq(2,imbb(i))*xrb_d
+                zbb_d = sigmanq(1,imbb(i))*zrb_d
                 if(ibtyp == 0) then
                   call errf(xrb_d,zrb_d,crxb_d,crzb_d)
-                  tkb_d = (crkveb_d**2/sigman2(1,imbb(i))+cikveb_d**2/sigman2(2,imbb(i)))*half
-                  xbb_d = sigmanq(2,imbb(i))*xrb_d
-                  zbb_d = sigmanq(1,imbb(i))*zrb_d
                   call errf(xbb_d,zbb_d,cbxb_d,cbzb_d)
-                else if(ibtyp == 1) then
-                  tkb_d = (crkveb_d**2/sigman2(1,imbb(i))+cikveb_d**2/sigman2(2,imbb(i)))*half
-                  xbb_d = sigmanq(2,imbb(i))*xrb_d
-                  zbb_d = sigmanq(1,imbb(i))*zrb_d
-                else
-                  tkb_d = zero ! -Wmaybe-uninitialized
                 end if
               else
                 rkb_d = zero ! -Wmaybe-uninitialized
@@ -291,18 +285,12 @@ subroutine initialise_element(ix,lfirst)
                 rkb_d = (strack(i)*pisqrt)/rb_d
                 xrb_d = abs(crkveb_d)/rb_d
                 zrb_d = abs(cikveb_d)/rb_d
+                tkb_d = (crkveb_d**2/sigman2(1,imbb(i))+cikveb_d**2/sigman2(2,imbb(i)))*half
+                xbb_d = sigmanq(2,imbb(i))*xrb_d
+                zbb_d = sigmanq(1,imbb(i))*zrb_d
                 if(ibtyp == 0) then
                   call errf(zrb_d,xrb_d,crzb_d,crxb_d)
-                  tkb_d = (crkveb_d**2/sigman2(1,imbb(i))+cikveb_d**2/sigman2(2,imbb(i)))*half
-                  xbb_d = sigmanq(2,imbb(i))*xrb_d
-                  zbb_d = sigmanq(1,imbb(i))*zrb_d
                   call errf(zbb_d,xbb_d,cbzb_d,cbxb_d)
-                else if(ibtyp == 1) then
-                  tkb_d = (crkveb_d**2/sigman2(1,imbb(i))+cikveb_d**2/sigman2(2,imbb(i)))*half
-                  xbb_d = sigmanq(2,imbb(i))*xrb_d
-                  zbb_d = sigmanq(1,imbb(i))*zrb_d
-                else
-                  tkb_d = zero ! -Wmaybe-uninitialized
                 end if
               else
                 rkb_d = zero ! -Wmaybe-uninitialized
