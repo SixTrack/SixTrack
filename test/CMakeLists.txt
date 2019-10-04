@@ -757,6 +757,7 @@ set(SELFTEST_TOOLS
   SelfTest_read90
   SelfTest_readDump3
   SelfTest_splitSingletrack
+  SelfTest_splitSingletrack_run
 )
 foreach(TOOL IN ITEMS ${SELFTEST_TOOLS})
   set_property(TEST ${TOOL} PROPERTY LABELS tool fast)

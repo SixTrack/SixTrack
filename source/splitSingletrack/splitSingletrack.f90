@@ -20,7 +20,7 @@ program splitSingletrack
 
   ! Parse command line arguments
   cmdarg_i = 0
-  do
+  cmdargs: do
     call get_command_argument(cmdarg_i, cmdarg_arg, cmdarg_length, cmdarg_status)
     if (len_trim(cmdarg_arg) == 0) exit
 
@@ -51,7 +51,7 @@ program splitSingletrack
 
     cmdarg_i = cmdarg_i + 1
 
-  enddo
+  enddo cmdargs
 
   !Check that input file is there
   inquire(file=ifname, exist=hasInputFile)
