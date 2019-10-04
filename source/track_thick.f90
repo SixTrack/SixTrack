@@ -1,466 +1,5 @@
 !-----------------------------------------------------------------------
 !
-!  TRACK THICK LENS PART
-!
-!  F. SCHMIDT
-!-----------------------------------------------------------------------
-subroutine trauthck(nthinerr)
-  ! Rewritten to remove computed gotos by V.K.B.Olsen on 20/11/2017
-  use floatPrecision
-  use mathlib_bouncer
-  use numerical_constants
-  use dynk, only : dynk_enabled, dynk_isused, dynk_pretrack
-  use cheby, only : cheby_kz, cheby_ktrack
-
-#ifdef FLUKA
-! A.Mereghetti and D.Sinuela Pastor, for the FLUKA Team
-! last modified: 17-07-2013
-! import mod_fluka
-! inserted in main code by the 'fluka' compilation flag
-  use mod_fluka
-#endif
-
-  use collimation
-  use mod_time
-  use mod_units
-  use mod_utils
-
-  use crcoall
-  use parpro
-  use mod_common
-  use mod_common_main
-  use mod_commons
-  use mod_common_track
-  use mod_common_da
-  use mod_fluc, only : fluc_errAlign,fluc_writeFort4
-  implicit none
-
-  integer i,ix,j,jb,jj,jx,kpz,kzz,napx0,nbeaux,nmz,nthinerr
-  real(kind=fPrec) benkcc,cbxb,cbzb,cikveb,crkveb,crxb,crzb,r0,r000,r0a,r2b,rb,rho2b,rkb,tkb,xbb,xrb,zbb,zrb
-  dimension crkveb(npart),cikveb(npart),rho2b(npart),tkb(npart),r2b(npart),rb(npart),rkb(npart),&
-  xrb(npart),zrb(npart),xbb(npart),zbb(npart),crxb(npart),crzb(npart),cbxb(npart),cbzb(npart),nbeaux(nbb)
-  save
-
-  if (do_coll) then
-    write(lerr,"(a)") "TRACKING> ERROR Collimation is not supported for thick tracking"
-    call prror
-  endif
-
-  do i=1,nblz
-    ktrack(i)=0
-    strack(i)=zero
-    strackc(i)=zero
-    stracks(i)=zero
-  end do
-#include "include/beams1.f90"
-  do 290 i=1,iu
-    if(mout2.eq.1.and.i.eq.1) call fluc_writeFort4
-    ix=ic(i)
-    if(ix.le.nblo) then
-      !BLOC
-      ktrack(i)=1
-      do jb=1,mel(ix)
-        jx=mtyp(ix,jb)
-        strack(i)=strack(i)+el(jx)
-      end do
-      if(abs(strack(i)).le.pieni) ktrack(i)=31
-      !Non-linear/NOT BLOC
-      goto 290
-    end if
-    ix=ix-nblo
-    kpz=abs(kp(ix))
-    if(kpz.eq.6) then
-      ktrack(i)=2
-      goto 290
-    end if
-    kzz=kz(ix)
-    if(kzz.eq.0) then
-      ktrack(i)=31
-      goto 290
-    else if(abs(kzz) == 12) then
-      ! Disabled cavity; enabled cavities have kp=6 and are handled above
-      ktrack(i)=31
-      goto 290
-    end if
-#include "include/beams21.f90"
-#include "include/beamcoo.f90"
-#include "include/beamr1.f90"
-     &goto 42
-#include "include/beamr2.f90"
-#include "include/beamr3o.f90"
-#include "include/beams22.f90"
-#include "include/beam11.f90"
-#include "include/beama1.f90"
-#include "include/beamcoo.f90"
-#include "include/beama2.f90"
-#include "include/beam12.f90"
-#include "include/beama3.f90"
-#include "include/beam13.f90"
-#include "include/beama4o.f90"
-    else if(ibtyp.eq.1) then
-#include "include/beam11.f90"
-#include "include/beama1.f90"
-#include "include/beamcoo.f90"
-#include "include/beama2.f90"
-#include "include/beama3.f90"
-#include "include/beamwzf1.f90"
-#include "include/beama4o.f90"
-#include "include/beams23.f90"
-#include "include/beam21.f90"
-#include "include/beama1.f90"
-#include "include/beamcoo.f90"
-#include "include/beama2.f90"
-#include "include/beam22.f90"
-#include "include/beama3.f90"
-#include "include/beam23.f90"
-#include "include/beama4o.f90"
-    else if(ibtyp.eq.1) then
-#include "include/beam21.f90"
-#include "include/beama1.f90"
-#include "include/beamcoo.f90"
-#include "include/beama2.f90"
-#include "include/beama3.f90"
-#include "include/beamwzf2.f90"
-#include "include/beama4o.f90"
-#include "include/beams24.f90"
-    ! wire
-    if(kzz.eq.15) then
-      ktrack(i)=45
-      goto 290
-    endif
-    !electron lens (HEL)
-    if(kzz.eq.29) then
-      ktrack(i)=63
-      goto 290
-    endif
-    ! Chebyshev lens
-    if(kzz.eq.cheby_kz) then
-      ktrack(i)=cheby_ktrack
-      goto 290
-    endif
-    ! acdip1
-    if(kzz.eq.16) then
-      ktrack(i)=51
-      goto 290
-    else if(kzz.eq.-16) then
-      ktrack(i)=52
-      goto 290
-    endif
-    ! crab
-    if(kzz.eq.23) then
-      ktrack(i)=53
-      goto 290
-    else if(kzz.eq.-23) then
-      ktrack(i)=54
-      goto 290
-    endif
-    ! JBG RF CC Multipoles
-    if(kzz.eq.26) then
-      ktrack(i)=57
-      goto 290
-    else if(kzz.eq.-26) then
-      ktrack(i)=58
-      goto 290
-    endif
-    if(kzz.eq.27) then
-      ktrack(i)=59
-      goto 290
-    else if(kzz.eq.-27) then
-      ktrack(i)=60
-      goto 290
-    endif
-    if(kzz.eq.28) then
-      ktrack(i)=61
-      goto 290
-    else if(kzz.eq.-28) then
-      ktrack(i)=62
-      goto 290
-    endif
-    if(kzz.eq.22) then
-      ktrack(i)=3
-      goto 290
-    endif
-    if(mout2 == 1 .and. icextal(i) > 0) then
-      write(27,"(a16,2x,1p,2d14.6,d17.9)") bez(ix),&
-        fluc_errAlign(1,icextal(i)),fluc_errAlign(2,icextal(i)),fluc_errAlign(3,icextal(i))
-    end if
-
-    select case (kzz)
-    case (1)
-      if(abs(smiv(i)).le.pieni .and. .not.dynk_isused(i)) then
-        ktrack(i) = 31
-      else
-        ktrack(i) = 11
-#include "include/stra01.f90"
-      end if
-    case (2)
-      if(abs(smiv(i)).le.pieni .and. .not.dynk_isused(i)) then
-        ktrack(i) = 31
-      else
-        ktrack(i) = 12
-#include "include/stra02.f90"
-      end if
-    case (3)
-      if(abs(smiv(i)).le.pieni .and. .not.dynk_isused(i)) then
-        ktrack(i) =31
-      else
-        ktrack(i) = 13
-#include "include/stra03.f90"
-      end if
-    case (4)
-      if(abs(smiv(i)).le.pieni .and. .not.dynk_isused(i)) then
-        ktrack(i) = 31
-      else
-        ktrack(i) = 14
-#include "include/stra04.f90"
-      end if
-    case (5)
-      if(abs(smiv(i)).le.pieni .and. .not.dynk_isused(i)) then
-        ktrack(i) = 31
-      else
-        ktrack(i) = 15
-#include "include/stra05.f90"
-      end if
-    case (6)
-      if(abs(smiv(i)).le.pieni .and. .not.dynk_isused(i)) then
-        ktrack(i) = 31
-      else
-        ktrack(i) = 16
-#include "include/stra06.f90"
-      end if
-    case (7)
-      if(abs(smiv(i)).le.pieni .and. .not.dynk_isused(i)) then
-        ktrack(i) = 31
-      else
-        ktrack(i) = 17
-#include "include/stra07.f90"
-      end if
-    case (8)
-      if(abs(smiv(i)).le.pieni .and. .not.dynk_isused(i)) then
-        ktrack(i) = 31
-      else
-        ktrack(i) = 18
-#include "include/stra08.f90"
-      end if
-    case (9)
-      if(abs(smiv(i)).le.pieni .and. .not.dynk_isused(i)) then
-        ktrack(i) = 31
-      else
-        ktrack(i) = 19
-#include "include/stra09.f90"
-      end if
-    case (10)
-      if(abs(smiv(i)).le.pieni .and. .not.dynk_isused(i)) then
-        ktrack(i) = 31
-      else
-        ktrack(i) = 20
-#include "include/stra10.f90"
-      end if
-    case (11) ! Multipole block (also in initialise_element)
-      r0=ek(ix)
-      nmz=nmu(ix)
-      if(abs(r0).le.pieni.or.nmz.eq.0) then
-        if(abs(dki(ix,1)).le.pieni.and.abs(dki(ix,2)).le.pieni) then
-          if ( dynk_isused(i) ) then
-            write(lerr,"(a)") "TRACKING> ERROR Element of type 11 (bez = '"//trim(bez(ix))//&
-              "') is off in "//trim(fort2)//", but on in DYNK. Not implemented."
-            call prror
-          end if
-          ktrack(i)=31
-        else if(abs(dki(ix,1)).gt.pieni.and.abs(dki(ix,2)).le.pieni) then
-          if(abs(dki(ix,3)).gt.pieni) then
-            ktrack(i)=33
-#include "include/stra11.f90"
-          else
-            ktrack(i)=35
-#include "include/stra12.f90"
-          end if
-        else if(abs(dki(ix,1)).le.pieni.and.abs(dki(ix,2)).gt.pieni) then
-          if(abs(dki(ix,3)).gt.pieni) then
-            ktrack(i)=37
-#include "include/stra13.f90"
-          else
-            ktrack(i)=39
-#include "include/stra14.f90"
-          end if
-        end if
-      else
-        if(abs(dki(ix,1)).le.pieni.and.abs(dki(ix,2)).le.pieni) then
-          ktrack(i)=32
-        else if(abs(dki(ix,1)).gt.pieni.and.abs(dki(ix,2)).le.pieni) then
-          if(abs(dki(ix,3)).gt.pieni) then
-            ktrack(i)=34
-#include "include/stra11.f90"
-          else
-            ktrack(i)=36
-#include "include/stra12.f90"
-          end if
-        else if(abs(dki(ix,1)).le.pieni.and.abs(dki(ix,2)).gt.pieni) then
-          if(abs(dki(ix,3)).gt.pieni) then
-            ktrack(i)=38
-#include "include/stra13.f90"
-          else
-            ktrack(i)=40
-#include "include/stra14.f90"
-          end if
-        end if
-      end if
-      if(abs(r0).le.pieni.or.nmz.eq.0) goto 290
-      if(mout2.eq.1) then
-        benkcc=ed(ix)*benkc(irm(ix))
-        r0a=one
-        r000=r0*r00(irm(ix))
-        do j=1,mmul
-          fake(1,j)=(bbiv(j,i)*r0a)/benkcc
-          fake(2,j)=(aaiv(j,i)*r0a)/benkcc
-          r0a=r0a*r000
-        end do
-
-        write(9,'(a16)') bez(ix)
-        write(9,'(1p,3d23.15)') (fake(1,j), j=1,3)
-        write(9,'(1p,3d23.15)') (fake(1,j), j=4,6)
-        write(9,'(1p,3d23.15)') (fake(1,j), j=7,9)
-        write(9,'(1p,3d23.15)') (fake(1,j), j=10,12)
-        write(9,'(1p,3d23.15)') (fake(1,j), j=13,15)
-        write(9,'(1p,3d23.15)') (fake(1,j), j=16,18)
-        write(9,'(1p,2d23.15)') (fake(1,j), j=19,20)
-        write(9,'(1p,3d23.15)') (fake(2,j), j=1,3)
-        write(9,'(1p,3d23.15)') (fake(2,j), j=4,6)
-        write(9,'(1p,3d23.15)') (fake(2,j), j=7,9)
-        write(9,'(1p,3d23.15)') (fake(2,j), j=10,12)
-        write(9,'(1p,3d23.15)') (fake(2,j), j=13,15)
-        write(9,'(1p,3d23.15)') (fake(2,j), j=16,18)
-        write(9,'(1p,2d23.15)') (fake(2,j), j=19,20)
-
-        do j=1,20
-          fake(1,j)=zero
-          fake(2,j)=zero
-        end do
-      end if
-    case (12,13,14,15,16,17,18,19,20,21,22,23)
-      goto 290
-    case (24) ! DIPEDGE ELEMENT
-#include "include/stra2dpe.f90"
-      ktrack(i) = 55
-    case (25) ! Solenoid
-#include "include/solenoid.f90"
-      ktrack(i) = 56
-
-    !----------------
-    !--Negative KZZ--
-    !----------------
-    case (-1)
-      if(abs(smiv(i)).le.pieni .and. .not.dynk_isused(i)) then
-        ktrack(i) = 31
-      else
-        ktrack(i) = 21
-#include "include/stra01.f90"
-      end if
-    case (-2)
-      if(abs(smiv(i)).le.pieni .and. .not.dynk_isused(i)) then
-        ktrack(i) = 31
-      else
-        ktrack(i) = 22
-#include "include/stra02.f90"
-      end if
-    case (-3)
-      if(abs(smiv(i)).le.pieni .and. .not.dynk_isused(i)) then
-        ktrack(i) = 31
-      else
-        ktrack(i) = 23
-#include "include/stra03.f90"
-      end if
-    case (-4)
-      if(abs(smiv(i)).le.pieni .and. .not.dynk_isused(i)) then
-        ktrack(i) = 31
-      else
-        ktrack(i) = 24
-#include "include/stra04.f90"
-      end if
-    case (-5)
-      if(abs(smiv(i)).le.pieni .and. .not.dynk_isused(i)) then
-        ktrack(i) = 31
-      else
-        ktrack(i) = 25
-#include "include/stra05.f90"
-      end if
-    case (-6)
-      if(abs(smiv(i)).le.pieni .and. .not.dynk_isused(i)) then
-        ktrack(i) = 31
-      else
-        ktrack(i) = 26
-#include "include/stra06.f90"
-      end if
-    case (-7)
-      if(abs(smiv(i)).le.pieni .and. .not.dynk_isused(i)) then
-        ktrack(i) = 31
-      else
-        ktrack(i) = 27
-#include "include/stra07.f90"
-      end if
-    case (-8)
-      if(abs(smiv(i)).le.pieni .and. .not.dynk_isused(i)) then
-        ktrack(i) = 31
-      else
-        ktrack(i) = 28
-#include "include/stra08.f90"
-      end if
-    case (-9)
-      if(abs(smiv(i)).le.pieni .and. .not.dynk_isused(i)) then
-        ktrack(i) = 31
-      else
-        ktrack(i) = 29
-#include "include/stra09.f90"
-      end if
-    case (-10)
-      if(abs(smiv(i)).le.pieni .and. .not.dynk_isused(i)) then
-        ktrack(i) = 31
-      else
-        ktrack(i) = 30
-#include "include/stra10.f90"
-      end if
-
-    case default
-      ktrack(i) = 31
-    end select
-290 continue ! Label is still needed as it is referenced in some of the ca blocks
-
-  do j=1,napx
-    dpsv1(j)=(dpsv(j)*c1e3)/(one+dpsv(j))
-  end do
-
-  if (dynk_enabled) call dynk_pretrack
-  call time_timeStamp(time_afterPreTrack)
-
-  if(idp == 0 .or. ition == 0) then
-    write(lout,"(a)") ""
-    write(lout,"(a)") "TRACKING> Calling thck4d subroutine"
-    write(lout,"(a)") ""
-    call thck4d(nthinerr)
-  else
-    hsy(3)=(c1m3*hsy(3))*real(ition,fPrec)
-
-    do jj=1,nele
-      if(abs(kz(jj)) == 12) then
-        hsyc(jj) = (c1m3*hsyc(jj)) * real(sign(1,kz(jj)),kind=fPrec)
-      end if
-    end do
-
-    if(abs(phas) >= pieni) then
-      write(lerr,"(a)") "TRACKING> ERROR thck6dua no longer supported. Please use DYNK instead."
-      call prror
-    else
-      write(lout,"(a)") ""
-      write(lout,"(a)") "TRACKING> Calling thck6d subroutine"
-      write(lout,"(a)") ""
-      call thck6d(nthinerr)
-    end if
-  end if
-
-end subroutine trauthck
-
-!-----------------------------------------------------------------------
-!
 !  TRACK THICK LENS 4D
 !
 !  F. SCHMIDT
@@ -478,6 +17,7 @@ subroutine thck4d(nthinerr)
   use dump, only : dump_linesFirst, dump_lines, ldumpfront
   use collimation, only: do_coll, part_abs_turn
   use aperture
+  use tracking
 
 #ifdef FLUKA
   ! A.Mereghetti and D.Sinuela Pastor, for the FLUKA Team
@@ -511,7 +51,7 @@ subroutine thck4d(nthinerr)
   implicit none
 
   integer i,idz1,idz2,irrtr,ix,j,jb,jmel,jx,k,n,nmz,nthinerr,xory,nac,nfree,nramp1,nplato,nramp2,   &
-    turnrep,kxxa,nfirst
+    kxxa,nfirst
   real(kind=fPrec) cccc,cikve,crkve,crkveuk,puxve,puxve1,puxve2,puzve1,puzve2,puzve,r0,xlvj,yv1j,   &
     yv2j,zlvj,acdipamp,qd,acphase, acdipamp2,acdipamp1,crabamp,crabfreq,kcrab,RTWO,NNORM,l,cur,dx,  &
     dy,tx,ty,embl,chi,xi,yi,dxi,dyi,rrelens,frrelens,xelens,yelens,onedp,fppsig,costh_temp,         &
@@ -528,29 +68,8 @@ subroutine thck4d(nthinerr)
 
   save
 
-  nthinerr=0
   idz1=idz(1)
   idz2=idz(2)
-
-  ! A.Mereghetti and P.Garcia Ortega, for the FLUKA Team
-  ! last modified: 24-11-2016
-  ! initialise variables for back-tracking particles
-  if (lbacktracking) call aperture_backTrackingInit
-
-#ifdef FLUKA
-
-!     A.Mereghetti, for the FLUKA Team
-!     last modified: 14-06-2014
-!     initialise napxto
-!     inserted in main code by the 'fluka' compilation flag
-  napxto = 0
-#endif
-  ! Determine which turns to print tracking report on
-  if(numl > 1000) then
-    turnrep = nint(numl/1000.0)
-  else
-    turnrep = 1
-  end if
 
 #ifdef CR
   if(cr_restart) then
@@ -563,38 +82,8 @@ subroutine thck4d(nthinerr)
   nfirst = 1
 #endif
   do 490 n=nfirst,numl
-    if(st_quiet < 3) then
-      if(mod(n,turnrep) == 0) then
-        call trackReport(n)
-      end if
-    end if
-    meta_nPartTurn = meta_nPartTurn + napx
-    numx=n-1
-
-#ifndef FLUKA
-    if(mod(numx,nwri) == 0) call writebin(nthinerr)
+    call trackBeginTurn(n, nthinerr)
     if(nthinerr /= 0) return
-#endif
-
-#ifdef CR
-#ifdef BOINC
-    call boinc_turn(n)
-#else
-    if(mod(numx,numlcp) == 0) call crpoint
-#endif
-    cr_restart = .false.
-    if(st_killswitch) call cr_killSwitch(n)
-#endif
-
-!       A.Mereghetti, for the FLUKA Team
-!       last modified: 03-09-2014
-!       apply dynamic kicks
-!       always in main code
-    if ( dynk_enabled ) then
-      call dynk_apply(n)
-    end if
-
-    call dump_linesFirst(n)
 
     do 480 i=1,iu
       if(ktrack(i).eq.1) then
@@ -1095,17 +584,12 @@ subroutine thck4d(nthinerr)
 
 480 continue
 
-    if(nthinerr.ne.0) return
-    if(ntwin.ne.2) call dist1
+    if(nthinerr /= 0) return
+    if(ntwin /= 2) call trackDistance
 #ifndef FLUKA
-    if(mod(n,nwr(4)).eq.0) call write6(n)
-#endif
-
-#ifdef FLUKA
-    ! A.Mereghetti, for the FLUKA Team
-    ! last modified: 14-06-2014
+    if(mod(n,nwr(4)) == 0) call trackPairReport(n)
+#else
     ! increase napxto, to get an estimation of particles*turns
-    ! inserted in main code by the 'fluka' compilation flag
     napxto = napxto + napx
 #endif
 
@@ -1132,6 +616,7 @@ subroutine thck6d(nthinerr)
   use dump, only : dump_linesFirst, dump_lines, ldumpfront
   use collimation, only: do_coll, part_abs_turn
   use aperture
+  use tracking
 
 #ifdef FLUKA
 !     A.Mereghetti and D.Sinuela Pastor, for the FLUKA Team
@@ -1166,7 +651,7 @@ subroutine thck6d(nthinerr)
   implicit none
 
   integer i,idz1,idz2,irrtr,ix,j,jb,jmel,jx,k,n,nmz,nthinerr,xory,nac,nfree,nramp1,nplato,nramp2,   &
-    turnrep,kxxa,nfirst
+    kxxa,nfirst
   real(kind=fPrec) cccc,cikve,crkve,crkveuk,puxve1,puxve2,puzve1,puzve2,r0,xlvj,yv1j,yv2j,zlvj,     &
     acdipamp,qd,acphase,acdipamp2,acdipamp1,crabamp,crabfreq,kcrab,RTWO,NNORM,l,cur,dx,dy,tx,ty,    &
     embl,chi,xi,yi,dxi,dyi,rrelens,frrelens,xelens,yelens,onedp,fppsig,costh_temp,sinth_temp,pxf,   &
@@ -1182,7 +667,6 @@ subroutine thck6d(nthinerr)
 
   save
 
-  nthinerr=0
   idz1=idz(1)
   idz2=idz(2)
 
@@ -1194,27 +678,7 @@ subroutine thck6d(nthinerr)
   recompute_linear_matrices = .false.
 #endif
 
-  ! A.Mereghetti and P.Garcia Ortega, for the FLUKA Team
-  ! last modified: 24-11-2016
-  ! initialise variables for back-tracking particles
-  if (lbacktracking) call aperture_backTrackingInit
-
-#ifdef FLUKA
-!     A.Mereghetti, for the FLUKA Team
-!     last modified: 14-06-2014
-!     initialise napxto
-!     inserted in main code by the 'fluka' compilation flag
-  napxto = 0
-#endif
-
-  ! Determine which turns to print tracking report on
-  if(numl > 1000) then
-    turnrep = nint(numl/1000.0)
-  else
-    turnrep = 1
-  end if
-
-! Now the outer loop over turns
+  ! Now the outer loop over turns
 #ifdef CR
   if(cr_restart) then
     call crstart
@@ -1226,37 +690,8 @@ subroutine thck6d(nthinerr)
   nfirst = 1
 #endif
   do 510 n=nfirst,numl
-    if(st_quiet < 3) then
-      if(mod(n,turnrep) == 0) then
-        call trackReport(n)
-      end if
-    end if
-    meta_nPartTurn = meta_nPartTurn + napx
-    numx=n-1
-
-#ifndef FLUKA
-    if(mod(numx,nwri) == 0) call writebin(nthinerr)
+    call trackBeginTurn(n, nthinerr)
     if(nthinerr /= 0) return
-#endif
-
-#ifdef CR
-#ifdef BOINC
-    call boinc_turn(n)
-#else
-    if(mod(numx,numlcp) == 0) call crpoint
-#endif
-    cr_restart = .false.
-    if(st_killswitch) call cr_killSwitch(n)
-#endif
-
-!       A.Mereghetti, for the FLUKA Team
-!       last modified: 03-09-2014
-!       apply dynamic kicks
-!       always in main code
-    if ( dynk_enabled ) then
-      call dynk_apply(n)
-    end if
-    call dump_linesFirst(n)
 
     do 500 i=1,iu
       if(ktrack(i).eq.1) then
@@ -1796,35 +1231,17 @@ subroutine thck6d(nthinerr)
 500 continue
 ! End of loop over elements
 
-!===================================================================
-!===================================================================
-! Eric beginthck6dend
-!===================================================================
-!===================================================================
-
-    if(nthinerr.ne.0) return
-    if(ntwin.ne.2) call dist1
+    if(nthinerr /= 0) return
+    if(ntwin /= 2) call trackDistance
 #ifndef FLUKA
-    if(mod(n,nwr(4)).eq.0) call write6(n)
-#endif
-
-#ifdef FLUKA
-    ! A.Mereghetti, for the FLUKA Team
-    ! last modified: 14-06-2014
+    if(mod(n,nwr(4)) == 0) call trackPairReport(n)
+#else
     ! increase napxto, to get an estimation of particles*turns
-    ! inserted in main code by the 'fluka' compilation flag
     napxto = napxto + napx
 #endif
 
 510 continue
 ! end loop over turns
-
-!===================================================================
-!===================================================================
-! Eric endthck6dend
-!===================================================================
-!===================================================================
-  return
 
 end subroutine thck6d
 

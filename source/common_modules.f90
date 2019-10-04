@@ -555,6 +555,7 @@ module mod_common
   integer,          allocatable, save :: icomb(:,:)     ! Combination of Elements: Index (:,20)
 
   ! Number of Beam-Beam Lenses (nbb)
+  integer,          allocatable, save :: nbeaux(:)      ! (:)
   real(kind=fPrec), allocatable, save :: sigman(:,:)    ! (2,:)
   real(kind=fPrec), allocatable, save :: sigman2(:,:)   ! sigman^2 (2,:)
   real(kind=fPrec), allocatable, save :: sigmanq(:,:)   ! (2,:)
@@ -681,6 +682,7 @@ subroutine mod_common_expand_arrays(nele_new, nblo_new, nblz_new, npart_new, nbb
   end if
 
   if(nbb_new /= nbb_prev) then
+    call alloc(nbeaux,               nbb,            0,      "nbeaux")
     call alloc(sigman,            2, nbb,            zero,   "sigman")
     call alloc(sigman2,           2, nbb,            zero,   "sigman2")
     call alloc(sigmanq,           2, nbb,            zero,   "sigmanq")
