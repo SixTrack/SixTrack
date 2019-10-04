@@ -65,7 +65,7 @@ program splitSingletrack
     write(*,'(i8)') numPairs
     stop !No exit code so that we don't print "STOP 0" etc.
   else
-    write(*,'(a)') "Splitting file '"//ifname//"'..."
+    write(*,'(a)') "Splitting file '"//ifname//"' (run with '-h' for more options)..."
     call convertSTFfile(ifname, oldnames)
     write(*,'(a)') "Done!"
   endif
