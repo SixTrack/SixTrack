@@ -1521,6 +1521,15 @@ endif(COVERAGE)
 set(BUILDNAME "${SIXTRACK_BINARY_NAME}" CACHE STRING "Name of build on the dashboard")
 mark_as_advanced(BUILDNAME)
 
+#Tools
+set(MOD_SPLITSINGLETRACK_SOURCES
+  ${CMAKE_SOURCE_DIR}/source/splitSingletrack/mod_splitSingletrack.f90
+)
+add_library          (mod_splitSingletrack STATIC ${MOD_SPLITSINGLETRACK_SOURCES})
+add_executable       (splitSingletrack ${CMAKE_SOURCE_DIR}/source/splitSingletrack/splitSingletrack.f90)
+target_link_libraries(splitSingletrack mod_splitSingletrack)
+set_target_properties(splitSingletrack PROPERTIES LINK_FLAGS "${CMAKE_Fortran_LINKER_FLAGS}")
+
 # For testing
 if(BUILD_TESTING)
 
