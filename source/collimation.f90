@@ -145,6 +145,7 @@ module collimation
   integer, allocatable, save :: part_abs_turn(:) !(npart)
   integer, allocatable, save :: part_select(:) !(npart)
   integer, allocatable, save :: nabs_type(:) !(npart)
+  integer, allocatable, save :: nhit_type(:) !(npart)
   integer, save :: n_tot_absorbed
   integer, save :: n_absorbed
 
@@ -348,6 +349,7 @@ subroutine collimation_expand_arrays(npart_new, nblz_new)
   call alloc(part_abs_pos,         npart_new, 0, "part_abs_pos") !(npart_new)
   call alloc(part_select,          npart_new, 0, "part_select") !(npart_new)
   call alloc(nabs_type,            npart_new, 0, "nabs_type") !(npart_new)
+  call alloc(nhit_type,            npart_new, 0, "nhit_type") !(npart_new)
 
   call alloc(part_impact,    npart_new, zero, "part_impact") !(npart_new)
   call alloc(part_indiv,     npart_new, zero, "part_indiv") !(npart_new)
@@ -1656,6 +1658,7 @@ subroutine collimate_start
     secondary(j)      = 0
     other(j)          = 0
     nabs_type(j)      = 0
+    nhit_type(j)      = 0
   end do
 
 #ifdef BEAMGAS
@@ -1880,6 +1883,7 @@ subroutine collimate_start
     secondary(j)=0
     other(j)=0
     nabs_type(j) = 0
+    nhit_type(j) = 0
   end do
 
   do k = 1, numeff
@@ -2118,7 +2122,7 @@ subroutine collimate_do_collimator(stracki)
   if(chr_toLower(cdb_cName(icoll)) == name_sel .and. do_select) then
     do j=1,napx
       write(coll_ellipseUnit,"(1x,i8,6(1x,e15.7),3(1x,i4,1x,i4))") partID(j),xv1(j),xv2(j),yv1(j),yv2(j), &
-        ejv(j),sigmv(j),iturn,secondary(j)+tertiary(j)+other(j),nabs_type(j)
+        ejv(j),sigmv(j),iturn,nhit_type(j),nabs_type(j)
     end do
   end if
 
@@ -2427,10 +2431,10 @@ subroutine collimate_do_collimator(stracki)
         write(coll_settingsUnit,"(a20,1x,i10,5(1x,1pe13.6),1x,a)") cdb_cName(icoll)(1:20), iSlice,  &
           jawAperture/two, jawOffset, jawTilt(1), jawTilt(2), jawLength, cdb_cMaterial(icoll)
       end if
-      call k2coll_collimate(icoll, iturn, ie, jawLength, c_rotation, jawAperture,       &
-        jawOffset, jawTilt, rcx, rcxp, rcy, rcyp, rcp, rcs, enom_gev, part_hit_pos,           &
-        part_hit_turn, part_abs_pos, part_abs_turn, part_impact, part_indiv, part_linteract,        &
-        onesided, secondary, iSlice, nabs_type, linside)
+      call k2coll_collimate(icoll, iturn, ie, jawLength, c_rotation, jawAperture,            &
+        jawOffset, jawTilt, rcx, rcxp, rcy, rcyp, rcp, rcs, enom_gev, part_hit_pos,          &
+        part_hit_turn, part_abs_pos, part_abs_turn, part_impact, part_indiv, part_linteract, &
+        onesided, nhit_type, iSlice, nabs_type, linside)
     end do
 
   else ! Treatment of non-sliced collimators
@@ -2438,9 +2442,9 @@ subroutine collimate_do_collimator(stracki)
 #ifndef G4COLLIMATION
 
     call k2coll_collimate(icoll, iturn, ie, c_length, c_rotation, c_aperture, c_offset, &
-      c_tilt, rcx, rcxp, rcy, rcyp, rcp, rcs, enom_gev, part_hit_pos,part_hit_turn,           &
-      part_abs_pos, part_abs_turn, part_impact, part_indiv, part_linteract, onesided, secondary, 1, &
-      nabs_type, linside)
+      c_tilt, rcx, rcxp, rcy, rcyp, rcp, rcs, enom_gev, part_hit_pos,part_hit_turn,     &
+      part_abs_pos, part_abs_turn, part_impact, part_indiv, part_linteract,             &
+      onesided, nhit_type, 1, nabs_type, linside)
 
 #else
 
@@ -2781,6 +2785,7 @@ end do
         tertiary(j)  = 0
         other(j)     = 0
         nabs_type(j) = 0
+        nhit_type(j) = 0
       end if
 
 !APRIL2005 ...OTHERWISE JUST GET BACK FORMER COORDINATES
@@ -2838,11 +2843,14 @@ end do
         ! Indicate wether this is a secondary / tertiary / other particle;
         if(cdb_cName(icoll)(1:3) == "tcp") then
           secondary(j) = 1
+          nhit_type(j) = ior(nhit_type(j),1)
         else if(cdb_cName(icoll)(1:3) == "tcs") then
           tertiary(j)  = 2
+          nhit_type(j) = ior(nhit_type(j),2)
         else if((cdb_cName(icoll)(1:3) == "tcl") .or. (cdb_cName(icoll)(1:3) == "tct") .or. &
                 (cdb_cName(icoll)(1:3) == "tcd") .or. (cdb_cName(icoll)(1:3) == "tdi")) then
           other(j)     = 4
+          nhit_type(j) = ior(nhit_type(j),4)
         end if
       else
         write(lerr,"(a)")          "COLL> ERROR Particle cannot be both absorbed and not absorbed"
@@ -2855,7 +2863,7 @@ end do
         if(part_abs_pos(j).eq.0 .and. part_abs_turn(j).eq.0) then
           if((secondary(j) .eq. 1 .or. &
               tertiary(j)  .eq. 2 .or. &
-              other(j)     .eq. 4        ) .and. &
+              other(j)     .eq. 4 .or. nhit_type(j) > 0       ) .and. &
              (xv1(j).lt.99.0_fPrec .and. xv2(j).lt.99.0_fPrec).and.&
 !GRD HERE WE APPLY THE SAME KIND OF CUT THAN THE SIGSECUT PARAMETER
              ((((xv1(j)*c1m3)**2 / (tbetax(ie)*myemitx0_collgap)) .ge. sigsecut2) .or. &
@@ -2879,7 +2887,7 @@ end do
               hdfy    = (rcy0(j)*c1e3+torby(ie)) - half*c_length*(rcyp0(j)*c1e3+torbyp(ie))
               hdfyp   = rcyp0(j)*c1e3+torbyp(ie)
               hdfdee  = (ejv(j)-myenom)/myenom
-              hdftyp  = secondary(j)+tertiary(j)+other(j)
+              hdftyp  = nhit_type(j)
               call h5tr2_writeLine(hdfpid,hdfturn,hdfs,hdfx,hdfxp,hdfy,hdfyp,hdfdee,hdftyp)
 
               hdfs  = dcum(ie)+half*c_length
@@ -2896,13 +2904,13 @@ end do
                 rcxp0(j)*c1e3+torbxp(ie),                                          &
                 (rcy0(j)*c1e3+torby(ie))-half*c_length*(rcyp0(j)*c1e3+torbyp(ie)), &
                 rcyp0(j)*c1e3+torbyp(ie),                                          &
-                (ejv(j)-myenom)/myenom,secondary(j)+tertiary(j)+other(j)
+                (ejv(j)-myenom)/myenom,nhit_type(j)
 
               write(coll_tracksUnit,"(1x,i8,1x,i4,1x,f10.2,4(1x,e12.5),1x,e11.3,1x,i4)") &
                 partID(j),iturn,dcum(ie)+half*c_length,                         &
                 xv1(j)+half*c_length*yv1(j),yv1(j),                             &
                 xv2(j)+half*c_length*yv2(j),yv2(j),(ejv(j)-myenom)/myenom,      &
-                secondary(j)+tertiary(j)+other(j)
+                nhit_type(j)
 #ifdef HDF5
             end if
 #endif
@@ -3420,6 +3428,7 @@ subroutine collimate_start_element(i)
       tertiary(j)   = 0
       other(j)      = 0
       nabs_type(j)  = 0
+      nhit_type(j)  = 0
       part_abs_pos(j)  = ie
       part_abs_turn(j) = iturn
     end if
@@ -3541,7 +3550,7 @@ subroutine collimate_end_element
 !GRD HERE WE APPLY THE SAME KIND OF CUT THAN THE SIGSECUT PARAMETER
          if((secondary(j) .eq. 1 .or. &
              tertiary(j)  .eq. 2 .or. &
-             other(j)     .eq. 4       ) .and. &
+             other(j)     .eq. 4  .or. nhit_type(j) >0    ) .and. &
              (xv1(j).lt.99.0_fPrec .and. xv2(j).lt.99.0_fPrec) .and. &
              ((((xv1(j)*c1m3)**2 / (tbetax(ie)*myemitx0_collgap)) .ge. sigsecut2).or. &
              (((xv2(j)*c1m3)**2  / (tbetay(ie)*myemity0_collgap)) .ge. sigsecut2).or. &
@@ -3555,11 +3564,11 @@ subroutine collimate_end_element
 #ifdef HDF5
           if(h5_writeTracks2) then
             call h5tr2_writeLine(partID(j),iturn,dcum(ie),xv1(j),yv1(j),xv2(j),yv2(j),&
-              (ejv(j)-myenom)/myenom,secondary(j)+tertiary(j)+other(j))
+              (ejv(j)-myenom)/myenom,nhit_type(j))
           else
 #endif
             write(coll_tracksUnit,"(1x,i8,1x,i4,1x,f10.2,4(1x,e12.5),1x,e11.3,1x,i4)") partID(j), iturn, dcum(ie), &
-              xv1(j), yv1(j), xv2(j), yv2(j), (ejv(j)-myenom)/myenom, secondary(j)+tertiary(j)+other(j)
+              xv1(j), yv1(j), xv2(j), yv2(j), (ejv(j)-myenom)/myenom, nhit_type(j)
 #ifdef HDF5
           end if
 #endif
@@ -3905,7 +3914,7 @@ subroutine collimate_end_turn
 !GRD HERE WE APPLY THE SAME KIND OF CUT THAN THE SIGSECUT PARAMETER
         if((secondary(j) .eq. 1 .or. &
             tertiary(j)  .eq. 2 .or. &
-            other(j)     .eq. 4        ) .and. &
+            other(j)     .eq. 4 .or. nhit_type(j) > 0     ) .and. &
             (xv1(j).lt.99.0_fPrec .and. xv2(j).lt.99.0_fPrec) .and. &
             ((((xv1(j)*c1m3)**2 / (tbetax(ie)*myemitx0_collgap)) .ge. sigsecut2).or. &
             (((xv2(j)*c1m3)**2  / (tbetay(ie)*myemity0_collgap)) .ge. sigsecut2).or. &
@@ -3919,11 +3928,11 @@ subroutine collimate_end_turn
 #ifdef HDF5
           if(h5_writeTracks2) then
             call h5tr2_writeLine(partID(j),iturn,dcum(ie),xv1(j),yv1(j),xv2(j),yv2(j),&
-              (ejv(j)-myenom)/myenom,secondary(j)+tertiary(j)+other(j))
+              (ejv(j)-myenom)/myenom,nhit_type(j))
           else
 #endif
             write(coll_tracksUnit,"(1x,i8,1x,i4,1x,f10.2,4(1x,e12.5),1x,e11.3,1x,i4)") partID(j),iturn,dcum(ie), &
-              xv1(j),yv1(j),xv2(j),yv2(j),(ejv(j)-myenom)/myenom,secondary(j)+tertiary(j)+other(j)
+              xv1(j),yv1(j),xv2(j),yv2(j),(ejv(j)-myenom)/myenom,nhit_type(j)
 #ifdef HDF5
           end if
 #endif

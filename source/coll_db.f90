@@ -29,6 +29,7 @@ module coll_db
   character(len=:), allocatable, public, save :: cdb_cName(:)       ! Collimator name
   character(len=:), allocatable, public, save :: cdb_cMaterial(:)   ! Collimator material
   integer,          allocatable, public, save :: cdb_cFamily(:)     ! Collimator family
+  integer,          allocatable, public, save :: cdb_cType(:)       ! Collimator type
   real(kind=fPrec), allocatable, public, save :: cdb_cNSig(:)       ! Collimator sigma
   real(kind=fPrec), allocatable, public, save :: cdb_cNSigOrig(:)   ! Collimator sigma
   real(kind=fPrec), allocatable, public, save :: cdb_cLength(:)     ! Collimator length
@@ -49,6 +50,7 @@ module coll_db
   character(len=:), allocatable, public, save :: cdb_famName(:)     ! Family name
   real(kind=fPrec), allocatable, public, save :: cdb_famNSig(:)     ! Family sigma
   real(kind=fPrec), allocatable, public, save :: cdb_famNSigOrig(:) ! Family sigma (original value from DB)
+  integer,          allocatable, public, save :: cdb_famType(:)     ! Family type
 
   ! Element Map
   integer,          allocatable, public, save :: cdb_elemMap(:)     ! Map from single elements to DB
@@ -71,6 +73,7 @@ subroutine cdb_allocDB
   call alloc(cdb_cName,       mNameLen, cdb_nColl, " ",           "cdb_cName")
   call alloc(cdb_cMaterial,   4,        cdb_nColl, " ",           "cdb_cMaterial")
   call alloc(cdb_cFamily,               cdb_nColl, 0,             "cdb_cFamily")
+  call alloc(cdb_cType,                 cdb_nColl, 0,             "cdb_cType")
   call alloc(cdb_cNSig,                 cdb_nColl, cdb_defColGap, "cdb_cNSig")
   call alloc(cdb_cNSigOrig,             cdb_nColl, cdb_defColGap, "cdb_cNSigOrig")
   call alloc(cdb_cLength,               cdb_nColl, zero,          "cdb_cLength")
@@ -103,6 +106,7 @@ subroutine cdb_allocFam
   call alloc(cdb_famName, cdb_fNameLen, cdb_nFam, " ",           "cdb_famName")
   call alloc(cdb_famNSig,               cdb_nFam, cdb_defColGap, "cdb_famNSig")
   call alloc(cdb_famNSigOrig,           cdb_nFam, cdb_defColGap, "cdb_famNSigOrig")
+  call alloc(cdb_famType,               cdb_nFam, 0,             "cdb_famType")
 
 end subroutine cdb_allocFam
 
