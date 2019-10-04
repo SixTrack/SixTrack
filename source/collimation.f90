@@ -133,7 +133,6 @@ module collimation
   integer, allocatable, save :: secondary(:) !(npart)
   integer, allocatable, save :: tertiary(:) !(npart)
   integer, allocatable, save :: other(:) !(npart)
-  integer, allocatable, save :: scatterhit(:) !(npart)
   integer, allocatable, save :: part_hit_before_pos(:) !(npart)
   integer, allocatable, save :: part_hit_before_turn(:) !(npart)
 
@@ -342,7 +341,6 @@ subroutine collimation_expand_arrays(npart_new, nblz_new)
   call alloc(secondary,            npart_new, 0, "secondary") !(npart_new)
   call alloc(tertiary,             npart_new, 0, "tertiary") !(npart_new)
   call alloc(other,                npart_new, 0, "other") !(npart_new)
-  call alloc(scatterhit,           npart_new, 0, "scatterhit") !(npart_new)
   call alloc(part_hit_before_pos,  npart_new, 0, "part_hit_before_pos") !(npart_new)
   call alloc(part_hit_before_turn, npart_new, 0, "part_hit_before_turn") !(npart_new)
   call alloc(part_hit_pos,         npart_new, 0, "part_hit_pos") !(npart_new)
@@ -1657,7 +1655,6 @@ subroutine collimate_start
     tertiary(j)       = 0
     secondary(j)      = 0
     other(j)          = 0
-    scatterhit(j)     = 0
     nabs_type(j)      = 0
   end do
 
@@ -1882,7 +1879,6 @@ subroutine collimate_start
     tertiary(j)=0
     secondary(j)=0
     other(j)=0
-    scatterhit(j)=0
     nabs_type(j) = 0
   end do
 
@@ -2122,7 +2118,7 @@ subroutine collimate_do_collimator(stracki)
   if(chr_toLower(cdb_cName(icoll)) == name_sel .and. do_select) then
     do j=1,napx
       write(coll_ellipseUnit,"(1x,i8,6(1x,e15.7),3(1x,i4,1x,i4))") partID(j),xv1(j),xv2(j),yv1(j),yv2(j), &
-        ejv(j),sigmv(j),iturn,secondary(j)+tertiary(j)+other(j)+scatterhit(j),nabs_type(j)
+        ejv(j),sigmv(j),iturn,secondary(j)+tertiary(j)+other(j),nabs_type(j)
     end do
   end if
 
@@ -2784,7 +2780,6 @@ end do
         secondary(j) = 0
         tertiary(j)  = 0
         other(j)     = 0
-        scatterhit(j)= 0
         nabs_type(j) = 0
       end if
 
@@ -2841,7 +2836,6 @@ end do
         ykick = rcyp(j) - rcyp0(j)
 
         ! Indicate wether this is a secondary / tertiary / other particle;
-        !  note that 'scatterhit' (equals 8 when set) is set in SCATTER.
         if(cdb_cName(icoll)(1:3) == "tcp") then
           secondary(j) = 1
         else if(cdb_cName(icoll)(1:3) == "tcs") then
@@ -2861,8 +2855,7 @@ end do
         if(part_abs_pos(j).eq.0 .and. part_abs_turn(j).eq.0) then
           if((secondary(j) .eq. 1 .or. &
               tertiary(j)  .eq. 2 .or. &
-              other(j)     .eq. 4 .or. &
-              scatterhit(j).eq.8         ) .and. &
+              other(j)     .eq. 4        ) .and. &
              (xv1(j).lt.99.0_fPrec .and. xv2(j).lt.99.0_fPrec).and.&
 !GRD HERE WE APPLY THE SAME KIND OF CUT THAN THE SIGSECUT PARAMETER
              ((((xv1(j)*c1m3)**2 / (tbetax(ie)*myemitx0_collgap)) .ge. sigsecut2) .or. &
@@ -2886,7 +2879,7 @@ end do
               hdfy    = (rcy0(j)*c1e3+torby(ie)) - half*c_length*(rcyp0(j)*c1e3+torbyp(ie))
               hdfyp   = rcyp0(j)*c1e3+torbyp(ie)
               hdfdee  = (ejv(j)-myenom)/myenom
-              hdftyp  = secondary(j)+tertiary(j)+other(j)+scatterhit(j)
+              hdftyp  = secondary(j)+tertiary(j)+other(j)
               call h5tr2_writeLine(hdfpid,hdfturn,hdfs,hdfx,hdfxp,hdfy,hdfyp,hdfdee,hdftyp)
 
               hdfs  = dcum(ie)+half*c_length
@@ -2903,13 +2896,13 @@ end do
                 rcxp0(j)*c1e3+torbxp(ie),                                          &
                 (rcy0(j)*c1e3+torby(ie))-half*c_length*(rcyp0(j)*c1e3+torbyp(ie)), &
                 rcyp0(j)*c1e3+torbyp(ie),                                          &
-                (ejv(j)-myenom)/myenom,secondary(j)+tertiary(j)+other(j)+scatterhit(j)
+                (ejv(j)-myenom)/myenom,secondary(j)+tertiary(j)+other(j)
 
               write(coll_tracksUnit,"(1x,i8,1x,i4,1x,f10.2,4(1x,e12.5),1x,e11.3,1x,i4)") &
                 partID(j),iturn,dcum(ie)+half*c_length,                         &
                 xv1(j)+half*c_length*yv1(j),yv1(j),                             &
                 xv2(j)+half*c_length*yv2(j),yv2(j),(ejv(j)-myenom)/myenom,      &
-                secondary(j)+tertiary(j)+other(j)+scatterhit(j)
+                secondary(j)+tertiary(j)+other(j)
 #ifdef HDF5
             end if
 #endif
@@ -3426,7 +3419,6 @@ subroutine collimate_start_element(i)
       secondary(j)  = 0
       tertiary(j)   = 0
       other(j)      = 0
-      scatterhit(j) = 0
       nabs_type(j)  = 0
       part_abs_pos(j)  = ie
       part_abs_turn(j) = iturn
@@ -3549,8 +3541,7 @@ subroutine collimate_end_element
 !GRD HERE WE APPLY THE SAME KIND OF CUT THAN THE SIGSECUT PARAMETER
          if((secondary(j) .eq. 1 .or. &
              tertiary(j)  .eq. 2 .or. &
-             other(j)     .eq. 4 .or. &
-             scatterhit(j).eq. 8       ) .and. &
+             other(j)     .eq. 4       ) .and. &
              (xv1(j).lt.99.0_fPrec .and. xv2(j).lt.99.0_fPrec) .and. &
              ((((xv1(j)*c1m3)**2 / (tbetax(ie)*myemitx0_collgap)) .ge. sigsecut2).or. &
              (((xv2(j)*c1m3)**2  / (tbetay(ie)*myemity0_collgap)) .ge. sigsecut2).or. &
@@ -3564,11 +3555,11 @@ subroutine collimate_end_element
 #ifdef HDF5
           if(h5_writeTracks2) then
             call h5tr2_writeLine(partID(j),iturn,dcum(ie),xv1(j),yv1(j),xv2(j),yv2(j),&
-              (ejv(j)-myenom)/myenom,secondary(j)+tertiary(j)+other(j)+scatterhit(j))
+              (ejv(j)-myenom)/myenom,secondary(j)+tertiary(j)+other(j))
           else
 #endif
             write(coll_tracksUnit,"(1x,i8,1x,i4,1x,f10.2,4(1x,e12.5),1x,e11.3,1x,i4)") partID(j), iturn, dcum(ie), &
-              xv1(j), yv1(j), xv2(j), yv2(j), (ejv(j)-myenom)/myenom, secondary(j)+tertiary(j)+other(j)+scatterhit(j)
+              xv1(j), yv1(j), xv2(j), yv2(j), (ejv(j)-myenom)/myenom, secondary(j)+tertiary(j)+other(j)
 #ifdef HDF5
           end if
 #endif
@@ -3914,8 +3905,7 @@ subroutine collimate_end_turn
 !GRD HERE WE APPLY THE SAME KIND OF CUT THAN THE SIGSECUT PARAMETER
         if((secondary(j) .eq. 1 .or. &
             tertiary(j)  .eq. 2 .or. &
-            other(j)     .eq. 4 .or. &
-            scatterhit(j).eq. 8        ) .and. &
+            other(j)     .eq. 4        ) .and. &
             (xv1(j).lt.99.0_fPrec .and. xv2(j).lt.99.0_fPrec) .and. &
             ((((xv1(j)*c1m3)**2 / (tbetax(ie)*myemitx0_collgap)) .ge. sigsecut2).or. &
             (((xv2(j)*c1m3)**2  / (tbetay(ie)*myemity0_collgap)) .ge. sigsecut2).or. &
@@ -3929,15 +3919,15 @@ subroutine collimate_end_turn
 #ifdef HDF5
           if(h5_writeTracks2) then
             call h5tr2_writeLine(partID(j),iturn,dcum(ie),xv1(j),yv1(j),xv2(j),yv2(j),&
-              (ejv(j)-myenom)/myenom,secondary(j)+tertiary(j)+other(j)+scatterhit(j))
+              (ejv(j)-myenom)/myenom,secondary(j)+tertiary(j)+other(j))
           else
 #endif
             write(coll_tracksUnit,"(1x,i8,1x,i4,1x,f10.2,4(1x,e12.5),1x,e11.3,1x,i4)") partID(j),iturn,dcum(ie), &
-              xv1(j),yv1(j),xv2(j),yv2(j),(ejv(j)-myenom)/myenom,secondary(j)+tertiary(j)+other(j)+scatterhit(j)
+              xv1(j),yv1(j),xv2(j),yv2(j),(ejv(j)-myenom)/myenom,secondary(j)+tertiary(j)+other(j)
 #ifdef HDF5
           end if
 #endif
-        end if !if ((secondary(j).eq.1.or.tertiary(j).eq.2.or.other(j).eq.4.or.scatterhit(j).eq.8
+        end if !if ((secondary(j).eq.1.or.tertiary(j).eq.2.or.other(j).eq.4
       end if !if(part_abs_pos(j).eq.0 .and. part_abs_turn(j).eq.0) then
     end do ! do j = 1, napx
   end if !if(dowritetracks) then

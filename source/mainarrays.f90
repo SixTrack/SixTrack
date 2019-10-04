@@ -284,7 +284,6 @@ subroutine shuffleLostParticles
       secondary(j:tnapx)            = cshift(secondary(j:tnapx),            1)
       tertiary(j:tnapx)             = cshift(tertiary(j:tnapx),             1)
       other(j:tnapx)                = cshift(other(j:tnapx),                1)
-      scatterhit(j:tnapx)           = cshift(scatterhit(j:tnapx),           1)
       nabs_type(j:tnapx)            = cshift(nabs_type(j:tnapx),            1)
 
       counted_r(j:tnapx,:)          = cshift(counted_r(j:tnapx,:),          1, 1)
