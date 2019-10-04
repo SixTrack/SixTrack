@@ -737,25 +737,29 @@ subroutine linopt(dpp)
         if(abs(dki(ix,1)) > pieni) then
           if(abs(dki(ix,3)) > pieni) then
 #include "include/multl01.f90"
-#include "include/multl08.f90"
-            do i=2,ium
+          t(6,2)=(t(6,2)-((qu*xl+dppi)/(one+dpp))*tiltc(k))-(dppi/(one+dpp))*(one-tiltc(k))
+          t(6,4)=(t(6,4)-((qu*xl+dppi)/(one+dpp))*tilts(k))-(dppi/(one+dpp))*tilts(k)
+          do i=2,ium
 #include "include/multl02.f90"
             end do
           else
 #include "include/multl03.f90"
-#include "include/multl09.f90"
+            t(6,2)=(t(6,2)-(dppi/(one+dpp))*tiltc(k))-(dppi/(one+dpp))*(one-tiltc(k))
+            t(6,4)=(t(6,4)-(dppi/(one+dpp))*tilts(k))-(dppi/(one+dpp))*tilts(k)
           end if
         end if
         if(abs(dki(ix,2)) > pieni) then
           if(abs(dki(ix,3)) > pieni) then
 #include "include/multl04.f90"
-#include "include/multl10.f90"
+            t(6,2)=(t(6,2)-((qu*zl+dppi)/(one+dpp))*tilts(k))-(dppi/(one+dpp))*tilts(k)
+            t(6,4)=(t(6,4)+((qu*zl+dppi)/(one+dpp))*tiltc(k))+(dppi/(one+dpp))*(one-tiltc(k))
             do i=2,ium
 #include "include/multl05.f90"
             end do
           else
 #include "include/multl06.f90"
-#include "include/multl11.f90"
+            t(6,2)=(t(6,2)-(dppi/(one+dpp))*tilts(k))-(dppi/(one+dpp))*tilts(k)
+            t(6,4)=(t(6,4)+(dppi/(one+dpp))*tiltc(k))+(dppi/(one+dpp))*(one-tiltc(k))
           end if
         end if
         if(abs(r0) <= pieni) then

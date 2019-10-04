@@ -5222,11 +5222,12 @@ subroutine umlauf(dpp,ium,ierr)
     zl=(x(1,2)-zs)*tiltc(k)-(x(1,1)-xs)*tilts(k)
     crkve=xl
     cikve=zl
-  
+
     select case (kzz)
     case (1) ! HORIZONTAL DIPOLE
       ekk=ekk*c1e3
-#include "include/kicku01h.f90"
+      y(1,1)=y(1,1)+ekk*tiltc(k)
+      y(1,2)=y(1,2)+ekk*tilts(k)
       goto 350
     case (2) ! NORMAL QUADRUPOLE
 #include "include/kickuxxh.f90"
@@ -5337,22 +5338,30 @@ subroutine umlauf(dpp,ium,ierr)
       r0=ek(ix)
       if(abs(dki(ix,1)).gt.pieni) then
         if(abs(dki(ix,3)).gt.pieni) then
-#include "include/multu01.f90"
+          qu=(((-one*dki(ix,1))/dki(ix,3))*dki(ix,1))/(one+dpp)
+          y(1,1)=(y(1,1)+(qu*xl-((dpp*c1e3)*dki(ix,1))/(one+dpp))*tiltc(k))+((c1e3*dki(ix,1))/(one+dpp))*(one-tiltc(k))
+          y(1,2)=(y(1,2)+(qu*xl-((dpp*c1e3)*dki(ix,1))/(one+dpp))*tilts(k))+((c1e3*dki(ix,1))/(one+dpp))*tilts(k)
           do j=2,ium
-#include "include/multu02.f90"
+            y(j,1)=y(j,1)+(qu*x(j,1))*tiltc(k)
+            y(j,2)=y(j,2)+(qu*x(j,2))*tilts(k)
           end do
         else
-#include "include/multu03.f90"
+          y(1,1)=(y(1,1)-(((dki(ix,1)*dpp)/(one+dpp))*c1e3)*tiltc(k))+((c1e3*dki(ix,1))/(one+dpp))*(one-tiltc(k))
+          y(1,2)=(y(1,2)-(((dki(ix,1)*dpp)/(one+dpp))*c1e3)*tilts(k))+((c1e3*dki(ix,1))/(one+dpp))*tilts(k)
         end if
       end if
       if(abs(dki(ix,2)).gt.pieni) then
         if(abs(dki(ix,3)).gt.pieni) then
-#include "include/multu04.f90"
+          qu=((dki(ix,2)/dki(ix,3))*dki(ix,2))/(one+dpp)
+          y(1,1)=(y(1,1)+(qu*zl-((dpp*c1e3)*dki(ix,2))/(one+dpp))*tilts(k))+((c1e3*dki(ix,2))/(one+dpp))*tilts(k)
+          y(1,2)=(y(1,2)+(((dpp*c1e3)*dki(ix,2))/(one+dpp)-qu*zl)*tiltc(k))-((c1e3*dki(ix,2))/(one+dpp))*(one-tiltc(k))
           do j=2,ium
-#include "include/multu05.f90"
+            y(j,1)=y(j,1)+(qu*x(j,1))*tilts(k)
+            y(j,2)=y(j,2)-(qu*x(j,2))*tiltc(k)
           end do
         else
-#include "include/multu06.f90"
+          y(1,1)=(y(1,1)-(((dki(ix,2)*dpp)/(one+dpp))*c1e3)*tilts(k))+((dki(ix,2)/(one+dpp))*c1e3)*tilts(k)
+          y(1,2)=(y(1,2)+(((dki(ix,2)*dpp)/(one+dpp))*c1e3)*tiltc(k))-((dki(ix,2)/(one+dpp))*c1e3)*(one-tiltc(k))
         end if
       end if
       if(abs(r0).le.pieni) goto 350
@@ -5384,12 +5393,20 @@ subroutine umlauf(dpp,ium,ierr)
     case (12,13,14,15,16,17,18,19,20,21,22,23)
       goto 350
     case (24) ! DIPEDGE ELEMENT
-#include "include/kickudpe.f90"
+      dyy1=(ed(IX)*crkve)/(one+dpp)
+      dyy2=(ek(IX)*cikve)/(one+dpp)
+      y(1,1)=(y(1,1)+tiltc(k)*dyy1)-tilts(k)*dyy2
+      y(1,2)=(y(1,2)+tiltc(k)*dyy2)+tilts(k)*dyy1
       if(ium.eq.1) goto 350
 #include "include/kickqdpe.f90"
       goto 330
     case (25) ! Solenoid
-#include "include/kickuso1.f90"
+      crkve=y(1,1)-((x(1,1)*ed(IX))*ek(IX))/(one+dpp)
+      cikve=y(1,2)-((x(1,2)*ed(IX))*ek(IX))/(one+dpp)
+      dyy1=(crkve*cos_mb(ek(IX)/(one+dpp))+cikve*sin_mb(ek(IX)/(one+dpp)))-y(1,1)
+      dyy2=(cikve*cos_mb(ek(IX)/(one+dpp))-crkve*sin_mb(ek(IX)/(one+dpp)))-y(1,2)
+      y(1,1)=y(1,1)+dyy1
+      y(1,2)=y(1,2)+dyy2
       if(ium.eq.1) goto 350
 #include "include/kickqso1.f90"
       goto 330
@@ -5401,7 +5418,8 @@ subroutine umlauf(dpp,ium,ierr)
     !------------------
     case (-1) ! VERTICAL DIPOLE
       ekk=ekk*c1e3
-#include "include/kicku01v.f90"
+      y(1,1)=y(1,1)-ekk*tilts(k)
+      y(1,2)=y(1,2)+ekk*tiltc(k)
       goto 350
     case (-2) ! SKEW QUADRUPOLE
 #include "include/kickuxxv.f90"
