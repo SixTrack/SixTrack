@@ -389,7 +389,7 @@ subroutine cdb_readDB_oldFormat
   character(len=mInputLn) inLine
   character(len=cdb_fNameLen) famName
   character(len=mNameLen) collDummy
-  logical cErr
+  logical cErr, fExists
   integer j, dbUnit, ioStat, iLine, famID, matID
 
   cErr = .false.
@@ -478,6 +478,7 @@ subroutine cdb_readDB_oldFormat
       cdb_cNSig(j) = cdb_famNSig(famID)
     else
       cdb_cNSig(j) = cdb_cNSigOrig(j)
+      call cdb_addFamily(famName, cdb_cNSig(j), famID, fExists)
     end if
     cdb_cFamily(j) = famID
 
