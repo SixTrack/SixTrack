@@ -198,7 +198,7 @@ contains
 
     pairs: do iPair = 1,nPairs
       if (oldnames) then
-        write(ofnameBuffer,'(a,i6)') "fort.",91-iPair
+        write(ofnameBuffer,'(a,i0)') "fort.",91-iPair
       else
         write(ofnameBuffer,'(a,a,i0.6)') ifname,'.',iPair
       end if
