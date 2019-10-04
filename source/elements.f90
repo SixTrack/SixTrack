@@ -262,8 +262,13 @@ subroutine initialise_element(ix,lfirst)
                 tkb_d = (crkveb_d**2/sigman2(1,imbb(i))+cikveb_d**2/sigman2(2,imbb(i)))*half
                 xbb_d = sigmanq(2,imbb(i))*xrb_d
                 zbb_d = sigmanq(1,imbb(i))*zrb_d
-                call errf(xrb_d,zrb_d,crxb_d,crzb_d) ! Was formerly only called for ibtyp == 0
-                call errf(xbb_d,zbb_d,cbxb_d,cbzb_d) ! Was formerly only called for ibtyp == 0
+                if(ibtyp == 0) then
+                  call errf(xrb_d,zrb_d,crxb_d,crzb_d)
+                  call errf(xbb_d,zbb_d,cbxb_d,cbzb_d)
+                else
+                  call wzsub(xrb_d,zrb_d,crxb_d,crzb_d)
+                  call wzsub(xbb_d,zbb_d,cbxb_d,cbzb_d)
+                end if
                 beamoff(4,imbb(i)) = (rkb_d*(crzb_d-exp_mb(-one*tkb_d)*cbzb_d))*sign(one,crkveb_d)
                 beamoff(5,imbb(i)) = (rkb_d*(crxb_d-exp_mb(-one*tkb_d)*cbxb_d))*sign(one,cikveb_d)
               end if
@@ -278,8 +283,13 @@ subroutine initialise_element(ix,lfirst)
                 tkb_d = (crkveb_d**2/sigman2(1,imbb(i))+cikveb_d**2/sigman2(2,imbb(i)))*half
                 xbb_d = sigmanq(2,imbb(i))*xrb_d
                 zbb_d = sigmanq(1,imbb(i))*zrb_d
-                call errf(zrb_d,xrb_d,crzb_d,crxb_d) ! Was formerly only called for ibtyp == 0
-                call errf(zbb_d,xbb_d,cbzb_d,cbxb_d) ! Was formerly only called for ibtyp == 0
+                if(ibtyp == 0) then
+                  call errf(zrb_d,xrb_d,crzb_d,crxb_d)
+                  call errf(zbb_d,xbb_d,cbzb_d,cbxb_d)
+                else
+                  call wzsub(zrb_d,xrb_d,crzb_d,crxb_d)
+                  call wzsub(zbb_d,xbb_d,cbzb_d,cbxb_d)
+                end if
                 beamoff(4,imbb(i)) = (rkb_d*(crzb_d-exp_mb(-one*tkb_d)*cbzb_d))*sign(one,crkveb_d)
                 beamoff(5,imbb(i)) = (rkb_d*(crxb_d-exp_mb(-one*tkb_d)*cbxb_d))*sign(one,cikveb_d)
               end if
