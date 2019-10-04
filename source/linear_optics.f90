@@ -128,9 +128,7 @@ subroutine linopt(dpp)
   real(kind=fPrec) aa,aeg,alfa,bb,benkr,beta,bexi,bezii,bl1eg,bl2eg,ci,cikve,clo0,clop0,cr,crkve, &
     crkveuk,di00,dip00,dphi,dpp,dpp1,dppi,dpr,dyy1,dyy2,ekk,etl,phi,phibf,puf,qu,qv,qw,qwc,r0,&
     r0a,t,xl,xs,zl,zs,quz,qvz
-#ifdef TILT
   real(kind=fPrec) dyy11,qu1,tiltck,tiltsk
-#endif
   character(len=mNameLen) idum
 
   dimension t(6,4)
@@ -795,9 +793,7 @@ subroutine linopt(dpp)
         else
 #include "include/multl07d.f90"
         end if
-#ifdef TILT
 #include "include/multl07e.f90"
-#endif
         izu = izu+2*mmul-2*nmz
 
 !--Skipped elements

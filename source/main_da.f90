@@ -63,9 +63,6 @@ program mainda
 
   ! Features
   featList = ""
-#ifdef TILT
-  featList = featList//" TILT"
-#endif
 #ifdef STF
   featList = featList//" STF"
 #endif

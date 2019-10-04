@@ -416,9 +416,7 @@ subroutine setStrack(skz, i)
     call prror
   end select
 
-#ifdef TILT
   strackc(i) = strack(i)*tiltc(i)
   stracks(i) = strack(i)*tilts(i)
-#endif
 
 end subroutine setStrack
