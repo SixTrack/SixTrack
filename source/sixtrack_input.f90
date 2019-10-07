@@ -563,13 +563,6 @@ subroutine sixin_parseInputLineSIMU(inLine, iLine, iErr)
       return
     end if
     napx = numPart/2
-#ifndef STF
-    if(napx > 32) then
-      write(lerr,"(a)") "SIMU> ERROR To run SixTrack with more than 64 particles, it has to be compiled with the STF flag."
-      iErr = .true.
-      return
-    end if
-#endif
     if(numPart > npart) then
       call expand_arrays(nele, numPart, nblz, nblo, nbb)
     end if
@@ -1326,14 +1319,6 @@ subroutine sixin_parseInputLineTRAC(inLine, iLine, iErr)
       call sixin_echoVal("numlcp", numlcp, "TRAC",iLine)
     end if
     if(iErr) return
-
-#ifndef STF
-    if(napx > 32) then
-      write(lerr,"(a)") "TRAC> ERROR To run SixTrack with more than 32 particle pairs, it has to be compiled with the STF flag."
-      iErr = .true.
-      return
-    end if
-#endif
 
     if(napx*2 > npart) then
       call expand_arrays(nele, napx*2, nblz, nblo, nbb)
@@ -3076,13 +3061,11 @@ subroutine sixin_parseInputLinePOST(inLine, iLine, iErr)
     end if
     if(iErr) return
 
-#ifdef STF
     if(imad == 1) then
-      write(lerr,"(a)") "POST> ERROR imad not supported when SixTrack is built with STF enabled."
+      write(lerr,"(a)") "POST> ERROR imad no longer supported in SixTrack"
       iErr = .true.
       return
     end if
-#endif
 
   case(3)
 

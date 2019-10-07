@@ -63,9 +63,6 @@ program mainda
 
   ! Features
   featList = ""
-#ifdef STF
-  featList = featList//" STF"
-#endif
 #ifdef CRLIBM
   featList = featList//" CRLIBM"
   call disable_xp()

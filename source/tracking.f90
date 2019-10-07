@@ -497,26 +497,28 @@ subroutine trackPairReport(n)
   use read_write
   use mod_settings
 
-  integer ia,ig,n
+  integer ia,ie,ip,n
 
   call writeFort12
 
-  do ia=1,napxo,2
-    ig=ia+1
+  do ip=1,(napxo+1)/2
+    ia = pairMap(1,ip)
+    ie = pairMap(2,ip)
+    if(ia == 0 .or. ie == 0) then
+      ! Check that the map does not contain a 0 index, which means something is wrong in the record keeping of lost particles
+      write(lerr,"(a,i0)") "WRITEBIN> ERROR The map of particle pairs is missing one or both particles for pair ",ip
+      call prror
+    end if
 #ifndef CR
-#ifndef STF
-    flush(91-(ig/2))
-#else
     flush(90)
 #endif
-#endif
     !-- PARTICLES STABLE (Only if QUIET < 2)
-    if(.not.pstop(ia).and..not.pstop(ig)) then
+    if(.not.pstop(ia) .and. .not.pstop(ie)) then
       if(st_quiet < 2) write(lout,10000) ia,izu0,dpsv(ia),n
       if(st_quiet < 1) write(lout,10010)                    &
         xv1(ia),yv1(ia),xv2(ia),yv2(ia),sigmv(ia),dpsv(ia), &
-        xv1(ig),yv1(ig),xv2(ig),yv2(ig),sigmv(ig),dpsv(ig), &
-        e0,ejv(ia),ejv(ig)
+        xv1(ie),yv1(ie),xv2(ie),yv2(ie),sigmv(ie),dpsv(ie), &
+        e0,ejv(ia),ejv(ie)
     end if
   end do
   return
