@@ -234,7 +234,7 @@ If you need this feature, please use the old input format.
     \texttt{WRITE\_TRACKS} & \texttt{interval(int) [rewind(flag)]} & \texttt{nturn+1 on} \\*
     \hline
     \multicolumn{3}{|>{\raggedright}p{\textwidth}|}{%
-        How often, in terms of turns, to write to the tracking files on unit 90 and lower (see Appendix~\ref{Files}).
+        How often, in terms of turns, to write to the tracking file \texttt{singletrackfile.dat} (see Appendix~\ref{Files}).
         The optional \texttt{rewind} flag specifies whether or not to rewind the tracking files on each write.
         \index{singletrackfile}\index{trackfiles}
     } \\*
@@ -313,9 +313,9 @@ A fine tuning of the initial condition is done with \textit{Initial Coordinates}
                            &          & \texttt{idfor = 0}: closed orbit added. \\
                            &          & \texttt{idfor = 1}: initial coordinates\index{initial coordinates} unchanged. \\
                            &          & \texttt{idfor = 2}: prolongation of a run, taken the initial coordinates from \texttt{fort.13}\index{fort.15}. \\
-    \texttt{irew}          & integer  & To reduce the amount of tracking data after each amplitude and relative momentum deviation iteration $\Delta p/p_0$ the binary output units 90 and lower (see Appendix~\ref{Files}) are rewound. This is always done when the post-processing is activated (\ref{PosPro}). For certain applications it may be useful to store all data. The switch \texttt{irew} allows for that. \\
-                           &          & \texttt{irew = 0}: unit 90 (and lower) rewound. \\
-                           &          & \texttt{irew = 1}: all data on unit 90 (and lower). \\
+    \texttt{irew}          & integer  & To reduce the amount of tracking data after each amplitude and relative momentum deviation iteration $\Delta p/p_0$ the binary track file \texttt{singletrackfile.dat} (see Appendix~\ref{Files}) are rewound. This is always done when the post-processing is activated (\ref{PosPro}). For certain applications it may be useful to store all data. The switch \texttt{irew} allows for that. \\
+                           &          & \texttt{irew = 0}: track file rewound. \\
+                           &          & \texttt{irew = 1}: all data on track file. \\
     \texttt{iclo6}         & integer  & This switch allows to calculate the 6D closed orbit and optical functions at the starting point, using the differential algebra package. It is active in all versions that link to the Differential Algebra package.  Note that \texttt{iclo6 > 0} is mandatory for 6D simulations, and that \texttt{iclo6 = 0} is mandatory for 4D simulations. \\
                            &          & \texttt{iclo6 = 0}: switched off. \\
                            &          & \texttt{iclo6 = 1}: calculated. \\
@@ -323,9 +323,9 @@ A fine tuning of the initial condition is done with \textit{Initial Coordinates}
                            &          & \texttt{iclo6 = 5 or 6}: like for 1 and 2, but in addition a guess closed orbit is read (in free format) from file \texttt{fort.33}. \\
     \texttt{nde(1)}        & integer  & Number of turns at flat bottom, useful for energy ramping. \\
     \texttt{nde(2)}        & integer  & Number of turns for the energy ramping. \texttt{numl}-\texttt{nde(2)} gives the number of turns on the flat top. For constant energy with \mbox{$nde(1) = nde(2) = 0$} the particles are considered to be on the flat top. \\
-    \texttt{nwr(1)}        & integer  & Every \texttt{nwr(1)}'th turn the coordinates will be written on unit 90 (and lower) in the flat bottom part of the tracking. \\
-    \texttt{nwr(2)}        & integer  & Every \texttt{nwr(2)}'th turn the coordinates in the ramping region will be written on unit 90 (and lower). \\
-    \texttt{nwr(3)}        & integer  & Every \texttt{nwr(3)}'th turn at the flat top a write out of the coordinates on unit 90 (and lower) will occur. For constant energy this number controls the amount of data on unit 90 (and lower), as the particles are considered on the flat top. \\
+    \texttt{nwr(1)}        & integer  & Every \texttt{nwr(1)}'th turn the coordinates will be written to track file in the flat bottom part of the tracking. \\
+    \texttt{nwr(2)}        & integer  & Every \texttt{nwr(2)}'th turn the coordinates in the ramping region will be written to track file. \\
+    \texttt{nwr(3)}        & integer  & Every \texttt{nwr(3)}'th turn at the flat top a write out of the coordinates to track file will occur. For constant energy this number controls the amount of data in track file, as the particles are considered on the flat top. \\
     \texttt{nwr(4)}        & integer  & In cases of very long runs it is sometimes useful to save all coordinates for a prolongation of a run after a possible crash of the computer. Every \texttt{nwr(4)}'th turn the coordinates are written to unit 6. \\
     \texttt{ntwin}         & integer  & For the analysis of the Lyapunov exponent\index{Lyapunov exponent} it is usually sufficient to store the calculated distance of phase space together with the coordinate of the first particle (\texttt{ntwin} set to one). You may want to improve the 6D calculation of the distance in phase space with \texttt{sigcor, dpscor} (see~\ref{IniCoo}) when the 6D closed orbit is not calculated with \texttt{iclo6} $\neq 2$. If storage space is no problem, one can store the coordinates of both particles (\texttt{ntwin} set to two). The distance in phase space is then calculated in the post-processing procedure (see~\ref{PosPro}). This also allows a subsequent refined Lyapunov analysis using differential algebra and Lie algebra\index{Lie algebra} techniques (\cite{Refine}). \\
     \texttt{ibidu}         & integer  & No longer in use. Value ignored. \\
