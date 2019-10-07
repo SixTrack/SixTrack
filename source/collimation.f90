@@ -32,11 +32,14 @@ module collimation
   logical, private, save :: systilt_antisymm = .false.
   logical, private, save :: do_mingap        = .false.
 
-  integer, private, save :: icoll     = 0
+  integer, private, save :: icoll = 0
+  integer, private, save :: ie    = 0
+  integer, private, save :: iturn = 0
 
   ! Distribution
   integer,          private, save :: do_thisdis   = 0
   real(kind=fPrec), public,  save :: myenom       = zero
+  logical,          private, save :: radial       = .false.
 
   ! Jaw Slicing
   integer,          private, save :: n_slices     = 0
@@ -64,9 +67,6 @@ module collimation
   real(kind=fPrec), private, save :: c_rmserror_gap    = zero
   integer,          private, save :: c_offsettilt_seed = 0
 
-  ! Radial Dist
-  logical,          private, save :: radial  = .false.
-
   ! Emittance Drift
   real(kind=fPrec), private, save :: driftsx = zero
   real(kind=fPrec), private, save :: driftsy = zero
@@ -79,9 +79,7 @@ module collimation
   real(kind=fPrec), private, save :: emitnx0_collgap = zero
   real(kind=fPrec), private, save :: emitny0_collgap = zero
 
-  character(len=mNameLen),  private, save :: name_sel  = " "
-
-  integer, save :: ie, iturn, nabs_total
+  character(len=mNameLen), private, save :: name_sel = " "
 
   integer ieff,ieffdpop
 
@@ -144,6 +142,7 @@ module collimation
   integer, allocatable, save :: nabs_type(:) !(npart)
   integer, save :: n_tot_absorbed
   integer, save :: n_absorbed
+  integer, save :: nabs_total
 
   real(kind=fPrec), allocatable, save :: part_impact(:) !(npart)
 
