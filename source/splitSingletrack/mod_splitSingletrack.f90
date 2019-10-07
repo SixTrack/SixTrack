@@ -8,7 +8,7 @@ module mod_splitSingletrack
   integer :: inUnit = 90
   integer :: outUnit = 91
 
-  integer :: myOutUnit = output_unit
+  integer :: textOutUnit = output_unit
 
   ! Temp arrays for I/O
   character(len=80), private :: sixtit,commen
@@ -45,14 +45,14 @@ contains
     close(inUnit)
 
     if(itopa <= 0) then
-      write(myOutUnit,'(a)')    "ERR in numSTFpairs: Corrupt itopa in first header of file '" // ifname // "'"
-      write(myOutUnit,'(a,i0,a)') "itopa = ", itopa, " <= 0"
+      write(textOutUnit,'(a)')    "ERR in numSTFpairs: Corrupt itopa in first header of file '" // ifname // "'"
+      write(textOutUnit,'(a,i0,a)') "itopa = ", itopa, " <= 0"
       stop 1
     end if
 
     if (modulo(itopa,2) /= 0) then
-      write(myOutUnit,'(a)')    "ERR in numSTFpairs: Number of particles not divisible by 2."
-      write(myOutUnit,'(a,i6)') "ERR in numSTFpairs: itopa = ", itopa
+      write(textOutUnit,'(a)')    "ERR in numSTFpairs: Number of particles not divisible by 2."
+      write(textOutUnit,'(a,i6)') "ERR in numSTFpairs: itopa = ", itopa
       stop 1
     end if
 
@@ -61,13 +61,13 @@ contains
 
     !Error handling
 510 continue
-    write(myOutUnit,'(a,i6)') "ERR while opening file; iostat=",iostat
+    write(textOutUnit,'(a,i6)') "ERR while opening file; iostat=",iostat
     stop 1
 511 continue
-    write(myOutUnit,'(a,i6)') "END while reading header; iostat=",iostat
+    write(textOutUnit,'(a,i6)') "END while reading header; iostat=",iostat
     stop 1
 520 continue
-    write(myOutUnit,'(a,i6)') "ERR while reading header; iostat=",iostat
+    write(textOutUnit,'(a,i6)') "ERR while reading header; iostat=",iostat
     stop 1
   end function numSTFpairs
 
@@ -111,7 +111,7 @@ contains
 
         ntwin = ilapa-ifipa+1
         if (.not. (ntwin == 1 .or. ntwin == 2)) then
-          write(myOutUnit,'(a)' ) "Error when reading header; ifipa=",ifipa, "ilapa=",ilapa,"ntwin=",ntwin
+          write(textOutUnit,'(a)' ) "Error when reading header; ifipa=",ifipa, "ilapa=",ilapa,"ntwin=",ntwin
           stop 1
         end if
 
@@ -147,24 +147,24 @@ contains
     end if
 
     !Should never reach this point
-    write(myOutUnit,'(a)') "Control reached an unreachable point?!?"
+    write(textOutUnit,'(a)') "Control reached an unreachable point?!?"
     stop 1
 
     !Error handling
 410 continue
-    write(myOutUnit,'(a,i6)') "ERR while opening input file; iostat=",iostat
+    write(textOutUnit,'(a,i6)') "ERR while opening input file; iostat=",iostat
     stop 1
 
 411 continue
-    write(myOutUnit,'(a,i6)') "ERR while opening output file; iostat=",iostat
+    write(textOutUnit,'(a,i6)') "ERR while opening output file; iostat=",iostat
     stop 1
 
 511 continue
-    write(myOutUnit,'(a,i6)') "END while reading header; iostat=",iostat
+    write(textOutUnit,'(a,i6)') "END while reading header; iostat=",iostat
     stop 1
 
 520 continue
-    write(myOutUnit,'(a,i6)') "ERR while reading header; iostat=",iostat
+    write(textOutUnit,'(a,i6)') "ERR while reading header; iostat=",iostat
     stop 1
 
 530 continue
@@ -174,15 +174,15 @@ contains
     return
 
 531 continue
-    write(myOutUnit,'(a,i6)') "ERR while reading data ; iostat=",iostat
+    write(textOutUnit,'(a,i6)') "ERR while reading data ; iostat=",iostat
     stop 1
 
 620 continue
-    write(myOutUnit,'(a,i6)') "ERR while writing header; iostat=",iostat
+    write(textOutUnit,'(a,i6)') "ERR while writing header; iostat=",iostat
     stop 1
 
 621 continue
-    write(myOutUnit,'(a,i6)') "ERR while writing data; iostat=",iostat
+    write(textOutUnit,'(a,i6)') "ERR while writing data; iostat=",iostat
     stop 1
 
   end subroutine convertSTFpair
@@ -200,7 +200,7 @@ contains
     nPairs = numSTFpairs(ifname)
 
     if (oldnames .and. nPairs > 32) then
-      write(myOutUnit,'(a,i6,a)') "ERR in convertSTFfile: Oldpairs=true but nPairs = ", npairs, " > 32"
+      write(textOutUnit,'(a,i6,a)') "ERR in convertSTFfile: Oldpairs=true but nPairs = ", npairs, " > 32"
       stop 1
     end if
 
