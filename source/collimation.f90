@@ -2809,7 +2809,7 @@ end do
             call h5_finaliseWrite(coll_hdf5_allAbsorb)
           else
 #endif
-            write(coll_allAbsorbUnit,"(i8,1x,i4,1x,f8.2)") partID(j),iturn,dcum(ie)
+            write(coll_allAbsorbUnit,"(i8,1x,i8,1x,f10.3)") partID(j),iturn,dcum(ie)
 #ifdef HDF5
           end if
 #endif
@@ -2821,6 +2821,7 @@ end do
         ykick = rcyp(j) - rcyp0(j)
 
         ! Indicate wether this is a secondary / tertiary / other particle;
+        ! nhit_type(j) = ior(nhit_type(j),cdb_cType(icoll))
         if(cdb_cName(icoll)(1:3) == "tcp") then
           secondary(j) = 1
           nhit_type(j) = ior(nhit_type(j),1)
