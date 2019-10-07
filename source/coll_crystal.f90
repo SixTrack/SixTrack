@@ -789,7 +789,7 @@ end module coll_crystal
                          X=X+S*XP
                          Z=Z+S*ZP
                        endif
-                       stop
+!                       stop
            endif
          endif
 !               WRITE(*,*)'X1_cry',X,'Z1_Cry',Z,'XP1_Cry',XP,'ZP1_Cry',ZP

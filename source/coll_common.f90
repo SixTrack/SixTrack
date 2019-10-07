@@ -141,8 +141,8 @@ module coll_materials
 
   implicit none
 
-  integer, parameter :: nmat  = 15 ! Total number of materials
-  integer, parameter :: nrmat = 13 ! Number of real materials
+  integer, parameter :: nmat  = 16 ! Total number of materials
+  integer, parameter :: nrmat = 14 ! Number of real materials
 
   ! pp cross-sections and parameters for energy dependence
   real(kind=fPrec), parameter :: pptref = 0.04_fPrec
@@ -181,7 +181,7 @@ module coll_materials
     [0.337_fPrec, 0.232_fPrec, zero, zero, zero, 0.0076e-2_fPrec], & ! C
     [0.337_fPrec, 0.232_fPrec, zero, zero, zero, 0.0076e-2_fPrec], & ! C2
     [0.664_fPrec, 0.430_fPrec, zero, zero, zero, 0.0390e-2_fPrec], & ! Si
-  ! [       zero,        zero, zero, zero, zero,            zero], & ! Ge
+    [1.388_fPrec, 0.844_fPrec, zero, zero, zero, 0.1860e-2_fPrec], & ! Ge
     [0.362_fPrec, 0.247_fPrec, zero, zero, zero, 0.0094e-2_fPrec], & ! MoGR
     [0.572_fPrec, 0.370_fPrec, zero, zero, zero, 0.0279e-2_fPrec], & ! CuCD
     [1.713_fPrec, 1.023_fPrec, zero, zero, zero, 0.2650e-2_fPrec], & ! Mo
@@ -201,7 +201,7 @@ module coll_materials
     [zero, zero, zero, zero, zero, one], & ! C
     [zero, zero, zero, zero, zero, one], & ! C2
     [zero, zero, zero, zero, zero, one], & ! Si
-  ! [zero, zero, zero, zero, zero, one], & ! Ge
+    [zero, zero, zero, zero, zero, one], & ! Ge
     [zero, zero, zero, zero, zero, one], & ! MoGR
     [zero, zero, zero, zero, zero, one], & ! CuCD
     [zero, zero, zero, zero, zero, one], & ! Mo
@@ -322,19 +322,19 @@ subroutine collmat_init
   emr(iMat)      =   0.306_fPrec
   hcut(iMat)     =   0.02_fPrec
   radl(iMat)     = one
-  bnref(iMat)    = 123.2_fPrec
+  bnref(iMat)    = 120.14_fPrec
 
-  ! ! Germanium
-  ! iMat = iMat + 1
-  ! colmats(iMat)  = "Ge"
-  ! exenergy(iMat) = one
-  ! anuc(iMat)     = one
-  ! zatom(iMat)    = one
-  ! rho(iMat)      = one
-  ! emr(iMat)      = one
-  ! hcut(iMat)     =   0.02_fPrec
-  ! radl(iMat)     = one
-  ! bnref(iMat)    = one
+  ! Germanium
+  iMat = iMat + 1
+  colmats(iMat)  = "Ge"
+  exenergy(iMat) = 350.0e-6_fPrec
+  anuc(iMat)     =  72.63_fPrec
+  zatom(iMat)    =  32.00_fPrec
+  rho(iMat)      =   5.323_fPrec
+  emr(iMat)      =   0.605_fPrec
+  hcut(iMat)     =   0.02_fPrec
+  radl(iMat)     = one
+  bnref(iMat)    = 226.35
 
   iMat = iMat + 1
   colmats(iMat)  = "MoGR"
