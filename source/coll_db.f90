@@ -25,6 +25,13 @@ module coll_db
   integer,                  public,  save :: cdb_nFam     = 0       ! Number of collimator families
   integer,                  public,  save :: cdb_setPos   = 0       ! The position in the DB file of the SETTINGS keyword
 
+  ! Collimator Types (must be integer of power of 2)
+  integer, parameter :: cdb_typPrimary   = 1
+  integer, parameter :: cdb_typSecondary = 2
+  integer, parameter :: cdb_typTertiary  = 4
+  integer, parameter :: cdb_typOther     = 8
+  integer, parameter :: cdb_typCrystal   = 16
+
   ! Main Database Arrays
   character(len=:), allocatable, public, save :: cdb_cName(:)       ! Collimator name
   character(len=:), allocatable, public, save :: cdb_cMaterial(:)   ! Collimator material
@@ -193,6 +200,11 @@ subroutine cdb_readCollDB
 ! ============================================================================ !
 !  Post-Processing DB
 ! ============================================================================ !
+
+  ! Set collimator types from family type
+  do i=1,cdb_nColl
+    cdb_cType(i) = cdb_famType(cdb_cFamily(i))
+  end do
 
   ! Map single elements to collimators
   do i=1,iu
@@ -374,7 +386,7 @@ subroutine cdb_readDB_oldFormat
   character(len=cdb_fNameLen) famName
   character(len=mNameLen) collDummy
   logical cErr
-  integer j, dbUnit, ioStat, iLine, famID, matID
+  integer j, dbUnit, ioStat, iLine, famID, matID, collType
 
   cErr = .false.
 
@@ -465,6 +477,9 @@ subroutine cdb_readDB_oldFormat
     end if
     cdb_cFamily(j) = famID
 
+    call cdb_getCollType(cdb_cName(j), collType)
+    cdb_famType(famID) = collType
+
     matID = collmat_getCollMatID(cdb_cMaterial(j))
     if(matID > 0) then
       cdb_cMaterialID(j) = matID
@@ -514,7 +529,8 @@ subroutine cdb_writeDB_newFromOld
   write(dbNew,"(a)") "# Automatically converted collimator DB from old format file '"//trim(cdb_fileName)//"'"
   write(dbNew,"(a)") "# Families"
   do j=1,cdb_nFam
-    write(dbNew,"(a,1x,a16,1x,f13.6)") "NSIG_FAM",cdb_famName(j),cdb_famNSig(j)
+    write(dbNew,"(a,1x,a16,1x,f13.6,1x,a)") "NSIG_FAM",cdb_famName(j),&
+      cdb_famNSig(j),trim(cdb_getTypeName(cdb_famType(j)))
   end do
   write(dbNew,"(a)") "#"
   write(dbNew,"(a)") "# Collimators"
@@ -986,6 +1002,32 @@ end function cdb_getFamilyNSig
 
 ! ================================================================================================ !
 !  V.K. Berglyd Olsen, BE-ABP-HSS
+!  Created: 2019-10-07
+!  Updated: 2019-10-07
+!  Get name from collimator type ID
+! ================================================================================================ !
+character(len=9) function cdb_getTypeName(typID)
+
+  integer, intent(in) :: typID
+
+  if(iand(typID,cdb_typPrimary) == cdb_typPrimary) then
+    cdb_getTypeName = "PRIMARY"
+  elseif(iand(typID,cdb_typSecondary) == cdb_typSecondary) then
+    cdb_getTypeName = "SECONDARY"
+  elseif(iand(typID,cdb_typTertiary) == cdb_typTertiary) then
+    cdb_getTypeName = "TERTIARY"
+  elseif(iand(typID,cdb_typOther) == cdb_typOther) then
+    cdb_getTypeName = "OTHER"
+  elseif(iand(typID,cdb_typCrystal) == cdb_typCrystal) then
+    cdb_getTypeName = "CRYSTAL"
+  else
+    cdb_getTypeName = "UNKNOWN"
+  end if
+
+end function cdb_getTypeName
+
+! ================================================================================================ !
+!  V.K. Berglyd Olsen, BE-ABP-HSS
 !  Created: 2019-03-21
 !  Updated: 2019-03-21
 !  Write family database to file
@@ -1207,6 +1249,35 @@ subroutine cdb_generateFamName(inElem, famName)
   end if
 
 end subroutine cdb_generateFamName
+
+! ================================================================================================ !
+!  V.K. Berglyd Olsen, BE-ABP-HSS
+!  Created: 2019-10-07
+!  Updated: 2019-10-07
+!  Checks the type of the collimator based on LHC naming convention (for support with old format)
+! ================================================================================================ !
+subroutine cdb_getCollType(inElem, collType)
+
+  use string_tools
+
+  character(len=mNameLen), intent(in)  :: inElem
+  integer,                 intent(out) :: collType
+
+  character(len=mNameLen) elemName
+
+  collType = cdb_typOther
+  elemName = chr_toLower(inElem)
+
+  if(elemName(1:3) == "tcp") then
+    collType = cdb_typPrimary
+  else if(elemName(1:3) == "tcs") then
+    collType = cdb_typSecondary
+  else if(elemName(1:3) == "tcl" .or. elemName(1:3) == "tct" .or. &
+          elemName(1:3) == "tcd" .or. elemName(1:3) == "tdi") then
+    collType = cdb_typTertiary
+  end if
+
+end subroutine cdb_getCollType
 
 ! ================================================================================================ !
 !  V.K. Berglyd Olsen, BE-ABP-HSS
