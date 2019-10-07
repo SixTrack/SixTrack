@@ -100,9 +100,6 @@ program maincr
 
   ! New Variables
   character(len=:), allocatable :: featList, compName
-#ifndef STF
-  character(len=7)  tmpFile
-#endif
   character(len=23) timeStamp
   character(len=8)  tsDate
   character(len=10) tsTime
@@ -139,9 +136,6 @@ program maincr
   featList = ""
 #ifdef TILT
   featList = featList//" TILT"
-#endif
-#ifdef STF
-  featList = featList//" STF"
 #endif
 #ifdef CRLIBM
   featList = featList//" CRLIBM"
@@ -194,16 +188,8 @@ program maincr
   call f_open(unit=26,file="fort.26",formatted=.false.,mode="rw",err=fErr) ! DA file
   call f_open(unit=31,file="fort.31",formatted=.true., mode="w", err=fErr)
 
-#ifdef STF
   ! Open Single Track File
   call f_open(unit=90,file="singletrackfile.dat",formatted=.false.,mode="rw",err=fErr)
-#else
-  ! Open binary files 59 to 90 for particle pair 1 to 32
-  do i=59,90
-    write(tmpFile,"(a5,i0)") "fort.",i
-    call f_open(unit=i,file=tmpFile,formatted=.false.,mode="rw",err=fErr)
-  end do
-#endif
 
   call time_timeStamp(time_afterFileUnits)
 
@@ -311,17 +297,7 @@ program maincr
     call f_requestUnit(fort110,unit110)
     call f_open(unit=unit10, file=fort10, formatted=.true., mode="rw",err=fErr,status="replace",recl=8195)
     call f_open(unit=unit110,file=fort110,formatted=.false.,mode="rw",err=fErr,status="replace")
-#ifndef STF
-    do i=1,ndafi !ndafi = number of files to postprocess (set by fort.3)
-#ifndef CR
-      call postpr(91-i)
-#else
-      write(crlog,"(2(a,i0))") "SIXTRACR> Calling POSTPR Unit: ",(91-i),", turns: ",nnuml
-      flush(crlog)
-      call postpr(91-i,nnuml)
-#endif
-    end do
-#else
+
     ! ndafi normally set in fort.3 to be "number of files to postprocess"
     ! Inside the postpr subroutine ndafi is modified as:
     ! ndafi=itopa(total particles) if once particle per header i.e ntwin=1,
@@ -335,7 +311,6 @@ program maincr
       call postpr(i,nnuml)
 #endif
     end do
-#endif
 
     call sumpos
     call f_close(unit10)
@@ -1108,17 +1083,6 @@ program maincr
       end if
 
       ! Write header of track output file(s) used by postprocessing for case ntwin /= 2
-#ifndef STF
-#ifdef CR
-      if(.not.cr_restart) then
-#endif
-        call writebin_header(ia,ia,91-ia2,ierro,cDate,cTime,progrm)
-#ifdef CR
-        flush(91-ia2)
-        binrecs(ia2)=1
-      endif
-#endif
-#else
 #ifdef CR
       if(.not.cr_restart) then
 #endif
@@ -1128,20 +1092,8 @@ program maincr
         binrecs(ia2)=1
       endif
 #endif
-#endif
     else !ELSE for "if(ntwin.ne.2)"
       ! Write header of track output file(s) used by postprocessing for case ntwin == 2
-#ifndef STF
-#ifdef CR
-      if(.not.cr_restart) then
-#endif
-        call writebin_header(ia,ia+1,91-ia2,ierro,cDate,cTime,progrm)
-#ifdef CR
-        flush(91-ia2)
-        binrecs(ia2)=1
-      endif
-#endif
-#else
 #ifdef CR
       if(.not.cr_restart) then
 #endif
@@ -1150,7 +1102,6 @@ program maincr
         flush(90)
         binrecs(ia2)=1
       endif
-#endif
 #endif
     endif !ENDIF (ntwin.ne.2)
     if(ierro /= 0) then
@@ -1455,23 +1406,12 @@ program maincr
     call f_open(unit=unit110,file=fort110,formatted=.false.,mode="rw",err=fErr,status="replace")
     do ia=1,napxo,2
       iposc = iposc+1
-#ifdef STF
 #ifdef CR
       write(crlog,"(3(a,i0))") "SIXTRACR> Calling POSTPR Particles: ",ia,",",(ia+1),", turns: ",nnuml
       flush(crlog)
       call postpr(ia,nnuml)
 #else
       call postpr(ia)
-#endif
-#else
-      ia2 = 91-(ia+1)/2 ! Track file unit number if not STF
-#ifdef CR
-      write(crlog,"(2(a,i0))") "SIXTRACR> Calling POSTPR Unit: ",ia2,", turns: ",nnuml
-      flush(crlog)
-      call postpr(ia2,nnuml)
-#else
-      call postpr(ia2)
-#endif
 #endif
     end do
     if(iposc >= 1) call sumpos
@@ -1489,22 +1429,12 @@ program maincr
     ndafi2 = ndafi
     do ia=1,ndafi2
       if(ia > ndafi) exit
-#ifdef STF
 #ifdef CR
       write(crlog,"(3(a,i0))") "SIXTRACR> Calling POSTPR Particles: ",ia,",",(ia+1),", turns: ",nnuml
       flush(crlog)
       call postpr(ia,nnuml)
 #else
       call postpr(ia)
-#endif
-#else
-#ifdef CR
-      write(crlog,"(2(a,i0))") "SIXTRACR> Calling POSTPR Unit: ",(91-i),", turns: ",nnuml
-      flush(crlog)
-      call postpr(91-ia,nnuml)
-#else
-      call postpr(91-ia)
-#endif
 #endif
     end do
     if(ndafi >= 1) call sumpos
