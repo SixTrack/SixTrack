@@ -74,7 +74,6 @@ message(STATUS "Project Binary:   ${PROJECT_BINARY_DIR}")
 option(TILT "Allow elements to be tilted (by error)" ON)
 option(CRLIBM "Use correctly rounded libmath instead of system libmath" ON)
 option(SIXDA "Build differential algebra version (NOT dynamic aperture!)" ON)
-option(STF "Single Track File: Write all tracks for postprocessing to fort.90 instead of 32 separate files fort.59 to fort.90. Required for >64 particles" ON)
 option(NAFF "Link to external NAFFlib for FMA" ON)
 option(DISTLIB "Link to external DISTlib for the beam distribution" ON)
 option(HASHLIB "Build the md5 hash library" ON)
@@ -144,10 +143,6 @@ set(SIXTRACK_FEAT_DA "${CMAKE_SYSTEM_NAME}_${Fortran_COMPILER_NAME}")
 if(NOT TILT)
   set(SIXTRACK_FEAT_CR "notilt_${SIXTRACK_FEAT_CR}")
   set(SIXTRACK_FEAT_DA "notilt_${SIXTRACK_FEAT_DA}")
-endif()
-if(NOT STF)
-  set(SIXTRACK_FEAT_CR "nostf_${SIXTRACK_FEAT_CR}")
-  set(SIXTRACK_FEAT_DA "nostf_${SIXTRACK_FEAT_DA}")
 endif()
 if(CRLIBM AND ROUND_NEAR)
   set(SIXTRACK_FEAT_CR "crlibm_rn_${SIXTRACK_FEAT_CR}")
@@ -271,7 +266,7 @@ set(SIXTRACK_BINARY_NAME_DA "SixDA_${NUM_VERSION}${GIT_BUILD}_${SIXTRACK_FEAT_DA
 # Setting the c pre-processor definitons
 ###################################################################################################
 
-list(APPEND PREPRO_FLAGS_TOOLS TILT BOINC BEAMGAS STF MERLINSCATTER G4COLLIMATION FLUKA CR PYTHIA NAFF)
+list(APPEND PREPRO_FLAGS_TOOLS TILT BOINC BEAMGAS MERLINSCATTER G4COLLIMATION FLUKA CR PYTHIA NAFF)
 list(APPEND PREPRO_FLAGS_LIB CRLIBM ROUND_NEAR ROUND_UP ROUND_DOWN ROUND_ZERO CERNLIB HDF5 FIO ROOT HASHLIB ZLIB DISTLIB)
 list(APPEND PREPRO_FLAGS_COMPILE GFORTRAN IFORT NAGFOR WIN32 DEBUG MEMUSAGE)
 
@@ -1528,6 +1523,15 @@ endif(COVERAGE)
 
 set(BUILDNAME "${SIXTRACK_BINARY_NAME}" CACHE STRING "Name of build on the dashboard")
 mark_as_advanced(BUILDNAME)
+
+#Tools
+set(MOD_SPLITSINGLETRACK_SOURCES
+  ${CMAKE_SOURCE_DIR}/source/splitSingletrack/mod_splitSingletrack.f90
+)
+add_library          (mod_splitSingletrack STATIC ${MOD_SPLITSINGLETRACK_SOURCES})
+add_executable       (splitSingletrack ${CMAKE_SOURCE_DIR}/source/splitSingletrack/splitSingletrack.f90)
+target_link_libraries(splitSingletrack mod_splitSingletrack)
+set_target_properties(splitSingletrack PROPERTIES LINK_FLAGS "${CMAKE_Fortran_LINKER_FLAGS}")
 
 # For testing
 if(BUILD_TESTING)
