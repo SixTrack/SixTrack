@@ -44,8 +44,14 @@ contains
          dnumlr,sigcor,dpscor
     close(inUnit)
 
+    if(itopa <= 0) then
+      write(myOutUnit,'(a)')    "ERR in numSTFpairs: Corrupt itopa in first header of file '" // ifname // "'"
+      write(myOutUnit,'(a,i0,a)') "itopa = ", itopa, " <= 0"
+      stop 1
+    end if
+
     if (modulo(itopa,2) /= 0) then
-      write(myOutUnit,'(a)') "ERR in numSTFpairs: Number of particles not divisible by 2."
+      write(myOutUnit,'(a)')    "ERR in numSTFpairs: Number of particles not divisible by 2."
       write(myOutUnit,'(a,i6)') "ERR in numSTFpairs: itopa = ", itopa
       stop 1
     end if
@@ -116,7 +122,7 @@ contains
       end if
     end do headers
 
-    if(ntwin.eq.1) then
+    if(ntwin == 1) then
       data1: do
         read(inUnit,end=530,err=531, iostat=iostat) &
              ia,ifipa,b,c,d,e,f,g,h,p
@@ -127,7 +133,7 @@ contains
                ia,ifipa,b,c,d,e,f,g,h,p
         end if
       end do data1
-    else if (ntwin.eq.2) then
+    else if (ntwin == 2) then
       data2: do
         read(inUnit,end=530,err=531, iostat=iostat) &
              ia,ifipa,b,c,d,e,f,g,h,p, ilapa,b,c1,d1,e1,f1,g1,h1,p1
@@ -144,13 +150,11 @@ contains
     write(myOutUnit,'(a)') "Control reached an unreachable point?!?"
     stop 1
 
-    !close (inUnit)
-    !close (outUnit)
-    return
     !Error handling
 410 continue
     write(myOutUnit,'(a,i6)') "ERR while opening input file; iostat=",iostat
     stop 1
+
 411 continue
     write(myOutUnit,'(a,i6)') "ERR while opening output file; iostat=",iostat
     stop 1
@@ -158,6 +162,7 @@ contains
 511 continue
     write(myOutUnit,'(a,i6)') "END while reading header; iostat=",iostat
     stop 1
+
 520 continue
     write(myOutUnit,'(a,i6)') "ERR while reading header; iostat=",iostat
     stop 1
@@ -170,10 +175,12 @@ contains
 
 531 continue
     write(myOutUnit,'(a,i6)') "ERR while reading data ; iostat=",iostat
+    stop 1
 
 620 continue
     write(myOutUnit,'(a,i6)') "ERR while writing header; iostat=",iostat
     stop 1
+
 621 continue
     write(myOutUnit,'(a,i6)') "ERR while writing data; iostat=",iostat
     stop 1
@@ -187,7 +194,8 @@ contains
 
     integer nPairs
     integer iPair
-    character(len=100) ofnameBuffer !TODO: More inteligent scaling, or at least a check
+    character(len=100) ofnameBuffer !TODO: More inteligent scaling (or at least a check) would be nice
+                                    ! However the actual names are hard coded so whatever.
 
     nPairs = numSTFpairs(ifname)
 
@@ -198,13 +206,15 @@ contains
 
     pairs: do iPair = 1,nPairs
       if (oldnames) then
-        write(ofnameBuffer,'(a,i0)') "fort.",91-iPair
+        write(ofnameBuffer,'(a,i0)')     "fort.",91-iPair
       else
         write(ofnameBuffer,'(a,a,i0.6)') ifname,'.',iPair
       end if
-      !write(*,*)ofnameBuffer
+
       call convertSTFpair(iPair, ifname, ofnameBuffer)
+
     end do pairs
+
   end subroutine convertSTFfile
 
 end module mod_splitSingletrack
