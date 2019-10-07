@@ -1671,11 +1671,6 @@ If so, a converted database is written to the simulation folder with an added fi
 The energy of the beam to be tracked.
 This is independent of the energy specified in other blocks, and is a required value.
 
-\paragraph{Beam Number} \texttt{BEAM\_NUM 1|2}\\
-
-Number of the beam tracked.
-The default value is 1.
-
 \paragraph{Emittance (Required)} \texttt{EMIT eX\_d eY\_d eX\_g eY\_g}\\
 
 Specifies the normalised emittance for the distribution \texttt[eX\_d, eY\_d], and for the collimator gaps \texttt[eX\_g, eY\_g].
@@ -2390,7 +2385,7 @@ This structure is then repeated within the file for each of the collimators to b
 
     16  & \texttt{COLL\_DB}      & char    & Name of the collimator database. \\
         \cline{2-4}
-        & \texttt{IBEAM}         & integer & Number of the beam tracked (1 or 2). \\
+        & \texttt{IBEAM}         & integer & This value is no longer used, and is ignored. \\
     \hline
 
     17  & \texttt{DOWRITETRACKS} & logical & Writes secondary/tertiary halo files. \\

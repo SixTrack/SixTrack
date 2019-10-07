@@ -32,10 +32,9 @@ module collimation
   logical, private, save :: systilt_antisymm = .false.
   logical, private, save :: do_mingap        = .false.
 
-  integer, private, save :: icoll      = 0
-  integer, private, save :: nloop      = 1
-  integer, private, save :: ibeam      = 1
-  integer, private, save :: jobnumber  = 0
+  integer, private, save :: icoll     = 0
+  integer, private, save :: nloop     = 1
+  integer, private, save :: jobnumber = 0
 
   ! Distribution
   integer,          private, save :: do_thisdis   = 0
@@ -552,7 +551,6 @@ subroutine collimate_init
   write(lout,"(a,i0)")    'COLL> Info: PENCIL_DISTR        = ', pencil_distr
   write(lout,"(a)")
   write(lout,"(a,a)")     'COLL> Info: COLL_DB             = ', cdb_fileName
-  write(lout,"(a,i0)")    'COLL> Info: IBEAM               = ', ibeam
   write(lout,"(a)")
   write(lout,"(a,l1)")    'COLL> Info: DOWRITETRACKS       = ', dowritetracks
   write(lout,"(a)")
@@ -1083,18 +1081,9 @@ subroutine collimate_parseInputLine(inLine, iLine, iErr)
     cdb_fileName = trim(lnSplit(2))
 
   case("BEAM_NUM")
-    if(nSplit /= 2) then
-      write(lerr,"(a,i0)") "COLL> ERROR BEAM_NUM expects 1 value, got ",nSplit-1
-      write(lerr,"(a)")    "COLL>       BEAM_NUM 1|2"
-      iErr = .true.
-      return
-    end if
-    call chr_cast(lnSplit(2), ibeam, iErr)
-    if(ibeam /= 1 .and. ibeam /= 2) then
-      write(lerr,"(a,i0)") "COLL> ERROR BEAM_NUM must be 1 or 2, got ",ibeam
-      iErr = .true.
-      return
-    end if
+    write(lerr,"(a)") "COLL> ERROR The BEAM_NUM flag has been removed"
+    iErr = .true.
+    return
 
   case("WRITE_TRACKS")
     if(nSplit /= 2) then
@@ -1377,8 +1366,8 @@ subroutine collimate_parseInputLine(inLine, iLine, iErr)
       iErr = .true.
       return
     end if
-    cdb_fileName = lnSPlit(1)
-    call chr_cast(lnSPlit(2), ibeam, iErr)
+    cdb_fileName = lnSplit(1)
+    ! The second value is ignored
 
   case(17)
     if(nSplit /= 6) then
