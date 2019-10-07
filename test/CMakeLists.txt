@@ -1,4 +1,3 @@
-
 ##
 ##  SixTrack Test Suite
 ## =====================
@@ -29,12 +28,23 @@ set_tests_properties(SelfTest_read90 PROPERTIES PASS_REGULAR_EXPRESSION "Error i
 add_test(NAME SelfTest_readDump3 COMMAND readDump3)
 set_tests_properties(SelfTest_readDump3 PROPERTIES PASS_REGULAR_EXPRESSION "Expected 2 arguments: inputfile outputfile\n.*3")
 
+add_test(NAME SelfTest_splitSingletrack COMMAND splitSingletrack)
+set_tests_properties(SelfTest_splitSingletrack PROPERTIES PASS_REGULAR_EXPRESSION "Error in splitSingletrack -- file 'singletrackfile.dat' not found\.\n.*1")
+
 if(ZLIB)
   add_test(NAME SelfTest_zlib COMMAND ${CMAKE_BINARY_DIR}/zlib/example)
   if(64BIT)
     add_test(NAME SelfTest_zlib_64 COMMAND ${CMAKE_BINARY_DIR}/zlib/example64)
   endif()
 endif()
+
+# Check that the splitSingletrack is really working correctly
+add_custom_target(test_copy_SelfTest_splitSingletrack_run)
+add_custom_command(TARGET test_copy_SelfTest_splitSingletrack_run POST_BUILD COMMAND ${CMAKE_COMMAND} -E make_directory ${CMAKE_BINARY_DIR}/test/CheckSplitSingletrack)
+add_custom_command(TARGET test_copy_SelfTest_splitSingletrack_run POST_BUILD COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_SOURCE_DIR}/test/CheckSplitSingletrack/CheckSplitSingletrack.sh ${CMAKE_BINARY_DIR}/test/CheckSplitSingletrack/CheckSplitSingletrack.sh)
+add_dependencies(SixTrackCore test_copy_SelfTest_splitSingletrack_run)
+
+add_test(NAME SelfTest_splitSingletrack_run WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/test/CheckSplitSingletrack/ COMMAND ${CMAKE_BINARY_DIR}/test/CheckSplitSingletrack/CheckSplitSingletrack.sh ${CMAKE_BINARY_DIR}/splitSingletrack ${CMAKE_BINARY_DIR}/read90 ${CMAKE_BINARY_DIR}/test/dump7_fma/singletrackfile.dat.canonical)
 
 ##
 ## Checks
@@ -45,6 +55,8 @@ set_tests_properties(CheckTestInput_STF PROPERTIES FAIL_REGULAR_EXPRESSION "ERRO
 
 add_test(NAME CheckBuildManual COMMAND ${CMAKE_SOURCE_DIR}/test/CheckBuildManual.sh "${CMAKE_SOURCE_DIR}")
 set_tests_properties(CheckBuildManual PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR")
+
+
 
 ##
 ## ERROR Tests
@@ -744,6 +756,8 @@ set(SELFTEST_TOOLS
   SelfTest_checkf110
   SelfTest_read90
   SelfTest_readDump3
+  SelfTest_splitSingletrack
+  SelfTest_splitSingletrack_run
 )
 foreach(TOOL IN ITEMS ${SELFTEST_TOOLS})
   set_property(TEST ${TOOL} PROPERTY LABELS tool fast)
