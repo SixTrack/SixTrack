@@ -33,8 +33,6 @@ module collimation
   logical, private, save :: do_mingap        = .false.
 
   integer, private, save :: icoll     = 0
-  integer, private, save :: nloop     = 1
-  integer, private, save :: jobnumber = 0
 
   ! Distribution
   integer,          private, save :: do_thisdis   = 0
@@ -82,7 +80,6 @@ module collimation
   real(kind=fPrec), private, save :: emitny0_collgap = zero
 
   character(len=mNameLen),  private, save :: name_sel  = " "
-  character(len=16),        private, save :: castordir = " "
 
   integer, save :: ie, iturn, nabs_total
 
@@ -465,7 +462,6 @@ subroutine collimate_init
     call prror
   end if
 
-  write(lout,"(a,i0)")    'COLL> Info: NLOOP               = ', nloop
   write(lout,"(a,i0)")    'COLL> Info: DIST_TYPES          = ', do_thisdis
   write(lout,"(a,e15.8)") 'COLL> Info: DIST_NEX            = ', cdist_ampX
   write(lout,"(a,e15.8)") 'COLL> Info: DIST_DEX            = ', cdist_smearX
@@ -553,10 +549,6 @@ subroutine collimate_init
   write(lout,"(a,a)")     'COLL> Info: COLL_DB             = ', cdb_fileName
   write(lout,"(a)")
   write(lout,"(a,l1)")    'COLL> Info: DOWRITETRACKS       = ', dowritetracks
-  write(lout,"(a)")
-  write(lout,"(a,a)")     'COLL> Info: CASTORDIR           = ', castordir
-  write(lout,"(a)")
-  write(lout,"(a,i0)")    'COLL> Info: JOBNUMBER           = ', jobnumber
   write(lout,"(a)")
   write(lout,"(a,e15.8)") 'COLL> Info: SIGSECUT2           = ', sigsecut2
   write(lout,"(a,e15.8)") 'COLL> Info: SIGSECUT3           = ', sigsecut3
@@ -738,7 +730,7 @@ subroutine collimate_parseInputLine(inLine, iLine, iErr)
 
   character(len=:), allocatable   :: lnSplit(:)
   real(kind=fPrec) nSigIn(23), rTmp
-  integer nSplit, famID
+  integer nSplit, famID, iDum
   logical spErr, fErr
 
   nSigIn(:) = cdb_defColGap
@@ -1135,11 +1127,11 @@ subroutine collimate_parseInputLine(inLine, iLine, iErr)
       iErr = .true.
       return
     end if
-    call chr_cast(lnSplit(1),nloop,iErr)
+    call chr_cast(lnSplit(1),iDum,iErr)
     call chr_cast(lnSplit(2),myenom,iErr)
 
-    if(nloop /= 1) then
-      write(lerr,"(a,i0)") "COLL> ERROR Multiple samples is no longer supported. nloop must be 1, got ",nloop
+    if(iDum /= 1) then
+      write(lerr,"(a,i0)") "COLL> ERROR Multiple samples is no longer supported. nloop must be 1, got ",iDum
       iErr = .true.
       return
     end if
@@ -1377,10 +1369,10 @@ subroutine collimate_parseInputLine(inLine, iLine, iErr)
     end if
     call chr_cast(lnSplit(1), dowritetracks,iErr)
     ! The second value is ignored
-    castordir = lnSplit(3)
-    call chr_cast(lnSplit(4), jobnumber,    iErr)
-    call chr_cast(lnSplit(5), sigsecut2,    iErr)
-    call chr_cast(lnSplit(6), sigsecut3,    iErr)
+    ! The third value is ignored
+    ! The fourth value is ignored
+    call chr_cast(lnSplit(5), sigsecut2, iErr)
+    call chr_cast(lnSplit(6), sigsecut3, iErr)
 
   case default
     write(lerr,"(a,i0,a)") "COLL> ERROR Unexpected line ",iLine," encountered."
