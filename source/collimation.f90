@@ -2490,10 +2490,10 @@ subroutine collimate_do_collimator(stracki)
 #ifndef G4COLLIMATION
 
   if(cdb_isCrystal(icoll)) then
-    if (abs(cdb_cRotation(icoll)).lt.c1m9) then
+    if (modulo(cdb_cRotation(icoll),pi) < c1m9) then
       cry_tilt0 = (-one)*sqrt(myemitx0_dist/tbetax(ie))*talphax(ie)*nsig
-    elseif (abs(cdb_cRotation(icoll)-pi2).lt.c1m9) then
-      cry_tilt0 = (-one)*sqrt(myemity0_dist/tbetay(ie)*talphay(ie))*nsig
+    elseif (modulo(cdb_cRotation(icoll)-pi2,pi) < c1m9) then
+      cry_tilt0 = (-one)*sqrt(myemity0_dist/tbetay(ie))*talphay(ie)*nsig
     else
       write(lerr,"(a)") "COLL> ERROR Crystal collimator has to be horizontal or vertical"
       call prror

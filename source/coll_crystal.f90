@@ -251,13 +251,13 @@ end module coll_crystal
 !      write(*,*) 'enter collimate_cry routine, rotation ',C_ROTATION
 
 !      open(unit=9999,file='debug.dat')
-      IF (C_MATERIAL(1:4).eq.'Si')THEN           ! MDA: changed the label for silicon from CRY-Si to Si to fit new format
+      IF (C_MATERIAL(1:4).eq.'Si')THEN           ! MDA: changed the label for all materials to fit new format
            mat = 8
-      ELSEIF (C_MATERIAL.eq.'CRY-W')THEN
+      ELSEIF (C_MATERIAL(1:4).eq.'W')THEN
            mat = 9
-      ELSEIF (C_MATERIAL.eq.'CRY-C')THEN
+      ELSEIF (C_MATERIAL(1:4).eq.'C')THEN
            mat = 10
-      ELSEIF (C_MATERIAL.eq.'CRY-Ge')THEN
+      ELSEIF (C_MATERIAL(1:4).eq.'Ge')THEN
            mat = 11
       ELSE
            WRITE(*,*) 'ERR>', C_MATERIAL, ' Material not found. STOP'
@@ -577,13 +577,13 @@ end module coll_crystal
 !           write(*,*) "HIT", x, C_xmax
 !          write(*,*) "HIT"
 !           stop
-!           write(*,*)'hit the cry entrance face', x, C_xmax
+           write(*,*)'hit the cry entrance face', x, C_xmax
 !           write(*,*)'impact at s,x = ', s_impact,x_in0(j)
 !           write(*,*)'with angle xp = ',xp
 !           write(*,*)'s before', s
            CALL CRYST(mat-7,X,XP,Z,ZP,p,cry_length,j)
 !           write(*,*) "p after exit", p
-!           write(*,*) "xp after crystal coll routine exit", XP
+           write(*,*) "xp after crystal coll routine exit", XP
            s=Rcurv*sin(cry_bend)
            zlm=Rcurv*sin(cry_bend)
 !           write(*,*) 'process:',PROC
@@ -597,99 +597,199 @@ end module coll_crystal
              INDIV(j) = XP_in0(j)
            endif
          else
-           XP_tangent=sqrt((-2*X*Rcurv+X**2)/(Rcurv**2))
-!           write(*,*) "NOT hit the cry entrance face", x, C_xmax
-!           stop
-!           write(*,*)j,'-','tangent',xp_tangent,'angle',xp
-!           write(*,*)'s tan',Rcurv*sin(XP_tangent)
-!           write(*,*) 's tot', c_length,Rcurv*sin(cry_bend)
-           if ( XP .ge. XP_tangent  ) then
-
-! if it hits the crystal, calculate in which point and apply the
-! transformation and drift to that point
-             a_eq=(1.+xp**2)
-             b_eq=2.*xp*(x-Rcurv)
-             c_eq=-2.*x*Rcurv+x**2
-             Delta=b_eq**2-4.*(a_eq*c_eq)
-             S_int=(-b_eq-sqrt(Delta))/(2.*a_eq)
-!             write(*,*)'s int',S_int
-             if (S_int .lt. Rcurv*sin(cry_bend)) then
-!  transform to a new ref system:shift and rotate
-               X_int=XP*S_int+X
-               XP_int=XP
-               Z=Z+ZP*S_int
-               X=0
-               S=0
-!               tilt_int=2*X_int/S_int
-               tilt_int=S_int/Rcurv
-               XP=XP-tilt_int
-!               write(*,*)'hit the cry from below!!!'
-!               write(*,*)'tilt int',tilt_int,'over',cry_bend
-!               write(*,*)'tilt bending',Cry_length/Rcurv,
-!     &         'total tilt', cry_tilt-cry_tilt0,
-!     &         'int. tilt', tilt_int
-!               s_impact=Rcurv*(sin(Cry_length/Rcurv)
-!     &           -sin(Cry_length/Rcurv-tilt_int))!(for the first impact)
-!               x_in0(j)=Rcurv*(1-cos(Cry_length/Rcurv-tilt_int))
-!               write(*,*)'impact at s,x = ', s_impact,x_in0(j)
-!               write(*,*)'with angle xp = ',xp
-!               write(*,*) "debug - S minicry" ,  S
-!               write(*,*) "debug - X minicry" ,  X
-!               write(*,*) "debug - XP minicry" ,  XP
-! call cry routine
-              CALL CRYST(mat-7,X,XP,Z,ZP,p,(cry_length-(tilt_int*Rcurv)),j)
-!              write(*,*) "p after exit", p
-              s=Rcurv*sin(cry_bend-tilt_int)
-              zlm=Rcurv*sin(cry_bend-tilt_int)
-!              write(*,*) 'process:',PROC
-!              write(*,*) "debug - S minicry 2" ,  S
-!              write(*,*) "debug - X minicry 2" ,  X
-!              write(*,*) "debug - XP minicry 2" ,  XP
-              if (PROC(1:3).ne.'out')then
-                 X_rot=X_int
-                 S_rot=S_int
-                 XP_rot=XP_int
-                 S_shift=S_rot*cos(-Cry_tilt)+X_rot*sin(-Cry_tilt)
-                 X_shift=-S_rot*sin(-Cry_tilt)+X_rot*cos(-Cry_tilt)
-                 XP_shift=XP_rot + Cry_tilt
-                 if (Cry_tilt .lt. 0) then
-                   S_impact=S_shift
-                   X_in0(j)=X_shift+shift
-                   XP_in0(j)=XP_shift
-                 else
-                   X_in0(j)=X_shift
-                   S_impact=S_shift
-                   XP_in0(j)=XP_shift
-                 endif
-                 NHIT = NHIT + 1
-                 LHIT(j) = ie
-                 LHIT_TURN(j) = ITURN
-                 IMPACT(j) = X_in0(j)
-                 INDIV(j) = XP_in0(j)
-               endif
-!           write(*,*)'s after', s
-! un-rotate
-               X_temp=X
-               S_temp=S
-               XP_temp=XP
-               S=S_temp*cos(-tilt_int)+X_temp*sin(-tilt_int)
-               X=-S_temp*sin(-tilt_int)+X_temp*cos(-tilt_int)
-               XP=XP_temp + tilt_int
-!     2nd: shift back the 2 axis
-               X=X+X_int
-               S=S+S_int
-!               write(*,*)'s after', s
-             else
-!               write(*,*)'treat the drift'
-               S=Rcurv*sin(cry_length/Rcurv)
-               X=X+S*XP
-               Z=Z+S*ZP
-             endif
-           else
-!              write(*,*) 'just the drift'
-             S=Rcurv*sin(cry_length/Rcurv)
-             X=X+S*XP
-             Z=Z+S*ZP
+           write(*,*) "NOT hit the cry entrance face", x, C_xmax
+           if (x < 0) then ! Marco: crystal hit from below
+            write(*,*) "Crystal hit from below"
+            XP_tangent=sqrt((-2*X*Rcurv+X**2)/(Rcurv**2))
+            !           stop
+            !           write(*,*)j,'-','tangent',xp_tangent,'angle',xp
+            !           write(*,*)'s tan',Rcurv*sin(XP_tangent)
+            !           write(*,*) 's tot', c_length,Rcurv*sin(cry_bend)
+                       if ( XP .ge. XP_tangent  ) then
+            
+            ! if it hits the crystal, calculate in which point and apply the
+            ! transformation and drift to that point
+                         a_eq=(1.+xp**2)
+                         b_eq=2.*xp*(x-Rcurv)
+                         c_eq=-2.*x*Rcurv+x**2
+                         Delta=b_eq**2-4.*(a_eq*c_eq)
+                         S_int=(-b_eq-sqrt(Delta))/(2.*a_eq)
+            !             write(*,*)'s int',S_int
+                         if (S_int .lt. Rcurv*sin(cry_bend)) then
+            !  transform to a new ref system:shift and rotate
+                           X_int=XP*S_int+X
+                           XP_int=XP
+                           Z=Z+ZP*S_int
+                           X=0
+                           S=0
+            !               tilt_int=2*X_int/S_int
+                           tilt_int=S_int/Rcurv
+                           XP=XP-tilt_int
+            !               write(*,*)'hit the cry from below!!!'
+            !               write(*,*)'tilt int',tilt_int,'over',cry_bend
+            !               write(*,*)'tilt bending',Cry_length/Rcurv,
+            !     &         'total tilt', cry_tilt-cry_tilt0,
+            !     &         'int. tilt', tilt_int
+            !               s_impact=Rcurv*(sin(Cry_length/Rcurv)
+            !     &           -sin(Cry_length/Rcurv-tilt_int))!(for the first impact)
+            !               x_in0(j)=Rcurv*(1-cos(Cry_length/Rcurv-tilt_int))
+            !               write(*,*)'impact at s,x = ', s_impact,x_in0(j)
+            !               write(*,*)'with angle xp = ',xp
+            !               write(*,*) "debug - S minicry" ,  S
+            !               write(*,*) "debug - X minicry" ,  X
+            !               write(*,*) "debug - XP minicry" ,  XP
+            ! call cry routine
+                          CALL CRYST(mat-7,X,XP,Z,ZP,p,(cry_length-(tilt_int*Rcurv)),j)
+            !              write(*,*) "p after exit", p
+                          s=Rcurv*sin(cry_bend-tilt_int)
+                          zlm=Rcurv*sin(cry_bend-tilt_int)
+            !              write(*,*) 'process:',PROC
+            !              write(*,*) "debug - S minicry 2" ,  S
+            !              write(*,*) "debug - X minicry 2" ,  X
+            !              write(*,*) "debug - XP minicry 2" ,  XP
+                          if (PROC(1:3).ne.'out')then
+                             X_rot=X_int
+                             S_rot=S_int
+                             XP_rot=XP_int
+                             S_shift=S_rot*cos(-Cry_tilt)+X_rot*sin(-Cry_tilt)
+                             X_shift=-S_rot*sin(-Cry_tilt)+X_rot*cos(-Cry_tilt)
+                             XP_shift=XP_rot + Cry_tilt
+                             if (Cry_tilt .lt. 0) then
+                               S_impact=S_shift
+                               X_in0(j)=X_shift+shift
+                               XP_in0(j)=XP_shift
+                             else
+                               X_in0(j)=X_shift
+                               S_impact=S_shift
+                               XP_in0(j)=XP_shift
+                             endif
+                             NHIT = NHIT + 1
+                             LHIT(j) = ie
+                             LHIT_TURN(j) = ITURN
+                             IMPACT(j) = X_in0(j)
+                             INDIV(j) = XP_in0(j)
+                           endif
+            !           write(*,*)'s after', s
+            ! un-rotate
+                           X_temp=X
+                           S_temp=S
+                           XP_temp=XP
+                           S=S_temp*cos(-tilt_int)+X_temp*sin(-tilt_int)
+                           X=-S_temp*sin(-tilt_int)+X_temp*cos(-tilt_int)
+                           XP=XP_temp + tilt_int
+            !     2nd: shift back the 2 axis
+                           X=X+X_int
+                           S=S+S_int
+            !               write(*,*)'s after', s
+                         else
+            !               write(*,*)'treat the drift'
+                           S=Rcurv*sin(cry_length/Rcurv)
+                           X=X+S*XP
+                           Z=Z+S*ZP
+                         endif
+                       else
+            !              write(*,*) 'just the drift'
+                         S=Rcurv*sin(cry_length/Rcurv)
+                         X=X+S*XP
+                         Z=Z+S*ZP
+                       endif
+           else ! Marco: crystal hit from above
+            write(*,*) "Crystal hit from above"
+            XP_tangent=asin((Rcurv*(1-cos(cry_bend))-x)/sqrt(2*Rcurv*(Rcurv-x)*(1-cos(cry_bend))+x**2))
+            !           stop
+            !           write(*,*)j,'-','tangent',xp_tangent,'angle',xp
+            !           write(*,*) "Rcurv", Rcurv, "cry_bend", cry_bend
+            !           write(*,*)'s tan',Rcurv*sin(XP_tangent)
+            !           write(*,*) 's tot', c_length,Rcurv*sin(cry_bend)
+                       if ( XP .le. XP_tangent  ) then
+            
+            ! if it hits the crystal, calculate in which point and apply the
+            ! transformation and drift to that point
+                         a_eq=(1.+xp**2)
+                         b_eq=2.*xp*(x-Rcurv)
+                         c_eq=-2.*x*Rcurv+x**2
+                         Delta=b_eq**2-4.*(a_eq*c_eq)
+                         S_int=(-b_eq-sqrt(Delta))/(2.*a_eq)
+            !             write(*,*)'s int',S_int
+                         if (S_int .lt. Rcurv*sin(cry_bend)) then
+            !  transform to a new ref system:shift and rotate
+                           X_int=XP*S_int+X
+                           XP_int=XP
+                           Z=Z+ZP*S_int
+                           X=0
+                           S=0
+            !               tilt_int=2*X_int/S_int
+                           tilt_int=S_int/Rcurv
+                           XP=XP-tilt_int
+            !               write(*,*)'hit the cry from below!!!'
+            !               write(*,*)'tilt int',tilt_int,'over',cry_bend
+            !               write(*,*)'tilt bending',Cry_length/Rcurv,
+            !     &         'total tilt', cry_tilt-cry_tilt0,
+            !     &         'int. tilt', tilt_int
+            !               s_impact=Rcurv*(sin(Cry_length/Rcurv)
+            !     &           -sin(Cry_length/Rcurv-tilt_int))!(for the first impact)
+            !               x_in0(j)=Rcurv*(1-cos(Cry_length/Rcurv-tilt_int))
+            !               write(*,*)'impact at s,x = ', s_impact,x_in0(j)
+            !               write(*,*)'with angle xp = ',xp
+            !               write(*,*) "debug - S minicry" ,  S
+            !               write(*,*) "debug - X minicry" ,  X
+            !               write(*,*) "debug - XP minicry" ,  XP
+            ! call cry routine
+                          CALL CRYST(mat-7,X,XP,Z,ZP,p,(cry_length-(tilt_int*Rcurv)),j)
+            !              write(*,*) "p after exit", p
+                          s=Rcurv*sin(cry_bend-tilt_int)
+                          zlm=Rcurv*sin(cry_bend-tilt_int)
+            !              write(*,*) 'process:',PROC
+            !              write(*,*) "debug - S minicry 2" ,  S
+            !              write(*,*) "debug - X minicry 2" ,  X
+            !              write(*,*) "debug - XP minicry 2" ,  XP
+                          if (PROC(1:3).ne.'out')then
+                             X_rot=X_int
+                             S_rot=S_int
+                             XP_rot=XP_int
+                             S_shift=S_rot*cos(-Cry_tilt)+X_rot*sin(-Cry_tilt)
+                             X_shift=-S_rot*sin(-Cry_tilt)+X_rot*cos(-Cry_tilt)
+                             XP_shift=XP_rot + Cry_tilt
+                             if (Cry_tilt .lt. 0) then
+                               S_impact=S_shift
+                               X_in0(j)=X_shift+shift
+                               XP_in0(j)=XP_shift
+                             else
+                               X_in0(j)=X_shift
+                               S_impact=S_shift
+                               XP_in0(j)=XP_shift
+                             endif
+                             NHIT = NHIT + 1
+                             LHIT(j) = ie
+                             LHIT_TURN(j) = ITURN
+                             IMPACT(j) = X_in0(j)
+                             INDIV(j) = XP_in0(j)
+                           endif
+            !           write(*,*)'s after', s
+            ! un-rotate
+                           X_temp=X
+                           S_temp=S
+                           XP_temp=XP
+                           S=S_temp*cos(-tilt_int)+X_temp*sin(-tilt_int)
+                           X=-S_temp*sin(-tilt_int)+X_temp*cos(-tilt_int)
+                           XP=XP_temp + tilt_int
+            !     2nd: shift back the 2 axis
+                           X=X+X_int
+                           S=S+S_int
+            !               write(*,*)'s after', s
+                         else
+            !               write(*,*)'treat the drift'
+                           S=Rcurv*sin(cry_length/Rcurv)
+                           X=X+S*XP
+                           Z=Z+S*ZP
+                         endif
+                       else
+            !              write(*,*) 'just the drift'
+                         S=Rcurv*sin(cry_length/Rcurv)
+                         X=X+S*XP
+                         Z=Z+S*ZP
+                       endif
+                       stop
            endif
          endif
 !               WRITE(*,*)'X1_cry',X,'Z1_Cry',Z,'XP1_Cry',XP,'ZP1_Cry',ZP
@@ -1814,6 +1914,8 @@ end module coll_crystal
 
 !      ichoix=2
 
+      t = 0 ! default value to cover ichoix=1
+
       if (ichoix.eq.1) then
 
         PROC = 'absorbed'            !deep inelastic, impinging p disappeared
@@ -1857,6 +1959,8 @@ end module coll_crystal
       if ( ichoix .eq. 4) then
         teta = sqrt(t)/PC_in_dan                !DIFF has changed PC!!!
       else
+        write(*,*) "ichoix", ichoix
+        write(*,*) "t", t
         teta = sqrt(t)/PC
       endif
 
