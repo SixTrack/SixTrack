@@ -1917,10 +1917,26 @@ The main section of the database consists of a list of collimator family declara
 The family declaration is optional, but it makes it easier to assign parameters to a group of collimators instead of specifying each one individually.
 In the main section, this is used to provide the default collimator opening.
 
-The collimator family settings are povided in exactly the same way as the \texttt{NISG\_FAM} keyword in the \texttt{COLL} block in \texttt{fort.3}.
-The keyword takes a family name and a collimator opening setting as input parameters.
-The settings in \texttt{fort.3} overrides the settings of the database.
+The collimator family settings are povided similarly to the \texttt{NISG\_FAM} keyword in the \texttt{COLL} block in \texttt{fort.3}.
+The keyword takes a family name, a collimator opening setting, and a collimator type as input parameters.
+Note that the sigma settings in \texttt{fort.3} overrides the settings of the database.
 
+The collimator type is required, but \texttt{UNKNOWN} is a valid option.
+Each collimator type has a number associated with it that is an exponent of 2 (se table below).
+In files like \texttt{coll\_ellipse.dat} and \texttt{tracks2.dat}, the sum of these are printed, meaning the information of what collimator types a particle (that has not been absorbed) has hit can be extracted.
+Only the first three characters of the collimator type is required, the rest of the word is optional for clarity.
+
+\bigskip
+\begin{tabular}{@{}llp{0.7\linewidth}}
+    \texttt{UNKNOWN}   &  0 & Use this to disable checking of type \\
+    \texttt{PRIMARY}   &  1 & Primary collimators \\
+    \texttt{SECONDARY} &  2 & Secondary collimators \\
+    \texttt{TERTIARY}  &  4 & Tertiary collimators \\
+    \texttt{OTHER}     &  8 & Any other collimator \\
+    \texttt{CRYSTAL}   & 16 & Crystal collimators (not yet implemented) \\
+\end{tabular}
+
+\bigskip
 The collimator key settings are provided in a table of either 6 or 8 columns.
 The latter two columns are optional.
 The formats are as follows:
@@ -1941,10 +1957,10 @@ The formats are as follows:
 
 \begin{cverbatim}
 # Families
-NSIG_FAM tcp3      12.000000
-NSIG_FAM tcsg3     15.600000
-NSIG_FAM tcsm3    999.000000
-NSIG_FAM tcla3     17.600000
+NSIG_FAM tcp3      12.000000 PRIMARY
+NSIG_FAM tcsg3     15.600000 SECODNARY
+NSIG_FAM tcsm3    999.000000 SECODNARY
+NSIG_FAM tcla3     17.600000 TERTIARY
 # Collimators
 # name          opening mat.   length[m]  angle[deg]  offset[m]    beta_x[m]    beta_y[m]
 tclx.4r1.b1        tclp Iner    1.000000    0.000000   0.000000  6812.605863  4597.092632

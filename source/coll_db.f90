@@ -301,8 +301,9 @@ subroutine cdb_readDB_newFormat
   end if
 
   if(lnSplit(1) == "NSIG_FAM") then ! Collimator Family
-    if(nSplit < 3) then
-      write(lerr,"(a,i0,a)") "COLLDB> ERROR Collimator family description on line ",iLine," has less than 3 values."
+    if(nSplit /= 4) then
+      write(lerr,"(a,i0,a)") "COLLDB> ERROR Collimator family description on line ",iLine," must be 4 values."
+      write(lerr,"(a)")      "COLLDB>       NSIG_FAM famName sigmaSetting collType"
       call prror
     end if
     call chr_cast(lnSplit(3), nSig, cErr)
@@ -312,20 +313,23 @@ subroutine cdb_readDB_newFormat
       cdb_famNSig(famID)     = nSig
       cdb_famNSigOrig(famID) = nSig
     end if
-    if(nSplit > 3) then ! We have a type definition
-      select case(chr_toUpper(lnSplit(4)(1:3))) ! We only check the first three characters
-      case("PRI")
-        cdb_famType(famID) = cdb_typPrimary
-      case("SEC")
-        cdb_famType(famID) = cdb_typSecondary
-      case("TER")
-        cdb_famType(famID) = cdb_typTertiary
-      case("OTH")
-        cdb_famType(famID) = cdb_typOther
-      case("CRY")
-        cdb_famType(famID) = cdb_typCrystal
-      end select
-    end if
+    select case(chr_toUpper(lnSplit(4)(1:3))) ! We only check the first three characters
+    case("PRI")
+      cdb_famType(famID) = cdb_typPrimary
+    case("SEC")
+      cdb_famType(famID) = cdb_typSecondary
+    case("TER")
+      cdb_famType(famID) = cdb_typTertiary
+    case("OTH")
+      cdb_famType(famID) = cdb_typOther
+    case("CRY")
+      cdb_famType(famID) = cdb_typCrystal
+    case("UNK")
+      cdb_famType(famID) = 0
+    case default
+      write(lerr,"(a,i0)") "COLLDB> ERROR Unknown collimator type '"//trim(lnSplit(4))//"' on line ",iLine
+      call prror
+    end select
     goto 10
   end if
 
