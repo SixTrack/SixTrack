@@ -3336,7 +3336,7 @@ subroutine collimate_end_element
     end do
   end if
 
-!GRD THIS LOOP MUST NOT BE WRITTEN INTO THE "IF(FIRSTRUN)" LOOP !!!!
+  ! Note: Not in firstrun
   if(dowritetracks) then
     do j=1,napx
       xj  = (xv1(j)-torbx(ie)) /c1e3
@@ -3355,15 +3355,14 @@ subroutine collimate_end_element
       nspx   = sqrt(abs(gammax*xndisp**2 + two*talphax(ie)*xndisp*xpj + tbetax(ie)*xpj**2)/c_emitx0_collgap)
       nspy   = sqrt(abs(gammay*yj**2 +     two*talphay(ie)*yj*ypj +     tbetay(ie)*ypj**2)/c_emity0_collgap)
 
-      if(part_abs_pos(j).eq.0 .and. part_abs_turn(j).eq.0) then
-
-!GRD HERE WE APPLY THE SAME KIND OF CUT THAN THE SIGSECUT PARAMETER
-         if(nhit_type(j) > 0 .and. &
-           (xv1(j).lt.99.0_fPrec .and. xv2(j).lt.99.0_fPrec) .and. &
-           ((((xv1(j)*c1m3)**2 / (tbetax(ie)*c_emitx0_collgap)) .ge. sigsecut2).or. &
-           (((xv2(j)*c1m3)**2  / (tbetay(ie)*c_emity0_collgap)) .ge. sigsecut2).or. &
-           (((xv1(j)*c1m3)**2  / (tbetax(ie)*c_emitx0_collgap)) + &
-           ((xv2(j)*c1m3)**2  /  (tbetay(ie)*c_emity0_collgap)) .ge. sigsecut3)) ) then
+      if(part_abs_pos(j) == 0 .and. part_abs_turn(j) == 0) then
+        ! Here we apply the same kind of cut than the sigsecut parameter
+        if(nhit_type(j) > 0 .and. xv1(j) < 99.0_fPrec .and. xv2(j) < 99.0_fPrec .and. ( &
+            (((xv1(j)*c1m3)**2 / (tbetax(ie)*c_emitx0_collgap)) >= sigsecut2).or. &
+            (((xv2(j)*c1m3)**2 / (tbetay(ie)*c_emity0_collgap)) >= sigsecut2).or. &
+            (((xv1(j)*c1m3)**2 / (tbetax(ie)*c_emitx0_collgap)) +                 &
+            ( (xv2(j)*c1m3)**2 / (tbetay(ie)*c_emity0_collgap)) >= sigsecut3))    &
+          ) then
 
           xj  = (xv1(j)-torbx(ie)) /c1e3
           xpj = (yv1(j)-torbxp(ie))/c1e3
@@ -3383,7 +3382,7 @@ subroutine collimate_end_element
         end if
       end if
     end do
-  end if !!JUNE2005 here I close the "if(dowritetracks)" outside of the firstrun flag
+  end if
 
 end subroutine collimate_end_element
 
@@ -3655,95 +3654,8 @@ subroutine collimate_end_turn
 #endif
   end if
 
-  if(firstrun) then
-    do j=1,napx
-      xj  = (xv1(j)-torbx(ie)) /c1e3
-      xpj = (yv1(j)-torbxp(ie))/c1e3
-      yj  = (xv2(j)-torby(ie)) /c1e3
-      ypj = (yv2(j)-torbyp(ie))/c1e3
-      pj  = ejv(j)/c1e3
-
-      if(iturn == 1 .and. j == 1) then
-        sum_ax(ie) = zero
-        sum_ay(ie) = zero
-      end if
-
-      if(tbetax(ie) > zero) then
-        gammax = (one + talphax(ie)**2)/tbetax(ie)
-        gammay = (one + talphay(ie)**2)/tbetay(ie)
-      else
-        gammax = (one + talphax(ie-1)**2)/tbetax(ie-1)
-        gammay = (one + talphay(ie-1)**2)/tbetay(ie-1)
-      end if
-
-      if(part_abs_pos(j) == 0 .and. part_abs_turn(j) == 0) then
-        if(tbetax(ie) > zero) then
-          nspx = sqrt(abs(gammax*(xj)**2 + two*talphax(ie)*xj*xpj + tbetax(ie)*xpj**2 )/c_emitx0_collgap)
-          nspy = sqrt(abs(gammay*(yj)**2 + two*talphay(ie)*yj*ypj + tbetay(ie)*ypj**2 )/c_emity0_collgap)
-        else
-          nspx = sqrt(abs(gammax*(xj)**2 + two*talphax(ie-1)*xj*xpj +tbetax(ie-1)*xpj**2 )/c_emitx0_collgap)
-          nspy = sqrt(abs(gammay*(yj)**2 + two*talphay(ie-1)*yj*ypj +tbetay(ie-1)*ypj**2 )/c_emity0_collgap)
-        end if
-
-        sum_ax(ie)   = sum_ax(ie) + nspx
-        sqsum_ax(ie) = sqsum_ax(ie) + nspx**2
-        sum_ay(ie)   = sum_ay(ie) + nspy
-        sqsum_ay(ie) = sqsum_ay(ie) + nspy**2
-        nampl(ie)    = nampl(ie) + 1
-      else
-        nspx = zero
-        nspy = zero
-      end if !if(part_abs_pos(j).eq.0 .and. part_abs_turn(j).eq.0) then
-    end do !do j = 1, napx
-  end if !if(firstrun) then
-
-!GRD THIS LOOP MUST NOT BE WRITTEN INTO THE "IF(FIRSTRUN)" LOOP !!!!
-  if(dowritetracks) then
-    do j=1,napx
-      xj  = (xv1(j)-torbx(ie))/c1e3
-      xpj = (yv1(j)-torbxp(ie))/c1e3
-      yj  = (xv2(j)-torby(ie))/c1e3
-      ypj = (yv2(j)-torbyp(ie))/c1e3
-
-      if(xj <= zero) then
-        xdisp = xj + (((pj-c_enom)/c_enom)*2.5_fPrec)*sqrt(tbetax(ie)/c180e0)
-      else
-        xdisp = xj - (((pj-c_enom)/c_enom)*2.5_fPrec)*sqrt(tbetax(ie)/c180e0)
-      end if
-
-      xndisp = xj
-      nspxd  = sqrt(abs(gammax*xdisp**2  + two*talphax(ie)*xdisp*xpj  + tbetax(ie)*xpj**2)/c_emitx0_collgap)
-      nspx   = sqrt(abs(gammax*xndisp**2 + two*talphax(ie)*xndisp*xpj + tbetax(ie)*xpj**2)/c_emitx0_collgap)
-      nspy   = sqrt(abs(gammay*yj**2     + two*talphay(ie)*yj*ypj     + tbetay(ie)*ypj**2)/c_emity0_collgap)
-
-      if(part_abs_pos(j) == 0 .and. part_abs_turn(j) == 0) then
-        ! Here we apply the same kind of cut than the sigsecut parameter
-        if(nhit_type(j) > 0 .and. &
-          (xv1(j) < 99.0_fPrec .and. xv2(j) < 99.0_fPrec) .and. &
-          ((((xv1(j)*c1m3)**2 / (tbetax(ie)*c_emitx0_collgap)) >= sigsecut2).or. &
-          (((xv2(j)*c1m3)**2  / (tbetay(ie)*c_emity0_collgap)) >= sigsecut2).or. &
-          (((xv1(j)*c1m3)**2  / (tbetax(ie)*c_emitx0_collgap)) + &
-          ((xv2(j)*c1m3)**2  / (tbetay(ie)*c_emity0_collgap)) >= sigsecut3)) ) then
-
-          xj  = (xv1(j)-torbx(ie))/c1e3
-          xpj = (yv1(j)-torbxp(ie))/c1e3
-          yj  = (xv2(j)-torby(ie))/c1e3
-          ypj = (yv2(j)-torbyp(ie))/c1e3
-#ifdef HDF5
-          if(h5_writeTracks2) then
-            call h5tr2_writeLine(partID(j),iturn,dcum(ie),xv1(j),yv1(j),xv2(j),yv2(j),&
-              (ejv(j)-c_enom)/c_enom,nhit_type(j))
-          else
-#endif
-            write(coll_tracksUnit,"(1x,i8,1x,i4,1x,f10.2,4(1x,e12.5),1x,e11.3,1x,i4)") partID(j),iturn,dcum(ie), &
-              xv1(j),yv1(j),xv2(j),yv2(j),(ejv(j)-c_enom)/c_enom,nhit_type(j)
-#ifdef HDF5
-          end if
-#endif
-        end if
-      end if !if(part_abs_pos(j).eq.0 .and. part_abs_turn(j).eq.0) then
-    end do ! do j = 1, napx
-  end if !if(dowritetracks) then
+  ! Call end element one extra time
+  call collimate_end_element
 
 end subroutine collimate_end_turn
 
