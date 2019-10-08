@@ -1,7 +1,2 @@
-#ifndef TILT
-!FOX  Y(1)=Y(1)+EKK*CIKVE ;
-!FOX  Y(2)=Y(2)+EKK*CRKVE ;
-#else
 !FOX  Y(1)=Y(1)+EKK*(TILTC(I)*CIKVE-TILTS(I)*CRKVE) ;
 !FOX  Y(2)=Y(2)+EKK*(TILTC(I)*CRKVE+TILTS(I)*CIKVE) ;
-#endif

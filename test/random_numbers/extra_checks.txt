@@ -1,0 +1,2 @@
+hash.md5
+rnd_selftest.dat
