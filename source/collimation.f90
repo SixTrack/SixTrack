@@ -178,8 +178,8 @@ module collimation
   real(kind=fPrec), allocatable, save :: xpineff(:) !(npart)
   real(kind=fPrec), allocatable, save :: ypineff(:) !(npart)
 
-  real(kind=fPrec), allocatable, save :: mux(:) !(nblz)
-  real(kind=fPrec), allocatable, save :: muy(:) !(nblz)
+! real(kind=fPrec), allocatable, save :: mux(:) !(nblz) ! Not actually used
+! real(kind=fPrec), allocatable, save :: muy(:) !(nblz) ! Not actually used
 
   integer, save :: num_surhit
   integer, save :: numbin
@@ -295,8 +295,8 @@ subroutine collimation_expand_arrays(npart_new, nblz_new)
   call alloc(xpineff, npart_new, zero, "xpineff") !(npart)
   call alloc(ypineff, npart_new, zero, "ypineff") !(npart)
 
-  call alloc(mux,     nblz_new, zero, "mux") !(nblz)
-  call alloc(muy,     nblz_new, zero, "muy") !(nblz)
+! call alloc(mux,     nblz_new, zero, "mux") !(nblz)
+! call alloc(muy,     nblz_new, zero, "muy") !(nblz)
 
   call alloc(counteddpop, npart_new, numeffdpop, 0, "counteddpop") !(npart,numeffdpop)
   call alloc(counted2d,   npart_new, numeff, numeffdpop, 0, "counted2d") !(npart,numeff,numeffdpop)
@@ -607,10 +607,10 @@ subroutine collimate_init
   nspy = zero
   ax0  = myalphax
   bx0  = mybetax
-  mux0 = mux(1)
+  mux0 = zero ! mux(1)
   ay0  = myalphay
   by0  = mybetay
-  muy0 = muy(1)
+  muy0 = zero ! muy(1)
   iturn = 1
   ie    = 1
   n_tot_absorbed = 0
@@ -1928,8 +1928,10 @@ subroutine collimate_do_collimator(stracki)
 !++  has twice the betatron phase advance
   if(.not. cdb_doNSig) nsig = cdb_cNSig(icoll)
 
-  scale_bx = (one + xbeat*sin_mb(four*pi*mux(ie)+xbeatphase) )
-  scale_by = (one + ybeat*sin_mb(four*pi*muy(ie)+ybeatphase) )
+! scale_bx = one + xbeat*sin_mb(four*pi*mux(ie)+xbeatphase)
+! scale_by = one + ybeat*sin_mb(four*pi*muy(ie)+ybeatphase)
+  scale_bx = one + xbeat*sin_mb(xbeatphase)
+  scale_by = one + ybeat*sin_mb(ybeatphase)
 
   if(firstcoll) then
     scale_bx0 = scale_bx
@@ -3157,21 +3159,21 @@ subroutine collimate_exit
     ! Write amplitude.dat
     call f_requestUnit(coll_ampFile,coll_ampUnit)
     call f_open(unit=coll_ampUnit,file=coll_ampFile,formatted=.true.,mode="w")
-    write(coll_ampUnit,"(a1,1x,a6,1x,a20,19(1x,a20))") "#","ielem",chr_rPad("name",20),"s","AX_AV","AX_RMS","AY_AV","AY_RMS",&
-      "alphax","alphay","betax","betay","orbitx","orbity","dispx","dispy","xbob","ybob","xpbob","ypbob","mux","muy"
+    write(coll_ampUnit,"(a1,1x,a6,1x,a20,17(1x,a20))") "#","ielem",chr_rPad("name",20),"s","AX_AV","AX_RMS","AY_AV","AY_RMS",&
+      "alphax","alphay","betax","betay","orbitx","orbity","dispx","dispy","xbob","ybob","xpbob","ypbob" !,"mux","muy"
     do i=1,iu
       if(ic(i) <= nblo) then
         ix = mtyp(ic(i),mel(ic(i)))
       else
         ix = ic(i)-nblo
       end if
-      write(coll_ampUnit,"(i8,1x,a20,19(1x,1pe20.13))") i, bez(ix)(1:20), dcum(i),                       &
+      write(coll_ampUnit,"(i8,1x,a20,17(1x,1pe20.13))") i, bez(ix)(1:20), dcum(i),                       &
         sum_ax(i)/real(max(nampl(i),1),fPrec),                                                           &
         sqrt(abs((sqsum_ax(i)/real(max(nampl(i),1),fPrec))-(sum_ax(i)/real(max(nampl(i),1),fPrec))**2)), &
         sum_ay(i)/real(max(nampl(i),1),fPrec),                                                           &
         sqrt(abs((sqsum_ay(i)/real(max(nampl(i),1),fPrec))-(sum_ay(i)/real(max(nampl(i),1),fPrec))**2)), &
         talphax(i), talphay(i), tbetax(i), tbetay(i), torbx(i), torby(i), tdispx(i), tdispy(i),          &
-        xbob(i), ybob(i), xpbob(i), ypbob(i), mux(i), muy(i)
+        xbob(i), ybob(i), xpbob(i), ypbob(i) !, mux(i), muy(i)
     end do
     call f_close(coll_ampUnit)
   end if
@@ -3430,10 +3432,10 @@ subroutine collimate_end_turn
 !++  Save twiss functions of present element
   ax0  = talphax(ie)
   bx0  = tbetax(ie)
-  mux0 = mux(ie)
+  mux0 = zero ! mux(ie)
   ay0  = talphay(ie)
   by0  = tbetay(ie)
-  muy0 = muy(ie)
+  muy0 = zero ! muy(ie)
 
   do j=1,napx
     xineff(j)  = xv1(j) - torbx (ie)
