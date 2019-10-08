@@ -606,10 +606,13 @@ if(Fortran_COMPILER_NAME MATCHES "gfortran.*")
   endif()
 
   set(CMAKE_Fortran_FLAGS_RELEASE "-O3")
-  set(CMAKE_Fortran_FLAGS_DEBUG   "-O0 -g3 -ffpe-trap=invalid,zero,overflow -fcheck=all")
+  set(CMAKE_Fortran_FLAGS_DEBUG   "-O0 -g3 -fcheck=all")
 
   if(WARN)
     set(CMAKE_Fortran_FLAGS_RELEASE "-Wuninitialized ${CMAKE_Fortran_FLAGS_RELEASE}")
+    set(CMAKE_Fortran_FLAGS_DEBUG   "-Wuninitialized -ffpe-trap=invalid,zero,overflow,underflow ${CMAKE_Fortran_FLAGS_DEBUG}")
+  else()
+    set(CMAKE_Fortran_FLAGS_DEBUG   "-ffpe-trap=invalid,zero,overflow ${CMAKE_Fortran_FLAGS_DEBUG}")
   endif()
 
   if(MEMUSAGE)

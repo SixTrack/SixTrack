@@ -20,7 +20,7 @@ dummy=dare(dpda)
 !FOX      TRACKI(5)=TRACKI(5)/RV ;
 
 call beaminf(tracki,parbe,sigz,bbcu,imbb(i),ix,ibbc)
-if(ibeco.eq.1) then
+if(ibeco == 1) then
   beamoff1=dare(tracki(1))*c1e3
   beamoff2=dare(tracki(3))*c1e3
   beamoff3=dare(tracki(5))*c1e3 !Added 14.03.2018
@@ -34,7 +34,7 @@ else
   beamoff4=zero
   beamoff5=zero
   beamoff6=zero
-endif
+end if
 dummy=dare(x(1))
 !FOX      X(1)=TRACKI(1)*C1E3+DUMMY-BEAMOFF1 ;
 dummy=dare(x(2))
