@@ -313,13 +313,14 @@ subroutine crcheck
   use mod_common_main
   use mod_version
 
-  use dynk,     only : dynk_enabled, dynk_noDynkSets,dynk_crcheck_readdata,dynk_crcheck_positionFiles
-  use dump,     only : dump_crcheck_readdata,dump_crcheck_positionFiles
-  use aperture, only : limifound, aper_crcheck_readdata, aper_crcheck_positionFiles
-  use scatter,  only : scatter_active, scatter_crcheck_readdata, scatter_crcheck_positionFiles
-  use elens,    only : melens, elens_crcheck
-  use mod_meta, only : meta_crcheck
-  use mod_time, only : time_crcheck
+  use dynk,       only : dynk_enabled, dynk_noDynkSets,dynk_crcheck_readdata,dynk_crcheck_positionFiles
+  use dump,       only : dump_crcheck_readdata,dump_crcheck_positionFiles
+  use aperture,   only : limifound, aper_crcheck_readdata, aper_crcheck_positionFiles
+  use scatter,    only : scatter_active, scatter_crcheck_readdata, scatter_crcheck_positionFiles
+  use elens,      only : melens, elens_crcheck
+  use mod_meta,   only : meta_crcheck
+  use mod_time,   only : time_crcheck
+  use mod_random, only : rnd_crcheck
 
   integer j,k,l,m
   integer nPoint, ioStat
@@ -429,6 +430,11 @@ subroutine crcheck
     write(crlog,"(a)") "CR_CHECK>  * TIME variables"
     flush(crlog)
     call time_crcheck(cr_pntUnit(nPoint),rErr)
+    if(rErr) cycle
+
+    write(crlog,"(a)") "CR_CHECK>  * RND variables"
+    flush(crlog)
+    call rnd_crcheck(cr_pntUnit(nPoint),rErr)
     if(rErr) cycle
 
     write(crlog,"(a)") "CR_CHECK>  * DUMP variables"
@@ -563,12 +569,13 @@ subroutine crpoint
   use mod_settings
   use numerical_constants
 
-  use dynk,     only : dynk_enabled,dynk_getvalue,dynk_fSets_cr,dynk_cSets_unique,dynk_nSets_unique,dynk_crpoint
-  use dump,     only : dump_crpoint
-  use aperture, only : aper_crpoint,limifound
-  use scatter,  only : scatter_active, scatter_crpoint
-  use elens,    only : melens, elens_crpoint
-  use mod_meta, only : meta_crpoint
+  use dynk,       only : dynk_enabled,dynk_getvalue,dynk_fSets_cr,dynk_cSets_unique,dynk_nSets_unique,dynk_crpoint
+  use dump,       only : dump_crpoint
+  use aperture,   only : aper_crpoint,limifound
+  use scatter,    only : scatter_active, scatter_crpoint
+  use elens,      only : melens, elens_crpoint
+  use mod_meta,   only : meta_crpoint
+  use mod_random, only : rnd_crpoint
 
   integer j, k, l, m, nPoint
   logical wErr, fErr
@@ -673,6 +680,13 @@ subroutine crpoint
     if(wErr) goto 100
 
     if(st_debug) then
+      write(crlog,"(a)") "CR_POINT>  * RND variables"
+      flush(crlog)
+    end if
+    call rnd_crpoint(cr_pntUnit(nPoint),wErr)
+    if(wErr) goto 100
+
+    if(st_debug) then
       write(crlog,"(a)") "CR_POINT>  * DUMP variables"
       flush(crlog)
     end if
@@ -750,11 +764,12 @@ subroutine crstart
   use mod_common_track
   use numerical_constants
 
-  use dynk,     only : dynk_enabled, dynk_crstart
-  use scatter,  only : scatter_active, scatter_crstart
-  use elens,    only : melens, elens_crstart
-  use mod_meta, only : meta_crstart
-  use mod_time, only : time_crstart
+  use dynk,       only : dynk_enabled, dynk_crstart
+  use scatter,    only : scatter_active, scatter_crstart
+  use elens,      only : melens, elens_crstart
+  use mod_meta,   only : meta_crstart
+  use mod_time,   only : time_crstart
+  use mod_random, only : rnd_crstart
 
   logical fErr
   integer j, k, l, m, nPoint, ioStat
@@ -833,6 +848,7 @@ subroutine crstart
   ! Module data
   call meta_crstart
   call time_crstart
+  call rnd_crstart
   if(dynk_enabled) then
     call dynk_crstart
   end if

@@ -1,14 +1,4 @@
 ! start include/multl12.f90
-#ifndef TILT
-  if(iv.eq.2) ekk=(((((bb(4)+four*(bb(5)*cr(2)+aa(5)*ci(2)))+10d0*(bb(6)*cr(3)+aa(6)*ci(3)))+20d0*&
-                  (bb(7)*cr(4)+aa(7)*ci(4)))+35d0*(bb(8)*cr(5)+aa(8)*ci(5)))+56d0*(bb(9)*cr(6)+aa(9)*ci(6)))+84d0*&
-                  (bb(10)*cr(7)+aa(10)*ci(7))
-  if(iv.eq.3) ekk=(((bb(6)+6d0*(bb(7)*cr(2)+aa(7)*ci(2)))+21d0*(bb(8)*cr(3)+aa(8)*ci(3)))+56d0*&
-                  (bb(9)*cr(4)+aa(9)*ci(4)))+126d0*(bb(10)*cr(5)+aa(10)*ci(5))
-  if(iv.eq.4) ekk=(bb(8)+8d0*(bb(9)*cr(2)+aa(9)*ci(2)))+36d0*(bb(10)*cr(3)+aa(10)*ci(3))
-  if(iv.eq.5) ekk=bb(10)
-  call detune(iv,ekk,ep,beta,dtu,dtup,dfac)
-#else
   tiltck=tiltc(k)**2-tilts(k)**2
   tiltsk=(two*tiltc(k))*tilts(k)
   tiltckuk=tiltck*tiltc(k)-tiltsk*tilts(k)
@@ -75,5 +65,4 @@
     ekk= tiltck10*bb(10)-tiltsk10*aa(10)
   endif
   call detune(iv,ekk,ep,beta,dtu,dtup,dfac)
-#endif
 ! end include/multl12.f90
