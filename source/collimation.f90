@@ -124,9 +124,6 @@ module collimation
   real(kind=fPrec), allocatable, save :: neffx(:) !(numeff)
   real(kind=fPrec), allocatable, save :: neffy(:) !(numeff)
 
-  integer, allocatable, save :: secondary(:) !(npart)
-  integer, allocatable, save :: tertiary(:) !(npart)
-  integer, allocatable, save :: other(:) !(npart)
   integer, allocatable, save :: part_hit_before_pos(:) !(npart)
   integer, allocatable, save :: part_hit_before_turn(:) !(npart)
 
@@ -334,9 +331,6 @@ subroutine collimation_expand_arrays(npart_new, nblz_new)
   call alloc(sum_ay,   nblz_new, zero, "sum_ay") !(nblz_new)
   call alloc(sqsum_ay, nblz_new, zero, "sqsum_ay") !(nblz_new)
 
-  call alloc(secondary,            npart_new, 0, "secondary") !(npart_new)
-  call alloc(tertiary,             npart_new, 0, "tertiary") !(npart_new)
-  call alloc(other,                npart_new, 0, "other") !(npart_new)
   call alloc(part_hit_before_pos,  npart_new, 0, "part_hit_before_pos") !(npart_new)
   call alloc(part_hit_before_turn, npart_new, 0, "part_hit_before_turn") !(npart_new)
   call alloc(part_hit_pos,         npart_new, 0, "part_hit_pos") !(npart_new)
@@ -1634,9 +1628,6 @@ subroutine collimate_start
     part_indiv(j)     = -c1m6
     part_linteract(j) = zero
     part_impact(j)    = 0
-    tertiary(j)       = 0
-    secondary(j)      = 0
-    other(j)          = 0
     nabs_type(j)      = 0
     nhit_type(j)      = 0
   end do
@@ -1858,14 +1849,6 @@ subroutine collimate_start
 
 !GRD INITIALIZE LOCAL ADDITIVE PARAMETERS, I.E. THE ONE WE DON'T WANT
 !GRD TO KEEP OVER EACH LOOP
-  do j=1,napx
-    tertiary(j)=0
-    secondary(j)=0
-    other(j)=0
-    nabs_type(j) = 0
-    nhit_type(j) = 0
-  end do
-
   do k = 1, numeff
     neff(k)  = zero
     neffx(k) = zero
@@ -2751,21 +2734,18 @@ end do
 !++   For absorbed particles set all coordinates to zero. Also
 !++   include very large offsets, let's say above 100mm or
 !++   100mrad.
-      if( (part_abs_pos(j).ne.0 .and. part_abs_turn(j).ne.0) .or.&
- &      xv1(j).gt.c1e2 .or. yv1(j).gt.c1e2 .or. xv2(j).gt.c1e2 .or. yv2(j).gt.c1e2) then
-        xv1(j) = zero
-        yv1(j) = zero
-        xv2(j) = zero
-        yv2(j) = zero
-        ejv(j) = myenom
-        sigmv(j)= zero
-        part_abs_pos(j)=ie
-        part_abs_turn(j)=iturn
-        secondary(j) = 0
-        tertiary(j)  = 0
-        other(j)     = 0
-        nabs_type(j) = 0
-        nhit_type(j) = 0
+      if((part_abs_pos(j) /= 0 .and. part_abs_turn(j) /= 0) .or. &
+        xv1(j) > c1e2 .or. yv1(j) > c1e2 .or. xv2(j) > c1e2 .or. yv2(j) > c1e2) then
+        xv1(j)           = zero
+        yv1(j)           = zero
+        xv2(j)           = zero
+        yv2(j)           = zero
+        ejv(j)           = myenom
+        sigmv(j)         = zero
+        part_abs_pos(j)  = ie
+        part_abs_turn(j) = iturn
+        nabs_type(j)     = 0
+        nhit_type(j)     = 0
       end if
 
 !APRIL2005 ...OTHERWISE JUST GET BACK FORMER COORDINATES
@@ -2820,19 +2800,8 @@ end do
         xkick = rcxp(j) - rcxp0(j)
         ykick = rcyp(j) - rcyp0(j)
 
-        ! Indicate wether this is a secondary / tertiary / other particle;
-        ! nhit_type(j) = ior(nhit_type(j),cdb_cType(icoll))
-        if(cdb_cName(icoll)(1:3) == "tcp") then
-          secondary(j) = 1
-          nhit_type(j) = ior(nhit_type(j),1)
-        else if(cdb_cName(icoll)(1:3) == "tcs") then
-          tertiary(j)  = 2
-          nhit_type(j) = ior(nhit_type(j),2)
-        else if((cdb_cName(icoll)(1:3) == "tcl") .or. (cdb_cName(icoll)(1:3) == "tct") .or. &
-                (cdb_cName(icoll)(1:3) == "tcd") .or. (cdb_cName(icoll)(1:3) == "tdi")) then
-          other(j)     = 4
-          nhit_type(j) = ior(nhit_type(j),4)
-        end if
+        ! Record the hit type
+        nhit_type(j) = ior(nhit_type(j),cdb_cType(icoll))
       else
         write(lerr,"(a)")          "COLL> ERROR Particle cannot be both absorbed and not absorbed"
         write(lerr,"(a,2(1x,i0))") "COLL>      ",part_abs_pos (j),part_abs_turn(j)
@@ -2842,9 +2811,7 @@ end do
 !GRD THIS LOOP MUST NOT BE WRITTEN INTO THE "IF(FIRSTRUN)" LOOP !!!!!
       if(dowritetracks) then
         if(part_abs_pos(j).eq.0 .and. part_abs_turn(j).eq.0) then
-          if((secondary(j) .eq. 1 .or. &
-              tertiary(j)  .eq. 2 .or. &
-              other(j)     .eq. 4 .or. nhit_type(j) > 0       ) .and. &
+          if(nhit_type(j) > 0 .and. &
              (xv1(j).lt.99.0_fPrec .and. xv2(j).lt.99.0_fPrec).and.&
 !GRD HERE WE APPLY THE SAME KIND OF CUT THAN THE SIGSECUT PARAMETER
              ((((xv1(j)*c1m3)**2 / (tbetax(ie)*myemitx0_collgap)) .ge. sigsecut2) .or. &
@@ -2895,8 +2862,7 @@ end do
 #ifdef HDF5
             end if
 #endif
-          end if ! if((secondary(j).eq.1.or.tertiary(j).eq.2.or.other(j).eq.4)
-          ! .and.(xv1(j).lt.99.0_fPrec.and.xv2(j).lt.99.0_fPrec) and.
+          end if
         end if !if(part_abs_pos(j).eq.0 .and. part_abs_turn(j).eq.0) then
       end if !if(dowritetracks) then
 
@@ -3399,17 +3365,14 @@ subroutine collimate_start_element(i)
   do j=1,napx
     if((part_abs_pos(j) /= 0 .and. part_abs_turn(j) /= 0) .or. &
       xv1(j) > c1e2 .or. yv1(j) > c1e2 .or. xv2(j) > c1e2 .or. yv2(j) > c1e2) then
-      xv1(j)   = zero
-      yv1(j)   = zero
-      xv2(j)   = zero
-      yv2(j)   = zero
-      ejv(j)   = myenom
-      sigmv(j) = zero
-      secondary(j)  = 0
-      tertiary(j)   = 0
-      other(j)      = 0
-      nabs_type(j)  = 0
-      nhit_type(j)  = 0
+      xv1(j)           = zero
+      yv1(j)           = zero
+      xv2(j)           = zero
+      yv2(j)           = zero
+      ejv(j)           = myenom
+      sigmv(j)         = zero
+      nabs_type(j)     = 0
+      nhit_type(j)     = 0
       part_abs_pos(j)  = ie
       part_abs_turn(j) = iturn
     end if
@@ -3529,14 +3492,12 @@ subroutine collimate_end_element
       if(part_abs_pos(j).eq.0 .and. part_abs_turn(j).eq.0) then
 
 !GRD HERE WE APPLY THE SAME KIND OF CUT THAN THE SIGSECUT PARAMETER
-         if((secondary(j) .eq. 1 .or. &
-             tertiary(j)  .eq. 2 .or. &
-             other(j)     .eq. 4  .or. nhit_type(j) >0    ) .and. &
-             (xv1(j).lt.99.0_fPrec .and. xv2(j).lt.99.0_fPrec) .and. &
-             ((((xv1(j)*c1m3)**2 / (tbetax(ie)*myemitx0_collgap)) .ge. sigsecut2).or. &
-             (((xv2(j)*c1m3)**2  / (tbetay(ie)*myemity0_collgap)) .ge. sigsecut2).or. &
-             (((xv1(j)*c1m3)**2  / (tbetax(ie)*myemitx0_collgap)) + &
-             ((xv2(j)*c1m3)**2  /  (tbetay(ie)*myemity0_collgap)) .ge. sigsecut3)) ) then
+         if(nhit_type(j) > 0 .and. &
+           (xv1(j).lt.99.0_fPrec .and. xv2(j).lt.99.0_fPrec) .and. &
+           ((((xv1(j)*c1m3)**2 / (tbetax(ie)*myemitx0_collgap)) .ge. sigsecut2).or. &
+           (((xv2(j)*c1m3)**2  / (tbetay(ie)*myemity0_collgap)) .ge. sigsecut2).or. &
+           (((xv1(j)*c1m3)**2  / (tbetax(ie)*myemitx0_collgap)) + &
+           ((xv2(j)*c1m3)**2  /  (tbetay(ie)*myemity0_collgap)) .ge. sigsecut3)) ) then
 
           xj  = (xv1(j)-torbx(ie)) /c1e3
           xpj = (yv1(j)-torbxp(ie))/c1e3
@@ -3893,14 +3854,12 @@ subroutine collimate_end_turn
 
       if(part_abs_pos(j).eq.0 .and. part_abs_turn(j).eq.0) then
 !GRD HERE WE APPLY THE SAME KIND OF CUT THAN THE SIGSECUT PARAMETER
-        if((secondary(j) .eq. 1 .or. &
-            tertiary(j)  .eq. 2 .or. &
-            other(j)     .eq. 4 .or. nhit_type(j) > 0     ) .and. &
-            (xv1(j).lt.99.0_fPrec .and. xv2(j).lt.99.0_fPrec) .and. &
-            ((((xv1(j)*c1m3)**2 / (tbetax(ie)*myemitx0_collgap)) .ge. sigsecut2).or. &
-            (((xv2(j)*c1m3)**2  / (tbetay(ie)*myemity0_collgap)) .ge. sigsecut2).or. &
-            (((xv1(j)*c1m3)**2  / (tbetax(ie)*myemitx0_collgap)) + &
-            ((xv2(j)*c1m3)**2  / (tbetay(ie)*myemity0_collgap)) .ge. sigsecut3)) ) then
+        if(nhit_type(j) > 0 .and. &
+          (xv1(j).lt.99.0_fPrec .and. xv2(j).lt.99.0_fPrec) .and. &
+          ((((xv1(j)*c1m3)**2 / (tbetax(ie)*myemitx0_collgap)) .ge. sigsecut2).or. &
+          (((xv2(j)*c1m3)**2  / (tbetay(ie)*myemity0_collgap)) .ge. sigsecut2).or. &
+          (((xv1(j)*c1m3)**2  / (tbetax(ie)*myemitx0_collgap)) + &
+          ((xv2(j)*c1m3)**2  / (tbetay(ie)*myemity0_collgap)) .ge. sigsecut3)) ) then
 
           xj  = (xv1(j)-torbx(ie))/c1e3
           xpj = (yv1(j)-torbxp(ie))/c1e3
@@ -3917,7 +3876,7 @@ subroutine collimate_end_turn
 #ifdef HDF5
           end if
 #endif
-        end if !if ((secondary(j).eq.1.or.tertiary(j).eq.2.or.other(j).eq.4
+        end if
       end if !if(part_abs_pos(j).eq.0 .and. part_abs_turn(j).eq.0) then
     end do ! do j = 1, napx
   end if !if(dowritetracks) then
