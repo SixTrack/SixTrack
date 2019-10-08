@@ -218,10 +218,12 @@ subroutine cdb_readCollDB
     end do
 
     if(collID == -1) then
-      if(bez(ix)(1:2) == "tc" .or. bez(ix)(1:2) == "td" .or. bez(ix)(1:3) == "col") then
+      ! This warning is just for backwards compatibility with the old collimation module which
+      ! expected the collimators to follow the LHC or RHIC naming convention.
+      if(bez(ix)(1:2) == "tc" .or. bez(ix)(1:2) == "td" .or. bez(ix)(1:3) == "col" .or. bez(ix)(1:3) == "cry") then
         elemEnd = len_trim(bez(ix))
-        if(bez(ix)(elemEnd-2:elemEnd) /= "_AP") then
-          write(lout,"(a)") "COLLDB> WARNING Collimator not found in database: '"//trim(bez(ix))//"'"
+        if(bez(ix)(elemEnd-2:elemEnd) /= "_AP") then ! Don't warn on Mad-X aperture markers
+          write(lout,"(a)") "COLLDB> WARNING Collimator with LHC or RHIC style name not found in database: '"//trim(bez(ix))//"'"
         end if
       end if
     else
