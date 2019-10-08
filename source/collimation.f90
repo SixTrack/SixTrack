@@ -1708,72 +1708,55 @@ subroutine collimate_start
   ! After this, the number of slices is also stored per collimator, and can be extracted again later
   call cdb_setMasterJawFit(n_slices, smin_slices, smax_slices, recenter1, recenter2, jaw_fit, jaw_ssf)
 
-!---- creating a file with beta-functions at TCP/TCS
-  mingap = 20
+  ! Creating a file with beta-functions at collimators
+  mingap = 20.0_fPrec
+  do i=1,cdb_nColl
+    ! Start searching minimum gap
+    if(cdb_cFound(i) .and. cdb_cLength(i) > zero) then
+      nsig     = cdb_cNSig(i)
+      nsig_err = nsig + gap_rms_error(i)
 
-  do j=1,iu
-    ! this transformation gives the right marker/name to the corresponding beta-functions or vice versa
-    if(ic(j) <= nblo) then
-      myix = mtyp(ic(j),mel(ic(j)))
-    else
-      myix = ic(j)-nblo
-    end if
+      ! Jaw 1 on positive side x-axis
+      gap_h1 = nsig_err - sin_mb(cdb_cTilt(1,i))*cdb_cLength(i)/2
+      gap_h2 = nsig_err + sin_mb(cdb_cTilt(1,i))*cdb_cLength(i)/2
 
-    if(cdb_elemMap(myix) > 0) then
-      nsig = cdb_cNSig(cdb_elemMap(myix))
-    else
-      nsig = cdb_defColGap
-    end if
+      ! Jaw 2 on negative side of x-axis (see change of sign compared
+      ! to above code lines, alos have a look to setting of tilt angle)
+      gap_h3 = nsig_err + sin_mb(cdb_cTilt(2,i))*cdb_cLength(i)/2
+      gap_h4 = nsig_err - sin_mb(cdb_cTilt(2,i))*cdb_cLength(i)/2
 
-    do i=1,cdb_nColl
-      ! start searching minimum gap
-      if(cdb_cName(i) == bez(myix)) then
-        if(cdb_cLength(i) > zero) then
-          nsig_err = nsig + gap_rms_error(i)
-
-          ! jaw 1 on positive side x-axis
-          gap_h1 = nsig_err - sin_mb(cdb_cTilt(1,i))*cdb_cLength(i)/2
-          gap_h2 = nsig_err + sin_mb(cdb_cTilt(1,i))*cdb_cLength(i)/2
-
-          ! jaw 2 on negative side of x-axis (see change of sign comapred
-          ! to above code lines, alos have a look to setting of tilt angle)
-          gap_h3 = nsig_err + sin_mb(cdb_cTilt(2,i))*cdb_cLength(i)/2
-          gap_h4 = nsig_err - sin_mb(cdb_cTilt(2,i))*cdb_cLength(i)/2
-
-          if(do_nominal) then
-            bx_dist = cdb_cBx(icoll)
-            by_dist = cdb_cBy(icoll)
-          else
-            bx_dist = tbetax(j)
-            by_dist = tbetay(j)
-          end if
-
-          sig_offset = cdb_cOffset(i)/(sqrt(bx_dist**2 * cos_mb(cdb_cRotation(i))**2 + by_dist**2 * sin_mb(cdb_cRotation(i))**2))
-          write(coll_twissLikeUnit,*) cdb_cName(i),tbetax(j),tbetay(j),torbx(j),torby(j),nsig,gap_rms_error(i)
-          write(coll_sigmaSetUnit,*) cdb_cName(i),gap_h1,gap_h2,gap_h3,gap_h4,sig_offset,cdb_cOffset(i),nsig,gap_rms_error(i)
-
-          if((gap_h1 + sig_offset) <= mingap) then
-            mingap         = gap_h1 + sig_offset
-            coll_mingap_id = i
-            coll_mingap2   = cdb_cName(i)
-          else if((gap_h2 + sig_offset) <= mingap) then
-            mingap         = gap_h2 + sig_offset
-            coll_mingap_id = i
-            coll_mingap2   = cdb_cName(i)
-          else if((gap_h3 - sig_offset) <= mingap) then
-            mingap         = gap_h3 - sig_offset
-            coll_mingap_id = i
-            coll_mingap2   = cdb_cName(i)
-          else if((gap_h4 - sig_offset) <= mingap) then
-            mingap         = gap_h4 - sig_offset
-            coll_mingap_id = i
-            coll_mingap2   = cdb_cName(i)
-          end if
-        end if
+      j = cdb_struMap(i) ! The structure index of the collimator
+      if(do_nominal) then
+        bx_dist = cdb_cBx(icoll)
+        by_dist = cdb_cBy(icoll)
+      else
+        bx_dist = tbetax(j)
+        by_dist = tbetay(j)
       end if
-    end do !do i = 1, cdb_nColl
 
-  end do !do j=1,iu
+      sig_offset = cdb_cOffset(i)/(sqrt(bx_dist**2 * cos_mb(cdb_cRotation(i))**2 + by_dist**2 * sin_mb(cdb_cRotation(i))**2))
+      write(coll_twissLikeUnit,*) cdb_cName(i),tbetax(j),tbetay(j),torbx(j),torby(j),nsig,gap_rms_error(i)
+      write(coll_sigmaSetUnit,*) cdb_cName(i),gap_h1,gap_h2,gap_h3,gap_h4,sig_offset,cdb_cOffset(i),nsig,gap_rms_error(i)
+
+      if((gap_h1 + sig_offset) <= mingap) then
+        mingap         = gap_h1 + sig_offset
+        coll_mingap_id = i
+        coll_mingap2   = cdb_cName(i)
+      else if((gap_h2 + sig_offset) <= mingap) then
+        mingap         = gap_h2 + sig_offset
+        coll_mingap_id = i
+        coll_mingap2   = cdb_cName(i)
+      else if((gap_h3 - sig_offset) <= mingap) then
+        mingap         = gap_h3 - sig_offset
+        coll_mingap_id = i
+        coll_mingap2   = cdb_cName(i)
+      else if((gap_h4 - sig_offset) <= mingap) then
+        mingap         = gap_h4 - sig_offset
+        coll_mingap_id = i
+        coll_mingap2   = cdb_cName(i)
+      end if
+    end if
+  end do
 
   write(coll_twissLikeUnit,*) coll_mingap_id, coll_mingap2,  mingap
   write(coll_twissLikeUnit,*) 'INFO> IPENCIL initial ', ipencil

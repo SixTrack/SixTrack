@@ -61,6 +61,7 @@ module coll_db
 
   ! Element Map
   integer,          allocatable, public, save :: cdb_elemMap(:)     ! Map from single elements to DB
+  integer,          allocatable, public, save :: cdb_struMap(:)     ! Map from collimator to structure index
 
 contains
 
@@ -89,6 +90,7 @@ subroutine cdb_allocDB
   call alloc(cdb_cBx,                   cdb_nColl, zero,          "cdb_cBx")
   call alloc(cdb_cBy,                   cdb_nColl, zero,          "cdb_cBy")
   call alloc(cdb_cFound,                cdb_nColl, .false.,       "cdb_cFound")
+  call alloc(cdb_struMap,               cdb_nColl, 0,             "cdb_struMap")
 
   ! Additional Settings Arrays
   call alloc(cdb_cTilt,       2,        cdb_nColl, zero,          "cdb_cTilt")
@@ -202,7 +204,7 @@ subroutine cdb_readCollDB
     cdb_cType(i) = cdb_famType(cdb_cFamily(i))
   end do
 
-  ! Map single elements to collimators
+  ! Map single elements to collimators and collimators to structure elements
   do i=1,iu
     ix = ic(i)-nblo
     if(ix < 1) cycle
@@ -223,8 +225,9 @@ subroutine cdb_readCollDB
         end if
       end if
     else
-      cdb_elemMap(ix)    = collID
-      cdb_cFound(collID) = .true.
+      cdb_elemMap(ix)     = collID
+      cdb_struMap(collID) = i
+      cdb_cFound(collID)  = .true.
     end if
   end do
 
