@@ -296,7 +296,6 @@ subroutine time_writeReal(timeLabel, timeValue, timeUnit, dataCount)
 
 end subroutine time_writeReal
 
-
 ! ================================================================================================ !
 !  Extract Integer Value from System Clock
 !  Moved from Collimation

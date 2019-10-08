@@ -159,6 +159,7 @@ list(APPEND SIXTRACK_TESTS
   perf1
   prob1
   prob3
+  random_numbers
   rfMultipoles_2nd3rd4th_skew
   rfMultipoles_2ndOrder
   rfMultipoles_3rdOrder
@@ -306,6 +307,7 @@ set(TESTS_NOFORT10
   orbit6d-ions-long
   part_state_binary_ions
   part_state_text_ions
+  random_numbers
   rfMultipoles_2nd3rd4th_skew
   rfMultipoles_2ndOrder
   rfMultipoles_3rdOrder
@@ -370,6 +372,7 @@ set(TESTS_NO_STF
   geometry_multicol
   part_state_binary_ions
   part_state_text_ions
+  random_numbers
   rfMultipoles_2ndOrder
   rfMultipoles_4thOrder
   scatter_aperture
@@ -665,6 +668,7 @@ set(FAST_TESTS
   orbit6d-ions-long
   part_state_binary_ions
   part_state_text_ions
+  random_numbers
   rfMultipoles_2nd3rd4th_skew
   rfMultipoles_2ndOrder
   rfMultipoles_3rdOrder

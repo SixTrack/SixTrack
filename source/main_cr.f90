@@ -16,6 +16,7 @@ program maincr
   use floatPrecision
   use mod_units
   use mod_linopt
+  use mod_random
   use string_tools
   use sixtrack_input
   use mathlib_bouncer
@@ -134,9 +135,6 @@ program maincr
 
   ! Features
   featList = ""
-#ifdef TILT
-  featList = featList//" TILT"
-#endif
 #ifdef CRLIBM
   featList = featList//" CRLIBM"
   call disable_xp()
@@ -245,6 +243,7 @@ program maincr
 
   call daten
   call time_timeStamp(time_afterDaten)
+  call rnd_initSeries ! Initialise random numbers
 
 #ifdef HDF5
   if(h5_isActive) then

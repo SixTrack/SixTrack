@@ -1,48 +1,4 @@
 ! start include/kicka09v.f90
-#ifndef TILT
-  mpe=9
-  mx=7
-  cxzr=xl
-  cxzi=zl
-  cxzyr=cxzr**2-cxzi**2
-  cxzyi=cxzr*cxzi+cxzi*cxzr
-  ab1(7)=(28.0_fPrec*ekk)*cxzyi
-  ab2(7)=(28.0_fPrec*ekk)*cxzyr
-  cxzyrr=cxzyr*cxzr-cxzyi*cxzi
-  cxzyi=cxzyr*cxzi+cxzyi*cxzr
-  cxzyr=cxzyrr
-  ab1(6)=(56.0_fPrec*ekk)*cxzyi
-  ab2(6)=(56.0_fPrec*ekk)*cxzyr
-  cxzyrr=cxzyr*cxzr-cxzyi*cxzi
-  cxzyi=cxzyr*cxzi+cxzyi*cxzr
-  cxzyr=cxzyrr
-  ab1(5)=(70.0_fPrec*ekk)*cxzyi
-  ab2(5)=(70.0_fPrec*ekk)*cxzyr
-  cxzyrr=cxzyr*cxzr-cxzyi*cxzi
-  cxzyi=cxzyr*cxzi+cxzyi*cxzr
-  cxzyr=cxzyrr
-  ab1(4)=(56.0_fPrec*ekk)*cxzyi
-  ab2(4)=(56.0_fPrec*ekk)*cxzyr
-  cxzyrr=cxzyr*cxzr-cxzyi*cxzi
-  cxzyi=cxzyr*cxzi+cxzyi*cxzr
-  cxzyr=cxzyrr
-  ab1(3)=(28.0_fPrec*ekk)*cxzyi
-  ab2(3)=(28.0_fPrec*ekk)*cxzyr
-  cxzyrr=cxzyr*cxzr-cxzyi*cxzi
-  cxzyi=cxzyr*cxzi+cxzyi*cxzr
-  cxzyr=cxzyrr
-  qu=(eight*ekk)*cxzyi
-  qv=(-eight*ekk)*cxzyr
-  ab2(2)=-one*qv
-  cxzyrr=cxzyr*cxzr-cxzyi*cxzi
-  cxzyi=cxzyr*cxzi+cxzyi*cxzr
-  cxzyr=cxzyrr
-  dyy1=ekk*cxzyi
-  dyy2=ekk*cxzyr
-  ab1(8)=(eight*ekk)*zl
-  ab2(8)=(eight*ekk)*xl
-  ab2(9)=ekk
-#else
   mpe=9
   mx=7
   cxzr=xl
@@ -110,5 +66,4 @@
   tiltck=tiltckuk
   ab1(9)=ekk*tiltsk
   ab2(9)=ekk*tiltck
-#endif
 ! end include/kicka09v.f90
