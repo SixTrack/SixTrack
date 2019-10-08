@@ -239,26 +239,24 @@ contains
 subroutine collimation_allocate_arrays
 
   use mod_alloc
-
-  implicit none
+  use numerical_constants
 
   ! Initial allocation handled by expand arrays routine
   call collimation_expand_arrays(npart,nblz)
 
   ! Fixed allocations follow:
-  call alloc(npartdpop, numeffdpop, 0, "npartdpop") !(numeffdpop)
-  call alloc(neff, numeff, zero, "neff") !(numeff)
-  call alloc(rsig, numeff, zero, "rsig") !(numeff)
-  call alloc(neffdpop, numeffdpop, zero, "neffdpop") !(numeffdpop)
-  call alloc(dpopbins, numeffdpop, zero, "dpopbins") !(numeffdpop)
-  call alloc(neff2d, numeff, numeffdpop, zero, "neff2d") !(numeff,numeffdpop)
+  call alloc(npartdpop,         numeffdpop, 0,    "npartdpop")
+  call alloc(neff,      numeff,             zero, "neff")
+  call alloc(rsig,      numeff,             zero, "rsig")
+  call alloc(neffdpop,          numeffdpop, zero, "neffdpop")
+  call alloc(dpopbins,          numeffdpop, zero, "dpopbins")
+  call alloc(neff2d,    numeff, numeffdpop, zero, "neff2d")
+  call alloc(neffx,     numeff,             zero, "neffx")
+  call alloc(neffy,     numeff,             zero, "neffy")
 
-  call alloc(nimpact, 50, 0, "nimpact") !(50)
-  call alloc(sumimpact, 50, zero, "sumimpact") !(50)
-  call alloc(sqsumimpact, 50, zero, "sqsumimpact") !(50)
-
-  call alloc(neffx, numeff, zero, "neffx") !(numeff)
-  call alloc(neffy, numeff, zero, "neffy") !(numeff)
+  call alloc(nimpact,     50, 0,    "nimpact")
+  call alloc(sumimpact,   50, zero, "sumimpact")
+  call alloc(sqsumimpact, 50, zero, "sqsumimpact")
 
 end subroutine collimation_allocate_arrays
 
@@ -271,7 +269,7 @@ subroutine collimation_expand_arrays(npart_new, nblz_new)
   integer, intent(in) :: nblz_new
 
   ! Arrays that are always needed
-  call alloc(part_abs_turn, npart_new, 0, "part_abs_turn") !(npart_new)
+  call alloc(part_abs_turn, npart_new, 0, "part_abs_turn")
 
   if(.not. do_coll) return
   ! Arrays that are only needed if Collimation is enabled
@@ -279,50 +277,50 @@ subroutine collimation_expand_arrays(npart_new, nblz_new)
   ! Allocate Common Variables
   call coll_expandArrays(npart_new, nblz_new)
 
-  call alloc(rcx0,  npart_new, zero, "rcx0") !(npart)
-  call alloc(rcxp0, npart_new, zero, "rcxp0") !(npart)
-  call alloc(rcy0,  npart_new, zero, "rcy0") !(npart)
-  call alloc(rcyp0, npart_new, zero, "rcyp0") !(npart)
-  call alloc(rcp0,  npart_new, zero, "rcp0") !(npart)
+  call alloc(rcx0,     npart_new, zero, "rcx0")
+  call alloc(rcxp0,    npart_new, zero, "rcxp0")
+  call alloc(rcy0,     npart_new, zero, "rcy0")
+  call alloc(rcyp0,    npart_new, zero, "rcyp0")
+  call alloc(rcp0,     npart_new, zero, "rcp0")
 
-  call alloc(xbob,    nblz_new, zero, "xbob") !(nblz)
-  call alloc(ybob,    nblz_new, zero, "ybob") !(nblz)
-  call alloc(xpbob,   nblz_new, zero, "xpbob") !(nblz)
-  call alloc(ypbob,   nblz_new, zero, "ypbob") !(nblz)
+  call alloc(xineff,   npart_new, zero, "xineff")
+  call alloc(yineff,   npart_new, zero, "yineff")
+  call alloc(xpineff,  npart_new, zero, "xpineff")
+  call alloc(ypineff,  npart_new, zero, "ypineff")
 
-  call alloc(xineff,  npart_new, zero, "xineff") !(npart)
-  call alloc(yineff,  npart_new, zero, "yineff") !(npart)
-  call alloc(xpineff, npart_new, zero, "xpineff") !(npart)
-  call alloc(ypineff, npart_new, zero, "ypineff") !(npart)
+  call alloc(xbob,     nblz_new,  zero, "xbob")
+  call alloc(ybob,     nblz_new,  zero, "ybob")
+  call alloc(xpbob,    nblz_new,  zero, "xpbob")
+  call alloc(ypbob,    nblz_new,  zero, "ypbob")
 
-! call alloc(mux,     nblz_new, zero, "mux") !(nblz)
-! call alloc(muy,     nblz_new, zero, "muy") !(nblz)
+  call alloc(nampl,    nblz_new,  0,    "nampl")
+  call alloc(sum_ax,   nblz_new,  zero, "sum_ax")
+  call alloc(sqsum_ax, nblz_new,  zero, "sqsum_ax")
+  call alloc(sum_ay,   nblz_new,  zero, "sum_ay")
+  call alloc(sqsum_ay, nblz_new,  zero, "sqsum_ay")
 
-  call alloc(counteddpop, npart_new, numeffdpop, 0, "counteddpop") !(npart,numeffdpop)
-  call alloc(counted2d,   npart_new, numeff, numeffdpop, 0, "counted2d") !(npart,numeff,numeffdpop)
+! call alloc(mux,      nblz_new,  zero, "mux")
+! call alloc(muy,      nblz_new,  zero, "muy")
 
-  call alloc(nampl,    nblz_new, 0, "nampl") !(nblz_new)
-  call alloc(sum_ax,   nblz_new, zero, "sum_ax") !(nblz_new)
-  call alloc(sqsum_ax, nblz_new, zero, "sqsum_ax") !(nblz_new)
-  call alloc(sum_ay,   nblz_new, zero, "sum_ay") !(nblz_new)
-  call alloc(sqsum_ay, nblz_new, zero, "sqsum_ay") !(nblz_new)
+  call alloc(counteddpop, npart_new,         numeffdpop, 0, "counteddpop")
+  call alloc(counted2d,   npart_new, numeff, numeffdpop, 0, "counted2d")
 
-  call alloc(part_hit_before_pos,  npart_new, 0, "part_hit_before_pos") !(npart_new)
-  call alloc(part_hit_before_turn, npart_new, 0, "part_hit_before_turn") !(npart_new)
-  call alloc(part_hit_pos,         npart_new, 0, "part_hit_pos") !(npart_new)
-  call alloc(part_hit_turn,        npart_new, 0, "part_hit_turn") !(npart_new)
-  call alloc(part_abs_pos,         npart_new, 0, "part_abs_pos") !(npart_new)
-  call alloc(part_select,          npart_new, 1, "part_select") !(npart_new)
-  call alloc(nabs_type,            npart_new, 0, "nabs_type") !(npart_new)
-  call alloc(nhit_type,            npart_new, 0, "nhit_type") !(npart_new)
+  call alloc(part_hit_before_pos,  npart_new, 0, "part_hit_before_pos")
+  call alloc(part_hit_before_turn, npart_new, 0, "part_hit_before_turn")
+  call alloc(part_hit_pos,         npart_new, 0, "part_hit_pos")
+  call alloc(part_hit_turn,        npart_new, 0, "part_hit_turn")
+  call alloc(part_abs_pos,         npart_new, 0, "part_abs_pos")
+  call alloc(part_select,          npart_new, 1, "part_select")
+  call alloc(nabs_type,            npart_new, 0, "nabs_type")
+  call alloc(nhit_type,            npart_new, 0, "nhit_type")
 
-  call alloc(part_impact,    npart_new,  zero, "part_impact") !(npart_new)
-  call alloc(part_indiv,     npart_new, -c1m6, "part_indiv") !(npart_new)
-  call alloc(part_linteract, npart_new,  zero, "part_linteract") !(npart_new)
+  call alloc(part_impact,          npart_new,  zero, "part_impact")
+  call alloc(part_indiv,           npart_new, -c1m6, "part_indiv")
+  call alloc(part_linteract,       npart_new,  zero, "part_linteract")
 
-  call alloc(counted_r, npart_new, numeff, 0, "counted_r") !(npart_new,numeff)
-  call alloc(counted_x, npart_new, numeff, 0, "counted_x") !(npart_new,numeff)
-  call alloc(counted_y, npart_new, numeff, 0, "counted_y") !(npart_new,numeff)
+  call alloc(counted_r, npart_new, numeff, 0, "counted_r")
+  call alloc(counted_x, npart_new, numeff, 0, "counted_x")
+  call alloc(counted_y, npart_new, numeff, 0, "counted_y")
 
 end subroutine collimation_expand_arrays
 
