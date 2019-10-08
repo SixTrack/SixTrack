@@ -203,11 +203,7 @@ module collimation
   real(kind=fPrec), save :: xmax_pencil, ymax_pencil, xmax_nom, ymax_nom, nom_aperture, pencil_aperture
 
   real(kind=fPrec), save :: x_pencil0, y_pencil0, sum, sqsum
-  real(kind=fPrec), save :: average, sigma, sigsecut, nspxd, xndisp, zpj
-
-  real(kind=fPrec), save :: max_tmp, a_tmp1, a_tmp2, ldrift, c_nex2, c_ney2, Nap1pos,Nap2pos,Nap1neg,Nap2neg
-  real(kind=fPrec), save :: tiltOffsPos1,tiltOffsPos2,tiltOffsNeg1,tiltOffsNeg2
-  real(kind=fPrec), save :: beamsize1, beamsize2,betax1,betax2,betay1,betay2, alphax1, alphax2,alphay1,alphay2,minAmpl
+  real(kind=fPrec), save :: nspxd, xndisp, zpj
 
 #ifdef HDF5
   ! Variables to save hdf5 dataset indices
@@ -1916,9 +1912,10 @@ subroutine collimate_do_collimator(stracki)
 
   integer j, iSlice, nSlices
   logical onesided, linside(napx)
-  real(kind=fPrec) jawLength,jawAperture,jawOffset,jawTilt(2)
-  real(kind=fPrec) x_Dump,xpDump,y_Dump,ypDump,s_Dump,xmax,ymax
-  real(kind=fPrec) calc_aperture
+  real(kind=fPrec) jawLength,jawAperture,jawOffset,jawTilt(2),x_Dump,xpDump,y_Dump,ypDump,s_Dump,   &
+    xmax,ymax,calc_aperture,ldrift,c_nex2,c_ney2,Nap1pos,Nap2pos,Nap1neg,Nap2neg,tiltOffsPos1,      &
+    tiltOffsPos2,tiltOffsNeg1,tiltOffsNeg2,beamsize1,beamsize2,betax1,betax2,betay1,betay2,alphax1, &
+    alphax2,alphay1,alphay2,minAmpl
 
 #ifdef G4COLLIMATION
   integer :: g4_lostc
@@ -2487,9 +2484,10 @@ subroutine collimate_end_collimator(stracki)
   use geant4
 #endif
 
-  implicit none
+  real(kind=fPrec), intent(in) :: stracki
 
-  integer :: j
+  integer j
+  real(kind=fPrec) average,sigma
 
 #ifdef HDF5
   ! For tracks2
@@ -2497,7 +2495,6 @@ subroutine collimate_end_collimator(stracki)
   real(kind=fPrec) hdfx,hdfxp,hdfy,hdfyp,hdfdee,hdfs
 #endif
 
-  real(kind=fPrec), intent(in) :: stracki
 
 !++  Output information:
 !++
@@ -2772,7 +2769,7 @@ end do
   if (n_impact.gt.0) then
     average = sum/n_impact
 
-    if (sqsum/n_impact.ge.average**2) then
+    if(sqsum/n_impact >= average**2) then
       sigma = sqrt(sqsum/n_impact - average**2)
     else
       sigma = zero
@@ -2869,7 +2866,6 @@ end do
 !++  End of    S E L E C T E D   collimator
   end if
 #endif
-
 
 end subroutine collimate_end_collimator
 
@@ -3355,10 +3351,9 @@ subroutine collimate_end_element
       end if
 
       xndisp = xj
-
-      nspxd = sqrt(abs(gammax*xdisp**2 +  two*talphax(ie)*xdisp*xpj +  tbetax(ie)*xpj**2)/c_emitx0_collgap)
-      nspx  = sqrt(abs(gammax*xndisp**2 + two*talphax(ie)*xndisp*xpj + tbetax(ie)*xpj**2)/c_emitx0_collgap)
-      nspy  = sqrt(abs(gammay*yj**2 +     two*talphay(ie)*yj*ypj +     tbetay(ie)*ypj**2)/c_emity0_collgap)
+      nspxd  = sqrt(abs(gammax*xdisp**2 +  two*talphax(ie)*xdisp*xpj +  tbetax(ie)*xpj**2)/c_emitx0_collgap)
+      nspx   = sqrt(abs(gammax*xndisp**2 + two*talphax(ie)*xndisp*xpj + tbetax(ie)*xpj**2)/c_emitx0_collgap)
+      nspy   = sqrt(abs(gammay*yj**2 +     two*talphay(ie)*yj*ypj +     tbetay(ie)*ypj**2)/c_emity0_collgap)
 
       if(part_abs_pos(j).eq.0 .and. part_abs_turn(j).eq.0) then
 
