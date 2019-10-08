@@ -169,7 +169,6 @@ module collimation
   real(kind=fPrec), save :: remitx_dist,remity_dist,remitx_collgap,remity_collgap
 
   logical, save :: firstcoll
-  integer rnd_lux,rnd_k1,rnd_k2
 
   integer, save :: myix
 
@@ -554,10 +553,7 @@ subroutine collimate_init
   ! Initialize random number generator
   if(rnd_seed == 0) rnd_seed = time_getSysClock()
   if(rnd_seed <  0) rnd_seed = abs(rnd_seed)
-  rnd_lux = 3
-  rnd_k1  = 0
-  rnd_k2  = 0
-  call rluxgo(rnd_lux, rnd_seed, rnd_k1, rnd_k2)
+  call rluxgo(3, rnd_seed, 0, 0)
   write(outlun,*) 'INFO>  rnd_seed: ', rnd_seed
 
   ! Call distribution routines only if collimation block is in fort.3
@@ -1626,10 +1622,7 @@ subroutine collimate_start
 
   ! Intialise random generator with offset_seed
   c_offsettilt_seed = abs(c_offsettilt_seed)
-  rnd_lux = 3
-  rnd_k1  = 0
-  rnd_k2  = 0
-  call rluxgo(rnd_lux, c_offsettilt_seed, rnd_k1, rnd_k2)
+  call rluxgo(3, c_offsettilt_seed, 0, 0)
 
   ! Generate random tilts (Gaussian distribution plus systematic)
   if(c_rmstilt_prim > zero .or. c_rmstilt_sec > zero .or. c_systilt_prim /= zero .or. c_systilt_sec /= zero) then
@@ -1763,10 +1756,7 @@ subroutine collimate_start
   ! Alternatively, we can use ranecu instead, which is capable of continuing a chain of random numbers from
   ! a given set of seeds.
   ! It is probably unnecessary to use different random seeds here in the first place.
-  rnd_lux = 3
-  rnd_k1  = 0
-  rnd_k2  = 0
-  call rluxgo(rnd_lux, rnd_seed, rnd_k2, rnd_k2)
+  call rluxgo(3, rnd_seed, 0, 0)
   dummy = rndm5(1) ! Reset rndm5 too
 
 end subroutine collimate_start
