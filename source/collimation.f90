@@ -30,10 +30,12 @@ module collimation
   logical, private, save :: do_oneside       = .false.
   logical, private, save :: systilt_antisymm = .false.
   logical, private, save :: do_mingap        = .false.
+  logical, private, save :: firstcoll        = .true.
 
-  integer, private, save :: icoll = 0
-  integer, private, save :: ie    = 0
-  integer, private, save :: iturn = 0
+  integer, private, save :: icoll            = 0
+  integer, private, save :: ie               = 0
+  integer, private, save :: iturn            = 0
+  integer, public,  save :: myix             = 0
 
   ! Distribution
   integer,          private, save :: do_thisdis   = 0
@@ -97,73 +99,64 @@ module collimation
   ! variables for global inefficiencies studies
   ! of normalized and off-momentum halo
   ! Last modified: July 2016
+  integer,          allocatable, private, save :: counteddpop(:,:) ! (npart,numeffdpop)
+  integer,          allocatable, private, save :: npartdpop(:)     ! (numeffdpop)
+  integer,          allocatable, private, save :: counted2d(:,:,:) ! (npart,numeff,numeffdpop)
+  integer,          allocatable, private, save :: counted_r(:,:)   ! (npart,numeff)
+  integer,          allocatable, private, save :: counted_x(:,:)   ! (npart,numeff)
+  integer,          allocatable, private, save :: counted_y(:,:)   ! (npart,numeff)
+  real(kind=fPrec), allocatable, private, save :: neffx(:)         ! (numeff)
+  real(kind=fPrec), allocatable, private, save :: neffy(:)         ! (numeff)
+  real(kind=fPrec), allocatable, private, save :: neff(:)          ! (numeff)
+  real(kind=fPrec), allocatable, private, save :: rsig(:)          ! (numeff)
+  real(kind=fPrec), allocatable, private, save :: neffdpop(:)      ! (numeffdpop)
+  real(kind=fPrec), allocatable, private, save :: dpopbins(:)      ! (numeffdpop)
+  real(kind=fPrec), allocatable, private, save :: neff2d(:,:)      ! (numeff,numeffdpop)
+  real(kind=fPrec), private, save :: dpopmin
+  real(kind=fPrec), private, save :: dpopmax
+  real(kind=fPrec), private, save :: mydpop
 
-  real(kind=fPrec), allocatable, save :: neff(:) !(numeff)
-  real(kind=fPrec), allocatable, save :: rsig(:) !(numeff)
 
-  integer, allocatable, save :: counteddpop(:,:) !(npart,numeffdpop)
-  integer, allocatable, save :: npartdpop(:) !(numeffdpop)
-  integer, allocatable, save :: counted2d(:,:,:) !(npart,numeff,numeffdpop)
-  real(kind=fPrec), allocatable, save :: neffdpop(:) !(numeffdpop)
-  real(kind=fPrec), allocatable, save :: dpopbins(:) !(numeffdpop)
+  integer,          allocatable, private, save :: nimpact(:)     !(50)
+  real(kind=fPrec), allocatable, private, save :: sumimpact(:)   !(50)
+  real(kind=fPrec), allocatable, private, save :: sqsumimpact(:) !(50)
 
-  real(kind=fPrec) dpopmin,dpopmax,mydpop
-  real(kind=fPrec), allocatable, save :: neff2d(:,:) !(numeff,numeffdpop)
+  ! Arrays allocated to nblz
+  integer,          allocatable, private, save :: nampl(:)
+  real(kind=fPrec), allocatable, private, save :: sum_ax(:)
+  real(kind=fPrec), allocatable, private, save :: sqsum_ax(:)
+  real(kind=fPrec), allocatable, private, save :: sum_ay(:)
+  real(kind=fPrec), allocatable, private, save :: sqsum_ay(:)
 
-  integer, allocatable, save :: nimpact(:) !(50)
-  real(kind=fPrec), allocatable, save :: sumimpact(:) !(50)
-  real(kind=fPrec), allocatable, save :: sqsumimpact(:) !(50)
+  ! Arrays allocated to npart
+  integer,          allocatable, private, save :: part_hit_before_pos(:)
+  integer,          allocatable, private, save :: part_hit_before_turn(:)
+  integer,          allocatable, private, save :: part_hit_pos(:)
+  integer,          allocatable, private, save :: part_hit_turn(:)
+  integer,          allocatable, private, save :: part_abs_pos(:)
+  integer,          allocatable, public,  save :: part_abs_turn(:)
+  integer,          allocatable, private, save :: part_select(:)
+  integer,          allocatable, private, save :: nabs_type(:)
+  integer,          allocatable, private, save :: nhit_type(:)
+  real(kind=fPrec), allocatable, private, save :: part_indiv(:)
+  real(kind=fPrec), allocatable, private, save :: part_linteract(:)
+  real(kind=fPrec), allocatable, private, save :: part_impact(:)
+  real(kind=fPrec), allocatable, private, save :: rcx0(:)
+  real(kind=fPrec), allocatable, private, save :: rcxp0(:)
+  real(kind=fPrec), allocatable, private, save :: rcy0(:)
+  real(kind=fPrec), allocatable, private, save :: rcyp0(:)
+  real(kind=fPrec), allocatable, private, save :: rcp0(:)
 
-  integer, allocatable, save :: nampl(:) !(nblz)
-  real(kind=fPrec), allocatable, save :: sum_ax(:) !(nblz)
-  real(kind=fPrec), allocatable, save :: sqsum_ax(:) !(nblz)
-  real(kind=fPrec), allocatable, save :: sum_ay(:) !(nblz)
-  real(kind=fPrec), allocatable, save :: sqsum_ay(:) !(nblz)
-
-  real(kind=fPrec), allocatable, save :: neffx(:) !(numeff)
-  real(kind=fPrec), allocatable, save :: neffy(:) !(numeff)
-
-  integer, allocatable, save :: part_hit_before_pos(:) !(npart)
-  integer, allocatable, save :: part_hit_before_turn(:) !(npart)
-
-  real(kind=fPrec), allocatable, save :: part_indiv(:) !(npart)
-  real(kind=fPrec), allocatable, save :: part_linteract(:) !(npart)
-
-  integer, allocatable, save :: part_hit_pos(:) !(npart)
-  integer, allocatable, save :: part_hit_turn(:) !(npart)
-  integer, allocatable, save :: part_abs_pos(:) !(npart)
-  integer, allocatable, save :: part_abs_turn(:) !(npart)
-  integer, allocatable, save :: part_select(:) !(npart)
-  integer, allocatable, save :: nabs_type(:) !(npart)
-  integer, allocatable, save :: nhit_type(:) !(npart)
-  integer, save :: n_tot_absorbed
-  integer, save :: n_absorbed
-  integer, save :: nabs_total
-
-  real(kind=fPrec), allocatable, save :: part_impact(:) !(npart)
-
-  integer, save :: nsurvive, nsurvive_end, num_selhit, n_impact
-
-  integer, allocatable, save :: counted_r(:,:) !(npart,numeff)
-  integer, allocatable, save :: counted_x(:,:) !(npart,numeff)
-  integer, allocatable, save :: counted_y(:,:) !(npart,numeff)
-
-  character(len=4), save :: smpl
-  character(len=80), save :: pfile
+  integer, private, save :: n_tot_absorbed = 0
+  integer, private, save :: n_absorbed     = 0
+  integer, private, save :: nabs_total     = 0
+  integer, private, save :: nsurvive       = 0
+  integer, private, save :: nsurvive_end   = 0
+  integer, private, save :: num_selhit     = 0
+  integer, private, save :: n_impact       = 0
 
   ! Variables for finding the collimator with the smallest gap
   ! and defining, stroring the gap rms error
-
-  character(len=mNameLen) :: coll_mingap2
-  real(kind=fPrec) :: nsig_err, sig_offset
-  real(kind=fPrec) :: mingap, gap_h1, gap_h2, gap_h3, gap_h4
-  integer :: coll_mingap_id
-
-  real(kind=fPrec), save :: remitx_dist,remity_dist,remitx_collgap,remity_collgap
-
-  logical, save :: firstcoll
-
-  integer, save :: myix
 
   real(kind=fPrec), public  :: nspx,nspy,mux0,muy0
   real(kind=fPrec), private :: ax0,ay0,bx0,by0     ! These are set, but never used
@@ -201,11 +194,6 @@ module collimation
   real(kind=fPrec), save :: c_tilt(2)   !tilt in radian
   character(len=4), save :: c_material  !material
 
-  real(kind=fPrec), allocatable, private, save :: rcx0(:)  !(npart)
-  real(kind=fPrec), allocatable, private, save :: rcxp0(:) !(npart)
-  real(kind=fPrec), allocatable, private, save :: rcy0(:)  !(npart)
-  real(kind=fPrec), allocatable, private, save :: rcyp0(:) !(npart)
-  real(kind=fPrec), allocatable, private, save :: rcp0(:)  !(npart)
 
   real(kind=fPrec), private, save :: xj, xpj, yj, ypj, pj
 
@@ -324,6 +312,40 @@ subroutine collimation_expand_arrays(npart_new, nblz_new)
 
 end subroutine collimation_expand_arrays
 
+subroutine coll_shuffleLostPart
+
+  use mod_common
+  use mod_common_main
+
+  integer j, tnapx
+
+  tnapx = napx
+  do j=napx,1,-1
+    if(llostp(j) .eqv. .false.) cycle
+
+    part_hit_pos(j:tnapx)         = cshift(part_hit_pos(j:tnapx),         1)
+    part_hit_turn(j:tnapx)        = cshift(part_hit_turn(j:tnapx),        1)
+    part_abs_pos(j:tnapx)         = cshift(part_abs_pos(j:tnapx),         1)
+    part_abs_turn(j:tnapx)        = cshift(part_abs_turn(j:tnapx),        1)
+    part_select(j:tnapx)          = cshift(part_select(j:tnapx),          1)
+    part_impact(j:tnapx)          = cshift(part_impact(j:tnapx),          1)
+    part_indiv(j:tnapx)           = cshift(part_indiv(j:tnapx),           1)
+    part_linteract(j:tnapx)       = cshift(part_linteract(j:tnapx),       1)
+    part_hit_before_pos(j:tnapx)  = cshift(part_hit_before_pos(j:tnapx),  1)
+    part_hit_before_turn(j:tnapx) = cshift(part_hit_before_turn(j:tnapx), 1)
+
+    nabs_type(j:tnapx)            = cshift(nabs_type(j:tnapx),            1)
+    nhit_type(j:tnapx)            = cshift(nhit_type(j:tnapx),            1)
+
+    counted_r(j:tnapx,:)          = cshift(counted_r(j:tnapx,:),          1, 1)
+    counted_x(j:tnapx,:)          = cshift(counted_x(j:tnapx,:),          1, 1)
+    counted_y(j:tnapx,:)          = cshift(counted_y(j:tnapx,:),          1, 1)
+
+    tnapx = tnapx - 1
+  end do
+
+end subroutine coll_shuffleLostPart
+
 ! ================================================================================================ !
 !  Collimation Init
 !  This routine is called once at the start of the simulation and can be used to do any initial
@@ -402,17 +424,17 @@ subroutine collimate_init
   write(lout,"(a,e15.8)") 'COLL> Info: Orbitxp0 [mrad]     = ', torbxp(1)
   write(lout,"(a,e15.8)") 'COLL> Info: Orbity0 [mm]        = ', torby(1)
   write(lout,"(a,e15.8)") 'COLL> Info: Orbitpy0 [mrad]     = ', torbyp(1)
-  write(lout,"(a,e15.8)") 'COLL> Info: Emitx0_dist [um]    = ', remitx_dist
-  write(lout,"(a,e15.8)") 'COLL> Info: Emity0_dist [um]    = ', remity_dist
-  write(lout,"(a,e15.8)") 'COLL> Info: Emitx0_collgap [um] = ', remitx_collgap
-  write(lout,"(a,e15.8)") 'COLL> Info: Emity0_collgap [um] = ', remity_collgap
+  write(lout,"(a,e15.8)") 'COLL> Info: Emitx0_dist [um]    = ', emitnx0_dist*gammar
+  write(lout,"(a,e15.8)") 'COLL> Info: Emity0_dist [um]    = ', emitny0_dist*gammar
+  write(lout,"(a,e15.8)") 'COLL> Info: Emitx0_collgap [um] = ', emitnx0_collgap*gammar
+  write(lout,"(a,e15.8)") 'COLL> Info: Emity0_collgap [um] = ', emitny0_collgap*gammar
   write(lout,"(a,e15.8)") 'COLL> Info: E0 [MeV]            = ', e0
   write(lout,"(a)")
 
-  myemitx0_dist    = remitx_dist*c1m6
-  myemity0_dist    = remity_dist*c1m6
-  myemitx0_collgap = remitx_collgap*c1m6
-  myemity0_collgap = remity_collgap*c1m6
+  myemitx0_dist    = emitnx0_dist*gammar*c1m6
+  myemity0_dist    = emitny0_dist*gammar*c1m6
+  myemitx0_collgap = emitnx0_collgap*gammar*c1m6
+  myemity0_collgap = emitny0_collgap*gammar*c1m6
 
   myalphax = talphax(1)
   myalphay = talphay(1)
@@ -1355,11 +1377,6 @@ subroutine collimate_postInput(gammar)
 
   call collimation_expand_arrays(npart,nblz)
 
-  remitx_dist    = emitnx0_dist*gammar
-  remity_dist    = emitny0_dist*gammar
-  remitx_collgap = emitnx0_collgap*gammar
-  remity_collgap = emitny0_collgap*gammar
-
   if(myenom == zero) then
     write(lerr,"(a)") "COLL> ERROR Beam energy cannot be zero"
     call prror
@@ -1548,8 +1565,9 @@ subroutine collimate_start
   use string_tools
   use mathlib_bouncer
 
-  integer i,j
-  real(kind=fPrec) dummy
+  integer i, j, coll_mingap_id
+  real(kind=fPrec) dummy, nsig_err, sig_offset, mingap, gap_h1, gap_h2, gap_h3, gap_h4
+  character(len=mNameLen) coll_mingap
 
   ! Initialisation
   do i=1,numeff
@@ -1560,8 +1578,6 @@ subroutine collimate_start
   do i=2,numeffdpop
     dpopbins(i) = real(i-1,fPrec)*4.0e-4_fPrec
   end do
-
-  firstcoll = .true.
 
 #ifdef BEAMGAS
   call beamGasInit(myenom)
@@ -1681,37 +1697,37 @@ subroutine collimate_start
       if((gap_h1 + sig_offset) <= mingap) then
         mingap         = gap_h1 + sig_offset
         coll_mingap_id = i
-        coll_mingap2   = cdb_cName(i)
+        coll_mingap    = cdb_cName(i)
       else if((gap_h2 + sig_offset) <= mingap) then
         mingap         = gap_h2 + sig_offset
         coll_mingap_id = i
-        coll_mingap2   = cdb_cName(i)
+        coll_mingap    = cdb_cName(i)
       else if((gap_h3 - sig_offset) <= mingap) then
         mingap         = gap_h3 - sig_offset
         coll_mingap_id = i
-        coll_mingap2   = cdb_cName(i)
+        coll_mingap    = cdb_cName(i)
       else if((gap_h4 - sig_offset) <= mingap) then
         mingap         = gap_h4 - sig_offset
         coll_mingap_id = i
-        coll_mingap2   = cdb_cName(i)
+        coll_mingap    = cdb_cName(i)
       end if
     end if
   end do
 
   write(coll_twissLikeUnit,"(a)")      ""
   write(coll_twissLikeUnit,"(a)")      "# INFO"
-  write(coll_twissLikeUnit,"(a)")      "# MinGap Collimator:  '"//trim(coll_mingap2)//"'"
+  write(coll_twissLikeUnit,"(a)")      "# MinGap Collimator:  '"//trim(coll_mingap)//"'"
   write(coll_twissLikeUnit,"(a,i0)")   "# MinGap Coll ID:     ",coll_mingap_id
   write(coll_twissLikeUnit,"(a,f0.6)") "# Min Gap Sigma:      ",mingap
   write(coll_twissLikeUnit,"(a,i0)")   "# Pencil Initial:     ",ipencil
 
   write(coll_sigmaSetUnit, "(a)")      ""
   write(coll_sigmaSetUnit, "(a)")      "# INFO"
-  write(coll_sigmaSetUnit, "(a)")      "# MinGap Collimator:  '"//trim(coll_mingap2)//"'"
+  write(coll_sigmaSetUnit, "(a)")      "# MinGap Collimator:  '"//trim(coll_mingap)//"'"
   write(coll_sigmaSetUnit, "(a,i0)")   "# MinGap Coll ID:     ",coll_mingap_id
   write(coll_sigmaSetUnit, "(a,f0.6)") "# Min Gap Sigma:      ",mingap
   write(coll_sigmaSetUnit, "(a,i0)")   "# Pencil Initial:     ",ipencil
-  
+
   ! if pencil beam is used and on collimator with smallest gap the
   ! distribution should be generated, set ipencil to coll_mingap_id
   if(ipencil > 0 .and. do_mingap) then

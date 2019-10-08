@@ -266,30 +266,7 @@ subroutine shuffleLostParticles
 
   ! Collimation
   if(do_coll) then
-    tnapx = napx
-    do j=napx,1,-1
-      if(llostp(j) .eqv. .false.) cycle
-
-      part_hit_pos(j:tnapx)         = cshift(part_hit_pos(j:tnapx),         1)
-      part_hit_turn(j:tnapx)        = cshift(part_hit_turn(j:tnapx),        1)
-      part_abs_pos(j:tnapx)         = cshift(part_abs_pos(j:tnapx),         1)
-      part_abs_turn(j:tnapx)        = cshift(part_abs_turn(j:tnapx),        1)
-      part_select(j:tnapx)          = cshift(part_select(j:tnapx),          1)
-      part_impact(j:tnapx)          = cshift(part_impact(j:tnapx),          1)
-      part_indiv(j:tnapx)           = cshift(part_indiv(j:tnapx),           1)
-      part_linteract(j:tnapx)       = cshift(part_linteract(j:tnapx),       1)
-      part_hit_before_pos(j:tnapx)  = cshift(part_hit_before_pos(j:tnapx),  1)
-      part_hit_before_turn(j:tnapx) = cshift(part_hit_before_turn(j:tnapx), 1)
-
-      nabs_type(j:tnapx)            = cshift(nabs_type(j:tnapx),            1)
-      nhit_type(j:tnapx)            = cshift(nhit_type(j:tnapx),            1)
-
-      counted_r(j:tnapx,:)          = cshift(counted_r(j:tnapx,:),          1, 1)
-      counted_x(j:tnapx,:)          = cshift(counted_x(j:tnapx,:),          1, 1)
-      counted_y(j:tnapx,:)          = cshift(counted_y(j:tnapx,:),          1, 1)
-
-      tnapx = tnapx - 1
-    end do
+    call coll_shuffleLostPart
   end if
 
 #ifdef FLUKA
