@@ -36,7 +36,18 @@ module coll_common
   real(kind=fPrec), save :: yp_pencil0    = zero
   real(kind=fPrec), allocatable, save :: x_pencil(:)
   real(kind=fPrec), allocatable, save :: y_pencil(:)
+  real(kind=fPrec), allocatable, save :: xp_pencil(:)
+  real(kind=fPrec), allocatable, save :: yp_pencil(:)
   real(kind=fPrec), allocatable, save :: pencil_dx(:)
+
+  ! Other Arrays
+  integer,          allocatable, save :: cn_impact(:)
+  integer,          allocatable, save :: cn_absorbed(:)
+  real(kind=fPrec), allocatable, save :: caverage(:)
+  real(kind=fPrec), allocatable, save :: csigma(:)
+  real(kind=fPrec), allocatable, save :: gap_rms_error(:)
+  real(kind=fPrec), allocatable, save :: csum(:)
+  real(kind=fPrec), allocatable, save :: csqsum(:)
 
   ! Output File Names
   character(len=12), parameter :: coll_survivalFile   = "survival.dat"
@@ -107,6 +118,28 @@ subroutine coll_expandArrays(npart_new, nblz_new)
   call alloc(rcs,  npart_new, zero, "rcs")
 
 end subroutine coll_expandArrays
+
+subroutine coll_expandNColl(nColl)
+
+  use mod_alloc
+  use numerical_constants
+
+  integer, intent(in) :: nColl
+
+  call alloc(cn_impact,     nColl, 0,    "cn_impact(:)")
+  call alloc(cn_absorbed,   nColl, 0,    "cn_absorbed(:)")
+  call alloc(caverage,      nColl, zero, "caverage")
+  call alloc(csigma,        nColl, zero, "csigma")
+  call alloc(gap_rms_error, nColl, zero, "gap_rms_error")
+  call alloc(csum,          nColl, zero, "csum")
+  call alloc(csqsum,        nColl, zero, "csqsum")
+  call alloc(x_pencil,      nColl, zero, "x_pencil")
+  call alloc(y_pencil,      nColl, zero, "y_pencil")
+  call alloc(xp_pencil,     nColl, zero, "xp_pencil")
+  call alloc(yp_pencil,     nColl, zero, "yp_pencil")
+  call alloc(pencil_dx,     nColl, zero, "pencil_dx")
+
+end subroutine coll_expandNColl
 
 end module coll_common
 
