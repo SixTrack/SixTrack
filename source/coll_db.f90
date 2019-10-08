@@ -192,10 +192,6 @@ subroutine cdb_readCollDB
 #ifdef HDF5
   call cdb_writeDB_HDF5
 #endif
-  if(st_debug) then
-    call cdb_writeFam
-    call cdb_writeDB
-  end if
 
 ! ============================================================================ !
 !  Post-Processing DB
@@ -231,6 +227,11 @@ subroutine cdb_readCollDB
       cdb_cFound(collID) = .true.
     end if
   end do
+
+  if(st_debug) then ! Dump a copy of the family and collimator databases
+    call cdb_writeFam
+    call cdb_writeDB
+  end if
 
 end subroutine cdb_readCollDB
 
@@ -294,14 +295,31 @@ subroutine cdb_readDB_newFormat
     goto 20
   end if
 
-  if(lnSplit(1) == "NSIG_FAM") then
-    ! Collimator Family
+  if(lnSplit(1) == "NSIG_FAM") then ! Collimator Family
+    if(nSplit < 3) then
+      write(lerr,"(a,i0,a)") "COLLDB> ERROR Collimator family description on line ",iLine," has less than 3 values."
+      call prror
+    end if
     call chr_cast(lnSplit(3), nSig, cErr)
     call cdb_addFamily(trim(lnSplit(2)), nSig, famID, fExists)
     if(fExists .and. .not. cdb_doNSig) then
       ! If setting nsig in fort.3 is disabled, the DB values take precedence, so we overwrite them here
       cdb_famNSig(famID)     = nSig
       cdb_famNSigOrig(famID) = nSig
+    end if
+    if(nSplit > 3) then ! We have a type definition
+      select case(chr_toUpper(lnSplit(4)(1:3))) ! We only check the first three characters
+      case("PRI")
+        cdb_famType(famID) = cdb_typPrimary
+      case("SEC")
+        cdb_famType(famID) = cdb_typSecondary
+      case("TER")
+        cdb_famType(famID) = cdb_typTertiary
+      case("OTH")
+        cdb_famType(famID) = cdb_typOther
+      case("CRY")
+        cdb_famType(famID) = cdb_typCrystal
+      end select
     end if
     goto 10
   end if
@@ -1042,9 +1060,10 @@ subroutine cdb_writeFam
   call f_requestUnit("coll_families_dump.dat", famUnit)
   call f_open(unit=famUnit,file="coll_families_dump.dat",formatted=.true.,mode="w",status="replace")
 
-  write(famUnit,"(a16,2(1x,a13))") "# famName       ","nSig","nSigOrig"
+  write(famUnit,"(a16,1x,a3,2(1x,a13))") "# famName       ","typ","nSig","nSigOrig"
   do j=1,cdb_nFam
-    write(famUnit,"(a16,2(1x,f13.6))") cdb_famName(j),cdb_famNSig(j),cdb_famNSigOrig(j)
+    write(famUnit,"(a16,1x,a3,2(1x,f13.6))") cdb_famName(j),cdb_getTypeName(cdb_famType(j)), &
+      cdb_famNSig(j),cdb_famNSigOrig(j)
   end do
 
   flush(famUnit)
@@ -1068,16 +1087,17 @@ subroutine cdb_writeDB
   call f_requestUnit("coll_db_dump.dat", dbUnit)
   call f_open(unit=dbUnit,file="coll_db_dump.dat",formatted=.true.,mode="w",status="replace")
 
-  write(dbUnit,"(a20,1x,a16,2(1x,a13),1x,a4,5(1x,a13))") "# collName          ","famName         ","nSig",&
-    "nSigOrig","mat.","length","angle","offset","betax","betay"
+  write(dbUnit,"(a20,1x,a16,1x,a3,2(1x,a13),1x,a4,5(1x,a13))") "# collName          ","famName         ",&
+    "typ","nSig","nSigOrig","mat.","length","angle","offset","betax","betay"
   do j=1,cdb_nColl
     if(cdb_cFamily(j) > 0) then
       famName = cdb_famName(cdb_cFamily(j))
     else
       famName = " "
     end if
-    write(dbUnit,"(a20,1x,a16,2(1x,f13.6),1x,a4,5(1x,f13.6))") cdb_cName(j),famName,cdb_cNSig(j),&
-      cdb_cNSigOrig(j),cdb_cMaterial(j),cdb_cLength(j),cdb_cRotation(j),cdb_cOffset(j),cdb_cBx(j),cdb_cBy(j)
+    write(dbUnit,"(a20,1x,a16,1x,a3,2(1x,f13.6),1x,a4,5(1x,f13.6))") cdb_cName(j),famName,          &
+      cdb_getTypeName(cdb_cType(j)),cdb_cNSig(j),cdb_cNSigOrig(j),cdb_cMaterial(j),cdb_cLength(j),  &
+      cdb_cRotation(j),cdb_cOffset(j),cdb_cBx(j),cdb_cBy(j)
   end do
 
   flush(dbUnit)
