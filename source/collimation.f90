@@ -1670,74 +1670,49 @@ subroutine collimate_start
   rnd_k2  = 0
   call rluxgo(rnd_lux, c_offsettilt_seed, rnd_k1, rnd_k2)
 
-!++  Generate random tilts (Gaussian distribution plus systematic)
-!++  Do this only for the first call of this routine (first sample)
-!++  Keep all collimator database info and errors in memeory (COMMON
-!++  block) in order to re-use exactly the same information for every
-!++  sample.
-  if(c_rmstilt_prim.gt.zero .or. c_rmstilt_sec.gt.zero .or. c_systilt_prim.ne.zero .or. c_systilt_sec.ne.zero) then
+  ! Generate random tilts (Gaussian distribution plus systematic)
+  if(c_rmstilt_prim > zero .or. c_rmstilt_sec > zero .or. c_systilt_prim /= zero .or. c_systilt_sec /= zero) then
     do icoll = 1, cdb_nColl
-      if(cdb_cName(icoll)(1:3) == "tcp") then
+      if(cdb_cType(icoll) == cdb_typPrimary) then
         c_rmstilt = c_rmstilt_prim
         c_systilt = c_systilt_prim
       else
         c_rmstilt = c_rmstilt_sec
         c_systilt = c_systilt_sec
       end if
-
       cdb_cTilt(1,icoll) = c_systilt+c_rmstilt*ran_gauss2(three)
-
       if(systilt_antisymm) then
         cdb_cTilt(2,icoll) = -one*c_systilt+c_rmstilt*ran_gauss2(three)
       else
         cdb_cTilt(2,icoll) =      c_systilt+c_rmstilt*ran_gauss2(three)
       end if
+      write(outlun,*) 'INFO>  Collimator ',trim(cdb_cName(icoll)),' jaw 1 has tilt [rad]: ',cdb_cTilt(1,icoll)
+      write(outlun,*) 'INFO>  Collimator ',trim(cdb_cName(icoll)),' jaw 2 has tilt [rad]: ',cdb_cTilt(2,icoll)
+    end do
 
-      write(outlun,*) 'INFO>  Collimator ', cdb_cName(icoll), ' jaw 1 has tilt [rad]: ', cdb_cTilt(1,icoll)
-      write(outlun,*) 'INFO>  Collimator ', cdb_cName(icoll), ' jaw 2 has tilt [rad]: ', cdb_cTilt(2,icoll)
+    do icoll=1,cdb_nColl
+      if(cdb_cType(icoll) == cdb_typPrimary) then
+        cdb_cOffset(icoll) = c_sysoffset_prim + c_rmsoffset_prim*ran_gauss2(three)
+      else
+        cdb_cOffset(icoll) = c_sysoffset_sec +  c_rmsoffset_sec*ran_gauss2(three)
+      end if
+      write(outlun,*) 'INFO>  Offset: ',trim(cdb_cName(icoll)),cdb_cOffset(icoll)
     end do
   end if
+  do icoll=1,cdb_nColl
+    gap_rms_error(icoll) = c_rmserror_gap * ran_gauss2(three)
+    write(outlun,*) 'INFO>  Gap RMS error: ',trim(cdb_cName(icoll)),gap_rms_error(icoll)
+  end do
 
   ! In case we're using old type jaw fit, this is where we generate the parameters for the new method
   ! After this, the number of slices is also stored per collimator, and can be extracted again later
   call cdb_setMasterJawFit(n_slices, smin_slices, smax_slices, recenter1, recenter2, jaw_fit, jaw_ssf)
 
-!++  Generate random offsets (Gaussian distribution plus systematic)
-!++  Do this only for the first call of this routine (first sample)
-!++  Keep all collimator database info and errors in memeory (COMMON
-!++  block) in order to re-use exactly the same information for every
-!++  sample and throughout a all run.
- if(c_sysoffset_prim.ne.zero .or. c_sysoffset_sec.ne.zero .or.c_rmsoffset_prim.gt.zero .or.c_rmsoffset_sec.gt.zero) then
-   do icoll = 1, cdb_nColl
-
-     if(cdb_cName(icoll)(1:3) == "tcp") then
-       cdb_cOffset(icoll) = c_sysoffset_prim + c_rmsoffset_prim*ran_gauss2(three)
-     else
-       cdb_cOffset(icoll) = c_sysoffset_sec +  c_rmsoffset_sec*ran_gauss2(three)
-     end if
-
-     write(outlun,*) 'INFO>  offset: ', cdb_cName(icoll), cdb_cOffset(icoll)
-   end do
- endif
-
-!++  Generate random offsets (Gaussian distribution)
-!++  Do this only for the first call of this routine (first sample)
-!++  Keep all collimator database info and errors in memeory (COMMON
-!++  block) in order to re-use exactly the same information for every
-!++  sample and throughout a all run.
-!         if (c_rmserror_gap.gt.0.) then
-!            write(outlun,*) 'INFO> c_rmserror_gap = ',c_rmserror_gap
-  do icoll = 1, cdb_nColl
-    gap_rms_error(icoll) = c_rmserror_gap * ran_gauss2(three)
-    write(outlun,*) 'INFO>  gap_rms_error: ', cdb_cName(icoll),gap_rms_error(icoll)
-  end do
-
 !---- creating a file with beta-functions at TCP/TCS
   mingap = 20
 
   do j=1,iu
-! this transformation gives the right marker/name to the corresponding
-! beta-dunctions or vice versa ;)
+    ! this transformation gives the right marker/name to the corresponding beta-functions or vice versa
     if(ic(j) <= nblo) then
       myix = mtyp(ic(j),mel(ic(j)))
     else
@@ -1751,31 +1726,21 @@ subroutine collimate_start
     end if
 
     do i=1,cdb_nColl
-! start searching minimum gap
+      ! start searching minimum gap
       if(cdb_cName(i) == bez(myix)) then
-        if( cdb_cLength(i) > zero ) then
+        if(cdb_cLength(i) > zero) then
           nsig_err = nsig + gap_rms_error(i)
 
-! jaw 1 on positive side x-axis
+          ! jaw 1 on positive side x-axis
           gap_h1 = nsig_err - sin_mb(cdb_cTilt(1,i))*cdb_cLength(i)/2
           gap_h2 = nsig_err + sin_mb(cdb_cTilt(1,i))*cdb_cLength(i)/2
 
-! jaw 2 on negative side of x-axis (see change of sign comapred
-! to above code lines, alos have a look to setting of tilt angle)
+          ! jaw 2 on negative side of x-axis (see change of sign comapred
+          ! to above code lines, alos have a look to setting of tilt angle)
           gap_h3 = nsig_err + sin_mb(cdb_cTilt(2,i))*cdb_cLength(i)/2
           gap_h4 = nsig_err - sin_mb(cdb_cTilt(2,i))*cdb_cLength(i)/2
 
-! find minumum halfgap
-! --- searching for smallest halfgap
-!! ---scaling for beta beat needed?
-!                        if (do_nominal) then
-!                           bx_dist = cdb_cBx(icoll) * scale_bx / scale_bx0
-!                           by_dist = cdb_cBy(icoll) * scale_by / scale_by0
-!                        else
-!                           bx_dist = tbetax(j) * scale_bx / scale_bx0
-!                           by_dist = tbetay(j) * scale_by / scale_by0
-!                        endif
-          if (do_nominal) then
+          if(do_nominal) then
             bx_dist = cdb_cBx(icoll)
             by_dist = cdb_cBy(icoll)
           else
@@ -1783,26 +1748,26 @@ subroutine collimate_start
             by_dist = tbetay(j)
           end if
 
-          sig_offset = cdb_cOffset(i)/(sqrt(bx_dist**2 * cos_mb(cdb_cRotation(i))**2 + by_dist**2 * sin_mb(cdb_cRotation(i))**2 ))
-          write(coll_twissLikeUnit,*) bez(myix),tbetax(j),tbetay(j), torbx(j),torby(j), nsig, gap_rms_error(i)
-          write(coll_sigmaSetUnit,*) bez(myix), gap_h1, gap_h2, gap_h3, gap_h4, sig_offset, cdb_cOffset(i), nsig, gap_rms_error(i)
+          sig_offset = cdb_cOffset(i)/(sqrt(bx_dist**2 * cos_mb(cdb_cRotation(i))**2 + by_dist**2 * sin_mb(cdb_cRotation(i))**2))
+          write(coll_twissLikeUnit,*) cdb_cName(i),tbetax(j),tbetay(j),torbx(j),torby(j),nsig,gap_rms_error(i)
+          write(coll_sigmaSetUnit,*) cdb_cName(i),gap_h1,gap_h2,gap_h3,gap_h4,sig_offset,cdb_cOffset(i),nsig,gap_rms_error(i)
 
-          if((gap_h1 + sig_offset) .le. mingap) then
-            mingap = gap_h1 + sig_offset
+          if((gap_h1 + sig_offset) <= mingap) then
+            mingap         = gap_h1 + sig_offset
             coll_mingap_id = i
-            coll_mingap2 = cdb_cName(i)
-          else if((gap_h2 + sig_offset) .le. mingap) then
-            mingap = gap_h2 + sig_offset
+            coll_mingap2   = cdb_cName(i)
+          else if((gap_h2 + sig_offset) <= mingap) then
+            mingap         = gap_h2 + sig_offset
             coll_mingap_id = i
-            coll_mingap2 = cdb_cName(i)
-          else if((gap_h3 - sig_offset) .le. mingap) then
-            mingap = gap_h3 - sig_offset
+            coll_mingap2   = cdb_cName(i)
+          else if((gap_h3 - sig_offset) <= mingap) then
+            mingap         = gap_h3 - sig_offset
             coll_mingap_id = i
-            coll_mingap2 = cdb_cName(i)
-          else if((gap_h4 - sig_offset) .le. mingap) then
-            mingap = gap_h4 - sig_offset
+            coll_mingap2   = cdb_cName(i)
+          else if((gap_h4 - sig_offset) <= mingap) then
+            mingap         = gap_h4 - sig_offset
             coll_mingap_id = i
-            coll_mingap2 = cdb_cName(i)
+            coll_mingap2   = cdb_cName(i)
           end if
         end if
       end if
