@@ -336,13 +336,13 @@ subroutine collimation_expand_arrays(npart_new, nblz_new)
   call alloc(part_hit_pos,         npart_new, 0, "part_hit_pos") !(npart_new)
   call alloc(part_hit_turn,        npart_new, 0, "part_hit_turn") !(npart_new)
   call alloc(part_abs_pos,         npart_new, 0, "part_abs_pos") !(npart_new)
-  call alloc(part_select,          npart_new, 0, "part_select") !(npart_new)
+  call alloc(part_select,          npart_new, 1, "part_select") !(npart_new)
   call alloc(nabs_type,            npart_new, 0, "nabs_type") !(npart_new)
   call alloc(nhit_type,            npart_new, 0, "nhit_type") !(npart_new)
 
-  call alloc(part_impact,    npart_new, zero, "part_impact") !(npart_new)
-  call alloc(part_indiv,     npart_new, zero, "part_indiv") !(npart_new)
-  call alloc(part_linteract, npart_new, zero, "part_linteract") !(npart_new)
+  call alloc(part_impact,    npart_new,  zero, "part_impact") !(npart_new)
+  call alloc(part_indiv,     npart_new, -c1m6, "part_indiv") !(npart_new)
+  call alloc(part_linteract, npart_new,  zero, "part_linteract") !(npart_new)
 
   call alloc(counted_r, npart_new, numeff, 0, "counted_r") !(npart_new,numeff)
   call alloc(counted_x, npart_new, numeff, 0, "counted_x") !(npart_new,numeff)
@@ -1577,53 +1577,20 @@ subroutine collimate_start
   use string_tools
   use mathlib_bouncer
 
-  integer i,j,k
+  integer i,j
   real(kind=fPrec) dummy
 
-  do i=1,napx
-    do ieff=1,numeff
-      counted_r(i,ieff) = 0
-      counted_x(i,ieff) = 0
-      counted_y(i,ieff) = 0
-      do ieffdpop =1, numeffdpop
-        counted2d(i,ieff,ieffdpop) = 0
-      end do
-    end do
-
-    do ieffdpop =1, numeffdpop
-      counteddpop(i,ieffdpop) = 0
-    end do
-  end do
-
-!!!!!!!!!!!!!!!!!!!!!!START THIN6D CUT!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
-!++  Some initialization
-  do i = 1, numeff
+  ! Initialisation
+  do i=1,numeff
     rsig(i) = (real(i,fPrec)/two - half) + five
   end do
 
   dpopbins(1) = c1m4
-
-  do i = 2, numeffdpop
-    dpopbins(i) = real(i-1,fPrec)*4e-4_fPrec
+  do i=2,numeffdpop
+    dpopbins(i) = real(i-1,fPrec)*4.0e-4_fPrec
   end do
 
   firstcoll = .true.
-
-!GRD HERE WE NEED TO INITIALIZE SOME COLLIMATION PARAMETERS
-
-  do j = 1, napx
-    part_hit_pos(j)   = 0
-    part_hit_turn(j)  = 0
-    part_abs_pos(j)   = 0
-    part_abs_turn(j)  = 0
-    part_select(j)    = 1
-    part_indiv(j)     = -c1m6
-    part_linteract(j) = zero
-    part_impact(j)    = 0
-    nabs_type(j)      = 0
-    nhit_type(j)      = 0
-  end do
 
 #ifdef BEAMGAS
   call beamGasInit(myenom)
@@ -1631,8 +1598,12 @@ subroutine collimate_start
 
   write(lout,"(a)") ""
   write(lout,"(a,i0)") "COLL> Number of collimators: ",cdb_nColl
-  do icoll = 1, cdb_nColl
-    write(lout,"(a,i5,a)") "COLL> Collimator ",icoll,": "//cdb_cName(icoll)
+  do i=1,cdb_nColl
+    if(cdb_cFound(i)) then
+      write(lout,"(a,i5,a)") "COLL> Found Collimator   ",i,": "//trim(cdb_cName(i))
+    else
+      write(lout,"(a,i5,a)") "COLL> Missing Collimator ",i,": "//trim(cdb_cName(i))
+    end if
   end do
   write(lout,"(a)") ""
 
@@ -1653,9 +1624,7 @@ subroutine collimate_start
   write(outlun,*) 'SETTING> do_mingap        : ', do_mingap
   write(outlun,*) ' '
 
-!     TW - 01/2007
-!     added offset and random_seed for tilt and offset
-!*****intialize random generator with offset_seed
+  ! Intialise random generator with offset_seed
   c_offsettilt_seed = abs(c_offsettilt_seed)
   rnd_lux = 3
   rnd_k1  = 0
@@ -1664,36 +1633,36 @@ subroutine collimate_start
 
   ! Generate random tilts (Gaussian distribution plus systematic)
   if(c_rmstilt_prim > zero .or. c_rmstilt_sec > zero .or. c_systilt_prim /= zero .or. c_systilt_sec /= zero) then
-    do icoll = 1, cdb_nColl
-      if(cdb_cType(icoll) == cdb_typPrimary) then
+    do i=1,cdb_nColl
+      if(cdb_cType(i) == cdb_typPrimary) then
         c_rmstilt = c_rmstilt_prim
         c_systilt = c_systilt_prim
       else
         c_rmstilt = c_rmstilt_sec
         c_systilt = c_systilt_sec
       end if
-      cdb_cTilt(1,icoll) = c_systilt+c_rmstilt*ran_gauss2(three)
+      cdb_cTilt(1,i) = c_systilt+c_rmstilt*ran_gauss2(three)
       if(systilt_antisymm) then
-        cdb_cTilt(2,icoll) = -one*c_systilt+c_rmstilt*ran_gauss2(three)
+        cdb_cTilt(2,i) = -one*c_systilt+c_rmstilt*ran_gauss2(three)
       else
-        cdb_cTilt(2,icoll) =      c_systilt+c_rmstilt*ran_gauss2(three)
+        cdb_cTilt(2,i) =      c_systilt+c_rmstilt*ran_gauss2(three)
       end if
-      write(outlun,*) 'INFO>  Collimator ',trim(cdb_cName(icoll)),' jaw 1 has tilt [rad]: ',cdb_cTilt(1,icoll)
-      write(outlun,*) 'INFO>  Collimator ',trim(cdb_cName(icoll)),' jaw 2 has tilt [rad]: ',cdb_cTilt(2,icoll)
+      write(outlun,*) 'INFO>  Collimator ',trim(cdb_cName(i)),' jaw 1 has tilt [rad]: ',cdb_cTilt(1,i)
+      write(outlun,*) 'INFO>  Collimator ',trim(cdb_cName(i)),' jaw 2 has tilt [rad]: ',cdb_cTilt(2,i)
     end do
 
-    do icoll=1,cdb_nColl
-      if(cdb_cType(icoll) == cdb_typPrimary) then
-        cdb_cOffset(icoll) = c_sysoffset_prim + c_rmsoffset_prim*ran_gauss2(three)
+    do i=1,cdb_nColl
+      if(cdb_cType(i) == cdb_typPrimary) then
+        cdb_cOffset(i) = c_sysoffset_prim + c_rmsoffset_prim*ran_gauss2(three)
       else
-        cdb_cOffset(icoll) = c_sysoffset_sec +  c_rmsoffset_sec*ran_gauss2(three)
+        cdb_cOffset(i) = c_sysoffset_sec +  c_rmsoffset_sec*ran_gauss2(three)
       end if
-      write(outlun,*) 'INFO>  Offset: ',trim(cdb_cName(icoll)),cdb_cOffset(icoll)
+      write(outlun,*) 'INFO>  Offset: ',trim(cdb_cName(i)),cdb_cOffset(i)
     end do
   end if
-  do icoll=1,cdb_nColl
-    gap_rms_error(icoll) = c_rmserror_gap * ran_gauss2(three)
-    write(outlun,*) 'INFO>  Gap RMS error: ',trim(cdb_cName(icoll)),gap_rms_error(icoll)
+  do i=1,cdb_nColl
+    gap_rms_error(i) = c_rmserror_gap * ran_gauss2(three)
+    write(outlun,*) 'INFO>  Gap RMS error: ',trim(cdb_cName(i)),gap_rms_error(i)
   end do
 
   ! In case we're using old type jaw fit, this is where we generate the parameters for the new method
@@ -1728,8 +1697,8 @@ subroutine collimate_start
 
       j = cdb_struMap(i) ! The structure index of the collimator
       if(do_nominal) then
-        bx_dist = cdb_cBx(icoll)
-        by_dist = cdb_cBy(icoll)
+        bx_dist = cdb_cBx(i)
+        by_dist = cdb_cBy(i)
       else
         bx_dist = tbetax(j)
         by_dist = tbetay(j)
@@ -1787,9 +1756,6 @@ subroutine collimate_start
   call f_close(coll_twissLikeUnit)
   call f_close(coll_sigmaSetUnit)
 
-!****** re-intialize random generator with rnd_seed
-!       reinit with initial value used in first call
-
   ! This sets the random geenrator back to the default seed rather than the one used for coll gaps.
   ! However, this doesn't actually restore the random generator to the state it would have been in without the
   ! coll gaps errors being generated as rndm5() will extract 30000 new random numbers from ranlux and discard
@@ -1801,32 +1767,7 @@ subroutine collimate_start
   rnd_k1  = 0
   rnd_k2  = 0
   call rluxgo(rnd_lux, rnd_seed, rnd_k2, rnd_k2)
-! call recuin(rnd_seed, 0)
   dummy = rndm5(1) ! Reset rndm5 too
-
-!GRD INITIALIZE LOCAL ADDITIVE PARAMETERS, I.E. THE ONE WE DON'T WANT
-!GRD TO KEEP OVER EACH LOOP
-  do k = 1, numeff
-    neff(k)  = zero
-    neffx(k) = zero
-    neffy(k) = zero
-
-    do j = 1, numeffdpop
-      neff2d(k,j) = zero
-    end do
-  end do
-
-  do k = 1, numeffdpop
-    neffdpop(k)  = zero
-    npartdpop(k) = 0
-  end do
-
-  do j=1,max_ncoll
-    cn_impact(j)   = 0
-    cn_absorbed(j) = 0
-    csum(j)   = zero
-    csqsum(j) = zero
-  end do
 
 end subroutine collimate_start
 
