@@ -29,160 +29,112 @@
 !     Normalization factor (in SI) NNORM = (mu0*I*e)/(4*Pi*P0)
 !     e -> 1; m0/4Pi -> 1.0e-7; N -> 1.0e-7*I
 
+tx   = wire_tiltx(ix) ! tilt x [degrees]
+ty   = wire_tilty(ix) ! tilt y [degrees]
+tx   = tx*rad         ! [rad]
+ty   = ty*rad         ! [rad]
+dx   = wire_dispx(ix) ! displacement x [mm]
+dy   = wire_dispy(ix) ! displacement y [mm]
+embl = wire_lint(ix)  ! integrated length [m]
+l    = wire_lphys(ix) ! physical length [m]
+cur  = wire_current(ix)
 
+if(abs(wire_flagco(ix)) /= 1) then
+  write(lerr,"(a)") "WIRE> ERROR Wirekick in WIRE block must be either 1 or -1 for '"//trim(bez(ix))//"'"
+  call prror
+end if
 
+if(wire_flagco(ix) == 1) then
+  dxi = (dx+wire_clo(1,wire_num(i)))*c1m3
+  dyi = (dy+wire_clo(2,wire_num(i)))*c1m3
+else if(wire_flagco(ix) == -1) then
+  dxi = dx*c1m3
+  dyi = dy*c1m3
+end if
 
-      tx = wire_tiltx(ix) !tilt x [degrees]
-      ty = wire_tilty(ix) !tilt y [degrees]
-      tx = tx*(pi/c180e0) ![rad]
-      ty = ty*(pi/c180e0) ![rad]
-      dx = wire_dispx(ix) !displacement x [mm]
-      dy = wire_dispy(ix) !displacement y [mm]
-      embl = wire_lint(ix) !integrated length [m]
-      l = wire_lphys(ix) !physical length [m]
-      cur = wire_current(ix)
+do j=1,napx
+  chi = (sqrt(e0**2-nucm(j)**2)*c1e6)/clight
+  NNORM=c1m7/chi
+  yv1(j) = yv1(j)*c1m3 ! [m]
+  yv2(j) = yv2(j)*c1m3 ! [m]
 
-      if (abs(wire_flagco(ix)).ne.1) then
-        write(lout,                                                     &
-     &fmt='((A,A,/),(A,I0,A,A,/),(A,I0,A,I0,/))')                       &
-     &'ERROR: in wirekick -  wire_flagco defined in WIRE block must ',  &
-     &'be either 1 or -1! Did you define all wires in the WIRE block?', &
-     &'bez(',ix,') = ',bez(ix),                                         &
-     &'wire_flagco(',ix,') = ',wire_flagco(ix)
-        call prror
-      endif
+  ! 1 shift
+  if(wire_flagco(ix) == 1) then
+    xi = (xv1(j)+dx)*c1m3 ! [m]
+    yi = (xv2(j)+dy)*c1m3 ! [m]
+  else if(wire_flagco(ix) == -1) then
+    xi = (xv1(j)+( dx-wire_clo(1,wire_num(i)) ))*c1m3 ! [m]
+    yi = (xv2(j)+( dy-wire_clo(2,wire_num(i)) ))*c1m3 ! [m]
+  end if
 
+  ! x'-> px; y'->py
+  yv1(j) = yv1(j)*(one + dpsv(j))/mtc(j)
+  yv2(j) = yv2(j)*(one + dpsv(j))/mtc(j)
 
-      IF (wire_flagco(ix).eq.1) THEN
-         dxi = (dx+wire_clo(1,wire_num(i)) )*c1m3
-         dyi = (dy+wire_clo(2,wire_num(i)) )*c1m3
-      ELSE IF (wire_flagco(ix).eq.-1) THEN
-         dxi = (dx)*c1m3
-         dyi = (dy)*c1m3
-      END IF
+  if(ibeco == 0) then
+    ! 2 symplectic rotation of coordinate system (tx, ty)
+    yi = yi-(((xi*sin_mb(tx))*yv2(j))/sqrt((one+dpsv(j))**2-yv2(j)**2))/&
+          cos_mb(atan_mb(yv1(j)/sqrt(((one+dpsv(j))**2-yv1(j)**2)-yv2(j)**2))-tx)
+    xi = xi*(cos_mb(tx)-sin_mb(tx)*tan_mb(atan_mb(yv1(j)/sqrt(((one+dpsv(j))**2-yv1(j)**2)-yv2(j)**2))-tx))
+    yv1(j) = sqrt((one+dpsv(j))**2-yv2(j)**2)*sin_mb(atan_mb(yv1(j)/sqrt(((one+dpsv(j))**2-yv1(j)**2)-yv2(j)**2))-tx)
 
-      do j=1, napx
-      chi = (sqrt(e0**2-nucm(j)**2)*c1e6)/clight
-      NNORM=c1m7/chi
-      yv1(j) = yv1(j) * c1m3 !SI
-      yv2(j) = yv2(j) * c1m3 !SI
+    xi = xi-(((yi*sin_mb(ty))*yv1(j))/sqrt((one+dpsv(j))**2-yv1(j)**2))/&
+          cos_mb(atan_mb(yv2(j)/sqrt(((one+dpsv(j))**2-yv1(j)**2)-yv2(j)**2))-ty)
+    yi = yi*(cos_mb(ty)-sin_mb(ty)*tan_mb(atan_mb(yv2(j)/sqrt(((one+dpsv(j))**2-yv1(j)**2)-yv2(j)**2))-ty))
+    yv2(j) = sqrt((one+dpsv(j))**2-yv1(j)**2)*sin_mb(atan_mb(yv2(j)/sqrt(((one+dpsv(j))**2-yv1(j)**2)-yv2(j)**2))-ty)
 
-! 1 shift
-      IF (wire_flagco(ix).eq.1) THEN
-         xi = (xv1(j)+dx)*c1m3 !SI
-         yi = (xv2(j)+dy)*c1m3 !SI
-      ELSE IF (wire_flagco(ix).eq.-1) THEN
-         xi = (xv1(j)+( dx-wire_clo(1,wire_num(i)) ))*c1m3 !SI
-         yi = (xv2(j)+( dy-wire_clo(2,wire_num(i)) ))*c1m3 !SI
-      END IF
+    ! 3 apply wire kick
+    RTWO = xi**2+yi**2
+    yv1(j) = yv1(j)-(((CUR*NNORM)*xi)*(sqrt((embl+L)**2+four*RTWO)-sqrt((embl-L)**2+four*RTWO)))/RTWO
+    yv2(j) = yv2(j)-(((CUR*NNORM)*yi)*(sqrt((embl+L)**2+four*RTWO)-sqrt((embl-L)**2+four*RTWO)))/RTWO
 
-! x'-> px; y'->py
-      yv1(j) = yv1(j)*(one + dpsv(j))/mtc(j)
-      yv2(j) = yv2(j)*(one + dpsv(j))/mtc(j)
+  elseif(ibeco == 1) then
+    ! 2 symplectic rotation of coordinate system (tx, ty)
 
-!ibeco = 0
-      if(ibeco.eq.0) then
-! 2 symplectic rotation of coordinate system (tx, ty)
-          yi = yi-(((xi*sin_mb(tx))*yv2(j))/                           &
-     &sqrt((one+dpsv(j))**2-yv2(j)**2))/                               &
-     &cos_mb(atan_mb(yv1(j)/sqrt(((one+dpsv(j))**2-yv1(j)**2)-        &
-     &yv2(j)**2))-tx)
-          xi = xi*(cos_mb(tx)-sin_mb(tx)*tan_mb(atan_mb(yv1(j)/        &
-     &sqrt(((one+dpsv(j))**2-yv1(j)**2)-yv2(j)**2))-tx))
-          yv1(j) = sqrt((one+dpsv(j))**2-yv2(j)**2)*                  &
-     &sin_mb(atan_mb(yv1(j)/                                           &
-     &sqrt(((one+dpsv(j))**2-yv1(j)**2)-yv2(j)**2))-tx)
+    dyi = dyi-(((dxi*sin_mb(tx))*yv2(j))/sqrt((one+dpsv(j))**2-yv2(j)**2))/&
+          cos_mb(atan_mb(yv1(j)/sqrt(((one+dpsv(j))**2-yv1(j)**2)-yv2(j)**2))-tx)
+    dxi = dxi*(cos_mb(tx)-sin_mb(tx)*tan_mb(atan_mb(yv1(j)/sqrt(((one+dpsv(j))**2-yv1(j)**2)-yv2(j)**2))-tx))
 
-          xi = xi-(((yi*sin_mb(ty))*yv1(j))/                           &
-     &sqrt((one+dpsv(j))**2-yv1(j)**2))/                               &
-     &cos_mb(atan_mb(yv2(j)/sqrt(((one+dpsv(j))**2-yv1(j)**2)-        &
-     &yv2(j)**2))-ty)
-          yi = yi*(cos_mb(ty)-sin_mb(ty)*tan_mb(atan_mb(yv2(j)/        &
-     &sqrt(((one+dpsv(j))**2-yv1(j)**2)-yv2(j)**2))-ty))
-          yv2(j) = sqrt((one+dpsv(j))**2-yv1(j)**2)*                  &
-     &sin_mb(atan_mb(yv2(j)/                                           &
-     &sqrt(((one+dpsv(j))**2-yv1(j)**2)-yv2(j)**2))-ty)
+    yi = yi-(((xi*sin_mb(tx))*yv2(j))/sqrt((one+dpsv(j))**2-yv2(j)**2))/&
+          cos_mb(atan_mb(yv1(j)/sqrt(((one+dpsv(j))**2-yv1(j)**2)-yv2(j)**2))-tx)
+    xi = xi*(cos_mb(tx)-sin_mb(tx)*tan_mb(atan_mb(yv1(j)/sqrt(((one+dpsv(j))**2-yv1(j)**2)-yv2(j)**2))-tx))
 
-! 3 apply wire kick
-          RTWO = xi**2+yi**2
-          yv1(j) = yv1(j)-(((CUR*NNORM)*xi)*                          &
-     &(sqrt((embl+L)**2+four*RTWO)-sqrt((embl-L)**2+four*RTWO) ))/RTWO
-          yv2(j) = yv2(j)-(((CUR*NNORM)*yi)*                          &
-     &(sqrt((embl+L)**2+four*RTWO)-sqrt((embl-L)**2+four*RTWO) ))/RTWO
+    yv1(j) = sqrt((one+dpsv(j))**2-yv2(j)**2)*sin_mb(atan_mb(yv1(j)/sqrt(((one+dpsv(j))**2-yv1(j)**2)-yv2(j)**2))-tx)
 
-! ibeco = 1
-      elseif(ibeco.eq.1) then
-! 2 symplectic rotation of coordinate system (tx, ty)
+    dxi = dxi-(((dyi*sin_mb(ty))*yv1(j))/sqrt((one+dpsv(j))**2-yv1(j)**2))/&
+          cos_mb(atan_mb(yv2(j)/sqrt(((one+dpsv(j))**2-yv1(j)**2)-yv2(j)**2))-ty)
+    dyi = dyi*(cos_mb(ty)-sin_mb(ty)*tan_mb(atan_mb(yv2(j)/sqrt(((one+dpsv(j))**2-yv1(j)**2)-yv2(j)**2))-ty))
 
-          dyi = dyi-(((dxi*sin_mb(tx))*yv2(j))/                        &
-     &sqrt((one+dpsv(j))**2-yv2(j)**2))/                               &
-     &cos_mb(atan_mb(yv1(j)/sqrt(((one+dpsv(j))**2-yv1(j)**2)-        &
-     &yv2(j)**2))-tx)
-          dxi = dxi*(cos_mb(tx)-sin_mb(tx)*tan_mb(atan_mb(yv1(j)/      &
-     &sqrt(((one+dpsv(j))**2-yv1(j)**2)-yv2(j)**2))-tx))
+    xi = xi-(((yi*sin_mb(ty))*yv1(j))/sqrt((one+dpsv(j))**2-yv1(j)**2))/&
+          cos_mb(atan_mb(yv2(j)/sqrt(((one+dpsv(j))**2-yv1(j)**2)-yv2(j)**2))-ty)
+    yi = yi*(cos_mb(ty)-sin_mb(ty)*tan_mb(atan_mb(yv2(j)/sqrt(((one+dpsv(j))**2-yv1(j)**2)-yv2(j)**2))-ty))
 
-          yi = yi-(((xi*sin_mb(tx))*yv2(j))/                           &
-     &sqrt((one+dpsv(j))**2-yv2(j)**2))/                               &
-     &cos_mb(atan_mb(yv1(j)/sqrt(((one+dpsv(j))**2-yv1(j)**2)-        &
-     &yv2(j)**2))-tx)
-          xi = xi*(cos_mb(tx)-sin_mb(tx)*tan_mb(atan_mb(yv1(j)/        &
-     &sqrt(((one+dpsv(j))**2-yv1(j)**2)-yv2(j)**2))-tx))
+    yv2(j) = sqrt((one+dpsv(j))**2-yv1(j)**2)*sin_mb(atan_mb(yv2(j)/sqrt(((one+dpsv(j))**2-yv1(j)**2)-yv2(j)**2))-ty)
 
-          yv1(j) = sqrt((one+dpsv(j))**2-yv2(j)**2)*                  &
-     &sin_mb(atan_mb(yv1(j)/                                           &
-     &sqrt(((one+dpsv(j))**2-yv1(j)**2)-yv2(j)**2))-tx)
+    ! 3 apply wire kick
+    RTWO = xi**2+yi**2
+    yv1(j) = yv1(j)-(((CUR*NNORM)*xi)*(sqrt((embl+L)**2+four*RTWO)-sqrt((embl-L)**2+four*RTWO)))/RTWO
+    yv2(j) = yv2(j)-(((CUR*NNORM)*yi)*(sqrt((embl+L)**2+four*RTWO)-sqrt((embl-L)**2+four*RTWO)))/RTWO
 
-          dxi = dxi-(((dyi*sin_mb(ty))*yv1(j))/                        &
-     &sqrt((one+dpsv(j))**2-yv1(j)**2))/                               &
-     &cos_mb(atan_mb(yv2(j)/sqrt(((one+dpsv(j))**2-yv1(j)**2)-        &
-     &yv2(j)**2))-ty)
-          dyi = dyi*(cos_mb(ty)-sin_mb(ty)*tan_mb(atan_mb(yv2(j)/      &
-     &sqrt(((one+dpsv(j))**2-yv1(j)**2)-yv2(j)**2))-ty))
+    ! subtract closed orbit kick
+    ! wire kick is negative px -> px - wirekick - (-closed orbit kick)
+    RTWO = dxi**2+dyi**2
+    yv1(j) = yv1(j)+(((CUR*NNORM)*dxi)*(sqrt((embl+L)**2+four*RTWO)-sqrt((embl-L)**2+four*RTWO)))/RTWO
+    yv2(j) = yv2(j)+(((CUR*NNORM)*dyi)*(sqrt((embl+L)**2+four*RTWO)-sqrt((embl-L)**2+four*RTWO)))/RTWO
 
-          xi = xi-(((yi*sin_mb(ty))*yv1(j))/                           &
-     &sqrt((one+dpsv(j))**2-yv1(j)**2))/                               &
-     &cos_mb(atan_mb(yv2(j)/sqrt(((one+dpsv(j))**2-yv1(j)**2)-        &
-     &yv2(j)**2))-ty)
-          yi = yi*(cos_mb(ty)-sin_mb(ty)*tan_mb(atan_mb(yv2(j)/        &
-     &sqrt(((one+dpsv(j))**2-yv1(j)**2)-yv2(j)**2))-ty))
+  end if
 
-         yv2(j) = sqrt((one+dpsv(j))**2-yv1(j)**2)*                   &
-     &sin_mb(atan_mb(yv2(j)/                                           &
-     &sqrt(((one+dpsv(j))**2-yv1(j)**2)-yv2(j)**2))-ty)
+  ! 4 SYMPLECTIC ROTATION OF COORDINATE SYSTEM (-ty, -tx)
+  yv2(j) = sqrt((one+dpsv(j))**2-yv1(j)**2)*sin_mb(atan_mb(yv2(j)/sqrt(((one+dpsv(j))**2-yv1(j)**2)-yv2(j)**2))+ty)
+  yv1(j) = sqrt((one+dpsv(j))**2-yv2(j)**2)*sin_mb(atan_mb(yv1(j)/sqrt(((one+dpsv(j))**2-yv1(j)**2)-yv2(j)**2))+tx)
 
-! 3 apply wire kick
-          RTWO = xi**2+yi**2
-          yv1(j) = yv1(j)-(((CUR*NNORM)*xi)*                          &
-     &(sqrt((embl+L)**2+four*RTWO)-sqrt((embl-L)**2+four*RTWO) ))/RTWO
-          yv2(j) = yv2(j)-(((CUR*NNORM)*yi)*                          &
-     &(sqrt((embl+L)**2+four*RTWO)-sqrt((embl-L)**2+four*RTWO) ))/RTWO
-! subtract closed orbit kick
-! wire kick is negative px -> px - wirekick - (-closed orbit kick)
-          RTWO = dxi**2+dyi**2
-          yv1(j) = yv1(j)+(((CUR*NNORM)*dxi)*                         &
-     &(sqrt((embl+L)**2+four*RTWO)-sqrt((embl-L)**2+four*RTWO) ))/RTWO
-          yv2(j) = yv2(j)+(((CUR*NNORM)*dyi)*                         &
-     &(sqrt((embl+L)**2+four*RTWO)-sqrt((embl-L)**2+four*RTWO) ))/RTWO
+  ! px -> x'; py -> y'
+  yv1(j) = yv1(j)*mtc(j)/(one + dpsv(j))
+  yv2(j) = yv2(j)*mtc(j)/(one + dpsv(j))
 
-      endif
+  ! END OF WIRE MAP
+  yv1(j) = yv1(j)*c1e3
+  yv2(j) = yv2(j)*c1e3
+end do
 
-! 4 SYMPLECTIC ROTATION OF COORDINATE SYSTEM (-ty, -tx)
-      yv2(j) = sqrt((one+dpsv(j))**2-yv1(j)**2)*                      &
-     &sin_mb(atan_mb(yv2(j)/                                           &
-     &sqrt(((one+dpsv(j))**2-yv1(j)**2)-yv2(j)**2))+ty)
-      yv1(j) = sqrt((one+dpsv(j))**2-yv2(j)**2)*                      &
-     &sin_mb(atan_mb(yv1(j)/                                           &
-     &sqrt(((one+dpsv(j))**2-yv1(j)**2)-yv2(j)**2))+tx)
-
-! px -> x'; py -> y'
-      yv1(j) = yv1(j)*mtc(j)/(one + dpsv(j))
-      yv2(j) = yv2(j)*mtc(j)/(one + dpsv(j))
-!-----------------------------------------------------------------------
-! END OF WIRE MAP
-!-----------------------------------------------------------------------
-      yv1(j) = yv1(j) * c1e3
-      yv2(j) = yv2(j) * c1e3
-!-----------------------------------------------------------------------
-      enddo
-!-----------------------------------------------------------------------
 ! end include/wirekick.f90

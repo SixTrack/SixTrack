@@ -71,7 +71,6 @@ message(STATUS "Project Binary:   ${PROJECT_BINARY_DIR}")
 ###################################################################################################
 
 # Default ON
-option(TILT "Allow elements to be tilted (by error)" ON)
 option(CRLIBM "Use correctly rounded libmath instead of system libmath" ON)
 option(SIXDA "Build differential algebra version (NOT dynamic aperture!)" ON)
 option(NAFF "Link to external NAFFlib for FMA" ON)
@@ -140,10 +139,6 @@ string(REPLACE ".exe" "" Fortran_COMPILER_NAME ${Fortran_COMPILER_NAME})
 set(SIXTRACK_FEAT_CR "${CMAKE_SYSTEM_NAME}_${Fortran_COMPILER_NAME}")
 set(SIXTRACK_FEAT_DA "${CMAKE_SYSTEM_NAME}_${Fortran_COMPILER_NAME}")
 
-if(NOT TILT)
-  set(SIXTRACK_FEAT_CR "notilt_${SIXTRACK_FEAT_CR}")
-  set(SIXTRACK_FEAT_DA "notilt_${SIXTRACK_FEAT_DA}")
-endif()
 if(CRLIBM AND ROUND_NEAR)
   set(SIXTRACK_FEAT_CR "crlibm_rn_${SIXTRACK_FEAT_CR}")
   set(SIXTRACK_FEAT_DA "crlibm_rn_${SIXTRACK_FEAT_DA}")
@@ -266,7 +261,7 @@ set(SIXTRACK_BINARY_NAME_DA "SixDA_${NUM_VERSION}${GIT_BUILD}_${SIXTRACK_FEAT_DA
 # Setting the c pre-processor definitons
 ###################################################################################################
 
-list(APPEND PREPRO_FLAGS_TOOLS TILT BOINC BEAMGAS MERLINSCATTER G4COLLIMATION FLUKA CR PYTHIA NAFF)
+list(APPEND PREPRO_FLAGS_TOOLS BOINC BEAMGAS MERLINSCATTER G4COLLIMATION FLUKA CR PYTHIA NAFF)
 list(APPEND PREPRO_FLAGS_LIB CRLIBM ROUND_NEAR ROUND_UP ROUND_DOWN ROUND_ZERO CERNLIB HDF5 FIO ROOT HASHLIB ZLIB DISTLIB)
 list(APPEND PREPRO_FLAGS_COMPILE GFORTRAN IFORT NAGFOR WIN32 DEBUG MEMUSAGE)
 
@@ -312,14 +307,15 @@ list(APPEND FORT90_LIB
   mod_geometry
   mod_meta
   mod_particles
+  mod_random
+  mod_ranecu
+  mod_ranlux
   mod_time
   mod_units
   mod_utils
   pdgid
   plato_seq
   postprocessing
-  ranecu
-  ranlux
   read_write
   scatter
   six_fox
@@ -614,10 +610,13 @@ if(Fortran_COMPILER_NAME MATCHES "gfortran.*")
   endif()
 
   set(CMAKE_Fortran_FLAGS_RELEASE "-O3")
-  set(CMAKE_Fortran_FLAGS_DEBUG   "-O0 -g3 -ffpe-trap=invalid,zero,overflow -fcheck=all")
+  set(CMAKE_Fortran_FLAGS_DEBUG   "-O0 -g3 -fcheck=all")
 
   if(WARN)
     set(CMAKE_Fortran_FLAGS_RELEASE "-Wuninitialized ${CMAKE_Fortran_FLAGS_RELEASE}")
+    set(CMAKE_Fortran_FLAGS_DEBUG   "-Wuninitialized -ffpe-trap=invalid,zero,overflow,underflow ${CMAKE_Fortran_FLAGS_DEBUG}")
+  else()
+    set(CMAKE_Fortran_FLAGS_DEBUG   "-ffpe-trap=invalid,zero,overflow ${CMAKE_Fortran_FLAGS_DEBUG}")
   endif()
 
   if(MEMUSAGE)

@@ -152,15 +152,10 @@ subroutine preTracking
     case(24) ! Dipedge Element
       ktrack(i) = 55
       strack(i) = zero
-#ifdef TILT
       strackx(i) = ed(ix)*tiltc(i)
       stracks(i) = ed(ix)*tilts(i)
       strackz(i) = ek(ix)*tiltc(i)
       strackc(i) = ek(ix)*tilts(i)
-#else
-      strackx(i) = ed(ix)
-      strackz(i) = ek(ix)
-#endif
 
     case (25) ! Solenoid
       ktrack(i)  = 56
