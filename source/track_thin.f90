@@ -668,7 +668,7 @@ subroutine thin6d(nthinerr)
     do 650 i=1,iu !Loop over elements
 
       if(do_coll) then
-        ! This subroutine sets variable myix
+        ! This subroutine sets variable c_ix
         call collimate_start_element(i)
       endif
 
@@ -687,9 +687,9 @@ subroutine thin6d(nthinerr)
 #ifdef BEAMGAS
       !YIL Call beamGas subroutine whenever a pressure-element is found
       ! should be faster/safer to first check the turn then do the name search
-      if( iturn.eq.1 ) then
-        if (bez(myix)(1:5).eq.'PRESS' .or.  bez(myix)(1:5).eq.'press' ) then
-          call beamGas(myix,nhit_type,dcum(i),myenom)
+      if(iturn == 1 ) then
+        if(bez(c_ix)(1:5).eq.'PRESS' .or.  bez(c_ix)(1:5).eq.'press' ) then
+          call beamGas(c_ix,nhit_type,dcum(i),myenom)
         end if
       end if
 #endif
@@ -746,7 +746,7 @@ subroutine thin6d(nthinerr)
         if(bdex_enable .and. kz(ix) == 0 .and. bdex_elementAction(ix) /= 0) call bdex_track(i,ix,n)
       end if
 
-      if(do_coll .and. cdb_elemMap(myix) > 0) then
+      if(do_coll .and. cdb_elemMap(c_ix) > 0) then
         dotrack = 1
       else
         dotrack = ktrack(i)
@@ -756,7 +756,7 @@ subroutine thin6d(nthinerr)
       case (1)
         stracki = strack(i)
         ! Check if collimation is enabled, and call the collimation code as necessary
-        if(do_coll .and. cdb_elemMap(myix) > 0) then
+        if(do_coll .and. cdb_elemMap(c_ix) > 0) then
           ! Collimator is in database, and we're doing collimation
           call collimate_trackThin(stracki,.true.)
         else ! Normal SixTrack drifts
