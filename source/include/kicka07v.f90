@@ -1,38 +1,4 @@
 ! start include/kicka07v.f90
-#ifndef TILT
-  mpe=7
-  mx=5
-  cxzr=xl
-  cxzi=zl
-  cxzyr=cxzr**2-cxzi**2
-  cxzyi=cxzr*cxzi+cxzi*cxzr
-  ab1(5)=(15.0_fPrec*ekk)*cxzyi
-  ab2(5)=(15.0_fPrec*ekk)*cxzyr
-  cxzyrr=cxzyr*cxzr-cxzyi*cxzi
-  cxzyi=cxzyr*cxzi+cxzyi*cxzr
-  cxzyr=cxzyrr
-  ab1(4)=(20.0_fPrec*ekk)*cxzyi
-  ab2(4)=(20.0_fPrec*ekk)*cxzyr
-  cxzyrr=cxzyr*cxzr-cxzyi*cxzi
-  cxzyi=cxzyr*cxzi+cxzyi*cxzr
-  cxzyr=cxzyrr
-  ab1(3)=(15.0_fPrec*ekk)*cxzyi
-  ab2(3)=(15.0_fPrec*ekk)*cxzyr
-  cxzyrr=cxzyr*cxzr-cxzyi*cxzi
-  cxzyi=cxzyr*cxzi+cxzyi*cxzr
-  cxzyr=cxzyrr
-  qu=(six*ekk)*cxzyi
-  qv=(-six*ekk)*cxzyr
-  ab2(2)=-one*qv
-  cxzyrr=cxzyr*cxzr-cxzyi*cxzi
-  cxzyi=cxzyr*cxzi+cxzyi*cxzr
-  cxzyr=cxzyrr
-  dyy1=ekk*cxzyi
-  dyy2=ekk*cxzyr
-  ab1(6)=(six*ekk)*zl
-  ab2(6)=(six*ekk)*xl
-  ab2(7)=ekk
-#else
   mpe=7
   mx=5
   cxzr=xl
@@ -84,5 +50,4 @@
   tiltck=tiltckuk
   ab1(7)=ekk*tiltsk
   ab2(7)=ekk*tiltck
-#endif
 ! end include/kicka07v.f90

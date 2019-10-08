@@ -326,7 +326,7 @@ subroutine wzsubv(n,vx,vy,vu,vv)
           vu(outs(j)) = -(yy*vsreal+xx*vsimag)
           vv(outs(j)) = xx*vsreal-yy*vsimag
         end do
-        out =0
+        out = 0
       end if
     else
       in = in+1

@@ -279,7 +279,7 @@ subroutine cdb_readDB_newFormat
 
   if(lnSplit(1) == "NSIG_FAM") then
     ! Collimator Family
-    call chr_cast(lnSplit(3),nSig,cErr)
+    call chr_cast(lnSplit(3), nSig, cErr)
     call cdb_addFamily(trim(lnSplit(2)), nSig, famID, fExists)
     if(fExists .and. .not. cdb_doNSig) then
       ! If setting nsig in fort.3 is disabled, the DB values take precedence, so we overwrite them here
@@ -359,7 +359,7 @@ subroutine cdb_readDB_oldFormat
 
   character(len=mInputLn) inLine
   character(len=cdb_fNameLen) famName
-  logical cErr
+  logical cErr, fExists
   integer j, dbUnit, ioStat, iLine, famID
 
   cErr = .false.
@@ -448,6 +448,7 @@ subroutine cdb_readDB_oldFormat
       cdb_cNSig(j) = cdb_famNSig(famID)
     else
       cdb_cNSig(j) = cdb_cNSigOrig(j)
+      call cdb_addFamily(famName, cdb_cNSig(j), famID, fExists)
     end if
     cdb_cFamily(j) = famID
 
