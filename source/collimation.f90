@@ -15,7 +15,6 @@ module collimation
   use parpro
   use floatPrecision
   use numerical_constants
-  use coll_common, only : max_ncoll
 
   implicit none
 
@@ -145,11 +144,6 @@ module collimation
 
   integer, save :: nsurvive, nsurvive_end, num_selhit, n_impact
 
-  integer, allocatable, save :: cn_impact(:)  !(max_ncoll)
-  integer, allocatable, save :: cn_absorbed(:) !(max_ncoll)
-  real(kind=fPrec), allocatable, save :: caverage(:) !(max_ncoll)
-  real(kind=fPrec), allocatable, save :: csigma(:) !(max_ncoll)
-
   integer, allocatable, save :: counted_r(:,:) !(npart,numeff)
   integer, allocatable, save :: counted_x(:,:) !(npart,numeff)
   integer, allocatable, save :: counted_y(:,:) !(npart,numeff)
@@ -161,7 +155,6 @@ module collimation
   ! and defining, stroring the gap rms error
 
   character(len=mNameLen) :: coll_mingap2
-  real(kind=fPrec), allocatable, save :: gap_rms_error(:) !(max_ncoll)
   real(kind=fPrec) :: nsig_err, sig_offset
   real(kind=fPrec) :: mingap, gap_h1, gap_h2, gap_h3, gap_h4
   integer :: coll_mingap_id
@@ -223,11 +216,6 @@ module collimation
   real(kind=fPrec), save :: scale_bx, scale_by, scale_bx0, scale_by0, xkick, ykick, bx_dist, by_dist
   real(kind=fPrec), save :: xmax_pencil, ymax_pencil, xmax_nom, ymax_nom, nom_aperture, pencil_aperture
 
-  real(kind=fPrec), allocatable, save :: xp_pencil(:) !(max_ncoll)
-  real(kind=fPrec), allocatable, save :: yp_pencil(:) !(max_ncoll)
-  real(kind=fPrec), allocatable, save :: csum(:) !(max_ncoll)
-  real(kind=fPrec), allocatable, save :: csqsum(:) !(max_ncoll)
-
   real(kind=fPrec), save :: x_pencil0, y_pencil0, sum, sqsum
   real(kind=fPrec), save :: average, sigma, sigsecut, nspxd, xndisp, zpj
 
@@ -258,12 +246,6 @@ subroutine collimation_allocate_arrays
   call collimation_expand_arrays(npart,nblz)
 
   ! Fixed allocations follow:
-  call alloc(gap_rms_error, max_ncoll, zero, "gap_rms_error") !(max_ncoll)
-  call alloc(xp_pencil, max_ncoll, zero, "xp_pencil")
-  call alloc(yp_pencil, max_ncoll, zero, "yp_pencil")
-  call alloc(csum,      max_ncoll, zero, "csum")
-  call alloc(csqsum,    max_ncoll, zero, "csqsum")
-
   call alloc(npartdpop, numeffdpop, 0, "npartdpop") !(numeffdpop)
   call alloc(neff, numeff, zero, "neff") !(numeff)
   call alloc(rsig, numeff, zero, "rsig") !(numeff)
@@ -277,11 +259,6 @@ subroutine collimation_allocate_arrays
 
   call alloc(neffx, numeff, zero, "neffx") !(numeff)
   call alloc(neffy, numeff, zero, "neffy") !(numeff)
-
-  call alloc(cn_impact, max_ncoll, 0, "cn_impact")  !(max_ncoll)
-  call alloc(cn_absorbed, max_ncoll, 0, "cn_absorbed") !(max_ncoll)
-  call alloc(caverage, max_ncoll, zero, "caverage") !(max_ncoll)
-  call alloc(csigma, max_ncoll, zero, "csigma") !(max_ncoll)
 
 end subroutine collimation_allocate_arrays
 

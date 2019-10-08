@@ -52,6 +52,15 @@ module coll_db
   integer,          allocatable, public, save :: cdb_cJawFit(:,:)   ! Collimator jaw fit index
   integer,          allocatable, public, save :: cdb_cSliced(:)     ! Collimator jaw fit sliced data index
   integer,          allocatable, public, save :: cdb_cSides(:)      ! 0 = two-sided, or 1,2 for single side 1 or 2
+  integer,          allocatable, public, save :: cn_impact(:)
+  integer,          allocatable, public, save :: cn_absorbed(:)
+  real(kind=fPrec), allocatable, public, save :: caverage(:)
+  real(kind=fPrec), allocatable, public, save :: csigma(:)
+  real(kind=fPrec), allocatable, public, save :: gap_rms_error(:)
+  real(kind=fPrec), allocatable, public, save :: xp_pencil(:)
+  real(kind=fPrec), allocatable, public, save :: yp_pencil(:)
+  real(kind=fPrec), allocatable, public, save :: csum(:)
+  real(kind=fPrec), allocatable, public, save :: csqsum(:)
 
   ! Collimator Family Arrays
   character(len=:), allocatable, public, save :: cdb_famName(:)     ! Family name
@@ -98,6 +107,15 @@ subroutine cdb_allocDB
   call alloc(cdb_cJawFit,     2,        cdb_nColl, 0,             "cdb_cJawFit")
   call alloc(cdb_cSliced,               cdb_nColl, 0,             "cdb_cSliced")
   call alloc(cdb_cSides,                cdb_nColl, 0,             "cdb_cSides")
+  call alloc(cn_impact,                 cdb_nColl, 0,             "cn_impact(:)")
+  call alloc(cn_absorbed,               cdb_nColl, 0,             "cn_absorbed(:)")
+  call alloc(caverage,                  cdb_nColl, zero,          "caverage")
+  call alloc(csigma,                    cdb_nColl, zero,          "csigma")
+  call alloc(gap_rms_error,             cdb_nColl, zero,          "gap_rms_error")
+  call alloc(xp_pencil,                 cdb_nColl, zero,          "xp_pencil")
+  call alloc(yp_pencil,                 cdb_nColl, zero,          "yp_pencil")
+  call alloc(csum,                      cdb_nColl, zero,          "csum")
+  call alloc(csqsum,                    cdb_nColl, zero,          "csqsum")
 
 end subroutine cdb_allocDB
 
@@ -515,7 +533,7 @@ subroutine cdb_readDB_oldFormat
       write(lerr,"(a)") "COLLDB> ERROR Material '"//trim(cdb_cMaterial(j))//"' not supported. Check your CollDB."
       call prror
     end if
-  
+
   end do
 
   call f_freeUnit(dbUnit)

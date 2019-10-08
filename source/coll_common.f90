@@ -8,8 +8,6 @@ module coll_common
 
   implicit none
 
-  integer, parameter :: max_ncoll  = 100
-
   ! Logical Flags
   logical, save :: dowrite_impact    = .false.
   logical, save :: dowrite_dist      = .false.
@@ -107,10 +105,6 @@ subroutine coll_expandArrays(npart_new, nblz_new)
   call alloc(rcyp, npart_new, zero, "rcyp")
   call alloc(rcp,  npart_new, zero, "rcp")
   call alloc(rcs,  npart_new, zero, "rcs")
-
-  call alloc(x_pencil,  max_ncoll, zero, "x_pencil")
-  call alloc(y_pencil,  max_ncoll, zero, "y_pencil")
-  call alloc(pencil_dx, max_ncoll, zero, "pencil_dx")
 
 end subroutine coll_expandArrays
 
