@@ -1440,14 +1440,6 @@ subroutine collimate_openFiles
   call f_open(unit=coll_positionsUnit,file=coll_positionsFile,formatted=.true.,mode="w")
   write(coll_positionsUnit,"(a)") "# Ind           Name   Pos[m]"
 
-  ! Twiss-Like File
-  call f_requestUnit(coll_twissLikeFile,coll_twissLikeUnit)
-  call f_open(unit=coll_twissLikeUnit,file=coll_twissLikeFile,formatted=.true.,mode="w")
-
-  ! Sigma Settings File
-  call f_requestUnit(coll_sigmaSetFile,coll_sigmaSetUnit)
-  call f_open(unit=coll_sigmaSetUnit,file=coll_sigmaSetFile,formatted=.true.,mode="w")
-
   ! Tracks Files
   if(dowritetracks) then
     call f_requestUnit(coll_tracksFile,coll_tracksUnit)
@@ -1575,14 +1567,15 @@ subroutine collimate_start
 
   use parpro
   use crcoall
-  use coll_common
   use mod_common
   use mod_common_main
   use mod_common_track
   use coll_db
-  use mod_ranlux
-  use mathlib_bouncer
+  use coll_common
   use mod_units
+  use mod_ranlux
+  use string_tools
+  use mathlib_bouncer
 
   integer i,j,k
   real(kind=fPrec) dummy
@@ -1633,7 +1626,6 @@ subroutine collimate_start
   end do
 
 #ifdef BEAMGAS
-!YIL call beam gas initiation routine
   call beamGasInit(myenom)
 #endif
 
@@ -1644,7 +1636,7 @@ subroutine collimate_start
   end do
   write(lout,"(a)") ""
 
-!******write settings for alignment error in colltrack.out file
+  ! Write settings for alignment error in colltrack.out file
   write(outlun,*) ' '
   write(outlun,*) 'Alignment errors settings (tilt, offset,...)'
   write(outlun,*) ' '
@@ -1709,6 +1701,15 @@ subroutine collimate_start
   call cdb_setMasterJawFit(n_slices, smin_slices, smax_slices, recenter1, recenter2, jaw_fit, jaw_ssf)
 
   ! Creating a file with beta-functions at collimators
+  call f_requestUnit(coll_twissLikeFile,coll_twissLikeUnit)
+  call f_requestUnit(coll_sigmaSetFile, coll_sigmaSetUnit)
+  call f_open(unit=coll_twissLikeUnit,file=coll_twissLikeFile,formatted=.true.,mode="w")
+  call f_open(unit=coll_sigmaSetUnit, file=coll_sigmaSetFile, formatted=.true.,mode="w")
+  write(coll_twissLikeUnit,"(a1,1x,a18,6(1x,a16))") "#",chr_rPad("collimator",18),&
+    "beta_x","beta_y","orb_x","orb_y","nsig","gap_rms_error"
+  write(coll_sigmaSetUnit,"(a1,1x,a18,8(1x,a16))") "#",chr_rPad("collimator",18),&
+    "gap_h1","gap_h2","gap_h3","gap_h4","sig_offset","coll_offset","nsig","gap_rms_error"
+
   mingap = 20.0_fPrec
   do i=1,cdb_nColl
     ! Start searching minimum gap
@@ -1735,8 +1736,10 @@ subroutine collimate_start
       end if
 
       sig_offset = cdb_cOffset(i)/(sqrt(bx_dist**2 * cos_mb(cdb_cRotation(i))**2 + by_dist**2 * sin_mb(cdb_cRotation(i))**2))
-      write(coll_twissLikeUnit,*) cdb_cName(i),tbetax(j),tbetay(j),torbx(j),torby(j),nsig,gap_rms_error(i)
-      write(coll_sigmaSetUnit,*) cdb_cName(i),gap_h1,gap_h2,gap_h3,gap_h4,sig_offset,cdb_cOffset(i),nsig,gap_rms_error(i)
+      write(coll_twissLikeUnit,"(a20,5(1x,f16.6),1x,1pe16.9)") cdb_cName(i),&
+        tbetax(j),tbetay(j),torbx(j),torby(j),nsig,gap_rms_error(i)
+      write(coll_sigmaSetUnit,"(a20,7(1x,f16.6),1x,1pe16.9)") cdb_cName(i),&
+        gap_h1,gap_h2,gap_h3,gap_h4,sig_offset,cdb_cOffset(i),nsig,gap_rms_error(i)
 
       if((gap_h1 + sig_offset) <= mingap) then
         mingap         = gap_h1 + sig_offset
@@ -1758,22 +1761,28 @@ subroutine collimate_start
     end if
   end do
 
-  write(coll_twissLikeUnit,*) coll_mingap_id, coll_mingap2,  mingap
-  write(coll_twissLikeUnit,*) 'INFO> IPENCIL initial ', ipencil
+  write(coll_twissLikeUnit,"(a)")      ""
+  write(coll_twissLikeUnit,"(a)")      "# INFO"
+  write(coll_twissLikeUnit,"(a)")      "# MinGap Collimator:  '"//trim(coll_mingap2)//"'"
+  write(coll_twissLikeUnit,"(a,i0)")   "# MinGap Coll ID:     ",coll_mingap_id
+  write(coll_twissLikeUnit,"(a,f0.6)") "# Min Gap Sigma:      ",mingap
+  write(coll_twissLikeUnit,"(a,i0)")   "# Pencil Initial:     ",ipencil
 
-! if pencil beam is used and on collimator with smallest gap the
-! distribution should be generated, set ipencil to coll_mingap_id
-  if (ipencil.gt.0 .and. do_mingap) then
+  write(coll_sigmaSetUnit, "(a)")      ""
+  write(coll_sigmaSetUnit, "(a)")      "# INFO"
+  write(coll_sigmaSetUnit, "(a)")      "# MinGap Collimator:  '"//trim(coll_mingap2)//"'"
+  write(coll_sigmaSetUnit, "(a,i0)")   "# MinGap Coll ID:     ",coll_mingap_id
+  write(coll_sigmaSetUnit, "(a,f0.6)") "# Min Gap Sigma:      ",mingap
+  write(coll_sigmaSetUnit, "(a,i0)")   "# Pencil Initial:     ",ipencil
+  
+  ! if pencil beam is used and on collimator with smallest gap the
+  ! distribution should be generated, set ipencil to coll_mingap_id
+  if(ipencil > 0 .and. do_mingap) then
     ipencil = coll_mingap_id
   end if
-
-  write(coll_twissLikeUnit,*) 'INFO> IPENCIL new (if do_mingap) ', ipencil
-  write(coll_sigmaSetUnit,*) coll_mingap_id, coll_mingap2,  mingap
-
-! if pencil beam is used and on collimator with smallest gap the
-! distribution should be generated, set ipencil to coll_mingap_id
-  write(coll_sigmaSetUnit,*) 'INFO> IPENCIL new (if do_mingap) ',ipencil
-  write(coll_sigmaSetUnit,*) 'INFO> rnd_seed is (before reinit)',rnd_seed
+  write(coll_twissLikeUnit,"(a,i0)")    "# Pencil (do_mingap): ",ipencil
+  write(coll_sigmaSetUnit, "(a,i0)")    "# Pencil (do_mingap): ",ipencil
+  write(coll_sigmaSetUnit, "(a,i0)")    "# Seed before reinit: ",rnd_seed
 
   call f_close(coll_twissLikeUnit)
   call f_close(coll_sigmaSetUnit)
