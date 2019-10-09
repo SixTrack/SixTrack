@@ -68,6 +68,7 @@ subroutine umlauda
   icoonly=0
   if(iqmodc.eq.2.or.iqmodc.eq.4.or.ichromc.eq.2) icoonly=1
 
+  crabpht      = zero
   tasData(:,:) = zero
   angnoe(:)    = zero
   angp(:,:)    = zero
