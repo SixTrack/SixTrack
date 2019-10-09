@@ -2719,7 +2719,7 @@ subroutine dafunt(cf,ina,inc)
             call dadeb(31,'ERR DAFUN ',1)
          endif
       elseif(cf.eq.'ACOT') then
-         xf(0) = two*atan_mb(one)-atan_mb(a0)
+         xf(0) = pi2-atan_mb(a0)
          scr = one/(one+a0*a0)
          xf(1) = -scr
          xf(2) = a0*(scr*scr)
@@ -2900,7 +2900,7 @@ subroutine dafunt(cf,ina,inc)
          a4 = -1.453152027_fPrec
          a5 = 1.061405429_fPrec
          p  = .3275911_fPrec
-         rpi4 = sqrt(atan_mb(one))
+         rpi4 = sqrt(pi/four)
          t  = one/(one+p*a0)
          e2 = one-t*(a1+t*(a2+t*(a3+t*(a4+t*a5))))*e1
          xf(0)= e2

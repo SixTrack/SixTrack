@@ -540,7 +540,7 @@ subroutine postpr(posi, numl_t)
       endif ! END if(nprint.eq.1)
 
 !--INITIALISATION
-      tpi=eight*atan_mb(one)
+      tpi=twopi
       prec=c1m1
       i1=0
       i11=1
@@ -691,7 +691,6 @@ subroutine postpr(posi, numl_t)
 
       if(ntwin.eq.2) then
          ilapa=ilapa_stf
-
          c1=real(c1_tmp,fPrec)
          d1=real(d1_tmp,fPrec)
          e1=real(e1_tmp,fPrec)
@@ -853,21 +852,25 @@ subroutine postpr(posi, numl_t)
       f=f-clop(2)
       g=g-clo(3)
       h=h-clop(3)
-      c1=c1-clo(1)
-      d1=d1-clop(1)
-      e1=e1-clo(2)
-      f1=f1-clop(2)
-      g1=g1-clo(3)
-      h1=h1-clop(3)
+      if(ntwin == 2) then
+        c1=c1-clo(1)
+        d1=d1-clop(1)
+        e1=e1-clo(2)
+        f1=f1-clop(2)
+        g1=g1-clo(3)
+        h1=h1-clop(3)
+      end if
       if(icode.ge.4) then
         c=c-di0(1)*h
         d=d-dip0(1)*h
         e=e-di0(2)*h
         f=f-dip0(2)*h
-        c1=c1-di0(1)*h
-        d1=d1-dip0(1)*h
-        e1=e1-di0(2)*h
-        f1=f1-dip0(2)*h
+        if(ntwin == 2) then
+          c1=c1-di0(1)*h
+          d1=d1-dip0(1)*h
+          e1=e1-di0(2)*h
+          f1=f1-dip0(2)*h
+        end if
       endif
 !     calculation first particle
 !--EMITTANCES
@@ -880,10 +883,12 @@ subroutine postpr(posi, numl_t)
         d=d+dip0(1)*h
         e=e+di0(2)*h
         f=f+dip0(2)*h
-        c1=c1+di0(1)*h
-        d1=d1+dip0(1)*h
-        e1=e1+di0(2)*h
-        f1=f1+dip0(2)*h
+        if(ntwin == 2) then
+          c1=c1+di0(1)*h
+          d1=d1+dip0(1)*h
+          e1=e1+di0(2)*h
+          f1=f1+dip0(2)*h
+        end if
       endif
       emt=emx+emz
       emax=emx
@@ -928,12 +933,14 @@ subroutine postpr(posi, numl_t)
       evx=txyz(1)**2+txyz(2)**2
       evz=txyz(3)**2+txyz(4)**2
 !     calculation second particle
-      xyzv2(1)=c1
-      xyzv2(2)=d1
-      xyzv2(3)=e1
-      xyzv2(4)=f1
-      xyzv2(5)=g1
-      xyzv2(6)=h1
+      if(ntwin == 2) then
+        xyzv2(1)=c1
+        xyzv2(2)=d1
+        xyzv2(3)=e1
+        xyzv2(4)=f1
+        xyzv2(5)=g1
+        xyzv2(6)=h1
+      end if
 
 !--CONVERT TO CANONICAL VARIABLES
       if(its6d.eq.1) then
@@ -1710,8 +1717,13 @@ subroutine postpr(posi, numl_t)
       sumda(49)=bet0z2
       sumda(7)=sqrt(bet0(1)*emi)+sqrt(bet0x2*emii)
       sumda(8)=sqrt(bet0(2)*emii)+sqrt(bet0z2*emi)
-      sumda(26)=sqrt(bet0(1)*evx2)+sqrt(bet0x2*evz2)
-      sumda(27)=sqrt(bet0(2)*evz2)+sqrt(bet0z2*evx2)
+      if(ntwin == 2) then ! Amplitude of particle 2
+        sumda(26)=sqrt(bet0(1)*evx2)+sqrt(bet0x2*evz2)
+        sumda(27)=sqrt(bet0(2)*evz2)+sqrt(bet0z2*evx2)
+      else
+        sumda(26)=zero
+        sumda(27)=zero 
+      end if
       sumda(19)=sevx
       sumda(20)=sevz
       sumda(21)=sevt
@@ -2450,7 +2462,7 @@ subroutine cphase(k,a,b,c,d,i,j,ie)
       real(kind=fPrec) a,b,c,d,f,tpi
       save
 !---------------------------------------------------------------------
-      tpi=eight*atan_mb(one)
+      tpi=twopi
       if(abs(b).gt.pieni.or.abs(c).gt.pieni) then
         f=atan2_mb(b,c)
         ie=ie+1

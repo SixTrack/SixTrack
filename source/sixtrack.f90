@@ -1950,10 +1950,8 @@ subroutine block
       use mod_common_track
       implicit none
       integer i,j,jm,k,l,m,n
-      real(kind=fPrec) g,h
-      dimension h(nblo,2,6),g(nblo,2,6)
-      save
-!-----------------------------------------------------------------------
+      real(kind=fPrec) h(nblo,2,6),g(nblo,2,6)
+
       do k=1,mblo
         jm=mel(k)
         i=mtyp(k,1)
@@ -1996,7 +1994,6 @@ subroutine block
 
       end do
 
-      return
 end subroutine block
 
 subroutine blockdis(aeg,bl1eg,bl2eg)
@@ -2012,11 +2009,8 @@ subroutine blockdis(aeg,bl1eg,bl2eg)
       use mod_common_track
       implicit none
       integer i,j,jm,k,l,m,n
-      real(kind=fPrec) aeg,bl1eg,bl2eg,g,h
-      dimension h(nblo,2,6),g(nblo,2,6)
-      dimension aeg(nele,2,6),bl1eg(nblo,2,6),bl2eg(nblo,2,6)
-      save
-!-----------------------------------------------------------------------
+      real(kind=fPrec) h(nblo,2,6),g(nblo,2,6),aeg(nele,2,6),bl1eg(nblo,2,6),bl2eg(nblo,2,6)
+
       do k=1,mblo
         jm=mel(k)
         i=mtyp(k,1)
@@ -2059,7 +2053,6 @@ subroutine blockdis(aeg,bl1eg,bl2eg)
 
       end do
 
-      return
 end subroutine blockdis
 
 subroutine chroma
@@ -3137,8 +3130,7 @@ subroutine corrorb
   character(len=mNameLen) bezlo(nele)
   dimension clo0(2),clop0(2)
   dimension qwc1(3),nx(ncor1)
-  save
-!-----------------------------------------------------------------------
+
       rzero=zero
       rzero1=zero
       do l=1,2
