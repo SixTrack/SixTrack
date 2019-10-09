@@ -2153,19 +2153,17 @@ subroutine collimate_trackThin(stracki, isColl)
     gammax = (one + talphax(ie)**2)/tbetax(ie)
     gammay = (one + talphay(ie)**2)/tbetay(ie)
 
+    if(firstrun .and. iturn == 1) then
+      sum_ax(ie) = zero
+      sum_ay(ie) = zero
+    end if
+
     do j=1,napx
       xj  = (xv1(j)-torbx(ie))/c1e3
       xpj = (yv1(j)-torbxp(ie))/c1e3
       yj  = (xv2(j)-torby(ie))/c1e3
       ypj = (yv2(j)-torbyp(ie))/c1e3
       pj  = ejv(j)/c1e3
-
-      if(firstrun) then
-        if(iturn == 1 .and. j == 1) then
-          sum_ax(ie) = zero
-          sum_ay(ie) = zero
-        end if
-      end if
 
       if(part_abs_pos(j) == 0 .and. part_abs_turn(j) == 0) then
         nspx         = sqrt(abs(gammax*(xj)**2 + two*talphax(ie)*xj*xpj + tbetax(ie)*xpj**2)/myemitx0_collgap)
@@ -2211,17 +2209,17 @@ subroutine collimate_start_collimator(stracki)
     gammax = (one + talphax(ie)**2)/tbetax(ie)
     gammay = (one + talphay(ie)**2)/tbetay(ie)
 
+    if(iturn == 1) then
+      sum_ax(ie) = zero
+      sum_ay(ie) = zero
+    end if
+
     do j=1,napx
       xj  = (xv1(j)-torbx(ie))/c1e3
       xpj = (yv1(j)-torbxp(ie))/c1e3
       yj  = (xv2(j)-torby(ie))/c1e3
       ypj = (yv2(j)-torbyp(ie))/c1e3
       pj  = ejv(j)/c1e3
-
-      if(iturn == 1 .and. j == 1) then
-        sum_ax(ie) = zero
-        sum_ay(ie) = zero
-      end if
 
       ! DRIFT PART
       if(stracki == zero) then
@@ -4059,17 +4057,17 @@ subroutine collimate_end_turn
 
   if(firstrun) then
     if(rselect > 0 .and. rselect < 65) then ! The value rselect is fixed to 64, this if is probably redundant.
+      if(iturn == 1) then
+        sum_ax(ie) = zero
+        sum_ay(ie) = zero
+      end if
+  
       do j=1,napx
         xj  = (xv1(j)-torbx(ie)) /c1e3
         xpj = (yv1(j)-torbxp(ie))/c1e3
         yj  = (xv2(j)-torby(ie)) /c1e3
         ypj = (yv2(j)-torbyp(ie))/c1e3
         pj  = ejv(j)/c1e3
-
-        if(iturn == 1 .and. j == 1) then
-          sum_ax(ie) = zero
-          sum_ay(ie) = zero
-        end if
 
         if(tbetax(ie) > 0.) then
           gammax = (one + talphax(ie)**2)/tbetax(ie)
