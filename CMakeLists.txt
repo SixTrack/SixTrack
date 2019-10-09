@@ -618,8 +618,8 @@ if(Fortran_COMPILER_NAME MATCHES "gfortran.*")
 
   if(INITNAN)
     # Note: SixTrack does not build with this flag for at least gfortran 8.x
-    set(CMAKE_Fortran_FLAGS_RELEASE "-finit-real=nan ${CMAKE_Fortran_FLAGS_RELEASE}")
-    set(CMAKE_Fortran_FLAGS_DEBUG   "-finit-real=nan ${CMAKE_Fortran_FLAGS_DEBUG}")
+    set(CMAKE_Fortran_FLAGS_RELEASE "-finit-real=snan -finit-character=0 ${CMAKE_Fortran_FLAGS_RELEASE}")
+    set(CMAKE_Fortran_FLAGS_DEBUG   "-finit-real=snan -finit-character=0 ${CMAKE_Fortran_FLAGS_DEBUG}")
   endif()
 
   if(MEMUSAGE)
