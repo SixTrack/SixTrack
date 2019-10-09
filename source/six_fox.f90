@@ -793,8 +793,8 @@ subroutine umlauda
             beamoff4=(rkb*(crzb-exp_mb(-one*tkb)*cbzb))*sign(one,crk)
             beamoff5=(rkb*(crxb-exp_mb(-one*tkb)*cbxb))*sign(one,cik)
           else
-            beamoff4=zero
-            beamoff5=zero
+            beamoff4=zero ! Were previously uninitialised when ibeco=0
+            beamoff5=zero ! Were previously uninitialised when ibeco=0
           endif
           if(abs(sigman(1,imbb(i))).lt.pieni.or.abs(sigman(2,imbb(i))).lt.pieni) goto 9088
           r2bf=two*(sigman(1,imbb(i))**2-sigman(2,imbb(i))**2)
