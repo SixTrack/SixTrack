@@ -503,7 +503,7 @@ The \texttt{HION} block only specifies the reference particle.
 By default, all particles are initialised to the same values, but if multiple ion species are needed, these can be provided by an input file in the \texttt{DIST} block.
 
 \bigskip
-\begin{tabular}{@{}llp{0.7\linewidth}}
+\begin{tabular}{@{}lp{0.7\linewidth}}
     \textbf{Keyword}    & \texttt{HION}\index{HION} \\
     \textbf{Data lines} & 1 \\
     \textbf{Format}     & Line 1: \texttt{A Z $m_a$ Q}
@@ -518,6 +518,42 @@ By default, all particles are initialised to the same values, but if multiple io
     \texttt{$m_a$} & float   & Mass of the ion [GeV/$c^2$]. \\
     \texttt{Q}     & integer & Electrical charge.
 \end{longtabu}
+
+% ================================================================================================================================ %
+\section{Random Numbers} \label{Input:RAND}
+
+The \texttt{RAND} block configures and initialises the pseudo-random number generator used by some parts of SixTrack.\index{random numbers}
+The block allows the user to set a master seed that generates a reproducible sequence of numbers, or alternatively seed the generator with a clock seed by providing the word \texttt{TIME} in place of a seed number.
+The \texttt{SEED} keyword is required, and if it is a number, it must be larger than 0.
+
+The main random number generator in this module is RANLUX \cite{ranlux}.
+The RANECU \cite{ranecu1,ranecu2} generator used by the magnet error code is also available.
+It is possible to override the default generator for the block with the \texttt{OVERRIDE} keyword.
+This will force the initialisation of all random number series to set the generator provided.
+
+The ``Luxury level'' of the RANLUX generator is by default set to 3.
+This can be overridden by the \texttt{LUXLEVEL} keyword.
+
+Some modules in SixTrack uses its own seeds and initialisation of random numbers.
+Please refer to the sections for the individual blocks for which feature requires this module.
+The original magnet error block is one such module (see Secyion~\ref{FluNum}).
+
+\bigskip
+\begin{tabular}{@{}lp{0.7\linewidth}}
+    \textbf{Keyword}    & \texttt{RAND}\index{RAND} \\
+    \textbf{Data lines} & Variable \\
+    \textbf{Format}     & Keyword/value
+\end{tabular}
+
+\paragraph{Example}
+
+\begin{cverbatim}
+RANDOM NUMBERS
+  SEED 42
+  LUXLEVEL 3
+  OVERRIDE ranlux
+NEXT
+\end{cverbatim}
 
 % ================================================================================================================================ %
 \section{Initial Distribution} \label{distBlock}
@@ -683,15 +719,7 @@ All emittances default to 0, so if these are not set, the normalisation will als
     \texttt{FILL} & \texttt{[list\_of\_parameters]} & \\*
     \hline
     \multicolumn{3}{|>{\raggedright}p{\textwidth}|}{%
-        The different columns can also be filled by a set of fill functions controlled with this keyword. The settings provided by this keyword are applied after the file is read or the arrays are populated by the \texttt{PARTICLES} keyword. The \texttt{FILL} feature can therefore be used to overwrite the data read from the file. The various fill methods available are listed in Table~\ref{Table:DIST_FILL}.
-    } \\*
-    \hline
-
-    \rowcolor{gray!15}
-    \texttt{SEED} & \texttt{seed(int)} & \\*
-    \hline
-    \multicolumn{3}{|>{\raggedright}p{\textwidth}|}{%
-        Provide a seed for the random number generator. This seed will only be used by the \texttt{DIST} block, and does not affect random numbers generated in other parts of SixTrack. If one of the \texttt{FILL} keywords uses a random number generator, a seed must be provided.
+        The different columns can also be filled by a set of fill functions controlled with this keyword. The settings provided by this keyword are applied after the file is read or the arrays are populated by the \texttt{PARTICLES} keyword. The \texttt{FILL} feature can therefore be used to overwrite the data read from the file. The various fill methods available are listed in Table~\ref{Table:DIST_FILL}. If a fill method using random numbers is used, note that the random number generator also must be initialised with the \texttt{RAND} block. See Section~\ref{Input:RAND}.
     } \\*
     \hline
 
@@ -1043,10 +1071,12 @@ The \texttt{FILL} feature can also be used to populate the arrays from scratch, 
 The different fill methods are listed in Table~\ref{Table:DIST_FILL}.
 
 Note that the \texttt{PARENT} column cannot be filled.
-The \texttt{SPIN} columns are also currently disbaled with this feature.
+The \texttt{SPIN} columns are also currently disabled with this feature.
 
 Also note that the \texttt{FILL} methods cannot create corrolated distributions.
 This can be achieved by using the normalised column formats, which triggers a normalisation after they have been filled.
+
+If a fill method using random numbers is used, the random number generator also must be initialised with the \texttt{RAND} block. See Section~\ref{Input:RAND}.
 
 \bigskip
 \noindent The general format for this feature is:
@@ -1116,7 +1146,7 @@ NEXT
     \hline
     \multicolumn{2}{|>{\raggedright}p{\textwidth}|}{%
         Sets all values to a fixed integer.
-        Can be used with column formats \texttt{ION\_A}, \texttt{ION\_Z}, \texttt{CHARGE} and \texttt{PDGID}.
+        Can be used with column formats \texttt{ION\_A}, \texttt{ION\_Z}, \texttt{CHARGE}, and \texttt{PDGID}.
     } \\*
     \hline
 
@@ -1134,7 +1164,16 @@ NEXT
     \hline
     \multicolumn{2}{|>{\raggedright}p{\textwidth}|}{%
         Generates a normal random distribution with width \texttt{sigma} and offset \texttt{mu}, with an optional sigma \texttt{cut}.
-        Can be used with all floating point column formats except \texttt{MASS}.
+        Can be used with all floating point column formats except \texttt{MASS}, \texttt{JX},\texttt{JY}, and \texttt{JZ}.
+    } \\*
+    \hline
+
+    \rowcolor{gray!15}
+    \texttt{RAYLEIGH} & \texttt{sigma [maxcut] [mincut] [first last]} \\*
+    \hline
+    \multicolumn{2}{|>{\raggedright}p{\textwidth}|}{%
+        Generates a Rayleigh random distribution with width \texttt{sigma}, with an optional sigma \texttt{maxcut} and sigma \texttt{mincut}.
+        Can be used with floating point column formats \texttt{JX},\texttt{JY}, and \texttt{JZ}.
     } \\*
     \hline
 

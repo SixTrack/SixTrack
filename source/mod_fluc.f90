@@ -138,13 +138,15 @@ subroutine fluc_moreRandomness
 
   implicit none
 
-  integer            :: i
+  integer            :: i, tSeed1, tSeed2
   integer, parameter :: newRnd = 5000
   real(kind=fPrec)   :: tmpRnd(newRnd)
 
+  call recuut(tSeed1, tSeed2)
   call recuin(fluc_iSeed1, fluc_iSeed2)
   call ranecu(tmpRnd, newRnd, 1, real(mcut,kind=fPrec))
   call recuut(fluc_iSeed1, fluc_iSeed2)
+  call recuin(tSeed1, tSeed2)
 
   if(nzfz == -1) nzfz = 0
   call alloc(zfz, nzfz+newRnd, zero, "zfz")
