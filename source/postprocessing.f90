@@ -540,7 +540,7 @@ subroutine postpr(posi, numl_t)
       endif ! END if(nprint.eq.1)
 
 !--INITIALISATION
-      tpi=eight*atan_mb(one)
+      tpi=twopi
       prec=c1m1
       i1=0
       i11=1
@@ -2462,7 +2462,7 @@ subroutine cphase(k,a,b,c,d,i,j,ie)
       real(kind=fPrec) a,b,c,d,f,tpi
       save
 !---------------------------------------------------------------------
-      tpi=eight*atan_mb(one)
+      tpi=twopi
       if(abs(b).gt.pieni.or.abs(c).gt.pieni) then
         f=atan2_mb(b,c)
         ie=ie+1

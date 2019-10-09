@@ -75,7 +75,7 @@ subroutine umlauda
   cp(:)        = zero
   jj(:)        = 0
 
-  x2pi=atan_mb(one)*eight
+  x2pi=twopi
   i4(1,1)=1
   i4(1,2)=1
   i4(2,1)=3
