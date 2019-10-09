@@ -1612,6 +1612,14 @@ include(CPack)
 install(TARGETS SixTrackCR RUNTIME DESTINATION bin)
 
 if(NOT WIN32)
-  add_custom_command(TARGET SixTrackCR POST_BUILD
-    COMMAND ${CMAKE_COMMAND} -E create_symlink "${SIXTRACK_BINARY_NAME}" "sixtrack")
+  add_custom_command(
+    TARGET SixTrackCR POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E create_symlink "${SIXTRACK_BINARY_NAME}" "sixtrack"
+  )
+  if(SIXDA)
+    add_custom_command(
+      TARGET SixTrackDA POST_BUILD
+      COMMAND ${CMAKE_COMMAND} -E create_symlink "${SIXTRACK_BINARY_NAME_DA}" "sixtrack_da"
+    )
+  endif()
 endif()
