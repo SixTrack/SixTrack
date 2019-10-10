@@ -1589,17 +1589,30 @@ end subroutine collimate_openFiles
 ! ================================================================================================ !
 subroutine collimate_trackThin(stracki, isColl)
 
+  use coll_db
   use mod_time
+  use mod_common
 
   real(kind=fPrec), intent(in) :: stracki
   logical,          intent(in) :: isColl
 
   if(isColl) then
+
     call time_startClock(time_clockCOLL)
-    call collimate_start_collimator(stracki)
+
+    icoll    = cdb_elemMap(c_ix)
+    nsig     = cdb_cNSig(icoll)
+    c_length = zero
+  
+    if(firstrun) then
+      call coll_computeStats
+    end if
+
     call collimate_do_collimator(stracki)
     call collimate_end_collimator(stracki)
+
     call time_stopClock(time_clockCOLL)
+
   else
     call coll_computeStats
   end if
@@ -1648,33 +1661,6 @@ subroutine coll_computeStats
   end do
 
 end subroutine coll_computeStats
-
-! ================================================================================================ !
-!  Updated: 2019-09-12
-!  Called when we enter a collimator.
-!  The routine doesn't check that the collimator exists! This should be checked before calling it.
-! ================================================================================================ !
-subroutine collimate_start_collimator(stracki)
-
-  use coll_db
-  use mod_common
-  use mod_common_main
-  use mod_common_track
-
-  real(kind=fPrec), intent(in) :: stracki
-
-  integer j
-  real(kind=fPrec) gammax,gammay,xj,xpj,yj,ypj,pj,zpj
-
-  icoll    = cdb_elemMap(c_ix)
-  nsig     = cdb_cNSig(icoll)
-  c_length = zero
-
-  if(firstrun) then
-    call coll_computeStats
-  end if
-
-end subroutine collimate_start_collimator
 
 !>
 !! collimate_do_collimator()
