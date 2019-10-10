@@ -748,15 +748,15 @@ Because of this, SixTrack does not accept a real single element in \texttt{fort.
 
 \subsection{Additional Flags}
 
-\paragraph{Flag:} \texttt{NOFILE}\\
+\paragraph{Flag} \texttt{DYNKSETS}\\
 
-The presence of this statement in a \texttt{DYNK} block switches off the normal writing of the output file \texttt{dynksets.dat} in every line, instead producing a file only containing the message
-\begin{cverbatim}
-### DYNK file output was disabled with flag NOFILE in fort.3 ###
-\end{cverbatim}
+The presence of this statement in a \texttt{DYNK} block switches on the writing of the output file \texttt{dynksets.dat} in every line.
 This can be useful to save disk space in very long simulations.
 
-\paragraph{Flag:} \texttt{DEBU}
+This flag replaces the \texttt{NOFILE} flag that in version 5.3.4 and earlier was used to disable the writing of \texttt{dynksets.dat}.
+The file is now disabled by default, and has to be explicitly requested.
+
+\paragraph{Flag} \texttt{DEBUG}
 
 This statement switches on extra ``debugging'' output from \texttt{DYNK}.
 This can be useful if debugging the code or if debugging the input.
@@ -790,7 +790,6 @@ NEXT
 This can be replaced by the following:
 \begin{cverbatim}
 DYNK
-  DYNKSETS
   FUN RIPP-dmqx1f50l5+2 COSF_RIPP 3.2315D-10 224.9 0.0
   SET dmqx1f50l5+2 average_ms RIPP-dmqx1f50l5+2 1 -1 0
   FUN RIPP-dmqx2af50l5+2 COSF_RIPP -3.2315D-10 224.9 0.0
@@ -800,8 +799,7 @@ DYNK
 NEXT
 \end{cverbatim}
 Here, each \texttt{RIPP} data line is replaced with two lines, one FUN statement for generating the function, and one \texttt{SET} statement for applying the value.
-Note that the \texttt{SET} statements have an end-time \texttt{-1}, meaning it is used until the end of the simulation.
-Also note the presence of the \texttt{NOFILE} flag, which is used to not generate a potentially very large (for very long simulations) \texttt{dynkfile.dat} output file.
+Note that the \texttt{SET} statements have an end time \texttt{-1}, meaning it is used until the end of the simulation.
 
 \paragraph{Starting tracking inside a bump}~\\
 
