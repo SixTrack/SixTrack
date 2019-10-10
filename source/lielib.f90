@@ -1642,8 +1642,8 @@ subroutine mapnormf(x,ft,a2,a1,xy,h,nord,isi)
         rads(itu)=zero
       enddo
       jtune=isi
-      x2pii=(one/atan_mb(one))/eight
-      x2pi=atan_mb(one)*eight
+      x2pii=one/twopi
+      x2pi=twopi
       call dacopd(x,xy)
 ! goto fix point in the parameters + pt to order nord>=1
       call gofix(xy,a1,a1i,nord)
@@ -2084,7 +2084,7 @@ subroutine dhdjflo(h,t)
       call etall(bb1(1),1)
       call etall(bb2(1),1)
 
-      x2pi=atan_mb(one)*eight
+      x2pi=twopi
       call ctorflo(h,b1,b2)
       coe=one/x2pi
 
@@ -2126,7 +2126,7 @@ subroutine dhdj(h,t)
       call etallnom(bb1(1),1,'BB1       ')
       call etallnom(bb2(1),1,'BB2       ')
 
-      x2pi=atan_mb(one)*eight
+      x2pi=twopi
       call ctor(h,b1(1),b2(1))
       coe=-two/x2pi
       do i=1,nd-ndc
@@ -2558,7 +2558,7 @@ subroutine midbflo(c,a2,a2i,q,a,st)
       dimension sa(ndim2,ndim2),sai(ndim2,ndim2),cm(ndim2,ndim2)
       integer c(*),a2(*),a2i(*)
 !*DAEXT(NO,NV) C(NDIM2),A2(NDIM2),A2I(NDIM2)
-      x2pi=atan_mb(one)*eight
+      x2pi=twopi
 
       do i=1,ntt
         jx(i)=0
@@ -2652,7 +2652,7 @@ subroutine mapflol(sa,sai,cr,cm,st)
       dimension rr(ndim2),ri(ndim2),sa(ndim2,ndim2),xx(ndim),sai(ndim2,ndim2),cm(ndim2,ndim2),w(ndim2,ndim2),st(ndim)
       dimension vr(ndim2,ndim2),vi(ndim2,ndim2),s1(ndim2,ndim2),p(ndim2)
       logical lopen
-      x2pi=atan_mb(one)*eight
+      x2pi=twopi
       n1=0
 !     frank/etienne
       do i=1,ndim2
@@ -4179,7 +4179,7 @@ subroutine couplean(map1,tune,map2,oneturn)
 !  this a-script should around the fixed point to all orders
 !     one order is lost because I use PB-field
 
-      tpi=atan_mb(one)*eight
+      tpi=twopi
       do i=1,nd2
         call dacfu(map1(i),killnonl,m1(i))
       enddo

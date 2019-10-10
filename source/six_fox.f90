@@ -67,16 +67,15 @@ subroutine umlauda
   if(ichromc.eq.1) call danot(3)
   icoonly=0
   if(iqmodc.eq.2.or.iqmodc.eq.4.or.ichromc.eq.2) icoonly=1
-  do j=1,2
-    angnoe(j)=zero
-    do i=1,6
-      angp(j,i)=zero
-    enddo
-  enddo
-  do i=1,100
-    jj(i)=0
-  enddo
-  x2pi=atan_mb(one)*eight
+
+  crabpht      = zero
+  tasData(:,:) = zero
+  angnoe(:)    = zero
+  angp(:,:)    = zero
+  cp(:)        = zero
+  jj(:)        = 0
+
+  x2pi=twopi
   i4(1,1)=1
   i4(1,2)=1
   i4(2,1)=3
@@ -792,6 +791,9 @@ subroutine umlauda
             call errf(xbb,zbb,cbxb,cbzb)
             beamoff4=(rkb*(crzb-exp_mb(-one*tkb)*cbzb))*sign(one,crk)
             beamoff5=(rkb*(crxb-exp_mb(-one*tkb)*cbxb))*sign(one,cik)
+          else
+            beamoff4=zero ! Were previously uninitialised when ibeco=0
+            beamoff5=zero ! Were previously uninitialised when ibeco=0
           endif
           if(abs(sigman(1,imbb(i))).lt.pieni.or.abs(sigman(2,imbb(i))).lt.pieni) goto 9088
           r2bf=two*(sigman(1,imbb(i))**2-sigman(2,imbb(i))**2)
