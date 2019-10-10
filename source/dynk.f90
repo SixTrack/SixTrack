@@ -13,8 +13,8 @@ module dynk
 
   implicit none
 
-  ! General-purpose variables
-  logical, public,  save :: dynk_enabled      = .false. ! DYNK input bloc issued in the fort.3 file
+  ! General purpose variables
+  logical, public,  save :: dynk_enabled      = .false. ! DYNK input block issued in the fort.3 file
   logical, private, save :: dynk_debug        = .false. ! Print debug messages in main output
   logical, private, save :: dynk_dynkSets     = .false. ! Flag for writing dynksets.dat
   integer, private, save :: dynk_fileUnit     = -1      ! The file unit for dynksets.dat
