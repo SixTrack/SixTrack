@@ -20,9 +20,9 @@ module checkpoint_restart
   logical,           public,  save :: cr_pntRead(cr_nPoint)  = .false.
 
   ! Logging Files
-  character(len=13), public,  save :: cr_errFile  = "cr_stderr.tmp"
-  character(len=13), public,  save :: cr_outFile  = "cr_stdout.tmp"
-  character(len=13), public,  save :: cr_logFile  = "cr_status.log"
+  character(len=13), parameter     :: cr_errFile  = "cr_stderr.tmp"
+  character(len=13), parameter     :: cr_outFile  = "cr_stdout.tmp"
+  character(len=13), parameter     :: cr_logFile  = "cr_status.log"
   integer,           parameter     :: cr_errUnit  = 91
   integer,           parameter     :: cr_outUnit  = 92
   integer,           parameter     :: cr_logUnit  = 93

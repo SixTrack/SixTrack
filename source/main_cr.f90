@@ -1081,33 +1081,28 @@ program maincr
         dam(ia+1) = dam1
       end if
 
-      ! Write header of track output file(s) used by postprocessing for case ntwin /= 2
+      ! Write header of singletrackfile.dat used by postprocessing for case ntwin /= 2
 #ifdef CR
       if(.not.cr_restart) then
 #endif
-        call writebin_header(ia,ia,90,ierro,cDate,cTime,progrm)
-#ifdef CR
+        call writebin_header(ia,ia,90,cDate,cTime,progrm)
         flush(90)
+#ifdef CR
         binrecs(ia2)=1
       endif
 #endif
-    else !ELSE for "if(ntwin.ne.2)"
-      ! Write header of track output file(s) used by postprocessing for case ntwin == 2
+    else ! elseif(ntwin /= 2)
+      ! Write header of singletrackfile.dat used by postprocessing for case ntwin == 2
 #ifdef CR
       if(.not.cr_restart) then
 #endif
-        call writebin_header(ia,ia+1,90,ierro,cDate,cTime,progrm)
-#ifdef CR
+        call writebin_header(ia,ia+1,90,cDate,cTime,progrm)
         flush(90)
+#ifdef CR
         binrecs(ia2)=1
       endif
 #endif
-    endif !ENDIF (ntwin.ne.2)
-    if(ierro /= 0) then
-      write(lerr,"(a,i0)") "MAINCR> ERROR Problems writing to file #",91-ia2
-      write(lerr,"(a,i0)") "MAINCR> ERROR Code: ",ierro
-      goto 520
-    endif
+    end if ! if(ntwin /= 2)
   end do ! napx
 
 #ifdef CR
