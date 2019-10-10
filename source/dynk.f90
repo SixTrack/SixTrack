@@ -13,10 +13,10 @@ module dynk
 
   implicit none
 
-  ! General-purpose variables
-  logical, public,  save :: dynk_enabled      = .false. ! DYNK input bloc issued in the fort.3 file
-  logical, public,  save :: dynk_debug        = .false. ! Print debug messages in main output
-  logical, public,  save :: dynk_dynkSets     = .false. ! Flag for writing dynksets.dat
+  ! General purpose variables
+  logical, public,  save :: dynk_enabled      = .false. ! DYNK input block issued in the fort.3 file
+  logical, private, save :: dynk_debug        = .false. ! Print debug messages in main output
+  logical, private, save :: dynk_dynkSets     = .false. ! Flag for writing dynksets.dat
   integer, private, save :: dynk_fileUnit     = -1      ! The file unit for dynksets.dat
 
   character(len=12), parameter :: dynk_fileName = "dynksets.dat"
@@ -1604,6 +1604,9 @@ subroutine dynk_inputSanityCheck
   integer biggestTurn ! Used as a replacement for ending turn -1 (infinity)
   logical sane
 
+  if(dynk_debug) then
+    call dynk_dumpdata
+  end if
   sane = .true.
 
   ! Check that there are no doubly-defined function names
@@ -2930,6 +2933,11 @@ subroutine dynk_crcheck_positionFiles
   integer j
   character(len=mInputLn) aRecord
 
+  if(dynk_dynkSets .eqv. .false.) then
+    ! No file to reposition
+    return
+  end if
+
   inquire(unit=dynk_fileUnit, opened=isOpen)
   if(isOpen) then
     write(crlog,"(a)")      "CR_CHECK> ERROR Failed while repositioning '"//dynk_fileName//"'"
@@ -2939,7 +2947,7 @@ subroutine dynk_crcheck_positionFiles
     call prror
   end if
 
-  if (dynk_filePosCR /= -1) then
+  if(dynk_filePosCR /= -1) then
     call f_open(unit=dynk_fileUnit,file=dynk_fileName,formatted=.true.,mode="rw",status="old",err=fErr)
     if(fErr) goto 110
     dynk_filePos = 0     ! Start counting lines at 0, not -1

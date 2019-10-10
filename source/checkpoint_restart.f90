@@ -313,7 +313,7 @@ subroutine crcheck
   use mod_common_main
   use mod_version
 
-  use dynk,       only : dynk_enabled, dynk_noDynkSets,dynk_crcheck_readdata,dynk_crcheck_positionFiles
+  use dynk,       only : dynk_enabled,dynk_crcheck_readdata,dynk_crcheck_positionFiles
   use dump,       only : dump_crcheck_readdata,dump_crcheck_positionFiles
   use aperture,   only : limifound, aper_crcheck_readdata, aper_crcheck_positionFiles
   use scatter,    only : scatter_active, scatter_crcheck_readdata, scatter_crcheck_positionFiles
@@ -508,8 +508,8 @@ subroutine crcheck
 
   call cr_positionTrackFiles
 
-  if(dynk_enabled .and. .not.dynk_noDynkSets) then
-    write(crlog,"(a)") "CR_CHECK> Repositioning dynksets.dat"
+  if(dynk_enabled) then
+    write(crlog,"(a)") "CR_CHECK> Repositioning DYNK files"
     flush(crlog)
     call dynk_crcheck_positionFiles
   end if
