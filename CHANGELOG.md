@@ -1,5 +1,24 @@
 # SixTrack Changelog
 
+### Version 5.4 [10.10.2019] - Release
+
+* 992: Dynk NOFILE > DYNKSETS
+* 988: NaN Bomb
+* 985: Remove TILT flag (always on)
+* 984: Coll DB conversion bugfix
+* 983: Beam--Beam Ibeco=0 Bugfix
+
+**Bug Fixes**
+
+* A series of long standing bugs caused by uninitialised variables have been resolved. PRs #983 and #988 (V.K. Berglyd Olsen). The following modules and settings were affected:
+  * Beam--beam simulations with the `ibeco` flag set to 0. This caused `NaN` particle coordinates on systems.
+  * 
+
+**User Side Changes**
+
+* The STF build flag has been removed. That means SixTrack now always produces a single track file `singletrackfile.dat` instead of the optional pair track files `fort.59` - `fort.90`. A tool for converting the full track file to a pair track file has been added. See the user manual for further details. PRs #967 and 989 (V.K. Berglyd Olsen, K.N. Sjobak)
+* A random numbers module has been added, which introduces the `RAND` block in the input file. The block gives more control over how the internal random number generators are initialised and also provides a better framework for the internal management of the various random number sequences used by different modules of the code. It is also designed to be easier to manage when using checkpoint/restart. Many modules still use their own seed, so this will be implemented gradually. Currently, the new random numbers module is only used by the `DIST` block. PR #978 (V.K Berglyd Olsen)
+
 ### Version 5.3.4 [01.10.2019] - Release
 
 **Bug Fixes**
