@@ -224,17 +224,15 @@ subroutine aperture_init
       apefilepos=0
 #endif
 
-      write(losses_unit,"(a)") '#' // chr_lpad('turn',8) // chr_lpad('block',9) // chr_lpad('bezid',9) // chr_rpad(' bez',49) //&
-&                              chr_lpad('slos',13) // &
 #ifdef FLUKA
-&        chr_lpad('fluka_uid',10) // chr_lpad('fluka_gen',10) // chr_lpad('fluka_weight',15) //  &
+      write(losses_unit,"(a1,1x,a7,2(1x,a8),1x,a48,1x,a12,2(1x,a9),8(1x,a14),3(1x,a8),1x,a12)")     &
+        "#","turn","block","bezid",chr_rPad("bez",48),"slos","fluka_uid","fluka_gen","fluka_weight",&
+        "x[m]","xp","y[m]","yp","P_tot[GeV/c]","dE[eV]","dT[s]","A","Z","Q","PDGid"
 #else
-&        chr_lpad('partid',9) // &
+      write(losses_unit,"(a1,1x,a7,2(1x,a8),1x,a48,1x,a12,1x,a8,7(1x,a14),3(1x,a8),1x,a12)") &
+        "#","turn","block","bezid",chr_rPad("bez",48),"slos","partid",                       &
+        "x[m]","xp","y[m]","yp","P_tot[GeV/c]","dE[eV]","dT[s]","A","Z","Q","PDGid"
 #endif
-&        chr_lpad('x (m)',15) // chr_lpad('xp',15) // chr_lpad('y (m)',15) // chr_lpad('yp',15) // &
-&        chr_lpad('P tot (GeV/c)',15) // chr_lpad('dE (eV)',15) // chr_lpad('dT (s)',15) // &
-&        chr_lpad('A',9) // chr_lpad('Z',9) // chr_lpad('Q',9) // chr_lpad('PDGid',13)
-      ! Flush file
       flush(losses_unit)
 #ifdef CR
       apefilepos=apefilepos+1
