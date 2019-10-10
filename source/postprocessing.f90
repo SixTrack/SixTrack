@@ -2862,26 +2862,24 @@ subroutine join
 end subroutine join
 
 ! ================================================================================================ !
+!  K.N. Sjobak, V.K. Berglyd Olsen, BE-ABP-HSS
+!  Updated: 2019-10-10
 !  Subroutine for writing the header of the binary file singletrackfile.dat
 !  Always converting to real64 before writing to disk
 ! ================================================================================================ !
-!  K. SJOBAK, October 2017
-! ================================================================================================ !
-subroutine writebin_header(ia_p1,ia_p2,fileunit_in, ierro_wbh, cdate,ctime,progrm)
+subroutine writebin_header(ia_p1,ia_p2,fileunit_in,cdate,ctime,progrm)
 
-  use, intrinsic :: iso_fortran_env, only : real64
-  use numerical_constants
   use parpro
+  use crcoall
   use mod_common
   use mod_common_main
+  use numerical_constants
+  use, intrinsic :: iso_fortran_env, only : real64
 
-  implicit none
+  integer,          intent(in) :: ia_p1, ia_p2, fileunit_in
+  character(len=8), intent(in) :: cdate, ctime, progrm ! Note: Keep in sync with maincr. If the len changes, CRCHECK will break.
 
-  integer, intent(in)    :: ia_p1, ia_p2, fileunit_in
-  integer, intent(inout) :: ierro_wbh
-
-  character(len=8) cdate,ctime,progrm ! Note: Keep in sync with maincr. If the len changes, CRCHECK will break.
-  integer i,j
+  integer wErr
 
   real(kind=real64) qwcs_tmp(3), clo6v_tmp(3), clop6v_tmp(3)
   real(kind=real64) di0xs_tmp, dip0xs_tmp, di0zs_tmp,dip0zs_tmp
@@ -2891,37 +2889,26 @@ subroutine writebin_header(ia_p1,ia_p2,fileunit_in, ierro_wbh, cdate,ctime,progr
   real(kind=real64), parameter :: zero64 = 0.0_real64
   real(kind=real64), parameter :: one64  = 1.0_real64
 
-  !Convert from whatever precission is used internally to real64,
-  ! which is what should go in the output file
-  do i=1,3
-    qwcs_tmp  (i) = real(qwcs  (i), real64)
-    clo6v_tmp (i) = real(clo6v (i), real64)
-    clop6v_tmp(i) = real(clop6v(i), real64)
-  end do
-
+  ! Convert from whatever precission is used internally to real64
+  qwcs_tmp   = real(qwcs,   real64)
+  clo6v_tmp  = real(clo6v,  real64)
+  clop6v_tmp = real(clop6v, real64)
   di0xs_tmp  = real(di0xs,  real64)
   dip0xs_tmp = real(dip0xs, real64)
   di0zs_tmp  = real(di0zs,  real64)
   dip0zs_tmp = real(dip0zs, real64)
-
-  do i=1,6
-    do j=1,6
-      tas_tmp(j,i) = real(tas(j,i), real64)
-    end do
-  end do
-
-  mmac_tmp   = 1.0_real64
-  nms_tmp    = 1.0_real64
+  tas_tmp    = real(tas,    real64)
+  mmac_tmp   = one64
+  nms_tmp    = one64
   izu0_tmp   = real(izu0,   real64)
   numlr_tmp  = real(numlr,  real64)
   sigcor_tmp = real(sigcor, real64)
   dpscor_tmp = real(dpscor, real64)
 
-  ! DANGER: IF THE LENGTH OR NUMBER OF THESE FIELDS CHANGE,
-  ! CRCHECK WON'T WORK. SEE HOW VARIABLES HBUFF/TBUFF ARE USED.
-  ! WE ALSO ASSUME THAT THE INTEGERS ARE ALWAYS 32BIT...
-
-  write(fileunit_in,iostat=ierro_wbh)                            &
+  ! DANGER: If the length or number of these fields change,
+  ! crcheck won't work. see how variables hbuff/tbuff are used.
+  ! We also assume that the integers are always 32bit.
+  write(fileunit_in,iostat=wErr)                                 &
     sixtit,commen,cdate,ctime,progrm,                            &
     ia_p1,ia_p2, napx, icode,numl,                               &
     qwcs_tmp(1),qwcs_tmp(2),qwcs_tmp(3),                         &
@@ -2949,6 +2936,11 @@ subroutine writebin_header(ia_p1,ia_p2,fileunit_in, ierro_wbh, cdate,ctime,progr
     zero64,zero64,zero64,zero64,zero64,zero64,zero64,zero64,     &
     zero64,zero64,zero64,zero64,zero64,zero64,zero64,zero64,     &
     zero64,zero64,zero64,zero64
+
+  if(wErr /= 0) then
+    write(lerr,"(a,i0)") "POSTPR> ERROR Problems writing 'singletrackfile.dat' header. Code ",wErr
+    call prror
+  end if
 
 end subroutine writebin_header
 
