@@ -364,21 +364,26 @@ end subroutine f_open
 !  Close File Units
 !  V.K. Berglyd Olsen, BE-ABP-HSS
 !  Created: 2018-12-13
-!  Updated: 2018-12-13
+!  Updated: 2019-10-10
 !  Preferred method for closing file as it keeps the record up to date
 ! ================================================================================================ !
-subroutine f_close(unit)
+subroutine f_close(unit, cErr)
 
   use crcoall
 
-  integer, intent(in) :: unit
+  integer,           intent(in)  :: unit
+  logical, optional, intent(out) :: cErr
 
-  integer i
+  integer i, ioStat
   logical isOpen
 
   if(unit < units_minUnit .or. unit > units_maxUnit) then
     write(lerr,"(3(a,i0),a)") "UNITS> ERROR Unit ",unit," is out of range ",units_minUnit,":",units_maxUnit," in f_close"
     call prror
+  end if
+
+  if(present(cErr)) then
+    cErr = .false.
   end if
 
   inquire(unit=unit, opened=isOpen)
@@ -389,8 +394,21 @@ subroutine f_close(unit)
       call f_writeLog("CLOSE",unit,"CLOSED","*** Unknown File ***")
     end if
     flush(unit)
-    close(unit)
-    units_uList(unit)%open = .false.
+    close(unit, iostat=ioStat)
+    if(ioStat == 0) then
+      units_uList(unit)%open = .false.
+    else
+      if(units_uList(unit)%taken) then
+        write(lerr,"(a,i0)") "UNITS> ERROR Failed to close file '"//trim(units_uList(unit)%file)//"', status code ",ioStat
+        call f_writeLog("CLOSE",unit,"ERROR",units_uList(unit)%file)
+      else
+        write(lerr,"(2(a,i0))") "UNITS> ERROR Failed to close file unit ",unit,", status code ",ioStat
+        call f_writeLog("CLOSE",unit,"ERROR","*** Unknown File ***")
+      end if
+      if(present(cErr)) then
+        cErr = .true.
+      end if
+    end if
   else
     if(units_uList(unit)%taken) then
       call f_writeLog("CLOSE",unit,"NOTOPEN",units_uList(unit)%file)
