@@ -170,8 +170,6 @@ module collimation
   real(kind=fPrec), private, save :: scale_by0 = zero
   real(kind=fPrec), private, save :: bx_dist   = zero
   real(kind=fPrec), private, save :: by_dist   = zero
-  real(kind=fPrec), private, save :: nspx      = zero
-  real(kind=fPrec), private, save :: nspy      = zero
 
 #ifdef HDF5
   ! Variables to save hdf5 dataset indices
@@ -568,17 +566,6 @@ subroutine collimate_init
 #endif
   end if
 
-  ! Initialise efficiency array
-  do i=1,iu
-    sum_ax(i)   = zero
-    sqsum_ax(i) = zero
-    sum_ay(i)   = zero
-    sqsum_ay(i) = zero
-    nampl(i)    = zero
-  end do
-
-  nspx = zero
-  nspy = zero
   iturn = 1
   ie    = 1
   n_tot_absorbed = 0
@@ -1603,58 +1590,64 @@ end subroutine collimate_openFiles
 subroutine collimate_trackThin(stracki, isColl)
 
   use mod_time
-  use mod_common
-  use mod_common_main
-  use mod_common_track
 
   real(kind=fPrec), intent(in) :: stracki
   logical,          intent(in) :: isColl
 
-  integer j
-  real(kind=fPrec) gammax,gammay,xj,xpj,yj,ypj,pj
-
   if(isColl) then
-
     call time_startClock(time_clockCOLL)
     call collimate_start_collimator(stracki)
     call collimate_do_collimator(stracki)
     call collimate_end_collimator(stracki)
     call time_stopClock(time_clockCOLL)
-
   else
-
-    gammax = (one + talphax(ie)**2)/tbetax(ie)
-    gammay = (one + talphay(ie)**2)/tbetay(ie)
-
-    if(firstrun .and. iturn == 1) then
-      sum_ax(ie) = zero
-      sum_ay(ie) = zero
-    end if
-
-    do j=1,napx
-      xj  = (xv1(j)-torbx(ie))/c1e3
-      xpj = (yv1(j)-torbxp(ie))/c1e3
-      yj  = (xv2(j)-torby(ie))/c1e3
-      ypj = (yv2(j)-torbyp(ie))/c1e3
-      pj  = ejv(j)/c1e3
-
-      if(part_abs_pos(j) == 0 .and. part_abs_turn(j) == 0) then
-        nspx         = sqrt(abs(gammax*(xj)**2 + two*talphax(ie)*xj*xpj + tbetax(ie)*xpj**2)/c_emitx0_collgap)
-        nspy         = sqrt(abs(gammay*(yj)**2 + two*talphay(ie)*yj*ypj + tbetay(ie)*ypj**2)/c_emity0_collgap)
-        sum_ax(ie)   = sum_ax(ie) + nspx
-        sqsum_ax(ie) = sqsum_ax(ie) + nspx**2
-        sum_ay(ie)   = sum_ay(ie) + nspy
-        sqsum_ay(ie) = sqsum_ay(ie) + nspy**2
-        nampl(ie)    = nampl(ie) + 1
-      else
-        nspx = zero
-        nspy = zero
-      end if
-    end do
-
+    call coll_computeStats
   end if
 
 end subroutine collimate_trackThin
+
+! ================================================================================================ !
+!  Statistics for the amplitude.dat file
+! ================================================================================================ !
+subroutine coll_computeStats
+
+  use mod_common
+  use mod_common_main
+  use mod_common_track
+
+  integer j
+  real(kind=fPrec) gammax,gammay,xj,xpj,yj,ypj,pj,nspx,nspy
+
+  gammax = (one + talphax(ie)**2)/tbetax(ie)
+  gammay = (one + talphay(ie)**2)/tbetay(ie)
+
+  if(firstrun .and. iturn == 1) then
+    sum_ax(ie) = zero
+    sum_ay(ie) = zero
+  end if
+
+  do j=1,napx
+    xj  = (xv1(j)-torbx(ie))/c1e3
+    xpj = (yv1(j)-torbxp(ie))/c1e3
+    yj  = (xv2(j)-torby(ie))/c1e3
+    ypj = (yv2(j)-torbyp(ie))/c1e3
+    pj  = ejv(j)/c1e3
+
+    if(part_abs_pos(j) == 0 .and. part_abs_turn(j) == 0) then
+      nspx         = sqrt(abs(gammax*(xj)**2 + two*talphax(ie)*xj*xpj + tbetax(ie)*xpj**2)/c_emitx0_collgap)
+      nspy         = sqrt(abs(gammay*(yj)**2 + two*talphay(ie)*yj*ypj + tbetay(ie)*ypj**2)/c_emity0_collgap)
+      sum_ax(ie)   = sum_ax(ie) + nspx
+      sqsum_ax(ie) = sqsum_ax(ie) + nspx**2
+      sum_ay(ie)   = sum_ay(ie) + nspy
+      sqsum_ay(ie) = sqsum_ay(ie) + nspy**2
+      nampl(ie)    = nampl(ie) + 1
+    else
+      nspx = zero
+      nspy = zero
+    end if
+  end do
+
+end subroutine coll_computeStats
 
 ! ================================================================================================ !
 !  Updated: 2019-09-12
@@ -1677,49 +1670,8 @@ subroutine collimate_start_collimator(stracki)
   nsig     = cdb_cNSig(icoll)
   c_length = zero
 
-  ! SR, 23-11-2005: To avoid binary entries in 'amplitude.dat'
   if(firstrun) then
-
-    gammax = (one + talphax(ie)**2)/tbetax(ie)
-    gammay = (one + talphay(ie)**2)/tbetay(ie)
-
-    if(iturn == 1) then
-      sum_ax(ie) = zero
-      sum_ay(ie) = zero
-    end if
-
-    do j=1,napx
-      xj  = (xv1(j)-torbx(ie))/c1e3
-      xpj = (yv1(j)-torbxp(ie))/c1e3
-      yj  = (xv2(j)-torby(ie))/c1e3
-      ypj = (yv2(j)-torbyp(ie))/c1e3
-      pj  = ejv(j)/c1e3
-
-      ! DRIFT PART
-      if(stracki == zero) then
-        if(iexact) then
-          zpj = sqrt(one-xpj**2-ypj**2)
-          xj  = xj + half*c_length*(xpj/zpj)
-          yj  = yj + half*c_length*(ypj/zpj)
-        else
-          xj  = xj + half*c_length*xpj
-          yj  = yj + half*c_length*ypj
-        end if
-      end if
-
-      if(part_abs_pos(j) == 0 .and. part_abs_turn(j) == 0) then
-        nspx = sqrt(abs(gammax*xj**2 + two*talphax(ie)*xj*xpj + tbetax(ie)*xpj**2)/c_emitx0_collgap)
-        nspy = sqrt(abs(gammay*yj**2 + two*talphay(ie)*yj*ypj + tbetay(ie)*ypj**2)/c_emity0_collgap)
-        sum_ax(ie)   = sum_ax(ie) + nspx
-        sqsum_ax(ie) = sqsum_ax(ie) + nspx**2
-        sum_ay(ie)   = sum_ay(ie) + nspy
-        sqsum_ay(ie) = sqsum_ay(ie) + nspy**2
-        nampl(ie)    = nampl(ie) + 1
-      else
-        nspx = zero
-        nspy = zero
-      end if
-    end do
+    call coll_computeStats
   end if
 
 end subroutine collimate_start_collimator
@@ -3101,7 +3053,7 @@ subroutine collimate_end_element
 #endif
 
   integer j
-  real(kind=fPrec) gammax,gammay,xdisp,nspxd,xj,xpj,yj,ypj,pj
+  real(kind=fPrec) gammax,gammay,xdisp,nspxd,xj,xpj,yj,ypj,pj,nspx,nspy
 
 #ifdef HDF5
   integer hdfturn,hdfpid,hdftyp
@@ -3109,50 +3061,14 @@ subroutine collimate_end_element
 #endif
 
   if(firstrun) then
-
-    if(iturn == 1) then
-      sum_ax(ie) = zero
-      sum_ay(ie) = zero
-    end if
-
-    do j = 1, napx
-      xj  = (xv1(j)-torbx(ie)) /c1e3
-      xpj = (yv1(j)-torbxp(ie))/c1e3
-      yj  = (xv2(j)-torby(ie)) /c1e3
-      ypj = (yv2(j)-torbyp(ie))/c1e3
-      pj  = ejv(j)/c1e3
-
-      if(tbetax(ie) > zero) then
-        gammax = (one + talphax(ie)**2)/tbetax(ie)
-        gammay = (one + talphay(ie)**2)/tbetay(ie)
-      else
-        gammax = (one + talphax(ie-1)**2)/tbetax(ie-1)
-        gammay = (one + talphay(ie-1)**2)/tbetay(ie-1)
-      endif
-
-      if(part_abs_pos(j) == 0 .and. part_abs_turn(j) == 0) then
-        if(tbetax(ie) > 0.) then
-          nspx = sqrt(abs( gammax*(xj)**2 + two*talphax(ie)*xj*xpj +   tbetax(ie)*xpj**2 )/c_emitx0_collgap)
-          nspy = sqrt(abs( gammay*(yj)**2 + two*talphay(ie)*yj*ypj +   tbetay(ie)*ypj**2 )/c_emity0_collgap)
-        else
-          nspx = sqrt(abs( gammax*(xj)**2 + two*talphax(ie-1)*xj*xpj + tbetax(ie-1)*xpj**2 )/c_emitx0_collgap)
-          nspy = sqrt(abs( gammay*(yj)**2 + two*talphay(ie-1)*yj*ypj + tbetay(ie-1)*ypj**2 )/c_emity0_collgap)
-        end if
-
-        sum_ax(ie)   = sum_ax(ie) + nspx
-        sqsum_ax(ie) = sqsum_ax(ie) + nspx**2
-        sum_ay(ie)   = sum_ay(ie) + nspy
-        sqsum_ay(ie) = sqsum_ay(ie) + nspy**2
-        nampl(ie)    = nampl(ie) + 1
-      else
-        nspx = zero
-        nspy = zero
-      end if
-    end do
+    call coll_computeStats
   end if
 
   ! Note: Not in firstrun
   if(dowritetracks) then
+    gammax = (one + talphax(ie)**2)/tbetax(ie)
+    gammay = (one + talphay(ie)**2)/tbetay(ie)
+
     do j=1,napx
       xj  = (xv1(j)-torbx(ie)) /c1e3
       xpj = (yv1(j)-torbxp(ie))/c1e3
@@ -3224,7 +3140,7 @@ subroutine collimate_end_turn
 
   integer j,fUnit,ieff,ieffdpop
   real(kind=fPrec) gammax,gammay,xdisp,dnormx,dnormy,driftx,drifty,xnorm,xpnorm,xangle,ynorm,ypnorm,&
-    yangle,c_dpop,dpopmin,dpopmax
+    yangle,c_dpop,dpopmin,dpopmax,nspx,nspy
 
 #ifdef HDF5
   ! For tracks2
@@ -3463,7 +3379,7 @@ subroutine collimate_end_turn
 end subroutine collimate_end_turn
 
 ! ================================================================================================ !
-!  Find the smalles gap, and also write sigmasettings.out
+!  Find the smallest gap, and also write sigmasettings.out
 !  Updated: 2019-10-10
 ! ================================================================================================ !
 subroutine coll_getMinGapID(minGapID)
