@@ -1,5 +1,109 @@
 # SixTrack Changelog
 
+### Version 5.4 [10.10.2019] - Release
+
+**Bug Fixes**
+
+* A series of long standing issues caused by uninitialised variables have been resolved. PRs #983 and #988 (V.K. Berglyd Olsen).<br>The following modules and settings were affected:
+  * Beam--beam simulations with the `ibeco` flag set to 0. This caused `NaN` particle coordinates on some systems.
+  * In the differential algebra version of SixTrack, the longitudinal part of the normalisation matrix was uninitialised when running in 4D, but the values still used in some calculations, causing `NaN` values on some systems.
+  * When running SixTrack with the `ntwin` parameter set to 1, post-processing would still compute the amplitude for the second particle from values not being initialised. Now, if `ntwin` is not set to 2, these values are set to zero and the extra calculations skipped.
+  * A number of variables were uninitialised in parts of the initialisation code when running 6D simulations (in subroutine `umlauda`), these have been cleared up, but are not known to have caused any issues.
+* Fixed a bug in collimation where the collimator families were not generated when using the old database file format with the new `COLL` block format. PR #984 (V.K. Berglyd Olsen, M. D'Andrea)
+* Fixed a bug in `aperture_losses.dat` where the header was missing the `#` char so that it can be identified as a comment line for analysis code. PR #995 (A. Mereghetti, V.K. Berglyd Olsen)
+* Fixed an issue with writing the header of `singletrackfile.dat` where SixTrack would skip to after tracking if it failed to write to file. PR #996 (V.K. Berglyd Olsen, A. Mereghetti)
+* Added a check of `iostat` when closing file units in the internal file units handler module. Any error is reported to stderr and to log file. PR #996 (V.K. Berglyd Olsen, E. Mcintosh)
+
+**User Side Changes**
+
+* The STF build flag has been removed. That means SixTrack now always produces a single track file `singletrackfile.dat` instead of the optional pair track files `fort.59` - `fort.90`. A tool for converting the full track file to a pair track file has been added. See the user manual for further details. PRs #967 and 989 (V.K. Berglyd Olsen, K.N. Sjobak)
+* A random numbers module has been added, which introduces the `RAND` block in the input file. The block gives more control over how the internal random number generators are initialised and also provides a better framework for the internal management of the various random number sequences used by different modules of the code. It is also designed to be easier to manage when using checkpoint/restart. Many modules still use their own seed, so this will be implemented gradually. Currently, the new random numbers module is only used by the `DIST` block. PR #978 (V.K Berglyd Olsen)
+* The main debug file `dynksets.dat` in `DYNK` is no longer written by default. Previously, this file could be disabled with the `NOFILE` flag in `fort.3`. Instead, it now has to be explicitly requested with the `DYNKSETS` flag. PRs #992 and #993, solving issue #982 (V.K. Berglyd Olsen)
+* The `TILT` build flag has been removed. The feature is now always enabled. PR #985 (V.K. Berglyd Olsen)
+
+### Version 5.3.4 [01.10.2019] - Release
+
+**Bug Fixes**
+
+* Fixing an error in the integration of the electron lens radial profiles from files. The error was twofold: (1) it had the wrong unit conversion from A/cm2 to A/mm2, and (2) integration was not deploying the rule of the trapezoid on the radius, but the lower square. PR #968 (A. Mereghetti)
+* Minor fix where the collimation exit routine was not called if SixTrack was run in thin 4D mode. This only prevented some final summary files to be written, and had no effect on the simulation itself. PR #976 (V.K. Berglyd Olsen, M. D'Andrea)
+
+**User Side Changes**
+
+* Onesided collimators can now be set in the new collimation database. The LHC hard coded naming convention restrictions have been removed for the new database format, but are still in place for the old format. PRs #958 and #966 (V.K. Berglyd Olsen, A. Mereghetti)
+* The option to slice the collimator jaw and apply a deformation has been added to the new collimator database format. The previous restrictions on LHC naming convention have been removed, and the slicing can now be applied to any collimator, with different fit models as needed. PR #969 (V.K Berglyd Olsen, A. Mereghetti)
+* The number of beam--beam elements now scale dynamically with user input. It was previously restricted to 500 elements. PR #974 (V.K. Berglyd Olsen)
+
+**Test Suite**
+
+* A series of tests of the collimator jaw profiling has been added to ensure the code is stable through development stages. An additional output file for the jaw was added as well. PR #961 (A. Mereghetti)
+
+**Code Improvements and Changes**
+
+* The collimation jaw fit code has been cleaned up, improved for speed, and moved to a separate module. PRs #933 and #966 (V.K. Berglyd Olsen)
+* The separate tracking initialisation routines for thick and thin tracking have now been merged into one routine in a dedicated tracking module. PR #977 (V.K. Berglyd Olsen)
+
+### Version 5.3.3 [09.09.2019] - Release
+
+**Bug Fixes**
+
+* Fixed bug in the `DIST` module with conversion of longitudinal emittance from eVs to µm. The conversion was off by a factor `1e6` due to the energy variable being in `MeV` not `eV`. PR #950 (V.K. Berglyd Olsen)
+* Fixed bug in the `DIST` module where emittance was sent to `DISTLIB` as normalised emittance, while `DISTLIB` expected geometric emittance. PR #952 (V.K. Berglyd Olsen)
+* Fixed a bug in binary particle state files where the internal normalisation matrix was written to file instead of the ones which have all elements scaled to the same unit. PR #952 (V.K. Berglyd Olsen)
+
+**Documentation**
+
+* Minor changes to the documentation (LaTeX manual and markdown files) to correct outdated information. PR #948 (V.K. Berglyd Olsen)
+* Updated the README to add a paper that can be cited by studies using SixTrack 5. PR #949 (V.K. Berglyd Olsen, R. De Maria)
+
+**Code Improvements and Changes**
+
+* The way SixTrack keeps track of particle pairs for DA studies has changed. Earlier, the pairing was preserved by a reverse map from original particle index to the current index. The index of a particle changes when it is lost in an aperture, collimator or interaction point. The reverse map was effectively a record of the particle ID. However, since the new `DIST` module makes it possible to set the particle ID to any value, the reverse map has now been replaced by a map containing a particle pairID as well as whether it is particle 1 or 2 of the pair. This map is not under the user's control, and therefore preserves the pair structure through tracking. Rewriting the code to use this map eliminates a potential memory access violation due to a corner case when particles are lost and initiated with a non-incremental particle ID. The rewrite is otherwise identical to old functionality, and shouldn't alter any results. The main benefit is cleaner code, and the particle ID now being entirely passthrough as far as SixTrack is concerned, making it easier to interface with external codes that inject new particles into SixTrack. PR #938 (V.K. Berglyd Olsen, A. Mereghetti)
+* Added a check in the parsing of multi-column `STRUCT` input blocks that ensures that the element position of a given lattice element has a position larger or equal to the previous element. This prevents the accidental initialisation of negative length elements. PR #955 (V.K. Berglyd Olsen)
+* Moved a number of subroutines related to initialisation of beam--beam elements and elements in general out of the main `sixtrack` source file and to more appropriate files. PRs #957 and #960 (V.K. Berglyd Olsen)
+
+### Version 5.3.2 [23.08.2019] - Release
+
+**Bug Fixes**
+
+* Fixed a bug with `DUMP` format 101 when using HDF5 output. The memory map used was mixed up with the map for format 3. PR #937 (V.K. Berglyd Olsen)
+* Fixed a bug in the `DIST` block module where reading less than all particles of a file would fail. PR #939 (V.K. Berglyd Olsen)
+* Fixed an issue where calculating PDGID would overflow due to intermediate integer variables being 16 bit. PR #940 (J. Molson)
+* Fixed a bug with saving int16 ion variables to HDF5 files. PR #942 (V.K. Berglyd Olsen)
+
+**Documentation**
+
+* Added full documentation of the new and improved `DIST` block. PR #941 (V.K. Berglyd Olsen)
+
+**Code Improvements and Changes**
+
+* General particle transport for FLUKA and changing FLUKAIO to a submodule pulled from the GitLab repository (requires CERN Kerberos access). PR #919 (J. Molson)
+* The submodule for libArchive, and its interface and wrapper code, has been removed. PR #920 (V.K. Berglyd Olsen)
+* Clean-up of the formatting of the header in a number of output files in the aperture module. PR #923 (J. Molson)
+* The arrays for the per-element normalisation matrix is now no longer sparse, but instead using a compact array of structs. This reduces the memory usage of SixTrack by up to about 35%. PRs #934 and #935 (V.K. Berglyd Olsen)
+* The linear optics subroutines have been moved the a new module together with the parsing of the `LINEAR OPTICS` input block. PR #936 (V.K. Berglyd Olsen)
+
+**Test Suite**
+
+* Removed unused and incomplete test `thick6dsingles` and duplicate test `thick4in_da` as well as a lot of comments in the code used as "version control". PR #944 (V.K. Berglyd Olsen)
+
+### Version 5.3.1 [02.08.2019] - Release
+
+**Bug Fixes**
+
+* Fixed and issue when using the collimation module with a thin 4D simulation. In this setup, the module would not be properly initialised due to an erroneous if-condition for the initialisation call. PR #931 (V.K. Berglyd Olsen)
+* Fixed a minor issue with the formatting of the tracking progress printout. PR #925 (V.K. Berglyd Olsen)
+* Fixed and issue with missing labels in aperture losses file. PR #928, issue #926 (A. Gorzawski, A. Mereghetti)
+
+**Documentation**
+
+* Some inconsistencies and out-of-date information has been corrected in the user manual. PRs #921, #922 and #927 (V.K. Berglyd Olsen, R. De Maria)
+
+**Code Improvements and Changes**
+
+* The `DIST` block has been rewritten and a number of new parsing options added for integrating with a new external library for generating beam distributions. The library is not yet completed, so the new block format is not finalised or documented. However, the `DIST` block is backwards compatible with the old options, and should be working as before. PRs #905 and #930 (V.K. Berglyd Olsen, T. Persson)
+* Particle spin arrays have been added to SixTrack intended for future code, but not yet in use. The arrays have been added nonetheless so they can be included in the new `DIST` block. PR #916 (J. Molson)
+
 ### Version 5.3.0 [11.07.2019] - Release
 
 **Bug Fixes**

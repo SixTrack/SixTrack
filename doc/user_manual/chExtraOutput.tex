@@ -437,7 +437,7 @@ NEXT
 
 In order to retrieve extra simulation output such as \texttt{DUMP} or \texttt{FMA} from BOINC, it is necessary to pack the output files into a single file with a special name that will be retrieved.\index{zip}\index{ZIPF}\index{ZLIB}
 This can be achieved with the \texttt{ZIPF} block, which packs the listed files into a compressed archive at the end of the simulation.
-The \texttt{ZIPF} block can always be present in \texttt{fort.3}, but if SixTrack was not built with either the \texttt{LIBARCHIVE} or \texttt{ZLIB} option, no archive file will be produced.
+The \texttt{ZIPF} block can always be present in \texttt{fort.3}, but if SixTrack was not built with the \texttt{ZLIB} option, no archive file will be produced.
 
 The \texttt{ZIPF} block can take two optional arguments, otherwise everything else is interpreted as a file name to be packed into the archive file.
 Multiple file names can be specified on a single line, and are separated by a space character.

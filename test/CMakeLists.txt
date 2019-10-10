@@ -1,4 +1,3 @@
-
 ##
 ##  SixTrack Test Suite
 ## =====================
@@ -29,12 +28,23 @@ set_tests_properties(SelfTest_read90 PROPERTIES PASS_REGULAR_EXPRESSION "Error i
 add_test(NAME SelfTest_readDump3 COMMAND readDump3)
 set_tests_properties(SelfTest_readDump3 PROPERTIES PASS_REGULAR_EXPRESSION "Expected 2 arguments: inputfile outputfile\n.*3")
 
+add_test(NAME SelfTest_splitSingletrack COMMAND splitSingletrack)
+set_tests_properties(SelfTest_splitSingletrack PROPERTIES PASS_REGULAR_EXPRESSION "Error in splitSingletrack -- file 'singletrackfile.dat' not found\.\n.*1")
+
 if(ZLIB)
   add_test(NAME SelfTest_zlib COMMAND ${CMAKE_BINARY_DIR}/zlib/example)
   if(64BIT)
     add_test(NAME SelfTest_zlib_64 COMMAND ${CMAKE_BINARY_DIR}/zlib/example64)
   endif()
 endif()
+
+# Check that the splitSingletrack is really working correctly
+add_custom_target(test_copy_SelfTest_splitSingletrack_run)
+add_custom_command(TARGET test_copy_SelfTest_splitSingletrack_run POST_BUILD COMMAND ${CMAKE_COMMAND} -E make_directory ${CMAKE_BINARY_DIR}/test/CheckSplitSingletrack)
+add_custom_command(TARGET test_copy_SelfTest_splitSingletrack_run POST_BUILD COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_SOURCE_DIR}/test/CheckSplitSingletrack/CheckSplitSingletrack.sh ${CMAKE_BINARY_DIR}/test/CheckSplitSingletrack/CheckSplitSingletrack.sh)
+add_dependencies(SixTrackCore test_copy_SelfTest_splitSingletrack_run)
+
+add_test(NAME SelfTest_splitSingletrack_run WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/test/CheckSplitSingletrack/ COMMAND ${CMAKE_BINARY_DIR}/test/CheckSplitSingletrack/CheckSplitSingletrack.sh ${CMAKE_BINARY_DIR}/splitSingletrack ${CMAKE_BINARY_DIR}/read90 ${CMAKE_BINARY_DIR}/test/dump7_fma/singletrackfile.dat.canonical)
 
 ##
 ## Checks
@@ -45,6 +55,8 @@ set_tests_properties(CheckTestInput_STF PROPERTIES FAIL_REGULAR_EXPRESSION "ERRO
 
 add_test(NAME CheckBuildManual COMMAND ${CMAKE_SOURCE_DIR}/test/CheckBuildManual.sh "${CMAKE_SOURCE_DIR}")
 set_tests_properties(CheckBuildManual PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR")
+
+
 
 ##
 ## ERROR Tests
@@ -57,11 +69,6 @@ if(NOT CR)
     error_trac
   )
 endif(NOT CR)
-
-##
-## Needs checking: thick6dsingles (broken input files -- this test could probably be removed)
-## thick6dblocks elensidealthck6d dynk_globalvars thick6ddynk - empty fort.10 (no POST block in fort.3) -- this is OK, we still test the tracking with fort.90 / STF.
-##
 
 ##
 # List of Tests
@@ -79,6 +86,7 @@ list(APPEND SIXTRACK_TESTS
   beam-HO_6D-newstyle
   beam-HO_6D-oldstyle
   beam-HO_6D-simple-newstyle
+  beam-HO_6D-simple-newstyle-coupling
   beam-HO_6D-simple-newstyle-orbit
   beam-HO_6D-simple-oldstyle
   beam-HO_LR-ibbc-newstyle
@@ -93,6 +101,8 @@ list(APPEND SIXTRACK_TESTS
   chebythin6d_ramp_DYNK
   crabs
   dipedge
+  dist_file_6d
+  dist_file_6d_direct
   distance
   dump_2_all_ele_highprec
   dump_all_highprec
@@ -106,6 +116,10 @@ list(APPEND SIXTRACK_TESTS
   dump9
   dynk_filelin
   dynk_globalvars
+  dynk_IIR
+  dynk_operators
+  dynk_polynomial
+  dynk_random
   elensidealthck4d
   elensidealthck6d
   elensidealthin4d
@@ -134,10 +148,10 @@ list(APPEND SIXTRACK_TESTS
   notilt
   orbit6d-element-combinedFunction
   orbit6d-element-quadrupole
+  orbit6d-element-rotations
   orbit6d-element-solenoid
   orbit6d-element-trombone
   orbit6d-element-trombone-kick
-  orbit6d-element-rotations
   orbit6d-ions
   orbit6d-ions-long
   part_state_binary_ions
@@ -145,11 +159,13 @@ list(APPEND SIXTRACK_TESTS
   perf1
   prob1
   prob3
+  random_numbers
   rfMultipoles_2nd3rd4th_skew
   rfMultipoles_2ndOrder
   rfMultipoles_3rdOrder
   rfMultipoles_4thOrder
   s316
+  scatter_aperture
   scatter_bbelastic
   thick4
   thick6d_below_transit
@@ -170,17 +186,6 @@ list(APPEND SIXTRACK_TESTS
 # Tests depending on flags
 ##
 
-if(STF)
-  list(APPEND SIXTRACK_TESTS
-    beam-HO_6D-simple-newstyle-coupling
-    dynk_IIR
-    dynk_operators
-    dynk_polynomial
-    dynk_random
-    scatter_aperture
-  )
-endif()
-
 if(NOT CR)
   list(APPEND SIXTRACK_TESTS
     collimation_dist_1h
@@ -193,7 +198,6 @@ if(NOT CR)
     collimation_dist_5
     collimation_dist_6
     collimation_dist_radial
-    collimation_k2
     collimation_new-db_new-block
     collimation_old-db_new-block
     collimation_old-db_old-block
@@ -201,9 +205,13 @@ if(NOT CR)
   )
 endif()
 
-if(LIBARCHIVE)
+if(NOT CR AND STF)
   list(APPEND SIXTRACK_TESTS
-    elensidealthin6d_DYNK_ZIPF
+    collimation_jaw_fit
+    collimation_jaw_fit_b4
+    collimation_jaw_fit_b4_offsets_tilts
+    collimation_jaw_fit_b4_onesided
+    collimation_k2
   )
 endif()
 
@@ -219,6 +227,14 @@ if(PYTHIA)
   )
 endif()
 
+if(DISTLIB)
+  list(APPEND SIXTRACK_TESTS
+    distlib_normalised
+    distlib_tmatrix
+    distlib_twiss
+  )
+endif()
+
 if(SIXDA)
   list(APPEND SIXTRACK_DA_TESTS
     frs_da
@@ -227,10 +243,7 @@ if(SIXDA)
 endif()
 
 ## UNUSED TESTS
-
 # orbit6d-element-wire
-# thick6dsingles (only contains one canonical, fort.6, which shows that it crashes. Not sure what it is supposed to show?)
-# thick4in_da (copy of thick4_da that contains an extra huge MULT block in fort.3?)
 
 ## END UNUSED TESTS
 
@@ -256,10 +269,19 @@ set(TESTS_NOFORT10
   collimation_dist_5
   collimation_dist_6
   collimation_dist_radial
+  collimation_jaw_fit
+  collimation_jaw_fit_b4
+  collimation_jaw_fit_b4_offsets_tilts
+  collimation_jaw_fit_b4_onesided
   collimation_k2
   collimation_new-db_new-block
   collimation_old-db_new-block
   collimation_old-db_old-block
+  dist_file_6d
+  dist_file_6d_direct
+  distlib_normalised
+  distlib_tmatrix
+  distlib_twiss
   dump_2_all_ele_highprec
   dump_all_highprec
   dump_binary
@@ -290,6 +312,7 @@ set(TESTS_NOFORT10
   orbit6d-ions-long
   part_state_binary_ions
   part_state_text_ions
+  random_numbers
   rfMultipoles_2nd3rd4th_skew
   rfMultipoles_2ndOrder
   rfMultipoles_3rdOrder
@@ -305,7 +328,7 @@ set(TESTS_NOFORT10
 )
 
 # List of tests that do not produce singletrackfile.dat or fort.90
-set(TESTS_NO_STF_FORT90
+set(TESTS_NO_STF
   beam-HO_6D-simple-newstyle-coupling
   chebythin6d
   chebythin6d_DYNK
@@ -321,6 +344,10 @@ set(TESTS_NO_STF_FORT90
   collimation_dist_5
   collimation_dist_6
   collimation_dist_radial
+  collimation_jaw_fit
+  collimation_jaw_fit_b4
+  collimation_jaw_fit_b4_offsets_tilts
+  collimation_jaw_fit_b4_onesided
   collimation_k2
   collimation_new-db_new-block
   collimation_old-db_new-block
@@ -328,6 +355,11 @@ set(TESTS_NO_STF_FORT90
   crabs
   orbit6d-element-rotations
   dipedge
+  dist_file_6d
+  dist_file_6d_direct
+  distlib_normalised
+  distlib_tmatrix
+  distlib_twiss
   dump_all_highprec
   dump4
   dump5
@@ -345,6 +377,7 @@ set(TESTS_NO_STF_FORT90
   geometry_multicol
   part_state_binary_ions
   part_state_text_ions
+  random_numbers
   rfMultipoles_2ndOrder
   rfMultipoles_4thOrder
   scatter_aperture
@@ -397,28 +430,13 @@ foreach(TST IN ITEMS ${SIXTRACK_TESTS})
   endif()
 
   # if STF, we need to use the STF flag on read90, and disable checking fort.90
-  if(STF)
-    set(STF_ENABLE 1)
-    set(FORT90 0)
-  else()
-    set(STF_ENABLE 0)
-    set(FORT90 1)
-  endif(STF)
+  set(STF_ENABLE 1)
+  set(FORT90 0)
 
-  if(TST IN_LIST TESTS_NO_STF_FORT90)
+  if(TST IN_LIST TESTS_NO_STF)
     set(STF_ENABLE 0)
     set(FORT90 0)
   endif()
-
-  if(LIBARCHIVE)
-    if(TST STREQUAL elensidealthin6d_DYNK_ZIPF)
-      set(SIXOUT_NUMFILES 2)
-    else()
-      set(SIXOUT_NUMFILES 0)
-    endif()
-  else()
-    set(SIXOUT_NUMFILES 0)
-  endif(LIBARCHIVE)
 
   set(DUMP_BIN_FILE NONE)
   if(TST STREQUAL dump_binary)
@@ -443,7 +461,7 @@ foreach(TST IN ITEMS ${SIXTRACK_TESTS})
   add_test(
     NAME ${TST} WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/test/${TST}
     COMMAND SixTestWrapper $<TARGET_FILE:SixTrackCR> $<TARGET_FILE:checkf10> $<TARGET_FILE:read90>
-      ${FORT10} ${FORT90} ${STF_ENABLE} ${SIXOUT_NUMFILES} ${CR_ENABLE} ${CR_KILL_TIME}
+      ${FORT10} ${FORT90} ${STF_ENABLE} 0 ${CR_ENABLE} ${CR_KILL_TIME}
       $<TARGET_FILE:readDump3> ${DUMP_BIN_FILE} ${CR_NUMRESTARTS}
   )
 
@@ -459,7 +477,6 @@ if(SIXDA)
     set(FORT10 0)
     set(FORT90 0)
     set(STF_ENABLE 0)
-    set(SIXOUT_NUMFILES 0)
     set(CR_ENABLE 0)
     set(CR_KILL_TIME 0)
     set(DUMP_BIN_FILE NONE)
@@ -467,7 +484,7 @@ if(SIXDA)
     add_test(
       NAME ${TST} WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/test/${TST}
       COMMAND SixTestWrapper $<TARGET_FILE:SixTrackDA> $<TARGET_FILE:checkf10> $<TARGET_FILE:read90>
-        ${FORT10} ${FORT90} ${STF_ENABLE} ${SIXOUT_NUMFILES} ${CR_ENABLE} ${CR_KILL_TIME}
+        ${FORT10} ${FORT90} ${STF_ENABLE} 0 ${CR_ENABLE} ${CR_KILL_TIME}
         $<TARGET_FILE:readDump3> ${DUMP_BIN_FILE} 0
     )
 
@@ -597,10 +614,19 @@ set(FAST_TESTS
   collimation_dist_5
   collimation_dist_6
   collimation_dist_radial
+  collimation_jaw_fit
+  collimation_jaw_fit_b4
+  collimation_jaw_fit_b4_offsets_tilts
+  collimation_jaw_fit_b4_onesided
+  collimation_new-db_new-block
   collimation_old-db_new-block
   collimation_old-db_old-block
-  collimation_old-db_old-block
   crabs
+  dist_file_6d
+  dist_file_6d_direct
+  distlib_normalised
+  distlib_tmatrix
+  distlib_twiss
   dump_2_all_ele_highprec
   dump_all_highprec
   dump_binary
@@ -647,6 +673,7 @@ set(FAST_TESTS
   orbit6d-ions-long
   part_state_binary_ions
   part_state_text_ions
+  random_numbers
   rfMultipoles_2nd3rd4th_skew
   rfMultipoles_2ndOrder
   rfMultipoles_3rdOrder
@@ -733,6 +760,8 @@ set(SELFTEST_TOOLS
   SelfTest_checkf110
   SelfTest_read90
   SelfTest_readDump3
+  SelfTest_splitSingletrack
+  SelfTest_splitSingletrack_run
 )
 foreach(TOOL IN ITEMS ${SELFTEST_TOOLS})
   set_property(TEST ${TOOL} PROPERTY LABELS tool fast)

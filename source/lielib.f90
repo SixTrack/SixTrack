@@ -71,17 +71,17 @@ subroutine lieinit(no1,nv1,nd1,ndpt1,iref1,nis)
         xintex(i)=zero
       enddo
 
-      xintex(          0)=       1.000000000000000_fPrec                     !hr11
-      xintex(          1)=  5.000000000000000e-001_fPrec                       !hr11
-      xintex(          2)=  8.333333333333334e-002_fPrec                       !hr11
-      xintex(          3)=  0.000000000000000e+000_fPrec                       !hr11
-      xintex(          4)= -1.388888888888898e-003_fPrec                       !hr11
-      xintex(          5)=  0.000000000000000e+000_fPrec                       !hr11
-      xintex(          6)=  3.306878306878064e-005_fPrec                       !hr11
+      xintex(          0)=       1.000000000000000_fPrec
+      xintex(          1)=  5.000000000000000e-001_fPrec
+      xintex(          2)=  8.333333333333334e-002_fPrec
+      xintex(          3)=  0.000000000000000e+000_fPrec
+      xintex(          4)= -1.388888888888898e-003_fPrec
+      xintex(          5)=  0.000000000000000e+000_fPrec
+      xintex(          6)=  3.306878306878064e-005_fPrec
       xintex(          7)= zero
-      xintex(          8)= -8.267195767165669e-007_fPrec                       !hr11
+      xintex(          8)= -8.267195767165669e-007_fPrec
       xintex(          9)=  zero
-      xintex(         10)=  4.592886537931051e-008_fPrec                       !hr11
+      xintex(         10)=  4.592886537931051e-008_fPrec
       return
 end subroutine lieinit
 
@@ -199,11 +199,11 @@ subroutine etallnom(x,n,nom)
       integer x(*),i1(4),i2(4)
       character(len=10) nom
 
-      do  i=1,abs(n)                                                    !hr11
+      do  i=1,abs(n)
         x(i)=0
       end do
 
-      call daallno(x,abs(n),nom)                                         !hr11
+      call daallno(x,abs(n),nom)
 
       if(n.lt.0) then
         call liepeek(i1,i2)
@@ -1642,8 +1642,8 @@ subroutine mapnormf(x,ft,a2,a1,xy,h,nord,isi)
         rads(itu)=zero
       enddo
       jtune=isi
-      x2pii=(one/atan_mb(one))/eight                                    !hr11
-      x2pi=atan_mb(one)*eight
+      x2pii=one/twopi
+      x2pi=twopi
       call dacopd(x,xy)
 ! goto fix point in the parameters + pt to order nord>=1
       call gofix(xy,a1,a1i,nord)
@@ -1755,7 +1755,7 @@ subroutine gofix(xy,a1,a1i,nord)
           call dacmu(w(2*i-1),-one,v(2*i) )
         enddo
 
-        xic=real((-1)**(ndt),fPrec)                                            !hr11
+        xic=real((-1)**(ndt),fPrec)
 
         do i=1,nd2-ndc2
           call damul(v(i),rel(i),x(1))
@@ -1948,18 +1948,18 @@ real(kind=fPrec) function xgam(j)
           jj(i)=jj(i)+(-1)**iflow
           jp(i)=jp(i)-1
         endif
-        ic=ic+abs(jj(i))                                                 !hr11
+        ic=ic+abs(jj(i))
       enddo
 
       do i=1,nd-ndc
         ad=((dsta(i)*real(jj(i),fPrec))*angle(i)-real(jp(i),fPrec)*radn(i))+ad
-        as=(sta(i)*real(jj(i),fPrec))*angle(i)+as                              !hr11
+        as=(sta(i)*real(jj(i),fPrec))*angle(i)+as
       enddo
 
       exh=exp_mb(ad/two)
       ex=exh**2
-      ans=(four*ex)*(sinh_mb(ad/two)**2+sin_mb(as/two)**2)             !hr11
-      xgam=(two*(ex*sin_mb(as/two)**2-exh*sinh_mb(ad/two)))/ans       !hr11
+      ans=(four*ex)*(sinh_mb(ad/two)**2+sin_mb(as/two)**2)
+      xgam=(two*(ex*sin_mb(as/two)**2-exh*sinh_mb(ad/two)))/ans
 
       return
 end function xgam
@@ -1992,13 +1992,13 @@ real(kind=fPrec) function xgbm(j)
 
       do i=1,nd-ndc
         ad=((dsta(i)*real(jj(i),fPrec))*angle(i)-real(jp(i),fPrec)*radn(i))+ad
-        as=(sta(i)*real(jj(i),fPrec))*angle(i)+as                              !hr11
+        as=(sta(i)*real(jj(i),fPrec))*angle(i)+as
       enddo
 
       exh=exp_mb(ad/two)
       ex=exh**2
-      ans=(four*ex)*(sinh_mb(ad/two)**2+sin_mb(as/two)**2)             !hr11
-      xgbm=(sin_mb(as)*ex)/ans                                           !hr11
+      ans=(four*ex)*(sinh_mb(ad/two)**2+sin_mb(as/two)**2)
+      xgbm=(sin_mb(as)*ex)/ans
 
       return
 end function xgbm
@@ -2084,7 +2084,7 @@ subroutine dhdjflo(h,t)
       call etall(bb1(1),1)
       call etall(bb2(1),1)
 
-      x2pi=atan_mb(one)*eight
+      x2pi=twopi
       call ctorflo(h,b1,b2)
       coe=one/x2pi
 
@@ -2126,7 +2126,7 @@ subroutine dhdj(h,t)
       call etallnom(bb1(1),1,'BB1       ')
       call etallnom(bb2(1),1,'BB2       ')
 
-      x2pi=atan_mb(one)*eight
+      x2pi=twopi
       call ctor(h,b1(1),b2(1))
       coe=-two/x2pi
       do i=1,nd-ndc
@@ -2178,7 +2178,7 @@ subroutine h2pluflo(h,ang,ra)
 
       do i=1,nd-ndc
         j(2*i-1)=1
-        r1=-one*ang(i)                                                   !hr11
+        r1=-one*ang(i)
 !-----
         call dapok(h(2*i),j,r1)
 
@@ -2199,7 +2199,7 @@ subroutine h2pluflo(h,ang,ra)
         call dapok(h(ndt),j,ang(nd))
       elseif(ndpt.eq.nd2) then
         j(ndpt)=1
-        call dapok(h(ndt),j,-one*ang(nd))                                !hr11
+        call dapok(h(ndt),j,-one*ang(nd))
       endif
       return
 end subroutine h2pluflo
@@ -2224,7 +2224,7 @@ subroutine rotflo(ro,ang,ra)
         if(ista(i).eq.0) then
           call hyper(ang(i),ch,sh)
           co(i)=ch*xx
-          si(i)=(-one*sh)*xx                                             !hr11
+          si(i)=(-one*sh)*xx
         else
           co(i)=cos_mb(ang(i))*xx
           si(i)=sin_mb(ang(i))*xx
@@ -2234,7 +2234,7 @@ subroutine rotflo(ro,ang,ra)
         if(ista(i).eq.0)then
           sim=si(i)
         else
-          sim=-one*si(i)                                                 !hr11
+          sim=-one*si(i)
         endif
         j(2*i-1)=1
         call dapok(ro(2*i-1),j,co(i))
@@ -2279,7 +2279,7 @@ subroutine rotiflo(roi,ang,ra)
 
       call daclrd(roi)
       do i=1,nd-ndc
-        xx=exp_mb(-one*ra(i))                                            !hr11
+        xx=exp_mb(-one*ra(i))
         if(ista(i).eq.0) then
           call hyper(ang(i),ch,sh)
           co(i)=ch*xx
@@ -2293,15 +2293,15 @@ subroutine rotiflo(roi,ang,ra)
         if(ista(i).eq.0)then
           sim=si(i)
         else
-          sim=-one*si(i)                                                 !hr11
+          sim=-one*si(i)
         endif
         j(2*i-1)=1
         call dapok(roi(2*i-1),j,co(i))
-        simv=-one*sim                                                    !hr11
+        simv=-one*sim
         call dapok(roi(2*i),j,simv)
         j(2*i-1)=0
         j(2*i)=1
-        simv=-one*si(i)                                                  !hr11
+        simv=-one*si(i)
         call dapok(roi(2*i),j,co(i))
         call dapok(roi(2*i-1),j,simv)
         j(2*i)=0
@@ -2558,7 +2558,7 @@ subroutine midbflo(c,a2,a2i,q,a,st)
       dimension sa(ndim2,ndim2),sai(ndim2,ndim2),cm(ndim2,ndim2)
       integer c(*),a2(*),a2i(*)
 !*DAEXT(NO,NV) C(NDIM2),A2(NDIM2),A2I(NDIM2)
-      x2pi=atan_mb(one)*eight
+      x2pi=twopi
 
       do i=1,ntt
         jx(i)=0
@@ -2592,25 +2592,25 @@ subroutine midbflo(c,a2,a2i,q,a,st)
 
       call mapflol(sa,sai,cr,cm,st)
       do i=1,nd-ndc
-        if(st(i)+c1m3.gt.one) then                                   !hr11
-          a(i)=sqrt(cr(2*i-1,2*i-1)**2+cr(2*i-1,2*i)**2)                 !hr11
+        if(st(i)+c1m3.gt.one) then
+          a(i)=sqrt(cr(2*i-1,2*i-1)**2+cr(2*i-1,2*i)**2)
           q(i)=acos_mb(cr(2*i-1,2*i-1)/a(i))
           a(i)=log_mb(a(i))
           if(cr(2*i-1,2*i).lt.zero) q(i)=x2pi-q(i)
         else
-          a(i)=sqrt(cr(2*i-1,2*i-1)**2-cr(2*i-1,2*i)**2)                 !hr11
+          a(i)=sqrt(cr(2*i-1,2*i-1)**2-cr(2*i-1,2*i)**2)
           ch=cr(2*i-1,2*i-1)/a(i)
           shm=cr(2*i-1,2*i)/a(i)
 !       CH=CH+DSQRT(CH**2-1.D0)
 !       q(i)=DLOG(CH)
-          q(i)=-one*log_mb(ch+shm)                                       !hr11
+          q(i)=-one*log_mb(ch+shm)
 !       IF(cr(2*i-1,2*i).gt.0.d0) Q(I)=-Q(I)
           a(i)=log_mb(a(i))
         endif
       enddo
 
       if(ndc.eq.0) then
-        if(st(3)+c1m3.gt.one.and.nd.eq.3.and.q(nd).gt.half)             &!hr11
+        if(st(3)+c1m3.gt.one.and.nd.eq.3.and.q(nd).gt.half)             &
      &q(3)=q(3)-x2pi
       else
         q(nd)=cr(ndt,ndpt)
@@ -2652,7 +2652,7 @@ subroutine mapflol(sa,sai,cr,cm,st)
       dimension rr(ndim2),ri(ndim2),sa(ndim2,ndim2),xx(ndim),sai(ndim2,ndim2),cm(ndim2,ndim2),w(ndim2,ndim2),st(ndim)
       dimension vr(ndim2,ndim2),vi(ndim2,ndim2),s1(ndim2,ndim2),p(ndim2)
       logical lopen
-      x2pi=atan_mb(one)*eight
+      x2pi=twopi
       n1=0
 !     frank/etienne
       do i=1,ndim2
@@ -4179,7 +4179,7 @@ subroutine couplean(map1,tune,map2,oneturn)
 !  this a-script should around the fixed point to all orders
 !     one order is lost because I use PB-field
 
-      tpi=atan_mb(one)*eight
+      tpi=twopi
       do i=1,nd2
         call dacfu(map1(i),killnonl,m1(i))
       enddo

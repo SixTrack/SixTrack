@@ -71,11 +71,10 @@ message(STATUS "Project Binary:   ${PROJECT_BINARY_DIR}")
 ###################################################################################################
 
 # Default ON
-option(TILT "Allow elements to be tilted (by error)" ON)
 option(CRLIBM "Use correctly rounded libmath instead of system libmath" ON)
 option(SIXDA "Build differential algebra version (NOT dynamic aperture!)" ON)
-option(STF "Single Track File: Write all tracks for postprocessing to fort.90 instead of 32 separate files fort.59 to fort.90. Required for >64 particles" ON)
-option(NAFF "Link to external NAFFlib for FMA." ON)
+option(NAFF "Link to external NAFFlib for FMA" ON)
+option(DISTLIB "Link to external DISTlib for the beam distribution" ON)
 option(HASHLIB "Build the md5 hash library" ON)
 option(ZLIB "Build and link zlib. Needed for BOINC and ZIPF block" ON)
 
@@ -90,7 +89,6 @@ option(MERLINSCATTER "Interaction physics for collimation from Merlin" OFF)
 option(G4COLLIMATION "Interaction physics for collimation from Geant4" OFF)
 option(FLUKA "Couple to FLUKA for beam collimation" OFF)
 option(PYTHIA "Link with Pythia8 for SCATTER module" OFF)
-option(LIBARCHIVE "Link with LIBARCHIVE, needed for BOINC and ZIPF block" OFF)
 option(ROOT "Link to the root libraries" OFF)
 
 # Build Options
@@ -121,13 +119,12 @@ option(BUILD_TESTING "Enable the test suite" OFF)
 option(COVERAGE "Enable build flags for testing code coverage with gcov (only works with GNU compilers)" OFF)
 option(GPROF "Enable build flags for code profiling with gprof (only works with GNU compilers)" OFF)
 option(WARN "Enable build flags for additional compiler warnings" OFF)
+option(INITNAN "Enable build flags for initialising reals to signaling NaN" OFF)
 option(DEBUG "Debugging output" OFF)
 option(NOSYMLINK "Don't use symlinks for test inputs and canonicals" OFF)
 option(MEMUSAGE "Writes PID and actual memory usage to sim_meta.dat (GNU/UNIX only)" OFF)
 
 set(BOINC_DIR ${CMAKE_SOURCE_DIR}/lib/boinc CACHE PATH "Path to the boinc build folder")
-set(LIBARCHIVE_BUILD_DIR ${CMAKE_SOURCE_DIR}/lib/libarchive_build CACHE PATH "Path to the libarchive build folder")
-set(LIBARCHIVE_SOURCE_DIR ${CMAKE_SOURCE_DIR}/lib/libarchive CACHE PATH "Path to the libarchive source folder")
 set(PYTHIA_DIR ${CMAKE_SOURCE_DIR}/lib/pythia CACHE PATH "Path to the Pythia build folder")
 
 ###################################################################################################
@@ -143,14 +140,6 @@ string(REPLACE ".exe" "" Fortran_COMPILER_NAME ${Fortran_COMPILER_NAME})
 set(SIXTRACK_FEAT_CR "${CMAKE_SYSTEM_NAME}_${Fortran_COMPILER_NAME}")
 set(SIXTRACK_FEAT_DA "${CMAKE_SYSTEM_NAME}_${Fortran_COMPILER_NAME}")
 
-if(NOT TILT)
-  set(SIXTRACK_FEAT_CR "notilt_${SIXTRACK_FEAT_CR}")
-  set(SIXTRACK_FEAT_DA "notilt_${SIXTRACK_FEAT_DA}")
-endif()
-if(NOT STF)
-  set(SIXTRACK_FEAT_CR "nostf_${SIXTRACK_FEAT_CR}")
-  set(SIXTRACK_FEAT_DA "nostf_${SIXTRACK_FEAT_DA}")
-endif()
 if(CRLIBM AND ROUND_NEAR)
   set(SIXTRACK_FEAT_CR "crlibm_rn_${SIXTRACK_FEAT_CR}")
   set(SIXTRACK_FEAT_DA "crlibm_rn_${SIXTRACK_FEAT_DA}")
@@ -201,9 +190,6 @@ if(FLUKA)
 endif(FLUKA)
 if(PYTHIA)
   set(SIXTRACK_FEAT_CR "pythia_${SIXTRACK_FEAT_CR}")
-endif()
-if(LIBARCHIVE)
-  set(SIXTRACK_FEAT_CR "libarchive_${SIXTRACK_FEAT_CR}")
 endif()
 if(ZLIB)
   set(SIXTRACK_FEAT_CR "zlib_${SIXTRACK_FEAT_CR}")
@@ -276,8 +262,8 @@ set(SIXTRACK_BINARY_NAME_DA "SixDA_${NUM_VERSION}${GIT_BUILD}_${SIXTRACK_FEAT_DA
 # Setting the c pre-processor definitons
 ###################################################################################################
 
-list(APPEND PREPRO_FLAGS_TOOLS TILT BOINC BEAMGAS STF MERLINSCATTER G4COLLIMATION FLUKA CR PYTHIA NAFF)
-list(APPEND PREPRO_FLAGS_LIB CRLIBM ROUND_NEAR ROUND_UP ROUND_DOWN ROUND_ZERO CERNLIB HDF5 FIO LIBARCHIVE ROOT HASHLIB ZLIB)
+list(APPEND PREPRO_FLAGS_TOOLS BOINC BEAMGAS MERLINSCATTER G4COLLIMATION FLUKA CR PYTHIA NAFF)
+list(APPEND PREPRO_FLAGS_LIB CRLIBM ROUND_NEAR ROUND_UP ROUND_DOWN ROUND_ZERO CERNLIB HDF5 FIO ROOT HASHLIB ZLIB DISTLIB)
 list(APPEND PREPRO_FLAGS_COMPILE GFORTRAN IFORT NAGFOR WIN32 DEBUG MEMUSAGE)
 
 ###################################################################################################
@@ -294,6 +280,7 @@ list(APPEND FORT90_LIB
   close
   coll_db
   coll_dist
+  coll_jawfit
   collimation
   common_modules
   constants
@@ -301,10 +288,12 @@ list(APPEND FORT90_LIB
   dabnew
   dump
   dynk
+  elements
   elens
   end_sixtrack
   fma
   lielib
+  linear_optics
   mainarrays
   matrix_inv
   mod_alloc
@@ -316,13 +305,15 @@ list(APPEND FORT90_LIB
   mod_geometry
   mod_meta
   mod_particles
+  mod_random
+  mod_ranecu
+  mod_ranlux
   mod_time
   mod_units
+  mod_utils
   pdgid
   plato_seq
   postprocessing
-  ranecu
-  ranlux
   read_write
   scatter
   six_fox
@@ -330,7 +321,6 @@ list(APPEND FORT90_LIB
   sixtrack_input
   string_tools
   strings
-  utils
   version
   wire
   zipf
@@ -338,7 +328,7 @@ list(APPEND FORT90_LIB
 
 # Files unique to DA or CR version
 list(APPEND FORT90_DA main_da sixda)
-list(APPEND FORT90_CR main_cr sixve track_thin track_thick)
+list(APPEND FORT90_CR main_cr sixve tracking track_thin track_thick)
 
 # List of files that must be treated by DAFOR
 list(APPEND DAFOR_F90 beam6d_fox six_fox sixda)
@@ -397,18 +387,6 @@ foreach(loop IN LISTS DAFOR_F90)
   set_property(DIRECTORY APPEND PROPERTY ADDITIONAL_MAKE_CLEAN_FILES ${loop}a.f90)
 endforeach()
 
-if(LIBARCHIVE)
-  if(NOT ZLIB)
-    # Temporary compatibility hack for libArchive
-    # If we're not building ZLIB, we must include the one built with libArchive instead
-    add_library(zlibstatic STATIC IMPORTED)
-    set_target_properties(zlibstatic PROPERTIES IMPORTED_LOCATION ${CMAKE_SOURCE_DIR}/lib/zlib/install/lib/libz.a)
-  endif(NOT ZLIB)
-  add_library(libArchive_wrapper STATIC libArchive_Fwrapper.c libArchive_wrapper.c libArchive_wrapper.h)
-  target_compile_options(libArchive_wrapper PRIVATE -std=c99)
-  add_dependencies(libArchive_wrapper zlibstatic)
-endif(LIBARCHIVE)
-
 if(ZLIB)
   set(ZLIB_DIR ${CMAKE_SOURCE_DIR}/lib/zlib)
   include_directories(${ZLIB_DIR} ${CMAKE_CURRENT_BINARY_DIR}/zlib)
@@ -418,21 +396,6 @@ endif(ZLIB)
 ###################################################################################################
 # Checking if some requested packages exist
 ###################################################################################################
-
-if(G4COLLIMATION)
-  if(STATIC)
-    find_package(Geant4 REQUIRED static)
-  else()
-    find_package(Geant4 REQUIRED)
-  endif(STATIC)
-
-  #no error checking yet
-  message(STATUS "Geant4 include folders: ${Geant4_INCLUDE_DIRS}")
-  message(STATUS "Geant4 use file: ${Geant4_USE_FILE}")
-  message(STATUS "Geant4 libraries: ${Geant4_LIBRARIES}")
-  message(STATUS "Geant4 definitions: ${Geant4_DEFINITIONS}")
-  add_subdirectory(${CMAKE_SOURCE_DIR}/source/g4collimation)
-endif(G4COLLIMATION)
 
 ##Possible check for Root
 if(ROOT)
@@ -446,17 +409,36 @@ if(ROOT)
   if(NOT ROOT_FOUND)
     MESSAGE(FATAL_ERROR "Root enabled build requested but root was not found!")
   endif(NOT ROOT_FOUND)
+  MESSAGE(STATUS "ROOT include folders: ${ROOT_INCLUDE_DIRS}")
+  MESSAGE(STATUS "ROOT definitions:${ROOT_DEFINITIONS}")
+  MESSAGE(STATUS "ROOT CXX flags:  ${ROOT_CXX_FLAGS}")
   add_subdirectory(${CMAKE_SOURCE_DIR}/source/root_output)
 endif(ROOT)
 
-if(BUILD_TESTING OR BOINC OR LIBARCHIVE OR G4COLLIMATION OR CERNLIB)
+if(G4COLLIMATION)
+  if(STATIC)
+    find_package(Geant4 REQUIRED static)
+  else()
+    find_package(Geant4 REQUIRED)
+  endif(STATIC)
+
+  #no error checking yet
+  message(STATUS "Geant4 include folders: ${Geant4_INCLUDE_DIRS}")
+  message(STATUS "Geant4 use file: ${Geant4_USE_FILE}")
+  message(STATUS "Geant4 libraries: ${Geant4_LIBRARIES}")
+  message(STATUS "Geant4 definitions: ${Geant4_DEFINITIONS}")
+  message(STATUS "Geant4 CXX flags: ${Geant4_CXX_FLAGS}")
+  add_subdirectory(${CMAKE_SOURCE_DIR}/source/g4collimation)
+endif(G4COLLIMATION)
+
+if(BUILD_TESTING OR BOINC OR G4COLLIMATION OR CERNLIB)
 
   find_package(Threads REQUIRED)
   if(NOT Threads_FOUND)
     message(FATAL_ERROR "Could not find a thread library! This is required for your selected build configuration.")
   endif(NOT Threads_FOUND)
 
-endif(BUILD_TESTING OR BOINC OR LIBARCHIVE OR G4COLLIMATION OR CERNLIB)
+endif(BUILD_TESTING OR BOINC OR G4COLLIMATION OR CERNLIB)
 
 ###################################################################################################
 # Checking if requested options are compatible
@@ -497,8 +479,8 @@ if(BOINC)
   if(NOT CR)
     message(FATAL_ERROR "Building with BOINC requires CR enabled.")
   endif()
-  if(NOT LIBARCHIVE AND NOT ZLIB)
-    message(FATAL_ERROR "Building with BOINC requires LIBARCHIVE or ZLIB enabled.")
+  if(NOT ZLIB)
+    message(FATAL_ERROR "Building with BOINC requires ZLIB enabled.")
   endif()
 endif(BOINC)
 if(FLUKA)
@@ -545,6 +527,9 @@ if(32BITM)
   if(CRLIBM)
     message(FATAL_ERROR "Cannot use CRLIBM with single precision math.")
   endif(CRLIBM)
+  if(DISTLIB)
+    message(FATAL_ERROR "Cannot use DISTLIB with single precision math.")
+  endif(DISTLIB)
 endif(32BITM)
 
 if(64BITM)
@@ -569,13 +554,16 @@ if(128BITM)
   if(CRLIBM)
     message(FATAL_ERROR "Cannot use CRLIBM with quad precision math.")
   endif(CRLIBM)
+  if(DISTLIB)
+    message(FATAL_ERROR "Cannot use DISTLIB with quad precision math.")
+  endif(DISTLIB)
 endif(128BITM)
 
 if(NOT SIXDA)
   message(STATUS "Not building SixDA version.")
 endif(NOT SIXDA)
 
-# Since each AVX option includes the others, just turn the lower ones off
+# Since each AVX option includes the lower ones, just turn the lower flags off to avoid duplication
 if(AVX512_SKYLAKE)
   set(AVX OFF)
   set(AVX2 OFF)
@@ -620,10 +608,18 @@ if(Fortran_COMPILER_NAME MATCHES "gfortran.*")
   endif()
 
   set(CMAKE_Fortran_FLAGS_RELEASE "-O3")
-  set(CMAKE_Fortran_FLAGS_DEBUG   "-O0 -g3 -ffpe-trap=invalid,zero,overflow -fcheck=all")
+  set(CMAKE_Fortran_FLAGS_DEBUG   "-O0 -g3 -fcheck=all")
 
   if(WARN)
     set(CMAKE_Fortran_FLAGS_RELEASE "-Wuninitialized ${CMAKE_Fortran_FLAGS_RELEASE}")
+    set(CMAKE_Fortran_FLAGS_DEBUG   "-Wuninitialized -ffpe-trap=invalid,zero,overflow,underflow ${CMAKE_Fortran_FLAGS_DEBUG}")
+  else()
+    set(CMAKE_Fortran_FLAGS_DEBUG   "-ffpe-trap=invalid,zero,overflow ${CMAKE_Fortran_FLAGS_DEBUG}")
+  endif()
+
+  if(INITNAN)
+    set(CMAKE_Fortran_FLAGS_RELEASE "-finit-real=snan -finit-character=0 ${CMAKE_Fortran_FLAGS_RELEASE}")
+    set(CMAKE_Fortran_FLAGS_DEBUG   "-finit-real=snan -finit-character=0 ${CMAKE_Fortran_FLAGS_DEBUG}")
   endif()
 
   if(MEMUSAGE)
@@ -715,6 +711,11 @@ elseif(Fortran_COMPILER_NAME MATCHES "ifort.*")
     set(CMAKE_Fortran_FLAGS "-warn unused -check bounds ${CMAKE_Fortran_FLAGS}")
   endif(WARN)
 
+  if(INITNAN)
+    set(CMAKE_Fortran_FLAGS_RELEASE "-init=snan,arrays ${CMAKE_Fortran_FLAGS_RELEASE}")
+    set(CMAKE_Fortran_FLAGS_DEBUG   "-init=snan,arrays ${CMAKE_Fortran_FLAGS_DEBUG}")
+  endif()
+
   if(32BIT)
     set(CMAKE_Fortran_FLAGS_RELEASE "-m32 ${CMAKE_Fortran_FLAGS_RELEASE}")
     set(CMAKE_Fortran_FLAGS_DEBUG "-m32 ${CMAKE_Fortran_FLAGS_DEBUG}")
@@ -767,6 +768,11 @@ elseif(Fortran_COMPILER_NAME MATCHES "nagfor.*")
   else()
     set(CMAKE_Fortran_FLAGS "-w=all ${CMAKE_Fortran_FLAGS}")
   endif(WARN)
+
+  if(INITNAN)
+    set(CMAKE_Fortran_FLAGS_RELEASE "-nan ${CMAKE_Fortran_FLAGS_RELEASE}")
+    set(CMAKE_Fortran_FLAGS_DEBUG   "-nan ${CMAKE_Fortran_FLAGS_DEBUG}")
+  endif()
 
   if(32BIT)
     set(CMAKE_Fortran_FLAGS_RELEASE "-abi=32 ${CMAKE_Fortran_FLAGS_RELEASE}")
@@ -908,8 +914,7 @@ if(${CMAKE_C_COMPILER_ID} MATCHES "Intel")
 
 endif()
 
-#AppleClang
-#Copied from GNU for now
+# AppleClang
 if(${CMAKE_C_COMPILER_ID} MATCHES "AppleClang")
 
   if(${CMAKE_SYSTEM_PROCESSOR} MATCHES aarch64 )
@@ -968,7 +973,7 @@ if(${CMAKE_CXX_COMPILER_ID} MATCHES "GNU")
   set (CMAKE_CXX_FLAGS_DEBUG   "-O0 -g")
 
   if(LTO)
-#	set(CMAKE_CXX_LINK_EXECUTABLE "")
+    # set(CMAKE_CXX_LINK_EXECUTABLE "")
     set(CMAKE_Fortran_CXX_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -flto -Wl,-flto")
   endif(LTO)
 
@@ -1231,6 +1236,44 @@ if(MERLINSCATTER)
   endif(64BIT)
 endif()
 
+# Build DISTlib
+if(DISTLIB)
+  if(NOT EXISTS ${CMAKE_SOURCE_DIR}/lib/DISTlib/source/distinterface.c)
+    if(GIT_FOUND)
+      message(STATUS "Checking out DISTlib submodule")
+      execute_process(
+        COMMAND ${GIT_EXECUTABLE} submodule update --init lib/DISTlib
+        WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
+        RESULT_VARIABLE GIT_SUBMOD_RESULT
+        ERROR_QUIET
+      )
+      if(NOT GIT_SUBMOD_RESULT EQUAL "0")
+        message(FATAL_ERROR "git submodule update --init lib/DISTlib failed with ${GIT_SUBMOD_RESULT}, please checkout submodules")
+      endif()
+    else()
+      message(FATAL_ERROR "The git submodules DISTlib is not available. Please download it into lib/DISTlib")
+    endif()
+  endif()
+
+  file(GLOB DIST_SOURCES ${CMAKE_SOURCE_DIR}/lib/DISTlib/source/*.c)
+  add_library(distlib STATIC ${DIST_SOURCES})
+  target_include_directories(distlib PRIVATE ${CMAKE_SOURCE_DIR}/lib/DISTlib/source)
+  if(CRLIBM)
+    target_include_directories(distlib PRIVATE ${CMAKE_SOURCE_DIR}/source/crlibm)
+    target_include_directories(distlib PRIVATE ${CMAKE_SOURCE_DIR}/source/roundctl)
+    target_compile_options(distlib PRIVATE -DCRLIBM)
+    target_link_libraries(distlib crlibm roundctl)
+  endif()
+
+  if(32BIT)
+    set_target_properties(distlib PROPERTIES LINK_FLAGS "-m32")
+  endif(32BIT)
+  if(64BIT)
+    set_target_properties(distlib PROPERTIES LINK_FLAGS "-m64")
+  endif(64BIT)
+
+endif(DISTLIB)
+
 # Build NAFFlib
 if(NAFF)
   if(NOT EXISTS ${CMAKE_SOURCE_DIR}/lib/NAFFlib/NAFFlib/interface/naff_sixtrack_interface.c)
@@ -1298,7 +1341,22 @@ if(BOINC)
 endif()
 
 if(FLUKA)
-  add_subdirectory(${CMAKE_SOURCE_DIR}/source/FlukaIO)
+  if(GIT_FOUND)
+    message(STATUS "Checking out FlukaIO submodule")
+    execute_process(
+      COMMAND ${GIT_EXECUTABLE} submodule update --init lib/FlukaIO
+      WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
+      RESULT_VARIABLE GIT_SUBMOD_RESULT
+      ERROR_QUIET
+    )
+    if(NOT GIT_SUBMOD_RESULT EQUAL "0")
+      message(FATAL_ERROR "git submodule update --init lib/FlukaIO failed with ${GIT_SUBMOD_RESULT}, please checkout submodules")
+    endif()
+  else()
+    message(FATAL_ERROR "The git submodule FlukaIO is not available. Please download it into lib/FlukaIO")
+  endif()
+
+  add_subdirectory(${CMAKE_SOURCE_DIR}/lib/FlukaIO)
   target_link_libraries(SixTrackCore flukaIO)
 endif(FLUKA)
 
@@ -1325,8 +1383,7 @@ if(PYTHIA)
 
 endif(PYTHIA)
 
-if(ZLIB AND NOT LIBARCHIVE)
-  # Build minizip as a lightweight alternative to libArchive
+if(ZLIB)
   set(MINIZIP_DIR  ${ZLIB_DIR}/contrib/minizip)
   set(MINIZIP_WRAP ${CMAKE_SOURCE_DIR}/source/minizip)
   set(MINIZIP_SOURCES ${MINIZIP_DIR}/zip.c ${MINIZIP_DIR}/unzip.c ${MINIZIP_DIR}/ioapi.c ${MINIZIP_WRAP}/utils.c ${MINIZIP_WRAP}/libminizip.c)
@@ -1338,50 +1395,10 @@ if(ZLIB AND NOT LIBARCHIVE)
   target_link_libraries(minizip zlibstatic)
   add_dependencies(SixTrackCore minizip)
   target_link_libraries(SixTrackCore minizip)
-endif(ZLIB AND NOT LIBARCHIVE)
+endif(ZLIB)
 
+# We need to build dafor before we build SixTrack, but crlibm and so on can be built at the same time.
 add_custom_target(copy_input_files)
-if(LIBARCHIVE)
-  add_custom_command(
-    OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/libArchive_Fwrapper.c POST_BUILD
-    COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_SOURCE_DIR}/source/libarchive_wr/libArchive_Fwrapper.c ${CMAKE_BINARY_DIR}/libArchive_Fwrapper.c
-    DEPENDS copy_input_files
-  )
-  add_custom_command(
-    OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/libArchive_wrapper.c POST_BUILD
-    COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_SOURCE_DIR}/source/libarchive_wr/libArchive_wrapper.c ${CMAKE_BINARY_DIR}/libArchive_wrapper.c
-    DEPENDS copy_input_files
-  )
-  add_custom_command(
-    OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/libArchive_wrapper.h POST_BUILD
-    COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_SOURCE_DIR}/source/libarchive_wr/libArchive_wrapper.h ${CMAKE_BINARY_DIR}/libArchive_wrapper.h
-    DEPENDS copy_input_files
-  )
-
-  include_directories(${LIBARCHIVE_SOURCE_DIR}/libarchive)
-  include_directories(${CMAKE_CURRENT_BINARY_DIR})
-
-  #A very small but convenient test code for debugging libArchive.
-  add_executable(libArchiveTester ${CMAKE_SOURCE_DIR}/source/libarchive_wr/libArchiveTester.cpp)
-  target_link_libraries(libArchiveTester libArchive_wrapper)
-
-  #See also further down for SixTestWrapper linking
-  target_link_libraries(SixTrackCore libArchive_wrapper)
-  add_library(libarchive STATIC IMPORTED)
-  if(WIN32)
-    set_target_properties(libarchive PROPERTIES IMPORTED_LOCATION ${LIBARCHIVE_BUILD_DIR}/libarchive/libarchive_static.a)
-    add_definitions( -DLIBARCHIVE_STATIC )
-  else()
-    set_target_properties(libarchive PROPERTIES IMPORTED_LOCATION ${LIBARCHIVE_BUILD_DIR}/libarchive/libarchive.a)
-  endif()
-
-  target_link_libraries(SixTrackCore libarchive zlibstatic Threads::Threads)
-  target_link_libraries(libArchiveTester libarchive zlibstatic Threads::Threads)
-
-  add_definitions( -DLIBARCHIVE )
-endif()
-
-#We need to build dafor before we build SixTrack, but crlibm and so on can be built at the same time.
 add_dependencies(SixTrackCore copy_input_files generate_input)
 add_dependencies(SixTrackCR SixTrackCore)
 if(SIXDA)
@@ -1484,6 +1501,10 @@ if(NAFF)
   target_link_libraries(SixTrackCore naff)
 endif(NAFF)
 
+if(DISTLIB)
+  target_link_libraries(SixTrackCore distlib)
+endif(DISTLIB)
+
 #if we are using root, link to all the root libraries
 if(ROOT)
   target_link_libraries(SixTrackCore root_output)
@@ -1515,6 +1536,15 @@ endif(COVERAGE)
 set(BUILDNAME "${SIXTRACK_BINARY_NAME}" CACHE STRING "Name of build on the dashboard")
 mark_as_advanced(BUILDNAME)
 
+#Tools
+set(MOD_SPLITSINGLETRACK_SOURCES
+  ${CMAKE_SOURCE_DIR}/source/splitSingletrack/mod_splitSingletrack.f90
+)
+add_library          (mod_splitSingletrack STATIC ${MOD_SPLITSINGLETRACK_SOURCES})
+add_executable       (splitSingletrack ${CMAKE_SOURCE_DIR}/source/splitSingletrack/splitSingletrack.f90)
+target_link_libraries(splitSingletrack mod_splitSingletrack)
+set_target_properties(splitSingletrack PROPERTIES LINK_FLAGS "${CMAKE_Fortran_LINKER_FLAGS}")
+
 # For testing
 if(BUILD_TESTING)
 
@@ -1545,9 +1575,6 @@ if(BUILD_TESTING)
 
   # The Test Wrapper
   add_executable(SixTestWrapper ${CMAKE_SOURCE_DIR}/test/tools/SixTestWrapper.cpp)
-  if(LIBARCHIVE)
-    target_link_libraries(SixTestWrapper libArchive_wrapper libarchive zlibstatic Threads::Threads)
-  endif()
   set_target_properties(SixTestWrapper PROPERTIES LINK_FLAGS "${CMAKE_CXX_LINKER_FLAGS}")
 
   target_link_libraries(SixTestWrapper Threads::Threads)
@@ -1585,6 +1612,14 @@ include(CPack)
 install(TARGETS SixTrackCR RUNTIME DESTINATION bin)
 
 if(NOT WIN32)
-  add_custom_command(TARGET SixTrackCR POST_BUILD
-    COMMAND ${CMAKE_COMMAND} -E create_symlink "${SIXTRACK_BINARY_NAME}" "sixtrack")
+  add_custom_command(
+    TARGET SixTrackCR POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E create_symlink "${SIXTRACK_BINARY_NAME}" "sixtrack"
+  )
+  if(SIXDA)
+    add_custom_command(
+      TARGET SixTrackDA POST_BUILD
+      COMMAND ${CMAKE_COMMAND} -E create_symlink "${SIXTRACK_BINARY_NAME_DA}" "sixtrack_da"
+    )
+  endif()
 endif()

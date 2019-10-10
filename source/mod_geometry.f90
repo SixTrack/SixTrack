@@ -17,6 +17,7 @@ module mod_geometry
   integer,                       public,  save :: geom_nSing  = 0
   integer,                       public,  save :: geom_nBloc  = 0
   integer,                       public,  save :: geom_nStru  = 0
+  integer,                       public,  save :: geom_nBeam  = 0
 
   character(len=:), allocatable, public,  save :: geom_bez0(:)
   character(len=:), allocatable, public,  save :: geom_beze(:,:)
@@ -39,6 +40,7 @@ subroutine geom_parseInputLineSING(inLine, iLine, iErr)
   use crcoall
   use mod_alloc
   use mod_common
+  use mod_settings
   use string_tools
   use sixtrack_input
 
@@ -96,15 +98,26 @@ subroutine geom_parseInputLineSING(inLine, iLine, iErr)
   if(kz(geom_nSing) == 25) then
     ed(geom_nSing) = ed(geom_nSing)/two
     ek(geom_nSing) = ek(geom_nSing)/two
-  endif
+  end if
 
   ! CHANGING SIGN OF CURVATURE OF VERTICAL THICK DIPOLE
   if((kz(geom_nSing) == 4 .or. kz(geom_nSing) == 5) .and. abs(el(geom_nSing)) > pieni) then
     ed(geom_nSing) = -one*ed(geom_nSing)
   end if
 
+  ! Beam-Beam Elements
+  if(kz(geom_nSing) == 20) then
+    geom_nBeam = geom_nBeam+1
+    if(geom_nBeam > nbb) then
+      call expand_arrays(nele, npart, nblz, nblo, nbb+100)
+      if(st_debug) then
+        write(lout,"(a,i0)") "GEOMETRY> Increased beam-beam element storage to nbb = ",nbb
+      end if
+    end if
+  end if
+
   !--------------------------------------------
-  ! Handled by initialize_element subroutine:
+  ! Handled by initialise_element subroutine:
   !--------------------------------------------
   ! CHANGING SIGN OF CURVATURE OF VERTICAL THICK DIPOLE
   ! THIN LENS (+/- 1-10)
@@ -112,7 +125,7 @@ subroutine geom_parseInputLineSING(inLine, iLine, iErr)
   ! CAVITY (+/- 12)
   ! CRABCAVITY (23/-23) / CC multipoles order 2/3/4 (+/- 23/26/27/28)
   ! ELECTRON LENSE (29)
-  call initialize_element(geom_nSing,.true.)
+  call initialise_element(geom_nSing,.true.)
 
   ! ACDIPOLE
   if(abs(kz(geom_nSing)) == 16) then
@@ -134,7 +147,7 @@ subroutine geom_parseInputLineSING(inLine, iLine, iErr)
 
   ! Expand Arrays
   if(geom_nSing > nele-2) then
-    call expand_arrays(nele+100, npart, nblz, nblo)
+    call expand_arrays(nele+100, npart, nblz, nblo, nbb)
     call alloc(geom_bez0, mNameLen, nele, " ", "geom_bez0")
   end if
 
@@ -252,7 +265,7 @@ subroutine geom_parseInputLineBLOC(inLine, iLine, iErr)
   if(blocName /= " ") then                    ! We have a new BLOC
     geom_nBloc = geom_nBloc + 1               ! Increment the BLOC number
     if(geom_nBloc > nblo-1) then              ! Expand arrays if needed
-      call expand_arrays(nele, npart, nblz, nblo+50)
+      call expand_arrays(nele, npart, nblz, nblo+50, nbb)
       call alloc(geom_beze, mNameLen, nblo, nelb, " ", "geom_beze")
     end if
     bezb(geom_nBloc) = blocName               ! Set the BLOC name in bezb
@@ -353,7 +366,7 @@ subroutine geom_parseInputLineSTRU(inLine, iLine, iErr)
 
     geom_nStru = geom_nStru + 1
     if(geom_nStru > nblz-3) then
-      call expand_arrays(nele,npart,nblz+1000,nblo)
+      call expand_arrays(nele, npart, nblz+1000, nblo, nbb)
     end if
 
     do j=1,mblo ! is it a BLOC?
@@ -378,7 +391,7 @@ subroutine geom_parseInputLineSTRU(inLine, iLine, iErr)
 
   mbloz = geom_nStru
   if(mbloz > nblz-3) then
-    call expand_arrays(nele,npart,nblz+1000,nblo)
+    call expand_arrays(nele, npart, nblz+1000, nblo, nbb)
   end if
 
 end subroutine geom_parseInputLineSTRU
@@ -439,11 +452,17 @@ subroutine geom_parseInputLineSTRU_MULT(inLine, iLine, iErr)
 
   geom_nStru = geom_nStru + 1
   if(geom_nStru > nblz-3) then
-    call expand_arrays(nele,npart,nblz+1000,nblo)
+    call expand_arrays(nele, npart, nblz+1000, nblo, nbb)
   end if
 
   bezs(geom_nStru) = trim(lnSplit(1))
   call chr_cast(lnSplit(3), elpos(geom_nStru), cErr)
+  if(elpos(geom_nStru) < elpos(geom_nStru-1)) then ! Note: elpos(0) does exist, and should be zero
+    write(lerr,"(a)") "GEOMETRY> ERROR Structure element '"//trim(bezs(geom_nStru))//&
+      "' cannot be positioned ahead of previous element"
+    iErr = .true.
+    return
+  end if
 
   singID = -1
   do j=1,mblo ! is it a BLOC?
@@ -475,7 +494,7 @@ subroutine geom_parseInputLineSTRU_MULT(inLine, iLine, iErr)
 
   mbloz = geom_nStru
   if(mbloz > nblz-3) then
-    call expand_arrays(nele,npart,nblz+1000,nblo)
+    call expand_arrays(nele, npart, nblz+1000, nblo, nbb)
   end if
 
 end subroutine geom_parseInputLineSTRU_MULT
@@ -492,7 +511,7 @@ integer function geom_insertSingElem()
 
   il = il + 1
   if(il > nele-2) then
-    call expand_arrays(nele+50, npart, nblz, nblo )
+    call expand_arrays(nele+50, npart, nblz, nblo, nbb)
     if(ithick == 1) then
       call expand_thickarrays(nele, npart, nblz, nblo )
     end if
@@ -521,7 +540,7 @@ integer function geom_insertStruElem(iEl)
   character(len=mNameLen) tmpC
 
   if(iu > nblz-3) then
-    call expand_arrays(nele, npart, nblz+100, nblo)
+    call expand_arrays(nele, npart, nblz+100, nblo, nbb)
   end if
 
   iu = iu + 1
@@ -864,7 +883,7 @@ subroutine geom_reshuffleLattice
 ! bezs(1:iu)    = cshift(bezs(1:iu),    kanf-1)
   elpos(1:iu)   = cshift(elpos(1:iu),   kanf-1)
 
-  ! Do string arrays manually due to a gfrotran bug in at least 8.3
+  ! Do string arrays manually due to a gfortran bug in at least 8.3
   allocate(tmpC(kanf))
   tmpC(1:kanf-1)     = bezs(1:kanf-1)
   bezs(1:iu-kanf+1)  = bezs(kanf:iu)

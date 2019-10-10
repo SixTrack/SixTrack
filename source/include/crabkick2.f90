@@ -1,4 +1,4 @@
-! start include/crabkick.f90
+! start include/crabkick2.f90
 !---------CrabAmp input in MV
 !---------ejfv(j) should be in MeV/c --> CrabAmp/c/ejfv(j) is in rad
 !---------ejfv(j) should be in MeV ?? --> CrabAmp/ejfv(j) is in rad
@@ -14,4 +14,4 @@ do j=1,napx ! loop over particles
 end do
 call part_updatePartEnergy(1,.true.)
 if(ithick == 1) call envarsv
-! end include/crabkick.f90
+! end include/crabkick2.f90

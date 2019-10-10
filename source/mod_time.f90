@@ -133,7 +133,7 @@ subroutine time_finalise
   nT   = real(numl,fPrec)
   nE   = real(mbloz,fPrec)
   nPT  = real(meta_nPartTurn,fPrec)
-  nPTE = nPT*nE
+  nPTE = real(meta_nPTurnEle,fPrec)
   if(nT > zero) then
     nP = nPT/nT
   else
@@ -296,6 +296,25 @@ subroutine time_writeReal(timeLabel, timeValue, timeUnit, dataCount)
 
 end subroutine time_writeReal
 
+! ================================================================================================ !
+!  Extract Integer Value from System Clock
+!  Moved from Collimation
+!  Last modified: 2019-09-13
+! ================================================================================================ !
+integer function time_getSysClock()
+
+  use crcoall
+
+  integer mClock, countRate, countMax
+
+  call system_clock(mClock, countRate, countMax)
+  if(countMax == 0) then
+    write(lout,"(a)") "TIME> System Clock not present or not responding"
+  end if
+  time_getSysClock = mClock
+
+end function time_getSysClock
+
 #ifdef CR
 ! ================================================================================================ !
 !  CheckPoint/Restart Routines
@@ -316,8 +335,8 @@ subroutine time_crcheck(fileUnit, readErr)
 
 10 continue
   readErr = .true.
-  write(lout, "(a,i0,a)") "SIXTRACR> ERROR Reading C/R file fort.",fileUnit," in TIME"
-  write(crlog,"(a,i0,a)") "SIXTRACR> ERROR Reading C/R file fort.",fileUnit," in TIME"
+  write(lout, "(a,i0,a)") "SIXTRACR> ERROR Reading C/R file unit ",fileUnit," in TIME"
+  write(crlog,"(a,i0,a)") "SIXTRACR> ERROR Reading C/R file unit ",fileUnit," in TIME"
   flush(crlog)
 
 end subroutine time_crcheck
@@ -343,8 +362,8 @@ subroutine time_crpoint(fileUnit, writeErr)
 
 10 continue
   writeErr = .true.
-  write(lout, "(a,i0,a)") "SIXTRACR> ERROR Writing C/R file fort.",fileUnit," in TIME"
-  write(crlog,"(a,i0,a)") "SIXTRACR> ERROR Writing C/R file fort.",fileUnit," in TIME"
+  write(lout, "(a,i0,a)") "SIXTRACR> ERROR Writing C/R file unit ",fileUnit," in TIME"
+  write(crlog,"(a,i0,a)") "SIXTRACR> ERROR Writing C/R file unit ",fileUnit," in TIME"
   flush(crlog)
 
 end subroutine time_crpoint

@@ -1,3 +1,4 @@
+! start include/umlalid.f90
 iwrite=0
 if(nlin.eq.0) then
   iwrite=1
@@ -49,8 +50,8 @@ else
   jj(5)=0
   do j1=1,2
     ii=2*j1
-    d(j1)=(((rdd(ii-1,1)*dicu(1)+rdd(ii-1,2)*dicu(2))+rdd(ii-1,3)*dicu(3))+rdd(ii-1,4)*dicu(4))+rdd(ii-1,5)              !hr03
-    dp(j1)=(((rdd(ii,1)*dicu(1)+rdd(ii,2)*dicu(2))+rdd(ii,3)*dicu(3))+rdd(ii,4)*dicu(4))+rdd(ii,5)                    !hr03
+    d(j1)=(((rdd(ii-1,1)*dicu(1)+rdd(ii-1,2)*dicu(2))+rdd(ii-1,3)*dicu(3))+rdd(ii-1,4)*dicu(4))+rdd(ii-1,5)
+    dp(j1)=(((rdd(ii,1)*dicu(1)+rdd(ii,2)*dicu(2))+rdd(ii,3)*dicu(3))+rdd(ii,4)*dicu(4))+rdd(ii,5)
   enddo
 endif
 call dacct(damap,nvar,aa2,nvar,damap,nvar)
@@ -93,83 +94,75 @@ do j=1,ndimf
   call dapek(damap(ii),jj,au(i3,i3))
   jj(i3)=0
 
-!     Store tas matrix (normalisation of phase space) and closed orbit for FMA and DUMP normalization.
-!     Variable added to DUMP block module variables;
-!     units dumptas: mm,mrad,mm,mrad,mm,1.e-3 -> convert later to 1.e3
-  if(ic(i)-nblo.gt.0) then !check if structure element is a block
-    if(ldump(ic(i)-nblo)) then !check if particles are dumped at this element
-      dumptas(ic(i)-nblo,ii-1,ii-1)=angp(1,ii-1)
-      dumptas(ic(i)-nblo,ii-1,ii  )=angp(1,ii)
-      dumptas(ic(i)-nblo,ii  ,ii-1)=au(ii,ii-1)
-      dumptas(ic(i)-nblo,ii  ,ii  )=au(ii,ii  )
-      dumptas(ic(i)-nblo,ii-1,i2-1)=au(i2-1,i2-1)
-      dumptas(ic(i)-nblo,ii  ,i2-1)=au(i2  ,i2-1)
-      dumptas(ic(i)-nblo,ii-1,i2  )=au(i2-1,i2  )
-      dumptas(ic(i)-nblo,ii  ,i2  )=au(i2  ,i2  )
-      dumptas(ic(i)-nblo,ii-1,i3-1)=au(i3-1,i3-1)
-      dumptas(ic(i)-nblo,ii  ,i3-1)=au(i3  ,i3-1)
-      dumptas(ic(i)-nblo,ii-1,i3  )=au(i3-1,i3  )
-      dumptas(ic(i)-nblo,ii  ,i3  )=au(i3  ,i3  )
-!    closed orbit in canonical variables x,px,y,py,sig,delta [mm,mrad,mm,mrad,mm,1.e-3]
-!    convert to x,xp,y,yp,sig,delta [mm,mrad,mm,mrad,mm,1]
-!     -> check units used in dumpclo (is x' or px used?)
-      dumpclo(ic(i)-nblo,2*j-1)=c(j)
-      if (j.eq.3) then !dp/p
-        dumpclo(ic(i)-nblo,2*j)  =cp(j)*c1m3
+  ! Store tas matrix (normalisation of phase space) and closed orbit for FMA and DUMP normalisation.
+  if(ic(i)-nblo > 0) then ! Check if structure element is a block
+    if(ldump(ic(i)-nblo)) then ! Check if particles are dumped at this element
+      tasData(ii-1,ii-1) = angp(1,ii-1)
+      tasData(ii-1,ii  ) = angp(1,ii)
+      tasData(ii  ,ii-1) = au(ii,ii-1)
+      tasData(ii  ,ii  ) = au(ii,ii  )
+      tasData(ii-1,i2-1) = au(i2-1,i2-1)
+      tasData(ii  ,i2-1) = au(i2  ,i2-1)
+      tasData(ii-1,i2  ) = au(i2-1,i2  )
+      tasData(ii  ,i2  ) = au(i2  ,i2  )
+      tasData(ii-1,i3-1) = au(i3-1,i3-1)
+      tasData(ii  ,i3-1) = au(i3  ,i3-1)
+      tasData(ii-1,i3  ) = au(i3-1,i3  )
+      tasData(ii  ,i3  ) = au(i3  ,i3  )
+      ! Closed orbit in canonical variables x,px,y,py,sig,delta [mm,mrad,mm,mrad,mm,1.e-3]
+      ! convert to x,xp,y,yp,sig,delta [mm,mrad,mm,mrad,mm,1]
+      !  -> check units used in dumpclo (is x' or px used?)
+      ! Note: this needs to be checked again. sigm is not canonical
+      cloData(2*j-1) = c(j)
+      if(j == 3) then ! dp/p
+        cloData(2*j) = cp(j)*c1m3
       else ! xp,yp
-        dumpclo(ic(i)-nblo,2*j)  =cp(j)/(one+cp(3)*c1m3)
-      endif
-    endif
-  endif
+        cloData(2*j) = cp(j)/(one+cp(3)*c1m3)
+      end if
+    end if
+  end if
 
-  b1(j)=angp(1,ii-1)**2+angp(1,ii)**2                          !hr08
-  b2(j)=au(i2-1,i2-1)**2+au(i2-1,i2)**2                        !hr08
-  b3(j)=au(i3-1,i3-1)**2+au(i3-1,i3)**2                        !hr08
-  al1(j)=-one*(angp(1,ii-1)*au(ii,ii-1)+angp(1,ii)*au(ii,ii))  !hr03
-  al2(j)=-one*(au(i2-1,i2-1)*au(i2,i2-1)+au(i2-1,i2)*au(i2,i2)) !hr03
-  al3(j)=-one*(au(i3-1,i3-1)*au(i3,i3-1)+au(i3-1,i3)*au(i3,i3)) !hr03
-  g1(j)=au(ii,ii-1)**2+au(ii,ii)**2                            !hr04
-  g2(j)=au(i2,i2-1)**2+au(i2,i2)**2                            !hr04
-  g3(j)=au(i3,i3-1)**2+au(i3,i3)**2                            !hr04
-  if(ndimf.eq.3) then
+  b1(j)  = angp(1,ii-1)**2+angp(1,ii)**2
+  b2(j)  = au(i2-1,i2-1)**2+au(i2-1,i2)**2
+  b3(j)  = au(i3-1,i3-1)**2+au(i3-1,i3)**2
+  al1(j) = -one*(angp(1,ii-1)*au(ii,ii-1)+angp(1,ii)*au(ii,ii))
+  al2(j) = -one*(au(i2-1,i2-1)*au(i2,i2-1)+au(i2-1,i2)*au(i2,i2))
+  al3(j) = -one*(au(i3-1,i3-1)*au(i3,i3-1)+au(i3-1,i3)*au(i3,i3))
+  g1(j)  = au(ii,ii-1)**2+au(ii,ii)**2
+  g2(j)  = au(i2,i2-1)**2+au(i2,i2)**2
+  g3(j)  = au(i3,i3-1)**2+au(i3,i3)**2
+  if(ndimf == 3) then
     call dainv(damap,nvar,damapi,nvar)
-    jj(6)=1
+    jj(6) = 1
     call dapek(damapi(5),jj,aui(1))
     call dapek(damapi(6),jj,aui(2))
-    jj(6)=0
-    if(j.lt.3) then
-      d(j)=au(i3-1,i3-1)*aui(1)+au(i3-1,i3)*aui(2)
-      dp(j)=au(i3,i3-1)*aui(1)+au(i3,i3)*aui(2)
+    jj(6) = 0
+    if(j < 3) then
+      d(j)  = au(i3-1,i3-1)*aui(1)+au(i3-1,i3)*aui(2)
+      dp(j) = au(i3,i3-1)*aui(1)+au(i3,i3)*aui(2)
     else
-      d(j)=angp(1,ii-1)*aui(1)+angp(1,ii)*aui(2)
-      dp(j)=au(ii,ii-1)*aui(1)+au(ii,ii)*aui(2)
-    endif
-  endif
-  sx=angp(2,ii-1)*angp(1,ii)-angp(1,ii-1)*angp(2,ii)
-  cx=angp(1,ii-1)*angp(2,ii-1)+angp(1,ii)*angp(2,ii)
-  if(abs(sx).gt.c1m15.or.abs(cx).gt.c1m15) then
-    dphi(j)=atan2_mb(sx,cx)/x2pi
+      d(j)  = angp(1,ii-1)*aui(1)+angp(1,ii)*aui(2)
+      dp(j) = au(ii,ii-1)*aui(1)+au(ii,ii)*aui(2)
+    end if
+  end if
+  sx = angp(2,ii-1)*angp(1,ii)-angp(1,ii-1)*angp(2,ii)
+  cx = angp(1,ii-1)*angp(2,ii-1)+angp(1,ii)*angp(2,ii)
+  if(abs(sx) > c1m15 .or. abs(cx) > c1m15) then
+    dphi(j) = atan2_mb(sx,cx)/x2pi
   else
-    dphi(j)=zero
-  endif
-  phi(j)=phi(j)+dphi(j)
-enddo ! end include/of optics calculation
+    dphi(j) = zero
+  end if
+  phi(j) = phi(j)+dphi(j)
+end do ! end include/of optics calculation
 
-if(ic(i)-nblo.gt.0) then !check if structure element is a block
-   if(ldump(ic(i)-nblo)) then !check if particles are dumped at this element
-
-!     do the unit conversion + inversion of dumptas
-!     convert from units [mm,mrad,mm,mrad,1.e-3] to [mm,mrad,mm,mrad,1] as needed for normalization
-
-     dumptas(ic(i)-nblo,1:5,6)=dumptas(ic(i)-nblo,1:5,6)*c1e3
-     dumptas(ic(i)-nblo,6,1:5)=dumptas(ic(i)-nblo,6,1:5)*c1m3
-
-!     invert the tas matrix
-      call invert_tas(dumptasinv(ic(i)-nblo,:,:),dumptas(ic(i)-nblo,:,:))
-!     dumptas and dumptasinv are now in units [mm,mrad,mm,mrad,1]
-
-   endif
-endif
+if(ic(i)-nblo > 0) then ! Check if structure element is a block
+  if(ldump(ic(i)-nblo)) then ! Check if particles are dumped at this element
+    ! Fix scaling of the 6th column and row due to the use of mm and mrad elsewhere
+    tasData(1:5,6) = tasData(1:5,6)*c1e3
+    tasData(6,1:5) = tasData(6,1:5)*c1m3
+    call dump_setTasMatrix(ic(i)-nblo, tasData, cloData)
+  end if
+end if
 
 do j=1,ndimf
   ii=2*j
@@ -199,3 +192,4 @@ if(iwrite.eq.1) then
   endif
   write(lout,10010)
 endif
+! end include/umlalid.f90

@@ -30,19 +30,19 @@ Builds SixTrack release with gfortran, with checkpoint/restaring support and wit
 
 ### Options Enabled by Default
 
-* **TILT**:          Allow elements to be tilted (by error
-* **FAST**:          Which implementation of drifts to use in thin6d
+* **TILT**:          Allow elements to be tilted (by error)
 * **CRLIBM**:        Use correctly rounded libmath instead of system libmath
 * **SIXDA**:         Build differential algebra version (NOT dynamic aperture!)
-* **STF**:           Single Track File. Write all tracks for postprocessing to singletrackfile.dat instead of 32 separate files (fort.59 - fort.90). This option is required for more than 64 particles.
+* **ZLIB**:          Link with zlib and minizip, and is required for BOINC and the ZIPF.
+* **NAFF**:          Link to external NAFFlib for FMA.
+* **DISTLIB**:       Link to external DISTlib for the beam distribution.
+* **HASHLIB**:       Build the md5 hash library (used for tests and BOINC).
 
 ### Options Disabled by Default
 
 * **BUILD_TESTING**: Enable the test suite.
 * **BOINC**:         Builds BOINC version of SixTrack.
 * **CR**             Enables checkpoint/restart support. Required for BOINC.
-* **LIBARCHIVE**:    Link with LIBARCHIVE, and is required for BOINC and ZIPF block if ZIPF is off.
-* **ZLIB**:          Link with zlib and minizip, and is required for BOINC and the ZIPF block if LIBARCHIVE is off.
 * **BEAMGAS**:       Beam-gas scattering.
 * **FIO**:           Use FortranIO from Fortran2003 to correctly round ASCII input/output. this option overrides CRLIBM when reading/writing.
 * **CERNLIB**:       Link to external CERNLIB library for PAW plots. Otherwise use internally defined dummy functions.
@@ -52,9 +52,9 @@ Builds SixTrack release with gfortran, with checkpoint/restaring support and wit
 * **HDF5**:          Adds support for the HDF5 block which enables writing output to a single HDF5 file.
 * **ROOT**:          Adds support for writing to ROOT files. Experimental and undocumented.
 * **MERLINSCATTER**: Interaction physics for collimation from Merlin.
-* **G4COLLIMAT**:    Interaction physics for collimation from Geant4.
+* **G4COLLIMATION**: Interaction physics for collimation from Geant4.
 * **FLUKA**:         Couple to FLUKA for beam collimation.
-
+* **PYTHIA**:        Link with Pythia8 for SCATTER module.
 
 ### Binary Type
 

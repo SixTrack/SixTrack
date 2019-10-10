@@ -21,6 +21,7 @@ program mainda
   use mathlib_bouncer
   use crcoall
   use parpro
+  use mod_linopt
   use mod_common
   use mod_commons
   use mod_common_track
@@ -62,12 +63,6 @@ program mainda
 
   ! Features
   featList = ""
-#ifdef TILT
-  featList = featList//" TILT"
-#endif
-#ifdef STF
-  featList = featList//" STF"
-#endif
 #ifdef CRLIBM
   featList = featList//" CRLIBM"
   call disable_xp()
@@ -240,9 +235,9 @@ program mainda
 
       do k=1,nmz
         izu=izu+1
-        aaiv(k,i)=(ed(ix)*(ak0(im,k)+zfz(izu)*aka(im,k)))/r0a         !hr08
+        aaiv(k,i)=(ed(ix)*(ak0(im,k)+zfz(izu)*aka(im,k)))/r0a
         izu=izu+1
-        bbiv(k,i)=(ed(ix)*(bk0(im,k)+zfz(izu)*bka(im,k)))/r0a         !hr08
+        bbiv(k,i)=(ed(ix)*(bk0(im,k)+zfz(izu)*bka(im,k)))/r0a
         r0a=r0a*r0
       end do
 
@@ -323,6 +318,7 @@ program mainda
       call mydaini(2,2,5,2,5,1)
       nlin=nlinoo
     end if
+    tas(:,:) = zero ! Make sure all values are initialised
     do i=1,4
       do j=1,4
         tas(i,j)=tasm(i,j)
@@ -340,40 +336,40 @@ program mainda
   tas63=tas(6,3)*c1e3
   tas64=tas(6,4)*c1e3
   tas65=tas(6,5)*c1e3
-  bet0(1)=tas(1,1)**2+tas(1,2)**2                                    !hr08
-  bet0x2 =tas(1,3)**2+tas(1,4)**2                                    !hr08
-  bet0x3 =tas(1,5)**2+tas16**2                                       !hr08
-  gam0x1 =tas(2,1)**2+tas(2,2)**2                                    !hr08
-  gam0x2 =tas(2,3)**2+tas(2,4)**2                                    !hr08
-  gam0x3 =tas(2,5)**2+tas26**2                                       !hr08
-  alf0(1)=-one*(tas(1,1)*tas(2,1)+tas(1,2)*tas(2,2))                 !hr08
-  alf0x2 =-one*(tas(1,3)*tas(2,3)+tas(1,4)*tas(2,4))                 !hr08
-  alf0x3 =-one*(tas(1,5)*tas(2,5)+tas16*tas26)                       !hr08
-  bet0(2)=tas(3,3)**2+tas(3,4)**2                                    !hr08
-  bet0z2 =tas(3,1)**2+tas(3,2)**2                                    !hr08
-  bet0z3 =tas(3,5)**2+tas36**2                                       !hr08
-  gam0z1 =tas(4,3)**2+tas(4,4)**2                                    !hr08
-  gam0z2 =tas(4,1)**2+tas(4,2)**2                                    !hr08
-  gam0z3 =tas(4,5)**2+tas46**2                                       !hr08
-  alf0(2)=-one*(tas(3,3)*tas(4,3)+tas(3,4)*tas(4,4))                 !hr08
-  alf0z2 =-one*(tas(3,1)*tas(4,1)+tas(3,2)*tas(4,2))                 !hr08
-  alf0z3 =-one*(tas(3,5)*tas(4,5)+tas36*tas46)                       !hr08
-  bet0s1 =tas(5,5)**2+tas56**2                                       !hr08
-  bet0s2 =tas(5,1)**2+tas(5,2)**2                                    !hr08
-  bet0s3 =tas(5,3)**2+tas(5,4)**2                                    !hr08
-  gam0s1 =tas65**2+tas(6,6)**2                                       !hr08
-  gam0s2 =tas61**2+tas62**2                                          !hr08
-  gam0s3 =tas63**2+tas64**2                                          !hr08
-  alf0s1 =-one*(tas(5,5)*tas65+tas56*tas(6,6))                       !hr08
-  alf0s2 =-one*(tas(5,1)*tas61+tas(5,2)*tas62)                       !hr08
-  alf0s3 =-one*(tas(5,3)*tas63+tas(5,4)*tas64)                       !hr08
+  bet0(1)=tas(1,1)**2+tas(1,2)**2
+  bet0x2 =tas(1,3)**2+tas(1,4)**2
+  bet0x3 =tas(1,5)**2+tas16**2
+  gam0x1 =tas(2,1)**2+tas(2,2)**2
+  gam0x2 =tas(2,3)**2+tas(2,4)**2
+  gam0x3 =tas(2,5)**2+tas26**2
+  alf0(1)=-one*(tas(1,1)*tas(2,1)+tas(1,2)*tas(2,2))
+  alf0x2 =-one*(tas(1,3)*tas(2,3)+tas(1,4)*tas(2,4))
+  alf0x3 =-one*(tas(1,5)*tas(2,5)+tas16*tas26)
+  bet0(2)=tas(3,3)**2+tas(3,4)**2
+  bet0z2 =tas(3,1)**2+tas(3,2)**2
+  bet0z3 =tas(3,5)**2+tas36**2
+  gam0z1 =tas(4,3)**2+tas(4,4)**2
+  gam0z2 =tas(4,1)**2+tas(4,2)**2
+  gam0z3 =tas(4,5)**2+tas46**2
+  alf0(2)=-one*(tas(3,3)*tas(4,3)+tas(3,4)*tas(4,4))
+  alf0z2 =-one*(tas(3,1)*tas(4,1)+tas(3,2)*tas(4,2))
+  alf0z3 =-one*(tas(3,5)*tas(4,5)+tas36*tas46)
+  bet0s1 =tas(5,5)**2+tas56**2
+  bet0s2 =tas(5,1)**2+tas(5,2)**2
+  bet0s3 =tas(5,3)**2+tas(5,4)**2
+  gam0s1 =tas65**2+tas(6,6)**2
+  gam0s2 =tas61**2+tas62**2
+  gam0s3 =tas63**2+tas64**2
+  alf0s1 =-one*(tas(5,5)*tas65+tas56*tas(6,6))
+  alf0s2 =-one*(tas(5,1)*tas61+tas(5,2)*tas62)
+  alf0s3 =-one*(tas(5,3)*tas63+tas(5,4)*tas64)
   if(ierro.eq.0) goto 90
   write(lout,10200) dp1
   goto 160
 
 90 continue
   write(lout,10040)
-  phag=(phas*c180e0)/pi                                               !hr08
+  phag=(phas*c180e0)/pi
   if((idp.eq.0).or.(abs(phas).le.pieni.and.ition.eq.0)) then
     write(lout,10140) qwc(1),clo(1),clop(1),bet0(1),alf0(1),gam0x1,bet0x2,alf0x2,gam0x2,qwc(2),&
       clo(2),clop(2),bet0(2),alf0(2),gam0z1,bet0z2,alf0z2,gam0z2
@@ -420,12 +416,12 @@ program mainda
     dps(2) = dps(2) + clop6(3)
   end if
   do l=1,2
-    epsa(l)=amp(l)**2/bet0(l)                                        !hr08
+    epsa(l)=amp(l)**2/bet0(l)
     eps(l)=epsa(l)*c1e6
-    x(1,l)=x(1,l)+(clo(l)*real(idz(l),fPrec))*real(1-idfor,fPrec)                !hr08
-    y(1,l)=y(1,l)+(clop(l)*real(idz(l),fPrec))*real(1-idfor,fPrec)               !hr08
+    x(1,l)=x(1,l)+(clo(l)*real(idz(l),fPrec))*real(1-idfor,fPrec)
+    y(1,l)=y(1,l)+(clop(l)*real(idz(l),fPrec))*real(1-idfor,fPrec)
   end do
-  e0f=sqrt(e0**2-pma**2)                                             !hr08
+  e0f=sqrt(e0**2-pma**2)
   if(iclo6.eq.0) then
     write(lout,10080) clo(1),clop(1),clo(2),clop(2),idz(1),idz(2),iver, idfor,iclo6,ition
   else
@@ -434,12 +430,12 @@ program mainda
   if(idfor.eq.1.and.iclo6.ne.2) goto 110
   ejf(1)=e0f*(one+dps(1))
   ejf(2)=e0f*(one+dps(2))
-  ej(1)=sqrt(ejf(1)**2+pma**2)                                       !hr08
-  ej(2)=sqrt(ejf(2)**2+pma**2)                                       !hr08
+  ej(1)=sqrt(ejf(1)**2+pma**2)
+  ej(2)=sqrt(ejf(2)**2+pma**2)
   goto 120
 110 continue
-  ejf(1)=sqrt(ej(1)**2-pma**2)                                       !hr08
-  ejf(2)=sqrt(ej(2)**2-pma**2)                                       !hr08
+  ejf(1)=sqrt(ej(1)**2-pma**2)
+  ejf(2)=sqrt(ej(2)**2-pma**2)
 120 continue
   write(lout,10060) x(1,1),y(1,1),x(1,2),y(1,2),sigm(1),dps(1), x(2,1),y(2,1),x(2,2),y(2,2),sigm(2),dps(2),e0,ej(1),ej(2)
   write(lout,10010) amp,epsa

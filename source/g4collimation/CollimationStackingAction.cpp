@@ -28,7 +28,7 @@ G4ClassificationOfNewTrack CollimationStackingAction::ClassifyNewTrack(const G4T
 	{
 		if(do_debug)
 		{
-			std::cout << "ABSENERGYCUT> Killing particle with Kinetic energy " << aTrack->GetKineticEnergy() << " < " << AbsoluteEnergyCut << " MeV" << std::endl;
+			std::cout << "ABSENERGYCUT> Killing " << aTrack->GetDefinition()->GetParticleName() << " with Kinetic energy " << aTrack->GetKineticEnergy() << " < " << AbsoluteEnergyCut << " MeV" << std::endl;
 		}
 		return fKill;
 	}
