@@ -10,6 +10,9 @@
   * When running SixTrack with the `ntwin` parameter set to 1, post-processing would still compute the amplitude for the second particle from values not being initialised. Now, if `ntwin` is not set to 2, these values are set to zero and the extra calculations skipped.
   * A number of variables were uninitialised in parts of the initialisation code when running 6D simulations (in subroutine `umlauda`), these have been cleared up, but are not known to have caused any issues.
 * Fixed a bug in collimation where the collimator families were not generated when using the old database file format with the new `COLL` block format. PR #984 (V.K. Berglyd Olsen, M. D'Andrea)
+* Fixed a bug in `aperture_losses.dat` where the header was missing the `#` char so that it can be identified as a comment line for analysis code. PR #995 (A. Mereghetti, V.K. Berglyd Olsen)
+* Fixed an issue with writing the header of `singletrackfile.dat` where SixTrack would skip to after tracking if it failed to write to file. PR #996 (V.K. Berglyd Olsen, A. Mereghetti)
+* Added a check of `iostat` when closing file units in the internal file units handler module. Any error is reported to stderr and to log file. PR #996 (V.K. Berglyd Olsen, E. Mcintosh)
 
 **User Side Changes**
 
