@@ -28,7 +28,7 @@ subroutine daten
 
   use mod_dist,  only : dist_enable, dist_parseInputLine
   use scatter,   only : scatter_active,scatter_debug,scatter_parseInputLine
-  use dynk,      only : dynk_enabled,dynk_debug,dynk_dumpdata,dynk_inputsanitycheck,dynk_allocate,dynk_parseInputLine
+  use dynk,      only : dynk_enabled,dynk_inputSanityCheck,dynk_allocate,dynk_parseInputLine
   use fma,       only : fma_parseInputLine, fma_allocate
   use dump,      only : dump_parseInputLine,dump_parseInputDone
   use zipf,      only : zipf_parseInputLine
@@ -752,9 +752,8 @@ subroutine daten
     if(openBlock) then
       call dynk_allocate
     elseif(closeBlock) then
-      if(dynk_debug) call dynk_dumpdata
       dynk_enabled = .true.
-      call dynk_inputsanitycheck
+      call dynk_inputSanityCheck
     else
       call dynk_parseInputLine(inLine,inErr)
       if(inErr) goto 9999
@@ -1950,10 +1949,8 @@ subroutine block
       use mod_common_track
       implicit none
       integer i,j,jm,k,l,m,n
-      real(kind=fPrec) g,h
-      dimension h(nblo,2,6),g(nblo,2,6)
-      save
-!-----------------------------------------------------------------------
+      real(kind=fPrec) h(nblo,2,6),g(nblo,2,6)
+
       do k=1,mblo
         jm=mel(k)
         i=mtyp(k,1)
@@ -1996,7 +1993,6 @@ subroutine block
 
       end do
 
-      return
 end subroutine block
 
 subroutine blockdis(aeg,bl1eg,bl2eg)
@@ -2012,11 +2008,8 @@ subroutine blockdis(aeg,bl1eg,bl2eg)
       use mod_common_track
       implicit none
       integer i,j,jm,k,l,m,n
-      real(kind=fPrec) aeg,bl1eg,bl2eg,g,h
-      dimension h(nblo,2,6),g(nblo,2,6)
-      dimension aeg(nele,2,6),bl1eg(nblo,2,6),bl2eg(nblo,2,6)
-      save
-!-----------------------------------------------------------------------
+      real(kind=fPrec) h(nblo,2,6),g(nblo,2,6),aeg(nele,2,6),bl1eg(nblo,2,6),bl2eg(nblo,2,6)
+
       do k=1,mblo
         jm=mel(k)
         i=mtyp(k,1)
@@ -2059,7 +2052,6 @@ subroutine blockdis(aeg,bl1eg,bl2eg)
 
       end do
 
-      return
 end subroutine blockdis
 
 subroutine chroma
@@ -3137,8 +3129,7 @@ subroutine corrorb
   character(len=mNameLen) bezlo(nele)
   dimension clo0(2),clop0(2)
   dimension qwc1(3),nx(ncor1)
-  save
-!-----------------------------------------------------------------------
+
       rzero=zero
       rzero1=zero
       do l=1,2

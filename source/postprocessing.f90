@@ -540,7 +540,7 @@ subroutine postpr(posi, numl_t)
       endif ! END if(nprint.eq.1)
 
 !--INITIALISATION
-      tpi=eight*atan_mb(one)
+      tpi=twopi
       prec=c1m1
       i1=0
       i11=1
@@ -691,7 +691,6 @@ subroutine postpr(posi, numl_t)
 
       if(ntwin.eq.2) then
          ilapa=ilapa_stf
-
          c1=real(c1_tmp,fPrec)
          d1=real(d1_tmp,fPrec)
          e1=real(e1_tmp,fPrec)
@@ -853,21 +852,25 @@ subroutine postpr(posi, numl_t)
       f=f-clop(2)
       g=g-clo(3)
       h=h-clop(3)
-      c1=c1-clo(1)
-      d1=d1-clop(1)
-      e1=e1-clo(2)
-      f1=f1-clop(2)
-      g1=g1-clo(3)
-      h1=h1-clop(3)
+      if(ntwin == 2) then
+        c1=c1-clo(1)
+        d1=d1-clop(1)
+        e1=e1-clo(2)
+        f1=f1-clop(2)
+        g1=g1-clo(3)
+        h1=h1-clop(3)
+      end if
       if(icode.ge.4) then
         c=c-di0(1)*h
         d=d-dip0(1)*h
         e=e-di0(2)*h
         f=f-dip0(2)*h
-        c1=c1-di0(1)*h
-        d1=d1-dip0(1)*h
-        e1=e1-di0(2)*h
-        f1=f1-dip0(2)*h
+        if(ntwin == 2) then
+          c1=c1-di0(1)*h
+          d1=d1-dip0(1)*h
+          e1=e1-di0(2)*h
+          f1=f1-dip0(2)*h
+        end if
       endif
 !     calculation first particle
 !--EMITTANCES
@@ -880,10 +883,12 @@ subroutine postpr(posi, numl_t)
         d=d+dip0(1)*h
         e=e+di0(2)*h
         f=f+dip0(2)*h
-        c1=c1+di0(1)*h
-        d1=d1+dip0(1)*h
-        e1=e1+di0(2)*h
-        f1=f1+dip0(2)*h
+        if(ntwin == 2) then
+          c1=c1+di0(1)*h
+          d1=d1+dip0(1)*h
+          e1=e1+di0(2)*h
+          f1=f1+dip0(2)*h
+        end if
       endif
       emt=emx+emz
       emax=emx
@@ -928,12 +933,14 @@ subroutine postpr(posi, numl_t)
       evx=txyz(1)**2+txyz(2)**2
       evz=txyz(3)**2+txyz(4)**2
 !     calculation second particle
-      xyzv2(1)=c1
-      xyzv2(2)=d1
-      xyzv2(3)=e1
-      xyzv2(4)=f1
-      xyzv2(5)=g1
-      xyzv2(6)=h1
+      if(ntwin == 2) then
+        xyzv2(1)=c1
+        xyzv2(2)=d1
+        xyzv2(3)=e1
+        xyzv2(4)=f1
+        xyzv2(5)=g1
+        xyzv2(6)=h1
+      end if
 
 !--CONVERT TO CANONICAL VARIABLES
       if(its6d.eq.1) then
@@ -1710,8 +1717,13 @@ subroutine postpr(posi, numl_t)
       sumda(49)=bet0z2
       sumda(7)=sqrt(bet0(1)*emi)+sqrt(bet0x2*emii)
       sumda(8)=sqrt(bet0(2)*emii)+sqrt(bet0z2*emi)
-      sumda(26)=sqrt(bet0(1)*evx2)+sqrt(bet0x2*evz2)
-      sumda(27)=sqrt(bet0(2)*evz2)+sqrt(bet0z2*evx2)
+      if(ntwin == 2) then ! Amplitude of particle 2
+        sumda(26)=sqrt(bet0(1)*evx2)+sqrt(bet0x2*evz2)
+        sumda(27)=sqrt(bet0(2)*evz2)+sqrt(bet0z2*evx2)
+      else
+        sumda(26)=zero
+        sumda(27)=zero 
+      end if
       sumda(19)=sevx
       sumda(20)=sevz
       sumda(21)=sevt
@@ -2450,7 +2462,7 @@ subroutine cphase(k,a,b,c,d,i,j,ie)
       real(kind=fPrec) a,b,c,d,f,tpi
       save
 !---------------------------------------------------------------------
-      tpi=eight*atan_mb(one)
+      tpi=twopi
       if(abs(b).gt.pieni.or.abs(c).gt.pieni) then
         f=atan2_mb(b,c)
         ie=ie+1
@@ -2850,26 +2862,24 @@ subroutine join
 end subroutine join
 
 ! ================================================================================================ !
+!  K.N. Sjobak, V.K. Berglyd Olsen, BE-ABP-HSS
+!  Updated: 2019-10-10
 !  Subroutine for writing the header of the binary file singletrackfile.dat
 !  Always converting to real64 before writing to disk
 ! ================================================================================================ !
-!  K. SJOBAK, October 2017
-! ================================================================================================ !
-subroutine writebin_header(ia_p1,ia_p2,fileunit_in, ierro_wbh, cdate,ctime,progrm)
+subroutine writebin_header(ia_p1,ia_p2,fileunit_in,cdate,ctime,progrm)
 
-  use, intrinsic :: iso_fortran_env, only : real64
-  use numerical_constants
   use parpro
+  use crcoall
   use mod_common
   use mod_common_main
+  use numerical_constants
+  use, intrinsic :: iso_fortran_env, only : real64
 
-  implicit none
+  integer,          intent(in) :: ia_p1, ia_p2, fileunit_in
+  character(len=8), intent(in) :: cdate, ctime, progrm ! Note: Keep in sync with maincr. If the len changes, CRCHECK will break.
 
-  integer, intent(in)    :: ia_p1, ia_p2, fileunit_in
-  integer, intent(inout) :: ierro_wbh
-
-  character(len=8) cdate,ctime,progrm ! Note: Keep in sync with maincr. If the len changes, CRCHECK will break.
-  integer i,j
+  integer wErr
 
   real(kind=real64) qwcs_tmp(3), clo6v_tmp(3), clop6v_tmp(3)
   real(kind=real64) di0xs_tmp, dip0xs_tmp, di0zs_tmp,dip0zs_tmp
@@ -2879,37 +2889,26 @@ subroutine writebin_header(ia_p1,ia_p2,fileunit_in, ierro_wbh, cdate,ctime,progr
   real(kind=real64), parameter :: zero64 = 0.0_real64
   real(kind=real64), parameter :: one64  = 1.0_real64
 
-  !Convert from whatever precission is used internally to real64,
-  ! which is what should go in the output file
-  do i=1,3
-    qwcs_tmp  (i) = real(qwcs  (i), real64)
-    clo6v_tmp (i) = real(clo6v (i), real64)
-    clop6v_tmp(i) = real(clop6v(i), real64)
-  end do
-
+  ! Convert from whatever precission is used internally to real64
+  qwcs_tmp   = real(qwcs,   real64)
+  clo6v_tmp  = real(clo6v,  real64)
+  clop6v_tmp = real(clop6v, real64)
   di0xs_tmp  = real(di0xs,  real64)
   dip0xs_tmp = real(dip0xs, real64)
   di0zs_tmp  = real(di0zs,  real64)
   dip0zs_tmp = real(dip0zs, real64)
-
-  do i=1,6
-    do j=1,6
-      tas_tmp(j,i) = real(tas(j,i), real64)
-    end do
-  end do
-
-  mmac_tmp   = 1.0_real64
-  nms_tmp    = 1.0_real64
+  tas_tmp    = real(tas,    real64)
+  mmac_tmp   = one64
+  nms_tmp    = one64
   izu0_tmp   = real(izu0,   real64)
   numlr_tmp  = real(numlr,  real64)
   sigcor_tmp = real(sigcor, real64)
   dpscor_tmp = real(dpscor, real64)
 
-  ! DANGER: IF THE LENGTH OR NUMBER OF THESE FIELDS CHANGE,
-  ! CRCHECK WON'T WORK. SEE HOW VARIABLES HBUFF/TBUFF ARE USED.
-  ! WE ALSO ASSUME THAT THE INTEGERS ARE ALWAYS 32BIT...
-
-  write(fileunit_in,iostat=ierro_wbh)                            &
+  ! DANGER: If the length or number of these fields change,
+  ! crcheck won't work. see how variables hbuff/tbuff are used.
+  ! We also assume that the integers are always 32bit.
+  write(fileunit_in,iostat=wErr)                                 &
     sixtit,commen,cdate,ctime,progrm,                            &
     ia_p1,ia_p2, napx, icode,numl,                               &
     qwcs_tmp(1),qwcs_tmp(2),qwcs_tmp(3),                         &
@@ -2937,6 +2936,11 @@ subroutine writebin_header(ia_p1,ia_p2,fileunit_in, ierro_wbh, cdate,ctime,progr
     zero64,zero64,zero64,zero64,zero64,zero64,zero64,zero64,     &
     zero64,zero64,zero64,zero64,zero64,zero64,zero64,zero64,     &
     zero64,zero64,zero64,zero64
+
+  if(wErr /= 0) then
+    write(lerr,"(a,i0)") "POSTPR> ERROR Problems writing 'singletrackfile.dat' header. Code ",wErr
+    call prror
+  end if
 
 end subroutine writebin_header
 

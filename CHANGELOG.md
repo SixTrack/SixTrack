@@ -1,5 +1,26 @@
 # SixTrack Changelog
 
+### Version 5.4 [10.10.2019] - Release
+
+**Bug Fixes**
+
+* A series of long standing issues caused by uninitialised variables have been resolved. PRs #983 and #988 (V.K. Berglyd Olsen).<br>The following modules and settings were affected:
+  * Beam--beam simulations with the `ibeco` flag set to 0. This caused `NaN` particle coordinates on some systems.
+  * In the differential algebra version of SixTrack, the longitudinal part of the normalisation matrix was uninitialised when running in 4D, but the values still used in some calculations, causing `NaN` values on some systems.
+  * When running SixTrack with the `ntwin` parameter set to 1, post-processing would still compute the amplitude for the second particle from values not being initialised. Now, if `ntwin` is not set to 2, these values are set to zero and the extra calculations skipped.
+  * A number of variables were uninitialised in parts of the initialisation code when running 6D simulations (in subroutine `umlauda`), these have been cleared up, but are not known to have caused any issues.
+* Fixed a bug in collimation where the collimator families were not generated when using the old database file format with the new `COLL` block format. PR #984 (V.K. Berglyd Olsen, M. D'Andrea)
+* Fixed a bug in `aperture_losses.dat` where the header was missing the `#` char so that it can be identified as a comment line for analysis code. PR #995 (A. Mereghetti, V.K. Berglyd Olsen)
+* Fixed an issue with writing the header of `singletrackfile.dat` where SixTrack would skip to after tracking if it failed to write to file. PR #996 (V.K. Berglyd Olsen, A. Mereghetti)
+* Added a check of `iostat` when closing file units in the internal file units handler module. Any error is reported to stderr and to log file. PR #996 (V.K. Berglyd Olsen, E. Mcintosh)
+
+**User Side Changes**
+
+* The STF build flag has been removed. That means SixTrack now always produces a single track file `singletrackfile.dat` instead of the optional pair track files `fort.59` - `fort.90`. A tool for converting the full track file to a pair track file has been added. See the user manual for further details. PRs #967 and 989 (V.K. Berglyd Olsen, K.N. Sjobak)
+* A random numbers module has been added, which introduces the `RAND` block in the input file. The block gives more control over how the internal random number generators are initialised and also provides a better framework for the internal management of the various random number sequences used by different modules of the code. It is also designed to be easier to manage when using checkpoint/restart. Many modules still use their own seed, so this will be implemented gradually. Currently, the new random numbers module is only used by the `DIST` block. PR #978 (V.K Berglyd Olsen)
+* The main debug file `dynksets.dat` in `DYNK` is no longer written by default. Previously, this file could be disabled with the `NOFILE` flag in `fort.3`. Instead, it now has to be explicitly requested with the `DYNKSETS` flag. PRs #992 and #993, solving issue #982 (V.K. Berglyd Olsen)
+* The `TILT` build flag has been removed. The feature is now always enabled. PR #985 (V.K. Berglyd Olsen)
+
 ### Version 5.3.4 [01.10.2019] - Release
 
 **Bug Fixes**

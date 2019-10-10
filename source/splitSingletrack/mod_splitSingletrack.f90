@@ -47,12 +47,14 @@ contains
     if(itopa <= 0) then
       write(textOutUnit,'(a)')    "ERR in numSTFpairs: Corrupt itopa in first header of file '" // ifname // "'"
       write(textOutUnit,'(a,i0,a)') "itopa = ", itopa, " <= 0"
+      flush(textOutUnit)
       stop 1
     end if
 
     if (modulo(itopa,2) /= 0) then
       write(textOutUnit,'(a)')    "ERR in numSTFpairs: Number of particles not divisible by 2."
       write(textOutUnit,'(a,i6)') "ERR in numSTFpairs: itopa = ", itopa
+      flush(textOutUnit)
       stop 1
     end if
 
@@ -62,12 +64,15 @@ contains
     !Error handling
 510 continue
     write(textOutUnit,'(a,i6)') "ERR while opening file; iostat=",iostat
+    flush(textOutUnit)
     stop 1
 511 continue
     write(textOutUnit,'(a,i6)') "END while reading header; iostat=",iostat
+    flush(textOutUnit)
     stop 1
 520 continue
     write(textOutUnit,'(a,i6)') "ERR while reading header; iostat=",iostat
+    flush(textOutUnit)
     stop 1
   end function numSTFpairs
 
@@ -112,6 +117,7 @@ contains
         ntwin = ilapa-ifipa+1
         if (.not. (ntwin == 1 .or. ntwin == 2)) then
           write(textOutUnit,'(a)' ) "Error when reading header; ifipa=",ifipa, "ilapa=",ilapa,"ntwin=",ntwin
+          flush(textOutUnit)
           stop 1
         end if
 
@@ -148,23 +154,28 @@ contains
 
     !Should never reach this point
     write(textOutUnit,'(a)') "Control reached an unreachable point?!?"
+    flush(textOutUnit)
     stop 1
 
     !Error handling
 410 continue
     write(textOutUnit,'(a,i6)') "ERR while opening input file; iostat=",iostat
+    flush(textOutUnit)
     stop 1
 
 411 continue
     write(textOutUnit,'(a,i6)') "ERR while opening output file; iostat=",iostat
+    flush(textOutUnit)
     stop 1
 
 511 continue
     write(textOutUnit,'(a,i6)') "END while reading header; iostat=",iostat
+    flush(textOutUnit)
     stop 1
 
 520 continue
     write(textOutUnit,'(a,i6)') "ERR while reading header; iostat=",iostat
+    flush(textOutUnit)
     stop 1
 
 530 continue
@@ -175,14 +186,17 @@ contains
 
 531 continue
     write(textOutUnit,'(a,i6)') "ERR while reading data ; iostat=",iostat
+    flush(textOutUnit)
     stop 1
 
 620 continue
     write(textOutUnit,'(a,i6)') "ERR while writing header; iostat=",iostat
+    flush(textOutUnit)
     stop 1
 
 621 continue
     write(textOutUnit,'(a,i6)') "ERR while writing data; iostat=",iostat
+    flush(textOutUnit)
     stop 1
 
   end subroutine convertSTFpair
@@ -201,6 +215,7 @@ contains
 
     if (oldnames .and. nPairs > 32) then
       write(textOutUnit,'(a,i6,a)') "ERR in convertSTFfile: Oldpairs=true but nPairs = ", npairs, " > 32"
+      flush(textOutUnit)
       stop 1
     end if
 
