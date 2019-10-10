@@ -63,7 +63,6 @@ module coll_common
   character(len=16), parameter :: coll_fstImpactFile  = "FirstImpacts.dat"
   character(len=17), parameter :: coll_flukImpFile    = "FLUKA_impacts.dat"
   character(len=21), parameter :: coll_flukImpAllFile = "FLUKA_impacts_all.dat"
-  character(len=13), parameter :: coll_twissLikeFile  = "twisslike.out"
   character(len=17), parameter :: coll_sigmaSetFile   = "sigmasettings.out"
   character(len=16), parameter :: coll_settingsFile   = "collsettings.dat"
   character(len=16), parameter :: coll_jawProfileFile = "jaw_profiles.dat"
@@ -89,7 +88,6 @@ module coll_common
   integer, save :: coll_fstImpactUnit  = -1
   integer, save :: coll_flukImpUnit    = -1
   integer, save :: coll_flukImpAllUnit = -1
-  integer, save :: coll_twissLikeUnit  = -1
   integer, save :: coll_sigmaSetUnit   = -1
   integer, save :: coll_settingsUnit   = -1
   integer, save :: coll_jawProfileUnit = -1

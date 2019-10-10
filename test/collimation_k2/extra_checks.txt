@@ -6,4 +6,3 @@ efficiency_2d.dat
 efficiency_dpop.dat
 hash.md5
 sigmasettings.out
-twisslike.out

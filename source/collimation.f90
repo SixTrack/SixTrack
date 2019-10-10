@@ -335,7 +335,8 @@ subroutine collimate_init
   type(h5_dataField), allocatable :: fldDist0(:)
   integer                         :: fmtDist0, setDist0
 #endif
-  integer :: i,j,fUnit
+  integer i,j,fUnit,minGapID
+  real(kind=fPrec) dummy,c_rmstilt,c_systilt
 
 #ifdef HDF5
   if(h5_useForCOLL) call h5_initForCollimation
@@ -603,20 +604,20 @@ subroutine collimate_init
     call prror
   end if
 
-! Open the edep file
+  ! Open the edep file
   call f_requestUnit(fort208,unit208)
   call f_open(unit=unit208,file=fort208,formatted=.true.,mode="w")
 
-!! This function lives in the G4Interface.cpp file in the g4collimat folder
-!! Accessed by linking libg4collimat.a
-!! Set the energy cut at 70% - i.e. 30% energy loss
-!  g4_ecut = 0.7_fPrec
-!  g4_ecut = zero
-
-!! Select the physics engine to use
-!! 0 = FTFP_BERT
-!! 1 = QGSP_BERT
-!  g4_physics = 0
+  ! This function lives in the G4Interface.cpp file in the g4collimat folder
+  ! Accessed by linking libg4collimat.a
+  ! Set the energy cut at 70% - i.e. 30% energy loss
+  ! g4_ecut = 0.7_fPrec
+  ! g4_ecut = zero
+  
+  ! Select the physics engine to use
+  ! 0 = FTFP_BERT
+  ! 1 = QGSP_BERT
+  ! g4_physics = 0
 
   call g4_collimation_init(e0, rnd_seed, g4_recut, g4_aecut, g4_rcut, g4_rangecut_mm, g4_v0, trim(g4_phys_str), &
     g4_debug, g4_keep_stable, g4_edep)
@@ -635,9 +636,109 @@ subroutine collimate_init
   end if
 
   call part_updatePartEnergy(1,.false.)
-
   call collimate_openFiles
-  call collimate_start
+
+  ! Initialisation
+  do i=1,numeff
+    rsig(i) = (real(i,fPrec)/two - half) + five
+  end do
+
+  dpopbins(1) = c1m4
+  do i=2,numeffdpop
+    dpopbins(i) = real(i-1,fPrec)*4.0e-4_fPrec
+  end do
+
+#ifdef BEAMGAS
+  call beamGasInit(c_enom)
+#endif
+
+  write(lout,"(a)") ""
+  write(lout,"(a,i0)") "COLL> Number of collimators: ",cdb_nColl
+  do i=1,cdb_nColl
+    if(cdb_cFound(i)) then
+      write(lout,"(a,i5,a)") "COLL> Found Collimator   ",i,": "//trim(cdb_cName(i))
+    else
+      write(lout,"(a,i5,a)") "COLL> Missing Collimator ",i,": "//trim(cdb_cName(i))
+    end if
+  end do
+  write(lout,"(a)") ""
+
+  ! Write settings for alignment error in colltrack.out file
+  write(outlun,*) ' '
+  write(outlun,*) 'Alignment errors settings (tilt, offset,...)'
+  write(outlun,*) ' '
+  write(outlun,*) 'SETTING> c_rmstilt_prim   : ', c_rmstilt_prim
+  write(outlun,*) 'SETTING> c_rmstilt_sec    : ', c_rmstilt_sec
+  write(outlun,*) 'SETTING> c_systilt_prim   : ', c_systilt_prim
+  write(outlun,*) 'SETTING> c_systilt_sec    : ', c_systilt_sec
+  write(outlun,*) 'SETTING> c_rmsoffset_prim : ', c_rmsoffset_prim
+  write(outlun,*) 'SETTING> c_rmsoffset_sec  : ', c_rmsoffset_sec
+  write(outlun,*) 'SETTING> c_sysoffset_prim : ', c_sysoffset_prim
+  write(outlun,*) 'SETTING> c_sysoffset_sec  : ', c_sysoffset_sec
+  write(outlun,*) 'SETTING> c_offsettilt seed: ', c_offsettilt_seed
+  write(outlun,*) 'SETTING> c_rmserror_gap   : ', c_rmserror_gap
+  write(outlun,*) 'SETTING> do_mingap        : ', do_mingap
+  write(outlun,*) ' '
+
+  ! Intialise random generator with offset_seed
+  c_offsettilt_seed = abs(c_offsettilt_seed)
+  call rluxgo(3, c_offsettilt_seed, 0, 0)
+
+  ! Generate random tilts (Gaussian distribution plus systematic)
+  if(c_rmstilt_prim > zero .or. c_rmstilt_sec > zero .or. c_systilt_prim /= zero .or. c_systilt_sec /= zero) then
+    do i=1,cdb_nColl
+      if(cdb_cType(i) == cdb_typPrimary) then
+        c_rmstilt = c_rmstilt_prim
+        c_systilt = c_systilt_prim
+      else
+        c_rmstilt = c_rmstilt_sec
+        c_systilt = c_systilt_sec
+      end if
+      cdb_cTilt(1,i) = c_systilt+c_rmstilt*ran_gauss2(three)
+      if(systilt_antisymm) then
+        cdb_cTilt(2,i) = -one*c_systilt+c_rmstilt*ran_gauss2(three)
+      else
+        cdb_cTilt(2,i) =      c_systilt+c_rmstilt*ran_gauss2(three)
+      end if
+      write(outlun,*) 'INFO>  Collimator ',trim(cdb_cName(i)),' jaw 1 has tilt [rad]: ',cdb_cTilt(1,i)
+      write(outlun,*) 'INFO>  Collimator ',trim(cdb_cName(i)),' jaw 2 has tilt [rad]: ',cdb_cTilt(2,i)
+    end do
+
+    do i=1,cdb_nColl
+      if(cdb_cType(i) == cdb_typPrimary) then
+        cdb_cOffset(i) = c_sysoffset_prim + c_rmsoffset_prim*ran_gauss2(three)
+      else
+        cdb_cOffset(i) = c_sysoffset_sec +  c_rmsoffset_sec*ran_gauss2(three)
+      end if
+      write(outlun,*) 'INFO>  Offset: ',trim(cdb_cName(i)),cdb_cOffset(i)
+    end do
+  end if
+  do i=1,cdb_nColl
+    gap_rms_error(i) = c_rmserror_gap * ran_gauss2(three)
+    write(outlun,*) 'INFO>  Gap RMS error: ',trim(cdb_cName(i)),gap_rms_error(i)
+  end do
+
+  ! In case we're using old type jaw fit, this is where we generate the parameters for the new method
+  ! After this, the number of slices is also stored per collimator, and can be extracted again later
+  call cdb_setMasterJawFit(n_slices, smin_slices, smax_slices, recenter1, recenter2, jaw_fit, jaw_ssf)
+
+  call coll_getMinGapID(minGapID)
+
+  ! if pencil beam is used and on collimator with smallest gap the
+  ! distribution should be generated, set ipencil to minGapID
+  if(ipencil > 0 .and. do_mingap) then
+    ipencil = minGapID
+  end if
+
+  ! This sets the random geenrator back to the default seed rather than the one used for coll gaps.
+  ! However, this doesn't actually restore the random generator to the state it would have been in without the
+  ! coll gaps errors being generated as rndm5() will extract 30000 new random numbers from ranlux and discard
+  ! the ones it already holds and would have used.
+  ! Alternatively, we can use ranecu instead, which is capable of continuing a chain of random numbers from
+  ! a given set of seeds.
+  ! It is probably unnecessary to use different random seeds here in the first place.
+  call rluxgo(3, rnd_seed, 0, 0)
+  dummy = rndm5(1) ! Reset rndm5 too
 
 end subroutine collimate_init
 
@@ -1492,212 +1593,6 @@ subroutine collimate_openFiles
 #endif
 
 end subroutine collimate_openFiles
-
-!>
-!! collimate_start_sample()
-!! This routine is called from trauthin before each sample
-!! is injected into thin 6d
-!<
-subroutine collimate_start
-
-  use parpro
-  use crcoall
-  use mod_common
-  use mod_common_main
-  use mod_common_track
-  use coll_db
-  use coll_common
-  use mod_units
-  use mod_ranlux
-  use string_tools
-  use mathlib_bouncer
-
-  integer i, j, coll_mingap_id
-  character(len=mNameLen) coll_mingap
-  real(kind=fPrec) dummy,nsig_err,sig_offset,mingap,gap_h1,gap_h2,gap_h3,gap_h4,c_rmstilt,c_systilt
-
-  ! Initialisation
-  do i=1,numeff
-    rsig(i) = (real(i,fPrec)/two - half) + five
-  end do
-
-  dpopbins(1) = c1m4
-  do i=2,numeffdpop
-    dpopbins(i) = real(i-1,fPrec)*4.0e-4_fPrec
-  end do
-
-#ifdef BEAMGAS
-  call beamGasInit(c_enom)
-#endif
-
-  write(lout,"(a)") ""
-  write(lout,"(a,i0)") "COLL> Number of collimators: ",cdb_nColl
-  do i=1,cdb_nColl
-    if(cdb_cFound(i)) then
-      write(lout,"(a,i5,a)") "COLL> Found Collimator   ",i,": "//trim(cdb_cName(i))
-    else
-      write(lout,"(a,i5,a)") "COLL> Missing Collimator ",i,": "//trim(cdb_cName(i))
-    end if
-  end do
-  write(lout,"(a)") ""
-
-  ! Write settings for alignment error in colltrack.out file
-  write(outlun,*) ' '
-  write(outlun,*) 'Alignment errors settings (tilt, offset,...)'
-  write(outlun,*) ' '
-  write(outlun,*) 'SETTING> c_rmstilt_prim   : ', c_rmstilt_prim
-  write(outlun,*) 'SETTING> c_rmstilt_sec    : ', c_rmstilt_sec
-  write(outlun,*) 'SETTING> c_systilt_prim   : ', c_systilt_prim
-  write(outlun,*) 'SETTING> c_systilt_sec    : ', c_systilt_sec
-  write(outlun,*) 'SETTING> c_rmsoffset_prim : ', c_rmsoffset_prim
-  write(outlun,*) 'SETTING> c_rmsoffset_sec  : ', c_rmsoffset_sec
-  write(outlun,*) 'SETTING> c_sysoffset_prim : ', c_sysoffset_prim
-  write(outlun,*) 'SETTING> c_sysoffset_sec  : ', c_sysoffset_sec
-  write(outlun,*) 'SETTING> c_offsettilt seed: ', c_offsettilt_seed
-  write(outlun,*) 'SETTING> c_rmserror_gap   : ', c_rmserror_gap
-  write(outlun,*) 'SETTING> do_mingap        : ', do_mingap
-  write(outlun,*) ' '
-
-  ! Intialise random generator with offset_seed
-  c_offsettilt_seed = abs(c_offsettilt_seed)
-  call rluxgo(3, c_offsettilt_seed, 0, 0)
-
-  ! Generate random tilts (Gaussian distribution plus systematic)
-  if(c_rmstilt_prim > zero .or. c_rmstilt_sec > zero .or. c_systilt_prim /= zero .or. c_systilt_sec /= zero) then
-    do i=1,cdb_nColl
-      if(cdb_cType(i) == cdb_typPrimary) then
-        c_rmstilt = c_rmstilt_prim
-        c_systilt = c_systilt_prim
-      else
-        c_rmstilt = c_rmstilt_sec
-        c_systilt = c_systilt_sec
-      end if
-      cdb_cTilt(1,i) = c_systilt+c_rmstilt*ran_gauss2(three)
-      if(systilt_antisymm) then
-        cdb_cTilt(2,i) = -one*c_systilt+c_rmstilt*ran_gauss2(three)
-      else
-        cdb_cTilt(2,i) =      c_systilt+c_rmstilt*ran_gauss2(three)
-      end if
-      write(outlun,*) 'INFO>  Collimator ',trim(cdb_cName(i)),' jaw 1 has tilt [rad]: ',cdb_cTilt(1,i)
-      write(outlun,*) 'INFO>  Collimator ',trim(cdb_cName(i)),' jaw 2 has tilt [rad]: ',cdb_cTilt(2,i)
-    end do
-
-    do i=1,cdb_nColl
-      if(cdb_cType(i) == cdb_typPrimary) then
-        cdb_cOffset(i) = c_sysoffset_prim + c_rmsoffset_prim*ran_gauss2(three)
-      else
-        cdb_cOffset(i) = c_sysoffset_sec +  c_rmsoffset_sec*ran_gauss2(three)
-      end if
-      write(outlun,*) 'INFO>  Offset: ',trim(cdb_cName(i)),cdb_cOffset(i)
-    end do
-  end if
-  do i=1,cdb_nColl
-    gap_rms_error(i) = c_rmserror_gap * ran_gauss2(three)
-    write(outlun,*) 'INFO>  Gap RMS error: ',trim(cdb_cName(i)),gap_rms_error(i)
-  end do
-
-  ! In case we're using old type jaw fit, this is where we generate the parameters for the new method
-  ! After this, the number of slices is also stored per collimator, and can be extracted again later
-  call cdb_setMasterJawFit(n_slices, smin_slices, smax_slices, recenter1, recenter2, jaw_fit, jaw_ssf)
-
-  ! Creating a file with beta-functions at collimators
-  call f_requestUnit(coll_twissLikeFile,coll_twissLikeUnit)
-  call f_requestUnit(coll_sigmaSetFile, coll_sigmaSetUnit)
-  call f_open(unit=coll_twissLikeUnit,file=coll_twissLikeFile,formatted=.true.,mode="w")
-  call f_open(unit=coll_sigmaSetUnit, file=coll_sigmaSetFile, formatted=.true.,mode="w")
-  write(coll_twissLikeUnit,"(a1,1x,a18,6(1x,a16))") "#",chr_rPad("collimator",18),&
-    "beta_x","beta_y","orb_x","orb_y","nsig","gap_rms_error"
-  write(coll_sigmaSetUnit,"(a1,1x,a18,8(1x,a16))") "#",chr_rPad("collimator",18),&
-    "gap_h1","gap_h2","gap_h3","gap_h4","sig_offset","coll_offset","nsig","gap_rms_error"
-
-  mingap = 20.0_fPrec
-  do i=1,cdb_nColl
-    ! Start searching minimum gap
-    if(cdb_cFound(i) .and. cdb_cLength(i) > zero) then
-      nsig     = cdb_cNSig(i)
-      nsig_err = nsig + gap_rms_error(i)
-
-      ! Jaw 1 on positive side x-axis
-      gap_h1 = nsig_err - sin_mb(cdb_cTilt(1,i))*cdb_cLength(i)/2
-      gap_h2 = nsig_err + sin_mb(cdb_cTilt(1,i))*cdb_cLength(i)/2
-
-      ! Jaw 2 on negative side of x-axis (see change of sign compared
-      ! to above code lines, alos have a look to setting of tilt angle)
-      gap_h3 = nsig_err + sin_mb(cdb_cTilt(2,i))*cdb_cLength(i)/2
-      gap_h4 = nsig_err - sin_mb(cdb_cTilt(2,i))*cdb_cLength(i)/2
-
-      j = cdb_struMap(i) ! The structure index of the collimator
-      if(do_nominal) then
-        bx_dist = cdb_cBx(i)
-        by_dist = cdb_cBy(i)
-      else
-        bx_dist = tbetax(j)
-        by_dist = tbetay(j)
-      end if
-
-      sig_offset = cdb_cOffset(i)/(sqrt(bx_dist**2 * cos_mb(cdb_cRotation(i))**2 + by_dist**2 * sin_mb(cdb_cRotation(i))**2))
-      write(coll_twissLikeUnit,"(a20,5(1x,f16.6),1x,1pe16.9)") cdb_cName(i),&
-        tbetax(j),tbetay(j),torbx(j),torby(j),nsig,gap_rms_error(i)
-      write(coll_sigmaSetUnit,"(a20,7(1x,f16.6),1x,1pe16.9)") cdb_cName(i),&
-        gap_h1,gap_h2,gap_h3,gap_h4,sig_offset,cdb_cOffset(i),nsig,gap_rms_error(i)
-
-      if((gap_h1 + sig_offset) <= mingap) then
-        mingap         = gap_h1 + sig_offset
-        coll_mingap_id = i
-        coll_mingap    = cdb_cName(i)
-      else if((gap_h2 + sig_offset) <= mingap) then
-        mingap         = gap_h2 + sig_offset
-        coll_mingap_id = i
-        coll_mingap    = cdb_cName(i)
-      else if((gap_h3 - sig_offset) <= mingap) then
-        mingap         = gap_h3 - sig_offset
-        coll_mingap_id = i
-        coll_mingap    = cdb_cName(i)
-      else if((gap_h4 - sig_offset) <= mingap) then
-        mingap         = gap_h4 - sig_offset
-        coll_mingap_id = i
-        coll_mingap    = cdb_cName(i)
-      end if
-    end if
-  end do
-
-  write(coll_twissLikeUnit,"(a)")      ""
-  write(coll_twissLikeUnit,"(a)")      "# INFO"
-  write(coll_twissLikeUnit,"(a)")      "# MinGap Collimator:  '"//trim(coll_mingap)//"'"
-  write(coll_twissLikeUnit,"(a,i0)")   "# MinGap Coll ID:     ",coll_mingap_id
-  write(coll_twissLikeUnit,"(a,f0.6)") "# Min Gap Sigma:      ",mingap
-  write(coll_twissLikeUnit,"(a,i0)")   "# Pencil Initial:     ",ipencil
-
-  write(coll_sigmaSetUnit, "(a)")      ""
-  write(coll_sigmaSetUnit, "(a)")      "# INFO"
-  write(coll_sigmaSetUnit, "(a)")      "# MinGap Collimator:  '"//trim(coll_mingap)//"'"
-  write(coll_sigmaSetUnit, "(a,i0)")   "# MinGap Coll ID:     ",coll_mingap_id
-  write(coll_sigmaSetUnit, "(a,f0.6)") "# Min Gap Sigma:      ",mingap
-  write(coll_sigmaSetUnit, "(a,i0)")   "# Pencil Initial:     ",ipencil
-
-  ! if pencil beam is used and on collimator with smallest gap the
-  ! distribution should be generated, set ipencil to coll_mingap_id
-  if(ipencil > 0 .and. do_mingap) then
-    ipencil = coll_mingap_id
-  end if
-  write(coll_twissLikeUnit,"(a,i0)")    "# Pencil (do_mingap): ",ipencil
-  write(coll_sigmaSetUnit, "(a,i0)")    "# Pencil (do_mingap): ",ipencil
-  write(coll_sigmaSetUnit, "(a,i0)")    "# Seed before reinit: ",rnd_seed
-
-  call f_close(coll_twissLikeUnit)
-  call f_close(coll_sigmaSetUnit)
-
-  ! This sets the random geenrator back to the default seed rather than the one used for coll gaps.
-  ! However, this doesn't actually restore the random generator to the state it would have been in without the
-  ! coll gaps errors being generated as rndm5() will extract 30000 new random numbers from ranlux and discard
-  ! the ones it already holds and would have used.
-  ! Alternatively, we can use ranecu instead, which is capable of continuing a chain of random numbers from
-  ! a given set of seeds.
-  ! It is probably unnecessary to use different random seeds here in the first place.
-  call rluxgo(3, rnd_seed, 0, 0)
-  dummy = rndm5(1) ! Reset rndm5 too
-
-end subroutine collimate_start
 
 ! ================================================================================================ !
 !  V.K. Berglyd Olsen, BE-ABP-HSS
@@ -3566,6 +3461,91 @@ subroutine collimate_end_turn
   call collimate_end_element
 
 end subroutine collimate_end_turn
+
+! ================================================================================================ !
+!  Find the smalles gap, and also write sigmasettings.out
+!  Updated: 2019-10-10
+! ================================================================================================ !
+subroutine coll_getMinGapID(minGapID)
+
+  use coll_db
+  use coll_common
+  use mod_units
+  use string_tools
+  use mathlib_bouncer
+  use mod_common_track
+
+  integer, intent(out) :: minGapID
+
+  integer i,j
+  real(kind=fPrec) gapH1,gapH2,gapH3,gapH4,minGap,nSigErr,sigOffset
+
+  call f_requestUnit(coll_sigmaSetFile,coll_sigmaSetUnit)
+  call f_open(unit=coll_sigmaSetUnit,file=coll_sigmaSetFile,formatted=.true.,mode="w")
+  write(coll_sigmaSetUnit,"(a1,1x,a18,12(1x,a16))") "#",chr_rPad("collimator",18),&
+    "gap_h1","gap_h2","gap_h3","gap_h4","sig_offset","coll_offset","nsig",        &
+    "gap_rms_error","beta_x","beta_y","orb_x","orb_y"
+
+  minGap = 20.0_fPrec
+  do i=1,cdb_nColl
+    ! Start searching minimum gap
+    if(cdb_cFound(i) .and. cdb_cLength(i) > zero) then
+      nSigErr = cdb_cNSig(i) + gap_rms_error(i)
+
+      ! Jaw 1 on positive side x-axis
+      gapH1 = nSigErr - sin_mb(cdb_cTilt(1,i))*cdb_cLength(i)/2
+      gapH2 = nSigErr + sin_mb(cdb_cTilt(1,i))*cdb_cLength(i)/2
+
+      ! Jaw 2 on negative side of x-axis (see change of sign compared
+      ! to above code lines, alos have a look to setting of tilt angle)
+      gapH3 = nSigErr + sin_mb(cdb_cTilt(2,i))*cdb_cLength(i)/2
+      gapH4 = nSigErr - sin_mb(cdb_cTilt(2,i))*cdb_cLength(i)/2
+
+      j = cdb_struMap(i) ! The structure index of the collimator
+      if(do_nominal) then
+        bx_dist = cdb_cBx(i)
+        by_dist = cdb_cBy(i)
+      else
+        bx_dist = tbetax(j)
+        by_dist = tbetay(j)
+      end if
+
+      sigOffset = cdb_cOffset(i)/(sqrt(bx_dist**2 * cos_mb(cdb_cRotation(i))**2 + by_dist**2 * sin_mb(cdb_cRotation(i))**2))
+      write(coll_sigmaSetUnit,"(a20,7(1x,f16.6),1x,1pe16.9,4(1x,f16.6))") cdb_cName(i),&
+        gapH1,gapH2,gapH3,gapH4,sigOffset,cdb_cOffset(i),cdb_cNSig(i),gap_rms_error(i),&
+        tbetax(j),tbetay(j),torbx(j),torby(j)
+
+      if((gapH1 + sigOffset) <= minGap) then
+        minGap   = gapH1 + sigOffset
+        minGapID = i
+      else if((gapH2 + sigOffset) <= minGap) then
+        minGap   = gapH2 + sigOffset
+        minGapID = i
+      else if((gapH3 - sigOffset) <= minGap) then
+        minGap   = gapH3 - sigOffset
+        minGapID = i
+      else if((gapH4 - sigOffset) <= minGap) then
+        minGap   = gapH4 - sigOffset
+        minGapID = i
+      end if
+    end if
+  end do
+
+  write(coll_sigmaSetUnit, "(a)")      ""
+  write(coll_sigmaSetUnit, "(a)")      "# SUMMARY"
+  write(coll_sigmaSetUnit, "(a)")      "# MinGap Collimator:  '"//trim(cdb_cName(minGapID))//"'"
+  write(coll_sigmaSetUnit, "(a,i0)")   "# MinGap Coll ID:     ",minGapID
+  write(coll_sigmaSetUnit, "(a,f0.6)") "# Min Gap Sigma:      ",minGap
+  write(coll_sigmaSetUnit, "(a,i0)")   "# Pencil Initial:     ",ipencil
+
+  if(ipencil > 0 .and. do_mingap) then
+    write(coll_sigmaSetUnit, "(a,i0)") "# Pencil (do_mingap): ",minGapID
+  end if
+  write(coll_sigmaSetUnit, "(a,i0)") "# Seed before reinit: ",rnd_seed
+
+  call f_close(coll_sigmaSetUnit)
+
+end subroutine coll_getMinGapID
 
 #ifdef HDF5
 subroutine coll_hdf5_writeCollScatter(icoll,iturn,ipart,nabs,dp,dx,dy)
