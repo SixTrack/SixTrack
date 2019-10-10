@@ -1,2 +1,2 @@
-     turn    block    bezid bez                                                      slos   partid          x (m)             xp          y (m)             yp  P tot (GeV/c)        dE (eV)         dT (s)        A        Z        Q        PDGid
+#    turn    block    bezid bez                                                      slos   partid           x[m]             xp           y[m]             yp   P_tot[GeV/c]         dE[eV]          dT[s]        A        Z        Q        PDGid
     99892     7990       46 mb.a8r3.b1..1                                     18893.16873        1 -1.2344105E+00 -1.0659737E-01 -1.3874941E+00 -6.8933895E-02  4.9995166E+02  5.5655331E+06  5.0084715E-10        1        1        1         2212

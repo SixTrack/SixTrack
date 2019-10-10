@@ -1921,19 +1921,17 @@ subroutine collimate_trackThin(stracki, isColl)
     gammax = (one + talphax(ie)**2)/tbetax(ie)
     gammay = (one + talphay(ie)**2)/tbetay(ie)
 
+    if(firstrun .and. iturn == 1) then
+      sum_ax(ie) = zero
+      sum_ay(ie) = zero
+    end if
+
     do j=1,napx
       xj  = (xv1(j)-torbx(ie))/c1e3
       xpj = (yv1(j)-torbxp(ie))/c1e3
       yj  = (xv2(j)-torby(ie))/c1e3
       ypj = (yv2(j)-torbyp(ie))/c1e3
       pj  = ejv(j)/c1e3
-
-      if(firstrun) then
-        if(iturn == 1 .and. j == 1) then
-          sum_ax(ie) = zero
-          sum_ay(ie) = zero
-        end if
-      end if
 
       if(part_abs_pos(j) == 0 .and. part_abs_turn(j) == 0) then
         nspx         = sqrt(abs(gammax*(xj)**2 + two*talphax(ie)*xj*xpj + tbetax(ie)*xpj**2)/myemitx0_collgap)
@@ -1979,17 +1977,17 @@ subroutine collimate_start_collimator(stracki)
     gammax = (one + talphax(ie)**2)/tbetax(ie)
     gammay = (one + talphay(ie)**2)/tbetay(ie)
 
+    if(iturn == 1) then
+      sum_ax(ie) = zero
+      sum_ay(ie) = zero
+    end if
+
     do j=1,napx
       xj  = (xv1(j)-torbx(ie))/c1e3
       xpj = (yv1(j)-torbxp(ie))/c1e3
       yj  = (xv2(j)-torby(ie))/c1e3
       ypj = (yv2(j)-torbyp(ie))/c1e3
       pj  = ejv(j)/c1e3
-
-      if(iturn == 1 .and. j == 1) then
-        sum_ax(ie) = zero
-        sum_ay(ie) = zero
-      end if
 
       ! DRIFT PART
       if(stracki == zero) then
@@ -2098,7 +2096,9 @@ subroutine collimate_do_collimator(stracki)
     by_dist = tbetay(ie) * scale_by / scale_by0
   end if
 
-!++  Write beam ellipse at selected collimator
+  ! Write beam ellipse at selected collimator
+  ! Checking lower case of collimator name against name_sel (which is already lower case)
+  ! This is to ensure compatibility with old style COLL block which used upper case collimator name
   if(chr_toLower(cdb_cName(icoll)) == name_sel .and. do_select) then
     do j=1,napx
       write(coll_ellipseUnit,"(1x,i8,6(1x,e15.7),3(1x,i4,1x,i4))") partID(j),xv1(j),xv2(j),yv1(j),yv2(j), &
@@ -2956,8 +2956,8 @@ end do
 !++  - This is switched on with the DO_SELECT flag in the input file.
 !++  - Note that the part_select(j) flag defaults to 1 for all particles.
 
-! should name_sel(1:11) extended to allow longer names as done for
-! coll the coll_ellipse.dat file !!!!!!!!
+  ! Checking lower case of collimator name against name_sel (which is already lower case)
+  ! This is to ensure compatibility with old style COLL block which used upper case collimator name
   if(chr_toLower(cdb_cName(icoll)) == name_sel .and. iturn == 1) then
     num_selhit = 0
     num_surhit = 0
@@ -3828,17 +3828,18 @@ subroutine collimate_end_turn
   end if
 
   if(firstrun) then
+
+    if(iturn == 1) then
+      sum_ax(ie) = zero
+      sum_ay(ie) = zero
+    end if
+
     do j=1,napx
       xj  = (xv1(j)-torbx(ie)) /c1e3
       xpj = (yv1(j)-torbxp(ie))/c1e3
       yj  = (xv2(j)-torby(ie)) /c1e3
       ypj = (yv2(j)-torbyp(ie))/c1e3
       pj  = ejv(j)/c1e3
-
-      if(iturn == 1 .and. j == 1) then
-        sum_ax(ie) = zero
-        sum_ay(ie) = zero
-      end if
 
       if(tbetax(ie) > 0.) then
         gammax = (one + talphax(ie)**2)/tbetax(ie)
