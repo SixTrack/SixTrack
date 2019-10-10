@@ -28,7 +28,7 @@ subroutine daten
 
   use mod_dist,  only : dist_enable, dist_parseInputLine
   use scatter,   only : scatter_active,scatter_debug,scatter_parseInputLine
-  use dynk,      only : dynk_enabled,dynk_debug,dynk_dumpdata,dynk_inputsanitycheck,dynk_allocate,dynk_parseInputLine
+  use dynk,      only : dynk_enabled,dynk_inputSanityCheck,dynk_allocate,dynk_parseInputLine
   use fma,       only : fma_parseInputLine, fma_allocate
   use dump,      only : dump_parseInputLine,dump_parseInputDone
   use zipf,      only : zipf_parseInputLine
@@ -752,9 +752,8 @@ subroutine daten
     if(openBlock) then
       call dynk_allocate
     elseif(closeBlock) then
-      if(dynk_debug) call dynk_dumpdata
       dynk_enabled = .true.
-      call dynk_inputsanitycheck
+      call dynk_inputSanityCheck
     else
       call dynk_parseInputLine(inLine,inErr)
       if(inErr) goto 9999
