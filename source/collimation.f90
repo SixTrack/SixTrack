@@ -3460,17 +3460,18 @@ subroutine collimate_end_element
 #endif
 
   if(firstrun) then
+
+    if(iturn == 1) then
+      sum_ax(ie) = zero
+      sum_ay(ie) = zero
+    end if
+
     do j = 1, napx
       xj  = (xv1(j)-torbx(ie)) /c1e3
       xpj = (yv1(j)-torbxp(ie))/c1e3
       yj  = (xv2(j)-torby(ie)) /c1e3
       ypj = (yv2(j)-torbyp(ie))/c1e3
       pj  = ejv(j)/c1e3
-
-      if(iturn.eq.1.and.j.eq.1) then
-        sum_ax(ie) = zero
-        sum_ay(ie) = zero
-      endif
 
       if(tbetax(ie).gt.zero) then
         gammax = (one + talphax(ie)**2)/tbetax(ie)
