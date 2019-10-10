@@ -20,9 +20,9 @@ module checkpoint_restart
   logical,           public,  save :: cr_pntRead(cr_nPoint)  = .false.
 
   ! Logging Files
-  character(len=13), public,  save :: cr_errFile  = "cr_stderr.tmp"
-  character(len=13), public,  save :: cr_outFile  = "cr_stdout.tmp"
-  character(len=13), public,  save :: cr_logFile  = "cr_status.log"
+  character(len=13), parameter     :: cr_errFile  = "cr_stderr.tmp"
+  character(len=13), parameter     :: cr_outFile  = "cr_stdout.tmp"
+  character(len=13), parameter     :: cr_logFile  = "cr_status.log"
   integer,           parameter     :: cr_errUnit  = 91
   integer,           parameter     :: cr_outUnit  = 92
   integer,           parameter     :: cr_logUnit  = 93
@@ -313,7 +313,7 @@ subroutine crcheck
   use mod_common_main
   use mod_version
 
-  use dynk,       only : dynk_enabled, dynk_noDynkSets,dynk_crcheck_readdata,dynk_crcheck_positionFiles
+  use dynk,       only : dynk_enabled,dynk_crcheck_readdata,dynk_crcheck_positionFiles
   use dump,       only : dump_crcheck_readdata,dump_crcheck_positionFiles
   use aperture,   only : limifound, aper_crcheck_readdata, aper_crcheck_positionFiles
   use scatter,    only : scatter_active, scatter_crcheck_readdata, scatter_crcheck_positionFiles
@@ -508,8 +508,8 @@ subroutine crcheck
 
   call cr_positionTrackFiles
 
-  if(dynk_enabled .and. .not.dynk_noDynkSets) then
-    write(crlog,"(a)") "CR_CHECK> Repositioning dynksets.dat"
+  if(dynk_enabled) then
+    write(crlog,"(a)") "CR_CHECK> Repositioning DYNK files"
     flush(crlog)
     call dynk_crcheck_positionFiles
   end if

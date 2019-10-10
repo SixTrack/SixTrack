@@ -318,6 +318,7 @@ program mainda
       call mydaini(2,2,5,2,5,1)
       nlin=nlinoo
     end if
+    tas(:,:) = zero ! Make sure all values are initialised
     do i=1,4
       do j=1,4
         tas(i,j)=tasm(i,j)
