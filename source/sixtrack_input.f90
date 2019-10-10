@@ -1816,7 +1816,7 @@ subroutine sixin_parseInputLineSYNC(inLine, iLine, iErr)
   logical,          intent(inout) :: iErr
 
   character(len=:), allocatable   :: lnSplit(:)
-  real(kind=fPrec) cosy,halc,halc2,halc3,qigam,pmat,qbet
+  real(kind=fPrec) cosy,halc,halc2,halc3,qigam,qbet
   integer          nSplit,i,ix
   logical          spErr
 
@@ -1869,11 +1869,6 @@ subroutine sixin_parseInputLineSYNC(inLine, iLine, iErr)
     end if
     if(iErr) return
 
-    if(abs(pma-pmap) <= c1m1) pmat = pmap
-    if(abs(pma-pmae) <= c1m1) pmat = pmae
-    if(pmat /= pmap .and. pmat /= pmae) then
-      write(lout,"(a)") "SYNC> WARNING Particle is neither proton nor electron"
-    endif
     if(pma < pieni) then
       write(lerr,"(a)") "SYNC> ERROR Kinetic energy of the particle is less than or equal to zero"
       iErr = .true.

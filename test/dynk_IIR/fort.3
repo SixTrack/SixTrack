@@ -14,94 +14,95 @@ TRACKING PARAMETERS-----------------------------------------------------
 NEXT
 
 INITIAL COORDINATES-----------------------------------------------------
-    2 0.0 0.0 0.333332 0
-0.0
-0.0
-0.0
-0.0
-0.0
-0.0
-0.0
-.000001
-0.0
-0.0
-0.0
-0.0
-7000000.0
-7000000.0
-7000000.0
+  2 0.0 0.0 0.333332 0
+  0.0
+  0.0
+  0.0
+  0.0
+  0.0
+  0.0
+  0.0
+  .000001
+  0.0
+  0.0
+  0.0
+  0.0
+  7000000.0
+  7000000.0
+  7000000.0
 NEXT
 
 ITERATION-ACCURACY------------------------------------------------------
-    50 0.10E-13 0.10E-14
-    10 0.10E-09 0.10E-09
-    10 0.10E-04 0.10E-05
-       0.10E-07 0.10E-11 0.10E-09
+  50 0.10E-13 0.10E-14
+  10 0.10E-09 0.10E-09
+  10 0.10E-04 0.10E-05
+  0.10E-07 0.10E-11 0.10E-09
 NEXT
 
 LINEAR OPTICS
-    ELEMENT  0 1 1 3.5 3.5
+  ELEMENT  0 1 1 3.5 3.5
 NEXT
 
 BEAM
- 0.110E+12 3.5 3.5  0.0755E+00  0.4716E-03 1 1 1
+  0.110E+12 3.5 3.5  0.0755E+00  0.4716E-03 1 1 1
 NEXT
 
 SYNC
-35640 .0003225 16 0 26658.864 938.2796 1
- 1 1
+  35640 .0003225 16 0 26658.864 938.2796 1
+  1 1
 NEXT
 
 DYNK--------------------------------------------------------------------
-    DEBUG
-    ! Setting up the crabs (since we are starting tracking inside the crab bump)
-    FUN off CONST 0.0
-    FUN on_1a CONST 2.467571280
-    FUN on_1b CONST 2.467571280
-    FUN on_1c CONST 2.467571280
-    FUN on_1d CONST 2.467571280
-    FUN on_2a CONST 2.421832080
-    FUN on_2b CONST 2.421832080
-    FUN on_2c CONST 2.421832080
-    FUN on_2d CONST 2.421832080
-    !-----------------------------------
-    SET CRAB1A voltage on_1a 1 -1 0
-    SET CRAB1B voltage on_1b 1 -1 0
-    SET CRAB1C voltage on_1c 1 -1 0
-    SET CRAB1D voltage on_1d 1 -1 0
-    !-----------------------------------
-    SET CRAB2A voltage off 1 1 0
-    SET CRAB2B voltage off 1 1 0
-    SET CRAB2C voltage off 1 1 0
-    SET CRAB2D voltage off 1 1 0
-    !-----------------------------------
-    SET CRAB2A voltage on_2a 2 -1 0
-    SET CRAB2B voltage on_2b 2 -1 0
-    SET CRAB2C voltage on_2c 2 -1 0
-    SET CRAB2D voltage on_2d 2 -1 0
-    !-----------------------------------
-    ! CRAB detuning:
-    FUN freq0 CONST 400.7900000e+00
-    FUN deltaFreq LIN 100 0
-    FUN freq ADD deltaFreq freq0
-    ! Convert the frequencies from MHz to radians/turn/Hz
-    FUN HzInvTurnFactor CONST 5.587288765e-4
-    FUN deltaPhi MUL deltaFreq HzInvTurnFactor
-    ! Phi_{turn} = deltaW + Phi_{turn-1}
-    FUN phi_c2a IIR 1 IIRcoeffs.txt deltaPhi
-    FUN phi_c2b IIR 1 IIRcoeffs.txt deltaPhi
-    FUN phi_c2c IIR 1 IIRcoeffs.txt deltaPhi
-    FUN phi_c2d IIR 1 IIRcoeffs.txt deltaPhi
-    !-----------------------------------
-    ! Set the phases
-    SET CRAB2A phase phi_c2a 1 -1 0
-    SET CRAB2B phase phi_c2b 1 -1 0
-    SET CRAB2C phase phi_c2c 1 -1 0
-    SET CRAB2D phase phi_c2d 1 -1 0
+  DEBUG
+  DYNKSETS
+  ! Setting up the crabs (since we are starting tracking inside the crab bump)
+  FUN off CONST 0.0
+  FUN on_1a CONST 2.467571280
+  FUN on_1b CONST 2.467571280
+  FUN on_1c CONST 2.467571280
+  FUN on_1d CONST 2.467571280
+  FUN on_2a CONST 2.421832080
+  FUN on_2b CONST 2.421832080
+  FUN on_2c CONST 2.421832080
+  FUN on_2d CONST 2.421832080
+
+  SET CRAB1A voltage on_1a 1 -1 0
+  SET CRAB1B voltage on_1b 1 -1 0
+  SET CRAB1C voltage on_1c 1 -1 0
+  SET CRAB1D voltage on_1d 1 -1 0
+
+  SET CRAB2A voltage off 1 1 0
+  SET CRAB2B voltage off 1 1 0
+  SET CRAB2C voltage off 1 1 0
+  SET CRAB2D voltage off 1 1 0
+
+  SET CRAB2A voltage on_2a 2 -1 0
+  SET CRAB2B voltage on_2b 2 -1 0
+  SET CRAB2C voltage on_2c 2 -1 0
+  SET CRAB2D voltage on_2d 2 -1 0
+
+  ! CRAB detuning:
+  FUN freq0 CONST 400.7900000e+00
+  FUN deltaFreq LIN 100 0
+  FUN freq ADD deltaFreq freq0
+  ! Convert the frequencies from MHz to radians/turn/Hz
+  FUN HzInvTurnFactor CONST 5.587288765e-4
+  FUN deltaPhi MUL deltaFreq HzInvTurnFactor
+  ! Phi_{turn} = deltaW + Phi_{turn-1}
+  FUN phi_c2a IIR 1 IIRcoeffs.txt deltaPhi
+  FUN phi_c2b IIR 1 IIRcoeffs.txt deltaPhi
+  FUN phi_c2c IIR 1 IIRcoeffs.txt deltaPhi
+  FUN phi_c2d IIR 1 IIRcoeffs.txt deltaPhi
+
+  ! Set the phases
+  SET CRAB2A phase phi_c2a 1 -1 0
+  SET CRAB2B phase phi_c2b 1 -1 0
+  SET CRAB2C phase phi_c2c 1 -1 0
+  SET CRAB2D phase phi_c2d 1 -1 0
 NEXT
 
 DUMP
-    ip1 1 660 2 IP1_DUMP.dat
+  ip1 1 0 2 IP1_DUMP.dat
 NEXT
 
 ENDE

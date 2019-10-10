@@ -374,7 +374,7 @@ The DYNamic Kicks module~\cite{DYNKpaper, DYNKpaper2} allows time-dependent modi
 The supported elements and attributes are listed in Table~\ref{tab:DYNK_SET}.
 The settings can be computed on-the fly using several functions, loaded from input files or a combination, as described in Table~\ref{tab:DYNK_FUN}.
 
-Further, unless explicitly switched off using a \texttt{NOFILE} statement, \texttt{DYNK} produces an output file \texttt{dynksets.dat}.
+If the \texttt{DYNKSETS} flag is present, \texttt{DYNK} produces an output file \texttt{dynksets.dat}.
 This file contains the setting of all elements and attributes for which \texttt{DYNK} is active.
 It is written in all turns of the simulation, even if \texttt{DYNK} is not active in that exact turn.
 
@@ -406,8 +406,6 @@ The functions may thus be evaluated multiple times in one turn (if used by multi
 The functions are always evaluated as a function of the current turn number $t$, which may be shifted by a turn-shift specified in a \texttt{SET} statement (\ref{DYNK:SET}).
 
 Function names have a maximum length of 20 characters.
-
-%\pagebreak
 
 \begin{center}
 \small
@@ -750,23 +748,23 @@ Because of this, SixTrack does not accept a real single element in \texttt{fort.
 
 \subsection{Additional Flags}
 
-\paragraph{Flag:} \texttt{NOFILE}\\
+\paragraph{Flag} \texttt{DYNKSETS}\\
 
-The presence of this statement in a \texttt{DYNK} block switches off the normal writing of the output file \texttt{dynksets.dat} in every line, instead producing a file only containing the message
-\begin{cverbatim}
-### DYNK file output was disabled with flag NOFILE in fort.3 ###
-\end{cverbatim}
+The presence of this statement in a \texttt{DYNK} block switches on the writing of the output file \texttt{dynksets.dat} in every line.
 This can be useful to save disk space in very long simulations.
 
-\paragraph{Flag:} \texttt{DEBU}
+This flag replaces the \texttt{NOFILE} flag that in version 5.3.4 and earlier was used to disable the writing of \texttt{dynksets.dat}.
+The file is now disabled by default, and has to be explicitly requested.
+
+\paragraph{Flag} \texttt{DEBUG}
 
 This statement switches on extra ``debugging'' output from \texttt{DYNK}.
 This can be useful if debugging the code or if debugging the input.
 
 \subsection{Output File \texttt{dynksets.dat}}
 
-When a \texttt{DYNK} block is present in the input file, a file \texttt{dynksets.dat} is created and in the current working directory.
-Unless a \texttt{NOFILE} statement is present, this file contains first a header
+When the \texttt{DYNKSETS} flag is present in the \texttt{DYNK} block, a file \texttt{dynksets.dat} is created and in the current working directory.
+This file contains first a header
 \begin{cverbatim}
 # turn element attribute SETidx funname value
 \end{cverbatim}
@@ -783,27 +781,25 @@ One use of the \texttt{DYNK} block is to replace the functionality of the \textt
 The \texttt{FUN} type \texttt{COSF\_RIPP} is provided for exactly this purpose, and provides an exact replacement.
 As an example, the \texttt{RIPP} block in the SixTest test-case prob1 looks like (slightly reduced in size):
 \begin{cverbatim}
-RIPPLE OF POWER SUPPLIES------------------------------------------------
-         dmqx1f50l5+2      3.2315D-10    224.9
-         dmqx2af50l5+2    -3.2315D-10    224.9
-         dmqx1f10mel5+2    2.5246D-16    0.0011245
+RIPPLE OF POWER SUPPLIES
+  dmqx1f50l5+2      3.2315D-10    224.9
+  dmqx2af50l5+2    -3.2315D-10    224.9
+  dmqx1f10mel5+2    2.5246D-16    0.0011245
 NEXT
 \end{cverbatim}
 This can be replaced by the following:
 \begin{cverbatim}
 DYNK
-NOFILE
-FUN RIPP-dmqx1f50l5+2 COSF_RIPP 3.2315D-10 224.9 0.0
-SET dmqx1f50l5+2 average_ms RIPP-dmqx1f50l5+2 1 -1 0
-FUN RIPP-dmqx2af50l5+2 COSF_RIPP -3.2315D-10 224.9 0.0
-SET dmqx2af50l5+2 average_ms RIPP-dmqx2af50l5+2 1 -1 0
-FUN RIPP-dmqx1f20kl5+2 COSF_RIPP 2.5246D-12 0.56225 0.0
-SET dmqx1f20kl5+2 average_ms RIPP-dmqx1f20kl5+2 1 -1 0
+  FUN RIPP-dmqx1f50l5+2 COSF_RIPP 3.2315D-10 224.9 0.0
+  SET dmqx1f50l5+2 average_ms RIPP-dmqx1f50l5+2 1 -1 0
+  FUN RIPP-dmqx2af50l5+2 COSF_RIPP -3.2315D-10 224.9 0.0
+  SET dmqx2af50l5+2 average_ms RIPP-dmqx2af50l5+2 1 -1 0
+  FUN RIPP-dmqx1f20kl5+2 COSF_RIPP 2.5246D-12 0.56225 0.0
+  SET dmqx1f20kl5+2 average_ms RIPP-dmqx1f20kl5+2 1 -1 0
 NEXT
 \end{cverbatim}
 Here, each \texttt{RIPP} data line is replaced with two lines, one FUN statement for generating the function, and one \texttt{SET} statement for applying the value.
-Note that the \texttt{SET} statements have an end-time \texttt{-1}, meaning it is used until the end of the simulation.
-Also note the presence of the \texttt{NOFILE} flag, which is used to not generate a potentially very large (for very long simulations) \texttt{dynkfile.dat} output file.
+Note that the \texttt{SET} statements have an end time \texttt{-1}, meaning it is used until the end of the simulation.
 
 \paragraph{Starting tracking inside a bump}~\\
 
@@ -814,19 +810,19 @@ The crab cavities opening the bump are called \texttt{CRAB\_IP1\_L1$\cdots$4}, w
 The \texttt{DYNK} block for this looks like:
 \begin{cverbatim}
 DYNK
-FUN zero CONST 0.0
-FUN CV_1R1 Get CRAB_IP1_R1 voltage
-FUN CV_1R2 GET CRAB_IP1_R2 voltage
-FUN CV_1R3 GET CRAB_IP1_R3 voltage
-FUN CV_1R4 GET CRAB_IP1_R4 voltage
-SET CRAB_IP1_R1 voltage zero 1 1 0
-SET CRAB_IP1_R2 voltage zero 1 1 0
-SET CRAB_IP1_R3 voltage zero 1 1 0
-SET CRAB_IP1_R4 voltage zero 1 1 0
-SET CRAB_IP1_R1 voltage CV_1R1 2 2 0
-SET CRAB_IP1_R2 voltage CV_1R2 2 2 0
-SET CRAB_IP1_R3 voltage CV_1R3 2 2 0
-SET CRAB_IP1_R4 voltage CV_1R4 2 2 0
+  FUN zero CONST 0.0
+  FUN CV_1R1 Get CRAB_IP1_R1 voltage
+  FUN CV_1R2 GET CRAB_IP1_R2 voltage
+  FUN CV_1R3 GET CRAB_IP1_R3 voltage
+  FUN CV_1R4 GET CRAB_IP1_R4 voltage
+  SET CRAB_IP1_R1 voltage zero 1 1 0
+  SET CRAB_IP1_R2 voltage zero 1 1 0
+  SET CRAB_IP1_R3 voltage zero 1 1 0
+  SET CRAB_IP1_R4 voltage zero 1 1 0
+  SET CRAB_IP1_R1 voltage CV_1R1 2 2 0
+  SET CRAB_IP1_R2 voltage CV_1R2 2 2 0
+  SET CRAB_IP1_R3 voltage CV_1R3 2 2 0
+  SET CRAB_IP1_R4 voltage CV_1R4 2 2 0
 NEXT
 \end{cverbatim}
 
@@ -854,50 +850,51 @@ It also demonstrates how functions can be chained together, making more complica
 Some of the resulting functions are shown in Figure~\ref{fig:DYNK_fail}, and the \texttt{DYNK} block here looks like:
 \begin{cverbatim}
 DYNK
-/DEBUG
-FUN zero CONST 0.0
-FUN CV_R1 GET CRAB_IP1_R1 voltage
-FUN CV_R2 GET CRAB_IP1_R2 voltage
-FUN CV_R3 GET CRAB_IP1_R3 voltage
-FUN CV_R4 GET CRAB_IP1_R4 voltage
-FUN CV_L  GET CRAB_IP1_L1 voltage
-FUN ramp LIN 0.02 0
-FUN ramp_R1 MUL CV_R1 ramp
-FUN ramp_R2 MUL CV_R2 ramp
-FUN ramp_R3 MUL CV_R3 ramp
-FUN ramp_R4 MUL CV_R4 ramp
-FUN ramp_L  MUL CV_L  ramp
-SET CRAB_IP1_R1 voltage zero 1 10 0
-SET CRAB_IP1_R2 voltage zero 1 10 0
-SET CRAB_IP1_R3 voltage zero 1 10 0
-SET CRAB_IP1_R4 voltage zero 1 10 0
-SET CRAB_IP1_L1 voltage zero 1 9 0
-SET CRAB_IP1_L2 voltage zero 1 9 0
-SET CRAB_IP1_L3 voltage zero 1 9 0
-SET CRAB_IP1_L4 voltage zero 1 9 0
-/
-SET CRAB_IP1_R1 voltage ramp_R1 11 61 -11
-SET CRAB_IP1_R2 voltage ramp_R2 11 61 -11
-SET CRAB_IP1_R3 voltage ramp_R3 11 61 -11
-SET CRAB_IP1_R4 voltage ramp_R4 11 61 -11
-SET CRAB_IP1_L1 voltage ramp_L 10 60 -10
-SET CRAB_IP1_L2 voltage ramp_L 10 60 -10
-SET CRAB_IP1_L3 voltage ramp_L 10 60 -10
-SET CRAB_IP1_L4 voltage ramp_L 10 60 -10
-/
-/Voltage decay and detuning
-FUN expCore LIN -0.05 0.0
-FUN decay EXP expCore
-FUN decayScaled MUL decay CV_L
-SET CRAB_IP1_L1 voltage decayScaled 70 100 -70
-SET CRAB_IP1_L2 voltage decayScaled 70 100 -70
-SET CRAB_IP1_L3 voltage decayScaled 70 100 -70
-SET CRAB_IP1_L4 voltage decayScaled 70 100 -70
-FUN phasedrift LIN 0.3141592654 0.0
-SET CRAB_IP1_L1 phase phasedrift 70 100 -70
-SET CRAB_IP1_L2 phase phasedrift 70 100 -70
-SET CRAB_IP1_L3 phase phasedrift 70 100 -70
-SET CRAB_IP1_L4 phase phasedrift 70 100 -70
+  DEBUG
+
+  FUN zero CONST 0.0
+  FUN CV_R1 GET CRAB_IP1_R1 voltage
+  FUN CV_R2 GET CRAB_IP1_R2 voltage
+  FUN CV_R3 GET CRAB_IP1_R3 voltage
+  FUN CV_R4 GET CRAB_IP1_R4 voltage
+  FUN CV_L  GET CRAB_IP1_L1 voltage
+  FUN ramp LIN 0.02 0
+  FUN ramp_R1 MUL CV_R1 ramp
+  FUN ramp_R2 MUL CV_R2 ramp
+  FUN ramp_R3 MUL CV_R3 ramp
+  FUN ramp_R4 MUL CV_R4 ramp
+  FUN ramp_L  MUL CV_L  ramp
+  SET CRAB_IP1_R1 voltage zero 1 10 0
+  SET CRAB_IP1_R2 voltage zero 1 10 0
+  SET CRAB_IP1_R3 voltage zero 1 10 0
+  SET CRAB_IP1_R4 voltage zero 1 10 0
+  SET CRAB_IP1_L1 voltage zero 1 9 0
+  SET CRAB_IP1_L2 voltage zero 1 9 0
+  SET CRAB_IP1_L3 voltage zero 1 9 0
+  SET CRAB_IP1_L4 voltage zero 1 9 0
+
+  SET CRAB_IP1_R1 voltage ramp_R1 11 61 -11
+  SET CRAB_IP1_R2 voltage ramp_R2 11 61 -11
+  SET CRAB_IP1_R3 voltage ramp_R3 11 61 -11
+  SET CRAB_IP1_R4 voltage ramp_R4 11 61 -11
+  SET CRAB_IP1_L1 voltage ramp_L 10 60 -10
+  SET CRAB_IP1_L2 voltage ramp_L 10 60 -10
+  SET CRAB_IP1_L3 voltage ramp_L 10 60 -10
+  SET CRAB_IP1_L4 voltage ramp_L 10 60 -10
+
+  ! Voltage decay and detuning
+  FUN expCore LIN -0.05 0.0
+  FUN decay EXP expCore
+  FUN decayScaled MUL decay CV_L
+  SET CRAB_IP1_L1 voltage decayScaled 70 100 -70
+  SET CRAB_IP1_L2 voltage decayScaled 70 100 -70
+  SET CRAB_IP1_L3 voltage decayScaled 70 100 -70
+  SET CRAB_IP1_L4 voltage decayScaled 70 100 -70
+  FUN phasedrift LIN 0.3141592654 0.0
+  SET CRAB_IP1_L1 phase phasedrift 70 100 -70
+  SET CRAB_IP1_L2 phase phasedrift 70 100 -70
+  SET CRAB_IP1_L3 phase phasedrift 70 100 -70
+  SET CRAB_IP1_L4 phase phasedrift 70 100 -70
 NEXT
 \end{cverbatim}
 The first functions defined here are the same as above, storing the default values (as defined in the single element list) for the relevant elements and also zero.

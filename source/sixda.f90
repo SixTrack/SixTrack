@@ -26,7 +26,7 @@ subroutine daliesix
   call time_timerCheck(time0)
 
   ! Initialization
-  x2pi=atan_mb(one)*eight
+  x2pi=twopi
   coe=(-one*two)/x2pi
   no=nordf
   if(nord1.gt.no) nord1=no

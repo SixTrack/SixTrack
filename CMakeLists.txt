@@ -119,6 +119,7 @@ option(BUILD_TESTING "Enable the test suite" OFF)
 option(COVERAGE "Enable build flags for testing code coverage with gcov (only works with GNU compilers)" OFF)
 option(GPROF "Enable build flags for code profiling with gprof (only works with GNU compilers)" OFF)
 option(WARN "Enable build flags for additional compiler warnings" OFF)
+option(INITNAN "Enable build flags for initialising reals to signaling NaN" OFF)
 option(DEBUG "Debugging output" OFF)
 option(NOSYMLINK "Don't use symlinks for test inputs and canonicals" OFF)
 option(MEMUSAGE "Writes PID and actual memory usage to sim_meta.dat (GNU/UNIX only)" OFF)
@@ -619,6 +620,11 @@ if(Fortran_COMPILER_NAME MATCHES "gfortran.*")
     set(CMAKE_Fortran_FLAGS_DEBUG   "-ffpe-trap=invalid,zero,overflow ${CMAKE_Fortran_FLAGS_DEBUG}")
   endif()
 
+  if(INITNAN)
+    set(CMAKE_Fortran_FLAGS_RELEASE "-finit-real=snan -finit-character=0 ${CMAKE_Fortran_FLAGS_RELEASE}")
+    set(CMAKE_Fortran_FLAGS_DEBUG   "-finit-real=snan -finit-character=0 ${CMAKE_Fortran_FLAGS_DEBUG}")
+  endif()
+
   if(MEMUSAGE)
     set(CMAKE_Fortran_FLAGS_RELEASE "-fall-intrinsics ${CMAKE_Fortran_FLAGS_RELEASE}")
     set(CMAKE_Fortran_FLAGS_DEBUG   "-fall-intrinsics ${CMAKE_Fortran_FLAGS_DEBUG}")
@@ -708,6 +714,11 @@ elseif(Fortran_COMPILER_NAME MATCHES "ifort.*")
     set(CMAKE_Fortran_FLAGS "-warn unused -check bounds ${CMAKE_Fortran_FLAGS}")
   endif(WARN)
 
+  if(INITNAN)
+    set(CMAKE_Fortran_FLAGS_RELEASE "-init=snan,arrays ${CMAKE_Fortran_FLAGS_RELEASE}")
+    set(CMAKE_Fortran_FLAGS_DEBUG   "-init=snan,arrays ${CMAKE_Fortran_FLAGS_DEBUG}")
+  endif()
+
   if(32BIT)
     set(CMAKE_Fortran_FLAGS_RELEASE "-m32 ${CMAKE_Fortran_FLAGS_RELEASE}")
     set(CMAKE_Fortran_FLAGS_DEBUG "-m32 ${CMAKE_Fortran_FLAGS_DEBUG}")
@@ -760,6 +771,11 @@ elseif(Fortran_COMPILER_NAME MATCHES "nagfor.*")
   else()
     set(CMAKE_Fortran_FLAGS "-w=all ${CMAKE_Fortran_FLAGS}")
   endif(WARN)
+
+  if(INITNAN)
+    set(CMAKE_Fortran_FLAGS_RELEASE "-nan ${CMAKE_Fortran_FLAGS_RELEASE}")
+    set(CMAKE_Fortran_FLAGS_DEBUG   "-nan ${CMAKE_Fortran_FLAGS_DEBUG}")
+  endif()
 
   if(32BIT)
     set(CMAKE_Fortran_FLAGS_RELEASE "-abi=32 ${CMAKE_Fortran_FLAGS_RELEASE}")
@@ -1599,6 +1615,14 @@ include(CPack)
 install(TARGETS SixTrackCR RUNTIME DESTINATION bin)
 
 if(NOT WIN32)
-  add_custom_command(TARGET SixTrackCR POST_BUILD
-    COMMAND ${CMAKE_COMMAND} -E create_symlink "${SIXTRACK_BINARY_NAME}" "sixtrack")
+  add_custom_command(
+    TARGET SixTrackCR POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E create_symlink "${SIXTRACK_BINARY_NAME}" "sixtrack"
+  )
+  if(SIXDA)
+    add_custom_command(
+      TARGET SixTrackDA POST_BUILD
+      COMMAND ${CMAKE_COMMAND} -E create_symlink "${SIXTRACK_BINARY_NAME_DA}" "sixtrack_da"
+    )
+  endif()
 endif()
