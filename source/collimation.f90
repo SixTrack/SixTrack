@@ -2286,21 +2286,13 @@ end subroutine collimate_do_collimator
 subroutine collimate_end_collimator(stracki)
 
   use crcoall
-  use parpro
-  use coll_common
   use mod_common
-  use mod_commons
-  use mod_common_da
   use mod_common_main
   use mod_common_track
-  use numerical_constants, only : c5m4
-  use coll_db
   use mod_units
   use string_tools
-#ifdef HDF5
-  use hdf5_output
-  use hdf5_tracks2
-#endif
+  use coll_db
+  use coll_common
 #ifdef G4COLLIMATION
   use geant4
 #endif
@@ -2309,13 +2301,6 @@ subroutine collimate_end_collimator(stracki)
 
   integer j
   real(kind=fPrec) average,sigma,zpj,sum,sqsum
-
-#ifdef HDF5
-  ! For tracks2
-  integer hdfturn,hdfpid,hdftyp
-  real(kind=fPrec) hdfx,hdfxp,hdfy,hdfyp,hdfdee,hdfs
-#endif
-
 
 !++  Output information:
 !++
@@ -2425,50 +2410,18 @@ subroutine collimate_end_collimator(stracki)
       yv2(j) = rcyp0(j) * c1e3 + torbyp(ie)
       ejv(j) = rcp0(j)  * c1e3
     end if
-
-    ! First check for particle interaction at this collimator and this turn
-    if(part_hit_pos(j) == ie .and. part_hit_turn(j) == iturn) then
-      ! Fill the change in particle angle into histogram
-      if(dowrite_impact) then
-#ifdef HDF5
-        if(h5_useForCOLL) then
-          call h5_prepareWrite(coll_hdf5_allImpacts, 1)
-          call h5_writeData(coll_hdf5_allImpacts, 1, 1, partID(j))
-          call h5_writeData(coll_hdf5_allImpacts, 2, 1, iturn)
-          call h5_writeData(coll_hdf5_allImpacts, 3, 1, dcum(ie))
-          call h5_finaliseWrite(coll_hdf5_allImpacts)
-        else
-#endif
-          write(coll_allImpactUnit,"(i8,1x,i4,1x,f8.2)") partID(j),iturn,dcum(ie)
-#ifdef HDF5
-        end if
-#endif
-      end if
-    end if
   end do
+
+  if(dowrite_impact) then
+    call coll_writeImpactAbsorb
+  end if
 
   do j=1,napx
     if(part_hit_pos(j) == ie .and. part_hit_turn(j) == iturn) then
       ! Particle has impacted
       if(part_abs_pos(j) /= 0 .and. part_abs_turn(j) /= 0) then
-        if(dowrite_impact) then
-#ifdef HDF5
-          if(h5_useForCOLL) then
-            call h5_prepareWrite(coll_hdf5_allAbsorb, 1)
-            call h5_writeData(coll_hdf5_allAbsorb, 1, 1, partID(j))
-            call h5_writeData(coll_hdf5_allAbsorb, 2, 1, iturn)
-            call h5_writeData(coll_hdf5_allAbsorb, 3, 1, dcum(ie))
-            call h5_finaliseWrite(coll_hdf5_allAbsorb)
-          else
-#endif
-            write(coll_allAbsorbUnit,"(i8,1x,i8,1x,f10.3)") partID(j),iturn,dcum(ie)
-#ifdef HDF5
-          end if
-#endif
-        end if
-
-      !Here we've found a newly hit particle
-      else if(part_abs_pos (j) == 0 .and.  part_abs_turn(j) == 0) then
+        continue
+      else if(part_abs_pos (j) == 0 .and. part_abs_turn(j) == 0) then
         nhit_type(j) = ior(nhit_type(j),cdb_cType(icoll)) ! Record the hit type
       else
         write(lerr,"(a)")          "COLL> ERROR Particle cannot be both absorbed and not absorbed"
@@ -2477,11 +2430,6 @@ subroutine collimate_end_collimator(stracki)
       end if
     end if
   end do
-
-!GRD THIS LOOP MUST NOT BE WRITTEN INTO THE "IF(FIRSTRUN)" LOOP !!!!!
-  if(dowrite_tracks) then
-    call coll_writeTracks2(1)
-  end if
 
   do j=1,napx
     if(part_hit_pos(j) == ie .and. part_hit_turn(j) == iturn) then
@@ -2510,6 +2458,10 @@ subroutine collimate_end_collimator(stracki)
 !++  End of check for hit this turn and element
     end if
   end do ! end do j = 1, napx
+
+  if(dowrite_tracks) then
+    call coll_writeTracks2(1)
+  end if
 
 !++  Calculate statistical observables and save into files...
   if (n_impact.gt.0) then
@@ -3397,6 +3349,51 @@ end subroutine coll_getMinGapID
 ! ================================================================================================ !
 !  WRITE TO FILES
 ! ================================================================================================ !
+
+subroutine coll_writeImpactAbsorb
+
+  use mod_common
+  use mod_common_main
+  use coll_common
+
+  integer j
+
+  do j=1,napx
+    ! First check for particle interaction at this collimator and this turn
+    if(part_hit_pos(j) == ie .and. part_hit_turn(j) == iturn) then
+      ! Fill the change in particle angle into histogram
+#ifdef HDF5
+      if(h5_useForCOLL) then
+        call h5_prepareWrite(coll_hdf5_allImpacts, 1)
+        call h5_writeData(coll_hdf5_allImpacts, 1, 1, partID(j))
+        call h5_writeData(coll_hdf5_allImpacts, 2, 1, iturn)
+        call h5_writeData(coll_hdf5_allImpacts, 3, 1, dcum(ie))
+        call h5_finaliseWrite(coll_hdf5_allImpacts)
+      else
+#endif
+        write(coll_allImpactUnit,"(i8,1x,i4,1x,f8.2)") partID(j),iturn,dcum(ie)
+#ifdef HDF5
+      end if
+#endif
+      if(part_abs_pos(j) /= 0 .and. part_abs_turn(j) /= 0) then
+#ifdef HDF5
+        if(h5_useForCOLL) then
+          call h5_prepareWrite(coll_hdf5_allAbsorb, 1)
+          call h5_writeData(coll_hdf5_allAbsorb, 1, 1, partID(j))
+          call h5_writeData(coll_hdf5_allAbsorb, 2, 1, iturn)
+          call h5_writeData(coll_hdf5_allAbsorb, 3, 1, dcum(ie))
+          call h5_finaliseWrite(coll_hdf5_allAbsorb)
+        else
+#endif
+          write(coll_allAbsorbUnit,"(i8,1x,i8,1x,f10.3)") partID(j),iturn,dcum(ie)
+#ifdef HDF5
+        end if
+#endif
+      end if
+    end if
+  end do
+
+end subroutine coll_writeImpactAbsorb
 
 ! ================================================================================================ !
 !  Writing of tracks2.dat
