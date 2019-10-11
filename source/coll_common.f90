@@ -13,7 +13,7 @@ module coll_common
   logical, save :: dowrite_dist      = .false.
   logical, save :: dowrite_secondary = .false.
   logical, save :: dowrite_amplitude = .false.
-  logical, save :: dowritetracks     = .false.
+  logical, save :: dowrite_tracks    = .false.
 
   ! Various Variables
   integer, save :: rnd_seed   = 0

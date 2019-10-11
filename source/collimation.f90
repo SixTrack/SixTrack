@@ -235,11 +235,13 @@ subroutine collimation_expand_arrays(npart_new, nblz_new)
   call alloc(xpbob,    nblz_new,  zero, "xpbob")
   call alloc(ypbob,    nblz_new,  zero, "ypbob")
 
-  call alloc(nampl,    nblz_new,  0,    "nampl")
-  call alloc(sum_ax,   nblz_new,  zero, "sum_ax")
-  call alloc(sqsum_ax, nblz_new,  zero, "sqsum_ax")
-  call alloc(sum_ay,   nblz_new,  zero, "sum_ay")
-  call alloc(sqsum_ay, nblz_new,  zero, "sqsum_ay")
+  if(dowrite_amplitude) then
+    call alloc(nampl,    nblz_new,  0,    "nampl")
+    call alloc(sum_ax,   nblz_new,  zero, "sum_ax")
+    call alloc(sqsum_ax, nblz_new,  zero, "sqsum_ax")
+    call alloc(sum_ay,   nblz_new,  zero, "sum_ay")
+    call alloc(sqsum_ay, nblz_new,  zero, "sqsum_ay")
+  end if
 
   call alloc(counteddpop, npart_new,         numeffdpop, 0, "counteddpop")
   call alloc(counted2d,   npart_new, numeff, numeffdpop, 0, "counted2d")
@@ -489,7 +491,7 @@ subroutine collimate_init
   write(lout,"(a)")
   write(lout,"(a,a)")     'COLL> Info: COLL_DB             = ', cdb_fileName
   write(lout,"(a)")
-  write(lout,"(a,l1)")    'COLL> Info: DOWRITETRACKS       = ', dowritetracks
+  write(lout,"(a,l1)")    'COLL> Info: dowrite_tracks       = ', dowrite_tracks
   write(lout,"(a)")
   write(lout,"(a,e15.8)") 'COLL> Info: SIGSECUT2           = ', sigsecut2
   write(lout,"(a,e15.8)") 'COLL> Info: SIGSECUT3           = ', sigsecut3
@@ -1105,7 +1107,7 @@ subroutine collimate_parseInputLine(inLine, iLine, iErr)
       iErr = .true.
       return
     end if
-    call chr_cast(lnSplit(2), dowritetracks, iErr)
+    call chr_cast(lnSplit(2), dowrite_tracks, iErr)
 
   case("SIGSECUT")
     if(nSplit /= 3) then
@@ -1388,7 +1390,7 @@ subroutine collimate_parseInputLine(inLine, iLine, iErr)
       iErr = .true.
       return
     end if
-    call chr_cast(lnSplit(1), dowritetracks,iErr)
+    call chr_cast(lnSplit(1), dowrite_tracks,iErr)
     ! The second value is ignored
     ! The third value is ignored
     ! The fourth value is ignored
@@ -1410,6 +1412,7 @@ subroutine collimate_postInput(gammar)
 
   real(kind=fPrec), intent(in) :: gammar
 
+  ! Call one extra time as some arrays depend on input values
   call collimation_expand_arrays(npart,nblz)
 
   if(c_enom == zero) then
@@ -1464,7 +1467,7 @@ subroutine collimate_openFiles
   write(coll_positionsUnit,"(a)") "# Ind           Name   Pos[m]"
 
   ! Tracks Files
-  if(dowritetracks) then
+  if(dowrite_tracks) then
     call f_requestUnit(coll_tracksFile,coll_tracksUnit)
     call f_open(unit=coll_tracksUnit,file=coll_tracksFile,formatted=.true.,mode="w")
     write(coll_tracksUnit,"(a)") "# name turn s x xp y yp DE/E type"
@@ -1526,7 +1529,7 @@ subroutine collimate_openFiles
   call h5_createDataSet("survival", h5_collID, fmtHdf, coll_hdf5_survival, numl)
   deallocate(setFields)
 
-  if(dowritetracks) then
+  if(dowrite_tracks) then
     if(h5_writeTracks2) call h5tr2_init
   end if
 
@@ -1592,6 +1595,7 @@ subroutine collimate_trackThin(stracki, isColl)
   use coll_db
   use mod_time
   use mod_common
+  use coll_common
 
   real(kind=fPrec), intent(in) :: stracki
   logical,          intent(in) :: isColl
@@ -1604,7 +1608,7 @@ subroutine collimate_trackThin(stracki, isColl)
     nsig     = cdb_cNSig(icoll)
     c_length = zero
   
-    if(firstrun) then
+    if(firstrun .and. dowrite_amplitude) then
       call coll_computeStats
     end if
 
@@ -1614,7 +1618,9 @@ subroutine collimate_trackThin(stracki, isColl)
     call time_stopClock(time_clockCOLL)
 
   else
-    call coll_computeStats
+    if(dowrite_amplitude) then
+      call coll_computeStats
+    end if
   end if
 
 end subroutine collimate_trackThin
@@ -1627,9 +1633,15 @@ subroutine coll_computeStats
   use mod_common
   use mod_common_main
   use mod_common_track
+  use coll_common
 
   integer j
   real(kind=fPrec) gammax,gammay,xj,xpj,yj,ypj,pj,nspx,nspy
+
+  if(dowrite_amplitude .eqv. .false.) then
+    ! We're not writing the amplitude.dat file anyway, so return here
+    return
+  end if
 
   gammax = (one + talphax(ie)**2)/tbetax(ie)
   gammay = (one + talphay(ie)**2)/tbetay(ie)
@@ -2440,7 +2452,7 @@ subroutine collimate_end_collimator(stracki)
       end if
 
 !GRD THIS LOOP MUST NOT BE WRITTEN INTO THE "IF(FIRSTRUN)" LOOP !!!!!
-      if(dowritetracks) then
+      if(dowrite_tracks) then
         if(part_abs_pos(j) == 0 .and. part_abs_turn(j) == 0) then
           ! Here we apply the same kind of cut than the sigsecut parameter
           if(nhit_type(j) > 0 .and. xv1(j) < 99.0_fPrec .and. xv2(j) < 99.0_fPrec .and. ( &
@@ -2489,7 +2501,7 @@ subroutine collimate_end_collimator(stracki)
 #endif
           end if
         end if !if(part_abs_pos(j).eq.0 .and. part_abs_turn(j).eq.0) then
-      end if !if(dowritetracks) then
+      end if !if(dowrite_tracks) then
 
 !++  Calculate impact observables, fill histograms, save collimator info, ...
       n_impact = n_impact + 1
@@ -2665,7 +2677,7 @@ subroutine collimate_exit
     call f_close(coll_impactUnit)
   end if
 
-  if(dowritetracks) then
+  if(dowrite_tracks) then
     call f_close(coll_tracksUnit)
 #ifdef HDF5
     if(h5_writeTracks2) call h5tr2_finalise
@@ -2890,7 +2902,7 @@ subroutine collimate_exit
   call f_close(coll_gapsUnit)
   call f_close(coll_positionsUnit)
 
-  if(dowritetracks) then
+  if(dowrite_tracks) then
     call f_close(coll_tracksUnit)
 #ifdef HDF5
     if(h5_writeTracks2) call h5tr2_finalise
@@ -3046,12 +3058,12 @@ subroutine collimate_end_element
   real(kind=fPrec) hdfx,hdfxp,hdfy,hdfyp,hdfdee,hdfs
 #endif
 
-  if(firstrun) then
+  if(firstrun .and. dowrite_amplitude) then
     call coll_computeStats
   end if
 
   ! Note: Not in firstrun
-  if(dowritetracks) then
+  if(dowrite_tracks) then
     gammax = (one + talphax(ie)**2)/tbetax(ie)
     gammay = (one + talphay(ie)**2)/tbetay(ie)
 
