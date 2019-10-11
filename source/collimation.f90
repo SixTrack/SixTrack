@@ -124,18 +124,18 @@ module collimation
   real(kind=fPrec), allocatable, private, save :: sqsum_ay(:)
 
   ! Arrays allocated to npart
+  integer,          allocatable, private, save :: part_hit_pos(:)         ! Hit flag for last hit
+  integer,          allocatable, private, save :: part_hit_turn(:)        ! Hit flag for last hit
+  integer,          allocatable, private, save :: part_abs_pos(:)         ! Absorbed in element
+  integer,          allocatable, public,  save :: part_abs_turn(:)        ! Absorbed in turn
   integer,          allocatable, private, save :: part_hit_before_pos(:)
   integer,          allocatable, private, save :: part_hit_before_turn(:)
-  integer,          allocatable, private, save :: part_hit_pos(:)
-  integer,          allocatable, private, save :: part_hit_turn(:)
-  integer,          allocatable, private, save :: part_abs_pos(:)
-  integer,          allocatable, public,  save :: part_abs_turn(:)
   integer,          allocatable, private, save :: part_select(:)
   integer,          allocatable, private, save :: nabs_type(:)
   integer,          allocatable, private, save :: nhit_type(:)
-  real(kind=fPrec), allocatable, private, save :: part_indiv(:)
   real(kind=fPrec), allocatable, private, save :: part_linteract(:)
-  real(kind=fPrec), allocatable, private, save :: part_impact(:)
+  real(kind=fPrec), allocatable, private, save :: part_indiv(:)            ! Divergence of impacting particles
+  real(kind=fPrec), allocatable, private, save :: part_impact(:)           ! Impact parameter (0 for inner face)
   real(kind=fPrec), allocatable, private, save :: rcx0(:)
   real(kind=fPrec), allocatable, private, save :: rcxp0(:)
   real(kind=fPrec), allocatable, private, save :: rcy0(:)
@@ -2279,10 +2279,10 @@ subroutine collimate_do_collimator(stracki)
 
 end subroutine collimate_do_collimator
 
-!>
-!! collimate_end_collimator()
-!! This routine is called at the exit of a collimator
-!<
+! ================================================================================================ !
+!  Calculate average impact parameter and save info for all collimators.
+!  Copy information back and do negative drift.
+! ================================================================================================ !
 subroutine collimate_end_collimator(stracki)
 
   use crcoall
@@ -2302,21 +2302,10 @@ subroutine collimate_end_collimator(stracki)
   integer j
   real(kind=fPrec) average,sigma,zpj,sum,sqsum
 
-!++  Output information:
-!++
-!++  PART_HIT_POS (MAX_NPART)  Hit flag for last hit
-!++  PART_HIT_TURN(MAX_NPART)  Hit flag for last hit
-!++  PART_ABS_POS (MAX_NPART)  Abs flag
-!++  PART_ABS_TURN(MAX_NPART)  Abs flag
-!++  PART_IMPACT  (MAX_NPART)  Impact parameter (0 for inner face)
-!++  PART_INDIV   (MAX_NPART)  Divergence of impacting particles
-!------------------------------------------------------------------------------
-!++  Calculate average impact parameter and save info for all
-!++  collimators. Copy information back and do negative drift.
-  n_impact = 0
+  n_impact   = 0
   n_absorbed = 0
-  sum      = zero
-  sqsum    = zero
+  sum        = zero
+  sqsum      = zero
 
 #ifdef G4COLLIMATION
   do j=1,napx
@@ -2418,53 +2407,47 @@ subroutine collimate_end_collimator(stracki)
 
   do j=1,napx
     if(part_hit_pos(j) == ie .and. part_hit_turn(j) == iturn) then
-      ! Particle has impacted
+
+      ! Calculate impact observables, fill histograms, save collimator info
+      n_impact         = n_impact + 1
+      sum              = sum   + part_impact(j)
+      sqsum            = sqsum + part_impact(j)**2
+
+      cn_impact(icoll) = cn_impact(icoll) + 1
+      csum(icoll)      = csum(icoll)   + part_impact(j)
+      csqsum(icoll)    = csqsum(icoll) + part_impact(j)**2
+
       if(part_abs_pos(j) /= 0 .and. part_abs_turn(j) /= 0) then
-        continue
-      else if(part_abs_pos (j) == 0 .and. part_abs_turn(j) == 0) then
+        ! If the interacting particle was lost, add-up counters for absorption
+        ! Note: a particle with x/y >= 99. never hits anything any more in the logic of this program.
+        ! Be careful to always fulfill this!
+        n_absorbed         = n_absorbed + 1
+        cn_absorbed(icoll) = cn_absorbed(icoll) + 1
+        n_tot_absorbed     = n_tot_absorbed + 1
+        iturn_last_hit     = part_hit_before_turn(j)
+        iturn_absorbed     = part_hit_turn(j)
+        if(iturn_last_hit == 0) then
+          iturn_last_hit = iturn_absorbed
+        end if
+
+      elseif(part_abs_pos (j) == 0 .and. part_abs_turn(j) == 0) then
         nhit_type(j) = ior(nhit_type(j),cdb_cType(icoll)) ! Record the hit type
+
       else
         write(lerr,"(a)")          "COLL> ERROR Particle cannot be both absorbed and not absorbed"
         write(lerr,"(a,2(1x,i0))") "COLL>      ",part_abs_pos (j),part_abs_turn(j)
         call prror
       end if
+
     end if
   end do
-
-  do j=1,napx
-    if(part_hit_pos(j) == ie .and. part_hit_turn(j) == iturn) then
-!++  Calculate impact observables, fill histograms, save collimator info, ...
-      n_impact = n_impact + 1
-      sum = sum + part_impact(j)
-      sqsum = sqsum + part_impact(j)**2
-      cn_impact(icoll) = cn_impact(icoll) + 1
-      csum(icoll) = csum(icoll) + part_impact(j)
-      csqsum(icoll) = csqsum(icoll) + part_impact(j)**2
-
-!++  If the interacting particle was lost, add-up counters for absorption
-!++  Note: a particle with x/y >= 99. never hits anything any more in
-!++        the logic of this program. Be careful to always fulfill this!
-      if(part_abs_pos(j).ne.0 .and. part_abs_turn(j).ne.0) then
-        n_absorbed = n_absorbed + 1
-        cn_absorbed(icoll) = cn_absorbed(icoll) + 1
-        n_tot_absorbed = n_tot_absorbed + 1
-        iturn_last_hit = part_hit_before_turn(j)
-        iturn_absorbed = part_hit_turn(j)
-        if(iturn_last_hit == 0) then
-          iturn_last_hit = iturn_absorbed
-        end if
-      end if
-
-!++  End of check for hit this turn and element
-    end if
-  end do ! end do j = 1, napx
 
   if(dowrite_tracks) then
     call coll_writeTracks2(1)
   end if
 
-!++  Calculate statistical observables and save into files...
-  if (n_impact.gt.0) then
+  if(n_impact > 0) then
+    ! Calculate statistical observables
     average = sum/n_impact
 
     if(sqsum/n_impact >= average**2) then
@@ -2477,10 +2460,10 @@ subroutine collimate_end_collimator(stracki)
     sigma   = zero
   end if
 
-  if(cn_impact(icoll).gt.0) then
+  if(cn_impact(icoll) > 0) then
     caverage(icoll) = csum(icoll)/cn_impact(icoll)
 
-    if((caverage(icoll)**2).gt.(csqsum(icoll)/cn_impact(icoll))) then
+    if(caverage(icoll)**2 > csqsum(icoll)/cn_impact(icoll)) then
       csigma(icoll) = 0
     else
       csigma(icoll) = sqrt(csqsum(icoll)/cn_impact(icoll) - caverage(icoll)**2)
