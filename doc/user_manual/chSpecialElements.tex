@@ -1884,6 +1884,7 @@ All flags default to \texttt{false}.
     \texttt{WRITE\_IMPACT} & Writes the impact parameters for each collimator. \\
     \texttt{WRITE\_SECOND} & Writes a secondary halo file based on normalised amplitude. \\
     \texttt{WRITE\_AMPL}   & Writes checking files for amplitude, closed orbit. \\
+    \texttt{WRITE\_EFFIC}  & Writes the efficiency files. \\
     \texttt{WRITE\_TRACKS} & Writes secondary/tertiary halo files.
 \end{tabular}
 
@@ -2124,25 +2125,25 @@ The old input block format is illustrated in the following example, and the asso
 
 \bigskip
 \begin{cverbatim}
-COLLIMATION----------------------------------------------------------------
-    .true.
-    50   7000000
-    3  5 .958  .0015  0.  0.  "nothing"  1. 129e-4  75.5
-    .true.  15.  18.  18.  20.  6.  7.  7.  10.0 1 0.0  999.0  8.0   7.5   999.0
-    8.3  8.3  8.3  8.3  8.3  8.3  8.3  8.3  5. 15.
-    0 19789.0  20150.0  1  1
-   -1.3899e-6  -9.345e-5  5.05324e-3  -1.6595e-2  2.15955e-2  -9.96261e-3  1.0
-   -1.3899e-6  -9.345e-5  5.05324e-3  -1.6595e-2  2.15955e-2  -9.96261e-3  1.0
-    0.503E-09  0.503E-09
-   .false. .false. 0 .true. TCP.C6L7.B1 .false. .true. .true. .true.
-   0.  0.  0.  0.
+COLLIMATION
+   .true.
+   50   7000000
+   3  5  0.958  0.0015  0.0  0.0  "nothing"  1.0 129e-4  75.5
+   .true.  15.0  18.0  18.0  20.0  6.0  7.0  7.0  10.0 1 0.0  999.0  8.0   7.5   999.0
+   8.3  8.3  8.3  8.3  8.3  8.3  8.3  8.3  5.0 15.0
+   0 19789.0  20150.0  1  1
+  -1.3899e-6  -9.345e-5  5.05324e-3  -1.6595e-2  2.15955e-2  -9.96261e-3  1.0
+  -1.3899e-6  -9.345e-5  5.05324e-3  -1.6595e-2  2.15955e-2  -9.96261e-3  1.0
+   0.503E-09  0.503E-09
+  .false. .false. 0 .true. TCP.C6L7.B1 .false. .true. .true. .true. .true.
+   0.0 0.0 0.0 0.0
    0   0   0   0   0   0   0   0   0   0   .false.
-   .false.  6.003  0.0015
-   0.  0.  .false. .false.
+  .false.  6.003  0.0015
+   0.0 0.0 .false. .false.
    0   0.0025  0.0   0.0   0
    "CollDB_V6.500_lowb_st.b1.data"  1
    .true. .false. WAbsVertLowbcoll  101  1  1.
-NEXT-----------------------------------------------------------------------------
+NEXT
 \end{cverbatim}
 
 \paragraph{Old Collimator Database Format}~\\
@@ -2335,6 +2336,8 @@ This structure is then repeated within the file for each of the collimators to b
         & \texttt{DOWRT\_SECOND} & logical & Writes a secondary halo file based on normalised amplitude. \\
         \cline{2-4}
         & \texttt{DOWRT\_AMPL}   & logical & Writes checking files for amplitude, closed orbit. \\
+        \cline{2-4}
+        & \texttt{DOWRT\_EFFIC}  & logical & Writes the efficiency files. \\
     \hline
 
     11  & \texttt{XBEAT}         & float   & Offset in $x$ for the computation of collimator in case of beta-beating\index{beta-beating}. \\

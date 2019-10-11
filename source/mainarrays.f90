@@ -29,7 +29,7 @@ subroutine allocate_arrays
 #ifdef FLUKA
   use mod_fluka,          only : fluka_mod_expand_arrays
 #endif
-  use collimation,        only : collimation_allocate_arrays
+  use collimation,        only : collimation_expand_arrays
   use coll_db,            only : cdb_expand_arrays
 
   implicit none
@@ -49,6 +49,7 @@ subroutine allocate_arrays
   call wire_expand_arrays(nele,nblz)
   call scatter_expand_arrays(nele,npart)
   call aperture_expand_arrays(nele,npart)
+  call collimation_expand_arrays(npart,nblz)
 
   call elens_allocate_arrays
   call cheby_allocate_arrays
@@ -57,7 +58,6 @@ subroutine allocate_arrays
 #ifdef CR
   call cr_expand_arrays(npart)
 #endif
-  call collimation_allocate_arrays
   call cdb_expand_arrays(nele)
 
 end subroutine allocate_arrays

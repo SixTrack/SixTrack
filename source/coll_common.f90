@@ -9,11 +9,12 @@ module coll_common
   implicit none
 
   ! Logical Flags
-  logical, save :: dowrite_impact    = .false.
-  logical, save :: dowrite_dist      = .false.
-  logical, save :: dowrite_secondary = .false.
-  logical, save :: dowrite_amplitude = .false.
-  logical, save :: dowrite_tracks    = .false.
+  logical, save :: dowrite_impact     = .false.
+  logical, save :: dowrite_dist       = .false.
+  logical, save :: dowrite_secondary  = .false.
+  logical, save :: dowrite_amplitude  = .false.
+  logical, save :: dowrite_tracks     = .false.
+  logical, save :: dowrite_efficiency = .false.
 
   ! Various Variables
   integer, save :: rnd_seed   = 0
