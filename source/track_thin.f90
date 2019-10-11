@@ -1347,9 +1347,7 @@ subroutine thin6d(nthinerr)
 #endif
 
     if(nthinerr /= 0) return
-    if(do_coll) then
-      firstrun = .false.
-    else
+    if(do_coll .eqv. .false.) then
       if(ntwin /= 2) call trackDistance
 #ifndef FLUKA
       if(mod(n,nwr(4)) == 0) call trackPairReport(n)
