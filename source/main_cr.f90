@@ -40,7 +40,7 @@ program maincr
   use mod_fluc,       only : fluc_randomReport, fluc_errAlign, fluc_errZFZ
   use postprocessing, only : postpr, writebin_header, writebin
   use read_write,     only : writeFort12, readFort13, readFort33
-  use collimation,    only : do_coll, collimate_init, collimate_exit
+  use collimation,    only : do_coll, collimate_init, coll_exitCollimation
   use mod_ffield,     only : ffield_mod_init,ffield_mod_end
 
 #ifdef FLUKA
@@ -1212,7 +1212,7 @@ program maincr
 
   if(ithick == 0 .and. do_coll) then
     ! Only if thin 6D and collimation enabled
-    call collimate_exit
+    call coll_exitCollimation
   endif
 
   ! trtime is now the tracking time, BUT we must add other time for C/R

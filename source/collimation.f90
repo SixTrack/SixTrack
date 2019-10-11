@@ -2259,7 +2259,7 @@ subroutine collimate_do_collimator(stracki)
   end if
 
   if(dowrite_impact) then
-    ! update writeout of jaw profiles
+    ! Update writeout of jaw profiles
     do j=1,napx
       if(linside(j) .and. sqrt(rcx(j)**2 + rcy(j)**2) < 99.0e-3_fPrec) then
         x_Dump = rcx (j)*cos_mb(c_rotation)+sin_mb(c_rotation)*rcy (j)
@@ -2457,22 +2457,15 @@ end subroutine collimate_end_collimator
 ! ================================================================================================ !
 !  Collimate Exit
 ! ================================================================================================ !
-subroutine collimate_exit
+subroutine coll_exitCollimation
 
-  use parpro
-  use coll_common
-  use mod_common
-  use mod_commons
-  use mod_common_da
-  use mod_common_main
-  use mod_common_track
   use crcoall
-  use coll_db
   use mod_units
+  use mod_common
+  use mod_common_track
   use string_tools
-#ifdef ROOT
-  use root_output
-#endif
+  use coll_common
+  use coll_db
 #ifdef HDF5
   use hdf5_output
   use hdf5_tracks2
@@ -2481,28 +2474,13 @@ subroutine collimate_exit
   use geant4
 #endif
 
-  implicit none
-
-  ! integer, intent(in) :: j
-
 #ifdef HDF5
   type(h5_dataField), allocatable :: fldHdf(:)
   integer fmtHdf, setHdf
 #endif
   integer i,k,ix
 
-!++  Save particle offsets to a file
-  call f_close(coll_survivalUnit)
-
-  if(dowrite_tracks) then
-    call f_close(coll_tracksUnit)
-#ifdef HDF5
-    if(h5_writeTracks2) call h5tr2_finalise
-#endif
-  end if
-
-!------------------------------------------------------------------------
-!++  Write the number of absorbed particles
+  ! Write the number of absorbed particles
   write(outlun,*) "INFO>  Number of impacts             : ", n_tot_absorbed+nsurvive_end
   write(outlun,*) "INFO>  Number of impacts at selected : ", num_selhit
   write(outlun,*) "INFO>  Number of surviving particles : ", nsurvive_end
@@ -2523,7 +2501,7 @@ subroutine collimate_exit
     end if
   else
     write(lout,"(a)") "COLL> No particles absorbed"
-  endif
+  end if
 
   write(lout,"(a)")
   write(lout,"(a,i8)") "COLL> Number of impacts             : ", n_tot_absorbed+nsurvive_end
@@ -2542,7 +2520,7 @@ subroutine collimate_exit
     end if
   else
     write(lout,"(a)") "COLL> No particle absorbed"
-  endif
+  end if
   write(lout,"(a)")
 
   if(dowrite_efficiency) then
@@ -2728,6 +2706,7 @@ subroutine collimate_exit
   call f_close(outlun)
   call f_close(coll_gapsUnit)
   call f_close(coll_positionsUnit)
+  call f_close(coll_survivalUnit)
 
   if(dowrite_tracks) then
     call f_close(coll_tracksUnit)
@@ -2786,7 +2765,7 @@ subroutine collimate_exit
   call g4_terminate()
 #endif
 
-end subroutine collimate_exit
+end subroutine coll_exitCollimation
 
 !>
 !! This routine is called at the start of each tracking turn
