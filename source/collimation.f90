@@ -3016,22 +3016,25 @@ end subroutine collimate_start_turn
 !>
 !! This routine is called at the start of every element
 !<
-subroutine collimate_start_element(i)
+subroutine collimate_start_element(iStru, iSing)
 
   use mod_common
   use mod_common_main
   use coll_common
 
-  integer, intent(in) :: i
+  integer, intent(in) :: iStru
+  integer, intent(in) :: iSing
   integer j
 
-  ie=i
+  ie   = iStru
+  c_ix = iSing
+
 #ifndef G4COLLIMATION
-  ! For absorbed particles set all coordinates to zero. Also
-  ! include very large offsets, let's say above 100mm or 100mrad.
+  ! For absorbed particles set all coordinates to zero.
+  ! Also include very large offsets, let's say above 100mm or 100mrad.
   do j=1,napx
-    if((part_abs_pos(j) /= 0 .and. part_abs_turn(j) /= 0) .or. &
-      xv1(j) > c1e2 .or. yv1(j) > c1e2 .or. xv2(j) > c1e2 .or. yv2(j) > c1e2) then
+    if((part_abs_pos(j) /= 0 .and. part_abs_turn(j) /= 0) &
+      .or. xv1(j) > c1e2 .or. yv1(j) > c1e2 .or. xv2(j) > c1e2 .or. yv2(j) > c1e2) then
       xv1(j)           = zero
       yv1(j)           = zero
       xv2(j)           = zero
@@ -3046,19 +3049,12 @@ subroutine collimate_start_element(i)
   end do
 #endif
 
-!GRD SAVE COORDINATES OF PARTICLE 1 TO CHECK ORBIT
+  ! Save coordinates of particle 1 to check orbit for amplitude file
   if(firstrun .and. dowrite_amplitude) then
-    xbob(ie)=xv1(1)
-    ybob(ie)=xv2(1)
-    xpbob(ie)=yv1(1)
-    ypbob(ie)=yv2(1)
-  end if
-
-!++  Here comes sixtrack stuff
-  if(ic(i) <= nblo) then
-    c_ix = mtyp(ic(i),mel(ic(i)))
-  else
-    c_ix = ic(i)-nblo
+    xbob(ie)  = xv1(1)
+    ybob(ie)  = xv2(1)
+    xpbob(ie) = yv1(1)
+    ypbob(ie) = yv2(1)
   end if
 
 end subroutine collimate_start_element

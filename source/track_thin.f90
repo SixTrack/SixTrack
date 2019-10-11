@@ -650,14 +650,13 @@ subroutine thin6d(nthinerr)
     !! This is the loop over each element: label 650
     do 650 i=1,iu !Loop over elements
 
-      if(do_coll) then
-        ! This subroutine sets variable c_ix
-        call collimate_start_element(i)
-      endif
-
       ! No if(ktrack(i).eq.1) - a BLOC - is needed in thin tracking,
       ! as no dependency on ix in this case.
       ix=ic(i)-nblo
+
+      if(do_coll) then
+        call collimate_start_element(i,ix)
+      end if
       meta_nPTurnEle = meta_nPTurnEle + napx
 
       ! Fringe Fields
