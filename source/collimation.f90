@@ -2444,7 +2444,11 @@ subroutine collimate_end_collimator(stracki)
         end if
 #endif
       end if
+    end if
+  end do
 
+  do j=1,napx
+    if(part_hit_pos(j) == ie .and. part_hit_turn(j) == iturn) then
       ! Particle has impacted
       if(part_abs_pos(j) /= 0 .and. part_abs_turn(j) /= 0) then
         if(dowrite_impact) then
@@ -2471,59 +2475,16 @@ subroutine collimate_end_collimator(stracki)
         write(lerr,"(a,2(1x,i0))") "COLL>      ",part_abs_pos (j),part_abs_turn(j)
         call prror
       end if
+    end if
+  end do
 
 !GRD THIS LOOP MUST NOT BE WRITTEN INTO THE "IF(FIRSTRUN)" LOOP !!!!!
-      if(dowrite_tracks) then
-        if(part_abs_pos(j) == 0 .and. part_abs_turn(j) == 0) then
-          ! Here we apply the same kind of cut than the sigsecut parameter
-          if(nhit_type(j) > 0 .and. xv1(j) < 99.0_fPrec .and. xv2(j) < 99.0_fPrec .and. ( &
-              (((xv1(j)*c1m3)**2 / (tbetax(ie)*c_emitx0_collgap)) >= sigsecut2) .or. &
-              (((xv2(j)*c1m3)**2 / (tbetay(ie)*c_emity0_collgap)) >= sigsecut2) .or. &
-              (((xv1(j)*c1m3)**2 / (tbetax(ie)*c_emitx0_collgap)) +                  &
-              ( (xv2(j)*c1m3)**2 / (tbetay(ie)*c_emity0_collgap)) >= sigsecut3))     &
-            ) then
-#ifdef HDF5
-            if(h5_writeTracks2) then
-              ! We write trajectories before and after element in this case.
-              hdfpid  = partID(j)
-              hdfturn = iturn
-              hdfs    = dcum(ie)-half*c_length
-              hdfx    = (rcx0(j)*c1e3+torbx(ie)) - half*c_length*(rcxp0(j)*c1e3+torbxp(ie))
-              hdfxp   = rcxp0(j)*c1e3+torbxp(ie)
-              hdfy    = (rcy0(j)*c1e3+torby(ie)) - half*c_length*(rcyp0(j)*c1e3+torbyp(ie))
-              hdfyp   = rcyp0(j)*c1e3+torbyp(ie)
-              hdfdee  = (ejv(j)-c_enom)/c_enom
-              hdftyp  = nhit_type(j)
-              call h5tr2_writeLine(hdfpid,hdfturn,hdfs,hdfx,hdfxp,hdfy,hdfyp,hdfdee,hdftyp)
+  if(dowrite_tracks) then
+    call coll_writeTracks2(1)
+  end if
 
-              hdfs  = dcum(ie)+half*c_length
-              hdfx  = xv1(j) + half*c_length*yv1(j)
-              hdfxp = yv1(j)
-              hdfy  = xv2(j) + half*c_length*yv2(j)
-              hdfyp = yv2(j)
-              call h5tr2_writeLine(hdfpid,hdfturn,hdfs,hdfx,hdfxp,hdfy,hdfyp,hdfdee,hdftyp)
-            else
-#endif
-              write(coll_tracksUnit,"(i8,1x,i8,1x,f10.2,4(1x,e12.5),1x,e11.3,1x,i4)") &
-                partID(j),iturn,dcum(ie)-half*c_length,                            &
-                (rcx0(j)*c1e3+torbx(ie))-half*c_length*(rcxp0(j)*c1e3+torbxp(ie)), &
-                rcxp0(j)*c1e3+torbxp(ie),                                          &
-                (rcy0(j)*c1e3+torby(ie))-half*c_length*(rcyp0(j)*c1e3+torbyp(ie)), &
-                rcyp0(j)*c1e3+torbyp(ie),                                          &
-                (ejv(j)-c_enom)/c_enom,nhit_type(j)
-
-              write(coll_tracksUnit,"(i8,1x,i8,1x,f10.2,4(1x,e12.5),1x,e11.3,1x,i4)") &
-                partID(j),iturn,dcum(ie)+half*c_length,                         &
-                xv1(j)+half*c_length*yv1(j),yv1(j),                             &
-                xv2(j)+half*c_length*yv2(j),yv2(j),(ejv(j)-c_enom)/c_enom,      &
-                nhit_type(j)
-#ifdef HDF5
-            end if
-#endif
-          end if
-        end if !if(part_abs_pos(j).eq.0 .and. part_abs_turn(j).eq.0) then
-      end if !if(dowrite_tracks) then
-
+  do j=1,napx
+    if(part_hit_pos(j) == ie .and. part_hit_turn(j) == iturn) then
 !++  Calculate impact observables, fill histograms, save collimator info, ...
       n_impact = n_impact + 1
       sum = sum + part_impact(j)
@@ -3065,26 +3026,8 @@ end subroutine collimate_start_element
 !<
 subroutine collimate_end_element
 
-  use crcoall
-  use parpro
   use coll_common
   use mod_common
-  use mod_commons
-  use mod_common_da
-  use mod_common_main
-  use mod_common_track
-#ifdef HDF5
-  use hdf5_output
-  use hdf5_tracks2
-#endif
-
-  integer j
-  real(kind=fPrec) gammax,gammay,xdisp,nspxd,xj,xpj,yj,ypj,pj,nspx,nspy
-
-#ifdef HDF5
-  integer hdfturn,hdfpid,hdftyp
-  real(kind=fPrec) hdfx,hdfxp,hdfy,hdfyp,hdfdee,hdfs
-#endif
 
   if(firstrun .and. dowrite_amplitude) then
     call coll_computeStats
@@ -3092,47 +3035,7 @@ subroutine collimate_end_element
 
   ! Note: Not in firstrun
   if(dowrite_tracks) then
-    gammax = (one + talphax(ie)**2)/tbetax(ie)
-    gammay = (one + talphay(ie)**2)/tbetay(ie)
-
-    do j=1,napx
-      xj  = (xv1(j)-torbx(ie)) /c1e3
-      xpj = (yv1(j)-torbxp(ie))/c1e3
-      yj  = (xv2(j)-torby(ie)) /c1e3
-      ypj = (yv2(j)-torbyp(ie))/c1e3
-
-      if(xj <= zero) then
-        xdisp = xj + (((pj-c_enom)/c_enom)*2.5_fPrec)*sqrt(tbetax(ie)/c180e0)
-      else
-        xdisp = xj - (((pj-c_enom)/c_enom)*2.5_fPrec)*sqrt(tbetax(ie)/c180e0)
-      end if
-
-    ! nspxd = sqrt(abs(gammax*xdisp**2 +  two*talphax(ie)*xdisp*xpj + tbetax(ie)*xpj**2)/c_emitx0_collgap) ! Not used
-      nspx  = sqrt(abs(gammax*xj**2    + two*talphax(ie)*xj*xpj     + tbetax(ie)*xpj**2)/c_emitx0_collgap)
-      nspy  = sqrt(abs(gammay*yj**2    + two*talphay(ie)*yj*ypj     + tbetay(ie)*ypj**2)/c_emity0_collgap)
-
-      if(part_abs_pos(j) == 0 .and. part_abs_turn(j) == 0) then
-        ! Here we apply the same kind of cut than the sigsecut parameter
-        if(nhit_type(j) > 0 .and. xv1(j) < 99.0_fPrec .and. xv2(j) < 99.0_fPrec .and. ( &
-            (((xv1(j)*c1m3)**2 / (tbetax(ie)*c_emitx0_collgap)) >= sigsecut2).or. &
-            (((xv2(j)*c1m3)**2 / (tbetay(ie)*c_emity0_collgap)) >= sigsecut2).or. &
-            (((xv1(j)*c1m3)**2 / (tbetax(ie)*c_emitx0_collgap)) +                 &
-            ( (xv2(j)*c1m3)**2 / (tbetay(ie)*c_emity0_collgap)) >= sigsecut3))    &
-          ) then
-#ifdef HDF5
-          if(h5_writeTracks2) then
-            call h5tr2_writeLine(partID(j),iturn,dcum(ie),xv1(j),yv1(j),xv2(j),yv2(j),&
-              (ejv(j)-c_enom)/c_enom,nhit_type(j))
-          else
-#endif
-            write(coll_tracksUnit,"(i8,1x,i8,1x,f10.2,4(1x,e12.5),1x,e11.3,1x,i4)") partID(j),iturn,dcum(ie), &
-              xv1(j),yv1(j),xv2(j),yv2(j),(ejv(j)-c_enom)/c_enom,nhit_type(j)
-#ifdef HDF5
-          end if
-#endif
-        end if
-      end if
-    end do
+    call coll_writeTracks2(2)
   end if
 
 end subroutine collimate_end_element
@@ -3490,6 +3393,108 @@ subroutine coll_getMinGapID(minGapID)
   call f_close(coll_sigmaSetUnit)
 
 end subroutine coll_getMinGapID
+
+! ================================================================================================ !
+!  WRITE TO FILES
+! ================================================================================================ !
+
+! ================================================================================================ !
+!  Writing of tracks2.dat
+! ================================================================================================ !
+subroutine coll_writeTracks2(iMode)
+
+  use coll_db
+  use coll_common
+  use mod_common
+  use mod_common_main
+  use mod_common_track
+#ifdef HDF5
+  use hdf5_output
+  use hdf5_tracks2
+#endif
+
+  integer, intent(in) :: iMode
+
+  integer j
+  real(kind=fPrec) sigX2, sigY2, halfLen
+  real(kind=fPrec) xj, xpj, yj, ypj, sj, pj
+  real(kind=fPrec) xk, xpk, yk, ypk, sk
+
+  sigX2   = tbetax(ie)*c_emitx0_collgap
+  sigY2   = tbetay(ie)*c_emity0_collgap
+  halfLen = half*cdb_cLength(icoll)
+
+  if(iMode == 1) then
+
+    sj = dcum(ie) - halfLen
+    sk = dcum(ie) + halfLen
+
+    do j=1,napx
+      if(                                                                                 &
+        part_hit_pos(j) == ie .and. part_hit_turn(j) == iturn .and.                       &
+        part_abs_pos(j) == 0  .and. part_abs_turn(j) == 0     .and.                       &
+        nhit_type(j)     > 0  .and. xv1(j) < 99.0_fPrec .and. xv2(j) < 99.0_fPrec .and. ( &
+          (xv1(j)*c1m3)**2 / sigX2 >= sigsecut2 .or.                                      &
+          (xv2(j)*c1m3)**2 / sigY2 >= sigsecut2 .or.                                      &
+          (xv1(j)*c1m3)**2 / sigX2 + (xv2(j)*c1m3)**2 / sigY2 >= sigsecut3                &
+        )                                                                                 &
+      ) then
+
+        xpj = rcxp0(j)*c1e3 + torbxp(ie)
+        xj  =  rcx0(j)*c1e3 +  torbx(ie) - halfLen*xpj
+        ypj = rcyp0(j)*c1e3 + torbyp(ie)
+        yj  =  rcy0(j)*c1e3 +  torby(ie) - halfLen*ypj
+        xk  = xv1(j) + halfLen*yv1(j)
+        xpk = yv1(j)
+        yk  = xv2(j) + halfLen*yv2(j)
+        ypk = yv2(j)
+        pj  = (ejv(j) - c_enom)/c_enom
+
+#ifdef HDF5
+        if(h5_writeTracks2) then
+          call h5tr2_writeLine(partID(j),iturn,sj,xj,xpj,yj,ypj,pj,nhit_type(j))
+          call h5tr2_writeLine(partID(j),iturn,sk,xk,xpk,yk,ypk,pj,nhit_type(j))
+        else
+#endif
+          write(coll_tracksUnit,"(i8,1x,i8,1x,f10.2,4(1x,e12.5),1x,e11.3,1x,i4)") &
+            partID(j),iturn,sj,xj,xpj,yj,ypj,pj,nhit_type(j)
+          write(coll_tracksUnit,"(i8,1x,i8,1x,f10.2,4(1x,e12.5),1x,e11.3,1x,i4)") &
+            partID(j),iturn,sk,xk,xpk,yk,ypk,pj,nhit_type(j)
+#ifdef HDF5
+        end if
+#endif
+      end if
+    end do
+
+  elseif(iMode == 2) then ! End of element record
+
+    do j=1,napx
+      if(                                                                                &
+        part_abs_pos(j) == 0 .and. part_abs_turn(j) == 0 .and.                           &
+        nhit_type(j)     > 0 .and. xv1(j) < 99.0_fPrec .and. xv2(j) < 99.0_fPrec .and. ( &
+          (xv1(j)*c1m3)**2 / sigX2 >= sigsecut2 .or.                                     &
+          (xv2(j)*c1m3)**2 / sigY2 >= sigsecut2 .or.                                     &
+          (xv1(j)*c1m3)**2 / sigX2 + (xv2(j)*c1m3)**2 / sigY2 >= sigsecut3               &
+        )                                                                                &
+      ) then
+
+#ifdef HDF5
+        if(h5_writeTracks2) then
+          call h5tr2_writeLine(partID(j),iturn,dcum(ie),xv1(j),yv1(j),xv2(j),yv2(j),&
+            (ejv(j)-c_enom)/c_enom,nhit_type(j))
+        else
+#endif
+          write(coll_tracksUnit,"(i8,1x,i8,1x,f10.2,4(1x,e12.5),1x,e11.3,1x,i4)") partID(j),iturn,&
+            dcum(ie),xv1(j),yv1(j),xv2(j),yv2(j),(ejv(j)-c_enom)/c_enom,nhit_type(j)
+#ifdef HDF5
+        end if
+#endif
+      end if
+    end do
+
+  end if
+
+end subroutine coll_writeTracks2
 
 #ifdef HDF5
 subroutine coll_hdf5_writeCollScatter(icoll,iturn,ipart,nabs,dp,dx,dy)
