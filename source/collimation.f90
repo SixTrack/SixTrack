@@ -1508,7 +1508,6 @@ subroutine collimate_openFiles
     call f_requestUnit(coll_allAbsorbFile, coll_allAbsorbUnit)
     call f_requestUnit(coll_scatterFile,   coll_scatterUnit)
     call f_requestUnit(coll_fstImpactFile, coll_fstImpactUnit)
-    call f_requestUnit(coll_impactFile,    coll_impactUnit)
     call f_requestUnit(coll_flukImpFile,   coll_flukImpUnit)
     call f_requestUnit(coll_flukImpAllFile,coll_flukImpAllUnit)
     call f_requestUnit(coll_jawProfileFile,coll_jawProfileUnit)
@@ -1517,7 +1516,6 @@ subroutine collimate_openFiles
     call f_open(unit=coll_allAbsorbUnit, file=coll_allAbsorbFile, formatted=.true.,mode="w")
     call f_open(unit=coll_scatterUnit,   file=coll_scatterFile,   formatted=.true.,mode="w")
     call f_open(unit=coll_fstImpactUnit, file=coll_fstImpactFile, formatted=.true.,mode="w")
-    call f_open(unit=coll_impactUnit,    file=coll_impactFile,    formatted=.true.,mode="w")
     call f_open(unit=coll_flukImpUnit,   file=coll_flukImpFile,   formatted=.true.,mode="w")
     call f_open(unit=coll_flukImpAllUnit,file=coll_flukImpAllFile,formatted=.true.,mode="w")
     call f_open(unit=coll_jawProfileUnit,file=coll_jawProfileFile,formatted=.true.,mode="w")
@@ -1528,7 +1526,6 @@ subroutine collimate_openFiles
       "7=x_in(b!)[m], 8=xp_in, 9=y_in, 10=yp_in, 11=x_out [m], 12=xp_out, 13=y_out, 14=yp_out"
     write(coll_scatterUnit,"(a)") "# 1=icoll, 2=iturn, 3=np, 4=nabs (1:Nuclear-Inelastic,2:Nuclear-Elastic,3:pp-Elastic, "//&
       "4:Single-Diffractive,5:Coulomb), 5=dp, 6=dx', 7=dy'"
-    write(coll_impactUnit,"(a)") "# impact divergence"
     write(coll_flukImpUnit,"(a)") "# 1=icoll 2=c_rotation 3=s 4=x 5=xp 6=y 7=yp 8=nabs 9=np 10=turn"
     write(coll_flukImpAllUnit,"(a)") "# 1=icoll 2=c_rotation 3=s 4=x 5=xp 6=y 7=yp 8=nabs 9=np 10=turn"
     write(coll_jawProfileUnit,"(a1,1x,a6,1x,2(a7,1x),5(a17,1x),a12)") "#", "icoll", "iturn", "np", "x[m]", "xp[]", "y[m]", "yp[]",&
@@ -2300,7 +2297,7 @@ subroutine collimate_end_collimator(stracki)
   real(kind=fPrec), intent(in) :: stracki
 
   integer j
-  real(kind=fPrec) average,sigma,zpj,sum,sqsum
+  real(kind=fPrec) zpj,average,sigma,sum,sqsum
 
   n_impact   = 0
   n_absorbed = 0
@@ -2470,81 +2467,10 @@ subroutine collimate_end_collimator(stracki)
     end if
   end if
 
-!-----------------------------------------------------------------
-!++  For a  S E L E C T E D  collimator only consider particles that
-!++  were scattered on this selected collimator at the first turn. All
-!++  other particles are discarded.
-!++  - This is switched on with the DO_SELECT flag in the input file.
-!++  - Note that the part_select(j) flag defaults to 1 for all particles.
-
   ! Checking lower case of collimator name against name_sel (which is already lower case)
   ! This is to ensure compatibility with old style COLL block which used upper case collimator name
   if(chr_toLower(cdb_cName(icoll)) == name_sel .and. iturn == 1) then
-    num_selhit = 0
-    num_surhit = 0
-    num_selabs = 0
-
-    do j=1,napx
-      if(part_hit_pos (j) == ie .and. part_hit_turn(j) == iturn) then
-        num_selhit = num_selhit+1
-        if(part_abs_pos(j)  == 0 .and. part_abs_turn(j) == 0) then
-          num_surhit = num_surhit+1
-        else
-          num_selabs = num_selabs + 1
-        end if
-!++  If we want to select only partciles interacting at the specified
-!++  collimator then remove all other particles and reset the number
-!++  of the absorbed particles to the selected collimator.
-      else if(do_select .and. firstrun) then
-        part_select(j) = 0
-        n_tot_absorbed = num_selabs
-      end if
-    end do
-
-!++  Calculate average impact parameter and save distribution into file
-!++  only for selected collimator
-    n_impact = 0
-    sum      = zero
-    sqsum    = zero
-
-    do j=1,napx
-      if(part_hit_pos(j) == ie .and. part_hit_turn(j) == iturn) then
-        if(part_impact(j) < -half) then
-          write(lerr,"(a,i0)") "COLL> ERROR Found invalid impact parameter ", part_impact(j)
-          write(outlun,*) 'ERR>  Invalid impact parameter!', part_impact(j)
-          call prror
-        end if
-
-        n_impact = n_impact + 1
-        sum = sum + part_impact(j)
-        sqsum = sqsum + part_impact(j)**2
-        if(part_hit_pos (j).ne.0 .and. part_hit_turn(j).ne.0 .and.dowrite_impact ) then
-          write(coll_impactUnit,*) part_impact(j), part_indiv(j)
-        end if
-      end if
-    end do
-
-    if(n_impact.gt.0) then
-      average = sum/n_impact
-      if(sqsum/n_impact.ge.average**2) then
-        sigma = sqrt(sqsum/n_impact - average**2)
-      else
-        sigma = zero
-      end if
-    end if
-
-!++  Some information
-    write(lout,"(a,i8)")    'COLL> Selected collimator had N hits. N: ', num_selhit
-    write(lout,"(a,i8)")    'COLL> Number of impacts                : ', n_impact
-    write(lout,"(a,i8)")    'COLL> Number of escaped protons        : ', num_surhit
-    write(lout,"(a,e15.8)") 'COLL> Average impact parameter [m]     : ', average
-    write(lout,"(a,e15.8)") 'COLL> Sigma impact parameter [m]       : ', sigma
-
-    if(dowrite_impact) then
-      call f_close(coll_impactUnit)
-    end if
-
-!++  End of    S E L E C T E D   collimator
+    call coll_writeSelectedCollimator
   end if
 #endif
 
@@ -2589,10 +2515,6 @@ subroutine collimate_exit
 
 !++  Save particle offsets to a file
   call f_close(coll_survivalUnit)
-
-  if(dowrite_impact) then
-    call f_close(coll_impactUnit)
-  end if
 
   if(dowrite_tracks) then
     call f_close(coll_tracksUnit)
@@ -3377,6 +3299,94 @@ subroutine coll_writeImpactAbsorb
   end do
 
 end subroutine coll_writeImpactAbsorb
+
+! ================================================================================================ !
+!  For a  S E L E C T E D  collimator only consider particles that were scattered on this selected
+!  collimator at the first turn. All other particles are discarded.
+!  - This is switched on with the DO_SELECT flag in the input file.
+!  - Note that the part_select(j) flag defaults to 1 for all particles.
+! ================================================================================================ !
+subroutine coll_writeSelectedCollimator
+
+  use crcoall
+  use mod_units
+  use mod_common
+  use coll_common
+
+  integer j
+  real(kind=fPrec) average,sigma,sum,sqsum
+
+  num_selhit = 0
+  num_surhit = 0
+  num_selabs = 0
+
+  if(dowrite_impact) then
+    call f_requestUnit(coll_impactFile,coll_impactUnit)
+    call f_open(unit=coll_impactUnit,file=coll_impactFile,formatted=.true.,mode="w")
+    write(coll_impactUnit,"(a)") "# impact divergence"
+  end if
+
+  do j=1,napx
+    if(part_hit_pos (j) == ie .and. part_hit_turn(j) == iturn) then
+      num_selhit = num_selhit+1
+      if(part_abs_pos(j)  == 0 .and. part_abs_turn(j) == 0) then
+        num_surhit = num_surhit+1
+      else
+        num_selabs = num_selabs + 1
+      end if
+!++  If we want to select only partciles interacting at the specified
+!++  collimator then remove all other particles and reset the number
+!++  of the absorbed particles to the selected collimator.
+    else if(do_select .and. firstrun) then
+      part_select(j) = 0
+      n_tot_absorbed = num_selabs
+    end if
+  end do
+
+!++  Calculate average impact parameter and save distribution into file
+!++  only for selected collimator
+  n_impact = 0
+  sum      = zero
+  sqsum    = zero
+
+  do j=1,napx
+    if(part_hit_pos(j) == ie .and. part_hit_turn(j) == iturn) then
+      if(part_impact(j) < -half) then
+        write(lerr,"(a,i0)") "COLL> ERROR Found invalid impact parameter ", part_impact(j)
+        write(outlun,*) 'ERR>  Invalid impact parameter!', part_impact(j)
+        call prror
+      end if
+
+      n_impact = n_impact + 1
+      sum = sum + part_impact(j)
+      sqsum = sqsum + part_impact(j)**2
+      if(part_hit_pos (j).ne.0 .and. part_hit_turn(j).ne.0 .and.dowrite_impact ) then
+        write(coll_impactUnit,*) part_impact(j), part_indiv(j)
+      end if
+    end if
+  end do
+
+  if(n_impact.gt.0) then
+    average = sum/n_impact
+    if(sqsum/n_impact.ge.average**2) then
+      sigma = sqrt(sqsum/n_impact - average**2)
+    else
+      sigma = zero
+    end if
+  end if
+
+!++  Some information
+  write(lout,"(a,i8)")    'COLL> Selected collimator had N hits. N: ', num_selhit
+  write(lout,"(a,i8)")    'COLL> Number of impacts                : ', n_impact
+  write(lout,"(a,i8)")    'COLL> Number of escaped protons        : ', num_surhit
+  write(lout,"(a,e15.8)") 'COLL> Average impact parameter [m]     : ', average
+  write(lout,"(a,e15.8)") 'COLL> Sigma impact parameter [m]       : ', sigma
+
+  if(dowrite_impact) then
+    call f_close(coll_impactUnit)
+  end if
+
+end subroutine coll_writeSelectedCollimator
 
 ! ================================================================================================ !
 !  Writing of tracks2.dat
