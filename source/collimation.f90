@@ -1628,8 +1628,8 @@ subroutine collimate_trackThin(stracki, isColl)
       call coll_computeStats
     end if
 
-    call collimate_do_collimator(stracki)
-    call collimate_end_collimator(stracki)
+    call coll_doCollimator(stracki)
+    call coll_endCollimator(stracki)
 
     call time_stopClock(time_clockCOLL)
 
@@ -1692,10 +1692,10 @@ subroutine coll_computeStats
 end subroutine coll_computeStats
 
 !>
-!! collimate_do_collimator()
+!! coll_doCollimator()
 !! This routine is calls the actual scattering functions
 !<
-subroutine collimate_do_collimator(stracki)
+subroutine coll_doCollimator(stracki)
 
   use crcoall
   use parpro
@@ -2061,13 +2061,7 @@ subroutine collimate_do_collimator(stracki)
   end do
 
   ! Allow treatment of collimators as one-sided
-  if(cdb_cSides(icoll) == 1) then
-    onesided = .true.
-  else if(cdb_cSides(icoll) == 2) then
-    onesided = .true.
-  else
-    onesided = .false.
-  end if
+  onesided = cdb_cSides(icoll) == 1 .or. cdb_cSides(icoll) == 2
 
   linside(:) = .false.
 
@@ -2273,13 +2267,13 @@ subroutine collimate_do_collimator(stracki)
     end do
   end if
 
-end subroutine collimate_do_collimator
+end subroutine coll_doCollimator
 
 ! ================================================================================================ !
 !  Calculate average impact parameter and save info for all collimators.
 !  Copy information back and do negative drift.
 ! ================================================================================================ !
-subroutine collimate_end_collimator(stracki)
+subroutine coll_endCollimator(stracki)
 
   use crcoall
   use mod_common
@@ -2452,7 +2446,7 @@ subroutine collimate_end_collimator(stracki)
   end if
 #endif
 
-end subroutine collimate_end_collimator
+end subroutine coll_endCollimator
 
 ! ================================================================================================ !
 !  Collimate Exit
@@ -2557,7 +2551,7 @@ subroutine coll_exitCollimation
         write(coll_efficUnit,"(a1,1x,a13,6(1x,a15),1x,a8)") "#","rad_sigma",&
           "frac_x","frac_y","frac_r","eff_x","eff_y","eff_r","n_abs"
         do k=1,numeff
-          write(coll_efficUnit,"(7(1x,e15.7),1x,i8)") rsig(k), neffx(k)/real(n_tot_absorbed,fPrec), &
+          write(coll_efficUnit,"(7(e15.7,1x),i8)") rsig(k), neffx(k)/real(n_tot_absorbed,fPrec), &
             neffy(k)/real(n_tot_absorbed,fPrec), neff(k)/real(n_tot_absorbed,fPrec), neffx(k), neffy(k), neff(k), n_tot_absorbed
         end do
       else
@@ -2770,28 +2764,15 @@ end subroutine coll_exitCollimation
 !>
 !! This routine is called at the start of each tracking turn
 !<
-subroutine collimate_start_turn(n)
-
-  use crcoall
-  use parpro
-  use mod_common
-  use mod_common_main
-  use mod_commons
-  use mod_common_track
-  use mod_common_da
-
-  implicit none
-
+subroutine coll_startTurn(n)
   integer, intent(in) :: n
-
-  iturn=n
-
-end subroutine collimate_start_turn
+  iturn = n
+end subroutine coll_startTurn
 
 !>
 !! This routine is called at the start of every element
 !<
-subroutine collimate_start_element(iStru, iSing)
+subroutine coll_startElement(iStru, iSing)
 
   use mod_common
   use mod_common_main
@@ -2832,13 +2813,13 @@ subroutine collimate_start_element(iStru, iSing)
     ypbob(ie) = yv2(1)
   end if
 
-end subroutine collimate_start_element
+end subroutine coll_startElement
 
 !>
-!! collimate_end_element()
+!! coll_endElement()
 !! This routine is called at the end of every element
 !<
-subroutine collimate_end_element
+subroutine coll_endElement
 
   use coll_common
   use mod_common
@@ -2852,50 +2833,32 @@ subroutine collimate_end_element
     call coll_writeTracks2(2)
   end if
 
-end subroutine collimate_end_element
+end subroutine coll_endElement
 
 !>
-!! collimate_end_turn()
+!! coll_endTurn()
 !! This routine is called at the end of every turn
 !<
-subroutine collimate_end_turn
+subroutine coll_endTurn
 
-  use parpro
-  use coll_common
+  use mod_units
   use mod_common
-  use mod_commons
-  use mod_common_da
   use mod_common_main
   use mod_common_track
-  use crcoall
-  use mod_units
-  use mathlib_bouncer
-
+  use coll_common
 #ifdef ROOT
   use root_output
 #endif
 #ifdef HDF5
   use hdf5_output
-  use hdf5_tracks2
 #endif
 
-  implicit none
-
-  integer j,fUnit,ieff,ieffdpop
-  real(kind=fPrec) gammax,gammay,xdisp,dnormx,dnormy,driftx,drifty,xnorm,xpnorm,xangle,ynorm,ypnorm,&
-    yangle,c_dpop,dpopmin,dpopmax,nspx,nspy
-
+  integer j,fUnit
 #ifdef HDF5
-  ! For tracks2
-  integer hdfturn,hdfpid,hdftyp
-  real(kind=fPrec) hdfx,hdfxp,hdfy,hdfyp,hdfdee,hdfs
   ! For other output
   type(h5_dataField), allocatable :: fldHdf(:)
   integer fmtHdf, setHdf
 #endif
-
-!__________________________________________________________________
-!++  Now do analysis at selected elements...
 
   do j=1,napx
     if(dowrite_efficiency) then
@@ -2914,8 +2877,8 @@ subroutine collimate_end_turn
   ! For LAST ELEMENT in the ring calculate the number of surviving
   ! particles and save into file versus turn number
   if(ie == iu) then
-    nsurvive = 0
 
+    nsurvive = 0
     do j=1,napx
       if(xv1(j) < 99.0_fPrec .and. xv2(j) < 99.0_fPrec) then
         nsurvive = nsurvive + 1
@@ -2946,130 +2909,14 @@ subroutine collimate_end_turn
     end if
   end if
 
-!=======================================================================
-!++  Do collimation analysis at element 20 ("zero" turn) or LAST
-!++  ring element.
-
-!++  If selecting, look at number of scattered particles at selected
-!++  collimator. For the "zero" turn consider the information at element
-!++  20 (before collimation), otherwise take information at last ring
-!++  element.
-  if(do_coll .and. ((iturn == 1 .and. ie == 20) .or. (ie == iu))) then
-    gammax = (1 + talphax(ie)**2)/tbetax(ie)
-    gammay = (1 + talphay(ie)**2)/tbetay(ie)
-
-    do j = 1, napx
-      ! Do the binning in amplitude, only considering particles that were not absorbed before.
-      if(xv1(j) < 99.0_fPrec .and. xv2(j) < 99.0_fPrec .and. (part_select(j) == 1 .or. ie == 20)) then
-        ! Normalized amplitudes are calculated
-        ! Allow to apply some dispersive offset. Take arc dispersion (2m) and normalize with arc beta_x function (180m).
-        xdisp = abs(xv1(j)*c1m3) + (abs((ejv(j)-c_enom)/c_enom)*2.5_fPrec) * sqrt(tbetax(ie)/c180e0)
-        nspx  = sqrt(                                                       &
-                  abs(gammax*xdisp**2 +                                     &
-                    ((two*talphax(ie))*xdisp)*(yv1(j)*c1m3) +               &
-                    tbetax(ie)*(yv1(j)*c1m3)**2                             &
-                  )/c_emitx0_collgap                                        &
-                )
-        nspy  = sqrt(                                                       &
-                  abs(gammay*(xv2(j)*c1m3)**2 +                             &
-                    ((two*talphay(ie))*(xv2(j)*c1m3))*(yv2(j)*c1m3) +       &
-                    tbetay(ie)*(yv2(j)*c1m3)**2                             &
-                  )/c_emity0_collgap                                        &
-                )
-
-!++  Populate the efficiency arrays at the end of each turn...
-! Modified by M.Fiascaris, July 2016
-        if(ie == iu .and. dowrite_efficiency) then
-          do ieff = 1, numeff
-            if(counted_r(j,ieff).eq.0 .and. sqrt( &
-            &((xineff(j)*c1m3)**2 + (talphax(ie)*xineff(j)*c1m3 + tbetax(ie)*xpineff(j)*c1m3)**2)/(tbetax(ie)*c_emitx0_collgap)+&
-            &((yineff(j)*c1m3)**2 + (talphay(ie)*yineff(j)*c1m3 + tbetay(ie)*ypineff(j)*c1m3)**2)/(tbetay(ie)*c_emity0_collgap))&
-            &.ge.rsig(ieff)) then
-              neff(ieff) = neff(ieff)+one
-              counted_r(j,ieff)=1
-            end if
-
-!++ 2D eff
-            do ieffdpop=1,numeffdpop
-              if(counted2d(j,ieff,ieffdpop).eq.0 .and.abs((ejv(j)-c_enom)/c_enom).ge.dpopbins(ieffdpop)) then
-                neff2d(ieff,ieffdpop) = neff2d(ieff,ieffdpop)+one
-                counted2d(j,ieff,ieffdpop)=1
-              end if
-            end do
-
-            if(counted_x(j,ieff).eq.0 .and.sqrt(((xineff(j)*c1m3)**2 + &
-            &(talphax(ie)*xineff(j)*c1m3 + tbetax(ie)*xpineff(j)*c1m3)**2)/(tbetax(ie)*c_emitx0_collgap)).ge.rsig(ieff)) then
-              neffx(ieff) = neffx(ieff) + one
-              counted_x(j,ieff)=1
-            end if
-
-            if(counted_y(j,ieff).eq.0 .and. &
-            &sqrt(((yineff(j)*c1m3)**2 + (talphay(ie)*yineff(j)*c1m3 + tbetay(ie)*ypineff(j)*c1m3)**2)/ &
-            &tbetay(ie)*c_emity0_collgap).ge.rsig(ieff)) then
-              neffy(ieff) = neffy(ieff) + one
-              counted_y(j,ieff)=1
-            end if
-          end do !do ieff = 1, numeff
-
-          do ieffdpop = 1, numeffdpop
-            if(counteddpop(j,ieffdpop).eq.0) then
-              dpopmin = zero
-              c_dpop  = abs((ejv(j)-c_enom)/c_enom)
-              if(ieffdpop > 1) then
-                dpopmin = dpopbins(ieffdpop-1)
-              end if
-
-              dpopmax = dpopbins(ieffdpop)
-              if(c_dpop >= dpopmin .and. c_dpop < c_dpop) then ! What?
-                npartdpop(ieffdpop)=npartdpop(ieffdpop)+1
-              end if
-            end if
-
-            if(counteddpop(j,ieffdpop).eq.0 .and.abs((ejv(j)-c_enom)/c_enom).ge.dpopbins(ieffdpop)) then
-              neffdpop(ieffdpop) = neffdpop(ieffdpop)+one
-              counteddpop(j,ieffdpop)=1
-            end if
-          end do !do ieffdpop = 1, numeffdpop
-        end if !if(ie.eq.iu) then
-
-!++  Do an emittance drift
-        driftx = driftsx*sqrt(tbetax(ie)*c_emitx0_collgap)
-        drifty = driftsy*sqrt(tbetay(ie)*c_emity0_collgap)
-
-        if(ie.eq.iu) then
-          dnormx = driftx / sqrt(tbetax(ie)*c_emitx0_collgap)
-          dnormy = drifty / sqrt(tbetay(ie)*c_emity0_collgap)
-          xnorm  = (xv1(j)*c1m3) / sqrt(tbetax(ie)*c_emitx0_collgap)
-          xpnorm = (talphax(ie)*(xv1(j)*c1m3)+ tbetax(ie)*(yv1(j)*c1m3)) / sqrt(tbetax(ie)*c_emitx0_collgap)
-          xangle = atan2_mb(xnorm,xpnorm)
-          xnorm  = xnorm  + dnormx*sin_mb(xangle)
-          xpnorm = xpnorm + dnormx*cos_mb(xangle)
-          xv1(j) = c1e3 * (xnorm * sqrt(tbetax(ie)*c_emitx0_collgap))
-          yv1(j) = c1e3 * ((xpnorm*sqrt(tbetax(ie)*c_emitx0_collgap)-talphax(ie)*xv1(j)*c1m3)/tbetax(ie))
-
-          ynorm  = (xv2(j)*c1m3)/ sqrt(tbetay(ie)*c_emity0_collgap)
-          ypnorm = (talphay(ie)*(xv2(j)*c1m3)+tbetay(ie)*(yv2(j)*c1m3)) / sqrt(tbetay(ie)*c_emity0_collgap)
-          yangle = atan2_mb(ynorm,ypnorm)
-          ynorm  = ynorm  + dnormy*sin_mb(yangle)
-          ypnorm = ypnorm + dnormy*cos_mb(yangle)
-          xv2(j) = c1e3 * (ynorm * sqrt(tbetay(ie)*c_emity0_collgap))
-          yv2(j) = c1e3 * ((ypnorm*sqrt(tbetay(ie)*c_emity0_collgap)-talphay(ie)*xv2(j)*c1m3)/tbetay(ie))
-        end if
-
-!------------------------------------------------------------------------
-!++  End of check for selection flag and absorption
-      end if
-!++  End of do loop over particles
-    end do
-!_________________________________________________________________
-!++  End of collimation efficiency analysis for selected particles
+  if(iturn == 1 .or. ie == iu) then
+    call coll_doEfficiency
   end if
 
-!------------------------------------------------------------------
-!++  For LAST ELEMENT in the ring compact the arrays by moving all
-!++  lost particles to the end of the array.
+  ! For LAST ELEMENT in the ring compact the arrays by moving all
+  ! lost particles to the end of the array.
   if(ie == iu) then
-    do j = 1, napx
+    do j=1, napx
       if(xv1(j) < 99.0_fPrec .and. xv2(j) < 99.0_fPrec) then
         llostp(j) = .false.
       else
@@ -3119,9 +2966,9 @@ subroutine collimate_end_turn
   end if
 
   ! Call end element one extra time
-  call collimate_end_element
+  call coll_endElement
 
-end subroutine collimate_end_turn
+end subroutine coll_endTurn
 
 ! ================================================================================================ !
 !  Find the smallest gap, and also write sigmasettings.out
@@ -3207,6 +3054,118 @@ subroutine coll_getMinGapID(minGapID)
   call f_close(coll_sigmaSetUnit)
 
 end subroutine coll_getMinGapID
+
+! ================================================================================================ !
+! Do collimation analysis at last element.
+! If selecting, look at number of scattered particles at selected collimator.
+! ================================================================================================ !
+subroutine coll_doEfficiency
+
+  use mod_common
+  use mod_common_main
+  use mod_common_track
+  use mathlib_bouncer
+  use coll_common
+
+  integer j,ieff,ieffdpop
+  real(kind=fPrec) xnorm,xpnorm,ynorm,ypnorm,xangle,yangle,driftx,drifty
+  real(kind=fPrec) dpopmin,dpopmax,dnormx,dnormy,c_dpop
+  real(kind=fPrec) sigX,sigY,sigX2,sigY2,cSigEffX,cSigEffY,cSigEff
+
+  sigX2 = tbetax(ie)*c_emitx0_collgap
+  sigY2 = tbetay(ie)*c_emity0_collgap
+  sigX  = sqrt(sigX2)
+  sigY  = sqrt(sigY2)
+
+  do j=1,napx
+
+    ! Do the binning in amplitude, only considering particles that were not absorbed before.
+    if(part_abs_pos(j) == 0 .and. part_abs_turn(j) == 0 .and. part_select(j) == 1) then
+
+      ! Populate the efficiency arrays at the end of each turn.
+      if(ie == iu .and. dowrite_efficiency) then
+
+        cSigEffX = ((xineff(j)*c1m3)**2 + (talphax(ie)*xineff(j)*c1m3 + tbetax(ie)*xpineff(j)*c1m3)**2)/sigX2
+        cSigEffY = ((yineff(j)*c1m3)**2 + (talphay(ie)*yineff(j)*c1m3 + tbetay(ie)*ypineff(j)*c1m3)**2)/sigY2
+
+        cSigEff  = sqrt(cSigEffX + cSigEffY)
+        cSigEffX = sqrt(cSigEffX)
+        cSigEffY = sqrt(cSigEffY)
+
+        do ieff=1,numeff
+          if(counted_r(j,ieff) == 0 .and. cSigEff >= rsig(ieff)) then
+            neff(ieff)        = neff(ieff) + one
+            counted_r(j,ieff) = 1
+          end if
+
+          if(counted_x(j,ieff) == 0 .and. cSigEffX >= rsig(ieff)) then
+            neffx(ieff)       = neffx(ieff) + one
+            counted_x(j,ieff) = 1
+          end if
+
+          if(counted_y(j,ieff) == 0 .and. cSigEffY >= rsig(ieff)) then
+            neffy(ieff)       = neffy(ieff) + one
+            counted_y(j,ieff) = 1
+          end if
+
+          ! 2D eff
+          do ieffdpop=1,numeffdpop
+            if(counted2d(j,ieff,ieffdpop) == 0 .and. abs((ejv(j)-c_enom)/c_enom) >= dpopbins(ieffdpop)) then
+              neff2d(ieff,ieffdpop)      = neff2d(ieff,ieffdpop) + one
+              counted2d(j,ieff,ieffdpop) = 1
+            end if
+          end do
+        end do
+
+        do ieffdpop=1,numeffdpop
+          if(counteddpop(j,ieffdpop) == 0) then
+            dpopmin = zero
+            c_dpop  = abs((ejv(j)-c_enom)/c_enom)
+            if(ieffdpop > 1) then
+              dpopmin = dpopbins(ieffdpop-1)
+            end if
+
+            dpopmax = dpopbins(ieffdpop)
+            if(c_dpop >= dpopmin .and. c_dpop < dpopmax) then
+              npartdpop(ieffdpop) = npartdpop(ieffdpop) + 1
+            end if
+          end if
+
+          if(counteddpop(j,ieffdpop) == 0 .and. abs((ejv(j)-c_enom)/c_enom) >= dpopbins(ieffdpop)) then
+            neffdpop(ieffdpop)      = neffdpop(ieffdpop) + one
+            counteddpop(j,ieffdpop) = 1
+          end if
+        end do
+      end if
+
+      ! Do an emittance drift
+      driftx = driftsx*sigX
+      drifty = driftsy*sigY
+
+      if(ie == iu) then
+        dnormx = driftx/sigX
+        dnormy = drifty/sigY
+
+        xnorm  = (xv1(j)*c1m3)/sigX
+        xpnorm = (talphax(ie)*(xv1(j)*c1m3) + tbetax(ie)*(yv1(j)*c1m3))/sigX
+        xangle = atan2_mb(xnorm,xpnorm)
+        xnorm  = xnorm  + dnormx*sin_mb(xangle)
+        xpnorm = xpnorm + dnormx*cos_mb(xangle)
+        xv1(j) = c1e3*(xnorm*sigX)
+        yv1(j) = c1e3*((xpnorm*sigX - (talphax(ie)*xv1(j))*c1m3)/tbetax(ie))
+
+        ynorm  = (xv2(j)*c1m3)/sigY
+        ypnorm = (talphay(ie)*(xv2(j)*c1m3) + tbetay(ie)*(yv2(j)*c1m3))/sigY
+        yangle = atan2_mb(ynorm,ypnorm)
+        ynorm  = ynorm  + dnormy*sin_mb(yangle)
+        ypnorm = ypnorm + dnormy*cos_mb(yangle)
+        xv2(j) = c1e3*(ynorm*sigY)
+        yv2(j) = c1e3*((ypnorm*sigY - (talphay(ie)*xv2(j))*c1m3)/tbetay(ie))
+      end if
+    end if
+  end do
+
+end subroutine coll_doEfficiency
 
 ! ================================================================================================ !
 !  WRITE TO FILES

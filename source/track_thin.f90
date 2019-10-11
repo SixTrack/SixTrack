@@ -644,7 +644,7 @@ subroutine thin6d(nthinerr)
     if(nthinerr /= 0) return
 
     if(do_coll) then
-      call collimate_start_turn(n)
+      call coll_startTurn(n)
     end if
 
     !! This is the loop over each element: label 650
@@ -655,7 +655,7 @@ subroutine thin6d(nthinerr)
       ix=ic(i)-nblo
 
       if(do_coll) then
-        call collimate_start_element(i,ix)
+        call coll_startElement(i,ix)
       end if
       meta_nPTurnEle = meta_nPTurnEle + napx
 
@@ -1323,7 +1323,7 @@ subroutine thin6d(nthinerr)
 640   continue ! end of the SELECT CASE over element type (dotrack)
 
       if(do_coll) then
-        call collimate_end_element
+        call coll_endElement
       end if
 
 #include "include/lostpart.f90"
@@ -1337,7 +1337,7 @@ subroutine thin6d(nthinerr)
 650 continue !END loop over structure elements
 
     if(do_coll) then
-      call collimate_end_turn
+      call coll_endTurn
     end if
 #ifdef ROOT
     if(root_flag .and. root_Collimation == 1) then
