@@ -1,5 +1,5 @@
 hash.md5
-tracks2.dat
+tracks2.dat.trunc
 initial_state.dat
 final_state.dat
 coll_summary.dat
