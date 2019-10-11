@@ -1,0 +1,91 @@
+GEOM        Collimation test for the FCC-hh with the IPAC 2017 lattice.
+
+SETTINGS----------------------------------------------------------------
+  PRINT
+  INITIALSTATE text
+  FINALSTATE   text
+NEXT
+
+HASH--------------------------------------------------------------------
+  MD5SUM tracks2.dat text
+!   MD5SUM final_state.dat       text
+!   MD5SUM all_absorptions.dat   text
+!   MD5SUM all_impacts.dat       text
+!   MD5SUM amplitude.dat         text
+!   MD5SUM Coll_Scatter.dat      text
+!   MD5SUM FLUKA_impacts.dat     text
+!   MD5SUM FLUKA_impacts_all.dat text
+!   MD5SUM FirstImpacts.dat      text
+!   MD5SUM dist0.dat             text
+!   MD5SUM distn.dat             text
+NEXT
+
+TRACKING----------------------------------------------------------------
+  20 0 32 0 17 0 1
+  1 1 0 0 2
+  0 0 1 1 1000 20000 2
+NEXT
+
+INITIAL COORDINATES-----------------------------------------------------
+  2 0 0 1
+  0.0
+  0.0
+  0.0
+  0.0
+  0.0
+  0.0
+  0.0
+  .000001
+  0.0
+  0.0
+  0.0
+  0.0
+  50000000.0
+  50000000.0
+  50000000.0
+NEXT
+
+FLUCTUATION-------------------------------------------------------------
+  100000 1 7 3
+NEXT
+
+ITERATION ACCURACY------------------------------------------------------
+  50 0.10E-13 0.10E-14
+  10 0.10E-09 0.10E-09
+  10 0.10E-04 0.10E-05
+  0.10E-07 0.10E-11 0.10E-09
+NEXT
+
+LINEAR OPTICS-----------------------------------------------------------
+  ELEMENT  0 1 1 2.2 2.2
+NEXT
+
+BEAM--------------------------------------------------------------------
+  0.10E+12 2.2 2.2 0.08E+00 0.4716E-03 1 1 1
+NEXT
+
+SYNC--------------------------------------------------------------------
+  130680  0.000101     32.000 0.  97749.385342  938.272081  1
+  1 1
+NEXT
+
+COLLIMATION-------------------------------------------------------------
+  .true.
+  1 50000000
+  4 7.58 0.0015 0. 0. "dist_in.dat" 1.129e-4 80.0
+  .false. 12.0  15.6  999.  17.6  6.  7.  999.  10.  10.  999.  8.  7.5   999.0
+  8.3 30. 8.3 30. 8.3 30. 8.3 30. 999. 10.
+  0 19789.0 20150.0 1 1
+  -1.3899e-6 -9.345e-5 5.05324e-3 -1.6595e-2 2.15955e-2 -9.96261e-3 1.0
+  -1.3899e-6 -9.345e-5 5.05324e-3 -1.6595e-2 2.15955e-2 -9.96261e-3 1.0
+  2.2 2.2 2.2 2.2
+  .false. .false. 1234 .true. tcp.c6l7.b1 .false. .true. .true. .true.
+  0 0 0 0
+  0 0 0 0 0 0 0 0 0 0 .false.
+  .false. 6.003 .0015
+  0 0 .false. .false.
+  0 .0019 0.0 0.275e-3 1
+  "CollDB.b1" 1
+  .true. .false. HoriLowbcoll 101 1 1.
+NEXT
+ENDE

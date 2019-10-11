@@ -201,6 +201,7 @@ if(NOT CR)
     collimation_new-db_new-block
     collimation_old-db_new-block
     collimation_old-db_old-block
+    collimation_tracks2
     scatter_collimation
   )
 endif()
@@ -277,6 +278,7 @@ set(TESTS_NOFORT10
   collimation_new-db_new-block
   collimation_old-db_new-block
   collimation_old-db_old-block
+  collimation_tracks2
   dist_file_6d
   dist_file_6d_direct
   distlib_normalised
@@ -352,6 +354,7 @@ set(TESTS_NO_STF
   collimation_new-db_new-block
   collimation_old-db_new-block
   collimation_old-db_old-block
+  collimation_tracks2
   crabs
   orbit6d-element-rotations
   dipedge
@@ -621,6 +624,7 @@ set(FAST_TESTS
   collimation_new-db_new-block
   collimation_old-db_new-block
   collimation_old-db_old-block
+  collimation_tracks2
   crabs
   dist_file_6d
   dist_file_6d_direct
