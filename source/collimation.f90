@@ -3304,7 +3304,7 @@ subroutine coll_writeSelectedCollimator
   if(dowrite_impact) then
     call f_requestUnit(coll_impactFile,coll_impactUnit)
     call f_open(unit=coll_impactUnit,file=coll_impactFile,formatted=.true.,mode="w")
-    write(coll_impactUnit,"(a)") "# impact divergence"
+    write(coll_impactUnit,"(a1,1x,a14,1x,a16)") "#","impact","divergence"
   end if
 
   do j=1,napx
@@ -3327,7 +3327,7 @@ subroutine coll_writeSelectedCollimator
       sqsum    = sqsum + part_impact(j)**2
 
       if(dowrite_impact) then
-        write(coll_impactUnit,*) part_impact(j), part_indiv(j)
+        write(coll_impactUnit,"(1pe16.9,1x,1pe16.9)") part_impact(j), part_indiv(j)
       end if
 
     else if(do_select .and. firstrun) then
