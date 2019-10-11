@@ -1,3 +1,5 @@
+
+
 ! ================================================================================================ !
 !  Routines related to the initialisation of elements
 !  Need to be in a separate file due to dependency issues
@@ -62,8 +64,9 @@ subroutine initialise_element(ix,lfirst)
         ek(ix) = one
         el(ix) = zero
       else if(abs(el(ix)+two) <= pieni) then
-        dki(ix,2) = ed(ix)
+        dki(ix,2) = -ed(ix)
         dki(ix,3) = ek(ix)
+        print *, "heerea"
         ed(ix) = one
         ek(ix) = one
         el(ix) = zero
@@ -388,10 +391,13 @@ subroutine setStrack(skz, i)
     strack(i) = smiv(i)*c1m24
   case(11)
     strack(i) = dki(ix,1)/dki(ix,3)
+    print *, "track111111", strack(i)
   case(12)
     strack(i) = dki(ix,1)
   case(13)
-    strack(i) = dki(ix,2)/dki(ix,3)
+
+    strack(i) = -dki(ix,2)/dki(ix,3)
+    print *, "track1333", strack(i)
   case(14)
     strack(i) = dki(ix,2)
   case default
