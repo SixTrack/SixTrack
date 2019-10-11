@@ -27,7 +27,6 @@ module coll_db
 
   ! Main Database Arrays
   character(len=:), allocatable, public, save :: cdb_cName(:)       ! Collimator name
-  character(len=:), allocatable, public, save :: cdb_cNameUC(:)     ! Collimator name upper case
   character(len=:), allocatable, public, save :: cdb_cMaterial(:)   ! Collimator material
   integer,          allocatable, public, save :: cdb_cFamily(:)     ! Collimator family
   real(kind=fPrec), allocatable, public, save :: cdb_cNSig(:)       ! Collimator sigma
@@ -69,7 +68,6 @@ subroutine cdb_allocDB
 
   ! Main Database Arrays
   call alloc(cdb_cName,     mNameLen, cdb_nColl, " ",           "cdb_cName")
-  call alloc(cdb_cNameUC,   mNameLen, cdb_nColl, " ",           "cdb_cNameUC")
   call alloc(cdb_cMaterial, 4,        cdb_nColl, " ",           "cdb_cMaterial")
   call alloc(cdb_cFamily,             cdb_nColl, 0,             "cdb_cFamily")
   call alloc(cdb_cNSig,               cdb_nColl, cdb_defColGap, "cdb_cNSig")
@@ -302,7 +300,6 @@ subroutine cdb_readDB_newFormat
   end if
 
   cdb_cName(iColl)     = lnSplit(1)
-  cdb_cNameUC(iColl)   = chr_toUpper(lnSplit(1))
   cdb_cMaterial(iColl) = lnSplit(3)
 
   call chr_cast(lnSplit(4),cdb_cLength(iColl),  cErr)
@@ -359,6 +356,7 @@ subroutine cdb_readDB_oldFormat
 
   character(len=mInputLn) inLine
   character(len=cdb_fNameLen) famName
+  character(len=mNameLen) collDummy
   logical cErr, fExists
   integer j, dbUnit, ioStat, iLine, famID
 
@@ -386,7 +384,7 @@ subroutine cdb_readDB_oldFormat
     if(ioStat /= 0) goto 100
 
     ! Line 2: Upper case name
-    read(dbUnit,*,iostat=ioStat) cdb_cNameUC(j)
+    read(dbUnit,*,iostat=ioStat) collDummy
     iLine = iLine + 1
     if(ioStat /= 0) goto 100
 
@@ -742,7 +740,7 @@ subroutine cdb_writeDB_ROOT
   if((root_flag .eqv. .false.) .or. root_CollimationDB /= 1) return
 
   do j=1,cdb_nColl
-    this_name     = trim(adjustl(cdb_cNameUC(j)))//C_NULL_CHAR
+    this_name     = trim(adjustl(cdb_cName(j)))//C_NULL_CHAR
     this_material = trim(adjustl(cdb_cMaterial(j)))//C_NULL_CHAR
     call CollimatorDatabaseRootWrite(j, this_name, len_trim(this_name), this_material, len_trim(this_material), cdb_cNSig(j), &
       cdb_cLength(j), cdb_cRotation(j), cdb_cOffset(j))
@@ -1071,10 +1069,10 @@ subroutine cdb_setMasterJawFit(nSlices, sMin, sMax, rc1, rc2, jawFit, fitScale)
       ix = ix-nblo
       k  = cdb_elemMap(ix)
       if(k > 0 .and. dcum(i) > sMin .and. dcum(i) < sMax) then
-        if(cdb_cNameUC(k)(1:4) == "TCSG" .or. cdb_cNameUC(k)(1:3) == "TCP"  .or. &
-           cdb_cNameUC(k)(1:4) == "TCLA" .or. cdb_cNameUC(k)(1:3) == "TCT"  .or. &
-           cdb_cNameUC(k)(1:4) == "TCLI" .or. cdb_cNameUC(k)(1:4) == "TCL." .or. &
-           cdb_cNameUC(k)(1:5) == "TCRYO") then
+        if(cdb_cName(k)(1:4) == "tcsg" .or. cdb_cName(k)(1:3) == "tcp"  .or. &
+           cdb_cName(k)(1:4) == "tcla" .or. cdb_cName(k)(1:3) == "tct"  .or. &
+           cdb_cName(k)(1:4) == "tcli" .or. cdb_cName(k)(1:4) == "tcl." .or. &
+           cdb_cName(k)(1:5) == "tcryo") then
           write(lout,"(a,f13.6)") "COLLDB> Will apply jaw fit to collimator '"//trim(bez(ix))//"' at position ",dcum(i)
           cdb_cJawFit(:,k) = fitID
           call jaw_computeFit(trim(bez(ix)), fitID, nSlices, fitScale, reCentre, cdb_cLength(k), cdb_cTilt(:,k), &
@@ -1209,7 +1207,7 @@ subroutine cdb_setLHCOnesided(doOneSide)
 
   do i=1,cdb_nColl
     cdb_cSides(i) = 0
-    if((cdb_cNameUC(i)(1:3) == "TCP" .and. doOneSide) .or. cdb_cNameUC(i)(1:4) == "TCDQ" .or. cdb_cNameUC(i)(1:5) == "TCXRP") then
+    if(cdb_cName(i)(1:3) == "tcp" .and. doOneSide .or. cdb_cName(i)(1:4) == "tcdq" .or. cdb_cName(i)(1:5) == "tcxrp") then
       cdb_cSides(i) = 1
       write(lout,"(a)") "COLLDB> Collimator '"//trim(cdb_cName(i))//"' is treated as one-sided"
     end if

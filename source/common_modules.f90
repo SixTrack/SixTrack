@@ -144,7 +144,7 @@ module mod_common
   character(len=mFileName), public, save :: fort10  = "fort.10"  ! Name of main postprocessing file (text)
   character(len=mFileName), public, save :: fort110 = "fort.110" ! Name of main postprocessing file (binary)
   character(len=mFileName), public, save :: fort208 = "fort.208" ! Collimation/FLUKA
-  
+
   integer,                  public, save :: unit10  = -1         ! Unit of main postprocessing file (text)
   integer,                  public, save :: unit110 = -1         ! Unit of main postprocessing file (binary)
   integer,                  public, save :: unit208 = -1         ! Collimation/FLUKA
@@ -795,6 +795,20 @@ module mod_common_track
   real(kind=fPrec), allocatable, save :: strackz(:) ! (nblz)
   real(kind=fPrec), allocatable, save :: dpsv1(:)   ! (npart)
 
+  ! Linear Optics
+  real(kind=fPrec), allocatable, save :: tbetax(:)  ! (nblz)
+  real(kind=fPrec), allocatable, save :: tbetay(:)  ! (nblz)
+  real(kind=fPrec), allocatable, save :: talphax(:) ! (nblz)
+  real(kind=fPrec), allocatable, save :: talphay(:) ! (nblz)
+  real(kind=fPrec), allocatable, save :: torbx(:)   ! (nblz)
+  real(kind=fPrec), allocatable, save :: torby(:)   ! (nblz)
+  real(kind=fPrec), allocatable, save :: torbxp(:)  ! (nblz)
+  real(kind=fPrec), allocatable, save :: torbyp(:)  ! (nblz)
+  real(kind=fPrec), allocatable, save :: tdispx(:)  ! (nblz)
+  real(kind=fPrec), allocatable, save :: tdispy(:)  ! (nblz)
+  real(kind=fPrec), allocatable, save :: tdispxp(:) ! (nblz)
+  real(kind=fPrec), allocatable, save :: tdispyp(:) ! (nblz)
+
   ! Substitute variables for x,y and is for DA version
   real(kind=fPrec), save :: xxtr(mpa,2)
   real(kind=fPrec), save :: yytr(mpa,2)
@@ -817,6 +831,19 @@ subroutine mod_commont_expand_arrays(nblz_new,npart_new)
   call alloc(stracks, nblz_new,  zero, "stracks")
   call alloc(strackx, nblz_new,  zero, "strackx")
   call alloc(strackz, nblz_new,  zero, "strackz")
+
+  call alloc(tbetax,  nblz_new,  zero, "tbetax")
+  call alloc(tbetay,  nblz_new,  zero, "tbetay")
+  call alloc(talphax, nblz_new,  zero, "talphax")
+  call alloc(talphay, nblz_new,  zero, "talphay")
+  call alloc(torbx,   nblz_new,  zero, "torbx")
+  call alloc(torby,   nblz_new,  zero, "torby")
+  call alloc(torbxp,  nblz_new,  zero, "torbxp")
+  call alloc(torbyp,  nblz_new,  zero, "torbyp")
+  call alloc(tdispx,  nblz_new,  zero, "tdispx")
+  call alloc(tdispy,  nblz_new,  zero, "tdispy")
+  call alloc(tdispxp, nblz_new,  zero, "tdispxp")
+  call alloc(tdispyp, nblz_new,  zero, "tdispyp")
 
   call alloc(dpsv1,   npart_new, zero, "dpsv1")
 
