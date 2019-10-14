@@ -500,6 +500,11 @@ subroutine sixin_parseInputLineSETT(inLine, iLine, iErr)
     end if
     write(lout,"(a,i0)") "INPUT> SixTrack Quiet level set to: ",st_quiet
 
+  case default
+    write(lerr,"(a)") "INPUT> ERROR Unknown keyword '"//trim(lnSplit(1))//"' in SETTINGS block"
+    iErr = .true.
+    return
+
   end select
 
 end subroutine sixin_parseInputLineSETT

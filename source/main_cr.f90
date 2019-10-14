@@ -1466,6 +1466,7 @@ program maincr
 
 #ifdef HASHLIB
   ! HASH library. Must be before ZIPF
+  call hash_doTrunc
   call hash_fileSums
   call time_timeStamp(time_afterHASH)
 #endif
