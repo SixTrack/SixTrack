@@ -394,24 +394,10 @@ subroutine umlauda
 !-----------------------------------------------------------------------
 !  EXACT DRIFT
 !-----------------------------------------------------------------------
-!!!!FOX  X(1)=X(1)*C1M3 ;
-!!!!FOX  X(2)=X(2)*C1M3 ;
-!!!!FOX  Y(1)=Y(1)*C1M3 ;
-!!!!FOX  Y(2)=Y(2)*C1M3 ;
-!!!!FOX  SIGMDA=SIGMDA*C1M3 ;
-!!!!FOX  PZ=SQRT(ONE-Y(1)*Y(1)-Y(2)*Y(2)) ;
-!!!!FOX  X(1)=X(1)+EL(JX)*(Y(1)/PZ) ;
-!!!!FOX  X(2)=X(2)+EL(JX)*(Y(2)/PZ) ;
-!!!!FOX  SIGMDA=SIGMDA+(ONE-(RV/PZ))*EL(JX) ;
-!!!!FOX  X(1)=X(1)*C1E3 ;
-!!!!FOX  X(2)=X(2)*C1E3 ;
-!!!!FOX  Y(1)=Y(1)*C1E3 ;
-!!!!FOX  Y(2)=Y(2)*C1E3 ;
-!!!!FOX  SIGMDA=SIGMDA*C1E3 ;
-!FOX  PZ=SQRT(C1E6-(Y(1)*Y(1)+Y(2)*Y(2))) ;
-!FOX  X(1)=X(1)+(EL(JX)*C1E3)*(Y(1)/PZ) ;
-!FOX  X(2)=X(2)+(EL(JX)*C1E3)*(Y(2)/PZ) ;
-!FOX  SIGMDA=SIGMDA+(EL(JX)*C1E6)*(C1M3-RV/PZ) ;
+!FOX  PZ=SQRT(C1E6-(Y(1)*Y(1)+Y(2)*Y(2)))*C1M3 ;
+!FOX  X(1)=X(1)+EL(JX)*(Y(1)/PZ) ;
+!FOX  X(2)=X(2)+EL(JX)*(Y(2)/PZ) ;
+!FOX  SIGMDA=SIGMDA+EL(JX)*((ONE-RV/PZ)*C1E3) ;
 !-----------------------------------------------------------------------
           else
 ! Regular drift
