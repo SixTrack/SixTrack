@@ -618,7 +618,7 @@ subroutine thin6d(nthinerr)
     acphase,acdipamp2,acdipamp1,crabamp,crabfreq,crabamp2,crabamp3,crabamp4,kcrab,RTWO,NNORM,l,cur, &
     dx,dy,tx,ty,embl,chi,xi,yi,dxi,dyi,rrelens,frrelens,xelens,yelens, onedp,fppsig,costh_temp,     &
     sinth_temp,tan_t,sin_t,cos_t,pxf,pyf,r_temp,z_temp,sigf,q_temp,pttemp,xlv,zlv,temp_angle
-  logical llost, doFField
+  logical llost, doFField, is_coll
   real(kind=fPrec) crkveb(npart),cikveb(npart),rho2b(npart),tkb(npart),rb(npart),rkb(npart),        &
     xrb(npart),zrb(npart),xbb(npart),zbb(npart),crxb(npart),crzb(npart),cbxb(npart),cbzb(npart)
   real(kind=fPrec) :: krf, x_t, y_t
@@ -728,7 +728,14 @@ subroutine thin6d(nthinerr)
         if(bdex_enable .and. kz(ix) == 0 .and. bdex_elementAction(ix) /= 0) call bdex_track(i,ix,n)
       end if
 
-      if(do_coll .and. cdb_elemMap(myix) > 0) then
+      is_coll = .false.
+      if(do_coll) then
+        if(cdb_elemMap(myix) > 0) then
+          is_coll = .true.
+        end if
+      end if
+
+      if(is_coll) then
         dotrack = 1
       else
         dotrack = ktrack(i)
@@ -738,7 +745,7 @@ subroutine thin6d(nthinerr)
       case (1)
         stracki = strack(i)
         ! Check if collimation is enabled, and call the collimation code as necessary
-        if(do_coll .and. cdb_elemMap(myix) > 0) then
+        if(do_coll .and. is_coll) then
           ! Collimator is in database, and we're doing collimation
           call collimate_trackThin(stracki,.true.)
         else ! Normal SixTrack drifts
