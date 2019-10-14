@@ -728,7 +728,7 @@ subroutine thin6d(nthinerr)
         if(bdex_enable .and. kz(ix) == 0 .and. bdex_elementAction(ix) /= 0) call bdex_track(i,ix,n)
       end if
 
-      ! The below splitting of is-statements is needed to prevent out of bounds error
+      ! The below splitting of if-statements is needed to prevent out of bounds error
       ! when building with gfortran/debug
       is_coll = .false.
       if(do_coll) then
