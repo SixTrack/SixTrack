@@ -143,22 +143,25 @@ subroutine thin4d(nthinerr)
         stracki=strack(i)
         if(iexact) then ! exact drift?
           do j=1,napx
-            xv1(j)=xv1(j)*c1m3
-            xv2(j)=xv2(j)*c1m3
-            yv1(j)=yv1(j)*c1m3
-            yv2(j)=yv2(j)*c1m3
-            pz=sqrt(one-(yv1(j)**2+yv2(j)**2))
-            xv1(j)=xv1(j)+stracki*(yv1(j)/pz)
-            xv2(j)=xv2(j)+stracki*(yv2(j)/pz)
-            xv1(j)=xv1(j)*c1e3
-            xv2(j)=xv2(j)*c1e3
-            yv1(j)=yv1(j)*c1e3
-            yv2(j)=yv2(j)*c1e3
-          enddo
+            ! xv1(j)=xv1(j)*c1m3
+            ! xv2(j)=xv2(j)*c1m3
+            ! yv1(j)=yv1(j)*c1m3
+            ! yv2(j)=yv2(j)*c1m3
+            ! pz=sqrt(one-(yv1(j)**2+yv2(j)**2))
+            ! xv1(j)=xv1(j)+stracki*(yv1(j)/pz)
+            ! xv2(j)=xv2(j)+stracki*(yv2(j)/pz)
+            ! xv1(j)=xv1(j)*c1e3
+            ! xv2(j)=xv2(j)*c1e3
+            ! yv1(j)=yv1(j)*c1e3
+            ! yv2(j)=yv2(j)*c1e3
+            pz     = sqrt(c1e6 - (yv1(j)**2 + yv2(j)**2))
+            xv1(j) = xv1(j) + (stracki*c1e3)*(yv1(j)/pz)
+            xv2(j) = xv2(j) + (stracki*c1e3)*(yv2(j)/pz)
+          end do
         else
           do j=1,napx
-            xv1(j)=xv1(j)+stracki*yv1(j)
-            xv2(j)=xv2(j)+stracki*yv2(j)
+            xv1(j) = xv1(j) + stracki*yv1(j)
+            xv2(j) = xv2(j) + stracki*yv2(j)
           end do
         end if
         ! A.Mereghetti and P.Garcia Ortega, for the FLUKA Team
@@ -754,20 +757,24 @@ subroutine thin6d(nthinerr)
           if(iexact) then
             ! EXACT DRIFT
             do j=1,napx
-              xv1(j)=xv1(j)*c1m3
-              xv2(j)=xv2(j)*c1m3
-              yv1(j)=yv1(j)*c1m3
-              yv2(j)=yv2(j)*c1m3
-              sigmv(j)=sigmv(j)*c1m3
-              pz=sqrt(one-(yv1(j)**2+yv2(j)**2))
-              xv1(j)=xv1(j)+stracki*(yv1(j)/pz)
-              xv2(j)=xv2(j)+stracki*(yv2(j)/pz)
-              sigmv(j)=sigmv(j)+stracki*(one-(rvv(j)/pz))
-              xv1(j)=xv1(j)*c1e3
-              xv2(j)=xv2(j)*c1e3
-              yv1(j)=yv1(j)*c1e3
-              yv2(j)=yv2(j)*c1e3
-              sigmv(j)=sigmv(j)*c1e3
+              ! xv1(j)=xv1(j)*c1m3
+              ! xv2(j)=xv2(j)*c1m3
+              ! yv1(j)=yv1(j)*c1m3
+              ! yv2(j)=yv2(j)*c1m3
+              ! sigmv(j)=sigmv(j)*c1m3
+              ! pz=sqrt(one-(yv1(j)**2+yv2(j)**2))
+              ! xv1(j)=xv1(j)+stracki*(yv1(j)/pz)
+              ! xv2(j)=xv2(j)+stracki*(yv2(j)/pz)
+              ! sigmv(j)=sigmv(j)+stracki*(one-(rvv(j)/pz))
+              ! xv1(j)=xv1(j)*c1e3
+              ! xv2(j)=xv2(j)*c1e3
+              ! yv1(j)=yv1(j)*c1e3
+              ! yv2(j)=yv2(j)*c1e3
+              ! sigmv(j)=sigmv(j)*c1e3
+              pz       = sqrt(c1e6 - (yv1(j)**2 + yv2(j)**2))
+              xv1(j)   = xv1(j)   + (stracki*c1e3)*(yv1(j)/pz)
+              xv2(j)   = xv2(j)   + (stracki*c1e3)*(yv2(j)/pz)
+              sigmv(j) = sigmv(j) + (stracki*c1e6)*(c1m3 - rvv(j)/pz)
             end do
           else
             do j=1,napx
