@@ -174,29 +174,32 @@ subroutine thck4d(nthinerr)
           end do
         end if
         goto 480
+
       case (2)
         goto 480
-      case (3)
-        irrtr=imtr(ix)
-        do j=1,napx
-          temptr(1)=xv1(j)
-          temptr(2)=yv1(j)
-          temptr(3)=xv2(j)
-          temptr(4)=yv2(j)
 
-          xv1(j)  = cotr(irrtr,1)
-          yv1(j)  = cotr(irrtr,2)
-          xv2(j)  = cotr(irrtr,3)
-          yv2(j)  = cotr(irrtr,4)
+      case (3)
+        irrtr = imtr(ix)
+        do j=1,napx
+          temptr(1) = xv1(j)
+          temptr(2) = yv1(j)
+          temptr(3) = xv2(j)
+          temptr(4) = yv2(j)
+
+          xv1(j) = cotr(irrtr,1)
+          yv1(j) = cotr(irrtr,2)
+          xv2(j) = cotr(irrtr,3)
+          yv2(j) = cotr(irrtr,4)
 
           do kxxa=1,6
-            xv1(j)   =  xv1(j)+temptr(kxxa)*rrtr(irrtr,1,kxxa)
-            yv1(j)   =  yv1(j)+temptr(kxxa)*rrtr(irrtr,2,kxxa)
-            xv2(j)   =  xv2(j)+temptr(kxxa)*rrtr(irrtr,3,kxxa)
-            yv2(j)   =  yv2(j)+temptr(kxxa)*rrtr(irrtr,4,kxxa)
-          enddo
-        enddo
+            xv1(j) = xv1(j) + temptr(kxxa)*rrtr(irrtr,1,kxxa)
+            yv1(j) = yv1(j) + temptr(kxxa)*rrtr(irrtr,2,kxxa)
+            xv2(j) = xv2(j) + temptr(kxxa)*rrtr(irrtr,3,kxxa)
+            yv2(j) = yv2(j) + temptr(kxxa)*rrtr(irrtr,4,kxxa)
+          end do
+        end do
         goto 470
+
       case (4,5,6,7,8,9,10)
         goto 480
       case (11) ! HORIZONTAL DIPOLE
@@ -723,71 +726,61 @@ subroutine thck6d(nthinerr)
           end do
         end do
         goto 500
+
       case (2)
-        do j=1,napx
-          ejf0v(j)=ejfv(j)
-          if(abs(dppoff).gt.pieni) sigmv(j)=sigmv(j)-sigmoff(i)
-          if(abs(kz(ix)) == 12) then
-            ejv(j)=ejv(j)+(ed(ix)*sin_mb(hsyc(ix)*sigmv(j)+phasc(ix)))*nqq(j)
-          else
-            ejv(j)=ejv(j)+(hsy(1)*sin_mb(hsy(3)*sigmv(j)))*nqq(j)
-          end if
-          ejfv(j)=sqrt(ejv(j)**2-nucm(j)**2)
-          rvv(j)=(ejv(j)*e0f)/(e0*ejfv(j))
-          dpsv(j)=(ejfv(j)-e0f)/e0f
-          oidpsv(j)=one/(one+dpsv(j))
-          moidpsv(j)=mtc(j)/(one+dpsv(j))
-          omoidpsv(j)=c1e3*((one-mtc(j))*oidpsv(j))
-          dpsv1(j)=(dpsv(j)*c1e3)*oidpsv(j)
-          yv1(j)=(ejf0v(j)/ejfv(j))*yv1(j)
-          yv2(j)=(ejf0v(j)/ejfv(j))*yv2(j)
-        end do
-        call synuthck
+        if(abs(dppoff) > pieni) then
+          sigmv(1:napx) = sigmv(1:napx) - sigmoff(i)
+        end if
+        if(abs(kz(ix)) == 12) then
+          do j=1,napx
+            ejv(j) = ejv(j) + (ed(ix)*sin_mb(hsyc(ix)*sigmv(j)+phasc(ix)))*nqq(j)
+          end do
+        else
+          do j=1,napx
+            ejv(j) = ejv(j) + (hsy(1)*sin_mb(hsy(3)*sigmv(j)))*nqq(j)
+          end do
+        end if
+        call part_updatePartEnergy(1,.true.)
+        dpsv1(1:napx) = (dpsv(1:napx)*c1e3)*oidpsv(1:napx)
         goto 490
+
       case (3)
-        irrtr=imtr(ix)
+        irrtr = imtr(ix)
         do j=1,napx
-            !The values are stored in the temp vector which are used for the multiplication.
-          temptr(1)=xv1(j)
-          temptr(2)=yv1(j)/moidpsv(j)
-          temptr(3)=xv2(j)
-          temptr(4)=yv2(j)/moidpsv(j)
-          temptr(5)=sigmv(j)
-          temptr(6)=((mtc(j)*ejv(j)-e0)/e0f)*c1e3*(e0/e0f)
+          !The values are stored in the temp vector which are used for the multiplication.
+          temptr(1) = xv1(j)
+          temptr(2) = yv1(j)/moidpsv(j)
+          temptr(3) = xv2(j)
+          temptr(4) = yv2(j)/moidpsv(j)
+          temptr(5) = sigmv(j)
+          temptr(6) = ((mtc(j)*ejv(j)-e0)/e0f)*c1e3*(e0/e0f)
+
           ! Adding the closed orbit. The previous values are stored in the temptr vector.
-          xv1(j)  = cotr(irrtr,1)
-          yv1(j)  = cotr(irrtr,2)
-          xv2(j)  = cotr(irrtr,3)
-          yv2(j)  = cotr(irrtr,4)
+          xv1(j)   = cotr(irrtr,1)
+          yv1(j)   = cotr(irrtr,2)
+          xv2(j)   = cotr(irrtr,3)
+          yv2(j)   = cotr(irrtr,4)
           sigmv(j) = cotr(irrtr,5)
           pttemp   = cotr(irrtr,6)
 
           ! Multiplying the arbitrary matrix to the coordinates.
           do kxxa=1,6
-            xv1(j)   =  xv1(j)+temptr(kxxa)*rrtr(irrtr,1,kxxa)
-            yv1(j)   =  yv1(j)+temptr(kxxa)*rrtr(irrtr,2,kxxa)
-            xv2(j)   =  xv2(j)+temptr(kxxa)*rrtr(irrtr,3,kxxa)
-            yv2(j)   =  yv2(j)+temptr(kxxa)*rrtr(irrtr,4,kxxa)
-            sigmv(j)  =  sigmv(j)+temptr(kxxa)*rrtr(irrtr,5,kxxa)
-            pttemp    =  pttemp+temptr(kxxa)*rrtr(irrtr,6,kxxa)
-          enddo
+            xv1(j)   = xv1(j)   + temptr(kxxa)*rrtr(irrtr,1,kxxa)
+            yv1(j)   = yv1(j)   + temptr(kxxa)*rrtr(irrtr,2,kxxa)
+            xv2(j)   = xv2(j)   + temptr(kxxa)*rrtr(irrtr,3,kxxa)
+            yv2(j)   = yv2(j)   + temptr(kxxa)*rrtr(irrtr,4,kxxa)
+            sigmv(j) = sigmv(j) + temptr(kxxa)*rrtr(irrtr,5,kxxa)
+            pttemp   = pttemp   + temptr(kxxa)*rrtr(irrtr,6,kxxa)
+          end do
           ! Transforming back to the tracked coordinates of Sixtrack...
-          ejv(j)  = (e0f*pttemp/(c1e3*(e0/e0f))+e0)/mtc(j)
+          ejv(j) = (e0f*pttemp/(c1e3*(e0/e0f))+e0)/mtc(j)
+        end do
+        call part_updatePartEnergy(1,.false.)
 
+        ! We have to go back to angles after we updated the energy.
+        yv1(1:napx) = yv1(1:napx)*moidpsv(1:napx)
+        yv2(1:napx) = yv2(1:napx)*moidpsv(1:napx)
 
-          ejfv(j)=sqrt(ejv(j)**2-nucm(j)**2)
-          rvv(j)=(ejv(j)*e0f)/(e0*ejfv(j))
-          dpsv(j)=(ejfv(j)*(nucm0/nucm(j))-e0f)/e0f
-          oidpsv(j)=one/(one+dpsv(j))
-          moidpsv(j)=mtc(j)/(one+dpsv(j))
-          dpsv1(j)=(dpsv(j)*c1e3)*oidpsv(j)
-
-
-          ! We have to go back to angles after we updated the energy.
-          yv1(j) = yv1(j)*moidpsv(j)
-          yv2(j) = yv2(j)*moidpsv(j)
-
-        enddo
         goto 490
       case (4,5,6,7,8,9,10)
         goto 500
