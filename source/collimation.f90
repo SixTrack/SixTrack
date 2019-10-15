@@ -659,6 +659,7 @@ subroutine collimate_init
   call k2coll_init
   if(coll_hasCrystal) then
     call cry_init
+    call cry_expandArrays(npart)
   end if
 #ifdef MERLINSCATTER
   call k2coll_merlinInit

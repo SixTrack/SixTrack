@@ -15,11 +15,9 @@ module coll_crystal
 
   integer, parameter :: max_ncoll = 99
 
-  logical, save :: bool_create
-  integer, save :: bool_proc(1000)
-  integer, save :: bool_proc_old(1000)
-
-  real(kind=fPrec), save :: miscut ! miscut angle in rad
+  logical,              save :: bool_create
+  integer, allocatable, save :: bool_proc(:)
+  integer, allocatable, save :: bool_proc_old(:)
 
   character(len=50), save :: PROC
   logical,           save :: changed_tilt1(max_ncoll)
@@ -29,6 +27,7 @@ module coll_crystal
   real(kind=fPrec),  save :: C_xmax   ! Crystal geometrical parameters [m]
   real(kind=fPrec),  save :: C_ymax   ! Crystal geometrical parameters [m]
   real(kind=fPrec),  save :: Alayer   ! Crystal amorphous layer [mm]
+  real(kind=fPrec),  save :: miscut   ! Crystal miscut angle in rad
   integer,           save :: C_orient ! Crystal orientation [0-1]
 
   ! Rutherford Scatter
@@ -43,6 +42,7 @@ module coll_crystal
   real(kind=fPrec), parameter :: re  = 2.818d-15   ! electron radius [m]
   real(kind=fPrec), parameter :: me  = 0.510998910 ! electron mass [MeV/c^2]
   real(kind=fPrec), parameter :: mp  = 938.272013  ! proton mass [MeV/c^2]
+
   real(kind=fPrec), parameter :: aTF = 0.194d-10   ! Screening function [m]
   real(kind=fPrec), parameter :: dP  = 1.92d-10    ! Distance between planes (110) [m]
   real(kind=fPrec), parameter :: u1  = 0.075d-10   ! Thermal vibrations amplitude
@@ -73,6 +73,18 @@ module coll_crystal
   real(kind=fPrec), save :: eUm(nmat)  = zero
 
 contains
+
+subroutine cry_expandArrays(npart_new)
+
+  use mod_alloc
+  use numerical_constants
+
+  integer, intent(in) :: npart_new
+
+  call alloc(bool_proc,     npart_new, 0, "bool_proc")
+  call alloc(bool_proc_old, npart_new, 0, "bool_proc_old")
+
+end subroutine cry_expandArrays
 
 subroutine cry_init
 
@@ -277,37 +289,17 @@ end module coll_crystal
                            !string that contains the physical process
 !                                            !=' ' if the particle does not pass by crystal, ='*' if there is interaction
 
-!------daniele----------
-! adding new variables for debugged studies on process experienced
-
-      integer idx_proc                !daniele
-
-!----------------------
-
 ! MDA: parameters assignment from new CollDB format
 
       mirror = 1.0d0
 
       Rcurv = cdb_cryBend(icoll)
-!      write(*,*) "Rcurv", Rcurv
       Alayer = cdb_cryThick(icoll)
       C_xmax = cdb_cryXDim(icoll)
       C_ymax = cdb_cryYDim(icoll)
       C_orient = cdb_cryOrient(icoll)
-!      Cry_tilt = cdb_cryTilt(icoll)
-!      Cry_length = cdb_cLength(icoll)
       miscut = cdb_cryMisCut(icoll)
 
-!      write(*,*) Rcurv, Alayer, C_xmax, C_ymax, C_orient, Cry_tilt, Cry_length, miscut
-!      stop
-
-!
-  666 FORMAT(A,1x,e20.10,1x,A,1x,e20.10,A,1x,e20.10,1x,A,1x,e20.10)
-!=======================================================================
-!
-!      write(*,*) 'enter collimate_cry routine, rotation ',C_ROTATION
-
-!      open(unit=9999,file='debug.dat')
       IF (C_MATERIAL(1:4).eq.'Si')THEN           ! MDA: changed the label for all materials to fit new format
            mat = 8
            new_mat = 8
@@ -361,31 +353,18 @@ end module coll_crystal
         lint(j)   = -1.
         indiv(j)  = -1.
 
-        idx_proc = j
-
         if (ITURN .eq. 1) then                                                          !daniele
-                bool_proc_old(idx_proc)=-1                                                     !daniele
+                bool_proc_old(j)=-1                                                     !daniele
         else                                                                            !daniele
-               if (bool_proc(idx_proc).ne.-1)     &
-     &                       bool_proc_old(idx_proc)=bool_proc(idx_proc)                  !daniele
+               if (bool_proc(j).ne.-1)     &
+     &                       bool_proc_old(j)=bool_proc(j)                  !daniele
         endif                                                                           !daniele
         PROC='out' !the default process is 'out'                                        !daniele
-        bool_proc(idx_proc)=-1                                                                 !daniele
-        cry_proc(idx_proc)=-1
+        bool_proc(j)=-1                                                                 !daniele
+        cry_proc(j)=-1
 
 
         nabs = 0
-!
-!        xp_in(j) = 1.4291566891454061E-005_fPrec
-!        x_in(j) = 2.3678668975404154E-003_fPrec
-!        y_in(j) = 9.7959100975990727E-005_fPrec
-!        yp_in(j) = -3.0041857465904482E-006_fPrec
-!        p_in(j) = 6499.9999993204920_fPrec
-!        s_in(j) = 0.0000000000000000_fPrec
-
-!        write(*,*) "Coordinates after entering"
-!        write(*,*) x_in(j), xp_in(j), y_in(j), yp_in(j)
-!        write(*,*) p_in(j), s_in(j)
 
         s   = 0
         x   = x_in(j)
@@ -409,13 +388,6 @@ end module coll_crystal
         shift=0.
         tilt_int=0.
         dpop = (p -p0)/p0
-!        Cry_tilt_part=Cry_tilt                         !crystal tilt [rad]
-!             write(*,*)'collimator',mat,'particle',j,'x',x,
-!     1       'in sigma', x/sqrt(bx)/sqrt(EMITX0),'sig_sk',
-!     2       C_APERTURE/2
-!
-
-
 
 
 !---------------DANIELE-------------------------
@@ -459,22 +431,6 @@ end module coll_crystal
 !
 !++  for one-sided collimators consider only positive x. for negative
 !++  x jump to the next particle
-
-!          if ((name_coll(1:10) .eq. "CRY.SPSEXP")) then
-!          mirror=-1
-!!             write(*,*) "valentina crsitallo SPS riconosciuto"
-!             if (x .gt. 0) then
-!                goto 777
-!             endif
-!          else
-!             mirror=1
-!             if  (x.lt.0 ) then
-!                 goto 777
-!             endif
-!          endif
-!          x  = mirror * x
-!          xp = mirror * xp
-
 
 
 !++Shift with opening and offset
@@ -860,65 +816,65 @@ end module coll_crystal
 !              endif
 
                if (PROC(1:2).eq.'AM')then
-                 bool_proc(idx_proc)=1
-                 cry_proc(idx_proc)=1
+                 bool_proc(j)=1
+                 cry_proc(j)=1
                  n_amorphous = n_amorphous + 1
                elseif (PROC(1:2).eq.'VR') then
-                 bool_proc(idx_proc)=2
-                 cry_proc(idx_proc)=2
+                 bool_proc(j)=2
+                 cry_proc(j)=2
                  n_VR = n_VR + 1
                elseif (PROC(1:2).eq.'CH')then
-                 bool_proc(idx_proc) = 3
-                 cry_proc(idx_proc)=3
+                 bool_proc(j) = 3
+                 cry_proc(j)=3
                  n_chan = n_Chan + 1
                elseif (PROC(1:2).eq.'VC') then
-                 bool_proc(idx_proc)=4
-                 cry_proc(idx_proc)=4
+                 bool_proc(j)=4
+                 cry_proc(j)=4
                  !n_chan = n_Chan + 1
                elseif (PROC(1:3).eq.'out')then
-                 bool_proc(idx_proc)=-1
-                 cry_proc(idx_proc)=-1
+                 bool_proc(j)=-1
+                 cry_proc(j)=-1
                elseif (PROC(1:8).eq.'absorbed') then
-                 bool_proc(idx_proc)=5
-                 cry_proc(idx_proc)=5
+                 bool_proc(j)=5
+                 cry_proc(j)=5
                  NABS=1
                elseif (PROC(1:2).eq.'DC')then
-                 bool_proc(idx_proc)=6
-                 cry_proc(idx_proc)=6
+                 bool_proc(j)=6
+                 cry_proc(j)=6
                elseif (PROC(1:3).eq.'pne')then
-                 bool_proc(idx_proc)=7
-                 cry_proc(idx_proc)=7
+                 bool_proc(j)=7
+                 cry_proc(j)=7
                elseif (PROC(1:3).eq.'ppe')then
-                 bool_proc(idx_proc)=8
-                 cry_proc(idx_proc)=8
+                 bool_proc(j)=8
+                 cry_proc(j)=8
                elseif (PROC(1:4).eq.'diff')then
-                 bool_proc(idx_proc)=9
-                 cry_proc(idx_proc)=9
+                 bool_proc(j)=9
+                 cry_proc(j)=9
                elseif (PROC(1:4).eq.'ruth')then
-                 bool_proc(idx_proc)=10
-                 cry_proc(idx_proc)=10
+                 bool_proc(j)=10
+                 cry_proc(j)=10
                elseif (PROC(1:11).eq.'ch_absorbed') then
-                 bool_proc(idx_proc)=15
-                 cry_proc(idx_proc)=15
+                 bool_proc(j)=15
+                 cry_proc(j)=15
                  NABS=1
                elseif (PROC(1:6).eq.'ch_pne')then
-                 bool_proc(idx_proc)=17
-                 cry_proc(idx_proc)=17
+                 bool_proc(j)=17
+                 cry_proc(j)=17
                elseif (PROC(1:6).eq.'ch_ppe')then
-                 bool_proc(idx_proc)=18
-                 cry_proc(idx_proc)=18
+                 bool_proc(j)=18
+                 cry_proc(j)=18
                elseif (PROC(1:7).eq.'ch_diff')then
-                 bool_proc(idx_proc)=19
-                 cry_proc(idx_proc)=19
+                 bool_proc(j)=19
+                 cry_proc(j)=19
                elseif (PROC(1:7).eq.'ch_ruth')then
-                 bool_proc(idx_proc)=20
-                 cry_proc(idx_proc)=20
+                 bool_proc(j)=20
+                 cry_proc(j)=20
                elseif (PROC(1:4).eq.'TRVR')then
-                 bool_proc(idx_proc)=100
-                 cry_proc(idx_proc)=100
+                 bool_proc(j)=100
+                 cry_proc(j)=100
                elseif (PROC(1:4).eq.'TRAM')then
-                 bool_proc(idx_proc)=101
-                 cry_proc(idx_proc)=101
+                 bool_proc(j)=101
+                 cry_proc(j)=101
                else
                 write(*,*)'???????????????????',PROC(1:2)
                 stop
@@ -926,7 +882,7 @@ end module coll_crystal
                endif
 
 !               if (PROC(1:3).ne.'out')then
-!                 write(*,*) bool_proc(idx_proc)
+!                 write(*,*) bool_proc(j)
 !               endif
 
 ! ---------------------END DANIELE--------------
