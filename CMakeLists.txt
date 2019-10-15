@@ -278,9 +278,11 @@ list(APPEND FORT90_LIB
   bouncy_castle
   cheby
   close
+  coll_common
   coll_db
   coll_dist
   coll_jawfit
+  coll_k2
   collimation
   common_modules
   constants
@@ -302,6 +304,7 @@ list(APPEND FORT90_LIB
   mod_ffield_aux
   mod_find
   mod_fluc
+  mod_funlux
   mod_geometry
   mod_meta
   mod_particles
