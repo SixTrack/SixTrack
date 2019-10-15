@@ -60,6 +60,7 @@ end module coll_crystal
       use mod_funlux
       use coll_k2
       use coll_common, only : cry_proc
+      use floatPrecision
 
       IMPLICIT NONE
 !
@@ -76,33 +77,33 @@ end module coll_crystal
          integer         NP
 !        PARAMETER         (MAX_NPART=1500000)
 !
-         double precision            p0
-         double precision            xp_pencil0(MAX_NCOLL)
-         double precision            yp_pencil0(MAX_NCOLL)
-         double precision            x_pencil(MAX_NCOLL)
-         double precision            y_pencil(MAX_NCOLL)
-         double precision            zlm
-         double precision            x,xp
-         double precision            shift
-         double precision            x_shift, xp_shift,s_shift !coordinates after shift/rotation
-         double precision            x_rot, xp_rot,s_rot
-         double precision            x_temp, xp_temp,s_temp !!all the _temp variables are used when you hit the cry from below
-         double precision            tilt_int, x_int,xp_int,s_int       !all the _int variables are used when you hit the cry from below (int=interaction point)
-         double precision            x00
-         double precision            z
-         double precision            z00
-         double precision            zp
-         double precision            p
-         double precision            dpop
-         double precision            s
-         double precision            a_eq,b_eq,c_eq,Delta
-         double precision            ENOM
+         real(kind=fPrec)            p0
+         real(kind=fPrec)            xp_pencil0(MAX_NCOLL)
+         real(kind=fPrec)            yp_pencil0(MAX_NCOLL)
+         real(kind=fPrec)            x_pencil(MAX_NCOLL)
+         real(kind=fPrec)            y_pencil(MAX_NCOLL)
+         real(kind=fPrec)            zlm
+         real(kind=fPrec)            x,xp
+         real(kind=fPrec)            shift
+         real(kind=fPrec)            x_shift, xp_shift,s_shift !coordinates after shift/rotation
+         real(kind=fPrec)            x_rot, xp_rot,s_rot
+         real(kind=fPrec)            x_temp, xp_temp,s_temp !!all the _temp variables are used when you hit the cry from below
+         real(kind=fPrec)            tilt_int, x_int,xp_int,s_int       !all the _int variables are used when you hit the cry from below (int=interaction point)
+         real(kind=fPrec)            x00
+         real(kind=fPrec)            z
+         real(kind=fPrec)            z00
+         real(kind=fPrec)            zp
+         real(kind=fPrec)            p
+         real(kind=fPrec)            dpop
+         real(kind=fPrec)            s
+         real(kind=fPrec)            a_eq,b_eq,c_eq,Delta
+         real(kind=fPrec)            ENOM
 !
-         double precision            x_PRINT,xp_PRINT,y_PRINT,yp_PRINT
-         double precision            AX,BX,AY,BY
-         double precision            X_NORM,XP_NORM,Y_NORM,YP_NORM
-         double precision            EMITX0
-         double precision            EMITY0
+         real(kind=fPrec)            x_PRINT,xp_PRINT,y_PRINT,yp_PRINT
+         real(kind=fPrec)            AX,BX,AY,BY
+         real(kind=fPrec)            X_NORM,XP_NORM,Y_NORM,YP_NORM
+         real(kind=fPrec)            EMITX0
+         real(kind=fPrec)            EMITY0
 !
          integer         LHIT(MAX_NPART)
          integer         LHIT_TURN(MAX_NPART)
@@ -110,52 +111,52 @@ end module coll_crystal
          integer         PART_ABS_TURN(MAX_NPART)
 !
 !
-         double precision            x_in(MAX_NPART)
-         double precision            xp_in(MAX_NPART)
-         double precision            y_in(MAX_NPART)
-         double precision            yp_in(MAX_NPART)
-         double precision            p_in(MAX_NPART)    !be careful: [Gev]
-         double precision            s_in(MAX_NPART)
+         real(kind=fPrec)            x_in(MAX_NPART)
+         real(kind=fPrec)            xp_in(MAX_NPART)
+         real(kind=fPrec)            y_in(MAX_NPART)
+         real(kind=fPrec)            yp_in(MAX_NPART)
+         real(kind=fPrec)            p_in(MAX_NPART)    !be careful: [Gev]
+         real(kind=fPrec)            s_in(MAX_NPART)
 !        adding variables for the pencil beam. Variables in the absolute reference frame.
-         double precision            x_in0(MAX_NPART)
-         double precision            xp_in0(MAX_NPART)
-         double precision            y_in0(MAX_NPART)
-         double precision            yp_in0(MAX_NPART)
-         double precision            p_in0(MAX_NPART)    !be careful: [Gev]
-         double precision            s_in0(MAX_NPART)
-         double precision            s_impact
+         real(kind=fPrec)            x_in0(MAX_NPART)
+         real(kind=fPrec)            xp_in0(MAX_NPART)
+         real(kind=fPrec)            y_in0(MAX_NPART)
+         real(kind=fPrec)            yp_in0(MAX_NPART)
+         real(kind=fPrec)            p_in0(MAX_NPART)    !be careful: [Gev]
+         real(kind=fPrec)            s_in0(MAX_NPART)
+         real(kind=fPrec)            s_impact
          integer                     flagsec(MAX_NPART)
          logical                     dowrite_impact
 
 !
-         double precision            IMPACT(MAX_NPART)
-         double precision            INDIV(MAX_NPART)
-         double precision            LINT(MAX_NPART)
+         real(kind=fPrec)            IMPACT(MAX_NPART)
+         real(kind=fPrec)            INDIV(MAX_NPART)
+         real(kind=fPrec)            LINT(MAX_NPART)
          integer                     name(MAX_NPART)
 !
-         double precision            x_out(MAX_NPART)
-         double precision            xp_out(MAX_NPART)
-         double precision            y_out(MAX_NPART)
-         double precision            yp_out(MAX_NPART)
-         double precision            p_out(MAX_NPART)
-         double precision            s_out(MAX_NPART)
+         real(kind=fPrec)            x_out(MAX_NPART)
+         real(kind=fPrec)            xp_out(MAX_NPART)
+         real(kind=fPrec)            y_out(MAX_NPART)
+         real(kind=fPrec)            yp_out(MAX_NPART)
+         real(kind=fPrec)            p_out(MAX_NPART)
+         real(kind=fPrec)            s_out(MAX_NPART)
 !
-         double precision            fracab
-         double precision            drift_length
-         double precision            mirror
-         double precision            tiltangle
-         double precision            tiltangle2
+         real(kind=fPrec)            fracab
+         real(kind=fPrec)            drift_length
+         real(kind=fPrec)            mirror
+         real(kind=fPrec)            tiltangle
+         real(kind=fPrec)            tiltangle2
 !
          CHARACTER(LEN=4) C_MATERIAL     !Material
-         double precision      C_LENGTH       !Length in m
-         double precision      C_ROTATION     !Rotation angle vs vertical in radian
-         double precision      C_APERTURE     !Aperture in m
-         double precision      C_OFFSET       !Offset in m
-         double precision      C_TILT(2)      !Tilt in radian
-         double precision      C_TILT0(2)      !Tilt in radian
-         double precision      PENCIL_DX(MAX_NCOLL)
-         double precision      PENCIL_SPREAD(MAX_NCOLL)
-         double precision      cry_bend
+         real(kind=fPrec)      C_LENGTH       !Length in m
+         real(kind=fPrec)      C_ROTATION     !Rotation angle vs vertical in radian
+         real(kind=fPrec)      C_APERTURE     !Aperture in m
+         real(kind=fPrec)      C_OFFSET       !Offset in m
+         real(kind=fPrec)      C_TILT(2)      !Tilt in radian
+         real(kind=fPrec)      C_TILT0(2)      !Tilt in radian
+         real(kind=fPrec)      PENCIL_DX(MAX_NCOLL)
+         real(kind=fPrec)      PENCIL_SPREAD(MAX_NCOLL)
+         real(kind=fPrec)      cry_bend
 
 !
          LOGICAL           CHANGED_TILT1(MAX_NCOLL)
@@ -181,18 +182,18 @@ end module coll_crystal
         COMMON  /PENCIL2/ X_PENCIL, Y_PENCIL
 !
 !
-        double precision        AMPLZ
+        real(kind=fPrec)        AMPLZ
 !
-      double precision XP_tangent
+      real(kind=fPrec) XP_tangent
 !
-      double precision Rcurv,C_xmax,C_ymax           !crystal geometrical parameters  - be careful! are in [m]
-      double precision Alayer                           !amorphous layer [mm]
+      real(kind=fPrec) Rcurv,C_xmax,C_ymax           !crystal geometrical parameters  - be careful! are in [m]
+      real(kind=fPrec) Alayer                           !amorphous layer [mm]
       integer C_orient                           !crystal orientation [0-1]
-      double precision Cry_tilt_part                    !crystal tilt [rad]
-      double precision Cry_tilt                         !crystal tilt [rad]
-      double precision Cry_tilt0                        !tilt of the crystal for having channeling (determined by divergence of the beam) [rad]
-      double precision Cry_length                       !original length (from the db) [m]
-      double precision miscut
+      real(kind=fPrec) Cry_tilt_part                    !crystal tilt [rad]
+      real(kind=fPrec) Cry_tilt                         !crystal tilt [rad]
+      real(kind=fPrec) Cry_tilt0                        !tilt of the crystal for having channeling (determined by divergence of the beam) [rad]
+      real(kind=fPrec) Cry_length                       !original length (from the db) [m]
+      real(kind=fPrec) miscut
 !                                           !instead of this parameter, I use (mat-7)
 !
 
@@ -606,7 +607,7 @@ end module coll_crystal
             !           write(*,*)'s tan',Rcurv*sin(XP_tangent)
             !           write(*,*) 's tot', c_length,Rcurv*sin(cry_bend)
                        if ( XP .ge. XP_tangent  ) then
-            
+
             ! if it hits the crystal, calculate in which point and apply the
             ! transformation and drift to that point
                          a_eq=(1.+xp**2)
@@ -702,7 +703,7 @@ end module coll_crystal
             !           write(*,*)'s tan',Rcurv*sin(XP_tangent)
             !           write(*,*) 's tot', c_length,Rcurv*sin(cry_bend)
                        if ( XP .le. XP_tangent  ) then
-            
+
             ! if it hits the crystal, calculate in which point and apply the
             ! transformation and drift to that point
                          a_eq=(1.+xp**2)
@@ -1097,7 +1098,8 @@ end module coll_crystal
       use mod_ranlux
       use mod_funlux
       use mod_common_main
-!
+      use floatPrecision
+
 !     Simple tranport protons in crystal 2
 !-----------------------------------------------------------C
 !      J -   number of element                              C
@@ -1112,64 +1114,64 @@ end module coll_crystal
       IMPLICIT none
 !
 !
-      double precision Rcurv,Length,C_xmax,C_ymax !crystal geometrical parameters
+      real(kind=fPrec) Rcurv,Length,C_xmax,C_ymax !crystal geometrical parameters
                                                   ! [m],[m],[m],[m],[rad]
-      double precision ymax,ymin       !crystal geometrical parameters
-      double precision s_length             !element length along s
-      double precision Alayer               !amorphous layer [m]
+      real(kind=fPrec) ymax,ymin       !crystal geometrical parameters
+      real(kind=fPrec) s_length             !element length along s
+      real(kind=fPrec) Alayer               !amorphous layer [m]
       integer C_orient                      !crystal orientation
       integer IS,j                            !index of the material
 !      integer counter
-      double precision  DLRI(4),DLYI(4),AI(4),DES(4)!cry parameters:see line~270
-      double precision DESt                  ! Daniele: changed energy loss by ionization now calculated and not tabulated
+      real(kind=fPrec)  DLRI(4),DLYI(4),AI(4),DES(4)!cry parameters:see line~270
+      real(kind=fPrec) DESt                  ! Daniele: changed energy loss by ionization now calculated and not tabulated
       integer NAM,ZN                        !switch on/off the nuclear
                                             !interaction (NAM) and the MCS (ZN)
-      double precision x,xp,y,yp,PC         !coordinates of the particle
+      real(kind=fPrec) x,xp,y,yp,PC         !coordinates of the particle
                                             ![m],[rad],[m],[rad],[GeV]
-      double precision x0,y0                !coordinates of the particle [m]
-      double precision s                    !long coordinates of the particle [m]
-      double precision a_eq,b_eq,c_eq,Delta !second order equation param.
-      double precision Ang_rms, Ang_avr     !Volume reflection mean angle [rad]
-      double precision c_v1                 !fitting coefficient
-      double precision c_v2                 !fitting coefficient
-      double precision Dechan               !probability for dechanneling
-      double precision Lrefl, Srefl         !distance of the reflection point [m]
-      double precision Vcapt                !volume capture probability
-      double precision Chann                !channeling probability
-      double precision N_atom               !probability for entering
+      real(kind=fPrec) x0,y0                !coordinates of the particle [m]
+      real(kind=fPrec) s                    !long coordinates of the particle [m]
+      real(kind=fPrec) a_eq,b_eq,c_eq,Delta !second order equation param.
+      real(kind=fPrec) Ang_rms, Ang_avr     !Volume reflection mean angle [rad]
+      real(kind=fPrec) c_v1                 !fitting coefficient
+      real(kind=fPrec) c_v2                 !fitting coefficient
+      real(kind=fPrec) Dechan               !probability for dechanneling
+      real(kind=fPrec) Lrefl, Srefl         !distance of the reflection point [m]
+      real(kind=fPrec) Vcapt                !volume capture probability
+      real(kind=fPrec) Chann                !channeling probability
+      real(kind=fPrec) N_atom               !probability for entering
                                             !channeling near atomic planes
-      double precision Dxp                  !variation in angle
-      double precision xpcrit               !critical angle for curved crystal[rad]
-      double precision xpcrit0              !critical angle for str. crystal [rad]
-      double precision Rcrit                !critical curvature radius [m]
-      double precision ratio                !x=Rcurv/Rcrit
-      double precision Cry_length
-      double precision TLdech2              !tipical dechanneling length(1) [m]
-      double precision TLdech1              !tipical dechanneling length(2) [m]
-      double precision tdech, Ldech,Sdech   !angle, lenght, and S coordinate
+      real(kind=fPrec) Dxp                  !variation in angle
+      real(kind=fPrec) xpcrit               !critical angle for curved crystal[rad]
+      real(kind=fPrec) xpcrit0              !critical angle for str. crystal [rad]
+      real(kind=fPrec) Rcrit                !critical curvature radius [m]
+      real(kind=fPrec) ratio                !x=Rcurv/Rcrit
+      real(kind=fPrec) Cry_length
+      real(kind=fPrec) TLdech2              !tipical dechanneling length(1) [m]
+      real(kind=fPrec) TLdech1              !tipical dechanneling length(2) [m]
+      real(kind=fPrec) tdech, Ldech,Sdech   !angle, lenght, and S coordinate
                                             !of dechanneling point
-      double precision Rlength, Red_S       !reduced length/s coordinate
+      real(kind=fPrec) Rlength, Red_S       !reduced length/s coordinate
                                             !(in case of dechanneling)
-      double precision Am_length            !Amorphous length
-      double precision Length_xs, Length_ys !Amorphous length
-      double precision miscut               !miscut angle in rad
-      double precision L_chan, tchan
-      double precision xp_rel               !xp-miscut angle in mrad
+      real(kind=fPrec) Am_length            !Amorphous length
+      real(kind=fPrec) Length_xs, Length_ys !Amorphous length
+      real(kind=fPrec) miscut               !miscut angle in rad
+      real(kind=fPrec) L_chan, tchan
+      real(kind=fPrec) xp_rel               !xp-miscut angle in mrad
 !      REAL RNDM                           !random numbers
 !      REAL      rndm4
 !      REAL      RAN_GAUSS
-      double precision eUm(4)                !maximum potential
+      real(kind=fPrec) eUm(4)                !maximum potential
       CHARACTER(LEN=50) PROC        !string that contains the physical process
 
-      double precision rho(4),z(4),Ime(4) !Daniele: material parameters for dE/dX calculation
-      double precision k,re,me,mp !Daniele: parameters for dE/dX calculation (const,electron radius,el. mass, prot.mass)
-      double precision enr,mom,betar,gammar,bgr !Daniele: energy,momentum,beta relativistic, gamma relativistic
-      double precision Tmax,plen !Daniele: maximum energy tranfer in single collision, plasma energy (see pdg)
-      double precision anuc_cry2(4),aTF,dP,const_dech,u1,xpin,ypin
-      double precision alpha !Daniele: par for new chann prob
-      double precision Pvr !Daniele: prob for VR->AM transition
+      real(kind=fPrec) rho(4),z(4),Ime(4) !Daniele: material parameters for dE/dX calculation
+      real(kind=fPrec) k,re,me,mp !Daniele: parameters for dE/dX calculation (const,electron radius,el. mass, prot.mass)
+      real(kind=fPrec) enr,mom,betar,gammar,bgr !Daniele: energy,momentum,beta relativistic, gamma relativistic
+      real(kind=fPrec) Tmax,plen !Daniele: maximum energy tranfer in single collision, plasma energy (see pdg)
+      real(kind=fPrec) anuc_cry2(4),aTF,dP,const_dech,u1,xpin,ypin
+      real(kind=fPrec) alpha !Daniele: par for new chann prob
+      real(kind=fPrec) Pvr !Daniele: prob for VR->AM transition
 
-      double precision emr_cry(4)
+      real(kind=fPrec) emr_cry(4)
 
 !      common /Par_Cry1/ Cry_length, Rcurv,C_xmax,C_ymax,Alayer,C_orient
       common /Par_Cry1/ Rcurv,C_xmax,C_ymax,Alayer,C_orient
@@ -1659,18 +1661,19 @@ end module coll_crystal
 
       use mod_ranlux
       use mod_funlux
+      use floatPrecision
 
       IMPLICIT none
       integer IS
-      double precision PC,DZ,EnLo
-      double precision rho(4),z(4),Ime(4) !Daniele: material parameters for dE/dX calculation
-      double precision k,re,me,mp !Daniele: parameters for dE/dX calculation (const,electron radius,el. mass, prot.mass)
-      double precision enr,mom,betar,gammar,bgr !Daniele: energy,momentum,beta relativistic, gamma relativistic
-      double precision Tmax,plen !Daniele: maximum energy tranfer in single collision, plasma energy (see pdg)
-      double precision anuc_cry2(4)
-      double precision emr_cry(4)
-      double precision thl,Tt,cs_tail,prob_tail
-      double precision ranc
+      real(kind=fPrec) PC,DZ,EnLo
+      real(kind=fPrec) rho(4),z(4),Ime(4) !Daniele: material parameters for dE/dX calculation
+      real(kind=fPrec) k,re,me,mp !Daniele: parameters for dE/dX calculation (const,electron radius,el. mass, prot.mass)
+      real(kind=fPrec) enr,mom,betar,gammar,bgr !Daniele: energy,momentum,beta relativistic, gamma relativistic
+      real(kind=fPrec) Tmax,plen !Daniele: maximum energy tranfer in single collision, plasma energy (see pdg)
+      real(kind=fPrec) anuc_cry2(4)
+      real(kind=fPrec) emr_cry(4)
+      real(kind=fPrec) thl,Tt,cs_tail,prob_tail
+      real(kind=fPrec) ranc
 !      REAL RNDM4
 
       common/ion/rho,z,Ime,k,re,me,mp,anuc_cry2,emr_cry
@@ -1729,16 +1732,17 @@ end module coll_crystal
 
       use mod_ranlux
       use mod_funlux
+      use floatPrecision
 
 !. Moving in amorphous substance...........................
       IMPLICIT none
       integer IS,NAM
-      double precision DZ,DEI,DLY,DLr, XP,YP,PC
-      double precision DLAI(4),SAI(4),DES(4)
-      double precision DLRI(4),DLYI(4),AI(4)
-      double precision AM(30),QP(30),NPAI
-      double precision Dc(4),eUm(4)
-      double precision DYA,W_p
+      real(kind=fPrec) DZ,DEI,DLY,DLr, XP,YP,PC
+      real(kind=fPrec) DLAI(4),SAI(4),DES(4)
+      real(kind=fPrec) DLRI(4),DLYI(4),AI(4)
+      real(kind=fPrec) AM(30),QP(30),NPAI
+      real(kind=fPrec) Dc(4),eUm(4)
+      real(kind=fPrec) DYA,W_p
 !      REAL RNDM4
 !         REAL      RAN_GAUSS
       CHARACTER(LEN=50) PROC              !string that contains the physical process
@@ -1750,45 +1754,45 @@ end module coll_crystal
 !------- adding variables --------
 
 
-      double precision cprob_cry(0:5,1:4)
-      double precision cs(0:5,1:4)
-      double precision csref_cry(0:5,1:4)
-      double precision freep(4)
-      double precision anuc_cry(4)
-      double precision collnt_cry(4)
-      double precision bn(4)
-      double precision bnref_cry(4)
+      real(kind=fPrec) cprob_cry(0:5,1:4)
+      real(kind=fPrec) cs(0:5,1:4)
+      real(kind=fPrec) csref_cry(0:5,1:4)
+      real(kind=fPrec) freep(4)
+      real(kind=fPrec) anuc_cry(4)
+      real(kind=fPrec) collnt_cry(4)
+      real(kind=fPrec) bn(4)
+      real(kind=fPrec) bnref_cry(4)
 
-      double precision freeco_cry,ppel,ppsd,pptot,pptref_cry,pptco_cry
-      double precision pperef_cry,sdcoe_cry,pref_cry,ppeco_cry
+      real(kind=fPrec) freeco_cry,ppel,ppsd,pptot,pptref_cry,pptco_cry
+      real(kind=fPrec) pperef_cry,sdcoe_cry,pref_cry,ppeco_cry
 
-      double precision ecmsq,xln15s,bpp,xm2,bsd,t,teta,va,vb,va2,vb2
-      double precision tx,tz,r2,zlm,f
+      real(kind=fPrec) ecmsq,xln15s,bpp,xm2,bsd,t,teta,va,vb,va2,vb2
+      real(kind=fPrec) tx,tz,r2,zlm,f
 
       integer i,ichoix
-      double precision aran
+      real(kind=fPrec) aran
 
       common/scat_cry/cprob_cry,csref_cry,collnt_cry,bnref_cry,anuc_cry
       common/scat_cry/pptref_cry,pperef_cry,sdcoe_cry,pref_cry
       common/scat_cry/pptco_cry,ppeco_cry,freeco_cry
 
-      double precision tlcut_cry,hcut_cry(4)
-      double precision cgen_cry(200,4),tlow,thigh,ruth_cry
+      real(kind=fPrec) tlcut_cry,hcut_cry(4)
+      real(kind=fPrec) cgen_cry(200,4),tlow,thigh,ruth_cry
       external ruth_cry
 
       common/ruth_scat_cry/tlcut_cry,hcut_cry
       common/ruth_scat_cry/cgen_cry,mcurr_cry
 
       integer length_cry,mcurr_cry
-      double precision xran_cry(1)
+      real(kind=fPrec) xran_cry(1)
 
 !-------daniele--------------
 ! adding new variables to study the energy loss when the routine is called
 !---------------------------
 
-      double precision PC_in_dan     !daniele
+      real(kind=fPrec) PC_in_dan     !daniele
       integer PROC_dan    !daniele
-      double precision xp_in,yp_in,kxmcs,kymcs
+      real(kind=fPrec) xp_in,yp_in,kxmcs,kymcs
 
       write(*,*) "Entering MOVE_AM"
 
@@ -2078,15 +2082,16 @@ end module coll_crystal
 
       use mod_ranlux
       use mod_funlux
+      use floatPrecision
 
       IMPLICIT none
       integer IS,NAM
-      double precision DZ,X,XP,YP,PC,R,Rc
-      double precision DLAI(4),SAI(4),DES(4)
-      double precision DLRI(4),DLYI(4),AI(4)
-      double precision AM(30),QP(30),NPAI
-      double precision Dc(4),eUm(4)
-      double precision DYA,W_p
+      real(kind=fPrec) DZ,X,XP,YP,PC,R,Rc
+      real(kind=fPrec) DLAI(4),SAI(4),DES(4)
+      real(kind=fPrec) DLRI(4),DLYI(4),AI(4)
+      real(kind=fPrec) AM(30),QP(30),NPAI
+      real(kind=fPrec) Dc(4),eUm(4)
+      real(kind=fPrec) DYA,W_p
 !      REAL RNDM4
 !         REAL      RAN_GAUSS
       CHARACTER(LEN=50) PROC              !string that contains the physical process
@@ -2098,37 +2103,37 @@ end module coll_crystal
 !------- adding variables --------
 
 
-      double precision cprob_cry(0:5,1:4)
-      double precision cs(0:5,1:4)
-      double precision csref_cry(0:5,1:4)
-      double precision freep(4)
-      double precision anuc_cry(4)
-      double precision collnt_cry(4)
-      double precision bn(4)
-      double precision bnref_cry(4)
+      real(kind=fPrec) cprob_cry(0:5,1:4)
+      real(kind=fPrec) cs(0:5,1:4)
+      real(kind=fPrec) csref_cry(0:5,1:4)
+      real(kind=fPrec) freep(4)
+      real(kind=fPrec) anuc_cry(4)
+      real(kind=fPrec) collnt_cry(4)
+      real(kind=fPrec) bn(4)
+      real(kind=fPrec) bnref_cry(4)
 
-      double precision freeco_cry,ppel,ppsd,pptot,pptref_cry,pptco_cry
-      double precision pperef_cry,sdcoe_cry,pref_cry,ppeco_cry
+      real(kind=fPrec) freeco_cry,ppel,ppsd,pptot,pptref_cry,pptco_cry
+      real(kind=fPrec) pperef_cry,sdcoe_cry,pref_cry,ppeco_cry
 
-      double precision ecmsq,xln15s,bpp,xm2,bsd,t,teta,va,vb,va2,vb2
-      double precision tx,tz,r2,zlm,f
+      real(kind=fPrec) ecmsq,xln15s,bpp,xm2,bsd,t,teta,va,vb,va2,vb2
+      real(kind=fPrec) tx,tz,r2,zlm,f
 
       integer i,ichoix
-      double precision aran
+      real(kind=fPrec) aran
 
       common/scat_cry/cprob_cry,csref_cry,collnt_cry,bnref_cry,anuc_cry
       common/scat_cry/pptref_cry,pperef_cry,sdcoe_cry,pref_cry
       common/scat_cry/pptco_cry,ppeco_cry,freeco_cry
 
-      double precision tlcut_cry,hcut_cry(4)
-      double precision cgen_cry(200,4),tlow,thigh,ruth_cry
+      real(kind=fPrec) tlcut_cry,hcut_cry(4)
+      real(kind=fPrec) cgen_cry(200,4),tlow,thigh,ruth_cry
       external ruth_cry
 
       common/ruth_scat_cry/tlcut_cry,hcut_cry
       common/ruth_scat_cry/cgen_cry,mcurr_cry
 
       integer length_cry,mcurr_cry
-      double precision xran_cry(1)
+      real(kind=fPrec) xran_cry(1)
 
 
 
@@ -2137,29 +2142,29 @@ end module coll_crystal
 !---------------------------
 
       integer Np
-      double precision aTF,dP,N_am,rho_min,rho_Max,u1,avrrho
-      double precision x_i,Ueff,pv,Et,Ec,x_min,x_Max,nuc_cl_l
-      double precision xminU,Umin
+      real(kind=fPrec) aTF,dP,N_am,rho_min,rho_Max,u1,avrrho
+      real(kind=fPrec) x_i,Ueff,pv,Et,Ec,x_min,x_Max,nuc_cl_l
+      real(kind=fPrec) xminU,Umin
 
       common/dech/aTF,dP,u1
 
-      double precision rho(4),z(4),Ime(4)
-      double precision k,re,me,mp
-      double precision anuc_cry2(4)
-      double precision emr_cry(4)
+      real(kind=fPrec) rho(4),z(4),Ime(4)
+      real(kind=fPrec) k,re,me,mp
+      real(kind=fPrec) anuc_cry2(4)
+      real(kind=fPrec) emr_cry(4)
 
       common/ion/rho,z,Ime,k,re,me,mp,anuc_cry2,emr_cry
 
-      double precision csref_tot_rsc,csref_inel_rsc
+      real(kind=fPrec) csref_tot_rsc,csref_inel_rsc
 
 !-------daniele--------------
 ! adding new variables to study the energy loss when the routine is called
 !---------------------------
 
 
-      double precision PC_in_dan     !daniele
+      real(kind=fPrec) PC_in_dan     !daniele
       integer PROC_dan    !daniele
-      double precision xp_in,yp_in,kxmcs,kymcs
+      real(kind=fPrec) xp_in,yp_in,kxmcs,kymcs
 
       write(*,*) "Entering MOVE_CH"
 !      write(*,*) "angles before channeling (x,y):", xp, yp
@@ -2516,10 +2521,11 @@ end module coll_crystal
       END
 !
       BLOCK DATA
+        use floatPrecision
       implicit none
-      double precision DLAI(4),SAI(4)
-      double precision DLRI(4),DLYI(4),AI(4),DES(4)
-      double precision eUm(4)
+      real(kind=fPrec) DLAI(4),SAI(4)
+      real(kind=fPrec) DLRI(4),DLYI(4),AI(4),DES(4)
+      real(kind=fPrec) eUm(4)
       COMMON /ALAST/DLAI,SAI
       COMMON/CRYS/ DLRI,DLYI,AI,DES
       COMMON/eUc/  eUm
@@ -2535,14 +2541,14 @@ end module coll_crystal
 
 !------------- daniele, more data needed---------
 
-      double precision cprob_cry(0:5,1:4)
-!      double precision cs(5,4)
-      double precision csref_cry(0:5,1:4)
-      double precision anuc_cry(4)
-      double precision collnt_cry(4)
-      double precision bnref_cry(4)
-      double precision pptref_cry,pperef_cry,sdcoe_cry,pref_cry
-      double precision pptco_cry,ppeco_cry,freeco_cry
+      real(kind=fPrec) cprob_cry(0:5,1:4)
+!      real(kind=fPrec) cs(5,4)
+      real(kind=fPrec) csref_cry(0:5,1:4)
+      real(kind=fPrec) anuc_cry(4)
+      real(kind=fPrec) collnt_cry(4)
+      real(kind=fPrec) bnref_cry(4)
+      real(kind=fPrec) pptref_cry,pperef_cry,sdcoe_cry,pref_cry
+      real(kind=fPrec) pptco_cry,ppeco_cry,freeco_cry
 
 
       common/scat_cry/cprob_cry,csref_cry,collnt_cry,bnref_cry,anuc_cry
@@ -2588,10 +2594,10 @@ end module coll_crystal
 
 ! For calculation of dE/dX due to ionization
 
-      double precision rho(4),z(4),Ime(4),anuc_cry2(4) !Daniele: material parameters for dE/dX calculation
-      double precision k,re,me,mp !Daniele: parameters for dE/dX calculation (const,electron radius,el. mass, prot.mass)
+      real(kind=fPrec) rho(4),z(4),Ime(4),anuc_cry2(4) !Daniele: material parameters for dE/dX calculation
+      real(kind=fPrec) k,re,me,mp !Daniele: parameters for dE/dX calculation (const,electron radius,el. mass, prot.mass)
 
-      double precision emr_cry(4) !nuclear radius for Ruth scatt.
+      real(kind=fPrec) emr_cry(4) !nuclear radius for Ruth scatt.
 
       common/ion/rho,z,Ime,k,re,me,mp,anuc_cry2,emr_cry
 
@@ -2609,7 +2615,7 @@ end module coll_crystal
 
 ! For calculation of dechanneling length
 
-      double precision aTF,dP,u1
+      real(kind=fPrec) aTF,dP,u1
 
       common/dech/aTF,dP,u1
 
@@ -2617,8 +2623,8 @@ end module coll_crystal
       data dP/1.92d-10/   !distance between planes (110) [m]
       data u1/0.075d-10/  !thermal vibrations amplitude
 
-      double precision tlcut_cry,hcut_cry(4)   !param. for Ruth scatt.
-      double precision cgen_cry(200,4)
+      real(kind=fPrec) tlcut_cry,hcut_cry(4)   !param. for Ruth scatt.
+      real(kind=fPrec) cgen_cry(200,4)
       integer mcurr_cry
 
       common/ruth_scat_cry/tlcut_cry,hcut_cry
@@ -2633,18 +2639,19 @@ end module coll_crystal
 !------------------daniele: definition of rutherford scattering formula--------!
 
       function ruth_cry(t_cry)
+        use floatPrecision
       implicit none
       integer nmat_cry,mcurr_cry
       parameter(nmat_cry=4)
-!      double precision z(4),emr_cry(4),tlcut_cry,hcut_cry(4)
-      double precision tlcut_cry,hcut_cry(4)
+!      real(kind=fPrec) z(4),emr_cry(4),tlcut_cry,hcut_cry(4)
+      real(kind=fPrec) tlcut_cry,hcut_cry(4)
 
-      double precision rho(4),z(4),Ime(4),anuc_cry2(4) !Daniele: material parameters for dE/dX calculation
-      double precision k,re,me,mp !Daniele: parameters for dE/dX calculation (const,electron radius,el. mass, prot.mass)
+      real(kind=fPrec) rho(4),z(4),Ime(4),anuc_cry2(4) !Daniele: material parameters for dE/dX calculation
+      real(kind=fPrec) k,re,me,mp !Daniele: parameters for dE/dX calculation (const,electron radius,el. mass, prot.mass)
 
-      double precision emr_cry(4)
+      real(kind=fPrec) emr_cry(4)
 
-      double precision cgen_cry(200,4)
+      real(kind=fPrec) cgen_cry(200,4)
 
       common/ion/rho,z,Ime,k,re,me,mp,anuc_cry2,emr_cry
 
@@ -2652,8 +2659,8 @@ end module coll_crystal
       common/ruth_scat_cry/tlcut_cry,hcut_cry
       common/ruth_scat_cry/cgen_cry,mcurr_cry
 
-      double precision ruth_cry,t_cry
-      double precision cnorm,cnform
+      real(kind=fPrec) ruth_cry,t_cry
+      real(kind=fPrec) cnorm,cnform
       parameter(cnorm=2.607d-4,cnform=0.8561d3)
 !      parameter(cnorm=2.607d-5,cnform=0.8561d3) !daniele: corrected constant
 !c      write(6,'('' t,exp'',2e15.8)')t,t*cnform*EMr(mcurr)**2
@@ -2662,309 +2669,3 @@ end module coll_crystal
        ruth_cry=cnorm*exp(-t_cry*cnform*emr_cry(mcurr_cry)**2)*(z(mcurr_cry)/t_cry)**2
 
       end
-
-
-
-!~~~~~~~~~~~~~~~~~~~~~~~~~~~
-! STUFF BELOW IS NOT IN USE
-!~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-
-
-!------------------------------past treatment commented (c always comment, cc old line)----------------------------------------------------------------------------------
-
-
-
-!c      xp=xp*1000
-!c      yp=yp*1000
-!      write(*,*)'xp initial:', xp, 'yp initial', yp
-!. DEI - dE/dx stoping energy
-!c      PC    = PC - DEI*DZ    ! energy lost beacause of ionization process[GeV]
-!. Coulomb scattering
-!. DYA - rms of coloumb scattering
-!c      DYA = (14.0/PC)*SQRT(DZ/DLr)             !MCS (mrad)
-!      write(*,*)'dya=',dya
-!c      XP    = XP+DYA*RAN_GAUSS(1.)
-!c      YP    = YP+DYA*RAN_GAUSS(1.)
-
-!c      if(NAM .eq. 0) return
-!.  Elastic scattering
-!c      IF (rndm4() .LE. DZ/DLAI(IS)) THEN
-!c        PROC = 'mcs'
-!         write(*,*)'case 1'
-!        XP    = XP+SAI(IS)*RAN_GAUSS(1.)/PC
-!        YP    = YP+SAI(IS)*RAN_GAUSS(1.)/PC
-!c        xp    = xp+196.*RAN_GAUSS(1.)/PC ! angle elast. scattering in R plane
-!c        yp    = yp+196.*RAN_GAUSS(1.)/PC
-!c      ENDIF
-!.  Diffraction interaction
-!c      IF (rndm4() .LE. DZ/(DLY*6.143)) THEN
-!c        PROC = 'diff'
-!         write(*,*)'case 2'
-
-!######################################################
-! daniele: comment old treatement to implement the same as standard SixTrack
-!######################################################
-
-!        XP    = XP+ 257.0*RAN_GAUSS(1.)/PC ! angle elast. scattering in R plane
-!        YP    = YP+ 257.0*RAN_GAUSS(1.)/PC
-!        W_p = rndm4()
-!        PC = PC -0.5*(0.3*PC)**W_p             ! m0*c = 1 GeV/c for particle
-
-!############## end comment -> "new" treatment of diffractive interactions #########
-
-!         ecmsq = 2 * 0.93828d0 * PC
-!         xln15s=log(0.15*ecmsq)
-!         bpp = 8.5d0 + 1.086d0 * log(sqrt(ecmsq))
-!         xm2 = exp( dble(rndm4()) * xln15s )
-!         PC = PC  *(1.d0 - xm2/ecmsq)
-
-!         if ( xm2 .lt. 2.d0 ) then
-!              bsd = 2.d0 * bpp
-!            elseif (( xm2 .ge. 2.d0 ).and. ( xm2 .le. 5.d0 )) then
-!              bsd = (106.d0-17.d0*xm2) *  bpp / 26.d0
-!            elseif ( xm2 .gt. 5.d0 ) then
-!              bsd = 7.d0 * bpp / 12.d0
-!         endif
-
-!         t = -log(dble(rndm4()))/bsd
-!         teta = sqrt(t)/PC
-!      10 va  =2d0*rndm4()-1d0
-!         vb = dble(rndm4())
-!         va2 = va*va
-!         vb2 = vb*vb
-!         r2 = va2 + vb2
-!         if ( r2.gt.1.d0) go to 10
-!         tx = teta * (2.d0*va*vb) / r2
-!         tz = teta * (va2 - vb2) / r2
-
-!         XP = XP + tx
-!         YP = YP + tz
-
-!#################### end of "new" treatment ###############
-
-!c      ENDIF
-!.  Inelastic interaction
-!c      IF (rndm4() .LE. DZ/DLY) THEN
-!        PC = 0.                                         !daniele: needed for debugged energy loss in the crystal, otherwise SixTrack get stuck if PC=0 (anyway the particle is "forgot" from now)
-!c        PROC = 'absorbed'
-!c      ENDIF
-!      write(*,*)'xp final:', xp, 'yp final', yp
-!c      xp=xp/1000
-!c      yp=yp/1000
-
-
-!---------------DANIELE--------------------------------
-! print out the energy loss and process experienced
-!-------------------
-
-!c               if (PROC(1:2).eq.'AM')then
-!c                 PROC_dan=1
-!c               elseif (PROC(1:2).eq.'VR') then
-!c                 PROC_dan=2
-!c               elseif (PROC(1:2).eq.'CH')then
-!c                 PROC_dan=3
-!c               elseif (PROC(1:2).eq.'VC') then
-!c                 PROC_dan=3
-!c               elseif (PROC(1:3).eq.'out')then
-!c                 PROC_dan=-1
-!c              elseif (PROC(1:8).eq.'absorbed') then
-!c                 PROC_dan=5
-!c               elseif (PROC(1:2).eq.'DC')then
-!c                 PROC_dan=6
-!c               elseif (PROC(1:3).eq.'mcs')then
-!c                 PROC_dan=7
-!c               elseif (PROC(1:4).eq.'diff')then
-!c                 PROC_dan=8
-!c               endif
-
-!c      write(889,*) PC_in_dan, PC, PROC_dan
-
-!--------END DANIELE------------------------------------
-
-!c      RETURN
-!c      END
-!
-!c      BLOCK DATA
-!c      implicit none
-!c      double precision DLAI(4),SAI(4)
-!c      double precision DLRI(4),DLYI(4),AI(4),DES(4)
-!c      double precision eUm(4)
-!c      COMMON /ALAST/DLAI,SAI
-!c      COMMON/CRYS/ DLRI,DLYI,AI,DES
-!c      COMMON/eUc/  eUm
-!-----4 substances: Si(110),W(110),C,Ge----------------------------
-!c      DATA DLRI/0.09336,.0035,0.188,.023/    ! radiation  length(m)
-!c     +    ,DLYI/.455, .096, .400, .162/      ! nuclear length(m)
-!c     +    ,AI /0.96E-7, 0.56E-7, 0.63E-7, 1.E-7/  !Si110 1/2 interplan. dist. mm
-!c     +    ,DES/0.56,  3.0,  0.6, 1./         ! energy deposition in subst(GeV/m)
-!c     +    ,DLAI/1.6,  0.57, 2.2, 1.0/        ! elastic length(m)
-!c     +    ,SAI /42.,  140.,  42., 50./       ! elastic scat. r.m.s(mr)
-!c     +    ,eUm/21.34,  21.,   21.,   21./    ! only for Si(110) potent. [eV]
-!c      END
-
-
-
-
-
-
-
-!                        'MATH.F'   10.07.01
-!1  RANNOR - Gauss distribution simulation procedure.
-!2  RF RNDM- ­  [0,1]        *
-!3  RNDMST - .
-!4  ...
-!.**************************************************************************
-!     subroutine for the generation of random numbers with a gaussian
-!     distribution
-!.**************************************************************************
-!.**************************************************************************
-!       SUBROUTINE RANNOR(A,B) !gaussian with mean 0 and sigma 1
-! !
-! !1    Gauss distribution simulation procedure
-! !
-!       Y = RNDM(1.)
-!       IF (Y .EQ. 0.) Y = RNDM(1.)
-!       Z = RNDM(1.)
-!       X = 6.2831853*Z
-!       A1= SQRT(-2.0*ALOG(Y))
-!       A = A1*SIN(X)
-!       B = A1*COS(X)
-! !
-!       RETURN
-!       END
-! !
-!       REAL function RNDM(rdummy)
-!       REAL          u,c,cd,cm, rrdummy
-!       COMMON/RANDOM/  u(97),c,cd,cm,i,j
-! !
-!       rrdummy = rdummy
-! !
-!       RNDM = u(i)-u(j)
-!       if (RNDM .LT. 0.) RNDM = RNDM+1.
-!       U(i) = RNDM
-!       i = i-1
-!       if ( i .EQ. 0 ) i = 97
-!       j = j-1
-!       if ( j .EQ. 0 ) j = 97
-!       c = c-cd
-!       if ( C .LT. 0.) c = c+cm
-!       RNDM = RNDM - c
-!       if ( RNDM .LT. 0. ) RNDM = RNDM+1.
-! !
-!       return
-!       END
-! ! !.**************************************************************************
-! !
-! !.**************************************************************************
-!       subroutine RNDMST(NA1,NA2,NA3,NB1)
-!       REAL u,c,cd,cm
-!       COMMON/RANDOM/ u(97),c,cd,cm,i,j
-! !
-!       ma1 = na1
-!       ma2 = na2
-!       ma3 = na3
-!       mb1 = nb1
-!       i   = 97
-!       j   = 33
-! !
-!       do ii2 = 1,97
-!         s = 0.0
-!         t = 0.5
-!         do ii1 = 1,24
-!           mat  = MOD(MOD(ma1*ma2,179)*ma3,179)
-!           ma1  = ma2
-!           ma2  = ma3
-!           ma3  = mat
-!           mb1  = MOD(53*mb1+1,169)
-!           if (MOD(MB1*MAT,64) .GE. 32 ) s = s+t
-!           t = 0.5*t
-!         end do
-!         u(ii2) = s
-!       end do
-! !
-!       c  =   362436./16777216.
-!       cd =  7654321./16777216.
-!       cm = 16777213./16777216.
-! !
-!       return
-!       END
-! !.**************************************************************************
-! !
-! !.**************************************************************************
-!       subroutine RNDMIN(uin,cin,cdin,cmin,iin,jin)
-!       REAL uin(97),cin,cdin,cmin
-!       REAL u,c,cd,cm
-!       COMMON/RANDOM/ u(97),c,cd,cm,i,j
-! !
-!       do kkk = 1,97
-!         u(kkk) = uin(kkk)
-!       end do
-! !
-!       c  = cin
-!       cd = cdin
-!       cm = cmin
-!       i  = iin
-!       j  = jin
-! !
-!       return
-!       END
-! !.**************************************************************************
-! !
-! !.**************************************************************************
-!       subroutine RNDMOU(UOUT,COUT,CDOUT,CMOUT,IOUT,JOUT)
-!       REAL uout(97),cout,cdout,cmout
-!       REAL u,c,cd,cm
-!       COMMON/RANDOM/ u(97),c,cd,cm,i,j
-! !
-!       do kkk = 1,97
-!         uout(kkk) = u(kkk)
-!       end do
-! !
-!       COUT  = C
-!       CDOUT = CD
-!       CMOUT = CM
-!       IOUT  = I
-!       JOUT  = J
-! !
-!       return
-!       END
-! !.**************************************************************************
-! !
-! !.**************************************************************************
-!       subroutine RNDMTE(IO)
-! !
-! !.    *******************************************************************
-! !.    *  SUBROUTINE RNDMTE(IO)
-! !.    *******************************************************************
-! !
-!       REAL uu(97)
-!       REAL u(6),x(6),d(6)
-!       DATA u / 6533892.0 , 14220222.0 ,  7275067.0 ,  6172232.0 ,  8354498.0 , 10633180.0 /
-! !
-!       call RNDMOU(UU,CC,CCD,CCM,II,JJ)
-!       call RNDMST(12,34,56,78)
-! !
-!       do ii1 = 1,20000
-!         xx = rndm4()
-!       end do
-! !
-!       sd = 0.0
-!       do ii2 = 1,6
-!         x(II2)  = 4096.*(4096.*rndm4())
-!         d(II2)  = x(II2)-u(II2)
-!         sd = sd+d(II2)
-!       end do
-! !
-!       call RNDMIN(uu,cc,ccd,ccm,ii,jj)
-!       if (IO.EQ.1 .OR. SD .NE. 0.) write(6,10) (u(I),x(I),d(I),i=1,6)
-! !
-!  10   format('  === TEST OF THE RANDOM-GENERATOR ===',/, &
-!      &       '    EXPECTED VALUE    CALCULATED VALUE     DIFFERENCE',/, &
-!      &       6(F17.1,F20.1,F15.3,/), &
-!      &       '  === END OF TEST ;', &
-!      &       '  GENERATOR HAS THE SAME STATUS AS BEFORE CALLING RNDMTE')
-!       return
-!       END
-
-
