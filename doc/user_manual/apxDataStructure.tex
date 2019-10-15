@@ -1,6 +1,11 @@
 \chapter{Data Structure of the Data Files} \label{Header}
 
-A common data structure for the programs MAD-X and SixTrack is agreed on.
+A common data structure for the programs MAD-X and SixTrack is agreed on\footnote{
+Historically, SixTrack wrote one such file per particle pair (files \texttt{fort.90}, \texttt{fort.89}, \ldots), however recent versions of SixTrack always produce a single \texttt{singletrackfile.dat} containing all the data, by interleaving the contents of the old files in one large file as discussed below.
+Files of the old (MAD-X and Sussix compatible) format can be generated from this new format by running the tool \texttt{splitSingletrack} in the folder containing the \texttt{singletrackfile.dat}.
+This splits the combined \texttt{singletrackfile.dat} into one file for each pair.
+
+This chapter describes the old format used for single particle pairs, followed by a description of the built-in postprocessing tool output.}.
 Besides some minor differences this allows a straightforward post-processing of data from either program.
 Each binary data file has a header which holds a description of the run with comments, tracking parameters and 50 additional parameters for future purposes, six of which are already specified in SixTrack.
 

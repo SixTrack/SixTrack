@@ -24,10 +24,11 @@ subroutine daten
   use mod_alloc
   use mod_units
   use mod_linopt
+  use mod_random
 
   use mod_dist,  only : dist_enable, dist_parseInputLine
   use scatter,   only : scatter_active,scatter_debug,scatter_parseInputLine
-  use dynk,      only : dynk_enabled,dynk_debug,dynk_dumpdata,dynk_inputsanitycheck,dynk_allocate,dynk_parseInputLine
+  use dynk,      only : dynk_enabled,dynk_inputSanityCheck,dynk_allocate,dynk_parseInputLine
   use fma,       only : fma_parseInputLine, fma_allocate
   use dump,      only : dump_parseInputLine,dump_parseInputDone
   use zipf,      only : zipf_parseInputLine
@@ -477,6 +478,16 @@ subroutine daten
       if(inErr) goto 9999
     end if
 
+  case("RAND") ! Random Numbers
+    if(openBlock) then
+      continue
+    elseif(closeBlock) then
+      continue
+    else
+      call rnd_parseInputLine(inLine,blockLine,inErr)
+      if(inErr) goto 9999
+    end if
+
   case("ITER") ! Iteration Errors
     if(openBlock) then
       continue
@@ -741,9 +752,8 @@ subroutine daten
     if(openBlock) then
       call dynk_allocate
     elseif(closeBlock) then
-      if(dynk_debug) call dynk_dumpdata
       dynk_enabled = .true.
-      call dynk_inputsanitycheck
+      call dynk_inputSanityCheck
     else
       call dynk_parseInputLine(inLine,inErr)
       if(inErr) goto 9999
@@ -1939,10 +1949,8 @@ subroutine block
       use mod_common_track
       implicit none
       integer i,j,jm,k,l,m,n
-      real(kind=fPrec) g,h
-      dimension h(nblo,2,6),g(nblo,2,6)
-      save
-!-----------------------------------------------------------------------
+      real(kind=fPrec) h(nblo,2,6),g(nblo,2,6)
+
       do k=1,mblo
         jm=mel(k)
         i=mtyp(k,1)
@@ -1985,7 +1993,6 @@ subroutine block
 
       end do
 
-      return
 end subroutine block
 
 subroutine blockdis(aeg,bl1eg,bl2eg)
@@ -2001,11 +2008,8 @@ subroutine blockdis(aeg,bl1eg,bl2eg)
       use mod_common_track
       implicit none
       integer i,j,jm,k,l,m,n
-      real(kind=fPrec) aeg,bl1eg,bl2eg,g,h
-      dimension h(nblo,2,6),g(nblo,2,6)
-      dimension aeg(nele,2,6),bl1eg(nblo,2,6),bl2eg(nblo,2,6)
-      save
-!-----------------------------------------------------------------------
+      real(kind=fPrec) h(nblo,2,6),g(nblo,2,6),aeg(nele,2,6),bl1eg(nblo,2,6),bl2eg(nblo,2,6)
+
       do k=1,mblo
         jm=mel(k)
         i=mtyp(k,1)
@@ -2048,7 +2052,6 @@ subroutine blockdis(aeg,bl1eg,bl2eg)
 
       end do
 
-      return
 end subroutine blockdis
 
 subroutine chroma
@@ -3126,8 +3129,7 @@ subroutine corrorb
   character(len=mNameLen) bezlo(nele)
   dimension clo0(2),clop0(2)
   dimension qwc1(3),nx(ncor1)
-  save
-!-----------------------------------------------------------------------
+
       rzero=zero
       rzero1=zero
       do l=1,2
@@ -4181,9 +4183,7 @@ subroutine phasad(dpp,qwc)
   integer i,ikpv,im,ium,ix,izu,j,jj,jk,jm,k,kpv,kpz,kzz,l,l1,ll,nmz,dj
   real(kind=fPrec) aa,alfa,bb,benkr,beta,ci,cikve,cr,crkve,crkveuk,dphi,dpp,dppi,dpr,dyy1,dyy2,ekk, &
     phi,phibf,pie,puf,qu,qv,qw,qwc,qxsa,qxse,r0,r0a,t,xl,xs,zl,zs,quz,qvz
-#ifdef TILT
   real(kind=fPrec) dyy11,qu1,tiltck,tiltsk
-#endif
   dimension t(5,4)
   dimension beta(2),alfa(2),phi(2),phibf(2)
   dimension qw(2),qwc(3)
@@ -4513,9 +4513,7 @@ subroutine phasad(dpp,qwc)
         else
 #include "include/multl07d.f90"
         end if
-#ifdef TILT
 #include "include/multl07e.f90"
-#endif
         izu=izu+2*mmul-2*nmz
         goto 420
       case (12,13,14,15,16,17,18,19,20,21,22,23)
@@ -5138,9 +5136,7 @@ subroutine umlauf(dpp,ium,ierr)
   implicit none
   integer i,ierr,im,ium,ix,izu,j,k,kpz,kx,kzz,l,ll,l1,nmz
   real(kind=fPrec) aa,bb,benkr,ci,cikve,cr,crkve,crkveuk,dpp,dpr,dyy1,dyy2,ekk,puf,qu,qv,quz,qvz,r0,r0a,xl,xs,zl,zs
-#ifdef TILT
   real(kind=fPrec) dyy11,qu1,tiltck,tiltsk
-#endif
   dimension aa(mmul),bb(mmul),dpr(5)
   dimension cr(mmul),ci(mmul)
   save
@@ -5224,12 +5220,16 @@ subroutine umlauf(dpp,ium,ierr)
     xs=xpl(ix)+zfz(izu)*xrms(ix)
     izu=izu+1
     zs=zpl(ix)+zfz(izu)*zrms(ix)
-#include "include/alignu.f90"
+    xl=(x(1,1)-xs)*tiltc(k)+(x(1,2)-zs)*tilts(k)
+    zl=(x(1,2)-zs)*tiltc(k)-(x(1,1)-xs)*tilts(k)
+    crkve=xl
+    cikve=zl
 
     select case (kzz)
     case (1) ! HORIZONTAL DIPOLE
       ekk=ekk*c1e3
-#include "include/kicku01h.f90"
+      y(1,1)=y(1,1)+ekk*tiltc(k)
+      y(1,2)=y(1,2)+ekk*tilts(k)
       goto 350
     case (2) ! NORMAL QUADRUPOLE
 #include "include/kickuxxh.f90"
@@ -5340,22 +5340,30 @@ subroutine umlauf(dpp,ium,ierr)
       r0=ek(ix)
       if(abs(dki(ix,1)).gt.pieni) then
         if(abs(dki(ix,3)).gt.pieni) then
-#include "include/multu01.f90"
+          qu=(((-one*dki(ix,1))/dki(ix,3))*dki(ix,1))/(one+dpp)
+          y(1,1)=(y(1,1)+(qu*xl-((dpp*c1e3)*dki(ix,1))/(one+dpp))*tiltc(k))+((c1e3*dki(ix,1))/(one+dpp))*(one-tiltc(k))
+          y(1,2)=(y(1,2)+(qu*xl-((dpp*c1e3)*dki(ix,1))/(one+dpp))*tilts(k))+((c1e3*dki(ix,1))/(one+dpp))*tilts(k)
           do j=2,ium
-#include "include/multu02.f90"
+            y(j,1)=y(j,1)+(qu*x(j,1))*tiltc(k)
+            y(j,2)=y(j,2)+(qu*x(j,2))*tilts(k)
           end do
         else
-#include "include/multu03.f90"
+          y(1,1)=(y(1,1)-(((dki(ix,1)*dpp)/(one+dpp))*c1e3)*tiltc(k))+((c1e3*dki(ix,1))/(one+dpp))*(one-tiltc(k))
+          y(1,2)=(y(1,2)-(((dki(ix,1)*dpp)/(one+dpp))*c1e3)*tilts(k))+((c1e3*dki(ix,1))/(one+dpp))*tilts(k)
         end if
       end if
       if(abs(dki(ix,2)).gt.pieni) then
         if(abs(dki(ix,3)).gt.pieni) then
-#include "include/multu04.f90"
+          qu=((dki(ix,2)/dki(ix,3))*dki(ix,2))/(one+dpp)
+          y(1,1)=(y(1,1)+(qu*zl-((dpp*c1e3)*dki(ix,2))/(one+dpp))*tilts(k))+((c1e3*dki(ix,2))/(one+dpp))*tilts(k)
+          y(1,2)=(y(1,2)+(((dpp*c1e3)*dki(ix,2))/(one+dpp)-qu*zl)*tiltc(k))-((c1e3*dki(ix,2))/(one+dpp))*(one-tiltc(k))
           do j=2,ium
-#include "include/multu05.f90"
+            y(j,1)=y(j,1)+(qu*x(j,1))*tilts(k)
+            y(j,2)=y(j,2)-(qu*x(j,2))*tiltc(k)
           end do
         else
-#include "include/multu06.f90"
+          y(1,1)=(y(1,1)-(((dki(ix,2)*dpp)/(one+dpp))*c1e3)*tilts(k))+((dki(ix,2)/(one+dpp))*c1e3)*tilts(k)
+          y(1,2)=(y(1,2)+(((dki(ix,2)*dpp)/(one+dpp))*c1e3)*tiltc(k))-((dki(ix,2)/(one+dpp))*c1e3)*(one-tiltc(k))
         end if
       end if
       if(abs(r0).le.pieni) goto 350
@@ -5378,9 +5386,7 @@ subroutine umlauf(dpp,ium,ierr)
       else
 #include "include/multl07d.f90"
       end if
-#ifdef TILT
 #include "include/multl07e.f90"
-#endif
       izu=izu+2*mmul-2*nmz
       y(1,1)=y(1,1)+dyy1
       y(1,2)=y(1,2)+dyy2
@@ -5389,12 +5395,20 @@ subroutine umlauf(dpp,ium,ierr)
     case (12,13,14,15,16,17,18,19,20,21,22,23)
       goto 350
     case (24) ! DIPEDGE ELEMENT
-#include "include/kickudpe.f90"
+      dyy1=(ed(IX)*crkve)/(one+dpp)
+      dyy2=(ek(IX)*cikve)/(one+dpp)
+      y(1,1)=(y(1,1)+tiltc(k)*dyy1)-tilts(k)*dyy2
+      y(1,2)=(y(1,2)+tiltc(k)*dyy2)+tilts(k)*dyy1
       if(ium.eq.1) goto 350
 #include "include/kickqdpe.f90"
       goto 330
     case (25) ! Solenoid
-#include "include/kickuso1.f90"
+      crkve=y(1,1)-((x(1,1)*ed(IX))*ek(IX))/(one+dpp)
+      cikve=y(1,2)-((x(1,2)*ed(IX))*ek(IX))/(one+dpp)
+      dyy1=(crkve*cos_mb(ek(IX)/(one+dpp))+cikve*sin_mb(ek(IX)/(one+dpp)))-y(1,1)
+      dyy2=(cikve*cos_mb(ek(IX)/(one+dpp))-crkve*sin_mb(ek(IX)/(one+dpp)))-y(1,2)
+      y(1,1)=y(1,1)+dyy1
+      y(1,2)=y(1,2)+dyy2
       if(ium.eq.1) goto 350
 #include "include/kickqso1.f90"
       goto 330
@@ -5406,7 +5420,8 @@ subroutine umlauf(dpp,ium,ierr)
     !------------------
     case (-1) ! VERTICAL DIPOLE
       ekk=ekk*c1e3
-#include "include/kicku01v.f90"
+      y(1,1)=y(1,1)-ekk*tilts(k)
+      y(1,2)=y(1,2)+ekk*tiltc(k)
       goto 350
     case (-2) ! SKEW QUADRUPOLE
 #include "include/kickuxxv.f90"
@@ -5563,10 +5578,8 @@ subroutine resex(dpp)
           cxzyi,cxzyr,cxzyrr,del,dphi,dpp,dppi,dpr,dt,dyy1,dyy2,e,ea,eb,ekk,ep,etl,gerad,phi,phibf,&
           phy,pie,puf,qu,qv,qw,r0,r0a,radi,re,re1,res,rn2,sb1,sb2,sea,seb,shy,t,vdt1,vdt2,vdt3,xl,&
           xs,zl,zs,quz,qvz
-#ifdef TILT
   real(kind=fPrec) dyy11,qu1,tiltck,tiltck1,tiltck2,tiltck3,tiltck4,tiltck5,tiltckuk,tiltsk,&
           tiltsk1,tiltsk2,tiltsk3,tiltsk4,tiltsk5
-#endif
   dimension t(5,4)
   dimension beta(2),alfa(2),phi(2),phibf(2)
   dimension qw(2)
@@ -5888,9 +5901,7 @@ subroutine resex(dpp)
           do l=1,nmz
 #include "include/multl13.f90"
           end do
-#ifdef TILT
 #include "include/multl07e.f90"
-#endif
           izu = izu+2*mmul-2*nmz
           goto 480
         case (12,13,14,15,16,17,18,19,20,21,22,23)
@@ -6736,10 +6747,8 @@ subroutine subre(dpp)
           cxzi,cxzr,cxzyi,cxzyr,cxzyrr,del,dfac,dphi,dpp,dpp1,dppi,dpr,dt,dtu,dtup,dyy1,dyy2,e,ea,eb,&
           ekk,ekko,ep,etl,gerad,gtu1,gtu2,phi,phibf,phy,pie,puf,qu,qv,qw,qwc,r0,r0a,radi,rc,re,re1,res,&
           rn2,rs,sb1,sb2,sdel,sdel2,sea,seb,shy,ss,t,vdt1,vdt2,vdt3,vdt4,xl,xs,zl,zs,quz,qvz
-#ifdef TILT
   real(kind=fPrec) dyy11,qu1,tiltck,tiltck1,tiltck2,tiltck3,tiltck4,tiltck5,tiltck6,tiltck8,tiltck10,&
           tiltckuk,tiltsk,tiltsk1,tiltsk2,tiltsk3,tiltsk4,tiltsk5,tiltsk6,tiltsk8,tiltsk10
-#endif
       dimension t(6,4)
       dimension beta(2),alfa(2),phi(2),phibf(2)
       dimension clo0(2),clop0(2)
@@ -7159,9 +7168,7 @@ subroutine subre(dpp)
           do l=1,nmz
 #include "include/multl13.f90"
           end do
-#ifdef TILT
 #include "include/multl07e.f90"
-#endif
           izu=izu+2*mmul-2*nmz
           do iv=2,5
 #include "include/multl12.f90"
@@ -7771,9 +7778,7 @@ subroutine subsea(dpp)
   real(kind=fPrec) aa,ab1,ab2,alfa,b,b1,b2,bb,benkr,beta,btc,bts,chy,ci,cikve,cr,crkve,cxzi,cxzr,&
           cxzyi,cxzyr,cxzyrr,del,dphi,dpp,dppi,dpr,dt,dyy1,dyy2,e,ea,eb,ekk,ep,etl,gerad,phi,phibf,&
           phy,pie,puf,qu,qv,qw,r0,r0a,radi,re,re1,res,rn2,sb1,sb2,sea,seb,shy,t,vdt1,vdt2,vdt3,xl,xs,zl,zs,quz,qvz
-#ifdef TILT
   real(kind=fPrec) dyy11,qu1,tiltck,tiltck1,tiltck2,tiltck3,tiltck4,tiltck5,tiltckuk,tiltsk,tiltsk1,tiltsk2,tiltsk3,tiltsk4,tiltsk5
-#endif
       dimension t(5,4)
       dimension beta(2),alfa(2),phi(2),phibf(2)
       dimension aa(mmul),bb(mmul)
@@ -8097,9 +8102,7 @@ subroutine subsea(dpp)
         do l=1,nmz
 #include "include/multl13.f90"
         end do
-#ifdef TILT
 #include "include/multl07e.f90"
-#endif
         izu=(izu+2*mmul)-2*nmz
       case (12,13,14,15,16,17,18,19,20,21,22,23)
         goto 740

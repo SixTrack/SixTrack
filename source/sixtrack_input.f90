@@ -500,6 +500,11 @@ subroutine sixin_parseInputLineSETT(inLine, iLine, iErr)
     end if
     write(lout,"(a,i0)") "INPUT> SixTrack Quiet level set to: ",st_quiet
 
+  case default
+    write(lerr,"(a)") "INPUT> ERROR Unknown keyword '"//trim(lnSplit(1))//"' in SETTINGS block"
+    iErr = .true.
+    return
+
   end select
 
 end subroutine sixin_parseInputLineSETT
@@ -563,13 +568,6 @@ subroutine sixin_parseInputLineSIMU(inLine, iLine, iErr)
       return
     end if
     napx = numPart/2
-#ifndef STF
-    if(napx > 32) then
-      write(lerr,"(a)") "SIMU> ERROR To run SixTrack with more than 64 particles, it has to be compiled with the STF flag."
-      iErr = .true.
-      return
-    end if
-#endif
     if(numPart > npart) then
       call expand_arrays(nele, numPart, nblz, nblo, nbb)
     end if
@@ -1327,14 +1325,6 @@ subroutine sixin_parseInputLineTRAC(inLine, iLine, iErr)
     end if
     if(iErr) return
 
-#ifndef STF
-    if(napx > 32) then
-      write(lerr,"(a)") "TRAC> ERROR To run SixTrack with more than 32 particle pairs, it has to be compiled with the STF flag."
-      iErr = .true.
-      return
-    end if
-#endif
-
     if(napx*2 > npart) then
       call expand_arrays(nele, napx*2, nblz, nblo, nbb)
     end if
@@ -1831,7 +1821,7 @@ subroutine sixin_parseInputLineSYNC(inLine, iLine, iErr)
   logical,          intent(inout) :: iErr
 
   character(len=:), allocatable   :: lnSplit(:)
-  real(kind=fPrec) cosy,halc,halc2,halc3,qigam,pmat,qbet
+  real(kind=fPrec) cosy,halc,halc2,halc3,qigam,qbet
   integer          nSplit,i,ix
   logical          spErr
 
@@ -1884,11 +1874,6 @@ subroutine sixin_parseInputLineSYNC(inLine, iLine, iErr)
     end if
     if(iErr) return
 
-    if(abs(pma-pmap) <= c1m1) pmat = pmap
-    if(abs(pma-pmae) <= c1m1) pmat = pmae
-    if(pmat /= pmap .and. pmat /= pmae) then
-      write(lout,"(a)") "SYNC> WARNING Particle is neither proton nor electron"
-    endif
     if(pma < pieni) then
       write(lerr,"(a)") "SYNC> ERROR Kinetic energy of the particle is less than or equal to zero"
       iErr = .true.
@@ -3076,13 +3061,11 @@ subroutine sixin_parseInputLinePOST(inLine, iLine, iErr)
     end if
     if(iErr) return
 
-#ifdef STF
     if(imad == 1) then
-      write(lerr,"(a)") "POST> ERROR imad not supported when SixTrack is built with STF enabled."
+      write(lerr,"(a)") "POST> ERROR imad no longer supported in SixTrack"
       iErr = .true.
       return
     end if
-#endif
 
   case(3)
 

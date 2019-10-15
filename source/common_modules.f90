@@ -173,7 +173,7 @@ module mod_common
   integer,          save :: irew       = 0       ! Rewind fort.59-90
   integer,          save :: iclo6      = 0       ! 6D closed orbit flags
   integer,          save :: nde(2)     = 0       ! Number of turns at flat bottom / energy ramping
-  integer,          save :: nwr(4)     = 1       ! Writings to fort.90
+  integer,          save :: nwr(4)     = 1       ! Writings to singletrackfile.dat
   integer,          save :: ntwin      = 1       ! How to calculate the distance in phase space
   integer,          save :: napxo      = 0       ! Original value of napx
   integer,          save :: napxto     = 0       ! Particles times turns
@@ -555,6 +555,7 @@ module mod_common
   integer,          allocatable, save :: icomb(:,:)     ! Combination of Elements: Index (:,20)
 
   ! Number of Beam-Beam Lenses (nbb)
+  integer,          allocatable, save :: nbeaux(:)      ! (:)
   real(kind=fPrec), allocatable, save :: sigman(:,:)    ! (2,:)
   real(kind=fPrec), allocatable, save :: sigman2(:,:)   ! sigman^2 (2,:)
   real(kind=fPrec), allocatable, save :: sigmanq(:,:)   ! (2,:)
@@ -681,6 +682,7 @@ subroutine mod_common_expand_arrays(nele_new, nblo_new, nblz_new, npart_new, nbb
   end if
 
   if(nbb_new /= nbb_prev) then
+    call alloc(nbeaux,               nbb,            0,      "nbeaux")
     call alloc(sigman,            2, nbb,            zero,   "sigman")
     call alloc(sigman2,           2, nbb,            zero,   "sigman2")
     call alloc(sigmanq,           2, nbb,            zero,   "sigmanq")

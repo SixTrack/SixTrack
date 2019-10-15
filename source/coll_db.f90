@@ -300,7 +300,7 @@ subroutine cdb_readDB_newFormat
 
   if(lnSplit(1) == "NSIG_FAM") then
     ! Collimator Family
-    call chr_cast(lnSplit(3),nSig,cErr)
+    call chr_cast(lnSplit(3), nSig, cErr)
     call cdb_addFamily(trim(lnSplit(2)), nSig, famID, fExists)
     if(fExists .and. .not. cdb_doNSig) then
       ! If setting nsig in fort.3 is disabled, the DB values take precedence, so we overwrite them here

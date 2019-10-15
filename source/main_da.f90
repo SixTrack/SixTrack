@@ -63,12 +63,6 @@ program mainda
 
   ! Features
   featList = ""
-#ifdef TILT
-  featList = featList//" TILT"
-#endif
-#ifdef STF
-  featList = featList//" STF"
-#endif
 #ifdef CRLIBM
   featList = featList//" CRLIBM"
   call disable_xp()
@@ -324,6 +318,7 @@ program mainda
       call mydaini(2,2,5,2,5,1)
       nlin=nlinoo
     end if
+    tas(:,:) = zero ! Make sure all values are initialised
     do i=1,4
       do j=1,4
         tas(i,j)=tasm(i,j)
