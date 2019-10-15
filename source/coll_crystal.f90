@@ -32,7 +32,6 @@ module coll_crystal
 
   ! Rutherford Scatter
   real(kind=fPrec), parameter :: tlcut_cry   = 0.0009982d0
-  real(kind=fPrec), parameter :: hcut_cry(4) = [0.02d0,0.0d0,0.0d0,0.02d0]
   real(kind=fPrec), save      :: cgen_cry(200,4)
   integer,          save      :: mcurr_cry
   integer,          save      :: mcurr_cry2
@@ -40,26 +39,13 @@ module coll_crystal
   real(kind=fPrec), save :: enr,mom,betar,gammar,bgr !Daniele: energy,momentum,beta relativistic, gamma relativistic
   real(kind=fPrec), save :: Tmax,plen !Daniele: maximum energy tranfer in single collision, plasma energy (see pdg)
 
-  !Daniele: parameters for dE/dX calculation (const,electron radius,el. mass, prot.mass)
-  real(kind=fPrec), parameter :: rho(4) = [2.33d0,0.0d0,0.0d0,5.323d0] !material density [g/cm^3]
-  real(kind=fPrec), parameter :: anuc_cry2(4) = [28.08d0,0.0d0,0.0d0,72.63d0] !implemented only Si
-  real(kind=fPrec), parameter :: emr_cry(4) = [0.441d0,0.0d0,0.0d0,0.605d0]  !nuclear radius take from R_Be*(A_Si/A_Be)^1/3, where R_Be=0.302
-
   real(kind=fPrec), parameter :: k  = 0.307075 !constant in front bethe-bloch [MeV g^-1 cm^2]
   real(kind=fPrec), parameter :: re = 2.818d-15  !electron radius [m]
   real(kind=fPrec), parameter :: me = 0.510998910 !electron mass [MeV/c^2]
   real(kind=fPrec), parameter :: mp = 938.272013 !proton mass [MeV/c^2]
 
-  real(kind=fPrec), save :: csref_cry(0:5,1:4)
-
   ! Nuclear Collision length [m] from pdg (only for Si and Ge for the moment)
   real(kind=fPrec), parameter :: collnt_cry(4) = [0.3016d0,0.0d0,0.0d0,0.1632d0]
-
-  ! Nuclear elastic slope from Schiz et al.,PRD 21(3010)1980
-  real(kind=fPrec), parameter :: bnref_cry(4) = [120.14d0,0.0d0,0.0d0,226.35d0]
-
-  ! Atomic mass [g/mole] from pdg
-  real(kind=fPrec), parameter :: anuc_cry(4) = [28.08d0,0.0d0,0.0d0,72.63d0]
 
   real(kind=fPrec), public, save :: cprob_cry(0:5,1:4) = reshape([ &
     [zero, zero, zero, zero, zero, one], &
@@ -67,18 +53,6 @@ module coll_crystal
     [zero, zero, zero, zero, zero, one], &
     [zero, zero, zero, zero, zero, one]  &
   ], shape=[6,4])
-
-! Total and nuclear cross-sections [barn], implemeted only Si and Ge (Ma / Lambda rho Na)
-  data csref_cry(0,1),csref_cry(1,1)/0.664d0, 0.430d0/  !from pdg
-  !      data csref_cry(0,1),csref_cry(1,1)/0.762d0, 0.504d0/  !with glauber's approx (NIMB 268 (2010) 2655-2659)
-  data csref_cry(0,2),csref_cry(1,2)/0.0d0, 0.0d0/
-  data csref_cry(0,3),csref_cry(1,3)/0.0d0, 0.0d0/
-  data csref_cry(0,4),csref_cry(1,4)/1.388d0, 0.844d0/
-
-  data csref_cry(5,1)/0.039d-2/ ! scaled with Z^2 from Al
-  data csref_cry(5,2)/0.0d0/
-  data csref_cry(5,3)/0.0d0/
-  data csref_cry(5,4)/0.186d-2/ ! scaled with Z^2 from Cu
 
   ! pp cross-sections and parameters for energy dependence
   real(kind=fPrec), parameter :: pptref_cry = 0.04d0
@@ -1073,7 +1047,7 @@ end module coll_crystal
       use mod_common_main
       use floatPrecision
       use coll_crystal
-      use coll_materials, only : zatom, exenergy
+      use coll_materials, only : zatom, exenergy, rho, anuc
 
 !     Simple tranport protons in crystal 2
 !-----------------------------------------------------------C
@@ -1150,7 +1124,7 @@ end module coll_crystal
 
       Tmax=(2.0d0*me*bgr**2)/(1.0d0+2*gammar*me/mp+(me/mp)**2) ![MeV]
 
-      plen=((rho(IS)*zatom(is2)/anuc_cry2(IS))**0.5)*28.816d-6 ![MeV]
+      plen=((rho(is2)*zatom(is2)/anuc(is2))**0.5)*28.816d-6 ![MeV]
 
       const_dech=(256.0/(9.0*(4.D0*DATAN(1.D0))**2))* &
      & (1.0/(log(2.0*me*gammar/(exenergy(is2)*c1e3))-1.0))*((aTF*dP)/(re*me))  ![m/MeV]
@@ -1605,7 +1579,7 @@ end module coll_crystal
       use mod_funlux
       use floatPrecision
       use coll_crystal
-      use coll_materials, only : zatom, exenergy
+      use coll_materials, only : zatom, exenergy, rho, anuc
 
       IMPLICIT none
       integer IS,is2
@@ -1615,37 +1589,36 @@ end module coll_crystal
 
       write(*,*) "Entering CALC_ION_LOSS_CRY"
 !      write(*,*) "thl", DZ
-       thl= 4.0d0*k*zatom(is2)*DZ*100.0d0*rho(IS)/(anuc_cry2(IS)*betar**2) ![MeV]
+       thl= 4.0d0*k*zatom(is2)*DZ*100.0d0*rho(is2)/(anuc(is2)*betar**2) ![MeV]
 
-       EnLo=((k*zatom(is2))/(anuc_cry2(IS)*betar**2))*          &
+       EnLo=((k*zatom(is2))/(anuc(is2)*betar**2))*          &
      & (0.5*log((2.0d0*me*bgr*bgr*Tmax)/(c1e6*exenergy(is2)**2)) &
      & -betar**2.0-log(plen/(exenergy(is2)*c1e3))-log(bgr)+0.5);
 
 !      write(*,*) "EnLo"
-       EnLo=EnLo*rho(IS)*0.1*DZ ![GeV]
+       EnLo=EnLo*rho(is2)*0.1*DZ ![GeV]
 
 !      write(*,*) "Tt", EnLo, thl
        Tt=EnLo*1000.0d0+thl  ![MeV]
 
-!      write(*,*) "cs_tail", k, z(IS), anuc_cry2(IS), betar, Tt, Tmax, gammar, mp
-       cs_tail=((k*zatom(is2))/(anuc_cry2(IS)*betar**2))* &
+       cs_tail=((k*zatom(is2))/(anuc(is2)*betar**2))* &
      & ((0.5*((1.0d0/Tt)-(1.0d0/Tmax)))-             &
      & (log(Tmax/Tt)*(betar**2)/(2.0d0*Tmax))+       &
      & ((Tmax-Tt)/(4.0d0*(gammar**2)*(mp**2))))
 
 !      write(*,*) "prob_tail"
-       prob_tail=cs_tail*rho(IS)*DZ*100.0d0;
+       prob_tail=cs_tail*rho(is2)*DZ*100.0d0;
 
 !      write(*,*) "ranc"
        ranc=dble(rndm4())
 
        if(ranc.lt.prob_tail)then
-         EnLo=((k*zatom(is2))/(anuc_cry2(IS)*betar**2))*          &
+         EnLo=((k*zatom(is2))/(anuc(is2)*betar**2))*          &
      &   (0.5*log((2.0d0*me*bgr*bgr*Tmax)/(c1e6*exenergy(is2)**2)) &
      &   -betar**2.0-log(plen/(exenergy(is2)*c1e3))-log(bgr)+0.5+         &
      &   (TMax**2)/(8.0d0*(gammar**2)*(mp**2)));
 
-         EnLo=EnLo*rho(IS)*0.1 ![GeV/m]
+         EnLo=EnLo*rho(is2)*0.1 ![GeV/m]
 
        else
          EnLo=EnLo/DZ  ![GeV/m]
@@ -1667,6 +1640,7 @@ end module coll_crystal
       use mod_funlux
       use floatPrecision
       use coll_crystal
+      use coll_materials, only : anuc, hcut, bnref, csref
 
 !. Moving in amorphous substance...........................
       IMPLICIT none
@@ -1742,7 +1716,7 @@ end module coll_crystal
       tlow=tlcut_cry
       mcurr_cry=IS
       mcurr_cry2=IS2
-      thigh=hcut_cry(IS)
+      thigh=hcut(is2)
 !      write(*,*)tlow,thigh
       call funlxp(ruth_cry,cgen_cry(1,IS),tlow,thigh)
 
@@ -1752,7 +1726,7 @@ end module coll_crystal
 
 !
 ! freep: number of nucleons involved in single scattering
-        freep(IS) = freeco_cry * anuc_cry(IS)**(1d0/3d0)
+        freep(IS) = freeco_cry * anuc(is2)**(1d0/3d0)
 ! compute pp and pn el+single diff contributions to cross-section
 ! (both added : quasi-elastic or qel later)
         cs(3,IS) = freep(IS) * ppel
@@ -1760,18 +1734,16 @@ end module coll_crystal
 !
 ! correct TOT-CSec for energy dependence of qel
 ! TOT CS is here without a Coulomb contribution
-        cs(0,IS) = csref_cry(0,IS) + freep(IS) * (pptot - pptref_cry)
-        bn(IS) = bnref_cry(IS) * cs(0,IS) / csref_cry(0,IS)
+        cs(0,IS) = csref(0,is2) + freep(IS) * (pptot - pptref_cry)
+        bn(IS) = bnref(is2) * cs(0,IS) / csref(0,is2)
 ! also correct inel-CS
-        cs(1,IS) = csref_cry(1,IS) * cs(0,IS) / csref_cry(0,IS)
+        cs(1,IS) = csref(1,is2) * cs(0,IS) / csref(0,is2)
 !
 ! Nuclear Elastic is TOT-inel-qel ( see definition in RPP)
         cs(2,IS) = cs(0,IS) - cs(1,IS) - cs(3,IS) - cs(4,IS)
-        cs(5,IS) = csref_cry(5,IS)
+        cs(5,IS) = csref(5,is2)
 ! Now add Coulomb
         cs(0,IS) = cs(0,IS) + cs(5,IS)
-! Interaction length in meter
-!        xintl(ma) = 0.01d0*anuc(ma)/(fnavo * rho(ma)*cs(0,ma)*1d-24)  !don't need at the moment, take it from pdg
 
 
 ! Calculate cumulative probability
@@ -1996,6 +1968,7 @@ end module coll_crystal
       use mod_funlux
       use floatPrecision
       use coll_crystal
+      use coll_materials, only : rho, anuc, hcut, bnref, csref
 
       IMPLICIT none
       integer IS,NAM,is2
@@ -2090,7 +2063,7 @@ end module coll_crystal
       mcurr_cry=IS
       mcurr_cry2=IS2
 !      write(*,*) "thigh"
-      thigh=hcut_cry(IS)
+      thigh=hcut(is2)
 !      write(*,*)tlow,thigh
 !      write(*,*) "funlxp"
       call funlxp(ruth_cry,cgen_cry(1,IS),tlow,thigh)
@@ -2132,7 +2105,7 @@ end module coll_crystal
 !      write(*,*) "x_min", x_min
 !      write(*,*) "x_Max", x_Max
 
-      N_am=rho(IS)*6.022d23*1.d6/anuc_cry2(IS)           !calculate the "normal density" in m^-3
+      N_am=rho(is2)*6.022d23*1.d6/anuc(is2)           !calculate the "normal density" in m^-3
 
 !      write(*,*) N_am, dP, u1
       rho_Max=N_am*dP/2.d0*(erf(x_Max/sqrt(2.d0*u1*u1)) &      !calculate atomic density at min and max of the trajectory oscillation
@@ -2150,10 +2123,8 @@ end module coll_crystal
       avrrho=2.d0*avrrho/N_am
 !      write(*,*) "avrrho", avrrho
 
-!      write(*,*) "csref_cry", csref_cry(0,IS)
-      csref_tot_rsc=csref_cry(0,IS)*avrrho        !rescaled total ref cs
-!      write(*,*) "csref_tot_rsc", csref_tot_rsc
-      csref_inel_rsc=csref_cry(1,IS)*avrrho        !rescaled inelastic ref cs
+      csref_tot_rsc=csref(0,is2)*avrrho        !rescaled total ref cs
+      csref_inel_rsc=csref(1,is2)*avrrho        !rescaled inelastic ref cs
 
 !      write(889,*) x_i,pv,Ueff,Et,Ec,N_am,avrrho,
 !     + csref_tot_rsc,csref_inel_rsc
@@ -2164,7 +2135,7 @@ end module coll_crystal
 !
 ! freep: number of nucleons involved in single scattering
 !      write(*,*) "freep"
-        freep(IS) = freeco_cry * anuc_cry(IS)**(1d0/3d0)
+        freep(IS) = freeco_cry * anuc(is2)**(1d0/3d0)
 ! compute pp and pn el+single diff contributions to cross-section
 ! (both added : quasi-elastic or qel later)
 !        write(*,*) "cs(3)"
@@ -2176,11 +2147,6 @@ end module coll_crystal
 ! TOT CS is here without a Coulomb contribution
 !        write(*,*) "cs(0)"
         cs(0,IS) = csref_tot_rsc + freep(IS) * (pptot - pptref_cry)
-!        write(*,*) "bnref_cry", bnref_cry(IS)
-!        write(*,*) "cs(0)", cs(0,IS)
-!        write(*,*) "csref_tot_rsc", csref_tot_rsc
-!        write(*,*) "bn(IS)"
-!        bn(IS) = bnref_cry(IS) * cs(0,IS) / csref_tot_rsc
 ! also correct inel-CS
 !        write(*,*) "cs(1)"
         if (csref_tot_rsc == 0) then
@@ -2193,12 +2159,10 @@ end module coll_crystal
 !        write(*,*) "cs(2)"
         cs(2,IS) = cs(0,IS) - cs(1,IS) - cs(3,IS) - cs(4,IS)
 !        write(*,*) "cs(5)"
-        cs(5,IS) = csref_cry(5,IS)
+        cs(5,IS) = csref(5,is2)
 ! Now add Coulomb
 !        write(*,*) "cs(0)"
         cs(0,IS) = cs(0,IS) + cs(5,IS)
-! Interaction length in meter
-!        xintl(ma) = 0.01d0*anuc(ma)/(fnavo * rho(ma)*cs(0,ma)*1d-24)  !don't need at the moment, take it from pdg
 
 
 ! Calculate cumulative probability
@@ -2284,7 +2248,7 @@ end module coll_crystal
       if (ichoix.eq.2) then          ! p-n elastic
         PROC = 'ch_pne'
 !        write(*,*) "bn(IS)"
-        bn(IS) = bnref_cry(IS) * cs(0,IS) / csref_tot_rsc
+        bn(IS) = bnref(is2) * cs(0,IS) / csref_tot_rsc
         t = -log(dble(rndm4()))/bn(IS)
       endif
 
@@ -2405,13 +2369,17 @@ end module coll_crystal
       !------------------daniele: definition of rutherford scattering formula--------!
 
 function ruth_cry(t_cry)
+
   use floatPrecision
   use coll_crystal
-  use coll_materials, only : zatom
+  use coll_materials
+
   implicit none
 
   real(kind=fPrec) ruth_cry,t_cry
-  real(kind=fPrec) cnorm,cnform
-  parameter(cnorm=2.607d-4,cnform=0.8561d3)
-  ruth_cry=cnorm*exp(-t_cry*cnform*emr_cry(mcurr_cry)**2)*(zatom(mcurr_cry2)/t_cry)**2
-end
+  real(kind=fPrec), parameter :: cnorm  = 2.607e-4_fPrec
+  real(kind=fPrec), parameter :: cnform = 0.8561e3_fPrec
+
+  ruth_cry = cnorm*exp(-t_cry*cnform*emr(mcurr_cry2)**2)*(zatom(mcurr_cry2)/t_cry)**2
+
+end function ruth_cry

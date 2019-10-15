@@ -319,7 +319,7 @@ subroutine collmat_init
   anuc(iMat)     =  28.08_fPrec
   zatom(iMat)    =  14.00_fPrec
   rho(iMat)      =   2.33_fPrec
-  emr(iMat)      =   0.306_fPrec
+  emr(iMat)      =   0.441_fPrec
   hcut(iMat)     =   0.02_fPrec
   radl(iMat)     = one
   bnref(iMat)    = 120.14_fPrec
@@ -334,7 +334,7 @@ subroutine collmat_init
   emr(iMat)      =   0.605_fPrec
   hcut(iMat)     =   0.02_fPrec
   radl(iMat)     = one
-  bnref(iMat)    = 226.35
+  bnref(iMat)    = 226.35_fPrec
 
   iMat = iMat + 1
   colmats(iMat)  = "MoGR"
