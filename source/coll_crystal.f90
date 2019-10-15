@@ -35,14 +35,13 @@ module coll_crystal
   real(kind=fPrec), parameter :: hcut_cry(4) = [0.02d0,0.0d0,0.0d0,0.02d0]
   real(kind=fPrec), save      :: cgen_cry(200,4)
   integer,          save      :: mcurr_cry
+  integer,          save      :: mcurr_cry2
 
   real(kind=fPrec), save :: enr,mom,betar,gammar,bgr !Daniele: energy,momentum,beta relativistic, gamma relativistic
   real(kind=fPrec), save :: Tmax,plen !Daniele: maximum energy tranfer in single collision, plasma energy (see pdg)
 
   !Daniele: parameters for dE/dX calculation (const,electron radius,el. mass, prot.mass)
   real(kind=fPrec), parameter :: rho(4) = [2.33d0,0.0d0,0.0d0,5.323d0] !material density [g/cm^3]
-  real(kind=fPrec), parameter :: z_nuc(4) = [14.0d0,0.0d0,0.0d0,32.0d0]  !atomic number
-  real(kind=fPrec), parameter :: Ime(4) = [173.0d-6,0.0d0,0.0d0,350.0d-6] !mean exitation energy [MeV]
   real(kind=fPrec), parameter :: anuc_cry2(4) = [28.08d0,0.0d0,0.0d0,72.63d0] !implemented only Si
   real(kind=fPrec), parameter :: emr_cry(4) = [0.441d0,0.0d0,0.0d0,0.605d0]  !nuclear radius take from R_Be*(A_Si/A_Be)^1/3, where R_Be=0.302
 
@@ -246,7 +245,7 @@ end module coll_crystal
 !
 !
 !
-        integer ie,iturn,nabs_total
+        integer ie,iturn,nabs_total,new_mat
 !
 !
 !
@@ -299,12 +298,16 @@ end module coll_crystal
 !      open(unit=9999,file='debug.dat')
       IF (C_MATERIAL(1:4).eq.'Si')THEN           ! MDA: changed the label for all materials to fit new format
            mat = 8
+           new_mat = 8
       ELSEIF (C_MATERIAL(1:4).eq.'W')THEN
            mat = 9
+           new_mat = 4
       ELSEIF (C_MATERIAL(1:4).eq.'C')THEN
            mat = 10
+           new_mat = 6
       ELSEIF (C_MATERIAL(1:4).eq.'Ge')THEN
            mat = 11
+           new_mat = 9
       ELSE
            WRITE(*,*) 'ERR>', C_MATERIAL, ' Material not found. STOP'
            STOP
@@ -552,7 +555,7 @@ end module coll_crystal
 !           write(*,*)'impact at s,x = ', s_impact,x_in0(j)
 !           write(*,*)'with angle xp = ',xp
 !           write(*,*)'s before', s
-           CALL CRYST(mat-7,X,XP,Z,ZP,p,cry_length,j)
+           CALL CRYST(mat-7,new_mat,X,XP,Z,ZP,p,cry_length,j)
 !           write(*,*) "p after exit", p
            write(*,*) "xp after crystal coll routine exit", XP
            s=Rcurv*sin(cry_bend)
@@ -610,7 +613,7 @@ end module coll_crystal
             !               write(*,*) "debug - X minicry" ,  X
             !               write(*,*) "debug - XP minicry" ,  XP
             ! call cry routine
-                          CALL CRYST(mat-7,X,XP,Z,ZP,p,(cry_length-(tilt_int*Rcurv)),j)
+                          CALL CRYST(mat-7,new_mat,X,XP,Z,ZP,p,(cry_length-(tilt_int*Rcurv)),j)
             !              write(*,*) "p after exit", p
                           s=Rcurv*sin(cry_bend-tilt_int)
                           zlm=Rcurv*sin(cry_bend-tilt_int)
@@ -706,7 +709,7 @@ end module coll_crystal
             !               write(*,*) "debug - X minicry" ,  X
             !               write(*,*) "debug - XP minicry" ,  XP
             ! call cry routine
-                          CALL CRYST(mat-7,X,XP,Z,ZP,p,(cry_length-(tilt_int*Rcurv)),j)
+                          CALL CRYST(mat-7,new_mat,X,XP,Z,ZP,p,(cry_length-(tilt_int*Rcurv)),j)
             !              write(*,*) "p after exit", p
                           s=Rcurv*sin(cry_bend-tilt_int)
                           zlm=Rcurv*sin(cry_bend-tilt_int)
@@ -1063,13 +1066,14 @@ end module coll_crystal
 !.**************************************************************************
 !     SUBROUTINE FOR THE MOVEMENTS OF THE PARTICLES IN THE CRYSTAL
 !.**************************************************************************
-      SUBROUTINE CRYST(IS,x,xp,y,yp,PC,Length,j)
+      SUBROUTINE CRYST(IS,is2,x,xp,y,yp,PC,Length,j)
 
       use mod_ranlux
       use mod_funlux
       use mod_common_main
       use floatPrecision
       use coll_crystal
+      use coll_materials, only : zatom, exenergy
 
 !     Simple tranport protons in crystal 2
 !-----------------------------------------------------------C
@@ -1089,7 +1093,7 @@ end module coll_crystal
                                                   ! [m],[m],[m],[m],[rad]
       real(kind=fPrec) ymax,ymin       !crystal geometrical parameters
       real(kind=fPrec) s_length             !element length along s
-      integer IS,j                            !index of the material
+      integer IS,j,is2                            !index of the material
 !      integer counter
       real(kind=fPrec) DESt                  ! Daniele: changed energy loss by ionization now calculated and not tabulated
       integer NAM,ZN                        !switch on/off the nuclear
@@ -1146,16 +1150,10 @@ end module coll_crystal
 
       Tmax=(2.0d0*me*bgr**2)/(1.0d0+2*gammar*me/mp+(me/mp)**2) ![MeV]
 
-      plen=((rho(IS)*z_nuc(IS)/anuc_cry2(IS))**0.5)*28.816d-6 ![MeV]
-
-!      DESt=((k*z(IS))/(anuc_cry2(IS)*betar**2))*
-!     + (0.5*log((2.0d0*me*bgr*bgr*Tmax)/(Ime(IS)*Ime(IS)))
-!     + -betar**2.0-log(plen/Ime(IS))-log(bgr)+0.5);
-
-!      DESt=DESt*rho(IS)*0.1 ![GeV/m]
+      plen=((rho(IS)*zatom(is2)/anuc_cry2(IS))**0.5)*28.816d-6 ![MeV]
 
       const_dech=(256.0/(9.0*(4.D0*DATAN(1.D0))**2))* &
-     & (1.0/(log(2.0*me*gammar/Ime(IS))-1.0))*((aTF*dP)/(re*me))  ![m/MeV]
+     & (1.0/(log(2.0*me*gammar/(exenergy(is2)*c1e3))-1.0))*((aTF*dP)/(re*me))  ![m/MeV]
 
       const_dech=const_dech*1.0d3    ![m/GeV]
 
@@ -1224,8 +1222,8 @@ end module coll_crystal
 !        CALL MOVE_AM_(IS,NAM,Am_Length,DES(IS),DLYi(IS),DLRi(IS),xp,yp
 !     + ,PC)
 !        write(*,*) "Am_length", Am_Length
-        CALL CALC_ION_LOSS_CRY(IS,PC,AM_Length,DESt)
-        CALL MOVE_AM_(IS,NAM,Am_Length,DESt,DLYi(IS),DLRi(IS),xp,yp,PC)
+        CALL CALC_ION_LOSS_CRY(IS,is2,PC,AM_Length,DESt)
+        CALL MOVE_AM_(IS,is2,NAM,Am_Length,DESt,DLYi(IS),DLRi(IS),xp,yp,PC)
         x=x+xp*(s_length-s)
         y=y+yp*(s_length-s)
         GOTO 111
@@ -1233,8 +1231,8 @@ end module coll_crystal
         PROC='AM'
 !        CALL MOVE_AM_(IS,NAM,s_length,DES(IS),DLYi(IS),DLRi(IS), xp,yp,PC)
 !        write(*,*) "s_length 1137", s_length
-        CALL CALC_ION_LOSS_CRY(IS,PC,s_length,DESt)
-        CALL MOVE_AM_(IS,NAM,s_length,DESt,DLYi(IS),DLRi(IS), xp,yp,PC)
+        CALL CALC_ION_LOSS_CRY(IS,is2,PC,s_length,DESt)
+        CALL MOVE_AM_(IS,is2,NAM,s_length,DESt,DLYi(IS),DLRi(IS), xp,yp,PC)
         WRITE(*,*)'Fix here!'
         GOTO 111
       END IF
@@ -1356,15 +1354,15 @@ end module coll_crystal
             y= y + yp * Sdech
 !            write(*,*) "Ldech", Ldech
 !            write(*,*) "DESt", DESt
-            CALL CALC_ION_LOSS_CRY(IS,PC,Ldech,DESt)
+            CALL CALC_ION_LOSS_CRY(IS,is2,PC,Ldech,DESt)
             PC = PC - 0.5*DESt*Ldech          ! energy loss to ionization while in CH [GeV]
 
             x = x + 0.5*(s_length-Sdech)*xp
             y = y + 0.5*(s_length-Sdech)*yp
 
 !            write(*,*) "s_length-Sdech", s_length-Sdech
-            CALL CALC_ION_LOSS_CRY(IS,PC,s_length-Sdech,DESt)
-            CALL MOVE_AM_(IS,NAM,s_length-Sdech,DESt,DLYi(IS),DLRi(IS),xp,yp,PC)
+            CALL CALC_ION_LOSS_CRY(IS,is2,PC,s_length-Sdech,DESt)
+            CALL MOVE_AM_(IS,is2,NAM,s_length-Sdech,DESt,DLYi(IS),DLRi(IS),xp,yp,PC)
            !next line new from sasha
 !            PC = PC - 0.5*DES(IS)*y          ! energy loss to ionization [GeV]
             x = x + 0.5*(s_length-Sdech)*xp
@@ -1378,7 +1376,7 @@ end module coll_crystal
 !            write(*,*) "MOVE CH", IS, NAM, L_chan, X, XP, YP, PC, Rcurv, Rcrit            write(*,*) "angles after channeling (x,y):", xp, yp
 
 !            write(*,*) "angles before entering CH subroutine (x,y):", xp, yp
-            CALL MOVE_CH_(IS,NAM,L_chan,X,XP,YP,PC,Rcurv,Rcrit)  !daniele:check if a nuclear interaction happen while in CH
+            CALL MOVE_CH_(IS,is2,NAM,L_chan,X,XP,YP,PC,Rcurv,Rcrit)  !daniele:check if a nuclear interaction happen while in CH
 !            write(*,*) "angles after exiting CH subroutine (x,y):", xp, yp
 !            stop
 
@@ -1391,7 +1389,7 @@ end module coll_crystal
             x = x + 0.5 * L_chan * XP
             y = y + 0.5 * L_chan * YP
 !            write(*,*) "Length", Length
-            CALL CALC_ION_LOSS_CRY(IS,PC,Length,DESt)
+            CALL CALC_ION_LOSS_CRY(IS,is2,PC,Length,DESt)
             PC = PC - DESt*Length       ! energy loss to ionization [GeV]
             else
             Dxp= L_chan/Rcurv + 0.5*RAN_GAUSS(1.0d0)*xpcrit ! change angle[rad]
@@ -1404,7 +1402,7 @@ end module coll_crystal
 !            PC = PC - 0.5*DES(IS)*Length       ! energy loss to ionization [GeV]
 !            write(*,*) "Length", Length
             write (*,*) "xp at channeling exit", xp
-            CALL CALC_ION_LOSS_CRY(IS,PC,Length,DESt)
+            CALL CALC_ION_LOSS_CRY(IS,is2,PC,Length,DESt)
             PC = PC - 0.5*DESt*Length       ! energy loss to ionization [GeV]
             endif
           endif
@@ -1420,8 +1418,8 @@ end module coll_crystal
           y = y + 0.5*s_length * yp
 !          CALL MOVE_AM_(IS,NAM,s_length,DES(IS),DLYi(IS),DLRi(IS),  xp ,yp,PC)
 !          write(*,*) "s_length 1319", s_length
-          CALL CALC_ION_LOSS_CRY(IS,PC,s_length,DESt)
-          CALL MOVE_AM_(IS,NAM,s_length,DESt,DLYi(IS),DLRi(IS),xp ,yp,PC)
+          CALL CALC_ION_LOSS_CRY(IS,is2,PC,s_length,DESt)
+          CALL MOVE_AM_(IS,is2,NAM,s_length,DESt,DLYi(IS),DLRi(IS),xp ,yp,PC)
           x = x + 0.5*s_length * xp
           y = y + 0.5*s_length * yp
         ENDIF                                    !
@@ -1443,8 +1441,8 @@ end module coll_crystal
             y = y + 0.5* yp * (s_length - Srefl)     !
 !            CALL MOVE_AM_(IS,NAM,s_length-Srefl,DES(IS),DLYi(IS),DLRi(IS),xp ,yp,PC)
 !            write(*,*) "s_length-Srefl", s_length-Srefl
-            CALL CALC_ION_LOSS_CRY(IS,PC,s_length-Srefl,DESt)
-            CALL MOVE_AM_(IS,NAM,s_length-Srefl,DESt,DLYi(IS),DLRi(IS),xp ,yp,PC)
+            CALL CALC_ION_LOSS_CRY(IS,is2,PC,s_length-Srefl,DESt)
+            CALL MOVE_AM_(IS,is2,NAM,s_length-Srefl,DESt,DLYi(IS),DLRi(IS),xp ,yp,PC)
             x = x + 0.5 * xp * (s_length - Srefl)
             y = y + 0.5 * yp * (s_length - Srefl)
           ELSE                                      !opt 2: VC
@@ -1471,15 +1469,15 @@ end module coll_crystal
               x = x + 0.5 * xp * Red_S
               y = y + 0.5 * yp * Red_S
 !              write(*,*) "Srefl", Srefl
-              CALL CALC_ION_LOSS_CRY(IS,PC,Srefl,DESt)
+              CALL CALC_ION_LOSS_CRY(IS,is2,PC,Srefl,DESt)
               PC=PC - DESt * Srefl !Daniele: "added" energy loss before capture
 !              write(*,*) "Sdech", Sdech
-              CALL CALC_ION_LOSS_CRY(IS,PC,Sdech,DESt)
+              CALL CALC_ION_LOSS_CRY(IS,is2,PC,Sdech,DESt)
               PC=PC - 0.5 * DESt * Sdech !Daniele: "added" energy loss while captured
 !              CALL MOVE_AM_(IS,NAM,Red_S,DES(IS),DLYi(IS),DLRi(IS),xp,yp,PC)
 !              write(*,*) "Red_S", Red_S
-              CALL CALC_ION_LOSS_CRY(IS,PC,Red_S,DESt)
-              CALL MOVE_AM_(IS,NAM,Red_S,DESt,DLYi(IS),DLRi(IS),xp,yp,PC)
+              CALL CALC_ION_LOSS_CRY(IS,is2,PC,Red_S,DESt)
+              CALL MOVE_AM_(IS,is2,NAM,Red_S,DESt,DLYi(IS),DLRi(IS),xp,yp,PC)
               x = x + 0.5 * xp * Red_S
               y = y + 0.5 * yp * Red_S
             else
@@ -1488,11 +1486,11 @@ end module coll_crystal
               tchan = Rlength / Rcurv
               Red_S=Rlength*cos(xp+0.5*tchan)
 !              write(*,*) "Lrefl", Lrefl
-              CALL CALC_ION_LOSS_CRY(IS,PC,Lrefl,DESt)
+              CALL CALC_ION_LOSS_CRY(IS,is2,PC,Lrefl,DESt)
               PC=PC - DESt*Lrefl  !Daniele: "added" energy loss before capture
               xpin=XP
               ypin=YP
-              CALL MOVE_CH_(IS,NAM,Rlength,X,XP,YP,PC,Rcurv,Rcrit)  !daniele:check if a nuclear interaction happen while in CH
+              CALL MOVE_CH_(IS,is2,NAM,Rlength,X,XP,YP,PC,Rcurv,Rcrit)  !daniele:check if a nuclear interaction happen while in CH
 
               if(PROC(1:2).ne.'VC')then             !daniele: if an nuclear interaction happened, move until the middle with initial xp,yp
               x = x + 0.5 * Rlength * xpin           !then propagate until the "crystal exit" with the new xp,yp
@@ -1500,7 +1498,7 @@ end module coll_crystal
               x = x + 0.5 * Rlength * XP
               y = y + 0.5 * Rlength * YP
 !              write(*,*) "Rlength", Rlength
-              CALL CALC_ION_LOSS_CRY(IS,PC,Rlength,DESt)
+              CALL CALC_ION_LOSS_CRY(IS,is2,PC,Rlength,DESt)
               PC=PC - DESt*Rlength
               else
               Dxp = (Length-Lrefl)/Rcurv
@@ -1510,7 +1508,7 @@ end module coll_crystal
               xp =  Length/Rcurv + 0.5*ran_gauss(1.0d0)*xpcrit ! [mrad]
 !              write(*,*) "xp at channeling exit", xp
 !              write(*,*) "Rlength", Rlength
-              CALL CALC_ION_LOSS_CRY(IS,PC,Rlength,DESt)
+              CALL CALC_ION_LOSS_CRY(IS,is2,PC,Rlength,DESt)
               PC=PC - 0.5*DESt*Rlength  !Daniele: "added" energy loss once captured
               endif
             endif
@@ -1524,8 +1522,8 @@ end module coll_crystal
             if(ZN .gt. 0) then
 !           CALL MOVE_AM_(IS,NAM,s_length,DES(IS),DLYi(IS),DLRi(IS), xp,yp,PC)
 !              write(*,*) "s_length 1421", s_length
-             CALL CALC_ION_LOSS_CRY(IS,PC,s_length,DESt)
-             CALL MOVE_AM_(IS,NAM,s_length,DESt,DLYi(IS),DLRi(IS), xp,yp,PC)
+             CALL CALC_ION_LOSS_CRY(IS,is2,PC,s_length,DESt)
+             CALL MOVE_AM_(IS,is2,NAM,s_length,DESt,DLYi(IS),DLRi(IS), xp,yp,PC)
             endif
             x = x + 0.5 * s_length * xp
             y = y + 0.5 * s_length * yp
@@ -1547,8 +1545,8 @@ end module coll_crystal
             x=x+0.5*xp*(s_length-Srefl)
             y=y+0.5*yp*(s_length-Srefl)
 !            write(*,*) "s_length-Srefl", s_length-Srefl
-            CALL CALC_ION_LOSS_CRY(IS,PC,s_length-Srefl,DESt)
-            CALL MOVE_AM_(IS,NAM,s_length-Srefl,DESt,DLYi(IS),DLRi(IS),xp ,yp,PC)
+            CALL CALC_ION_LOSS_CRY(IS,is2,PC,s_length-Srefl,DESt)
+            CALL MOVE_AM_(IS,is2,NAM,s_length-Srefl,DESt,DLYi(IS),DLRi(IS),xp ,yp,PC)
             x = x + 0.5 * xp * (s_length - Srefl)
             y = y + 0.5 * yp * (s_length - Srefl)
             else
@@ -1567,8 +1565,8 @@ end module coll_crystal
             x=x+0.5*xp*(s_length-Srefl)
             y=y+0.5*yp*(s_length-Srefl)
 !            write(*,*) "s_length-Srefl", s_length-Srefl
-            CALL CALC_ION_LOSS_CRY(IS,PC,s_length-Srefl,DESt)
-            CALL MOVE_AM_(IS,NAM,s_length-Srefl,DESt,DLYi(IS),DLRi(IS),xp ,yp,PC)
+            CALL CALC_ION_LOSS_CRY(IS,is2,PC,s_length-Srefl,DESt)
+            CALL MOVE_AM_(IS,is2,NAM,s_length-Srefl,DESt,DLYi(IS),DLRi(IS),xp ,yp,PC)
             x = x + 0.5 * xp * (s_length - Srefl)
             y = y + 0.5 * yp * (s_length - Srefl)
             endif
@@ -1601,27 +1599,27 @@ end module coll_crystal
 !.**************************************************************************
 !     subroutine for the calculazion of the energy loss by ionization
 !.**************************************************************************
-      SUBROUTINE CALC_ION_LOSS_CRY(IS,PC,DZ,EnLo)
+      SUBROUTINE CALC_ION_LOSS_CRY(IS,is2,PC,DZ,EnLo)
 
       use mod_ranlux
       use mod_funlux
       use floatPrecision
       use coll_crystal
+      use coll_materials, only : zatom, exenergy
 
       IMPLICIT none
-      integer IS
+      integer IS,is2
       real(kind=fPrec) PC,DZ,EnLo
       real(kind=fPrec) thl,Tt,cs_tail,prob_tail
       real(kind=fPrec) ranc
 
       write(*,*) "Entering CALC_ION_LOSS_CRY"
 !      write(*,*) "thl", DZ
-       thl= 4.0d0*k*z_nuc(IS)*DZ*100.0d0*rho(IS)/(anuc_cry2(IS)*betar**2) ![MeV]
+       thl= 4.0d0*k*zatom(is2)*DZ*100.0d0*rho(IS)/(anuc_cry2(IS)*betar**2) ![MeV]
 
-!      write(*,*) "EnLo", me, bgr, plen, Ime(IS)
-       EnLo=((k*z_nuc(IS))/(anuc_cry2(IS)*betar**2))*          &
-     & (0.5*log((2.0d0*me*bgr*bgr*Tmax)/(Ime(IS)*Ime(IS))) &
-     & -betar**2.0-log(plen/Ime(IS))-log(bgr)+0.5);
+       EnLo=((k*zatom(is2))/(anuc_cry2(IS)*betar**2))*          &
+     & (0.5*log((2.0d0*me*bgr*bgr*Tmax)/(c1e6*exenergy(is2)**2)) &
+     & -betar**2.0-log(plen/(exenergy(is2)*c1e3))-log(bgr)+0.5);
 
 !      write(*,*) "EnLo"
        EnLo=EnLo*rho(IS)*0.1*DZ ![GeV]
@@ -1630,7 +1628,7 @@ end module coll_crystal
        Tt=EnLo*1000.0d0+thl  ![MeV]
 
 !      write(*,*) "cs_tail", k, z(IS), anuc_cry2(IS), betar, Tt, Tmax, gammar, mp
-       cs_tail=((k*z_nuc(IS))/(anuc_cry2(IS)*betar**2))* &
+       cs_tail=((k*zatom(is2))/(anuc_cry2(IS)*betar**2))* &
      & ((0.5*((1.0d0/Tt)-(1.0d0/Tmax)))-             &
      & (log(Tmax/Tt)*(betar**2)/(2.0d0*Tmax))+       &
      & ((Tmax-Tt)/(4.0d0*(gammar**2)*(mp**2))))
@@ -1642,9 +1640,9 @@ end module coll_crystal
        ranc=dble(rndm4())
 
        if(ranc.lt.prob_tail)then
-         EnLo=((k*z_nuc(IS))/(anuc_cry2(IS)*betar**2))*          &
-     &   (0.5*log((2.0d0*me*bgr*bgr*Tmax)/(Ime(IS)*Ime(IS))) &
-     &   -betar**2.0-log(plen/Ime(IS))-log(bgr)+0.5+         &
+         EnLo=((k*zatom(is2))/(anuc_cry2(IS)*betar**2))*          &
+     &   (0.5*log((2.0d0*me*bgr*bgr*Tmax)/(c1e6*exenergy(is2)**2)) &
+     &   -betar**2.0-log(plen/(exenergy(is2)*c1e3))-log(bgr)+0.5+         &
      &   (TMax**2)/(8.0d0*(gammar**2)*(mp**2)));
 
          EnLo=EnLo*rho(IS)*0.1 ![GeV/m]
@@ -1663,7 +1661,7 @@ end module coll_crystal
 !.**************************************************************************
 !     subroutine for the movement in the amorphous
 !.**************************************************************************
-      SUBROUTINE MOVE_AM_(IS,NAM,DZ,DEI,DLY,DLr, XP,YP,PC)
+      SUBROUTINE MOVE_AM_(IS,is2,NAM,DZ,DEI,DLY,DLr, XP,YP,PC)
 
       use mod_ranlux
       use mod_funlux
@@ -1672,7 +1670,7 @@ end module coll_crystal
 
 !. Moving in amorphous substance...........................
       IMPLICIT none
-      integer IS,NAM
+      integer IS,NAM,is2
       real(kind=fPrec) DZ,DEI,DLY,DLr, XP,YP,PC
       real(kind=fPrec) AM(30),QP(30),NPAI
       real(kind=fPrec) Dc(4)
@@ -1743,6 +1741,7 @@ end module coll_crystal
 
       tlow=tlcut_cry
       mcurr_cry=IS
+      mcurr_cry2=IS2
       thigh=hcut_cry(IS)
 !      write(*,*)tlow,thigh
       call funlxp(ruth_cry,cgen_cry(1,IS),tlow,thigh)
@@ -1991,7 +1990,7 @@ end module coll_crystal
 !.**************************************************************************
 !     DANIELE subroutine for check if a nuclear interaction happen while in channeling
 !.**************************************************************************
-      SUBROUTINE MOVE_CH_(IS,NAM,DZ,X,XP,YP,PC,R,Rc)
+      SUBROUTINE MOVE_CH_(IS,is2,NAM,DZ,X,XP,YP,PC,R,Rc)
 
       use mod_ranlux
       use mod_funlux
@@ -1999,7 +1998,7 @@ end module coll_crystal
       use coll_crystal
 
       IMPLICIT none
-      integer IS,NAM
+      integer IS,NAM,is2
       real(kind=fPrec) DZ,X,XP,YP,PC,R,Rc
       real(kind=fPrec) AM(30),QP(30),NPAI
       real(kind=fPrec) Dc(4)
@@ -2089,6 +2088,7 @@ end module coll_crystal
       tlow=tlcut_cry
 !      write(*,*) "mcurr"
       mcurr_cry=IS
+      mcurr_cry2=IS2
 !      write(*,*) "thigh"
       thigh=hcut_cry(IS)
 !      write(*,*)tlow,thigh
@@ -2404,20 +2404,14 @@ end module coll_crystal
 
       !------------------daniele: definition of rutherford scattering formula--------!
 
-      function ruth_cry(t_cry)
-        use floatPrecision
-        use coll_crystal
-      implicit none
-      integer nmat_cry
-      parameter(nmat_cry=4)
+function ruth_cry(t_cry)
+  use floatPrecision
+  use coll_crystal
+  use coll_materials, only : zatom
+  implicit none
 
-      real(kind=fPrec) ruth_cry,t_cry
-      real(kind=fPrec) cnorm,cnform
-      parameter(cnorm=2.607d-4,cnform=0.8561d3)
-!      parameter(cnorm=2.607d-5,cnform=0.8561d3) !daniele: corrected constant
-!c      write(6,'('' t,exp'',2e15.8)')t,t*cnform*EMr(mcurr)**2
-!      write(*,*)mcurr_cry,emr_cry(mcurr_cry),z(mcurr_cry),t_cry
-
-       ruth_cry=cnorm*exp(-t_cry*cnform*emr_cry(mcurr_cry)**2)*(z_nuc(mcurr_cry)/t_cry)**2
-
-      end
+  real(kind=fPrec) ruth_cry,t_cry
+  real(kind=fPrec) cnorm,cnform
+  parameter(cnorm=2.607d-4,cnform=0.8561d3)
+  ruth_cry=cnorm*exp(-t_cry*cnform*emr_cry(mcurr_cry)**2)*(zatom(mcurr_cry2)/t_cry)**2
+end

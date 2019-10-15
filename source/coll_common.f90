@@ -327,7 +327,7 @@ subroutine collmat_init
   ! Germanium
   iMat = iMat + 1
   colmats(iMat)  = "Ge"
-  exenergy(iMat) = 350.0e-6_fPrec
+  exenergy(iMat) = 350.0e-9_fPrec
   anuc(iMat)     =  72.63_fPrec
   zatom(iMat)    =  32.00_fPrec
   rho(iMat)      =   5.323_fPrec
