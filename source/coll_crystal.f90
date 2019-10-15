@@ -9,6 +9,7 @@ module coll_crystal
 
   use floatPrecision
   use numerical_constants
+  use coll_materials, only : nmat
 
   implicit none
 
@@ -39,10 +40,12 @@ module coll_crystal
   real(kind=fPrec), save :: enr,mom,betar,gammar,bgr !Daniele: energy,momentum,beta relativistic, gamma relativistic
   real(kind=fPrec), save :: Tmax,plen !Daniele: maximum energy tranfer in single collision, plasma energy (see pdg)
 
-  real(kind=fPrec), parameter :: k  = 0.307075 !constant in front bethe-bloch [MeV g^-1 cm^2]
-  real(kind=fPrec), parameter :: re = 2.818d-15  !electron radius [m]
-  real(kind=fPrec), parameter :: me = 0.510998910 !electron mass [MeV/c^2]
-  real(kind=fPrec), parameter :: mp = 938.272013 !proton mass [MeV/c^2]
+  real(kind=fPrec), parameter :: re  = 2.818d-15   ! electron radius [m]
+  real(kind=fPrec), parameter :: me  = 0.510998910 ! electron mass [MeV/c^2]
+  real(kind=fPrec), parameter :: mp  = 938.272013  ! proton mass [MeV/c^2]
+  real(kind=fPrec), parameter :: aTF = 0.194d-10   ! Screening function [m]
+  real(kind=fPrec), parameter :: dP  = 1.92d-10    ! Distance between planes (110) [m]
+  real(kind=fPrec), parameter :: u1  = 0.075d-10   ! Thermal vibrations amplitude
 
   ! Nuclear Collision length [m] from pdg (only for Si and Ge for the moment)
   real(kind=fPrec), parameter :: collnt_cry(4) = [0.3016d0,0.0d0,0.0d0,0.1632d0]
@@ -63,19 +66,54 @@ module coll_crystal
   real(kind=fPrec), parameter :: ppeco_cry  = 0.04792d0
   real(kind=fPrec), parameter :: freeco_cry = 1.618d0
 
-  real(kind=fPrec), parameter :: DLAI(4) = [1.6,  0.57, 2.2, 1.0] ! elastic length(m)
-  real(kind=fPrec), parameter :: SAI(4)  = [42.,  140.,  42., 50.] ! elastic scat. r.m.s(mr)
-  real(kind=fPrec), parameter :: DLRI(4) = [0.0937,.0035,0.188,.02302] ! radiation  length(m), updated from pdg for Si
-  real(kind=fPrec), parameter :: DLYI(4) = [.4652, .096, .400, .2686]  ! nuclear length(m)
-  real(kind=fPrec), parameter :: AI(4)   = [0.96E-7, 0.56E-7, 0.63E-7, 1.0E-7] !Si110 1/2 interplan. dist. mm, Ge taken from A. Fomin, Si from initial implementation
-  real(kind=fPrec), parameter :: DES(4)  = [0.56,  3.0,  0.6, 1.] ! energy deposition in subst(GeV/m)
-  real(kind=fPrec), parameter :: eUm(4)  = [21.34,  21.,   21.,   40.]! only for Si(110) and Ge(110) potent. [eV], Ge taken from A. Fomin, Si from initial implementation
-
-  real(kind=fPrec), parameter :: aTF = 0.194d-10 ! screening function [m]
-  real(kind=fPrec), parameter :: dP  = 1.92d-10  ! distance between planes (110) [m]
-  real(kind=fPrec), parameter :: u1  = 0.075d-10 ! thermal vibrations amplitude
+  ! Crystal Specific Material Arrays
+  real(kind=fPrec), save :: dlri(nmat) = zero
+  real(kind=fPrec), save :: dlyi(nmat) = zero
+  real(kind=fPrec), save :: ai(nmat)   = zero
+  real(kind=fPrec), save :: eUm(nmat)  = zero
 
 contains
+
+subroutine cry_init
+
+  use coll_materials
+
+  integer m
+
+  ! dlri : Radiation length(m), updated from PDG for Si
+  ! dlyi : Nuclear length(m)
+  ! ai   : Si110 1/2 interplan. dist. mm, Ge taken from A. Fomin, Si from initial implementation
+  ! eUm  : Only for Si(110) and Ge(110) potent. [eV], Ge taken from A. Fomin, Si from initial implementation
+
+  ! Si
+  m = collmat_getCollMatID("Si")
+  dlri(m) = 0.0937
+  dlyi(m) = 0.4652
+  ai(m)   = 0.96e-7
+  eUm(m)  = 21.34
+
+  ! W
+  m = collmat_getCollMatID("W")
+  dlri(m) = 0.0035
+  dlyi(m) = 0.096
+  ai(m)   = 0.56e-7
+  eUm(m)  = 21.0
+
+  ! C
+  m = collmat_getCollMatID("C")
+  dlri(m) = 0.188
+  dlyi(m) = 0.400
+  ai(m)   = 0.63e-7
+  eUm(m)  = 21.0
+
+  ! Ge
+  m = collmat_getCollMatID("Ge")
+  dlri(m) = 0.02302
+  dlyi(m) = 0.2686
+  ai(m)   = 1.0e-7
+  eUm(m)  = 40.0
+
+end subroutine cry_init
 
 end module coll_crystal
 
@@ -1193,20 +1231,15 @@ end module coll_crystal
         x=x0+xp*s
         y=y0+yp*s
         PROC='AM'
-!        CALL MOVE_AM_(IS,NAM,Am_Length,DES(IS),DLYi(IS),DLRi(IS),xp,yp
-!     + ,PC)
-!        write(*,*) "Am_length", Am_Length
         CALL CALC_ION_LOSS_CRY(IS,is2,PC,AM_Length,DESt)
-        CALL MOVE_AM_(IS,is2,NAM,Am_Length,DESt,DLYi(IS),DLRi(IS),xp,yp,PC)
+        CALL MOVE_AM_(IS,is2,NAM,Am_Length,DESt,DLYi(IS2),dlri(is2),xp,yp,PC)
         x=x+xp*(s_length-s)
         y=y+yp*(s_length-s)
         GOTO 111
       ELSEIF ((x.GT.(C_xmax-Alayer)) .and. x.LT.(C_xmax)  ) THEN
         PROC='AM'
-!        CALL MOVE_AM_(IS,NAM,s_length,DES(IS),DLYi(IS),DLRi(IS), xp,yp,PC)
-!        write(*,*) "s_length 1137", s_length
         CALL CALC_ION_LOSS_CRY(IS,is2,PC,s_length,DESt)
-        CALL MOVE_AM_(IS,is2,NAM,s_length,DESt,DLYi(IS),DLRi(IS), xp,yp,PC)
+        CALL MOVE_AM_(IS,is2,NAM,s_length,DESt,DLYi(IS2),DLRi(IS2), xp,yp,PC)
         WRITE(*,*)'Fix here!'
         GOTO 111
       END IF
@@ -1214,9 +1247,9 @@ end module coll_crystal
 ! THIRD CASE: the p interacts with the crystal.
 !. Define typical angles/probabilities for orientation 110
 !
-      xpcrit0 = (2.e-9*eUm(IS)/PC)**0.5       ! critical angle (rad) for
+      xpcrit0 = (2.e-9*eUm(IS2)/PC)**0.5       ! critical angle (rad) for
                                               ! straight crystals
-      Rcrit  = PC/(2.e-6*eUm(IS))*AI(IS)      ! critical curvature radius [m]
+      Rcrit  = PC/(2.e-6*eUm(IS2))*AI(IS2)      ! critical curvature radius [m]
                                               ! if R>Rcritical=>no channeling is
                                               ! possible (ratio<1)
       ratio = Rcurv/Rcrit                     ! parameter Rcry/Rcritical
@@ -1336,9 +1369,8 @@ end module coll_crystal
 
 !            write(*,*) "s_length-Sdech", s_length-Sdech
             CALL CALC_ION_LOSS_CRY(IS,is2,PC,s_length-Sdech,DESt)
-            CALL MOVE_AM_(IS,is2,NAM,s_length-Sdech,DESt,DLYi(IS),DLRi(IS),xp,yp,PC)
+            CALL MOVE_AM_(IS,is2,NAM,s_length-Sdech,DESt,DLYi(IS2),DLRi(IS2),xp,yp,PC)
            !next line new from sasha
-!            PC = PC - 0.5*DES(IS)*y          ! energy loss to ionization [GeV]
             x = x + 0.5*(s_length-Sdech)*xp
             y = y + 0.5*(s_length-Sdech)*yp
           else
@@ -1372,10 +1404,6 @@ end module coll_crystal
             x  = x+ L_chan*(sin(0.5*Dxp+miscut)) ! trajectory at channeling exit
 !            xp = xp + Dxp + 2.0*(rndm4()-0.5)*xpcrit
             y = y + s_length * yp
-!            !next line new from sasha
-!            PC = PC - 0.5*DES(IS)*Length       ! energy loss to ionization [GeV]
-!            write(*,*) "Length", Length
-            write (*,*) "xp at channeling exit", xp
             CALL CALC_ION_LOSS_CRY(IS,is2,PC,Length,DESt)
             PC = PC - 0.5*DESt*Length       ! energy loss to ionization [GeV]
             endif
@@ -1390,10 +1418,8 @@ end module coll_crystal
           xp=xp+0.45*(xp/xpcrit+1)*Ang_avr
           x = x + 0.5*s_length * xp
           y = y + 0.5*s_length * yp
-!          CALL MOVE_AM_(IS,NAM,s_length,DES(IS),DLYi(IS),DLRi(IS),  xp ,yp,PC)
-!          write(*,*) "s_length 1319", s_length
           CALL CALC_ION_LOSS_CRY(IS,is2,PC,s_length,DESt)
-          CALL MOVE_AM_(IS,is2,NAM,s_length,DESt,DLYi(IS),DLRi(IS),xp ,yp,PC)
+          CALL MOVE_AM_(IS,is2,NAM,s_length,DESt,DLYi(IS2),DLRi(IS2),xp ,yp,PC)
           x = x + 0.5*s_length * xp
           y = y + 0.5*s_length * yp
         ENDIF                                    !
@@ -1412,11 +1438,9 @@ end module coll_crystal
             Dxp= Ang_avr
             xp = xp + Dxp + Ang_rms*RAN_GAUSS(1.0d0)
             x = x + 0.5* xp * (s_length - Srefl)
-            y = y + 0.5* yp * (s_length - Srefl)     !
-!            CALL MOVE_AM_(IS,NAM,s_length-Srefl,DES(IS),DLYi(IS),DLRi(IS),xp ,yp,PC)
-!            write(*,*) "s_length-Srefl", s_length-Srefl
+            y = y + 0.5* yp * (s_length - Srefl)
             CALL CALC_ION_LOSS_CRY(IS,is2,PC,s_length-Srefl,DESt)
-            CALL MOVE_AM_(IS,is2,NAM,s_length-Srefl,DESt,DLYi(IS),DLRi(IS),xp ,yp,PC)
+            CALL MOVE_AM_(IS,is2,NAM,s_length-Srefl,DESt,DLYi(IS2),DLRi(IS2),xp ,yp,PC)
             x = x + 0.5 * xp * (s_length - Srefl)
             y = y + 0.5 * yp * (s_length - Srefl)
           ELSE                                      !opt 2: VC
@@ -1448,10 +1472,8 @@ end module coll_crystal
 !              write(*,*) "Sdech", Sdech
               CALL CALC_ION_LOSS_CRY(IS,is2,PC,Sdech,DESt)
               PC=PC - 0.5 * DESt * Sdech !Daniele: "added" energy loss while captured
-!              CALL MOVE_AM_(IS,NAM,Red_S,DES(IS),DLYi(IS),DLRi(IS),xp,yp,PC)
-!              write(*,*) "Red_S", Red_S
               CALL CALC_ION_LOSS_CRY(IS,is2,PC,Red_S,DESt)
-              CALL MOVE_AM_(IS,is2,NAM,Red_S,DESt,DLYi(IS),DLRi(IS),xp,yp,PC)
+              CALL MOVE_AM_(IS,is2,NAM,Red_S,DESt,DLYi(IS2),DLRi(IS2),xp,yp,PC)
               x = x + 0.5 * xp * Red_S
               y = y + 0.5 * yp * Red_S
             else
@@ -1494,10 +1516,8 @@ end module coll_crystal
              x = x + 0.5 * s_length * xp
              y = y + 0.5 * s_length * yp
             if(ZN .gt. 0) then
-!           CALL MOVE_AM_(IS,NAM,s_length,DES(IS),DLYi(IS),DLRi(IS), xp,yp,PC)
-!              write(*,*) "s_length 1421", s_length
              CALL CALC_ION_LOSS_CRY(IS,is2,PC,s_length,DESt)
-             CALL MOVE_AM_(IS,is2,NAM,s_length,DESt,DLYi(IS),DLRi(IS), xp,yp,PC)
+             CALL MOVE_AM_(IS,is2,NAM,s_length,DESt,DLYi(IS2),DLRi(IS2), xp,yp,PC)
             endif
             x = x + 0.5 * s_length * xp
             y = y + 0.5 * s_length * yp
@@ -1520,27 +1540,22 @@ end module coll_crystal
             y=y+0.5*yp*(s_length-Srefl)
 !            write(*,*) "s_length-Srefl", s_length-Srefl
             CALL CALC_ION_LOSS_CRY(IS,is2,PC,s_length-Srefl,DESt)
-            CALL MOVE_AM_(IS,is2,NAM,s_length-Srefl,DESt,DLYi(IS),DLRi(IS),xp ,yp,PC)
+            CALL MOVE_AM_(IS,is2,NAM,s_length-Srefl,DESt,DLYi(IS2),DLRi(IS2),xp ,yp,PC)
             x = x + 0.5 * xp * (s_length - Srefl)
             y = y + 0.5 * yp * (s_length - Srefl)
             else
             PROC='TRAM'
             x = x + xp * Srefl
             y = y + yp * Srefl
-!            Dxp=-1.0*(13.6/PC)*SQRT(s_length/DLRi(IS))*xp_rel/
-!     +      (2.0*xpcrit)+(13.6/PC)*SQRT(s_length/DLRi(IS))*
-!     +      (1.0+(L_chan/Rcurv)/(2.0*xpcrit))
-            Dxp=-1.0*(13.6/PC)*SQRT(s_length/DLRi(IS))*0.001*xp_rel/    &
-     &          (2.0*xpcrit)+(13.6/PC)*SQRT(s_length/DLRi(IS))*0.001*   &
+            Dxp=-1.0*(13.6/PC)*SQRT(s_length/DLRi(IS2))*0.001*xp_rel/    &
+     &          (2.0*xpcrit)+(13.6/PC)*SQRT(s_length/DLRi(IS2))*0.001*   &
      &          (1.0+(L_chan/Rcurv)/(2.0*xpcrit))
-!            write(*,*) xp_rel, Dxp
-!            xp=xp+Dxp+(13.6/PC)*SQRT(s_length/DLRi(IS))*RAN_GAUSS(1.)
             xp=xp+Dxp
             x=x+0.5*xp*(s_length-Srefl)
             y=y+0.5*yp*(s_length-Srefl)
 !            write(*,*) "s_length-Srefl", s_length-Srefl
             CALL CALC_ION_LOSS_CRY(IS,is2,PC,s_length-Srefl,DESt)
-            CALL MOVE_AM_(IS,is2,NAM,s_length-Srefl,DESt,DLYi(IS),DLRi(IS),xp ,yp,PC)
+            CALL MOVE_AM_(IS,is2,NAM,s_length-Srefl,DESt,DLYi(IS2),DLRi(IS2),xp ,yp,PC)
             x = x + 0.5 * xp * (s_length - Srefl)
             y = y + 0.5 * yp * (s_length - Srefl)
             endif
@@ -1559,15 +1574,6 @@ end module coll_crystal
      &, C_orient                                                        &
      &, '\n Avg angle reflection:', Ang_avr, '\n full channeling angle: &
      &',(Length/Rcurv)
-!      counter=1
-!      endif
-!
-!      WRITE(*,*)'Crystal process: ',PROC
-!      write(*,*)'xp_final :', xp
-!      WRITE(*,*)'Crystal process: ',PROC,'Chann Angle',Ch_angle/1000,   +
-!     1'Critical angle: ', xpcrit/1000
-!     2 DLRI(IS),DLYI(IS),AI(IS),DES(IS),eUm(IS),IS,ZN,NAM,C_orient     !,W
-!      write(*,*) "xp at end of crystal coll routine", xp
       END
 
 !.**************************************************************************
@@ -1586,6 +1592,7 @@ end module coll_crystal
       real(kind=fPrec) PC,DZ,EnLo
       real(kind=fPrec) thl,Tt,cs_tail,prob_tail
       real(kind=fPrec) ranc
+      real(kind=fPrec), parameter :: k   = 0.307075    ! constant in front bethe-bloch [MeV g^-1 cm^2]
 
       write(*,*) "Entering CALC_ION_LOSS_CRY"
 !      write(*,*) "thl", DZ
@@ -2079,16 +2086,16 @@ end module coll_crystal
 
       pv=PC*1.d9*PC*1.d9/sqrt(PC*1.d9*PC*1.d9+93828.d6*93828.d6)        !calculate pv=P/E
 
-      Ueff=eUm(IS)*(2.d0*x_i/dP)*(2.d0*x_i/dP)+pv*x_i/R   !calculate effective potential
+      Ueff=eUm(IS2)*(2.d0*x_i/dP)*(2.d0*x_i/dP)+pv*x_i/R   !calculate effective potential
 
       Et=pv*XP*XP/2.+Ueff                                !calculate transverse energy
 
-      Ec=eUm(IS)*(1.d0-Rc/R)*(1.d0-Rc/R)                 !calculate critical energy in bent crystals
+      Ec=eUm(IS2)*(1.d0-Rc/R)*(1.d0-Rc/R)                 !calculate critical energy in bent crystals
 
 !---- to avoid negative Et
 
-      xminU=-dP*dP*PC*1e9/(8.d0*eUm(IS)*R)
-      Umin=abs(eUm(IS)*(2.d0*xminU/dP)*(2.d0*xminU/dP)+pv*xminU/R)
+      xminU=-dP*dP*PC*1e9/(8.d0*eUm(IS2)*R)
+      Umin=abs(eUm(IS2)*(2.d0*xminU/dP)*(2.d0*xminU/dP)+pv*xminU/R)
 !      write(*,*) "Umin", Umin
       Et=Et+Umin
       Ec=Ec+Umin

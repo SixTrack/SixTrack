@@ -377,6 +377,7 @@ subroutine collimate_init
   use coll_k2
   use coll_db
   use coll_dist
+  use coll_crystal
   use coll_materials
   use mod_units
   use mod_ranlux
@@ -655,9 +656,10 @@ subroutine collimate_init
   call cdb_writeDB_newFromOld         ! Write a copy of the db in new format, if provided in old format
 
   ! Then do any implementation specific initial loading
-#ifdef COLLIMATE_K2
   call k2coll_init
-#endif
+  if(coll_hasCrystal) then
+    call cry_init
+  end if
 #ifdef MERLINSCATTER
   call k2coll_merlinInit
 #endif

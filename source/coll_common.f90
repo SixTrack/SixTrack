@@ -437,7 +437,7 @@ end subroutine collmat_init
 ! ================================================================================================ !
 integer function collmat_getCollMatID(matName)
 
-  character(len=4), intent(in) :: matName
+  character(len=*), intent(in) :: matName
   integer i, matID
 
   matID = -1
