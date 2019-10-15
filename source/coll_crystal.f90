@@ -8,6 +8,7 @@
 module coll_crystal
 
   use floatPrecision
+  use numerical_constants
 
   implicit none
 
@@ -34,6 +35,72 @@ module coll_crystal
   real(kind=fPrec), parameter :: hcut_cry(4) = [0.02d0,0.0d0,0.0d0,0.02d0]
   real(kind=fPrec), save      :: cgen_cry(200,4)
   integer,          save      :: mcurr_cry
+
+  real(kind=fPrec), save :: enr,mom,betar,gammar,bgr !Daniele: energy,momentum,beta relativistic, gamma relativistic
+  real(kind=fPrec), save :: Tmax,plen !Daniele: maximum energy tranfer in single collision, plasma energy (see pdg)
+
+  !Daniele: parameters for dE/dX calculation (const,electron radius,el. mass, prot.mass)
+  real(kind=fPrec), parameter :: rho(4) = [2.33d0,0.0d0,0.0d0,5.323d0] !material density [g/cm^3]
+  real(kind=fPrec), parameter :: z_nuc(4) = [14.0d0,0.0d0,0.0d0,32.0d0]  !atomic number
+  real(kind=fPrec), parameter :: Ime(4) = [173.0d-6,0.0d0,0.0d0,350.0d-6] !mean exitation energy [MeV]
+  real(kind=fPrec), parameter :: anuc_cry2(4) = [28.08d0,0.0d0,0.0d0,72.63d0] !implemented only Si
+  real(kind=fPrec), parameter :: emr_cry(4) = [0.441d0,0.0d0,0.0d0,0.605d0]  !nuclear radius take from R_Be*(A_Si/A_Be)^1/3, where R_Be=0.302
+
+  real(kind=fPrec), parameter :: k  = 0.307075 !constant in front bethe-bloch [MeV g^-1 cm^2]
+  real(kind=fPrec), parameter :: re = 2.818d-15  !electron radius [m]
+  real(kind=fPrec), parameter :: me = 0.510998910 !electron mass [MeV/c^2]
+  real(kind=fPrec), parameter :: mp = 938.272013 !proton mass [MeV/c^2]
+
+  real(kind=fPrec), save :: csref_cry(0:5,1:4)
+
+  ! Nuclear Collision length [m] from pdg (only for Si and Ge for the moment)
+  real(kind=fPrec), parameter :: collnt_cry(4) = [0.3016d0,0.0d0,0.0d0,0.1632d0]
+
+  ! Nuclear elastic slope from Schiz et al.,PRD 21(3010)1980
+  real(kind=fPrec), parameter :: bnref_cry(4) = [120.14d0,0.0d0,0.0d0,226.35d0]
+
+  ! Atomic mass [g/mole] from pdg
+  real(kind=fPrec), parameter :: anuc_cry(4) = [28.08d0,0.0d0,0.0d0,72.63d0]
+
+  real(kind=fPrec), public, save :: cprob_cry(0:5,1:4) = reshape([ &
+    [zero, zero, zero, zero, zero, one], &
+    [zero, zero, zero, zero, zero, one], &
+    [zero, zero, zero, zero, zero, one], &
+    [zero, zero, zero, zero, zero, one]  &
+  ], shape=[6,4])
+
+! Total and nuclear cross-sections [barn], implemeted only Si and Ge (Ma / Lambda rho Na)
+  data csref_cry(0,1),csref_cry(1,1)/0.664d0, 0.430d0/  !from pdg
+  !      data csref_cry(0,1),csref_cry(1,1)/0.762d0, 0.504d0/  !with glauber's approx (NIMB 268 (2010) 2655-2659)
+  data csref_cry(0,2),csref_cry(1,2)/0.0d0, 0.0d0/
+  data csref_cry(0,3),csref_cry(1,3)/0.0d0, 0.0d0/
+  data csref_cry(0,4),csref_cry(1,4)/1.388d0, 0.844d0/
+
+  data csref_cry(5,1)/0.039d-2/ ! scaled with Z^2 from Al
+  data csref_cry(5,2)/0.0d0/
+  data csref_cry(5,3)/0.0d0/
+  data csref_cry(5,4)/0.186d-2/ ! scaled with Z^2 from Cu
+
+  ! pp cross-sections and parameters for energy dependence
+  real(kind=fPrec), parameter :: pptref_cry = 0.04d0
+  real(kind=fPrec), parameter :: pperef_cry = 0.007d0
+  real(kind=fPrec), parameter :: sdcoe_cry  = 0.00068d0
+  real(kind=fPrec), parameter :: pref_cry   = 450.0d0
+  real(kind=fPrec), parameter :: pptco_cry  = 0.05788d0
+  real(kind=fPrec), parameter :: ppeco_cry  = 0.04792d0
+  real(kind=fPrec), parameter :: freeco_cry = 1.618d0
+
+  real(kind=fPrec), parameter :: DLAI(4) = [1.6,  0.57, 2.2, 1.0] ! elastic length(m)
+  real(kind=fPrec), parameter :: SAI(4)  = [42.,  140.,  42., 50.] ! elastic scat. r.m.s(mr)
+  real(kind=fPrec), parameter :: DLRI(4) = [0.0937,.0035,0.188,.02302] ! radiation  length(m), updated from pdg for Si
+  real(kind=fPrec), parameter :: DLYI(4) = [.4652, .096, .400, .2686]  ! nuclear length(m)
+  real(kind=fPrec), parameter :: AI(4)   = [0.96E-7, 0.56E-7, 0.63E-7, 1.0E-7] !Si110 1/2 interplan. dist. mm, Ge taken from A. Fomin, Si from initial implementation
+  real(kind=fPrec), parameter :: DES(4)  = [0.56,  3.0,  0.6, 1.] ! energy deposition in subst(GeV/m)
+  real(kind=fPrec), parameter :: eUm(4)  = [21.34,  21.,   21.,   40.]! only for Si(110) and Ge(110) potent. [eV], Ge taken from A. Fomin, Si from initial implementation
+
+  real(kind=fPrec), parameter :: aTF = 0.194d-10 ! screening function [m]
+  real(kind=fPrec), parameter :: dP  = 1.92d-10  ! distance between planes (110) [m]
+  real(kind=fPrec), parameter :: u1  = 0.075d-10 ! thermal vibrations amplitude
 
 contains
 
@@ -1024,7 +1091,6 @@ end module coll_crystal
       real(kind=fPrec) s_length             !element length along s
       integer IS,j                            !index of the material
 !      integer counter
-      real(kind=fPrec)  DLRI(4),DLYI(4),AI(4),DES(4)!cry parameters:see line~270
       real(kind=fPrec) DESt                  ! Daniele: changed energy loss by ionization now calculated and not tabulated
       integer NAM,ZN                        !switch on/off the nuclear
                                             !interaction (NAM) and the MCS (ZN)
@@ -1058,27 +1124,10 @@ end module coll_crystal
       real(kind=fPrec) Length_xs, Length_ys !Amorphous length
       real(kind=fPrec) L_chan, tchan
       real(kind=fPrec) xp_rel               !xp-miscut angle in mrad
-!      REAL RNDM                           !random numbers
-!      REAL      rndm4
-!      REAL      RAN_GAUSS
-      real(kind=fPrec) eUm(4)                !maximum potential
 
-      real(kind=fPrec) rho(4),z(4),Ime(4) !Daniele: material parameters for dE/dX calculation
-      real(kind=fPrec) k,re,me,mp !Daniele: parameters for dE/dX calculation (const,electron radius,el. mass, prot.mass)
-      real(kind=fPrec) enr,mom,betar,gammar,bgr !Daniele: energy,momentum,beta relativistic, gamma relativistic
-      real(kind=fPrec) Tmax,plen !Daniele: maximum energy tranfer in single collision, plasma energy (see pdg)
-      real(kind=fPrec) anuc_cry2(4),aTF,dP,const_dech,u1,xpin,ypin
+      real(kind=fPrec) const_dech,xpin,ypin
       real(kind=fPrec) alpha !Daniele: par for new chann prob
       real(kind=fPrec) Pvr !Daniele: prob for VR->AM transition
-
-      real(kind=fPrec) emr_cry(4)
-
-      COMMON/NPC/     NAM,ZN
-      COMMON/CRYS/    DLRI,DLYI,AI,DES
-      COMMON/eUc/     eUm  !
-      common/ion/rho,z,Ime,k,re,me,mp,anuc_cry2,emr_cry
-      common/ion2/enr,mom,gammar,betar,bgr,Tmax,plen
-      common/dech/aTF,dP,u1
 
 !
 !
@@ -1097,7 +1146,7 @@ end module coll_crystal
 
       Tmax=(2.0d0*me*bgr**2)/(1.0d0+2*gammar*me/mp+(me/mp)**2) ![MeV]
 
-      plen=((rho(IS)*z(IS)/anuc_cry2(IS))**0.5)*28.816d-6 ![MeV]
+      plen=((rho(IS)*z_nuc(IS)/anuc_cry2(IS))**0.5)*28.816d-6 ![MeV]
 
 !      DESt=((k*z(IS))/(anuc_cry2(IS)*betar**2))*
 !     + (0.5*log((2.0d0*me*bgr*bgr*Tmax)/(Ime(IS)*Ime(IS)))
@@ -1562,25 +1611,15 @@ end module coll_crystal
       IMPLICIT none
       integer IS
       real(kind=fPrec) PC,DZ,EnLo
-      real(kind=fPrec) rho(4),z(4),Ime(4) !Daniele: material parameters for dE/dX calculation
-      real(kind=fPrec) k,re,me,mp !Daniele: parameters for dE/dX calculation (const,electron radius,el. mass, prot.mass)
-      real(kind=fPrec) enr,mom,betar,gammar,bgr !Daniele: energy,momentum,beta relativistic, gamma relativistic
-      real(kind=fPrec) Tmax,plen !Daniele: maximum energy tranfer in single collision, plasma energy (see pdg)
-      real(kind=fPrec) anuc_cry2(4)
-      real(kind=fPrec) emr_cry(4)
       real(kind=fPrec) thl,Tt,cs_tail,prob_tail
       real(kind=fPrec) ranc
-!      REAL RNDM4
-
-      common/ion/rho,z,Ime,k,re,me,mp,anuc_cry2,emr_cry
-      common/ion2/enr,mom,gammar,betar,bgr,Tmax,plen
 
       write(*,*) "Entering CALC_ION_LOSS_CRY"
 !      write(*,*) "thl", DZ
-       thl= 4.0d0*k*z(IS)*DZ*100.0d0*rho(IS)/(anuc_cry2(IS)*betar**2) ![MeV]
+       thl= 4.0d0*k*z_nuc(IS)*DZ*100.0d0*rho(IS)/(anuc_cry2(IS)*betar**2) ![MeV]
 
 !      write(*,*) "EnLo", me, bgr, plen, Ime(IS)
-       EnLo=((k*z(IS))/(anuc_cry2(IS)*betar**2))*          &
+       EnLo=((k*z_nuc(IS))/(anuc_cry2(IS)*betar**2))*          &
      & (0.5*log((2.0d0*me*bgr*bgr*Tmax)/(Ime(IS)*Ime(IS))) &
      & -betar**2.0-log(plen/Ime(IS))-log(bgr)+0.5);
 
@@ -1591,7 +1630,7 @@ end module coll_crystal
        Tt=EnLo*1000.0d0+thl  ![MeV]
 
 !      write(*,*) "cs_tail", k, z(IS), anuc_cry2(IS), betar, Tt, Tmax, gammar, mp
-       cs_tail=((k*z(IS))/(anuc_cry2(IS)*betar**2))* &
+       cs_tail=((k*z_nuc(IS))/(anuc_cry2(IS)*betar**2))* &
      & ((0.5*((1.0d0/Tt)-(1.0d0/Tmax)))-             &
      & (log(Tmax/Tt)*(betar**2)/(2.0d0*Tmax))+       &
      & ((Tmax-Tt)/(4.0d0*(gammar**2)*(mp**2))))
@@ -1603,7 +1642,7 @@ end module coll_crystal
        ranc=dble(rndm4())
 
        if(ranc.lt.prob_tail)then
-         EnLo=((k*z(IS))/(anuc_cry2(IS)*betar**2))*          &
+         EnLo=((k*z_nuc(IS))/(anuc_cry2(IS)*betar**2))*          &
      &   (0.5*log((2.0d0*me*bgr*bgr*Tmax)/(Ime(IS)*Ime(IS))) &
      &   -betar**2.0-log(plen/Ime(IS))-log(bgr)+0.5+         &
      &   (TMax**2)/(8.0d0*(gammar**2)*(mp**2)));
@@ -1635,41 +1674,24 @@ end module coll_crystal
       IMPLICIT none
       integer IS,NAM
       real(kind=fPrec) DZ,DEI,DLY,DLr, XP,YP,PC
-      real(kind=fPrec) DLAI(4),SAI(4),DES(4)
-      real(kind=fPrec) DLRI(4),DLYI(4),AI(4)
       real(kind=fPrec) AM(30),QP(30),NPAI
-      real(kind=fPrec) Dc(4),eUm(4)
+      real(kind=fPrec) Dc(4)
       real(kind=fPrec) DYA,W_p
-!      REAL RNDM4
-!         REAL      RAN_GAUSS
-      COMMON /ALAST/DLAI,SAI
-      COMMON/CRYS/ DLRI,DLYI,AI,DES
-
 
 !------- adding variables --------
 
 
-      real(kind=fPrec) cprob_cry(0:5,1:4)
       real(kind=fPrec) cs(0:5,1:4)
-      real(kind=fPrec) csref_cry(0:5,1:4)
       real(kind=fPrec) freep(4)
-      real(kind=fPrec) anuc_cry(4)
-      real(kind=fPrec) collnt_cry(4)
       real(kind=fPrec) bn(4)
-      real(kind=fPrec) bnref_cry(4)
 
-      real(kind=fPrec) freeco_cry,ppel,ppsd,pptot,pptref_cry,pptco_cry
-      real(kind=fPrec) pperef_cry,sdcoe_cry,pref_cry,ppeco_cry
+      real(kind=fPrec) ppel,ppsd,pptot
 
       real(kind=fPrec) ecmsq,xln15s,bpp,xm2,bsd,t,teta,va,vb,va2,vb2
       real(kind=fPrec) tx,tz,r2,zlm,f
 
       integer i,ichoix
       real(kind=fPrec) aran
-
-      common/scat_cry/cprob_cry,csref_cry,collnt_cry,bnref_cry,anuc_cry
-      common/scat_cry/pptref_cry,pperef_cry,sdcoe_cry,pref_cry
-      common/scat_cry/pptco_cry,ppeco_cry,freeco_cry
 
       real(kind=fPrec) tlow,thigh,ruth_cry
       external ruth_cry
@@ -1979,41 +2001,24 @@ end module coll_crystal
       IMPLICIT none
       integer IS,NAM
       real(kind=fPrec) DZ,X,XP,YP,PC,R,Rc
-      real(kind=fPrec) DLAI(4),SAI(4),DES(4)
-      real(kind=fPrec) DLRI(4),DLYI(4),AI(4)
       real(kind=fPrec) AM(30),QP(30),NPAI
-      real(kind=fPrec) Dc(4),eUm(4)
+      real(kind=fPrec) Dc(4)
       real(kind=fPrec) DYA,W_p
-!      REAL RNDM4
-!         REAL      RAN_GAUSS
-      COMMON /ALAST/DLAI,SAI
-      COMMON/CRYS/ DLRI,DLYI,AI,DES
-      COMMON/eUc/eUm
 
 !------- adding variables --------
 
 
-      real(kind=fPrec) cprob_cry(0:5,1:4)
       real(kind=fPrec) cs(0:5,1:4)
-      real(kind=fPrec) csref_cry(0:5,1:4)
       real(kind=fPrec) freep(4)
-      real(kind=fPrec) anuc_cry(4)
-      real(kind=fPrec) collnt_cry(4)
       real(kind=fPrec) bn(4)
-      real(kind=fPrec) bnref_cry(4)
 
-      real(kind=fPrec) freeco_cry,ppel,ppsd,pptot,pptref_cry,pptco_cry
-      real(kind=fPrec) pperef_cry,sdcoe_cry,pref_cry,ppeco_cry
+      real(kind=fPrec) ppel,ppsd,pptot
 
       real(kind=fPrec) ecmsq,xln15s,bpp,xm2,bsd,t,teta,va,vb,va2,vb2
       real(kind=fPrec) tx,tz,r2,zlm,f
 
       integer i,ichoix
       real(kind=fPrec) aran
-
-      common/scat_cry/cprob_cry,csref_cry,collnt_cry,bnref_cry,anuc_cry
-      common/scat_cry/pptref_cry,pperef_cry,sdcoe_cry,pref_cry
-      common/scat_cry/pptco_cry,ppeco_cry,freeco_cry
 
       real(kind=fPrec) tlow,thigh,ruth_cry
       external ruth_cry
@@ -2028,18 +2033,9 @@ end module coll_crystal
 !---------------------------
 
       integer Np
-      real(kind=fPrec) aTF,dP,N_am,rho_min,rho_Max,u1,avrrho
+      real(kind=fPrec) N_am,rho_min,rho_Max,avrrho
       real(kind=fPrec) x_i,Ueff,pv,Et,Ec,x_min,x_Max,nuc_cl_l
       real(kind=fPrec) xminU,Umin
-
-      common/dech/aTF,dP,u1
-
-      real(kind=fPrec) rho(4),z(4),Ime(4)
-      real(kind=fPrec) k,re,me,mp
-      real(kind=fPrec) anuc_cry2(4)
-      real(kind=fPrec) emr_cry(4)
-
-      common/ion/rho,z,Ime,k,re,me,mp,anuc_cry2,emr_cry
 
       real(kind=fPrec) csref_tot_rsc,csref_inel_rsc
 
@@ -2405,115 +2401,8 @@ end module coll_crystal
 
       RETURN
       END
-!
-      BLOCK DATA
-        use floatPrecision
-      implicit none
-      real(kind=fPrec) DLAI(4),SAI(4)
-      real(kind=fPrec) DLRI(4),DLYI(4),AI(4),DES(4)
-      real(kind=fPrec) eUm(4)
-      COMMON /ALAST/DLAI,SAI
-      COMMON/CRYS/ DLRI,DLYI,AI,DES
-      COMMON/eUc/  eUm
-!-----4 substances: Si(110),W(110),C,Ge----------------------------
-      DATA DLRI/0.0937,.0035,0.188,.02302/         &! radiation  length(m), updated from pdg for Si
-     &    ,DLYI/.4652, .096, .400, .2686/          &! nuclear length(m)
-     &    ,AI /0.96E-7, 0.56E-7, 0.63E-7, 1.0E-7/ & !Si110 1/2 interplan. dist. mm, Ge taken from A. Fomin, Si from initial implementation
-     &    ,DES/0.56,  3.0,  0.6, 1./             & ! energy deposition in subst(GeV/m)
-     &    ,DLAI/1.6,  0.57, 2.2, 1.0/            & ! elastic length(m)
-     &    ,SAI /42.,  140.,  42., 50./           & ! elastic scat. r.m.s(mr)
-     &    ,eUm/21.34,  21.,   21.,   40./         ! only for Si(110) and Ge(110) potent. [eV], Ge taken from A. Fomin, Si from initial implementation
 
-
-!------------- daniele, more data needed---------
-
-      real(kind=fPrec) cprob_cry(0:5,1:4)
-!      real(kind=fPrec) cs(5,4)
-      real(kind=fPrec) csref_cry(0:5,1:4)
-      real(kind=fPrec) anuc_cry(4)
-      real(kind=fPrec) collnt_cry(4)
-      real(kind=fPrec) bnref_cry(4)
-      real(kind=fPrec) pptref_cry,pperef_cry,sdcoe_cry,pref_cry
-      real(kind=fPrec) pptco_cry,ppeco_cry,freeco_cry
-
-
-      common/scat_cry/cprob_cry,csref_cry,collnt_cry,bnref_cry,anuc_cry
-      common/scat_cry/pptref_cry,pperef_cry,sdcoe_cry,pref_cry
-      common/scat_cry/pptco_cry,ppeco_cry,freeco_cry
-
-
-      integer i
-
-      data (cprob_cry(0,i),i=1,4)/4*0.0d0/
-      data (cprob_cry(5,i),i=1,4)/4*1.0d0/
-
-! pp cross-sections and parameters for energy dependence
-      data pptref_cry,pperef_cry/0.04d0,0.007d0/
-      data sdcoe_cry,pref_cry/0.00068d0,450.0d0/
-      data pptco_cry,ppeco_cry,freeco_cry/0.05788d0,0.04792d0,1.618d0/
-
-! Atomic mass [g/mole] from pdg
-
-      data (anuc_cry(i),i=1,4)/28.08d0,0.0d0,0.0d0,72.63d0/     !implemented only Si and Ge
-
-! Total and nuclear cross-sections [barn], implemeted only Si and Ge (Ma / Lambda rho Na)
-      data csref_cry(0,1),csref_cry(1,1)/0.664d0, 0.430d0/  !from pdg
-!      data csref_cry(0,1),csref_cry(1,1)/0.762d0, 0.504d0/  !with glauber's approx (NIMB 268 (2010) 2655-2659)
-      data csref_cry(0,2),csref_cry(1,2)/0.0d0, 0.0d0/
-      data csref_cry(0,3),csref_cry(1,3)/0.0d0, 0.0d0/
-      data csref_cry(0,4),csref_cry(1,4)/1.388d0, 0.844d0/
-
-      data csref_cry(5,1)/0.039d-2/ ! scaled with Z^2 from Al
-      data csref_cry(5,2)/0.0d0/
-      data csref_cry(5,3)/0.0d0/
-      data csref_cry(5,4)/0.186d-2/ ! scaled with Z^2 from Cu
-
-
-
-! Nuclear Collision length [m] from pdg (only for Si and Ge for the moment)
-
-      data (collnt_cry(i),i=1,4)/0.3016d0,0.0d0,0.0d0,0.1632d0/
-
-! Nuclear elastic slope from Schiz et al.,PRD 21(3010)1980
-
-      data (bnref_cry(i),i=1,4)/120.14d0,0.0d0,0.0d0,226.35d0/      !(only for Si and Ge for the moment)
-
-! For calculation of dE/dX due to ionization
-
-      real(kind=fPrec) rho(4),z(4),Ime(4),anuc_cry2(4) !Daniele: material parameters for dE/dX calculation
-      real(kind=fPrec) k,re,me,mp !Daniele: parameters for dE/dX calculation (const,electron radius,el. mass, prot.mass)
-
-      real(kind=fPrec) emr_cry(4) !nuclear radius for Ruth scatt.
-
-      common/ion/rho,z,Ime,k,re,me,mp,anuc_cry2,emr_cry
-
-      data (rho(i),i=1,4)/2.33d0,0.0d0,0.0d0,5.323d0/  !material density [g/cm^3]
-      data (z(i),i=1,4)/14.0d0,0.0d0,0.0d0,32.0d0/    !atomic number
-      data (Ime(i),i=1,4)/173.0d-6,0.0d0,0.0d0,350.0d-6/!mean exitation energy [MeV]
-      data (anuc_cry2(i),i=1,4)/28.08d0,0.0d0,0.0d0,72.63d0/     !implemented only Si
-      data (emr_cry(i),i=1,4)/0.441d0,0.0d0,0.0d0,0.605d0/      !nuclear radius take from R_Be*(A_Si/A_Be)^1/3, where R_Be=0.302
-
-
-      data k/0.307075/ !constant in front bethe-bloch [MeV g^-1 cm^2]
-      data re/2.818d-15/  !electron radius [m]
-      data me/0.510998910/ !electron mass [MeV/c^2]
-      data mp/938.272013/ !proton mass [MeV/c^2]
-
-! For calculation of dechanneling length
-
-      real(kind=fPrec) aTF,dP,u1
-
-      common/dech/aTF,dP,u1
-
-      data aTF/0.194d-10/ !screening function [m]
-      data dP/1.92d-10/   !distance between planes (110) [m]
-      data u1/0.075d-10/  !thermal vibrations amplitude
-
-
-
-      END
-
-!------------------daniele: definition of rutherford scattering formula--------!
+      !------------------daniele: definition of rutherford scattering formula--------!
 
       function ruth_cry(t_cry)
         use floatPrecision
@@ -2522,14 +2411,6 @@ end module coll_crystal
       integer nmat_cry
       parameter(nmat_cry=4)
 
-      real(kind=fPrec) rho(4),z(4),Ime(4),anuc_cry2(4) !Daniele: material parameters for dE/dX calculation
-      real(kind=fPrec) k,re,me,mp !Daniele: parameters for dE/dX calculation (const,electron radius,el. mass, prot.mass)
-
-      real(kind=fPrec) emr_cry(4)
-
-
-      common/ion/rho,z,Ime,k,re,me,mp,anuc_cry2,emr_cry
-
       real(kind=fPrec) ruth_cry,t_cry
       real(kind=fPrec) cnorm,cnform
       parameter(cnorm=2.607d-4,cnform=0.8561d3)
@@ -2537,6 +2418,6 @@ end module coll_crystal
 !c      write(6,'('' t,exp'',2e15.8)')t,t*cnform*EMr(mcurr)**2
 !      write(*,*)mcurr_cry,emr_cry(mcurr_cry),z(mcurr_cry),t_cry
 
-       ruth_cry=cnorm*exp(-t_cry*cnform*emr_cry(mcurr_cry)**2)*(z(mcurr_cry)/t_cry)**2
+       ruth_cry=cnorm*exp(-t_cry*cnform*emr_cry(mcurr_cry)**2)*(z_nuc(mcurr_cry)/t_cry)**2
 
       end
