@@ -197,10 +197,14 @@ subroutine cdb_readCollDB
 !  Post-Processing DB
 ! ============================================================================ !
 
-  ! Set collimator types from family type
-  do i=1,cdb_nColl
-    cdb_cType(i) = cdb_famType(cdb_cFamily(i))
-  end do
+  ! Set collimator types from family type, if we have any
+  if(cdb_nFam > 0) then
+    do i=1,cdb_nColl
+      if(cdb_cFamily(i) > 0) then
+        cdb_cType(i) = cdb_famType(cdb_cFamily(i))
+      end if
+    end do
+  end if
 
   ! Map single elements to collimators
   do i=1,iu
