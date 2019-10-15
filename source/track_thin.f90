@@ -141,24 +141,16 @@ subroutine thin4d(nthinerr)
       select case (ktrack(i))
       case (1)
         stracki=strack(i)
-        if(iexact) then ! exact drift?
+        if(iexact) then ! EXACT DRIFT
           do j=1,napx
-            xv1(j)=xv1(j)*c1m3
-            xv2(j)=xv2(j)*c1m3
-            yv1(j)=yv1(j)*c1m3
-            yv2(j)=yv2(j)*c1m3
-            pz=sqrt(one-(yv1(j)**2+yv2(j)**2))
-            xv1(j)=xv1(j)+stracki*(yv1(j)/pz)
-            xv2(j)=xv2(j)+stracki*(yv2(j)/pz)
-            xv1(j)=xv1(j)*c1e3
-            xv2(j)=xv2(j)*c1e3
-            yv1(j)=yv1(j)*c1e3
-            yv2(j)=yv2(j)*c1e3
-          enddo
+            pz     = sqrt(c1e6 - (yv1(j)**2 + yv2(j)**2))*c1m3 ! pz/p0
+            xv1(j) = xv1(j) + stracki*(yv1(j)/pz)
+            xv2(j) = xv2(j) + stracki*(yv2(j)/pz)
+          end do
         else
           do j=1,napx
-            xv1(j)=xv1(j)+stracki*yv1(j)
-            xv2(j)=xv2(j)+stracki*yv2(j)
+            xv1(j) = xv1(j) + stracki*yv1(j)
+            xv2(j) = xv2(j) + stracki*yv2(j)
           end do
         end if
         ! A.Mereghetti and P.Garcia Ortega, for the FLUKA Team
@@ -619,7 +611,7 @@ subroutine thin6d(nthinerr)
     acphase,acdipamp2,acdipamp1,crabamp,crabfreq,crabamp2,crabamp3,crabamp4,kcrab,RTWO,NNORM,l,cur, &
     dx,dy,tx,ty,embl,chi,xi,yi,dxi,dyi,rrelens,frrelens,xelens,yelens, onedp,fppsig,costh_temp,     &
     sinth_temp,tan_t,sin_t,cos_t,pxf,pyf,r_temp,z_temp,sigf,q_temp,pttemp,xlv,zlv,temp_angle
-  logical llost, doFField
+  logical llost, doFField, is_coll
   real(kind=fPrec) crkveb(npart),cikveb(npart),rho2b(npart),tkb(npart),rb(npart),rkb(npart),        &
     xrb(npart),zrb(npart),xbb(npart),zbb(npart),crxb(npart),crzb(npart),cbxb(npart),cbzb(npart)
   real(kind=fPrec) :: krf, x_t, y_t
@@ -728,7 +720,16 @@ subroutine thin6d(nthinerr)
         if(bdex_enable .and. kz(ix) == 0 .and. bdex_elementAction(ix) /= 0) call bdex_track(i,ix,n)
       end if
 
-      if(do_coll .and. cdb_elemMap(c_ix) > 0) then
+      ! The below splitting of if-statements is needed to prevent out of bounds error
+      ! when building with gfortran/debug
+      is_coll = .false.
+      if(do_coll) then
+        if(cdb_elemMap(myix) > 0) then
+          is_coll = .true.
+        end if
+      end if
+
+      if(is_coll) then
         dotrack = 1
       else
         dotrack = ktrack(i)
@@ -738,32 +739,21 @@ subroutine thin6d(nthinerr)
       case (1)
         stracki = strack(i)
         ! Check if collimation is enabled, and call the collimation code as necessary
-        if(do_coll .and. cdb_elemMap(c_ix) > 0) then
+        if(do_coll .and. is_coll) then
           ! Collimator is in database, and we're doing collimation
           call collimate_trackThin(stracki,.true.)
         else ! Normal SixTrack drifts
-          if(iexact) then
-            ! EXACT DRIFT
+          if(iexact) then ! EXACT DRIFT
             do j=1,napx
-              xv1(j)=xv1(j)*c1m3
-              xv2(j)=xv2(j)*c1m3
-              yv1(j)=yv1(j)*c1m3
-              yv2(j)=yv2(j)*c1m3
-              sigmv(j)=sigmv(j)*c1m3
-              pz=sqrt(one-(yv1(j)**2+yv2(j)**2))
-              xv1(j)=xv1(j)+stracki*(yv1(j)/pz)
-              xv2(j)=xv2(j)+stracki*(yv2(j)/pz)
-              sigmv(j)=sigmv(j)+stracki*(one-(rvv(j)/pz))
-              xv1(j)=xv1(j)*c1e3
-              xv2(j)=xv2(j)*c1e3
-              yv1(j)=yv1(j)*c1e3
-              yv2(j)=yv2(j)*c1e3
-              sigmv(j)=sigmv(j)*c1e3
+              pz       = sqrt(c1e6 - (yv1(j)**2 + yv2(j)**2))*c1m3 ! pz/p0
+              xv1(j)   = xv1(j)   + stracki*(yv1(j)/pz)
+              xv2(j)   = xv2(j)   + stracki*(yv2(j)/pz)
+              sigmv(j) = sigmv(j) + stracki*((one - rvv(j)/pz)*c1e3)
             end do
           else
             do j=1,napx
-              xv1(j)   = xv1(j) + stracki*yv1(j)
-              xv2(j)   = xv2(j) + stracki*yv2(j)
+              xv1(j)   = xv1(j)   + stracki*yv1(j)
+              xv2(j)   = xv2(j)   + stracki*yv2(j)
               sigmv(j) = sigmv(j) + stracki*(c1e3-rvv(j)*(c1e3+(yv1(j)**2+yv2(j)**2)*c5m4))
             end do
           end if
