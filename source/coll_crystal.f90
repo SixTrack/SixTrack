@@ -11,6 +11,30 @@ module coll_crystal
 
   implicit none
 
+  integer, parameter :: max_ncoll = 99
+
+  logical, save :: bool_create
+  integer, save :: bool_proc(1000)
+  integer, save :: bool_proc_old(1000)
+
+  real(kind=fPrec), save :: miscut ! miscut angle in rad
+
+  character(len=50), save :: PROC
+  logical,           save :: changed_tilt1(max_ncoll)
+  logical,           save :: changed_tilt2(max_ncoll)
+
+  real(kind=fPrec),  save :: Rcurv    ! Crystal geometrical parameters [m]
+  real(kind=fPrec),  save :: C_xmax   ! Crystal geometrical parameters [m]
+  real(kind=fPrec),  save :: C_ymax   ! Crystal geometrical parameters [m]
+  real(kind=fPrec),  save :: Alayer   ! Crystal amorphous layer [mm]
+  integer,           save :: C_orient ! Crystal orientation [0-1]
+
+  ! Rutherford Scatter
+  real(kind=fPrec), parameter :: tlcut_cry   = 0.0009982d0
+  real(kind=fPrec), parameter :: hcut_cry(4) = [0.02d0,0.0d0,0.0d0,0.02d0]
+  real(kind=fPrec), save      :: cgen_cry(200,4)
+  integer,          save      :: mcurr_cry
+
 contains
 
 end module coll_crystal
@@ -59,13 +83,13 @@ end module coll_crystal
       use mod_ranlux
       use mod_funlux
       use coll_k2
-      use coll_common, only : cry_proc
+      use coll_common, only : cry_proc, xp_pencil0, yp_pencil0, x_pencil, y_pencil, pencil_dx, ipencil
       use floatPrecision
+      use coll_crystal
 
       IMPLICIT NONE
 !
-      integer     MAX_NCOLL
-      PARAMETER     (MAX_NCOLL = 99)
+
 !
          integer         icoll      ! MDA: collimator ID to read parameters from new CollDB format
          integer         mat
@@ -78,10 +102,6 @@ end module coll_crystal
 !        PARAMETER         (MAX_NPART=1500000)
 !
          real(kind=fPrec)            p0
-         real(kind=fPrec)            xp_pencil0(MAX_NCOLL)
-         real(kind=fPrec)            yp_pencil0(MAX_NCOLL)
-         real(kind=fPrec)            x_pencil(MAX_NCOLL)
-         real(kind=fPrec)            y_pencil(MAX_NCOLL)
          real(kind=fPrec)            zlm
          real(kind=fPrec)            x,xp
          real(kind=fPrec)            shift
@@ -154,77 +174,35 @@ end module coll_crystal
          real(kind=fPrec)      C_OFFSET       !Offset in m
          real(kind=fPrec)      C_TILT(2)      !Tilt in radian
          real(kind=fPrec)      C_TILT0(2)      !Tilt in radian
-         real(kind=fPrec)      PENCIL_DX(MAX_NCOLL)
-         real(kind=fPrec)      PENCIL_SPREAD(MAX_NCOLL)
          real(kind=fPrec)      cry_bend
 
 !
-         LOGICAL           CHANGED_TILT1(MAX_NCOLL)
-         LOGICAL           CHANGED_TILT2(MAX_NCOLL)
 !
-         COMMON /tilt/ CHANGED_TILT1, CHANGED_TILT2
-!
-!         REAL      rndm4
-!         REAL      RAN_GAUSS
-!
-         common/materia/mat
-         common/nommom/p0
 !
         integer ie,iturn,nabs_total
-!        COMMON  /INFO/ IE, ITURN, nabs_total
 !
-        integer   IPENCIL
-!        integer   ICOLL
-!        common  /icoll/  icoll
-
-        common  /pencil/  xp_pencil0,yp_pencil0,pencil_dx,ipencil
-!
-        COMMON  /PENCIL2/ X_PENCIL, Y_PENCIL
 !
 !
         real(kind=fPrec)        AMPLZ
 !
       real(kind=fPrec) XP_tangent
 !
-      real(kind=fPrec) Rcurv,C_xmax,C_ymax           !crystal geometrical parameters  - be careful! are in [m]
-      real(kind=fPrec) Alayer                           !amorphous layer [mm]
-      integer C_orient                           !crystal orientation [0-1]
       real(kind=fPrec) Cry_tilt_part                    !crystal tilt [rad]
       real(kind=fPrec) Cry_tilt                         !crystal tilt [rad]
       real(kind=fPrec) Cry_tilt0                        !tilt of the crystal for having channeling (determined by divergence of the beam) [rad]
       real(kind=fPrec) Cry_length                       !original length (from the db) [m]
-      real(kind=fPrec) miscut
-!                                           !instead of this parameter, I use (mat-7)
-!
 
-      integer bool_proc(1000)
-      integer bool_proc_old(1000)
       integer n_chan
       integer n_VR
       integer n_amorphous
       character(len=*) name_coll             ! MDA: length to be defined by input
-      CHARACTER(len=50) PROC                     !string that contains the physical process
+                           !string that contains the physical process
 !                                            !=' ' if the particle does not pass by crystal, ='*' if there is interaction
-      logical  bool_create
-      common /miscut/ miscut
-!      common /Par_Cry1/ Cry_length, Rcurv,C_xmax,C_ymax,Alayer,C_orient
-      common /Par_Cry1/ Rcurv,C_xmax,C_ymax,Alayer,C_orient
-
-!      common /Par_Cry2/ Cry_tilt,Cry_tilt0
-      common /Process/ bool_proc,bool_create
-      common /Process_old/ bool_proc_old
-      common/Proc2/PROC
-      logical write_c_out             !if set to 1, coordinates of the
-      common /outputs/ write_c_out
 
 !------daniele----------
 ! adding new variables for debugged studies on process experienced
 
       integer idx_proc                !daniele
-      integer   samplenumber                !daniele
-      character(len=4) smpl                !daniele
-      character(len=80) pfile                !daniele
-      common /samplenumber/ pfile,smpl,samplenumber                !daniele
 
 !----------------------
 
@@ -435,81 +413,6 @@ end module coll_crystal
 !++  to simple pencil beam
 !
           IF (ipencil .eq. 0) bool_create=.true.
-!
-!! pencil beam stuffffffffffffffffffffffffffffffffff  (~80 lines)
-!c ----------------------------pencil beam generatio at the crystal--------------------------------------
-!          IF ( (ICOLL.EQ.IPENCIL
-!     1           .AND. ITURN.EQ.1)
-!     2           ) THEN
-!            X    = pencil_dx(ICOLL)
-!            XP = cry_tilt0 !valentina (if the beam is generated @ crystal, I want it to have the natural beam divergence)
-!            bool_create=.true.
-!c
-!            AMPLZ = RAN_GAUSS(3.)!*pencil_spread(ICOLL)
-!            Z     = AMPLZ
-!            ZP   = 0.
-!            dpop = 0.
-!c
-!            if (write_c_out) then
-!c++             I want to write the original coordinates in a file... I have to transform back all coordinates....Include collimator tilt
-!c
-!              IF (tiltangle.GT.0.) THEN
-!                x_print  = X  + tiltangle*C_LENGTH
-!                XP_print = XP + tiltangle
-!              ELSEIF (tiltangle.LT.0.) THEN
-!                x_print  = X + tiltangle*C_LENGTH
-!                XP_print = XP + tiltangle
-!                x_print  = X - SIN(tiltangle) * C_LENGTH
-!              ELSE
-!                x_print = x
-!                xp_print = xp
-!              ENDIF
-!
-!c++  Transform back to particle coordinates with opening and offset
-!c
-!              x_print = x_print + C_APERTURE/2 + MIRROR*C_OFFSET
-!c++  Now mirror at the horizontal axis for negative X offset
-!c
-!              x_print    = MIRROR * x_print
-!              XP_print   = MIRROR * xp_print
-!
-!c++  Last do rotation into collimator frame
-!c
-!              Y_print  = Z  *COS(-1.*C_ROTATION) -
-!     1                     X_print  *SIN(-1.*C_ROTATION)
-!              x_print  = x_print  *COS(-1.*C_ROTATION) +
-!     1                     Z  *SIN(-1.*C_ROTATION)
-!              YP_print = ZP *COS(-1.*C_ROTATION) -
-!     1                     XP_print *SIN(-1.*C_ROTATION)
-!              XP_print = XP_print *COS(-1.*C_ROTATION) +
-!     1                     ZP *SIN(-1.*C_ROTATION)
-!c              WRITE(*,'(i4,2x,i4,2x,a,2x,5(f15.8,2x))')
-!c     2          ITURN,ICOLL,C_MATERIAL,x_print,XP_print,Y_print,YP_print
-!c     3          ,P
-!C
-!c++ Then drift forward of half lenght
-!c
-!              x_print= x_print+xp_print*C_length/2        !valentina drift removed
-!              y_print= y_print+yp_print*C_length/2
-!              WRITE(881,'(i4,2x,i4,2x,a,2x,5(f15.8,2x))')
-!     2        ITURN,ICOLL,C_MATERIAL,x_print,XP_print,Y_print,YP_print
-!     3        ,P
-!
-!              X_NORM=x_print/ SQRT(bx)/sqrt(EMITX0)
-!              XP_NORM=(x_print*ax+xp_print*bx)/SQRT(bx)/sqrt(EMITX0)
-!              Y_NORM=y_print/ SQRT(by)/sqrt(EMITY0)
-!              YP_NORM=(y_print*AY+yp_print*by)/SQRT(by)/sqrt(EMITY0)
-!c
-!              WRITE(883,'(i4,2x,i4,2x,a,2x,7(f15.8,2x))')
-!     2          ITURN,ICOLL,C_MATERIAL,X_NORM,XP_NORM,Y_NORM,YP_NORM,
-!     3          SQRT(X_NORM**2+XP_NORM**2),
-!     4          SQRT(Y_NORM**2+YP_NORM**2),P
-!c
-!c
-!            endif
-!          ENDIF
-!c.--------------------end of pencil beam stuff-------------------------------
-
 
 !-valentina for the first impact file
 !        s_in0(j)   = s_in(j)                         !daniele SEE COMMENTS ABOVE
@@ -993,19 +896,19 @@ end module coll_crystal
            X_IN(J)  = X00  *COS(-1.*C_ROTATION) + Z00  *SIN(-1.*C_ROTATION)
            Y_IN(J)  = Z00  *COS(-1.*C_ROTATION) - X00  *SIN(-1.*C_ROTATION)
 !
-           XP_IN(J) = XP_IN(J) + MIRROR*XP_PENCIL0(ICOLL)
-           YP_IN(J) = YP_IN(J) + MIRROR*YP_PENCIL0(ICOLL)
+           XP_IN(J) = XP_IN(J) + MIRROR*XP_PENCIL0
+           YP_IN(J) = YP_IN(J) + MIRROR*YP_PENCIL0
            X_IN(J) = X_IN(J) + MIRROR*X_PENCIL(ICOLL)
            Y_IN(J) = Y_IN(J) + MIRROR*Y_PENCIL(ICOLL)
 
            IF (.NOT. CHANGED_TILT1(ICOLL) .AND. MIRROR.GT.0.) THEN
                    WRITE (*,*) 'NEVER!!!'
-                   C_TILT(1) = XP_PENCIL0(ICOLL)*COS(C_ROTATION)+SIN(C_ROTATION)*YP_PENCIL0(ICOLL)
+                   C_TILT(1) = XP_PENCIL0*COS(C_ROTATION)+SIN(C_ROTATION)*YP_PENCIL0
                    WRITE(*,*) 'INFO> Changed tilt1  ICOLL  to  ANGLE  ',ICOLL, C_TILT(1)
 !
                    CHANGED_TILT1(ICOLL) = .true.
            ELSEIF (.NOT. CHANGED_TILT2(ICOLL) .AND. MIRROR.LT.0.) THEN
-                   C_TILT(2) = -1.*(XP_PENCIL0(ICOLL)*COS(C_ROTATION)+SIN(C_ROTATION)*YP_PENCIL0(ICOLL))
+                   C_TILT(2) = -1.*(XP_PENCIL0*COS(C_ROTATION)+SIN(C_ROTATION)*YP_PENCIL0)
                    WRITE(*,*) 'INFO> Changed tilt2  ICOLL  to  ANGLE  ',ICOLL, C_TILT(2)
 !
                    CHANGED_TILT2(ICOLL) = .true.
@@ -1099,6 +1002,7 @@ end module coll_crystal
       use mod_funlux
       use mod_common_main
       use floatPrecision
+      use coll_crystal
 
 !     Simple tranport protons in crystal 2
 !-----------------------------------------------------------C
@@ -1114,12 +1018,10 @@ end module coll_crystal
       IMPLICIT none
 !
 !
-      real(kind=fPrec) Rcurv,Length,C_xmax,C_ymax !crystal geometrical parameters
+      real(kind=fPrec) Length !crystal geometrical parameters
                                                   ! [m],[m],[m],[m],[rad]
       real(kind=fPrec) ymax,ymin       !crystal geometrical parameters
       real(kind=fPrec) s_length             !element length along s
-      real(kind=fPrec) Alayer               !amorphous layer [m]
-      integer C_orient                      !crystal orientation
       integer IS,j                            !index of the material
 !      integer counter
       real(kind=fPrec)  DLRI(4),DLYI(4),AI(4),DES(4)!cry parameters:see line~270
@@ -1154,14 +1056,12 @@ end module coll_crystal
                                             !(in case of dechanneling)
       real(kind=fPrec) Am_length            !Amorphous length
       real(kind=fPrec) Length_xs, Length_ys !Amorphous length
-      real(kind=fPrec) miscut               !miscut angle in rad
       real(kind=fPrec) L_chan, tchan
       real(kind=fPrec) xp_rel               !xp-miscut angle in mrad
 !      REAL RNDM                           !random numbers
 !      REAL      rndm4
 !      REAL      RAN_GAUSS
       real(kind=fPrec) eUm(4)                !maximum potential
-      CHARACTER(LEN=50) PROC        !string that contains the physical process
 
       real(kind=fPrec) rho(4),z(4),Ime(4) !Daniele: material parameters for dE/dX calculation
       real(kind=fPrec) k,re,me,mp !Daniele: parameters for dE/dX calculation (const,electron radius,el. mass, prot.mass)
@@ -1173,10 +1073,6 @@ end module coll_crystal
 
       real(kind=fPrec) emr_cry(4)
 
-!      common /Par_Cry1/ Cry_length, Rcurv,C_xmax,C_ymax,Alayer,C_orient
-      common /Par_Cry1/ Rcurv,C_xmax,C_ymax,Alayer,C_orient
-      common /miscut/ miscut
-      common /Proc2/PROC
       COMMON/NPC/     NAM,ZN
       COMMON/CRYS/    DLRI,DLYI,AI,DES
       COMMON/eUc/     eUm  !
@@ -1184,7 +1080,6 @@ end module coll_crystal
       common/ion2/enr,mom,gammar,betar,bgr,Tmax,plen
       common/dech/aTF,dP,u1
 
-!      common/utils/ counter
 !
 !
       NAM=1 !switch on/off the nuclear interaction (NAM) and the MCS (ZN)
@@ -1662,6 +1557,7 @@ end module coll_crystal
       use mod_ranlux
       use mod_funlux
       use floatPrecision
+      use coll_crystal
 
       IMPLICIT none
       integer IS
@@ -1733,6 +1629,7 @@ end module coll_crystal
       use mod_ranlux
       use mod_funlux
       use floatPrecision
+      use coll_crystal
 
 !. Moving in amorphous substance...........................
       IMPLICIT none
@@ -1745,10 +1642,8 @@ end module coll_crystal
       real(kind=fPrec) DYA,W_p
 !      REAL RNDM4
 !         REAL      RAN_GAUSS
-      CHARACTER(LEN=50) PROC              !string that contains the physical process
       COMMON /ALAST/DLAI,SAI
       COMMON/CRYS/ DLRI,DLYI,AI,DES
-      common /Proc2/PROC
 
 
 !------- adding variables --------
@@ -1776,14 +1671,10 @@ end module coll_crystal
       common/scat_cry/pptref_cry,pperef_cry,sdcoe_cry,pref_cry
       common/scat_cry/pptco_cry,ppeco_cry,freeco_cry
 
-      real(kind=fPrec) tlcut_cry,hcut_cry(4)
-      real(kind=fPrec) cgen_cry(200,4),tlow,thigh,ruth_cry
+      real(kind=fPrec) tlow,thigh,ruth_cry
       external ruth_cry
 
-      common/ruth_scat_cry/tlcut_cry,hcut_cry
-      common/ruth_scat_cry/cgen_cry,mcurr_cry
-
-      integer length_cry,mcurr_cry
+      integer length_cry
       real(kind=fPrec) xran_cry(1)
 
 !-------daniele--------------
@@ -2083,6 +1974,7 @@ end module coll_crystal
       use mod_ranlux
       use mod_funlux
       use floatPrecision
+      use coll_crystal
 
       IMPLICIT none
       integer IS,NAM
@@ -2094,10 +1986,8 @@ end module coll_crystal
       real(kind=fPrec) DYA,W_p
 !      REAL RNDM4
 !         REAL      RAN_GAUSS
-      CHARACTER(LEN=50) PROC              !string that contains the physical process
       COMMON /ALAST/DLAI,SAI
       COMMON/CRYS/ DLRI,DLYI,AI,DES
-      common /Proc2/PROC
       COMMON/eUc/eUm
 
 !------- adding variables --------
@@ -2125,14 +2015,10 @@ end module coll_crystal
       common/scat_cry/pptref_cry,pperef_cry,sdcoe_cry,pref_cry
       common/scat_cry/pptco_cry,ppeco_cry,freeco_cry
 
-      real(kind=fPrec) tlcut_cry,hcut_cry(4)
-      real(kind=fPrec) cgen_cry(200,4),tlow,thigh,ruth_cry
+      real(kind=fPrec) tlow,thigh,ruth_cry
       external ruth_cry
 
-      common/ruth_scat_cry/tlcut_cry,hcut_cry
-      common/ruth_scat_cry/cgen_cry,mcurr_cry
-
-      integer length_cry,mcurr_cry
+      integer length_cry
       real(kind=fPrec) xran_cry(1)
 
 
@@ -2623,15 +2509,6 @@ end module coll_crystal
       data dP/1.92d-10/   !distance between planes (110) [m]
       data u1/0.075d-10/  !thermal vibrations amplitude
 
-      real(kind=fPrec) tlcut_cry,hcut_cry(4)   !param. for Ruth scatt.
-      real(kind=fPrec) cgen_cry(200,4)
-      integer mcurr_cry
-
-      common/ruth_scat_cry/tlcut_cry,hcut_cry
-      common/ruth_scat_cry/cgen_cry,mcurr_cry
-
-      data tlcut_cry/0.0009982d0/
-      data (hcut_cry(i),i=1,4)/0.02d0,0.0d0,0.0d0,0.02d0/
 
 
       END
@@ -2640,24 +2517,18 @@ end module coll_crystal
 
       function ruth_cry(t_cry)
         use floatPrecision
+        use coll_crystal
       implicit none
-      integer nmat_cry,mcurr_cry
+      integer nmat_cry
       parameter(nmat_cry=4)
-!      real(kind=fPrec) z(4),emr_cry(4),tlcut_cry,hcut_cry(4)
-      real(kind=fPrec) tlcut_cry,hcut_cry(4)
 
       real(kind=fPrec) rho(4),z(4),Ime(4),anuc_cry2(4) !Daniele: material parameters for dE/dX calculation
       real(kind=fPrec) k,re,me,mp !Daniele: parameters for dE/dX calculation (const,electron radius,el. mass, prot.mass)
 
       real(kind=fPrec) emr_cry(4)
 
-      real(kind=fPrec) cgen_cry(200,4)
 
       common/ion/rho,z,Ime,k,re,me,mp,anuc_cry2,emr_cry
-
-!      common/ion/z,emr_cry
-      common/ruth_scat_cry/tlcut_cry,hcut_cry
-      common/ruth_scat_cry/cgen_cry,mcurr_cry
 
       real(kind=fPrec) ruth_cry,t_cry
       real(kind=fPrec) cnorm,cnform
