@@ -175,10 +175,10 @@ subroutine thck4d(nthinerr)
         end if
         goto 480
 
-      case (2)
+      case (2) ! RF Cavity
         goto 480
 
-      case (3)
+      case (3) ! Phase Trombone
         irrtr = imtr(ix)
         do j=1,napx
           temptr(1) = xv1(j)
@@ -191,7 +191,7 @@ subroutine thck4d(nthinerr)
           xv2(j) = cotr(irrtr,3)
           yv2(j) = cotr(irrtr,4)
 
-          do kxxa=1,6
+          do kxxa=1,4
             xv1(j) = xv1(j) + temptr(kxxa)*rrtr(irrtr,1,kxxa)
             yv1(j) = yv1(j) + temptr(kxxa)*rrtr(irrtr,2,kxxa)
             xv2(j) = xv2(j) + temptr(kxxa)*rrtr(irrtr,3,kxxa)
@@ -727,7 +727,7 @@ subroutine thck6d(nthinerr)
         end do
         goto 500
 
-      case (2)
+      case (2) ! RF Cavity
         if(abs(dppoff) > pieni) then
           sigmv(1:napx) = sigmv(1:napx) - sigmoff(i)
         end if
@@ -741,13 +741,12 @@ subroutine thck6d(nthinerr)
           end do
         end if
         call part_updatePartEnergy(1,.true.)
-        dpsv1(1:napx) = (dpsv(1:napx)*c1e3)*oidpsv(1:napx)
         goto 490
 
-      case (3)
+      case (3) ! Phase Trombone
         irrtr = imtr(ix)
         do j=1,napx
-          !The values are stored in the temp vector which are used for the multiplication.
+          ! The values are stored in the temp vector which are used for the multiplication.
           temptr(1) = xv1(j)
           temptr(2) = yv1(j)/moidpsv(j)
           temptr(3) = xv2(j)
@@ -772,14 +771,15 @@ subroutine thck6d(nthinerr)
             sigmv(j) = sigmv(j) + temptr(kxxa)*rrtr(irrtr,5,kxxa)
             pttemp   = pttemp   + temptr(kxxa)*rrtr(irrtr,6,kxxa)
           end do
-          ! Transforming back to the tracked coordinates of Sixtrack...
+
+          ! Transforming back to the tracked coordinates of SixTrack
           ejv(j) = (e0f*pttemp/(c1e3*(e0/e0f))+e0)/mtc(j)
         end do
         call part_updatePartEnergy(1,.false.)
 
         ! We have to go back to angles after we updated the energy.
-        yv1(1:napx) = yv1(1:napx)*moidpsv(1:napx)
-        yv2(1:napx) = yv2(1:napx)*moidpsv(1:napx)
+        yv1(1:napx) = yv1(1:napx)*mtc(1:napx)/(one+dpsv(1:napx))
+        yv2(1:napx) = yv2(1:napx)*mtc(1:napx)/(one+dpsv(1:napx))
 
         goto 490
       case (4,5,6,7,8,9,10)
