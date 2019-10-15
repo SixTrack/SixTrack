@@ -30,19 +30,16 @@ module collimation
   logical, private, save :: do_nominal       = .false.
   logical, private, save :: do_oneside       = .false.
   logical, private, save :: systilt_antisymm = .false.
-  logical, private, save :: cern             = .false.
   logical, private, save :: do_mingap        = .false.
-  logical, public,  save :: firstrun         = .true.
-  logical, private, save :: cut_input        = .false. ! Not in use?
 
-  integer, private, save :: icoll      = 0
-  integer, private, save :: nloop      = 1
-  integer, private, save :: ibeam      = 1
-  integer, private, save :: jobnumber  = 0
+  integer, private, save :: icoll = 0
+  integer, private, save :: ie    = 0
+  integer, private, save :: iturn = 0
 
   ! Distribution
   integer,          private, save :: do_thisdis   = 0
   real(kind=fPrec), public,  save :: myenom       = zero
+  logical,          private, save :: radial       = .false.
 
   ! Jaw Slicing
   integer,          private, save :: n_slices     = 0
@@ -70,9 +67,6 @@ module collimation
   real(kind=fPrec), private, save :: c_rmserror_gap    = zero
   integer,          private, save :: c_offsettilt_seed = 0
 
-  ! Radial Dist
-  logical,          private, save :: radial  = .false.
-
   ! Emittance Drift
   real(kind=fPrec), private, save :: driftsx = zero
   real(kind=fPrec), private, save :: driftsy = zero
@@ -85,10 +79,7 @@ module collimation
   real(kind=fPrec), private, save :: emitnx0_collgap = zero
   real(kind=fPrec), private, save :: emitny0_collgap = zero
 
-  character(len=mNameLen),  private, save :: name_sel  = " "
-  character(len=16),        private, save :: castordir = " "
-
-  integer, save :: ie, iturn, nabs_total
+  character(len=mNameLen), private, save :: name_sel = " "
 
   integer ieff,ieffdpop
 
@@ -101,7 +92,6 @@ module collimation
   real(kind=fPrec), private, save :: mybetay
   real(kind=fPrec), private, save :: myalphax
   real(kind=fPrec), private, save :: mybetax
-  real(kind=fPrec), private, save :: rselect = 64.0 ! Not set anywhere, but used in if statements
   real(kind=fPrec), private, save :: myemitx
 
   ! M. Fiascaris for the collimation team
@@ -152,6 +142,7 @@ module collimation
   integer, allocatable, save :: nabs_type(:) !(npart)
   integer, save :: n_tot_absorbed
   integer, save :: n_absorbed
+  integer, save :: nabs_total
 
   real(kind=fPrec), allocatable, save :: part_impact(:) !(npart)
 
@@ -470,7 +461,6 @@ subroutine collimate_init
     call prror
   end if
 
-  write(lout,"(a,i0)")    'COLL> Info: NLOOP               = ', nloop
   write(lout,"(a,i0)")    'COLL> Info: DIST_TYPES          = ', do_thisdis
   write(lout,"(a,e15.8)") 'COLL> Info: DIST_NEX            = ', cdist_ampX
   write(lout,"(a,e15.8)") 'COLL> Info: DIST_DEX            = ', cdist_smearX
@@ -479,7 +469,6 @@ subroutine collimate_init
   write(lout,"(a,a)")     'COLL> Info: DIST_FILE           = ', trim(cdist_fileName)
   write(lout,"(a,e15.8)") 'COLL> Info: DIST_EN_ERROR       = ', cdist_spreadE
   write(lout,"(a,e15.8)") 'COLL> Info: DIST_BUNCHLENGTH    = ', cdist_bunchLen
-  write(lout,"(a,i0)")    'COLL> Info: RSELECT             = ', int(rselect)
   write(lout,"(a,l1)")    'COLL> Info: DO_COLL             = ', do_coll
   write(lout,"(a,l1)")    'COLL> Info: DO_NSIG             = ', cdb_doNSig
   do i=1,cdb_nFam
@@ -548,7 +537,6 @@ subroutine collimate_init
   write(lout,"(a)")
   write(lout,"(a,e15.8)") 'COLL: Info: DRIFTSX             = ', driftsx
   write(lout,"(a,e15.8)") 'COLL: Info: DRIFTSY             = ', driftsy
-  write(lout,"(a,l1)")    'COLL: Info: CUT_INPUT           = ', cut_input
   write(lout,"(a,l1)")    'COLL: Info: SYSTILT_ANTISYMM    = ', systilt_antisymm
   write(lout,"(a)")
   write(lout,"(a,i0)")    'COLL> Info: IPENCIL             = ', ipencil
@@ -558,15 +546,8 @@ subroutine collimate_init
   write(lout,"(a,i0)")    'COLL> Info: PENCIL_DISTR        = ', pencil_distr
   write(lout,"(a)")
   write(lout,"(a,a)")     'COLL> Info: COLL_DB             = ', cdb_fileName
-  write(lout,"(a,i0)")    'COLL> Info: IBEAM               = ', ibeam
   write(lout,"(a)")
   write(lout,"(a,l1)")    'COLL> Info: DOWRITETRACKS       = ', dowritetracks
-  write(lout,"(a)")
-  write(lout,"(a,l1)")    'COLL> Info: CERN                = ', cern
-  write(lout,"(a)")
-  write(lout,"(a,a)")     'COLL> Info: CASTORDIR           = ', castordir
-  write(lout,"(a)")
-  write(lout,"(a,i0)")    'COLL> Info: JOBNUMBER           = ', jobnumber
   write(lout,"(a)")
   write(lout,"(a,e15.8)") 'COLL> Info: SIGSECUT2           = ', sigsecut2
   write(lout,"(a,e15.8)") 'COLL> Info: SIGSECUT3           = ', sigsecut3
@@ -748,7 +729,7 @@ subroutine collimate_parseInputLine(inLine, iLine, iErr)
 
   character(len=:), allocatable   :: lnSplit(:)
   real(kind=fPrec) nSigIn(23), rTmp
-  integer nSplit, famID
+  integer nSplit, famID, iDum
   logical spErr, fErr
 
   nSigIn(:) = cdb_defColGap
@@ -1091,18 +1072,9 @@ subroutine collimate_parseInputLine(inLine, iLine, iErr)
     cdb_fileName = trim(lnSplit(2))
 
   case("BEAM_NUM")
-    if(nSplit /= 2) then
-      write(lerr,"(a,i0)") "COLL> ERROR BEAM_NUM expects 1 value, got ",nSplit-1
-      write(lerr,"(a)")    "COLL>       BEAM_NUM 1|2"
-      iErr = .true.
-      return
-    end if
-    call chr_cast(lnSplit(2), ibeam, iErr)
-    if(ibeam /= 1 .and. ibeam /= 2) then
-      write(lerr,"(a,i0)") "COLL> ERROR BEAM_NUM must be 1 or 2, got ",ibeam
-      iErr = .true.
-      return
-    end if
+    write(lerr,"(a)") "COLL> ERROR The BEAM_NUM flag has been removed"
+    iErr = .true.
+    return
 
   case("WRITE_TRACKS")
     if(nSplit /= 2) then
@@ -1121,15 +1093,6 @@ subroutine collimate_parseInputLine(inLine, iLine, iErr)
       return
     end if
     call chr_cast(lnSplit(2), dowrite_crycoord, iErr)
-
-  case("CERN")
-    if(nSplit /= 2) then
-      write(lerr,"(a,i0)") "COLL> ERROR CERN expects 1 value, got ",nSplit-1
-      write(lerr,"(a)")    "COLL>       CERN true|false"
-      iErr = .true.
-      return
-    end if
-    call chr_cast(lnSplit(2), cern, iErr)
 
   case("SIGSECUT")
     if(nSplit /= 3) then
@@ -1172,11 +1135,11 @@ subroutine collimate_parseInputLine(inLine, iLine, iErr)
       iErr = .true.
       return
     end if
-    call chr_cast(lnSplit(1),nloop,iErr)
+    call chr_cast(lnSplit(1),iDum,iErr)
     call chr_cast(lnSplit(2),myenom,iErr)
 
-    if(nloop /= 1) then
-      write(lerr,"(a,i0)") "COLL> ERROR Multiple samples is no longer supported. nloop must be 1, got ",nloop
+    if(iDum /= 1) then
+      write(lerr,"(a,i0)") "COLL> ERROR Multiple samples is no longer supported. nloop must be 1, got ",iDum
       iErr = .true.
       return
     end if
@@ -1375,7 +1338,7 @@ subroutine collimate_parseInputLine(inLine, iLine, iErr)
     end if
     call chr_cast(lnSplit(1), driftsx,         iErr)
     call chr_cast(lnSplit(2), driftsy,         iErr)
-    call chr_cast(lnSplit(3), cut_input,       iErr)
+    ! Value 3 is ignored
     call chr_cast(lnSplit(4), systilt_antisymm,iErr)
 
   case(15)
@@ -1403,8 +1366,8 @@ subroutine collimate_parseInputLine(inLine, iLine, iErr)
       iErr = .true.
       return
     end if
-    cdb_fileName = lnSPlit(1)
-    call chr_cast(lnSPlit(2), ibeam, iErr)
+    cdb_fileName = lnSplit(1)
+    ! The second value is ignored
 
   case(17)
     if(nSplit /= 6) then
@@ -1413,11 +1376,11 @@ subroutine collimate_parseInputLine(inLine, iLine, iErr)
       return
     end if
     call chr_cast(lnSplit(1), dowritetracks,iErr)
-    call chr_cast(lnSplit(2), cern,         iErr)
-    castordir = lnSplit(3)
-    call chr_cast(lnSplit(4), jobnumber,    iErr)
-    call chr_cast(lnSplit(5), sigsecut2,    iErr)
-    call chr_cast(lnSplit(6), sigsecut3,    iErr)
+    ! The second value is ignored
+    ! The third value is ignored
+    ! The fourth value is ignored
+    call chr_cast(lnSplit(5), sigsecut2, iErr)
+    call chr_cast(lnSplit(6), sigsecut3, iErr)
 
   case default
     write(lerr,"(a,i0,a)") "COLL> ERROR Unexpected line ",iLine," encountered."
@@ -3568,47 +3531,46 @@ subroutine collimate_end_element
 #endif
 
   if(firstrun) then
-    if(rselect.gt.0 .and. rselect.lt.65) then
-      do j = 1, napx
-        xj  = (xv1(j)-torbx(ie)) /c1e3
-        xpj = (yv1(j)-torbxp(ie))/c1e3
-        yj  = (xv2(j)-torby(ie)) /c1e3
-        ypj = (yv2(j)-torbyp(ie))/c1e3
-        pj  = ejv(j)/c1e3
 
-        if(iturn.eq.1.and.j.eq.1) then
-          sum_ax(ie) = zero
-          sum_ay(ie) = zero
-        endif
-
-        if(tbetax(ie).gt.zero) then
-          gammax = (one + talphax(ie)**2)/tbetax(ie)
-          gammay = (one + talphay(ie)**2)/tbetay(ie)
-        else
-          gammax = (one + talphax(ie-1)**2)/tbetax(ie-1)
-          gammay = (one + talphay(ie-1)**2)/tbetay(ie-1)
-        endif
-
-        if(part_abs_pos(j).eq.0 .and. part_abs_turn(j).eq.0) then
-          if(tbetax(ie).gt.0.) then
-            nspx = sqrt(abs( gammax*(xj)**2 + two*talphax(ie)*xj*xpj +   tbetax(ie)*xpj**2 )/myemitx0_collgap)
-            nspy = sqrt(abs( gammay*(yj)**2 + two*talphay(ie)*yj*ypj +   tbetay(ie)*ypj**2 )/myemity0_collgap)
-          else
-            nspx = sqrt(abs( gammax*(xj)**2 + two*talphax(ie-1)*xj*xpj + tbetax(ie-1)*xpj**2 )/myemitx0_collgap)
-            nspy = sqrt(abs( gammay*(yj)**2 + two*talphay(ie-1)*yj*ypj + tbetay(ie-1)*ypj**2 )/myemity0_collgap)
-          end if
-
-          sum_ax(ie)   = sum_ax(ie) + nspx
-          sqsum_ax(ie) = sqsum_ax(ie) + nspx**2
-          sum_ay(ie)   = sum_ay(ie) + nspy
-          sqsum_ay(ie) = sqsum_ay(ie) + nspy**2
-          nampl(ie)    = nampl(ie) + 1
-        else
-          nspx = zero
-          nspy = zero
-        end if
-      end do
+    if(iturn == 1) then
+      sum_ax(ie) = zero
+      sum_ay(ie) = zero
     end if
+
+    do j = 1, napx
+      xj  = (xv1(j)-torbx(ie)) /c1e3
+      xpj = (yv1(j)-torbxp(ie))/c1e3
+      yj  = (xv2(j)-torby(ie)) /c1e3
+      ypj = (yv2(j)-torbyp(ie))/c1e3
+      pj  = ejv(j)/c1e3
+
+      if(tbetax(ie).gt.zero) then
+        gammax = (one + talphax(ie)**2)/tbetax(ie)
+        gammay = (one + talphay(ie)**2)/tbetay(ie)
+      else
+        gammax = (one + talphax(ie-1)**2)/tbetax(ie-1)
+        gammay = (one + talphay(ie-1)**2)/tbetay(ie-1)
+      endif
+
+      if(part_abs_pos(j).eq.0 .and. part_abs_turn(j).eq.0) then
+        if(tbetax(ie).gt.0.) then
+          nspx = sqrt(abs( gammax*(xj)**2 + two*talphax(ie)*xj*xpj +   tbetax(ie)*xpj**2 )/myemitx0_collgap)
+          nspy = sqrt(abs( gammay*(yj)**2 + two*talphay(ie)*yj*ypj +   tbetay(ie)*ypj**2 )/myemity0_collgap)
+        else
+          nspx = sqrt(abs( gammax*(xj)**2 + two*talphax(ie-1)*xj*xpj + tbetax(ie-1)*xpj**2 )/myemitx0_collgap)
+          nspy = sqrt(abs( gammay*(yj)**2 + two*talphay(ie-1)*yj*ypj + tbetay(ie-1)*ypj**2 )/myemity0_collgap)
+        end if
+
+        sum_ax(ie)   = sum_ax(ie) + nspx
+        sqsum_ax(ie) = sqsum_ax(ie) + nspx**2
+        sum_ay(ie)   = sum_ay(ie) + nspy
+        sqsum_ay(ie) = sqsum_ay(ie) + nspy**2
+        nampl(ie)    = nampl(ie) + 1
+      else
+        nspx = zero
+        nspy = zero
+      end if
+    end do
   end if
 
 !GRD THIS LOOP MUST NOT BE WRITTEN INTO THE "IF(FIRSTRUN)" LOOP !!!!
@@ -3938,47 +3900,46 @@ subroutine collimate_end_turn
   end if
 
   if(firstrun) then
-    if(rselect > 0 .and. rselect < 65) then ! The value rselect is fixed to 64, this if is probably redundant.
-      if(iturn == 1) then
-        sum_ax(ie) = zero
-        sum_ay(ie) = zero
-      end if
-  
-      do j=1,napx
-        xj  = (xv1(j)-torbx(ie)) /c1e3
-        xpj = (yv1(j)-torbxp(ie))/c1e3
-        yj  = (xv2(j)-torby(ie)) /c1e3
-        ypj = (yv2(j)-torbyp(ie))/c1e3
-        pj  = ejv(j)/c1e3
 
+    if(iturn == 1) then
+      sum_ax(ie) = zero
+      sum_ay(ie) = zero
+    end if
+
+    do j=1,napx
+      xj  = (xv1(j)-torbx(ie)) /c1e3
+      xpj = (yv1(j)-torbxp(ie))/c1e3
+      yj  = (xv2(j)-torby(ie)) /c1e3
+      ypj = (yv2(j)-torbyp(ie))/c1e3
+      pj  = ejv(j)/c1e3
+
+      if(tbetax(ie) > 0.) then
+        gammax = (one + talphax(ie)**2)/tbetax(ie)
+        gammay = (one + talphay(ie)**2)/tbetay(ie)
+      else
+        gammax = (one + talphax(ie-1)**2)/tbetax(ie-1)
+        gammay = (one + talphay(ie-1)**2)/tbetay(ie-1)
+      end if
+
+      if(part_abs_pos(j) == 0 .and. part_abs_turn(j) == 0) then
         if(tbetax(ie) > 0.) then
-          gammax = (one + talphax(ie)**2)/tbetax(ie)
-          gammay = (one + talphay(ie)**2)/tbetay(ie)
+          nspx = sqrt(abs( gammax*(xj)**2 + two*talphax(ie)*xj*xpj + tbetax(ie)*xpj**2 )/myemitx0_collgap)
+          nspy = sqrt(abs( gammay*(yj)**2 + two*talphay(ie)*yj*ypj + tbetay(ie)*ypj**2 )/myemity0_collgap)
         else
-          gammax = (one + talphax(ie-1)**2)/tbetax(ie-1)
-          gammay = (one + talphay(ie-1)**2)/tbetay(ie-1)
+          nspx = sqrt(abs( gammax*(xj)**2 + two*talphax(ie-1)*xj*xpj +tbetax(ie-1)*xpj**2 )/myemitx0_collgap)
+          nspy = sqrt(abs( gammay*(yj)**2 + two*talphay(ie-1)*yj*ypj +tbetay(ie-1)*ypj**2 )/myemity0_collgap)
         end if
 
-        if(part_abs_pos(j) == 0 .and. part_abs_turn(j) == 0) then
-          if(tbetax(ie) > 0.) then
-            nspx = sqrt(abs( gammax*(xj)**2 + two*talphax(ie)*xj*xpj + tbetax(ie)*xpj**2 )/myemitx0_collgap)
-            nspy = sqrt(abs( gammay*(yj)**2 + two*talphay(ie)*yj*ypj + tbetay(ie)*ypj**2 )/myemity0_collgap)
-          else
-            nspx = sqrt(abs( gammax*(xj)**2 + two*talphax(ie-1)*xj*xpj +tbetax(ie-1)*xpj**2 )/myemitx0_collgap)
-            nspy = sqrt(abs( gammay*(yj)**2 + two*talphay(ie-1)*yj*ypj +tbetay(ie-1)*ypj**2 )/myemity0_collgap)
-          end if
-
-          sum_ax(ie)   = sum_ax(ie) + nspx
-          sqsum_ax(ie) = sqsum_ax(ie) + nspx**2
-          sum_ay(ie)   = sum_ay(ie) + nspy
-          sqsum_ay(ie) = sqsum_ay(ie) + nspy**2
-          nampl(ie)    = nampl(ie) + 1
-        else
-          nspx = zero
-          nspy = zero
-        end if !if(part_abs_pos(j).eq.0 .and. part_abs_turn(j).eq.0) then
-      end do !do j = 1, napx
-    end if !if(rselect.gt.0 .and. rselect.lt.65) then
+        sum_ax(ie)   = sum_ax(ie) + nspx
+        sqsum_ax(ie) = sqsum_ax(ie) + nspx**2
+        sum_ay(ie)   = sum_ay(ie) + nspy
+        sqsum_ay(ie) = sqsum_ay(ie) + nspy**2
+        nampl(ie)    = nampl(ie) + 1
+      else
+        nspx = zero
+        nspy = zero
+      end if !if(part_abs_pos(j).eq.0 .and. part_abs_turn(j).eq.0) then
+    end do !do j = 1, napx
   end if !if(firstrun) then
 
 !GRD THIS LOOP MUST NOT BE WRITTEN INTO THE "IF(FIRSTRUN)" LOOP !!!!

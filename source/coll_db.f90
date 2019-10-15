@@ -375,7 +375,7 @@ end subroutine cdb_readDB_newFormat
 !  V.K. Berglyd Olsen, BE-ABP-HSS
 !  Created: 2019-03-19
 !  Updated: 2019-09-02
-!  Parses the old style database format with one calue per line.
+!  Parses the old style database format with one value per line.
 ! ================================================================================================ !
 subroutine cdb_readDB_oldFormat
 
