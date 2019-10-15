@@ -724,7 +724,7 @@ subroutine thin6d(nthinerr)
       ! when building with gfortran/debug
       is_coll = .false.
       if(do_coll) then
-        if(cdb_elemMap(myix) > 0) then
+        if(cdb_elemMap(c_ix) > 0) then
           is_coll = .true.
         end if
       end if
