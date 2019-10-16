@@ -20,7 +20,6 @@ module coll_crystal
   integer, allocatable, save :: bool_proc_old(:)
 
   integer,           save :: iProc
-  character(len=50), save :: PROC
   logical,           save :: changed_tilt1(max_ncoll)
   logical,           save :: changed_tilt2(max_ncoll)
 
@@ -380,7 +379,7 @@ end module coll_crystal
                if (bool_proc(j).ne.-1)     &
      &                       bool_proc_old(j)=bool_proc(j)                  !daniele
         endif                                                                           !daniele
-        PROC='out' !the default process is 'out'                                        !daniele
+        iProc=proc_out
         bool_proc(j)=-1                                                                 !daniele
         cry_proc(j)=-1
 
@@ -549,7 +548,7 @@ end module coll_crystal
            write(*,*) "xp after crystal coll routine exit", XP
            s=Rcurv*sin(cry_bend)
            zlm=Rcurv*sin(cry_bend)
-           if (PROC(1:3).ne.'out')then
+           if(iProc /= proc_out) then
              NHIT = NHIT + 1
              LHIT(j) = ie
              LHIT_TURN(j) = ITURN
@@ -603,8 +602,8 @@ end module coll_crystal
             !              write(*,*) "p after exit", p
                           s=Rcurv*sin(cry_bend-tilt_int)
                           zlm=Rcurv*sin(cry_bend-tilt_int)
-                          if (PROC(1:3).ne.'out')then
-                             X_rot=X_int
+                          if(iProc /= proc_out) then
+                            X_rot=X_int
                              S_rot=S_int
                              XP_rot=XP_int
                              S_shift=S_rot*cos(-Cry_tilt)+X_rot*sin(-Cry_tilt)
@@ -695,8 +694,8 @@ end module coll_crystal
             !              write(*,*) "p after exit", p
                           s=Rcurv*sin(cry_bend-tilt_int)
                           zlm=Rcurv*sin(cry_bend-tilt_int)
-                          if (PROC(1:3).ne.'out')then
-                             X_rot=X_int
+                          if(iProc /= proc_out) then
+                            X_rot=X_int
                              S_rot=S_int
                              XP_rot=XP_int
                              S_shift=S_rot*cos(-Cry_tilt)+X_rot*sin(-Cry_tilt)
@@ -792,71 +791,19 @@ end module coll_crystal
 ! debugged assignation of the process experienced in the crystal
 ! ----------------
 
-               if (PROC(1:2).eq.'AM')then
-                 bool_proc(j)=proc_AM
-                 cry_proc(j)=proc_AM
-                 n_amorphous = n_amorphous + 1
-               elseif (PROC(1:2).eq.'VR') then
-                 bool_proc(j)=proc_VR
-                 cry_proc(j)=proc_VR
-                 n_VR = n_VR + 1
-               elseif (PROC(1:2).eq.'CH')then
-                 bool_proc(j) = proc_CH
-                 cry_proc(j)=proc_CH
-                 n_chan = n_Chan + 1
-               elseif (PROC(1:2).eq.'VC') then
-                 bool_proc(j)=proc_VC
-                 cry_proc(j)=proc_VC
-                 !n_chan = n_Chan + 1
-               elseif (PROC(1:3).eq.'out')then
-                 bool_proc(j)=proc_out
-                 cry_proc(j)=proc_out
-               elseif (PROC(1:8).eq.'absorbed') then
-                 bool_proc(j)=proc_absorbed
-                 cry_proc(j)=proc_absorbed
-                 NABS=1
-               elseif (PROC(1:2).eq.'DC')then
-                 bool_proc(j)=proc_DC
-                 cry_proc(j)=proc_DC
-               elseif (PROC(1:3).eq.'pne')then
-                 bool_proc(j)=proc_pne
-                 cry_proc(j)=proc_pne
-               elseif (PROC(1:3).eq.'ppe')then
-                 bool_proc(j)=proc_ppe
-                 cry_proc(j)=proc_ppe
-               elseif (PROC(1:4).eq.'diff')then
-                 bool_proc(j)=proc_diff
-                 cry_proc(j)=proc_diff
-               elseif (PROC(1:4).eq.'ruth')then
-                 bool_proc(j)=proc_ruth
-                 cry_proc(j)=proc_ruth
-               elseif (PROC(1:11).eq.'ch_absorbed') then
-                 bool_proc(j)=proc_ch_absorbed
-                 cry_proc(j)=proc_ch_absorbed
-                 NABS=1
-               elseif (PROC(1:6).eq.'ch_pne')then
-                 bool_proc(j)=proc_ch_pne
-                 cry_proc(j)=proc_ch_pne
-               elseif (PROC(1:6).eq.'ch_ppe')then
-                 bool_proc(j)=proc_ch_ppe
-                 cry_proc(j)=proc_ch_ppe
-               elseif (PROC(1:7).eq.'ch_diff')then
-                 bool_proc(j)=proc_ch_diff
-                 cry_proc(j)=proc_ch_diff
-               elseif (PROC(1:7).eq.'ch_ruth')then
-                 bool_proc(j)=proc_ch_ruth
-                 cry_proc(j)=proc_ch_ruth
-               elseif (PROC(1:4).eq.'TRVR')then
-                 bool_proc(j)=proc_TRVR
-                 cry_proc(j)=proc_TRVR
-               elseif (PROC(1:4).eq.'TRAM')then
-                 bool_proc(j)=proc_TRAM
-                 cry_proc(j)=proc_TRAM
-               else
-                write(*,*)'???????????????????',PROC(1:2)
-                stop
-
-               endif
+              bool_proc(j)=iProc
+              cry_proc(j)=iProc
+              if(iProc == proc_AM) then
+                n_amorphous = n_amorphous + 1
+              else if(iProc == proc_VR) then
+                n_VR = n_VR + 1
+              else if(iProc == proc_CH) then
+                n_chan = n_Chan + 1
+              else if(iProc == proc_absorbed) then
+                nabs = 1
+              else if(iProc == proc_ch_absorbed) then
+                nabs = 1
+              end if
 
 ! ---------------------END DANIELE--------------
 
@@ -961,7 +908,7 @@ end module coll_crystal
 ! valentina First impact file
 !
 !                write(9999,*) "dowrite impact value", dowrite_impact
-             if(flagsec(j).eq.0 .and. PROC(1:3) .ne. 'out') then
+             if(flagsec(j).eq.0 .and. iProc /= proc_out) then
                flagsec(j)=1
                if (dowrite_impact) then
                write(39,'(i5,1x,i7,1x,i2,1x,i1,2(1x,f7.6),8(1x,e17.9))') &
@@ -1128,7 +1075,6 @@ end module coll_crystal
       IF (y.LT.ymin .or. y.GT.ymax .or. x.gt.C_xmax) THEN
         x = x+xp*s_length
         y = y+yp*s_length
-        PROC='out'
         iProc = proc_out
         GOTO 111
 ! SECOND CASE: p hits the amorphous layer
@@ -1157,7 +1103,6 @@ end module coll_crystal
         s=s/2
         x=x0+xp*s
         y=y0+yp*s
-        PROC='AM'
         iProc = proc_AM
         CALL CALC_ION_LOSS_CRY(IS,is2,PC,AM_Length,DESt)
         CALL MOVE_AM_(IS,is2,NAM,Am_Length,DESt,DLYi(IS2),dlri(is2),xp,yp,PC)
@@ -1165,7 +1110,6 @@ end module coll_crystal
         y=y+yp*(s_length-s)
         GOTO 111
       ELSEIF ((x.GT.(C_xmax-Alayer)) .and. x.LT.(C_xmax)  ) THEN
-        PROC='AM'
         iProc = proc_AM
         CALL CALC_ION_LOSS_CRY(IS,is2,PC,s_length,DESt)
         CALL MOVE_AM_(IS,is2,NAM,s_length,DESt,DLYi(IS2),DLRi(IS2), xp,yp,PC)
@@ -1281,7 +1225,6 @@ end module coll_crystal
                      ! careful: the dechanneling lentgh is along the trajectory
                      ! of the particle -not along the longitudinal coordinate...
           if(Ldech .LT. L_chan) THEN
-           PROC='DC'                  !
             iProc = proc_DC
             Dxp= Ldech/Rcurv             ! change angle from channeling [mrad]
             Sdech=Ldech*cos(miscut+0.5*Dxp)
@@ -1304,7 +1247,6 @@ end module coll_crystal
             x = x + 0.5*(s_length-Sdech)*xp
             y = y + 0.5*(s_length-Sdech)*yp
           else
-            PROC='CH'
             iProc = proc_CH
             xpin=XP
             ypin=YP
@@ -1314,7 +1256,7 @@ end module coll_crystal
 !            write(*,*) "angles after exiting CH subroutine (x,y):", xp, yp
 !            stop
 
-            if(PROC(1:2).ne.'CH')then             !daniele: if an nuclear interaction happened, move until the middle with initial xp,yp
+            if(iProc /= proc_CH) then             !daniele: if an nuclear interaction happened, move until the middle with initial xp,yp
             x = x + 0.5 * L_chan * xpin           !then propagate until the "crystal exit" with the new xp,yp
             y = y + 0.5 * L_chan * ypin           !accordingly with the rest of the code in "thin lens approx"
             x = x + 0.5 * L_chan * XP
@@ -1336,7 +1278,6 @@ end module coll_crystal
         ELSE                                   !option 2: VR
                                                ! good for channeling
                                                ! but don't channel         (1-2)
-          PROC='VR'                            !volume reflection at the surface
           iProc = proc_VR
 !          Dxp=0.5*(xp_rel/xpcrit+1)*Ang_avr
 !          xp=xp+Dxp+Ang_rms*RAN_GAUSS(1.)
@@ -1358,7 +1299,6 @@ end module coll_crystal
                 ! VR point inside
                 !2 options: volume capture and volume reflection
           IF (rndm4() .gt. Vcapt .or. ZN .eq. 0.) THEN   !opt. 1: VR
-           PROC='VR'
             iProc = proc_VR
             x = x + xp * Srefl
             y = y + yp * Srefl
@@ -1385,7 +1325,6 @@ end module coll_crystal
             tdech=Ldech/Rcurv
             Sdech=Ldech*cos(xp+0.5*tdech)
             IF(Ldech .LT. (Length-Lrefl)) then
-              PROC='DC'
               iProc = proc_DC
               Dxp= Ldech/Rcurv + 0.5*ran_gauss(1.0d0)*xpcrit
               x  = x+ Ldech*(sin(0.5*Dxp+xp))   ! trajectory at channeling exit
@@ -1405,7 +1344,6 @@ end module coll_crystal
               x = x + 0.5 * xp * Red_S
               y = y + 0.5 * yp * Red_S
             else
-              PROC='VC'
               iProc = proc_VC
               Rlength = Length-Lrefl
               tchan = Rlength / Rcurv
@@ -1417,7 +1355,7 @@ end module coll_crystal
               ypin=YP
               CALL MOVE_CH_(IS,is2,NAM,Rlength,X,XP,YP,PC,Rcurv,Rcrit)  !daniele:check if a nuclear interaction happen while in CH
 
-              if(PROC(1:2).ne.'VC')then             !daniele: if an nuclear interaction happened, move until the middle with initial xp,yp
+              if(iProc /= proc_VC) then             !daniele: if an nuclear interaction happened, move until the middle with initial xp,yp
               x = x + 0.5 * Rlength * xpin           !then propagate until the "crystal exit" with the new xp,yp
               y = y + 0.5 * Rlength * ypin           !accordingly with the rest of the code in "thin lens approx"
               x = x + 0.5 * Rlength * XP
@@ -1441,7 +1379,6 @@ end module coll_crystal
 !.  case 3-3: move in amorphous substance (big input angles)---------------  MODIFIED FOR TRANSITION VRAM DANIELE
         else
            if(xp_rel .GT. L_chan/Rcurv+2.0*xpcrit .or. xp_rel .lt. -xpcrit) then
-             PROC='AM'
              iProc = proc_AM
              x = x + 0.5 * s_length * xp
              y = y + 0.5 * s_length * yp
@@ -1456,7 +1393,6 @@ end module coll_crystal
 !            Pvr=0.2+(0.6/(2.0*xpcrit))*(xp_rel-(L_chan/Rcurv))
             Pvr=((xp_rel-(L_chan/Rcurv))/(2.0*xpcrit))
             if(rndm4() .gt. Pvr) then
-            PROC='TRVR'
             iProc = proc_TRVR
             x = x + xp * Srefl
             y = y + yp * Srefl
@@ -1475,7 +1411,6 @@ end module coll_crystal
             x = x + 0.5 * xp * (s_length - Srefl)
             y = y + 0.5 * yp * (s_length - Srefl)
             else
-            PROC='TRAM'
             iProc = proc_TRAM
             x = x + xp * Srefl
             y = y + yp * Srefl
@@ -1742,27 +1677,23 @@ end module coll_crystal
 
       t = 0 ! default value to cover ichoix=1
 
-      if (ichoix.eq.1) then
+      if (ichoix.eq.1) then !deep inelastic, impinging p disappeared
 
-        PROC = 'absorbed'            !deep inelastic, impinging p disappeared
         iProc = proc_absorbed
 
       endif
 
       if (ichoix.eq.2) then          ! p-n elastic
-        PROC = 'pne'
         iProc = proc_pne
         t = -log(dble(rndm4()))/bn(IS)
       endif
 
       if ( ichoix .eq. 3 ) then   !p-p elastic
-        PROC='ppe'
         iProc = proc_ppe
         t = -log(dble(rndm4()))/bpp
       endif
 
       if ( ichoix .eq. 4 ) then   !single diffractive
-        PROC='diff'
         iProc = proc_diff
         xm2 = exp( dble(rndm4()) * xln15s )
         PC = PC  *(1.d0 - xm2/ecmsq)
@@ -1777,7 +1708,6 @@ end module coll_crystal
       endif
 
       if ( ichoix .eq. 5 ) then
-        PROC='ruth'
         iProc = proc_ruth
            length_cry=1
            call funlux( cgen_cry(1,IS) ,xran_cry,length_cry)
@@ -2147,15 +2077,13 @@ end module coll_crystal
 
 !      ichoix=3
 
-      if (ichoix.eq.1) then
+      if (ichoix.eq.1) then  !deep inelastic, impinging p disappeared
 
-        PROC = 'ch_absorbed'            !deep inelastic, impinging p disappeared
         iProc = proc_ch_absorbed
 
       endif
 
       if (ichoix.eq.2) then          ! p-n elastic
-        PROC = 'ch_pne'
         iProc = proc_ch_pne
 !        write(*,*) "bn(IS)"
         bn(IS) = bnref(is2) * cs(0,IS) / csref_tot_rsc
@@ -2163,13 +2091,11 @@ end module coll_crystal
       endif
 
       if ( ichoix .eq. 3 ) then   !p-p elastic
-        PROC='ch_ppe'
         iProc = proc_ch_ppe
         t = -log(dble(rndm4()))/bpp
       endif
 
       if ( ichoix .eq. 4 ) then   !single diffractive
-        PROC='ch_diff'
         iProc = proc_ch_diff
         xm2 = exp( dble(rndm4()) * xln15s )
         PC = PC  *(1.d0 - xm2/ecmsq)
@@ -2184,7 +2110,6 @@ end module coll_crystal
       endif
 
       if ( ichoix .eq. 5 ) then
-        PROC='ch_ruth'
         iProc = proc_ch_ruth
            length_cry=1
            call funlux( cgen_cry(1,IS) ,xran_cry,length_cry)
