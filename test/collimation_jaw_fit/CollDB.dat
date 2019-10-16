@@ -1,28 +1,25 @@
-# Automatically converted collimator DB from old format file 'CollDB.data'
 # Families
-NSIG_FAM tcp3                 15.000000
-NSIG_FAM tcsg3                18.000000
-NSIG_FAM tcsm3                18.000000
-NSIG_FAM tcla3                20.000000
-NSIG_FAM tcp7                  5.700000
-NSIG_FAM tcsg7                 7.700000
-NSIG_FAM tcsm7                 7.700000
-NSIG_FAM tcla7                10.000000
-NSIG_FAM tclp                 12.000000
-NSIG_FAM tcli                999.000000
-NSIG_FAM tcdq                  9.000000
-NSIG_FAM tcstcdq               8.500000
-NSIG_FAM tdi                 999.000000
-NSIG_FAM tcth1                10.500000
-NSIG_FAM tcth2                30.000000
-NSIG_FAM tcth5                10.500000
-NSIG_FAM tcth8                30.000000
-NSIG_FAM tctv1                10.500000
-NSIG_FAM tctv2                30.000000
-NSIG_FAM tctv5                10.500000
-NSIG_FAM tctv8                30.000000
-NSIG_FAM tcxrp                 0.000000
-NSIG_FAM tcryo                 0.000000
+NSIG_FAM tcp3                 15.000000 PRIMARY
+NSIG_FAM tcsg3                18.000000 SECONDARY
+NSIG_FAM tcla3                20.000000 TERTIARY
+NSIG_FAM tcp7                  5.700000 PRIMARY
+NSIG_FAM tcsg7                 7.700000 SECONDARY
+NSIG_FAM tcla7                10.000000 TERTIARY
+NSIG_FAM tclp                 12.000000 TERTIARY
+NSIG_FAM tcli                999.000000 TERTIARY
+NSIG_FAM tcdq                  9.000000 TERTIARY
+NSIG_FAM tcstcdq               8.500000 SECONDARY
+NSIG_FAM tdi                 999.000000 TERTIARY
+NSIG_FAM tcth1                10.500000 TERTIARY
+NSIG_FAM tcth2                30.000000 TERTIARY
+NSIG_FAM tcth5                10.500000 TERTIARY
+NSIG_FAM tcth8                30.000000 TERTIARY
+NSIG_FAM tctv1                10.500000 TERTIARY
+NSIG_FAM tctv2                30.000000 TERTIARY
+NSIG_FAM tctv5                10.500000 TERTIARY
+NSIG_FAM tctv8                30.000000 TERTIARY
+NSIG_FAM tcryo                 0.000000 TERTIARY
+
 # Collimators
 # name                                                    opening mat.     length[m]    angle[deg]     offset[m]     beta_x[m]     beta_y[m]
 tcl.4r1.b1                                                   tclp W         1.000000      0.000000      0.000000    385.651795   1074.721725

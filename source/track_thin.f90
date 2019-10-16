@@ -664,7 +664,7 @@ subroutine thin6d(nthinerr)
       ! should be faster/safer to first check the turn then do the name search
       if( iturn.eq.1 ) then
         if (bez(myix)(1:5).eq.'PRESS' .or.  bez(myix)(1:5).eq.'press' ) then
-          call beamGas(myix,secondary,dcum(i),myenom)
+          call beamGas(myix,nhit_type,dcum(i),myenom)
         end if
       end if
 #endif
@@ -724,8 +724,8 @@ subroutine thin6d(nthinerr)
       ! The below splitting of if-statements is needed to prevent out of bounds error
       ! when building with gfortran/debug
       is_coll = .false.
-      if(do_coll) then
-        if(cdb_elemMap(myix) > 0) then
+      if(do_coll .and. ix > 0) then
+        if(cdb_elemMap(ix) > 0) then
           is_coll = .true.
         end if
       end if
