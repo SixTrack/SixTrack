@@ -2421,7 +2421,7 @@ subroutine collimate_do_collimator(stracki)
     end if
     if (dowrite_crycoord) then
     end if
-    call collimate_cry(icoll, iturn, ie, " ", cdb_cMaterial(icoll), c_length, c_rotation, c_aperture, c_offset, &
+    call collimate_cry(icoll, iturn, ie, c_length, c_rotation, c_aperture, c_offset, &
       c_tilt, rcx, rcxp, rcy, rcyp, rcp, rcs, napx, enom_gev, part_hit_pos, part_hit_turn, part_abs_pos,&
       part_abs_turn, part_impact, part_indiv, part_linteract, 0, 0, 0, 0, 0, 0, partID, partID,&
       dowrite_impact, npart, cry_tilt, c_length)
