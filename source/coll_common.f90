@@ -11,6 +11,7 @@ module coll_common
   integer, parameter :: max_ncoll  = 100
 
   ! Logical Flags
+  logical, save :: coll_debug        = .true.
   logical, save :: dowrite_impact    = .false.
   logical, save :: dowrite_dist      = .false.
   logical, save :: dowrite_secondary = .false.
