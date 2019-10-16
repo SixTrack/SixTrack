@@ -945,505 +945,413 @@ end module coll_crystal
       end
 
 
-!.**************************************************************************
-!     SUBROUTINE FOR THE MOVEMENTS OF THE PARTICLES IN THE CRYSTAL
-!.**************************************************************************
-      SUBROUTINE CRYST(IS,is2,x,xp,y,yp,PC,Length,j)
+! ================================================================================================ !
+!  Subroutine for the movements of the particles in the crystal
+!  Simple tranport protons in crystal 2
+!   J         - number of element
+!   S         - longitudinal coordinate
+!   IS        - number of substance 1-4: Si,W,C,Ge(110)
+!   x,xp,y,yp - coordinates at input of crystal
+!   PC        - momentum of particle*c [GeV]
+!   W         - weigth of particle
+! ================================================================================================ !
+subroutine cryst(is,is2,x,xp,y,yp,pc,length,j)
 
-      use mod_ranlux
-      use mod_funlux
-      use mod_common_main
-      use floatPrecision
-      use coll_crystal
-      use coll_materials, only : zatom, exenergy, rho, anuc
+  use mod_ranlux
+  use mod_funlux
+  use mod_common_main
+  use floatPrecision
+  use coll_crystal
+  use coll_materials, only : zatom, exenergy, rho, anuc
 
-!     Simple tranport protons in crystal 2
-!-----------------------------------------------------------C
-!      J -   number of element                              C
-!      S - longitudinal coordinate
-!      IS -   number of substance 1-4: Si,W,C,Ge(110)       C
-!      x,xp,y,yp - coordinates at input of crystal          C
-!      PC -   momentum of particle*c [GeV]                  C
-!      W  -   weigth of particle                            C
-!-----------------------------------------------------------C
-!
-!
-      IMPLICIT none
-!
-!
-      real(kind=fPrec) Length !crystal geometrical parameters
-                                                  ! [m],[m],[m],[m],[rad]
-      real(kind=fPrec) ymax,ymin       !crystal geometrical parameters
-      real(kind=fPrec) s_length             !element length along s
-      integer IS,j,is2                            !index of the material
-!      integer counter
-      real(kind=fPrec) DESt                  ! Daniele: changed energy loss by ionization now calculated and not tabulated
-      integer NAM,ZN                        !switch on/off the nuclear
-                                            !interaction (NAM) and the MCS (ZN)
-      real(kind=fPrec) x,xp,y,yp,PC         !coordinates of the particle
-                                            ![m],[rad],[m],[rad],[GeV]
-      real(kind=fPrec) x0,y0                !coordinates of the particle [m]
-      real(kind=fPrec) s                    !long coordinates of the particle [m]
-      real(kind=fPrec) a_eq,b_eq,c_eq,Delta !second order equation param.
-      real(kind=fPrec) Ang_rms, Ang_avr     !Volume reflection mean angle [rad]
-      real(kind=fPrec) c_v1                 !fitting coefficient
-      real(kind=fPrec) c_v2                 !fitting coefficient
-      real(kind=fPrec) Dechan               !probability for dechanneling
-      real(kind=fPrec) Lrefl, Srefl         !distance of the reflection point [m]
-      real(kind=fPrec) Vcapt                !volume capture probability
-      real(kind=fPrec) Chann                !channeling probability
-      real(kind=fPrec) N_atom               !probability for entering
-                                            !channeling near atomic planes
-      real(kind=fPrec) Dxp                  !variation in angle
-      real(kind=fPrec) xpcrit               !critical angle for curved crystal[rad]
-      real(kind=fPrec) xpcrit0              !critical angle for str. crystal [rad]
-      real(kind=fPrec) Rcrit                !critical curvature radius [m]
-      real(kind=fPrec) ratio                !x=Rcurv/Rcrit
-      real(kind=fPrec) Cry_length
-      real(kind=fPrec) TLdech2              !tipical dechanneling length(1) [m]
-      real(kind=fPrec) TLdech1              !tipical dechanneling length(2) [m]
-      real(kind=fPrec) tdech, Ldech,Sdech   !angle, lenght, and S coordinate
-                                            !of dechanneling point
-      real(kind=fPrec) Rlength, Red_S       !reduced length/s coordinate
-                                            !(in case of dechanneling)
-      real(kind=fPrec) Am_length            !Amorphous length
-      real(kind=fPrec) Length_xs, Length_ys !Amorphous length
-      real(kind=fPrec) L_chan, tchan
-      real(kind=fPrec) xp_rel               !xp-miscut angle in mrad
+  implicit none
 
-      real(kind=fPrec) const_dech,xpin,ypin
-      real(kind=fPrec) alpha !Daniele: par for new chann prob
-      real(kind=fPrec) Pvr !Daniele: prob for VR->AM transition
+  integer,          intent(in)    :: is
+  integer,          intent(in)    :: is2
+  real(kind=fPrec), intent(inout) :: x
+  real(kind=fPrec), intent(inout) :: xp
+  real(kind=fPrec), intent(inout) :: y
+  real(kind=fPrec), intent(inout) :: yp
+  real(kind=fPrec), intent(inout) :: pc
+  real(kind=fPrec), intent(in)    :: length
+  integer,          intent(in)    :: j
 
-!
-!
-      NAM=1 !switch on/off the nuclear interaction (NAM) and the MCS (ZN)
-      ZN=1
+  integer nam,zn                        ! Switch on/off the nuclear interaction (NAM) and the MCS (ZN)
+  real(kind=fPrec) ymax,ymin            ! Crystal geometrical parameters
+  real(kind=fPrec) s_length             ! Element length along s
+  real(kind=fPrec) DESt                 ! Changed energy loss by ionization now calculated and not tabulated
+  real(kind=fPrec) x0,y0                ! Coordinates of the particle [m]
+  real(kind=fPrec) s                    ! Long coordinates of the particle [m]
+  real(kind=fPrec) a_eq,b_eq,c_eq,Delta ! Second order equation param.
+  real(kind=fPrec) Ang_rms, Ang_avr     ! Volume reflection mean angle [rad]
+  real(kind=fPrec) c_v1                 ! Fitting coefficient
+  real(kind=fPrec) c_v2                 ! Fitting coefficient
+  real(kind=fPrec) Dechan               ! Probability for dechanneling
+  real(kind=fPrec) Lrefl, Srefl         ! Distance of the reflection point [m]
+  real(kind=fPrec) Vcapt                ! Volume capture probability
+  real(kind=fPrec) Chann                ! Channeling probability
+  real(kind=fPrec) N_atom               ! Probability for entering channeling near atomic planes
+  real(kind=fPrec) Dxp                  ! Variation in angle
+  real(kind=fPrec) xpcrit               ! Critical angle for curved crystal[rad]
+  real(kind=fPrec) xpcrit0              ! Critical angle for str. crystal [rad]
+  real(kind=fPrec) Rcrit                ! Critical curvature radius [m]
+  real(kind=fPrec) ratio                ! X=Rcurv/Rcrit
+  real(kind=fPrec) TLdech2              ! Tipical dechanneling length(1) [m]
+  real(kind=fPrec) TLdech1              ! Tipical dechanneling length(2) [m]
+  real(kind=fPrec) tdech, Ldech,Sdech   ! Angle, lenght, and S coordinate of dechanneling point
+  real(kind=fPrec) Rlength, Red_S       ! Reduced length/s coordinate (in case of dechanneling)
+  real(kind=fPrec) Am_length            ! Amorphous length
+  real(kind=fPrec) Length_xs, Length_ys ! Amorphous length
+  real(kind=fPrec) xp_rel               ! Xp-miscut angle in mrad
+  real(kind=fPrec) alpha                ! Par for new chann prob
+  real(kind=fPrec) Pvr                  ! Prob for VR->AM transition
 
-!-------------Daniele: dE/dX and dechanneling length calculation--------------------
+  real(kind=fPrec) const_dech,xpin,ypin,tchan,L_chan
 
+  nam = 1 ! Switch on/off the nuclear interaction (NAM) and the MCS (ZN)
+  zn  = 1
 
-!      write(*,*) "p entering routine", PC
-      mom=PC*1.0d3 ! [GeV/c] -> [MeV/c]
-      enr=(mom*mom+mp*mp)**0.5 ! [MeV]
-      gammar=enr/mp
-      betar=mom/enr
-      bgr=betar*gammar
+  ! dE/dX and dechanneling length calculation
+  mom    = pc*c1e3               ! [GeV]
+  enr    = (mom*mom+mp*mp)**half ! [MeV]
+  gammar = enr/mp
+  betar  = mom/enr
+  bgr    = betar*gammar
 
-      Tmax=(2.0d0*me*bgr**2)/(1.0d0+2*gammar*me/mp+(me/mp)**2) ![MeV]
+  tmax = (two*me*bgr**2)/(one + two*gammar*me/mp+(me/mp)**2)     ! [MeV]
+  plen = ((rho(is2)*zatom(is2)/anuc(is2))**half)*28.816e-6_fPrec ! [MeV]
 
-      plen=((rho(is2)*zatom(is2)/anuc(is2))**0.5)*28.816d-6 ![MeV]
+  const_dech = (256.0/(9.0*pi**2))* &
+    (one/(log(two*me*gammar/(exenergy(is2)*c1e3))-one))*((aTF*dP)/(re*me)) ! [m/MeV]
+  const_dech = const_dech*c1e3 ! [m/GeV]
 
-      const_dech=(256.0/(9.0*(4.D0*DATAN(1.D0))**2))* &
-     & (1.0/(log(2.0*me*gammar/(exenergy(is2)*c1e3))-1.0))*((aTF*dP)/(re*me))  ![m/MeV]
+  s        = 0
+  s_length = Rcurv*(sin(length/Rcurv))
+  L_chan   = length
 
-      const_dech=const_dech*1.0d3    ![m/GeV]
+  if(miscut < zero .and. x > zero .and. x < -length*tan(miscut)) then
+    L_chan = -x/sin(miscut)
+  end if
 
-!      write(*,*)DESt, const_dech
+  tchan   = L_chan/Rcurv
+  xp_rel = xp-miscut
 
-!----------------------------------------------------------
+  ymin = -C_ymax/two
+  ymax =  C_ymax/two
 
+  ! FIRST CASE: p don't interact with crystal
+  if(y < ymin .or. y > ymax .or. x > c_xmax) then
+    x     = x + xp*s_length
+    y     = y + yp*s_length
+    iProc = proc_out
+    return
 
-!      miscut=0.001000
-!
-!      write(*,*)"last miscut angle =",miscut
-!      write(*,*) 'enter crystal subroutine'
-!      write(*,*) 'particle energy Gev :', PC
-!      write(*,*) 'x_initial :', x
-!      write(*,*) 'Length [m]:', Length
-!      write(*,*) 'Random:', rndm4()
-!      write(*,*)'xp',xp,'x',x , 's', s
-!      DESt = 0
-      s=0
-!      write(*,*) "s_length", Rcurv, length
-      s_length=Rcurv*(sin(length/Rcurv)) !
-      L_chan=length
+  ! SECOND CASE: p hits the amorphous layer
+  else if(x < alayer .or. y-ymin < alayer .or. ymax-y < alayer) then
+    x0    = x
+    y0    = y
+    a_eq  = one + xp**2
+    b_eq  = two*x*xp - two*xp*Rcurv
+    c_eq  = x**2 - two*x*Rcurv
+    Delta = b_eq**2 - four*a_eq*c_eq
+    s     = (-b_eq+sqrt(Delta))/(two*a_eq)
+    if(s >= s_length) then
+      s = s_length
+    end if
+    x         =  xp*s + x0
+    Length_xs = sqrt((x-x0)**2 + s**2)
+    if(yp >= zero .and. y + yp*s <= ymax) then
+      Length_ys = yp*Length_xs
+    else if(yp < zero .and. y + yp*s >= ymin) then
+      Length_ys = yp*Length_xs
+    else
+      s         = (ymax-y)/yp
+      Length_ys = sqrt((ymax-y)**2 + s**2)
+      x         = x0 + xp*s
+      Length_xs = sqrt((x-x0)**2 + s**2)
+    end if
+    Am_length = sqrt(Length_xs**2 + Length_ys**2)
+    s     = s/two
+    x     = x0 + xp*s
+    y     = y0 + yp*s
+    iProc = proc_AM
+    call calc_ion_loss_cry(is,is2,pc,am_length,dest)
+    call move_am(is,is2,nam,am_length,dest,dlyi(is2),dlri(is2),xp,yp,pc)
+    x = x + xp*(s_length-s)
+    y = y + yp*(s_length-s)
+    return
 
-      if ( miscut .lt. 0 &
-     &     .and. x .gt. 0 & !should be useless
-     &     .and. x .lt. -length*tan(miscut)) then
-            L_chan=-x/sin(miscut)
-      endif
-      tchan=L_chan/Rcurv
-      xp_rel=xp-miscut
-!  FIRST CASE: p don't interact with crystal
-      ymin = - C_ymax/2
-      ymax =  C_ymax/2
-      IF (y.LT.ymin .or. y.GT.ymax .or. x.gt.C_xmax) THEN
-        x = x+xp*s_length
-        y = y+yp*s_length
-        iProc = proc_out
-        GOTO 111
-! SECOND CASE: p hits the amorphous layer
-      ELSEIF ( (x.LT.Alayer) .or.  ((y-ymin).LT.Alayer) .or. ((ymax-y).lt.Alayer)  ) THEN
-        x0=x
-        y0=y
-        a_eq=(1+(xp)**2)
-        b_eq=(2*(x)*(xp)-2*(xp)*Rcurv)
-        c_eq=(x)**2-2*(x)*Rcurv
-        Delta=b_eq**2-4*a_eq*c_eq
-        s=((-b_eq+sqrt(Delta))/(2*a_eq))
-        if (s .ge. s_length) s=s_length
-        x=(xp)*s+x0
-        Length_xs=sqrt((x-x0)**2+s**2)
-        if ( (yp .ge.0 .and. (y+yp*s).le.ymax)) then
-          Length_ys = yp*Length_xs
-        elseif (yp.lt.0 .and. (y+yp*s).ge. ymin) then
-          Length_ys = yp*Length_xs
+  elseif ((x.gt.(c_xmax-alayer)) .and. x.lt.(c_xmax)  ) then
+    iProc = proc_AM
+    call calc_ion_loss_cry(is,is2,pc,s_length,dest)
+    call move_am(is,is2,nam,s_length,dest,dlyi(is2),dlri(is2), xp,yp,pc)
+    return
+
+  end if
+
+  ! THIRD CASE: the p interacts with the crystal.
+  ! Define typical angles/probabilities for orientation 110
+  xpcrit0 = (2.0e-9*eUm(is2)/pc)**half   ! Critical angle (rad) for straight crystals
+  Rcrit   = pc/(2.0e-6*eum(is2))*ai(is2) ! Critical curvature radius [m]
+
+  ! If R>Rcritical=>no channeling is possible (ratio<1)
+  ratio  = Rcurv/Rcrit
+  xpcrit = xpcrit0*(Rcurv-Rcrit)/Rcurv ! Critical angle for curved crystal
+
+  c_v1 =  1.7 ! Fitting coefficient ???
+  c_v2 = -1.5 ! Fitting coefficient ???
+
+  if(ratio <= one) then ! no possibile channeling
+    Ang_rms = c_v1*0.42*xpcrit0*sin(1.4*ratio)  ! rms scattering
+    Ang_avr = c_v2*xpcrit0*0.05*ratio           ! average angle reflection
+    Vcapt   = zero                              ! probability of VC
+
+  else if(ratio <= three) then ! Strongly bent xstal
+    Ang_rms = c_v1*0.42*xpcrit0*sin(1.571*0.3*ratio+0.85) ! rms scattering
+    Ang_avr = c_v2*xpcrit0*(0.1972*ratio-0.1472)          ! avg angle reflection
+    Vcapt   = 0.0007*(ratio-0.7)/PC**0.2                  ! correction by sasha drozdin/armen
+    ! K=0.00070 is taken based on simulations using CATCH.f (V.Biryukov)
+
+  else ! Rcry >> Rcrit
+    Ang_rms = c_v1*xpcrit0*(1./ratio)        ! rms scattering
+    Ang_avr = c_v2*xpcrit0*(1.-1.6667/ratio) ! average angle for VR
+    Vcapt   = 0.0007*(ratio-0.7)/PC**0.2     ! probability for VC correction by sasha drozdin/armen
+    ! K=0.0007 is taken based on simulations using CATCH.f (V.Biryukov)
+
+  end if
+
+  if(C_orient == 2) then
+    Ang_avr = Ang_avr * 0.93
+    Ang_rms = Ang_rms * 1.05
+    xpcrit  = xpcrit * 0.98
+  end if
+
+  if(abs(xp_rel) < xpcrit) then
+    alpha  = xp_rel/xpcrit
+    Chann  = ((0.9-alpha*alpha*0.9)**half)*(one-(one/ratio))**half ! Saturation at 95%
+    N_atom = 0.1
+
+    ! if they can channel: 2 options
+    if(rndm4() <= chann) then ! option 1:channeling
+
+      TLdech1 = const_dech*PC*(one-one/ratio)**2 ! Updated calculate typical dech. length(m)
+      if(rndm4() <= n_atom) then
+        TLdech1 = (const_dech/200.d0)*PC*(one-one/ratio)**2  ! Updated dechanneling length (m)
+      end if
+
+      Dechan = -log(rndm4())  ! probability of dechanneling
+      Ldech  = TLdech1*Dechan ! actual dechan. length
+
+      ! careful: the dechanneling lentgh is along the trajectory
+      ! of the particle -not along the longitudinal coordinate...
+      if(ldech < l_chan) then
+        iProc = proc_DC
+        Dxp   = Ldech/Rcurv ! change angle from channeling [mrad]
+        Sdech = Ldech*cos(miscut + half*Dxp)
+        x     = x + Ldech*(sin(half*Dxp+miscut)) ! trajectory at channeling exit
+        xp    = xp + Dxp + two*(rndm4()-half)*xpcrit
+        y     = y + yp * Sdech
+
+        call calc_ion_loss_cry(is,is2,pc,ldech,dest)
+        pc = pc - half*dest*Ldech ! energy loss to ionization while in CH [GeV]
+        x  = x  + half*(s_length-Sdech)*xp
+        y  = y  + half*(s_length-Sdech)*yp
+
+        call calc_ion_loss_cry(is,is2,pc,s_length-sdech,dest)
+        call move_am(is,is2,nam,s_length-sdech,dest,dlyi(is2),dlri(is2),xp,yp,pc)
+        x = x + half*(s_length-Sdech)*xp
+        y = y + half*(s_length-Sdech)*yp
+      else
+        iProc = proc_CH
+        xpin  = XP
+        ypin  = YP
+
+        call move_ch(is,is2,nam,l_chan,x,xp,yp,pc,rcurv,rcrit) ! check if a nuclear interaction happen while in CH
+        if(iProc /= proc_CH) then
+          ! if an nuclear interaction happened, move until the middle with initial xp,yp then
+          ! propagate until the "crystal exit" with the new xp,yp accordingly with the rest
+          ! of the code in "thin lens approx"
+          x = x + half*L_chan*xpin
+          y = y + half*L_chan*ypin
+          x = x + half*L_chan*XP
+          y = y + half*L_chan*YP
+
+          call calc_ion_loss_cry(is,is2,pc,length,dest)
+          pc = pc - dest*length ! energy loss to ionization [GeV]
         else
-          s=(ymax-y)/yp
-          Length_ys = sqrt((ymax-y)**2+s**2)
-          x=x0+xp*s
-          Length_xs=sqrt((x-x0)**2+s**2)
-        endif
-        Am_length   = sqrt(Length_xs**2+Length_ys**2)
-        s=s/2
-        x=x0+xp*s
-        y=y0+yp*s
-        iProc = proc_AM
-        CALL CALC_ION_LOSS_CRY(IS,is2,PC,AM_Length,DESt)
-        CALL move_am(IS,is2,NAM,Am_Length,DESt,DLYi(IS2),dlri(is2),xp,yp,PC)
-        x=x+xp*(s_length-s)
-        y=y+yp*(s_length-s)
-        GOTO 111
-      ELSEIF ((x.GT.(C_xmax-Alayer)) .and. x.LT.(C_xmax)  ) THEN
-        iProc = proc_AM
-        CALL CALC_ION_LOSS_CRY(IS,is2,PC,s_length,DESt)
-        CALL move_am(IS,is2,NAM,s_length,DESt,DLYi(IS2),DLRi(IS2), xp,yp,PC)
-        WRITE(*,*)'Fix here!'
-        GOTO 111
-      END IF
-!
-! THIRD CASE: the p interacts with the crystal.
-!. Define typical angles/probabilities for orientation 110
-!
-      xpcrit0 = (2.e-9*eUm(IS2)/PC)**0.5       ! critical angle (rad) for
-                                              ! straight crystals
-      Rcrit  = PC/(2.e-6*eUm(IS2))*AI(IS2)      ! critical curvature radius [m]
-                                              ! if R>Rcritical=>no channeling is
-                                              ! possible (ratio<1)
-      ratio = Rcurv/Rcrit                     ! parameter Rcry/Rcritical
-!      write(*,*) "Critical Radius: ",Rcrit
-      xpcrit = xpcrit0*(Rcurv-Rcrit)/Rcurv    ! critical angle for curved crystal
-!----------------valentina approx-----------
-!      xpcrit = xpcrit0*(1-(Rcrit/Rcurv))**0.5
-!      write(*,*)(Rcurv-Rcrit)/Rcurv,(1-(Rcrit/Rcurv))**0.5
+          Dxp = L_chan/Rcurv + half*ran_gauss(one)*xpcrit ! change angle[rad]
+          xp  = Dxp
+          x   = x+ L_chan*(sin(half*Dxp+miscut)) ! trajectory at channeling exit
+          y   = y + s_length * yp
 
-                                              ! NB: if ratio<1 => xpcrit<0
-      c_v1 = 1.7                              ! fitting coefficient ??!
-      c_v2 = -1.5                             ! fitting coefficient ???
-      if (ratio .le. 1.) then                 ! case 1:no possibile channeling
-        Ang_rms = c_v1*0.42*xpcrit0*sin(1.4*ratio)  ! rms scattering
-        Ang_avr = c_v2*xpcrit0*0.05*ratio           ! average angle reflection
-        Vcapt = 0.0                                 ! probability of VC
-        elseif (ratio .le. 3) then              ! case 2: strongly bent xstal
-          Ang_rms = c_v1*0.42*xpcrit0*sin(1.571*0.3*ratio+0.85)! rms scattering
-          Ang_avr = c_v2*xpcrit0*(0.1972*ratio-0.1472)  ! avg angle reflection
-!          Vcapt   = 0.01*(ratio-0.7)/(PC**2)
-          Vcapt   = 0.0007*(ratio-0.7)/PC**0.2 !correction by sasha drozdin/armen
-          !K=0.00070 is taken based on simulations using CATCH.f (V.Biryukov)
-        else                                       ! case 3: Rcry >> Rcrit
-          Ang_rms = c_v1*xpcrit0*(1./ratio)        !
-          Ang_avr = c_v2*xpcrit0*(1.-1.6667/ratio) ! average angle for VR
-!          Vcapt = 0.01*(ratio-0.7)/(PC**2)        ! probability for VC
-          Vcapt = 0.0007*(ratio-0.7)/PC**0.2  !correction by sasha drozdin/armen
-          ! K=0.0007 is taken based on simulations using CATCH.f (V.Biryukov)
-      endif
-!c----------------valentina approx-----------
-!      Ang_avr=-(xpcrit+xpcrit0)
-!      Ang_rms=(xpcrit0-xpcrit)/2
-!c-----------end valentina approx--------------
+          call calc_ion_loss_cry(is,is2,pc,length,dest)
+          pc = pc - half*dest*length ! energy loss to ionization [GeV]
+        end if
+      end if
 
-!      write(*,*) "Rcrit" , Rcrit,"Rcurv",Rcurv,
-!     c "Ratio: ",ratio,"average VR angle:", ang_avr*1e6,"+-",
-!     c ang_rms*1e6, "ang crit:", xpcrit0*1e6,xpcrit*1e6
-!
-      if(C_orient .eq. 2) then
-        Ang_avr = Ang_avr * 0.93                     ! for (111)
-        Ang_rms = Ang_rms * 1.05
-        xpcrit  = xpcrit * 0.98
-      endif
-!
-!. case 3-1: channeling
-!      IF (abs(xp_rel) .lt. xpcrit) THEN              ! if R' < R'c (ok CH) (1)
-!        Chann  = (xpcrit**2-xp_rel**2)**0.5/xpcrit0  ! probability of CH/VC  OCCHIO DANIELE LINEA COMMENTATA PER PROVARE LA SUCCESSIVA PROB.
-!        N_atom = 0.1                                ! probability of entering OCCHIO DANIELE, prob cambiata in accordo con nuova chann
-!--------------DAN CHAN prob------
-!         alpha = xp_rel/xpcrit
-!         Chann = ((0.64-(1/ratio)*(1/ratio)*0.64)**0.5)*     !DANIELE saturation at 80%
-!     &           (1-alpha*alpha)**0.5
+    else ! Option 2: VR
 
-!         Chann = ((0.8-(1/ratio)*(1/ratio)*0.8)**0.5)*     !DANIELE saturation at 90%
-!     &           (1-alpha*alpha)**0.5
+      ! good for channeling but don't channel (1-2)
+      iProc = proc_VR
 
-!         N_atom=0.14                                      !DANIELE for sat. at 80%
-!         N_atom=0.1                                       !DANIELE for sat. at 90%
+      xp = xp + 0.45*(xp/xpcrit+1)*Ang_avr
+      x  = x  + half*s_length*xp
+      y  = y  + half*s_length*yp
 
-!      IF (abs(xp_rel) .lt. xpcrit) THEN
-!         Chann = ((0.9-(1/ratio)*(1/ratio)*0.9)**0.5)*     !DANIELE saturation at 95%
-!     &           (1-alpha*alpha)**0.5
-!        N_atom = 0.1
+      call calc_ion_loss_cry(is,is2,pc,s_length,dest)
+      call move_am(is,is2,nam,s_length,dest,dlyi(is2),dlri(is2),xp ,yp,pc)
 
-      IF (abs(xp_rel) .lt. xpcrit) THEN
-         alpha = xp_rel/xpcrit
-         Chann = ((0.9-alpha*alpha*0.9)**0.5)*(1-(1/ratio))**0.5         !DANIELE saturation at 95%
-         N_atom = 0.1
+      x = x + half*s_length*xp
+      y = y + half*s_length*yp
 
-!      IF (abs(xp_rel) .lt. xpcrit) THEN
-!         alpha = xp_rel/xpcrit
-!         Chann = ((0.8-alpha*alpha*0.8)**0.5)*(1-(1/ratio))**0.5         !DANIELE saturation at 90%
-!         N_atom = 0.1
+    end if
 
-!--------------end DAN CHAN prob------
+  else ! case 3-2: no good for channeling. check if the  can VR
 
+    Lrefl = xp_rel*Rcurv ! distance of refl. point [m]
+    Srefl = sin(xp_rel/two + miscut)*Lrefl
 
+    if(Lrefl > zero .and. Lrefl < Length) then ! VR point inside
 
+      ! 2 options: volume capture and volume reflection
 
-                                                     ! close to atomic planes
-        IF (rndm4() .le. Chann) then      ! if they can channel: 2 options
-                                          ! option 1:channeling
-!          TLdech1= 0.00054*PC*(1.-1./ratio)**2 ! calculate dechanneling length
-!          TLdech1= 0.0005*PC*(1.-1./ratio)**2 !calculate tipical dech. length(m)
-          TLdech1= const_dech*PC*(1.-1./ratio)**2 !Daniele: updated calculate tipical dech. length(m)
-          IF (rndm4() .le. N_atom) then
-!            TLdech1= 0.000004*PC*(1.-1./ratio)**2! calculate tipical dechanneling
-                                                  !length near atomic planes(m)
-           !next line new from sasha
-!            TLdech1= 2.0e-6*PC*(1.-1./ratio)**2  ! dechanneling length (m)
-            TLdech1= (const_dech/200.d0)*PC*(1.-1./ratio)**2  ! Daniele: updated dechanneling length (m)
+      if(rndm4() > Vcapt .or. ZN == zero) then ! Option 1: VR
 
-                               !for short crystal for high amplitude particles
-          ENDIF
+        iProc = proc_VR
+        x     = x + xp*Srefl
+        y     = y + yp*Srefl
+        Dxp   = Ang_avr
+        xp    = xp + Dxp + Ang_rms*ran_gauss(one)
+        x     = x + half*xp*(s_length - Srefl)
+        y     = y + half*yp*(s_length - Srefl)
 
-!          TLdech1=TLdech1/100 !!!!CHECK
+        call calc_ion_loss_cry(is,is2,pc,s_length-srefl,dest)
+        call move_am(is,is2,nam,s_length-srefl,dest,dlyi(is2),dlri(is2),xp ,yp,pc)
+        x = x + half*xp*(s_length - Srefl)
+        y = y + half*yp*(s_length - Srefl)
 
-          Dechan = -log(rndm4())                 ! probability of dechanneling
-          Ldech  = TLdech1*Dechan                ! actual dechan. length
-                     ! careful: the dechanneling lentgh is along the trajectory
-                     ! of the particle -not along the longitudinal coordinate...
-          if(Ldech .LT. L_chan) THEN
-            iProc = proc_DC
-            Dxp= Ldech/Rcurv             ! change angle from channeling [mrad]
-            Sdech=Ldech*cos(miscut+0.5*Dxp)
+      else ! Option 2: VC
 
-            x  = x+ Ldech*(sin(0.5*Dxp+miscut))   ! trajectory at channeling exit
-            xp = xp + Dxp + 2.0*(rndm4()-0.5)*xpcrit
-            y= y + yp * Sdech
-!            write(*,*) "Ldech", Ldech
-!            write(*,*) "DESt", DESt
-            CALL CALC_ION_LOSS_CRY(IS,is2,PC,Ldech,DESt)
-            PC = PC - 0.5*DESt*Ldech          ! energy loss to ionization while in CH [GeV]
+        x = x + xp*Srefl
+        y = y + yp*Srefl
 
-            x = x + 0.5*(s_length-Sdech)*xp
-            y = y + 0.5*(s_length-Sdech)*yp
+        TLdech2 = (const_dech/c1e1)*pc*(one-one/ratio)**2    ! updated typical dechanneling length(m)
+        Ldech   = TLdech2*(sqrt(0.01-log(rndm4())) - 0.1)**2 ! updated DC length
+        tdech   = Ldech/Rcurv
+        Sdech   = Ldech*cos(xp + half*tdech)
 
-!            write(*,*) "s_length-Sdech", s_length-Sdech
-            CALL CALC_ION_LOSS_CRY(IS,is2,PC,s_length-Sdech,DESt)
-            CALL move_am(IS,is2,NAM,s_length-Sdech,DESt,DLYi(IS2),DLRi(IS2),xp,yp,PC)
-           !next line new from sasha
-            x = x + 0.5*(s_length-Sdech)*xp
-            y = y + 0.5*(s_length-Sdech)*yp
-          else
-            iProc = proc_CH
-            xpin=XP
-            ypin=YP
+        if(Ldech < Length-Lrefl) then
 
-!            write(*,*) "angles before entering CH subroutine (x,y):", xp, yp
-            CALL MOVE_CH(IS,is2,NAM,L_chan,X,XP,YP,PC,Rcurv,Rcrit)  !daniele:check if a nuclear interaction happen while in CH
-!            write(*,*) "angles after exiting CH subroutine (x,y):", xp, yp
-!            stop
+          iProc = proc_DC
+          Dxp   = Ldech/Rcurv + half*ran_gauss(one)*xpcrit
+          x     = x + Ldech*(sin(half*Dxp+xp)) ! trajectory at channeling exit
+          y     = y + Sdech*yp
+          xp    =  Dxp
+          Red_S = s_length - Srefl - Sdech
+          x     = x + half*xp*Red_S
+          y     = y + half*yp*Red_S
 
-            if(iProc /= proc_CH) then             !daniele: if an nuclear interaction happened, move until the middle with initial xp,yp
-            x = x + 0.5 * L_chan * xpin           !then propagate until the "crystal exit" with the new xp,yp
-            y = y + 0.5 * L_chan * ypin           !accordingly with the rest of the code in "thin lens approx"
-            x = x + 0.5 * L_chan * XP
-            y = y + 0.5 * L_chan * YP
-!            write(*,*) "Length", Length
-            CALL CALC_ION_LOSS_CRY(IS,is2,PC,Length,DESt)
-            PC = PC - DESt*Length       ! energy loss to ionization [GeV]
-            else
-            Dxp= L_chan/Rcurv + 0.5*RAN_GAUSS(1.0d0)*xpcrit ! change angle[rad]
-            xp = Dxp
-            !next line new from sasha
-            x  = x+ L_chan*(sin(0.5*Dxp+miscut)) ! trajectory at channeling exit
-!            xp = xp + Dxp + 2.0*(rndm4()-0.5)*xpcrit
-            y = y + s_length * yp
-            CALL CALC_ION_LOSS_CRY(IS,is2,PC,Length,DESt)
-            PC = PC - 0.5*DESt*Length       ! energy loss to ionization [GeV]
-            endif
-          endif
-        ELSE                                   !option 2: VR
-                                               ! good for channeling
-                                               ! but don't channel         (1-2)
-          iProc = proc_VR
-!          Dxp=0.5*(xp_rel/xpcrit+1)*Ang_avr
-!          xp=xp+Dxp+Ang_rms*RAN_GAUSS(1.)
-            !next line new from sasha
-          xp=xp+0.45*(xp/xpcrit+1)*Ang_avr
-          x = x + 0.5*s_length * xp
-          y = y + 0.5*s_length * yp
-          CALL CALC_ION_LOSS_CRY(IS,is2,PC,s_length,DESt)
-          CALL move_am(IS,is2,NAM,s_length,DESt,DLYi(IS2),DLRi(IS2),xp ,yp,PC)
-          x = x + 0.5*s_length * xp
-          y = y + 0.5*s_length * yp
-        ENDIF                                    !
-! case 3-2: no good for channeling. check if the  can VR
-      ELSE
-        Lrefl =  (xp_rel)*Rcurv                  ! distance of refl. point [m]
-!        Srefl = sin(xp) * Lrefl
-        Srefl = sin(xp_rel/2+miscut) * Lrefl
-        if(Lrefl .gt. 0. .and. Lrefl .lt. Length) then
-                ! VR point inside
-                !2 options: volume capture and volume reflection
-          IF (rndm4() .gt. Vcapt .or. ZN .eq. 0.) THEN   !opt. 1: VR
-            iProc = proc_VR
-            x = x + xp * Srefl
-            y = y + yp * Srefl
-            Dxp= Ang_avr
-            xp = xp + Dxp + Ang_rms*RAN_GAUSS(1.0d0)
-            x = x + 0.5* xp * (s_length - Srefl)
-            y = y + 0.5* yp * (s_length - Srefl)
-            CALL CALC_ION_LOSS_CRY(IS,is2,PC,s_length-Srefl,DESt)
-            CALL move_am(IS,is2,NAM,s_length-Srefl,DESt,DLYi(IS2),DLRi(IS2),xp ,yp,PC)
-            x = x + 0.5 * xp * (s_length - Srefl)
-            y = y + 0.5 * yp * (s_length - Srefl)
-          ELSE                                      !opt 2: VC
-            x = x + xp * Srefl
-            y = y + yp * Srefl
-!            TLdech2= 0.00011*PC**0.25*(1.-1./ratio)**2 ! dechanneling length(m)
-!            Dechan = log(1.-rndm4())
-!            Ldech  = -TLdech2*Dechan
-           !next 2 lines new from sasha - different dechanneling
-           !probability
- !           TLdech2= 0.01*PC*(1.-1./ratio)**2   ! typical dechanneling length(m)
- !           Ldech  = 0.005*TLdech2*(sqrt(0.01-log(rndm4())) -0.1)**2 ! DC length
-            TLdech2= (const_dech/10.0d0)*PC*(1.-1./ratio)**2   ! Daniele: updated typical dechanneling length(m)
-            Ldech  = TLdech2*(sqrt(0.01-log(rndm4())) -0.1)**2 ! daniele: updated DC length
-            tdech=Ldech/Rcurv
-            Sdech=Ldech*cos(xp+0.5*tdech)
-            IF(Ldech .LT. (Length-Lrefl)) then
-              iProc = proc_DC
-              Dxp= Ldech/Rcurv + 0.5*ran_gauss(1.0d0)*xpcrit
-              x  = x+ Ldech*(sin(0.5*Dxp+xp))   ! trajectory at channeling exit
-              y = y + Sdech * yp
-              xp =  Dxp
-              Red_S = s_length-Srefl -Sdech
-              x = x + 0.5 * xp * Red_S
-              y = y + 0.5 * yp * Red_S
-!              write(*,*) "Srefl", Srefl
-              CALL CALC_ION_LOSS_CRY(IS,is2,PC,Srefl,DESt)
-              PC=PC - DESt * Srefl !Daniele: "added" energy loss before capture
-!              write(*,*) "Sdech", Sdech
-              CALL CALC_ION_LOSS_CRY(IS,is2,PC,Sdech,DESt)
-              PC=PC - 0.5 * DESt * Sdech !Daniele: "added" energy loss while captured
-              CALL CALC_ION_LOSS_CRY(IS,is2,PC,Red_S,DESt)
-              CALL move_am(IS,is2,NAM,Red_S,DESt,DLYi(IS2),DLRi(IS2),xp,yp,PC)
-              x = x + 0.5 * xp * Red_S
-              y = y + 0.5 * yp * Red_S
-            else
-              iProc = proc_VC
-              Rlength = Length-Lrefl
-              tchan = Rlength / Rcurv
-              Red_S=Rlength*cos(xp+0.5*tchan)
-!              write(*,*) "Lrefl", Lrefl
-              CALL CALC_ION_LOSS_CRY(IS,is2,PC,Lrefl,DESt)
-              PC=PC - DESt*Lrefl  !Daniele: "added" energy loss before capture
-              xpin=XP
-              ypin=YP
-              CALL MOVE_CH(IS,is2,NAM,Rlength,X,XP,YP,PC,Rcurv,Rcrit)  !daniele:check if a nuclear interaction happen while in CH
+          call calc_ion_loss_cry(is,is2,pc,srefl,dest)
+          pc = pc - dest*Srefl ! "added" energy loss before capture
 
-              if(iProc /= proc_VC) then             !daniele: if an nuclear interaction happened, move until the middle with initial xp,yp
-              x = x + 0.5 * Rlength * xpin           !then propagate until the "crystal exit" with the new xp,yp
-              y = y + 0.5 * Rlength * ypin           !accordingly with the rest of the code in "thin lens approx"
-              x = x + 0.5 * Rlength * XP
-              y = y + 0.5 * Rlength * YP
-!              write(*,*) "Rlength", Rlength
-              CALL CALC_ION_LOSS_CRY(IS,is2,PC,Rlength,DESt)
-              PC=PC - DESt*Rlength
-              else
-              Dxp = (Length-Lrefl)/Rcurv
-!              write(*,*) "Dxp", Dxp
-              x  = x+ sin(0.5*Dxp+xp)*Rlength     ! trajectory at channeling exit
-              y = y + red_S * yp
-              xp =  Length/Rcurv + 0.5*ran_gauss(1.0d0)*xpcrit ! [mrad]
-!              write(*,*) "xp at channeling exit", xp
-!              write(*,*) "Rlength", Rlength
-              CALL CALC_ION_LOSS_CRY(IS,is2,PC,Rlength,DESt)
-              PC=PC - 0.5*DESt*Rlength  !Daniele: "added" energy loss once captured
-              endif
-            endif
-          ENDIF
-!.  case 3-3: move in amorphous substance (big input angles)---------------  MODIFIED FOR TRANSITION VRAM DANIELE
+          call calc_ion_loss_cry(is,is2,pc,sdech,dest)
+          pc = pc - half*dest*Sdech ! "added" energy loss while captured
+
+          call calc_ion_loss_cry(is,is2,pc,red_s,dest)
+          call move_am(is,is2,nam,red_s,dest,dlyi(is2),dlri(is2),xp,yp,pc)
+          x = x + half*xp*Red_S
+          y = y + half*yp*Red_S
+
         else
-           if(xp_rel .GT. L_chan/Rcurv+2.0*xpcrit .or. xp_rel .lt. -xpcrit) then
-             iProc = proc_AM
-             x = x + 0.5 * s_length * xp
-             y = y + 0.5 * s_length * yp
-            if(ZN .gt. 0) then
-             CALL CALC_ION_LOSS_CRY(IS,is2,PC,s_length,DESt)
-             CALL move_am(IS,is2,NAM,s_length,DESt,DLYi(IS2),DLRi(IS2), xp,yp,PC)
-            endif
-            x = x + 0.5 * s_length * xp
-            y = y + 0.5 * s_length * yp
+
+          iProc   = proc_VC
+          Rlength = Length-Lrefl
+          tchan   = Rlength/Rcurv
+          Red_S   = Rlength*cos(xp + half*tchan)
+
+          call calc_ion_loss_cry(is,is2,pc,lrefl,dest)
+          pc   = pc - dest*Lrefl ! "added" energy loss before capture
+          xpin = xp
+          ypin = yp
+
+          call move_ch(is,is2,nam,rlength,x,xp,yp,pc,rcurv,rcrit) ! check if a nuclear interaction happen while in ch
+          if(iProc /= proc_VC) then
+            ! if an nuclear interaction happened, move until the middle with initial xp,yp then propagate until
+            ! the "crystal exit" with the new xp,yp accordingly with the rest of the code in "thin lens approx"
+            x = x + half*Rlength*xpin
+            y = y + half*Rlength*ypin
+            x = x + half*Rlength*XP
+            y = y + half*Rlength*YP
+
+            call calc_ion_loss_cry(is,is2,pc,rlength,dest)
+            pc = pc - dest*Rlength
           else
-!            Pvr=0.5*erf((xp_rel-(L_chan/Rcurv)-xpcrit)/(2.0*4.0*xpcrit*xpcrit)**0.5)+0.5
-!            Pvr=0.2+(0.6/(2.0*xpcrit))*(xp_rel-(L_chan/Rcurv))
-            Pvr=((xp_rel-(L_chan/Rcurv))/(2.0*xpcrit))
-            if(rndm4() .gt. Pvr) then
-            iProc = proc_TRVR
-            x = x + xp * Srefl
-            y = y + yp * Srefl
-!            Dxp=(2.0*Ang_avr-Ang_rms)/(2.0*L_chan/Rcurv+2.0*xpcrit)*
-!     +         xp_rel+L_chan/Rcurv*(2.0*Ang_avr-Ang_rms)/
-!     +         (2.0*L_chan/Rcurv+2.0*xpcrit)-Ang_avr
-            Dxp=-3.0*Ang_rms*xp_rel/(2.0*xpcrit)+Ang_avr+(3.0*Ang_rms*(L_chan/Rcurv)/(2.0*xpcrit))
-!            write(*,*) xp_rel, Dxp, Ang_avr, Ang_rms
-!            xp=xp+Dxp+Ang_rms*RAN_GAUSS(1.)
-            xp=xp+Dxp
-            x=x+0.5*xp*(s_length-Srefl)
-            y=y+0.5*yp*(s_length-Srefl)
-!            write(*,*) "s_length-Srefl", s_length-Srefl
-            CALL CALC_ION_LOSS_CRY(IS,is2,PC,s_length-Srefl,DESt)
-            CALL move_am(IS,is2,NAM,s_length-Srefl,DESt,DLYi(IS2),DLRi(IS2),xp ,yp,PC)
-            x = x + 0.5 * xp * (s_length - Srefl)
-            y = y + 0.5 * yp * (s_length - Srefl)
-            else
-            iProc = proc_TRAM
-            x = x + xp * Srefl
-            y = y + yp * Srefl
-            Dxp=-1.0*(13.6/PC)*SQRT(s_length/DLRi(IS2))*0.001*xp_rel/    &
-     &          (2.0*xpcrit)+(13.6/PC)*SQRT(s_length/DLRi(IS2))*0.001*   &
-     &          (1.0+(L_chan/Rcurv)/(2.0*xpcrit))
-            xp=xp+Dxp
-            x=x+0.5*xp*(s_length-Srefl)
-            y=y+0.5*yp*(s_length-Srefl)
-!            write(*,*) "s_length-Srefl", s_length-Srefl
-            CALL CALC_ION_LOSS_CRY(IS,is2,PC,s_length-Srefl,DESt)
-            CALL move_am(IS,is2,NAM,s_length-Srefl,DESt,DLYi(IS2),DLRi(IS2),xp ,yp,PC)
-            x = x + 0.5 * xp * (s_length - Srefl)
-            y = y + 0.5 * yp * (s_length - Srefl)
-            endif
-          endif
-        endif
-       ENDIF
+            Dxp = (Length-Lrefl)/Rcurv
+            x   = x + sin(half*Dxp+xp)*Rlength ! trajectory at channeling exit
+            y   = y + red_S * yp
+            xp  = Length/Rcurv + half*ran_gauss(one)*xpcrit ! [mrad]
 
-!       write(*,*) "p at the end of routine", PC
+            call calc_ion_loss_cry(is,is2,pc,rlength,dest)
+            pc = pc - half*dest*Rlength  ! "added" energy loss once captured
+          end if
+        end if
+      end if
 
-!      if (counter .eq. 0) then
-111   write(833,*)'crystal parameters:\n Length:',Length, '\n Rcurv:'   &
-     & , Rcurv ,'\n Critical Radius:', Rcrit, 'ratio',ratio             &
-     &, '\n Critical angle for straight:',                              &
-     & xpcrit0,'\n critical angle for curved crystal:', xpcrit,' \n Leng&
-     &th:', Length, '\n xmax:', C_xmax, ' ymax:', ymax, '  C_orient: '  &
-     &, C_orient                                                        &
-     &, '\n Avg angle reflection:', Ang_avr, '\n full channeling angle: &
-     &',(Length/Rcurv)
-      END
+    else
+
+      ! Case 3-3: move in amorphous substance (big input angles)
+      ! Modified for transition vram daniele
+      if(xp_rel > L_chan/Rcurv + two*xpcrit .or. xp_rel < -xpcrit) then
+        iProc = proc_AM
+        x     = x + half*s_length*xp
+        y     = y + half*s_length*yp
+        if(zn > zero) then
+          call calc_ion_loss_cry(is,is2,pc,s_length,dest)
+          call move_am(is,is2,nam,s_length,dest,dlyi(is2),dlri(is2),xp,yp,pc)
+        end if
+        x = x + half*s_length*xp
+        y = y + half*s_length*yp
+      else
+        Pvr = (xp_rel-(L_chan/Rcurv))/(two*xpcrit)
+        if(rndm4() > Pvr) then
+          iProc = proc_TRVR
+          x     = x + xp*Srefl
+          y     = y + yp*Srefl
+
+          Dxp = -three*Ang_rms*xp_rel/(two*xpcrit) + Ang_avr + (three*Ang_rms*(L_chan/Rcurv)/(two*xpcrit))
+          xp  = xp+Dxp
+          x   = x + half*xp*(s_length-Srefl)
+          y   = y + half*yp*(s_length-Srefl)
+
+          call calc_ion_loss_cry(is,is2,pc,s_length-srefl,dest)
+          call move_am(is,is2,nam,s_length-srefl,dest,dlyi(is2),dlri(is2),xp,yp,pc)
+          x = x + half*xp*(s_length - Srefl)
+          y = y + half*yp*(s_length - Srefl)
+        else
+          iProc = proc_TRAM
+          x = x + xp*Srefl
+          y = y + yp*Srefl
+          Dxp = -one*(13.6/pc)*sqrt(s_length/dlri(is2))*0.001*xp_rel/(two*xpcrit) + &
+            (13.6/pc)*sqrt(s_length/DLRi(IS2))*0.001*(one+(L_chan/Rcurv)/(two*xpcrit))
+          xp = xp+Dxp
+          x  = x + half*xp*(s_length-Srefl)
+          y  = y + half*yp*(s_length-Srefl)
+
+          call calc_ion_loss_cry(is,is2,pc,s_length-srefl,dest)
+          call move_am(is,is2,nam,s_length-srefl,dest,dlyi(is2),dlri(is2),xp ,yp,pc)
+          x = x + half*xp*(s_length - Srefl)
+          y = y + half*yp*(s_length - Srefl)
+        end if
+      end if
+    end if
+  end if
+
+end subroutine cryst
 
 ! ================================================================================================ !
 !  Subroutine for the calculazion of the energy loss by ionisation
 ! ================================================================================================ !
-subroutine calc_ion_loss_cry(is,is2,pc,dz,enlo)
+subroutine calc_ion_loss_cry(is,is2,pc,dz,EnLo)
 
   use mod_ranlux
   use mod_funlux
@@ -1457,7 +1365,7 @@ subroutine calc_ion_loss_cry(is,is2,pc,dz,enlo)
   integer,          intent(in)  :: is2
   real(kind=fPrec), intent(in)  :: pc
   real(kind=fPrec), intent(in)  :: dz
-  real(kind=fPrec), intent(out) :: enlo
+  real(kind=fPrec), intent(out) :: EnLo
 
   real(kind=fPrec) thl,tt,cs_tail,prob_tail
   real(kind=fPrec), parameter :: k = 0.307075 ! Constant in front bethe-bloch [mev g^-1 cm^2]
@@ -1518,7 +1426,7 @@ subroutine move_am(is,is2,nam,dz,dei,dly,dlr,xp,yp,pc)
   pc_in = pc
 
   ! New treatment of scattering routine based on standard sixtrack routine
-  ! useful calculations for cross-section and event topology calculation 
+  ! useful calculations for cross-section and event topology calculation
   ecmsq  = two*0.93828_fPrec*pc
   xln15s = log(0.15*ecmsq)
 
@@ -1786,7 +1694,7 @@ subroutine move_ch(is,is2,nam,dz,x,xp,yp,pc,r,rc)
   ! Can nuclear interaction happen?
   ! Rescaled nuclear collision length
   if(avrrho == zero) then
-    nuc_cl_l = c1e6 
+    nuc_cl_l = c1e6
   else
     nuc_cl_l = collnt_cry(is)/avrrho
   end if
@@ -1804,11 +1712,11 @@ subroutine move_ch(is,is2,nam,dz,x,xp,yp,pc,r,rc)
     end if
     ichoix = i
 
-    ! Do the interaction 
+    ! Do the interaction
     select case(ichoix)
     case(1) ! deep inelastic, impinging p disappeared
       iProc = proc_ch_absorbed
-    
+
     case(2) ! p-n elastic
       iProc  = proc_ch_pne
       bn(IS) = bnref(is2) * cs(0,IS) / csref_tot_rsc
@@ -1836,7 +1744,7 @@ subroutine move_ch(is,is2,nam,dz,x,xp,yp,pc,r,rc)
       length_cry = 1
       call funlux(cgen_cry(1,is),xran_cry,length_cry)
       t = xran_cry(1)
-    
+
     end select
 
     ! Calculate the related kick -----------
