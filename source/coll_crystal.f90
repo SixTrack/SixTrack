@@ -1440,67 +1440,49 @@ end module coll_crystal
      &',(Length/Rcurv)
       END
 
-!.**************************************************************************
-!     subroutine for the calculazion of the energy loss by ionization
-!.**************************************************************************
-      SUBROUTINE CALC_ION_LOSS_CRY(IS,is2,PC,DZ,EnLo)
+! ================================================================================================ !
+!  Subroutine for the calculazion of the energy loss by ionisation
+! ================================================================================================ !
+subroutine calc_ion_loss_cry(is,is2,pc,dz,enlo)
 
-      use mod_ranlux
-      use mod_funlux
-      use floatPrecision
-      use coll_crystal
-      use coll_materials, only : zatom, exenergy, rho, anuc
+  use mod_ranlux
+  use mod_funlux
+  use floatPrecision
+  use coll_crystal
+  use coll_materials, only : zatom, exenergy, rho, anuc
 
-      IMPLICIT none
-      integer IS,is2
-      real(kind=fPrec) PC,DZ,EnLo
-      real(kind=fPrec) thl,Tt,cs_tail,prob_tail
-      real(kind=fPrec) ranc
-      real(kind=fPrec), parameter :: k   = 0.307075    ! constant in front bethe-bloch [MeV g^-1 cm^2]
+  implicit none
 
-      write(*,*) "Entering CALC_ION_LOSS_CRY"
-!      write(*,*) "thl", DZ
-       thl= 4.0d0*k*zatom(is2)*DZ*100.0d0*rho(is2)/(anuc(is2)*betar**2) ![MeV]
+  integer,          intent(in)  :: is
+  integer,          intent(in)  :: is2
+  real(kind=fPrec), intent(in)  :: pc
+  real(kind=fPrec), intent(in)  :: dz
+  real(kind=fPrec), intent(out) :: enlo
 
-       EnLo=((k*zatom(is2))/(anuc(is2)*betar**2))*          &
-     & (0.5*log((2.0d0*me*bgr*bgr*Tmax)/(c1e6*exenergy(is2)**2)) &
-     & -betar**2.0-log(plen/(exenergy(is2)*c1e3))-log(bgr)+0.5);
+  real(kind=fPrec) thl,tt,cs_tail,prob_tail
+  real(kind=fPrec), parameter :: k = 0.307075 ! Constant in front bethe-bloch [mev g^-1 cm^2]
 
-!      write(*,*) "EnLo"
-       EnLo=EnLo*rho(is2)*0.1*DZ ![GeV]
+  thl       = four*k*zatom(is2)*dz*c1e2*rho(is2)/(anuc(is2)*betar**2) ! [MeV]
+  EnLo      = ((k*zatom(is2))/(anuc(is2)*betar**2))*( &
+    half*log((two*me*bgr*bgr*Tmax)/(c1e6*exenergy(is2)**2)) - &
+    betar**2-log(plen/(exenergy(is2)*c1e3))-log(bgr)+half)
+  EnLo      = EnLo*rho(is2)*0.1*dz ! [GeV]
+  Tt        = EnLo*c1e3+thl ! [MeV]
+  cs_tail   = ((k*zatom(is2))/(anuc(is2)*betar**2))*((half*((one/Tt)-(one/Tmax))) - &
+    (log(Tmax/Tt)*(betar**2)/(two*Tmax)) + ((Tmax-Tt)/(four*(gammar**2)*(mp**2))))
+  prob_tail = cs_tail*rho(is2)*dz*c1e2
 
-!      write(*,*) "Tt", EnLo, thl
-       Tt=EnLo*1000.0d0+thl  ![MeV]
+  if(rndm4() < prob_tail) then
+    EnLo = ((k*zatom(is2))/(anuc(is2)*betar**2))*( &
+      half*log((two*me*bgr*bgr*Tmax)/(c1e6*exenergy(is2)**2)) - &
+      betar**2-log(plen/(exenergy(is2)*c1e3))-log(bgr)+half   + &
+      (TMax**2)/(eight*(gammar**2)*(mp**2)))
+    EnLo = EnLo*rho(is2)*0.1 ! [GeV/m]
+  else
+    EnLo = EnLo/dz ! [GeV/m]
+  end if
 
-       cs_tail=((k*zatom(is2))/(anuc(is2)*betar**2))* &
-     & ((0.5*((1.0d0/Tt)-(1.0d0/Tmax)))-             &
-     & (log(Tmax/Tt)*(betar**2)/(2.0d0*Tmax))+       &
-     & ((Tmax-Tt)/(4.0d0*(gammar**2)*(mp**2))))
-
-!      write(*,*) "prob_tail"
-       prob_tail=cs_tail*rho(is2)*DZ*100.0d0;
-
-!      write(*,*) "ranc"
-       ranc=dble(rndm4())
-
-       if(ranc.lt.prob_tail)then
-         EnLo=((k*zatom(is2))/(anuc(is2)*betar**2))*          &
-     &   (0.5*log((2.0d0*me*bgr*bgr*Tmax)/(c1e6*exenergy(is2)**2)) &
-     &   -betar**2.0-log(plen/(exenergy(is2)*c1e3))-log(bgr)+0.5+         &
-     &   (TMax**2)/(8.0d0*(gammar**2)*(mp**2)));
-
-         EnLo=EnLo*rho(is2)*0.1 ![GeV/m]
-
-       else
-         EnLo=EnLo/DZ  ![GeV/m]
-       endif
-
-!      write(*,*)cs_tail,prob_tail,ranc,EnLo*DZ
-       write(*,*) "CALC_ION_LOSS_CRY done"
-
-      RETURN
-      END
-
+end subroutine calc_ion_loss_cry
 
 ! ================================================================================================ !
 !  Subroutine for the movement in the amorphous
