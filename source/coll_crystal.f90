@@ -46,16 +46,6 @@ module coll_crystal
   real(kind=fPrec), parameter :: dP  = 1.92d-10    ! Distance between planes (110) [m]
   real(kind=fPrec), parameter :: u1  = 0.075d-10   ! Thermal vibrations amplitude
 
-  ! Nuclear Collision length [m] from pdg (only for Si and Ge for the moment)
-  real(kind=fPrec), parameter :: collnt_cry(4) = [0.3016d0,0.0d0,0.0d0,0.1632d0]
-
-  real(kind=fPrec), public, save :: cprob_cry(0:5,1:4) = reshape([ &
-    [zero, zero, zero, zero, zero, one], &
-    [zero, zero, zero, zero, zero, one], &
-    [zero, zero, zero, zero, zero, one], &
-    [zero, zero, zero, zero, zero, one]  &
-  ], shape=[6,4])
-
   ! pp cross-sections and parameters for energy dependence
   real(kind=fPrec), parameter :: pptref_cry = 0.04d0
   real(kind=fPrec), parameter :: pperef_cry = 0.007d0
@@ -66,10 +56,11 @@ module coll_crystal
   real(kind=fPrec), parameter :: freeco_cry = 1.618d0
 
   ! Crystal Specific Material Arrays
-  real(kind=fPrec), save :: dlri(nmat) = zero
-  real(kind=fPrec), save :: dlyi(nmat) = zero
-  real(kind=fPrec), save :: ai(nmat)   = zero
-  real(kind=fPrec), save :: eUm(nmat)  = zero
+  real(kind=fPrec), save :: dlri(nmat)   = zero
+  real(kind=fPrec), save :: dlyi(nmat)   = zero
+  real(kind=fPrec), save :: ai(nmat)     = zero
+  real(kind=fPrec), save :: eUm(nmat)    = zero
+  real(kind=fPrec), save :: collnt(nmat) = zero ! Nuclear Collision length [m]
 
   ! Processes
   integer, parameter :: proc_out         =  -1
@@ -118,31 +109,35 @@ subroutine cry_init
 
   ! Si
   m = collmat_getCollMatID("Si")
-  dlri(m) = 0.0937
-  dlyi(m) = 0.4652
-  ai(m)   = 0.96e-7
-  eUm(m)  = 21.34
+  dlri(m)   = 0.0937
+  dlyi(m)   = 0.4652
+  ai(m)     = 0.96e-7
+  eUm(m)    = 21.34
+  collnt(m) = 0.3016d0
 
   ! W
   m = collmat_getCollMatID("W")
-  dlri(m) = 0.0035
-  dlyi(m) = 0.096
-  ai(m)   = 0.56e-7
-  eUm(m)  = 21.0
+  dlri(m)   = 0.0035
+  dlyi(m)   = 0.096
+  ai(m)     = 0.56e-7
+  eUm(m)    = 21.0
+  collnt(m) = 0.0d0
 
   ! C
   m = collmat_getCollMatID("C")
-  dlri(m) = 0.188
-  dlyi(m) = 0.400
-  ai(m)   = 0.63e-7
-  eUm(m)  = 21.0
+  dlri(m)   = 0.188
+  dlyi(m)   = 0.400
+  ai(m)     = 0.63e-7
+  eUm(m)    = 21.0
+  collnt(m) = 0.0d0
 
   ! Ge
   m = collmat_getCollMatID("Ge")
-  dlri(m) = 0.02302
-  dlyi(m) = 0.2686
-  ai(m)   = 1.0e-7
-  eUm(m)  = 40.0
+  dlri(m)   = 0.02302
+  dlyi(m)   = 0.2686
+  ai(m)     = 1.0e-7
+  eUm(m)    = 40.0
+  collnt(m) = 0.1632d0
 
 end subroutine cry_init
 
@@ -1084,7 +1079,7 @@ subroutine cryst(is,is2,x,xp,y,yp,pc,length,j)
   elseif ((x.gt.(c_xmax-alayer)) .and. x.lt.(c_xmax)  ) then
     iProc = proc_AM
     call calc_ion_loss_cry(is,is2,pc,s_length,dest)
-    call move_am(is,is2,nam,s_length,dest,dlyi(is2),dlri(is2), xp,yp,pc)
+    call move_am(is,is2,nam,s_length,dest,dlyi(is2),dlri(is2),xp,yp,pc)
     return
 
   end if
@@ -1199,7 +1194,7 @@ subroutine cryst(is,is2,x,xp,y,yp,pc,length,j)
       y  = y  + half*s_length*yp
 
       call calc_ion_loss_cry(is,is2,pc,s_length,dest)
-      call move_am(is,is2,nam,s_length,dest,dlyi(is2),dlri(is2),xp ,yp,pc)
+      call move_am(is,is2,nam,s_length,dest,dlyi(is2),dlri(is2),xp,yp,pc)
 
       x = x + half*s_length*xp
       y = y + half*s_length*yp
@@ -1226,7 +1221,7 @@ subroutine cryst(is,is2,x,xp,y,yp,pc,length,j)
         y     = y + half*yp*(s_length - Srefl)
 
         call calc_ion_loss_cry(is,is2,pc,s_length-srefl,dest)
-        call move_am(is,is2,nam,s_length-srefl,dest,dlyi(is2),dlri(is2),xp ,yp,pc)
+        call move_am(is,is2,nam,s_length-srefl,dest,dlyi(is2),dlri(is2),xp,yp,pc)
         x = x + half*xp*(s_length - Srefl)
         y = y + half*yp*(s_length - Srefl)
 
@@ -1338,7 +1333,7 @@ subroutine cryst(is,is2,x,xp,y,yp,pc,length,j)
           y  = y + half*yp*(s_length-Srefl)
 
           call calc_ion_loss_cry(is,is2,pc,s_length-srefl,dest)
-          call move_am(is,is2,nam,s_length-srefl,dest,dlyi(is2),dlri(is2),xp ,yp,pc)
+          call move_am(is,is2,nam,s_length-srefl,dest,dlyi(is2),dlri(is2),xp,yp,pc)
           x = x + half*xp*(s_length - Srefl)
           y = y + half*yp*(s_length - Srefl)
         end if
@@ -1417,7 +1412,7 @@ subroutine move_am(is,is2,nam,dz,dei,dly,dlr,xp,yp,pc)
   real(kind=fPrec), intent(inout) :: pc
 
   integer i,length_cry,ichoix
-  real(kind=fPrec) t,xran_cry(1),bn(4),cs(0:5,1:4),freep(4),zlm,xp_in,yp_in,xm2,xln15s,tz,tx,tlow,  &
+  real(kind=fPrec) t,xran_cry(1),bn,cs(0:5),cprob(0:5),freep,zlm,xp_in,yp_in,xm2,xln15s,tz,tx,tlow, &
     thigh,teta,pptot,ppsd,ppel,pc_in,kymcs,kxmcs,ecmsq,dya,bsd,bpp,aran
   real(kind=fPrec), external :: ruth_cry
 
@@ -1444,36 +1439,38 @@ subroutine move_am(is,is2,nam,dz,dei,dly,dlr,xp,yp,pc)
 
   ! Cross-section calculation
   ! freep: number of nucleons involved in single scattering
-  freep(is) = freeco_cry * anuc(is2)**(one/three)
+  freep = freeco_cry * anuc(is2)**(one/three)
 
   ! Compute pp and pn el+single diff contributions to cross-section (both added : quasi-elastic or qel later)
-  cs(3,is) = freep(is) * ppel
-  cs(4,is) = freep(is) * ppsd
+  cs(3) = freep*ppel
+  cs(4) = freep*ppsd
 
   ! Correct TOT-CSec for energy dependence of qel
   ! TOT CS is here without a Coulomb contribution
-  cs(0,is) = csref(0,is2) + freep(is) * (pptot - pptref_cry)
-  bn(is)   = bnref(is2) * cs(0,is) / csref(0,is2)
+  cs(0) = csref(0,is2) + freep*(pptot - pptref_cry)
+  bn    = bnref(is2)*cs(0)/csref(0,is2)
 
   ! Also correct inel-CS
-  cs(1,is) = csref(1,is2) * cs(0,is) / csref(0,is2)
+  cs(1) = csref(1,is2)*cs(0)/csref(0,is2)
 
   ! Nuclear Elastic is TOT-inel-qel ( see definition in RPP)
-  cs(2,is) = cs(0,is) - cs(1,is) - cs(3,is) - cs(4,is)
-  cs(5,is) = csref(5,is2)
+  cs(2) = cs(0) - cs(1) - cs(3) - cs(4)
+  cs(5) = csref(5,is2)
+
   ! Now add Coulomb
-  cs(0,is) = cs(0,is) + cs(5,is)
+  cs(0) = cs(0) + cs(5)
 
   ! Calculate cumulative probability
+  cprob(:) = zero
+  cprob(5) = one
   do i=1,4
-    cprob_cry(i,is) = cprob_cry(i-1,is)+cs(i,is)/cs(0,is)
+    cprob(i) = cprob(i-1)+cs(i)/cs(0)
   end do
 
   ! Multiple Coulomb Scattering
-
   xp  = xp*c1e3
   yp  = yp*c1e3
-  pc  = pc-dei*dz  ! Energy lost because of ionization process[GeV]
+  pc  = pc-dei*dz ! Energy lost because of ionization process[GeV]
 
   dya   = (13.6/pc)*sqrt(dz/dlr) ! rms of coloumb scattering MCS (mrad)
   kxmcs = dya*ran_gauss(one)
@@ -1485,13 +1482,13 @@ subroutine move_am(is,is2,nam,dz,dei,dly,dlr,xp,yp,pc)
   if(nam == 0) return ! Turn on/off nuclear interactions
 
   ! Can nuclear interaction happen?
-  zlm = -collnt_cry(is)*log(rndm4())
+  zlm = -collnt(is2)*log(rndm4())
 
   if(zlm < dz) then
     ! Choose nuclear interaction
     aran = rndm4()
     i=1
-10  if(aran > cprob_cry(i,is)) then
+10  if(aran > cprob(i)) then
       i = i+1
       goto 10
     end if
@@ -1505,7 +1502,7 @@ subroutine move_am(is,is2,nam,dz,dei,dly,dlr,xp,yp,pc)
 
     case(2) ! p-n elastic
       iProc = proc_pne
-      t     = -log(rndm4())/bn(is)
+      t     = -log(rndm4())/bn
 
     case(3) ! p-p elastic
       iProc = proc_ppe
@@ -1563,7 +1560,7 @@ subroutine move_ch(is,is2,nam,dz,x,xp,yp,pc,r,rc)
   use floatPrecision
   use coll_common, only : coll_debug
   use coll_crystal
-  use coll_materials, only : nmat, rho, anuc, hcut, bnref, csref
+  use coll_materials, only : nmat, rho, anuc, hcut, bnref, csref, csect
 
   implicit none
 
@@ -1579,14 +1576,10 @@ subroutine move_ch(is,is2,nam,dz,x,xp,yp,pc,r,rc)
   real(kind=fPrec), intent(in)    :: rc
 
   integer i,np,length_cry,ichoix
-  real(kind=fPrec) t,xran_cry(1),bn(4),cs(0:5,1:4),freep(4),zlm,xp_in,yp_in,xminU,xm2,xln15s,x_min, &
+  real(kind=fPrec) t,xran_cry(1),bn,cs(0:5),cprob(0:5),freep,zlm,xp_in,yp_in,xminU,xm2,xln15s,x_min,&
     x_max,x_i,Umin,Ueff,tz,tx,tlow,thigh,teta,rho_min,rho_max,pv,pptot,ppsd,ppel,PC_in,nuc_cl_l,    &
     N_am,Et,ecmsq,Ec,csref_inel_rsc,csref_tot_rsc,bsd,bpp,aran,avrrho
   real(kind=fPrec), external :: ruth_cry
-
-  if(coll_debug) then
-    write(lout,"(2(a,1pe15.6))") "CRY> Angels before channeling: xp = ",xp," yp = ",yp
-  end if
 
   xp_in = xp
   yp_in = yp
@@ -1595,7 +1588,7 @@ subroutine move_ch(is,is2,nam,dz,x,xp,yp,pc,r,rc)
   ! New treatment of scattering routine based on standard sixtrack routine
 
   ! Useful calculations for cross-section and event topology calculation
-  ecmsq = 2 * 0.93828d0 * PC
+  ecmsq = 2*0.93828d0*pc
   xln15s=log(0.15*ecmsq)
 
   ! New models, see Claudia's thesis
@@ -1650,37 +1643,40 @@ subroutine move_ch(is,is2,nam,dz,x,xp,yp,pc,r,rc)
   csref_inel_rsc = csref(1,is2)*avrrho ! Rescaled inelastic ref cs
 
   ! Cross-section calculation
-  freep(is) = freeco_cry * anuc(is2)**(one/three)
+  freep = freeco_cry * anuc(is2)**(one/three)
 
   ! compute pp and pn el+single diff contributions to cross-section (both added : quasi-elastic or qel later)
-  cs(3,is) = freep(is) * ppel
-  cs(4,is) = freep(is) * ppsd
+  cs(3) = freep*ppel
+  cs(4) = freep*ppsd
 
   ! correct TOT-CSec for energy dependence of qel
   ! TOT CS is here without a Coulomb contribution
-  cs(0,is) = csref_tot_rsc + freep(IS) * (pptot - pptref_cry)
+  cs(0) = csref_tot_rsc + freep*(pptot - pptref_cry)
 
   ! Also correct inel-CS
   if(csref_tot_rsc == zero) then
-    cs(1,is) = zero
+    cs(1) = zero
   else
-    cs(1,is) = csref_inel_rsc * cs(0,is) / csref_tot_rsc
+    cs(1) = csref_inel_rsc*cs(0)/csref_tot_rsc
   end if
 
   ! Nuclear Elastic is TOT-inel-qel ( see definition in RPP)
-  cs(2,is) = cs(0,is) - cs(1,is) - cs(3,is) - cs(4,is)
-  cs(5,is) = csref(5,is2)
+  cs(2) = cs(0) - cs(1) - cs(3) - cs(4)
+  cs(5) = csref(5,is2)
+
   ! Now add Coulomb
-  cs(0,is) = cs(0,is) + cs(5,is)
+  cs(0) = cs(0) + cs(5)
 
   ! Calculate cumulative probability
-  if(cs(0,is) == zero) then
+  cprob(:) = zero
+  cprob(5) = one
+  if(cs(0) == zero) then
     do i=1,4
-      cprob_cry(i,is) = cprob_cry(i-1,is)
+      cprob(i) = cprob(i-1)
     end do
   else
     do i=1,4
-      cprob_cry(i,is) = cprob_cry(i-1,is)+cs(i,is)/cs(0,is)
+      cprob(i) = cprob(i-1) + cs(i)/cs(0)
     end do
   end if
 
@@ -1696,7 +1692,7 @@ subroutine move_ch(is,is2,nam,dz,x,xp,yp,pc,r,rc)
   if(avrrho == zero) then
     nuc_cl_l = c1e6
   else
-    nuc_cl_l = collnt_cry(is)/avrrho
+    nuc_cl_l = collnt(is2)/avrrho
   end if
   zlm = -nuc_cl_l*log(rndm4())
 
@@ -1706,7 +1702,7 @@ subroutine move_ch(is,is2,nam,dz,x,xp,yp,pc,r,rc)
     ! Choose nuclear interaction
     aran = rndm4()
     i=1
-10  if(aran > cprob_cry(i,is)) then
+10  if(aran > cprob(i)) then
       i=i+1
       goto 10
     end if
@@ -1718,9 +1714,9 @@ subroutine move_ch(is,is2,nam,dz,x,xp,yp,pc,r,rc)
       iProc = proc_ch_absorbed
 
     case(2) ! p-n elastic
-      iProc  = proc_ch_pne
-      bn(IS) = bnref(is2) * cs(0,IS) / csref_tot_rsc
-      t      = -log(rndm4())/bn(IS)
+      iProc = proc_ch_pne
+      bn    = bnref(is2)*cs(0)/csref_tot_rsc
+      t     = -log(rndm4())/bn
 
     case(3) ! p-p elastic
       iProc = proc_ch_ppe
@@ -1733,7 +1729,7 @@ subroutine move_ch(is,is2,nam,dz,x,xp,yp,pc,r,rc)
       if(xm2 < two) then
         bsd = two*bpp
       else if(xm2 >= two .and. xm2 <= five) then
-        bsd = (106.d0 - 17.d0*xm2) *  bpp / 36.d0
+        bsd = (106.d0 - 17.d0*xm2) * bpp / 36.d0
       else if(xm2 > five) then
         bsd = seven*bpp / 12.d0
       end if

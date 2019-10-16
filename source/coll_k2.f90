@@ -628,7 +628,7 @@ subroutine k2coll_scatin(plab)
 
     ! Filling CProb with cumulated normalised Cross-sections
     do i=1,4
-      cprob(i,ma)=cprob(i-1,ma)+csect(i,ma)/csect(0,ma)
+      cprob(i,ma) = cprob(i-1,ma) + csect(i,ma)/csect(0,ma)
     end do
   end do
 
