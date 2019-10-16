@@ -1102,14 +1102,14 @@ end module coll_crystal
         y=y0+yp*s
         iProc = proc_AM
         CALL CALC_ION_LOSS_CRY(IS,is2,PC,AM_Length,DESt)
-        CALL MOVE_AM_(IS,is2,NAM,Am_Length,DESt,DLYi(IS2),dlri(is2),xp,yp,PC)
+        CALL move_am(IS,is2,NAM,Am_Length,DESt,DLYi(IS2),dlri(is2),xp,yp,PC)
         x=x+xp*(s_length-s)
         y=y+yp*(s_length-s)
         GOTO 111
       ELSEIF ((x.GT.(C_xmax-Alayer)) .and. x.LT.(C_xmax)  ) THEN
         iProc = proc_AM
         CALL CALC_ION_LOSS_CRY(IS,is2,PC,s_length,DESt)
-        CALL MOVE_AM_(IS,is2,NAM,s_length,DESt,DLYi(IS2),DLRi(IS2), xp,yp,PC)
+        CALL move_am(IS,is2,NAM,s_length,DESt,DLYi(IS2),DLRi(IS2), xp,yp,PC)
         WRITE(*,*)'Fix here!'
         GOTO 111
       END IF
@@ -1239,7 +1239,7 @@ end module coll_crystal
 
 !            write(*,*) "s_length-Sdech", s_length-Sdech
             CALL CALC_ION_LOSS_CRY(IS,is2,PC,s_length-Sdech,DESt)
-            CALL MOVE_AM_(IS,is2,NAM,s_length-Sdech,DESt,DLYi(IS2),DLRi(IS2),xp,yp,PC)
+            CALL move_am(IS,is2,NAM,s_length-Sdech,DESt,DLYi(IS2),DLRi(IS2),xp,yp,PC)
            !next line new from sasha
             x = x + 0.5*(s_length-Sdech)*xp
             y = y + 0.5*(s_length-Sdech)*yp
@@ -1283,7 +1283,7 @@ end module coll_crystal
           x = x + 0.5*s_length * xp
           y = y + 0.5*s_length * yp
           CALL CALC_ION_LOSS_CRY(IS,is2,PC,s_length,DESt)
-          CALL MOVE_AM_(IS,is2,NAM,s_length,DESt,DLYi(IS2),DLRi(IS2),xp ,yp,PC)
+          CALL move_am(IS,is2,NAM,s_length,DESt,DLYi(IS2),DLRi(IS2),xp ,yp,PC)
           x = x + 0.5*s_length * xp
           y = y + 0.5*s_length * yp
         ENDIF                                    !
@@ -1304,7 +1304,7 @@ end module coll_crystal
             x = x + 0.5* xp * (s_length - Srefl)
             y = y + 0.5* yp * (s_length - Srefl)
             CALL CALC_ION_LOSS_CRY(IS,is2,PC,s_length-Srefl,DESt)
-            CALL MOVE_AM_(IS,is2,NAM,s_length-Srefl,DESt,DLYi(IS2),DLRi(IS2),xp ,yp,PC)
+            CALL move_am(IS,is2,NAM,s_length-Srefl,DESt,DLYi(IS2),DLRi(IS2),xp ,yp,PC)
             x = x + 0.5 * xp * (s_length - Srefl)
             y = y + 0.5 * yp * (s_length - Srefl)
           ELSE                                      !opt 2: VC
@@ -1337,7 +1337,7 @@ end module coll_crystal
               CALL CALC_ION_LOSS_CRY(IS,is2,PC,Sdech,DESt)
               PC=PC - 0.5 * DESt * Sdech !Daniele: "added" energy loss while captured
               CALL CALC_ION_LOSS_CRY(IS,is2,PC,Red_S,DESt)
-              CALL MOVE_AM_(IS,is2,NAM,Red_S,DESt,DLYi(IS2),DLRi(IS2),xp,yp,PC)
+              CALL move_am(IS,is2,NAM,Red_S,DESt,DLYi(IS2),DLRi(IS2),xp,yp,PC)
               x = x + 0.5 * xp * Red_S
               y = y + 0.5 * yp * Red_S
             else
@@ -1381,7 +1381,7 @@ end module coll_crystal
              y = y + 0.5 * s_length * yp
             if(ZN .gt. 0) then
              CALL CALC_ION_LOSS_CRY(IS,is2,PC,s_length,DESt)
-             CALL MOVE_AM_(IS,is2,NAM,s_length,DESt,DLYi(IS2),DLRi(IS2), xp,yp,PC)
+             CALL move_am(IS,is2,NAM,s_length,DESt,DLYi(IS2),DLRi(IS2), xp,yp,PC)
             endif
             x = x + 0.5 * s_length * xp
             y = y + 0.5 * s_length * yp
@@ -1404,7 +1404,7 @@ end module coll_crystal
             y=y+0.5*yp*(s_length-Srefl)
 !            write(*,*) "s_length-Srefl", s_length-Srefl
             CALL CALC_ION_LOSS_CRY(IS,is2,PC,s_length-Srefl,DESt)
-            CALL MOVE_AM_(IS,is2,NAM,s_length-Srefl,DESt,DLYi(IS2),DLRi(IS2),xp ,yp,PC)
+            CALL move_am(IS,is2,NAM,s_length-Srefl,DESt,DLYi(IS2),DLRi(IS2),xp ,yp,PC)
             x = x + 0.5 * xp * (s_length - Srefl)
             y = y + 0.5 * yp * (s_length - Srefl)
             else
@@ -1419,7 +1419,7 @@ end module coll_crystal
             y=y+0.5*yp*(s_length-Srefl)
 !            write(*,*) "s_length-Srefl", s_length-Srefl
             CALL CALC_ION_LOSS_CRY(IS,is2,PC,s_length-Srefl,DESt)
-            CALL MOVE_AM_(IS,is2,NAM,s_length-Srefl,DESt,DLYi(IS2),DLRi(IS2),xp ,yp,PC)
+            CALL move_am(IS,is2,NAM,s_length-Srefl,DESt,DLYi(IS2),DLRi(IS2),xp ,yp,PC)
             x = x + 0.5 * xp * (s_length - Srefl)
             y = y + 0.5 * yp * (s_length - Srefl)
             endif
@@ -1502,297 +1502,165 @@ end module coll_crystal
       END
 
 
-!.**************************************************************************
-!     subroutine for the movement in the amorphous
-!.**************************************************************************
-      SUBROUTINE MOVE_AM_(IS,is2,NAM,DZ,DEI,DLY,DLr, XP,YP,PC)
-
-      use mod_ranlux
-      use mod_funlux
-      use floatPrecision
-      use coll_crystal
-      use coll_materials, only : anuc, hcut, bnref, csref
-
-!. Moving in amorphous substance...........................
-      IMPLICIT none
-      integer IS,NAM,is2
-      real(kind=fPrec) DZ,DEI,DLY,DLr, XP,YP,PC
-      real(kind=fPrec) AM(30),QP(30),NPAI
-      real(kind=fPrec) Dc(4)
-      real(kind=fPrec) DYA,W_p
-
-!------- adding variables --------
-
-
-      real(kind=fPrec) cs(0:5,1:4)
-      real(kind=fPrec) freep(4)
-      real(kind=fPrec) bn(4)
-
-      real(kind=fPrec) ppel,ppsd,pptot
-
-      real(kind=fPrec) ecmsq,xln15s,bpp,xm2,bsd,t,teta,va,vb,va2,vb2
-      real(kind=fPrec) tx,tz,r2,zlm,f
-
-      integer i,ichoix
-      real(kind=fPrec) aran
-
-      real(kind=fPrec) tlow,thigh,ruth_cry
-      external ruth_cry
-
-      integer length_cry
-      real(kind=fPrec) xran_cry(1)
-
-!-------daniele--------------
-! adding new variables to study the energy loss when the routine is called
-!---------------------------
-
-      real(kind=fPrec) PC_in     !daniele
-      real(kind=fPrec) xp_in,yp_in,kxmcs,kymcs
-
-      write(*,*) "Entering MOVE_AM"
-
-
-      PC_in=PC                   !daniele
-
-      xp_in=XP
-      yp_in=YP
-
-
-!---------------daniele------------
-! NEW TREATMENT OF SCATTERING ROUTINE BASED ON STANDARD SIXTRACK ROUTINE
-!----------------------------------
-
-
-!------- useful calculations for cross-section and event topology calculation --------------
-
-      ecmsq = 2 * 0.93828d0 * PC
-!      write(*,*) ecmsq, PC
-      xln15s=log(0.15*ecmsq)
-! pp(pn) data
-!      pptot = pptref_cry *(PC / pref_cry)** pptco_cry
-!      ppel = pperef_cry *(PC / pref_cry)** ppeco_cry
-!      ppsd = sdcoe_cry * log(0.15d0 * ecmsq)
-!      bpp = 8.5d0 + 1.086d0 * log(sqrt(ecmsq))
-
-!new models, see Claudia's thesis
-
-      pptot=0.041084d0-0.0023302d0*log(ecmsq)+0.00031514d0*log(ecmsq)**2
-      ppel=(11.7d0-1.59d0*log(ecmsq)+0.134d0*log(ecmsq)**2)/1000
-      ppsd=(4.3d0+0.3d0*log(ecmsq))/1000
-      bpp=7.156d0+1.439d0*log(sqrt(ecmsq))
-
-!------ distribution for Ruth. scatt.---------
-
-      tlow=tlcut_cry
-      mcurr_cry=IS2
-      thigh=hcut(is2)
-!      write(*,*)tlow,thigh
-      call funlxp(ruth_cry,cgen_cry(1,IS),tlow,thigh)
-
-
-
-!---------- cross-section calculation -----------
-
-!
-! freep: number of nucleons involved in single scattering
-        freep(IS) = freeco_cry * anuc(is2)**(1d0/3d0)
-! compute pp and pn el+single diff contributions to cross-section
-! (both added : quasi-elastic or qel later)
-        cs(3,IS) = freep(IS) * ppel
-        cs(4,IS) = freep(IS) * ppsd
-!
-! correct TOT-CSec for energy dependence of qel
-! TOT CS is here without a Coulomb contribution
-        cs(0,IS) = csref(0,is2) + freep(IS) * (pptot - pptref_cry)
-        bn(IS) = bnref(is2) * cs(0,IS) / csref(0,is2)
-! also correct inel-CS
-        cs(1,IS) = csref(1,is2) * cs(0,IS) / csref(0,is2)
-!
-! Nuclear Elastic is TOT-inel-qel ( see definition in RPP)
-        cs(2,IS) = cs(0,IS) - cs(1,IS) - cs(3,IS) - cs(4,IS)
-        cs(5,IS) = csref(5,is2)
-! Now add Coulomb
-        cs(0,IS) = cs(0,IS) + cs(5,IS)
-
-
-! Calculate cumulative probability
-
-        do i=1,4
-          cprob_cry(i,IS)=cprob_cry(i-1,IS)+cs(i,IS)/cs(0,IS)
-        end do
-
-
-!--------- Multiple Coulomb Scattering ---------
-
-      xp=xp*1000
-      yp=yp*1000
-!      write(*,*)'xp initial:', xp, 'yp initial', yp
-!. DEI - dE/dx stoping energy
-      PC    = PC - DEI*DZ    ! energy lost because of ionization process[GeV]
-
-!. DYA - rms of coloumb scattering
-      DYA = (13.6/PC)*SQRT(DZ/DLr)             !MCS (mrad)
-!      write(*,*)'dya=',dya
-
-      kxmcs = DYA*RAN_GAUSS(1.0d0)
-      kymcs = DYA*RAN_GAUSS(1.0d0)
-
-      XP = xp+kxmcs
-      yp = yp+kymcs
-
-!c     XP    = XP+DYA*RAN_GAUSS(1.)
-!c      YP    = YP+DYA*RAN_GAUSS(1.)
-
-      if(NAM .eq. 0) return                    !turn on/off nuclear interactions
-
-
-!--------- Can nuclear interaction happen? -----
-
-
-      zlm=-collnt_cry(IS)*log(dble(rndm4()))
-
-!      zlm=0.0
-
-      if(zlm.lt.DZ) then
-
-!--------- Choose nuclear interaction --------
-
-
-      aran=dble(rndm4())
-      i=1
-  10  if ( aran.gt.cprob_cry(i,IS) ) then
-          i=i+1
-          goto 10
-      endif
-      ichoix=i
-
-
-!-------- Do the interaction ----------
-
-!      ichoix=2
-
-      t = 0 ! default value to cover ichoix=1
-
-      if (ichoix.eq.1) then !deep inelastic, impinging p disappeared
-
-        iProc = proc_absorbed
-
-      endif
-
-      if (ichoix.eq.2) then          ! p-n elastic
-        iProc = proc_pne
-        t = -log(dble(rndm4()))/bn(IS)
-      endif
-
-      if ( ichoix .eq. 3 ) then   !p-p elastic
-        iProc = proc_ppe
-        t = -log(dble(rndm4()))/bpp
-      endif
-
-      if ( ichoix .eq. 4 ) then   !single diffractive
-        iProc = proc_diff
-        xm2 = exp( dble(rndm4()) * xln15s )
-        PC = PC  *(1.d0 - xm2/ecmsq)
-          if ( xm2 .lt. 2.d0 ) then
-             bsd = 2.d0 * bpp
-           elseif (( xm2 .ge. 2.d0 ).and. ( xm2 .le. 5.d0 )) then
-                bsd = (106.d0-17.d0*xm2) *  bpp / 36.d0
-           elseif ( xm2 .gt. 5.d0 ) then
-                bsd = 7.d0 * bpp / 12.d0
-          endif
-        t = -log(dble(rndm4()))/bsd
-      endif
-
-      if ( ichoix .eq. 5 ) then
-        iProc = proc_ruth
-           length_cry=1
-           call funlux( cgen_cry(1,IS) ,xran_cry,length_cry)
-           t=xran_cry(1)
-      endif
-
-!---------- calculate the related kick -----------
-
-
-      if ( ichoix .eq. 4) then
-        teta = sqrt(t)/PC_in                !DIFF has changed PC!!!
-      else
-        write(*,*) "ichoix", ichoix
-        write(*,*) "t", t
-        teta = sqrt(t)/PC
-      endif
-
-
-! 100  va  =2d0*rndm4()-1d0
-!      vb = dble(rndm4())
-!      va2 = va*va
-!      vb2 = vb*vb
-!      r2 = va2 + vb2
-!      if ( r2.gt.1.d0) go to 100
-!      tx = teta * (2.d0*va*vb) / r2
-!      tz = teta * (va2 - vb2) / r2
-
-!c 100  va  =2d0*rndm4()-1d0
-!c      vb  =2d0*rndm4()-1d0
-!c      va2 = va*va
-!c      vb2 = vb*vb
-!c      r2 = va2 + vb2
-!c      if ( r2.gt.1.d0) go to 100
-!c      f = SQRT(-2d0*LOG(r2)/r2)
-!c      tx = teta*f*va
-!c      tz = teta*f*vb
-
-
-      tx= teta * RAN_GAUSS(1.0d0)
-      tz= teta * RAN_GAUSS(1.0d0)
-
-      tx = tx * 1000
-      tz = tz * 1000
-
-!---------- change p angle --------
-
-      XP = XP + tx
-      YP = YP + tz
-
-      end if                !close the if(zlm.lt.DZ)
-
-      xp=xp/1000
-      yp=yp/1000
-
-
-
-
-               write(*,*) "MOVE_AM done"
-
-      RETURN
-      END
-
-
-!--------- Multiple Coulomb Scattering ---------
-
-!c      xp=xp*1000
-!c      yp=yp*1000
-!      write(*,*)'xp initial:', xp, 'yp initial', yp
-!. DEI - dE/dx stoping energy
-!c      PC    = PC - DEI*DZ    ! energy lost beacause of ionization process[GeV]
-
-!. DYA - rms of coloumb scattering
-!c      DYA = (13.6/PC)*SQRT(DZ/DLr)             !MCS (mrad)
-!      write(*,*)'dya=',dya
-
-!c      kxmcs = DYA*RAN_GAUSS(1.)
-!c      kymcs = DYA*RAN_GAUSS(1.)
-
-!c      XP = xp+kxmcs
-!c      yp = yp+kymcs
-
-!      XP    = XP+DYA*RAN_GAUSS(1.)
-!      YP    = YP+DYA*RAN_GAUSS(1.)
-
-!c      xp = xp/1000
-!c      yp = yp/1000
-
-!--------END DANIELE------------------------------------
-
+! ================================================================================================ !
+!  Subroutine for the movement in the amorphous
+! ================================================================================================ !
+subroutine move_am(is,is2,nam,dz,dei,dly,dlr,xp,yp,pc)
+
+  use mod_ranlux
+  use mod_funlux
+  use floatPrecision
+  use coll_crystal
+  use coll_materials, only : anuc, hcut, bnref, csref
+
+  implicit none
+
+  integer,          intent(in)    :: is
+  integer,          intent(in)    :: is2
+  integer,          intent(in)    :: nam
+  real(kind=fPrec), intent(in)    :: dz
+  real(kind=fPrec), intent(in)    :: dei
+  real(kind=fPrec), intent(in)    :: dly
+  real(kind=fPrec), intent(in)    :: dlr
+  real(kind=fPrec), intent(inout) :: xp
+  real(kind=fPrec), intent(inout) :: yp
+  real(kind=fPrec), intent(inout) :: pc
+
+  integer i,length_cry,ichoix
+  real(kind=fPrec) t,xran_cry(1),bn(4),cs(0:5,1:4),freep(4),zlm,xp_in,yp_in,xm2,xln15s,tz,tx,tlow,  &
+    thigh,teta,pptot,ppsd,ppel,pc_in,kymcs,kxmcs,ecmsq,dya,bsd,bpp,aran
+  real(kind=fPrec), external :: ruth_cry
+
+  xp_in = xp
+  yp_in = yp
+  pc_in = pc
+
+  ! New treatment of scattering routine based on standard sixtrack routine
+  ! useful calculations for cross-section and event topology calculation 
+  ecmsq  = two*0.93828_fPrec*pc
+  xln15s = log(0.15*ecmsq)
+
+  ! New models, see Claudia's thesis
+  pptot = 0.041084d0-0.0023302d0*log(ecmsq)+0.00031514d0*log(ecmsq)**2
+  ppel  = (11.7d0-1.59d0*log(ecmsq)+0.134d0*log(ecmsq)**2)/1000
+  ppsd  = (4.3d0+0.3d0*log(ecmsq))/1000
+  bpp   = 7.156d0+1.439d0*log(sqrt(ecmsq))
+
+  ! Distribution for Ruth. scatt.
+  tlow      = tlcut_cry
+  mcurr_cry = is2
+  thigh     = hcut(is2)
+  call funlxp(ruth_cry,cgen_cry(1,is),tlow,thigh)
+
+  ! Cross-section calculation
+  ! freep: number of nucleons involved in single scattering
+  freep(is) = freeco_cry * anuc(is2)**(one/three)
+
+  ! Compute pp and pn el+single diff contributions to cross-section (both added : quasi-elastic or qel later)
+  cs(3,is) = freep(is) * ppel
+  cs(4,is) = freep(is) * ppsd
+
+  ! Correct TOT-CSec for energy dependence of qel
+  ! TOT CS is here without a Coulomb contribution
+  cs(0,is) = csref(0,is2) + freep(is) * (pptot - pptref_cry)
+  bn(is)   = bnref(is2) * cs(0,is) / csref(0,is2)
+
+  ! Also correct inel-CS
+  cs(1,is) = csref(1,is2) * cs(0,is) / csref(0,is2)
+
+  ! Nuclear Elastic is TOT-inel-qel ( see definition in RPP)
+  cs(2,is) = cs(0,is) - cs(1,is) - cs(3,is) - cs(4,is)
+  cs(5,is) = csref(5,is2)
+  ! Now add Coulomb
+  cs(0,is) = cs(0,is) + cs(5,is)
+
+  ! Calculate cumulative probability
+  do i=1,4
+    cprob_cry(i,is) = cprob_cry(i-1,is)+cs(i,is)/cs(0,is)
+  end do
+
+  ! Multiple Coulomb Scattering
+
+  xp  = xp*c1e3
+  yp  = yp*c1e3
+  pc  = pc-dei*dz  ! Energy lost because of ionization process[GeV]
+
+  dya   = (13.6/pc)*sqrt(dz/dlr) ! rms of coloumb scattering MCS (mrad)
+  kxmcs = dya*ran_gauss(one)
+  kymcs = dya*ran_gauss(one)
+
+  xp = xp+kxmcs
+  yp = yp+kymcs
+
+  if(nam == 0) return ! Turn on/off nuclear interactions
+
+  ! Can nuclear interaction happen?
+  zlm = -collnt_cry(is)*log(rndm4())
+
+  if(zlm < dz) then
+    ! Choose nuclear interaction
+    aran = rndm4()
+    i=1
+10  if(aran > cprob_cry(i,is)) then
+      i = i+1
+      goto 10
+    end if
+    ichoix = i
+
+    ! Do the interaction
+    t = 0 ! default value to cover ichoix=1
+    select case(ichoix)
+    case(1) ! Deep inelastic, impinging p disappeared
+      iProc = proc_absorbed
+
+    case(2) ! p-n elastic
+      iProc = proc_pne
+      t     = -log(rndm4())/bn(is)
+
+    case(3) ! p-p elastic
+      iProc = proc_ppe
+      t     = -log(rndm4())/bpp
+
+    case(4) ! Single diffractive
+      iProc = proc_diff
+      xm2   = exp(rndm4()*xln15s)
+      pc    = pc*(one - xm2/ecmsq)
+      if(xm2 < two) then
+        bsd = two*bpp
+      else if(xm2 >= two .and. xm2 <= five) then
+        bsd = (106.d0 - 17.d0*xm2)* bpp/36.d0
+      else if(xm2 > five) then
+        bsd = 7.d0*bpp/12.d0
+      end if
+      t = -log(rndm4())/bsd
+
+    case(5)
+      iProc      = proc_ruth
+      length_cry = 1
+      call funlux(cgen_cry(1,is),xran_cry,length_cry)
+      t = xran_cry(1)
+
+    end select
+
+    ! Calculate the related kick
+    if(ichoix == 4) then
+      teta = sqrt(t)/pc_in ! DIFF has changed PC
+    else
+      teta = sqrt(t)/pc
+    end if
+
+    tx = teta*ran_gauss(one)*c1e3
+    tz = teta*ran_gauss(one)*c1e3
+
+    ! Change p angle
+    xp = xp + tx
+    yp = yp + tz
+  end if
+
+  xp = xp/c1e3
+  yp = yp/c1e3
+
+end subroutine move_am
 
 ! ================================================================================================ !
 !  Subroutine for check if a nuclear interaction happen while in channeling
