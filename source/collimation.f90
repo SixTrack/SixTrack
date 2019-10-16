@@ -394,7 +394,7 @@ subroutine collimate_init
 #endif
 
   call f_requestUnit("colltrack.out", outlun)
-  call f_open(unit=outlun,file="colltrack.out",formatted=.true.,mode="w")
+  call f_open(unit=outlun,file="colltrack.out",formatted=.true.,mode="w",status="replace")
 
   write(outlun,*)
   write(outlun,*)
@@ -612,7 +612,7 @@ subroutine collimate_init
     else
 #endif
       call f_requestUnit("dist0.dat", fUnit)
-      call f_open(unit=fUnit,file="dist0.dat",formatted=.true.,mode="w")
+      call f_open(unit=fUnit,file="dist0.dat",formatted=.true.,mode="w",status="replace")
       do j=1, napx
         write(fUnit,"(6(1x,e23.15))") xv1(j), yv1(j), xv2(j), yv2(j), sigmv(j), ejv(j)
       end do
@@ -668,7 +668,7 @@ subroutine collimate_init
 
 ! Open the edep file
   call f_requestUnit(fort208,unit208)
-  call f_open(unit=unit208,file=fort208,formatted=.true.,mode="w")
+  call f_open(unit=unit208,file=fort208,formatted=.true.,mode="w",status="replace")
 
 !! This function lives in the G4Interface.cpp file in the g4collimat folder
 !! Accessed by linking libg4collimat.a
@@ -1431,43 +1431,43 @@ subroutine collimate_openFiles
 
   ! Survival File
   call f_requestUnit(coll_survivalFile,coll_survivalUnit)
-  call f_open(unit=coll_survivalUnit,file=coll_survivalFile,formatted=.true.,mode="w")
+  call f_open(unit=coll_survivalUnit,file=coll_survivalFile,formatted=.true.,mode="w",status="replace")
   write(coll_survivalUnit,"(a7,1x,a9)") "#  turn","n_part"
 
   ! Collimator Gaps File
   call f_requestUnit(coll_gapsFile,coll_gapsUnit)
-  call f_open(unit=coll_gapsUnit,file=coll_gapsFile,formatted=.true.,mode="w")
+  call f_open(unit=coll_gapsUnit,file=coll_gapsFile,formatted=.true.,mode="w",status="replace")
   write(coll_gapsUnit,"(a1,1x,a2,1x,a16,4(1x,a19),1x,a4,5(1x,a13),1x,a13)")     &
     "#","ID","name            ","angle[rad]","betax[m]","betay[m]","halfgap[m]",&
     "mat.","length[m]","sigx[m]","sigy[m]","tilt1[rad]","tilt2[rad]","nsig"
 
   ! Collimator Settings (Jaw Slices)
   call f_requestUnit(coll_settingsFile,coll_settingsUnit)
-  call f_open(unit=coll_settingsUnit,file=coll_settingsFile,formatted=.true.,mode="w")
+  call f_open(unit=coll_settingsUnit,file=coll_settingsFile,formatted=.true.,mode="w",status="replace")
   write(coll_settingsUnit,"(a20,1x,a10,5(1x,a13),1x,a4)") chr_rPad("# name",20),"slice","halfgap[m]","gapoffset[m]",&
     "tiltjaw1[rad]","tiltjaw2[rad]","length[m]","mat."
 
   ! Positions
   call f_requestUnit(coll_positionsFile,coll_positionsUnit)
-  call f_open(unit=coll_positionsUnit,file=coll_positionsFile,formatted=.true.,mode="w")
+  call f_open(unit=coll_positionsUnit,file=coll_positionsFile,formatted=.true.,mode="w",status="replace")
   write(coll_positionsUnit,"(a)") "# Ind           Name   Pos[m]"
 
   ! Twiss-Like File
   call f_requestUnit(coll_twissLikeFile,coll_twissLikeUnit)
-  call f_open(unit=coll_twissLikeUnit,file=coll_twissLikeFile,formatted=.true.,mode="w")
+  call f_open(unit=coll_twissLikeUnit,file=coll_twissLikeFile,formatted=.true.,mode="w",status="replace")
 
   ! Sigma Settings File
   call f_requestUnit(coll_sigmaSetFile,coll_sigmaSetUnit)
-  call f_open(unit=coll_sigmaSetUnit,file=coll_sigmaSetFile,formatted=.true.,mode="w")
+  call f_open(unit=coll_sigmaSetUnit,file=coll_sigmaSetFile,formatted=.true.,mode="w",status="replace")
 
   ! Tracks Files
   if(dowritetracks) then
     call f_requestUnit(coll_tracksFile,coll_tracksUnit)
-    call f_open(unit=coll_tracksUnit,file=coll_tracksFile,formatted=.true.,mode="w")
+    call f_open(unit=coll_tracksUnit,file=coll_tracksFile,formatted=.true.,mode="w",status="replace")
     write(coll_tracksUnit,"(a)") "# name turn s x xp y yp DE/E type"
 
     call f_requestUnit(coll_pencilFile,coll_pencilUnit)
-    call f_open(unit=coll_pencilUnit, file=coll_pencilFile,formatted=.true.,mode="w")
+    call f_open(unit=coll_pencilUnit, file=coll_pencilFile,formatted=.true.,mode="w",status="replace")
     write(coll_pencilUnit,"(a)") "# x xp y yp"
   end if
 
@@ -1475,25 +1475,25 @@ subroutine collimate_openFiles
   if(coll_hasCrystal) then
     if(dowrite_crycoord) then
       call f_requestUnit(coll_cryEntFile,coll_cryEntUnit)
-      call f_open(unit=coll_cryEntUnit,file=coll_cryEntFile,formatted=.true.,mode="w")
+      call f_open(unit=coll_cryEntUnit,file=coll_cryEntFile,formatted=.true.,mode="w",status="replace")
       write(coll_cryEntUnit,"(a1,1x,a6,1x,a8,1x,a20,1x,a4,2(1x,a3),5(1x,a15))") &
         "#","partID","turn",chr_rPad("collimator",20),"mat.","hit","abs","x","xp","y","yp","p"
 
       call f_requestUnit(coll_cryExitFile,coll_cryExitUnit)
-      call f_open(unit=coll_cryExitUnit,file=coll_cryExitFile,formatted=.true.,mode="w")
+      call f_open(unit=coll_cryExitUnit,file=coll_cryExitFile,formatted=.true.,mode="w",status="replace")
       write(coll_cryExitUnit,"(a1,1x,a6,1x,a8,1x,a20,1x,a4,2(1x,a3),5(1x,a15))") &
         "#","partID","turn",chr_rPad("collimator",20),"mat.","hit","abs","x","xp","y","yp","p"
     end if
 
     call f_requestUnit(coll_cryInterFile,coll_cryInterUnit)
-    call f_open(unit=coll_cryInterUnit,file=coll_cryInterFile,formatted=.true.,mode="w")
+    call f_open(unit=coll_cryInterUnit,file=coll_cryInterFile,formatted=.true.,mode="w",status="replace")
     write(coll_cryInterUnit,"(a1,1x,a6,1x,a8,1x,a20,1x,a4,10(1x,a15))") &
         "#","partID","turn",chr_rPad("collimator",20),"proc","kickx","kicky","Ein","Eout","xpin","ypin","cryangle","xin","yin"
   end if
 
   if(do_select) then
     call f_requestUnit(coll_ellipseFile,coll_ellipseUnit)
-    call f_open(unit=coll_ellipseUnit,file=coll_ellipseFile,formatted=.true.,mode="w")
+    call f_open(unit=coll_ellipseUnit,file=coll_ellipseFile,formatted=.true.,mode="w",status="replace")
     write(coll_ellipseUnit,"(a)") "# name x y xp yp E s turn halo nabs_type"
   end if
 
@@ -1507,14 +1507,14 @@ subroutine collimate_openFiles
     call f_requestUnit(coll_flukImpAllFile,coll_flukImpAllUnit)
     call f_requestUnit(coll_jawProfileFile,coll_jawProfileUnit)
 
-    call f_open(unit=coll_allImpactUnit, file=coll_allImpactFile, formatted=.true.,mode="w")
-    call f_open(unit=coll_allAbsorbUnit, file=coll_allAbsorbFile, formatted=.true.,mode="w")
-    call f_open(unit=coll_scatterUnit,   file=coll_scatterFile,   formatted=.true.,mode="w")
-    call f_open(unit=coll_fstImpactUnit, file=coll_fstImpactFile, formatted=.true.,mode="w")
-    call f_open(unit=coll_impactUnit,    file=coll_impactFile,    formatted=.true.,mode="w")
-    call f_open(unit=coll_flukImpUnit,   file=coll_flukImpFile,   formatted=.true.,mode="w")
-    call f_open(unit=coll_flukImpAllUnit,file=coll_flukImpAllFile,formatted=.true.,mode="w")
-    call f_open(unit=coll_jawProfileUnit,file=coll_jawProfileFile,formatted=.true.,mode="w")
+    call f_open(unit=coll_allImpactUnit, file=coll_allImpactFile, formatted=.true.,mode="w",status="replace")
+    call f_open(unit=coll_allAbsorbUnit, file=coll_allAbsorbFile, formatted=.true.,mode="w",status="replace")
+    call f_open(unit=coll_scatterUnit,   file=coll_scatterFile,   formatted=.true.,mode="w",status="replace")
+    call f_open(unit=coll_fstImpactUnit, file=coll_fstImpactFile, formatted=.true.,mode="w",status="replace")
+    call f_open(unit=coll_impactUnit,    file=coll_impactFile,    formatted=.true.,mode="w",status="replace")
+    call f_open(unit=coll_flukImpUnit,   file=coll_flukImpFile,   formatted=.true.,mode="w",status="replace")
+    call f_open(unit=coll_flukImpAllUnit,file=coll_flukImpAllFile,formatted=.true.,mode="w",status="replace")
+    call f_open(unit=coll_jawProfileUnit,file=coll_jawProfileFile,formatted=.true.,mode="w",status="replace")
 
     write(coll_allImpactUnit,"(a)") "# 1=name 2=turn 3=s"
     write(coll_allAbsorbUnit,"(a)") "# 1=name 2=turn 3=s"
@@ -3152,7 +3152,7 @@ subroutine collimate_exit
   else
 #endif
     call f_requestUnit(coll_efficFile,coll_efficUnit)
-    call f_open(unit=coll_efficUnit,file=coll_efficFile,formatted=.true.,mode="w")
+    call f_open(unit=coll_efficUnit,file=coll_efficFile,formatted=.true.,mode="w",status="replace")
     if(n_tot_absorbed /= 0) then
       write(coll_efficUnit,"(a1,1x,a13,6(1x,a15),1x,a8)") "#","rad_sigma",&
         "frac_x","frac_y","frac_r","eff_x","eff_y","eff_r","n_abs"
@@ -3190,7 +3190,7 @@ subroutine collimate_exit
   else
 #endif
     call f_requestUnit(coll_efficDPFile,coll_efficDPUnit)
-    call f_open(unit=coll_efficDPUnit,file=coll_efficDPFile,formatted=.true.,mode="w")
+    call f_open(unit=coll_efficDPUnit,file=coll_efficDPFile,formatted=.true.,mode="w",status="replace")
     if(n_tot_absorbed /= 0) then
       write(coll_efficDPUnit,"(a1,1x,a13,2(1x,a15),2(1x,a8))") "#","dp/p","n_dpop/tot_nabs","n_dpop","tot_nabs","npart"
       do k=1,numeffdpop
@@ -3229,7 +3229,7 @@ subroutine collimate_exit
   else
 #endif
     call f_requestUnit(coll_effic2DFile,coll_effic2DUnit)
-    call f_open(unit=coll_effic2DUnit,file=coll_effic2DFile,formatted=.true.,mode="w")
+    call f_open(unit=coll_effic2DUnit,file=coll_effic2DFile,formatted=.true.,mode="w",status="replace")
     if(n_tot_absorbed /= 0) then
       write(coll_effic2DUnit,"(a1,1x,a13,3(1x,a15),1x,a8)") "#","rad_sigma","dp/p","n/tot_nabs","n","tot_nabs"
       do i=1,numeff
@@ -3277,7 +3277,7 @@ subroutine collimate_exit
   else
 #endif
     call f_requestUnit(coll_summaryFile,coll_summaryUnit)
-    call f_open(unit=coll_summaryUnit,file=coll_summaryFile,formatted=.true.,mode="w")
+    call f_open(unit=coll_summaryUnit,file=coll_summaryFile,formatted=.true.,mode="w",status="replace")
     write(coll_summaryUnit,"(a1,1x,a5,1x,a20,2(1x,a8),2(1x,a15),1x,a6)") "#","icoll",chr_rPad("collname",20),&
       "nimp","nabs","imp_av","imp_sig","length"
     do icoll = 1, cdb_nColl
@@ -3330,7 +3330,7 @@ subroutine collimate_exit
   if(dowrite_amplitude) then
     ! Write amplitude.dat
     call f_requestUnit(coll_ampFile,coll_ampUnit)
-    call f_open(unit=coll_ampUnit,file=coll_ampFile,formatted=.true.,mode="w")
+    call f_open(unit=coll_ampUnit,file=coll_ampFile,formatted=.true.,mode="w",status="replace")
     write(coll_ampUnit,"(a1,1x,a6,1x,a20,19(1x,a20))") "#","ielem",chr_rPad("name",20),"s","AX_AV","AX_RMS","AY_AV","AY_RMS",&
       "alphax","alphay","betax","betay","orbitx","orbity","dispx","dispy","xbob","ybob","xpbob","ypbob","mux","muy"
     do i=1,iu
@@ -3352,7 +3352,7 @@ subroutine collimate_exit
 
   ! Write orbitchecking.dat
   call f_requestUnit(coll_orbitCheckFile,coll_orbitCheckUnit)
-  call f_open(unit=coll_orbitCheckUnit,file=coll_orbitCheckFile,formatted=.true.,mode="w")
+  call f_open(unit=coll_orbitCheckUnit,file=coll_orbitCheckFile,formatted=.true.,mode="w",status="replace")
   write(coll_orbitCheckUnit,"(a1,1x,a6,3(1x,a15))") "#","s","torbitx","torbity"
   do i=1,iu
     write(coll_orbitCheckUnit,"(i8,3(1x,1pe15.7))") i, dcum(i), torbx(i), torby(i)
