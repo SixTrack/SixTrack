@@ -1,28 +1,28 @@
 # Families
-NSIG_FAM tcp3                 15.0
-NSIG_FAM tcsg3                18.0
-NSIG_FAM tcsm3                18.0
-NSIG_FAM tcla3                20.0
-NSIG_FAM tcp7                  6.2
-NSIG_FAM tcsg7                 7.5
-NSIG_FAM cry7                  5.2
-NSIG_FAM tcsm7                 7.0
-NSIG_FAM tcla7                10.0
-NSIG_FAM tclp                 10.0
-NSIG_FAM tcli                900.0
-NSIG_FAM tcdq                  8.0
-NSIG_FAM tcstcdq               7.5
-NSIG_FAM tdi                 900.0
-NSIG_FAM tcth1                 8.3
-NSIG_FAM tcth2                 8.3
-NSIG_FAM tcth5                 8.3
-NSIG_FAM tcth8                 8.3
-NSIG_FAM tctv1                 8.3
-NSIG_FAM tctv2                 8.3
-NSIG_FAM tctv5                 8.3
-NSIG_FAM tctv8                 8.3
-NSIG_FAM tcxrp               900.0
-NSIG_FAM tcryo               900.0
+NSIG_FAM tcp3                 15.0 PRIMARY
+NSIG_FAM tcsg3                18.0 SECONDARY
+NSIG_FAM tcsm3                18.0 SECONDARY
+NSIG_FAM tcla3                20.0 TERTIARY
+NSIG_FAM tcp7                  6.2 PRIMARY
+NSIG_FAM tcsg7                 7.5 SECONDARY
+NSIG_FAM cry7                  5.2 CRYSTAL
+NSIG_FAM tcsm7                 7.0 SECONDARY
+NSIG_FAM tcla7                10.0 TERTIARY
+NSIG_FAM tclp                 10.0 TERTIARY
+NSIG_FAM tcli                900.0 TERTIARY
+NSIG_FAM tcdq                  8.0 TERTIARY
+NSIG_FAM tcstcdq               7.5 SECONDARY
+NSIG_FAM tdi                 900.0 TERTIARY
+NSIG_FAM tcth1                 8.3 TERTIARY
+NSIG_FAM tcth2                 8.3 TERTIARY
+NSIG_FAM tcth5                 8.3 TERTIARY
+NSIG_FAM tcth8                 8.3 TERTIARY
+NSIG_FAM tctv1                 8.3 TERTIARY
+NSIG_FAM tctv2                 8.3 TERTIARY
+NSIG_FAM tctv5                 8.3 TERTIARY
+NSIG_FAM tctv8                 8.3 TERTIARY
+NSIG_FAM tcxrp               900.0 OTHER
+NSIG_FAM tcryo               900.0 OTHER
 
 # Collimators
 # name                              opening/fam mat.     length[m]    angle[deg]     offset[m]     beta_x[m]     beta_y[m]
