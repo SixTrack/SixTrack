@@ -36,7 +36,7 @@ module coll_db
   character(len=:), allocatable, public, save :: cdb_cName(:)       ! Collimator name
   character(len=:), allocatable, public, save :: cdb_cMaterial(:)   ! Collimator material
   integer,          allocatable, public, save :: cdb_cFamily(:)     ! Collimator family
-  integer,          allocatable, public, save :: cdb_cStage(:)      ! Collimator type
+  integer,          allocatable, public, save :: cdb_cStage(:)      ! Collimator stage
   real(kind=fPrec), allocatable, public, save :: cdb_cNSig(:)       ! Collimator sigma
   real(kind=fPrec), allocatable, public, save :: cdb_cNSigOrig(:)   ! Collimator sigma
   real(kind=fPrec), allocatable, public, save :: cdb_cLength(:)     ! Collimator length
@@ -57,7 +57,7 @@ module coll_db
   character(len=:), allocatable, public, save :: cdb_famName(:)     ! Family name
   real(kind=fPrec), allocatable, public, save :: cdb_famNSig(:)     ! Family sigma
   real(kind=fPrec), allocatable, public, save :: cdb_famNSigOrig(:) ! Family sigma (original value from DB)
-  integer,          allocatable, public, save :: cdb_famStage(:)    ! Family type
+  integer,          allocatable, public, save :: cdb_famStage(:)    ! Family stage
 
   ! Element Map
   integer,          allocatable, public, save :: cdb_elemMap(:)     ! Map from single elements to DB
@@ -197,7 +197,7 @@ subroutine cdb_readCollDB
 !  Post-Processing DB
 ! ============================================================================ !
 
-  ! Set collimator types from family type, if we have any
+  ! Set collimator stage from family stage, if we have any
   if(cdb_nFam > 0) then
     do i=1,cdb_nColl
       if(cdb_cFamily(i) > 0) then
@@ -327,7 +327,7 @@ subroutine cdb_readDB_newFormat
       case("CRY")
         cdb_famStage(famID) = cdb_stgCrystal
       case default
-        write(lerr,"(a,i0)") "COLLDB> ERROR Unknown collimator type '"//trim(lnSplit(4))//"' on line ",iLine
+        write(lerr,"(a,i0)") "COLLDB> ERROR Unknown collimator stage '"//trim(lnSplit(4))//"' on line ",iLine
         call prror
       end select
       goto 10
@@ -416,7 +416,7 @@ subroutine cdb_readDB_oldFormat
   character(len=cdb_fNameLen) famName
   character(len=mNameLen) collDummy
   logical cErr, fExists
-  integer j, dbUnit, ioStat, iLine, famID, matID, collType
+  integer j, dbUnit, ioStat, iLine, famID, matID, collStage
 
   cErr = .false.
 
@@ -508,8 +508,8 @@ subroutine cdb_readDB_oldFormat
     end if
     cdb_cFamily(j) = famID
 
-    call cdb_getCollStage(cdb_cName(j), collType)
-    cdb_famStage(famID) = collType
+    call cdb_getCollStage(cdb_cName(j), collStage)
+    cdb_famStage(famID) = collStage
 
     matID = collmat_getCollMatID(cdb_cMaterial(j))
     if(matID > 0) then
@@ -561,7 +561,7 @@ subroutine cdb_writeDB_newFromOld
   write(dbNew,"(a)") "# Families"
   do j=1,cdb_nFam
     write(dbNew,"(a,1x,a16,1x,f13.6,1x,a)") "NSIG_FAM",cdb_famName(j),&
-      cdb_famNSig(j),trim(cdb_getTypeName(cdb_famStage(j)))
+      cdb_famNSig(j),trim(cdb_getStageName(cdb_famStage(j)))
   end do
   write(dbNew,"(a)") "#"
   write(dbNew,"(a)") "# Collimators"
@@ -1035,27 +1035,27 @@ end function cdb_getFamilyNSig
 !  V.K. Berglyd Olsen, BE-ABP-HSS
 !  Created: 2019-10-07
 !  Updated: 2019-10-07
-!  Get name from collimator type ID
+!  Get name from collimator stage ID
 ! ================================================================================================ !
-character(len=9) function cdb_getTypeName(typID)
+character(len=9) function cdb_getStageName(typID)
 
   integer, intent(in) :: typID
 
   if(iand(typID,cdb_stgPrimary) == cdb_stgPrimary) then
-    cdb_getTypeName = "PRIMARY"
+    cdb_getStageName = "PRIMARY"
   elseif(iand(typID,cdb_stgSecondary) == cdb_stgSecondary) then
-    cdb_getTypeName = "SECONDARY"
+    cdb_getStageName = "SECONDARY"
   elseif(iand(typID,cdb_stgTertiary) == cdb_stgTertiary) then
-    cdb_getTypeName = "TERTIARY"
+    cdb_getStageName = "TERTIARY"
   elseif(iand(typID,cdb_stgOther) == cdb_stgOther) then
-    cdb_getTypeName = "OTHER"
+    cdb_getStageName = "OTHER"
   elseif(iand(typID,cdb_stgCrystal) == cdb_stgCrystal) then
-    cdb_getTypeName = "CRYSTAL"
+    cdb_getStageName = "CRYSTAL"
   else
-    cdb_getTypeName = "UNKNOWN"
+    cdb_getStageName = "UNKNOWN"
   end if
 
-end function cdb_getTypeName
+end function cdb_getStageName
 
 ! ================================================================================================ !
 !  V.K. Berglyd Olsen, BE-ABP-HSS
@@ -1074,7 +1074,7 @@ subroutine cdb_writeFam
 
   write(famUnit,"(a16,1x,a3,2(1x,a13))") "# famName       ","typ","nSig","nSigOrig"
   do j=1,cdb_nFam
-    write(famUnit,"(a16,1x,a3,2(1x,f13.6))") cdb_famName(j),cdb_getTypeName(cdb_famStage(j)), &
+    write(famUnit,"(a16,1x,a3,2(1x,f13.6))") cdb_famName(j),cdb_getStageName(cdb_famStage(j)), &
       cdb_famNSig(j),cdb_famNSigOrig(j)
   end do
 
@@ -1108,7 +1108,7 @@ subroutine cdb_writeDB
       famName = " "
     end if
     write(dbUnit,"(a20,1x,a16,1x,a3,2(1x,f13.6),1x,a4,5(1x,f13.6))") cdb_cName(j),famName,          &
-      cdb_getTypeName(cdb_cStage(j)),cdb_cNSig(j),cdb_cNSigOrig(j),cdb_cMaterial(j),cdb_cLength(j),  &
+      cdb_getStageName(cdb_cStage(j)),cdb_cNSig(j),cdb_cNSigOrig(j),cdb_cMaterial(j),cdb_cLength(j),  &
       cdb_cRotation(j),cdb_cOffset(j),cdb_cBx(j),cdb_cBy(j)
   end do
 
@@ -1289,25 +1289,25 @@ end subroutine cdb_generateFamName
 !  Updated: 2019-10-16
 !  Checks the stage of the collimator based on LHC naming convention (for support with old format)
 ! ================================================================================================ !
-subroutine cdb_getCollStage(inElem, collType)
+subroutine cdb_getCollStage(inElem, collStage)
 
   use string_tools
 
   character(len=mNameLen), intent(in)  :: inElem
-  integer,                 intent(out) :: collType
+  integer,                 intent(out) :: collStage
 
   character(len=mNameLen) elemName
 
-  collType = cdb_stgOther
-  elemName = chr_toLower(inElem)
+  collStage = cdb_stgOther
+  elemName  = chr_toLower(inElem)
 
   if(elemName(1:3) == "tcp") then
-    collType = cdb_stgPrimary
+    collStage = cdb_stgPrimary
   else if(elemName(1:3) == "tcs") then
-    collType = cdb_stgSecondary
+    collStage = cdb_stgSecondary
   else if(elemName(1:3) == "tcl" .or. elemName(1:3) == "tct" .or. &
           elemName(1:3) == "tcd" .or. elemName(1:3) == "tdi") then
-    collType = cdb_stgTertiary
+    collStage = cdb_stgTertiary
   end if
 
 end subroutine cdb_getCollStage
