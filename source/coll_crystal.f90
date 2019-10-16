@@ -1615,7 +1615,6 @@ end module coll_crystal
 !---------------------------
 
       real(kind=fPrec) PC_in_dan     !daniele
-      integer PROC_dan    !daniele
       real(kind=fPrec) xp_in,yp_in,kxmcs,kymcs
 
       write(*,*) "Entering MOVE_AM"
@@ -1834,40 +1833,6 @@ end module coll_crystal
       yp=yp/1000
 
 
-!-----------------------------------------------
-! print out the energy loss and process experienced
-!-------------------
-
-               if (PROC(1:2).eq.'AM')then
-                 PROC_dan=proc_AM
-               elseif (PROC(1:2).eq.'VR') then
-                 PROC_dan=proc_VR
-               elseif (PROC(1:2).eq.'CH')then
-                 PROC_dan=proc_CH
-               elseif (PROC(1:2).eq.'VC') then
-                 PROC_dan=proc_VC
-               elseif (PROC(1:3).eq.'out')then
-                 PROC_dan=proc_out
-               elseif (PROC(1:8).eq.'absorbed') then
-                 PROC_dan=proc_absorbed
-               elseif (PROC(1:2).eq.'DC')then
-                 PROC_dan=proc_DC
-               elseif (PROC(1:3).eq.'pne')then
-                 PROC_dan=proc_pne
-               elseif (PROC(1:3).eq.'ppe')then
-                 PROC_dan=proc_ppe
-               elseif (PROC(1:4).eq.'diff')then
-                 PROC_dan=proc_diff
-               elseif (PROC(1:4).eq.'ruth')then
-                 PROC_dan=proc_ruth
-               elseif (PROC(1:4).eq.'TRVR')then
-                 PROC_dan=proc_TRVR
-               elseif (PROC(1:4).eq.'TRAM')then
-                 PROC_dan=proc_TRAM
-               endif
-
-!      write(889,*) PC_in_dan, PC, PROC_dan, tx,tz,
-!     & xp-xp_in-(kxmcs/1000), yp-yp_in-(kymcs/1000)
 
 
                write(*,*) "MOVE_AM done"
@@ -1961,7 +1926,6 @@ end module coll_crystal
 
 
       real(kind=fPrec) PC_in_dan     !daniele
-      integer PROC_dan    !daniele
       real(kind=fPrec) xp_in,yp_in,kxmcs,kymcs
 
       write(*,*) "Entering MOVE_CH"
@@ -2274,39 +2238,6 @@ end module coll_crystal
       yp=yp/1000
 
 
-!-----------------------------------------------
-! print out the energy loss and process experienced
-!-------------------
-
-               if (PROC(1:2).eq.'AM')then
-                 PROC_dan=proc_AM
-               elseif (PROC(1:2).eq.'VR') then
-                 PROC_dan=proc_VR
-               elseif (PROC(1:2).eq.'CH')then
-                 PROC_dan=proc_CH
-               elseif (PROC(1:2).eq.'VC') then
-                 PROC_dan=proc_VC
-               elseif (PROC(1:3).eq.'out')then
-                 PROC_dan=proc_out
-               elseif (PROC(1:11).eq.'ch_absorbed') then
-                 PROC_dan=proc_ch_absorbed
-               elseif (PROC(1:2).eq.'DC')then
-                 PROC_dan=proc_DC
-               elseif (PROC(1:6).eq.'ch_pne')then
-                 PROC_dan=proc_ch_pne
-               elseif (PROC(1:6).eq.'ch_ppe')then
-                 PROC_dan=proc_ch_ppe
-               elseif (PROC(1:7).eq.'ch_diff')then
-                 PROC_dan=proc_ch_diff
-               elseif (PROC(1:7).eq.'ch_ruth')then
-                 PROC_dan=proc_ch_ruth
-
-               endif
-
-!      write(889,*) PC_in_dan, PC, PROC_dan, tx,tz,
-!     & xp-xp_in-(kxmcs/1000), yp-yp_in-(kymcs/1000)
-
-!-------- Block Data ----------
                write(*,*) "MOVE_CH done"
 
       RETURN
