@@ -373,7 +373,7 @@ subroutine k2coll_collimate(icoll, iturn, ie, c_length, c_rotation, c_aperture, 
       ! SR+GRD: CREATE A FILE TO CHECK THE VALUES OF IMPACT PARAMETERS
       ! SR, 29-08-2005: Add to the longitudinal coordinates the position of the slice beginning
       if(dowrite_impact) then
-        if(iand(nhit_type(j),cdb_typPrimary) == 0) then
+        if(iand(nhit_type(j),cdb_stgPrimary) == 0) then
 #ifdef HDF5
           if(h5_useForCOLL) then
             call h5_prepareWrite(coll_hdf5_fstImpacts, 1)

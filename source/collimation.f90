@@ -1673,7 +1673,7 @@ subroutine collimate_start
   ! Generate random tilts (Gaussian distribution plus systematic)
   if(c_rmstilt_prim > zero .or. c_rmstilt_sec > zero .or. c_systilt_prim /= zero .or. c_systilt_sec /= zero) then
     do icoll = 1, cdb_nColl
-      if(cdb_cType(icoll) == cdb_typPrimary) then
+      if(cdb_cStage(icoll) == cdb_stgPrimary) then
         c_rmstilt = c_rmstilt_prim
         c_systilt = c_systilt_prim
       else
@@ -1691,7 +1691,7 @@ subroutine collimate_start
     end do
 
     do icoll=1,cdb_nColl
-      if(cdb_cType(icoll) == cdb_typPrimary) then
+      if(cdb_cStage(icoll) == cdb_stgPrimary) then
         cdb_cOffset(icoll) = c_sysoffset_prim + c_rmsoffset_prim*ran_gauss2(three)
       else
         cdb_cOffset(icoll) = c_sysoffset_sec +  c_rmsoffset_sec*ran_gauss2(three)
@@ -2766,7 +2766,7 @@ end do
         ykick = rcyp(j) - rcyp0(j)
 
         ! Record the hit type
-        nhit_type(j) = ior(nhit_type(j),cdb_cType(icoll))
+        nhit_type(j) = ior(nhit_type(j),cdb_cStage(icoll))
       else
         write(lerr,"(a)")          "COLL> ERROR Particle cannot be both absorbed and not absorbed"
         write(lerr,"(a,2(1x,i0))") "COLL>      ",part_abs_pos (j),part_abs_turn(j)

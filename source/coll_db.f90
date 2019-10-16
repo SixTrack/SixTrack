@@ -26,17 +26,17 @@ module coll_db
   integer,                  public,  save :: cdb_setPos   = 0       ! The position in the DB file of the SETTINGS keyword
 
   ! Collimator Types (must be integer of power of 2)
-  integer, parameter :: cdb_typPrimary   = 1
-  integer, parameter :: cdb_typSecondary = 2
-  integer, parameter :: cdb_typTertiary  = 4
-  integer, parameter :: cdb_typOther     = 8
-  integer, parameter :: cdb_typCrystal   = 16
+  integer, parameter :: cdb_stgPrimary   = 1
+  integer, parameter :: cdb_stgSecondary = 2
+  integer, parameter :: cdb_stgTertiary  = 4
+  integer, parameter :: cdb_stgOther     = 8
+  integer, parameter :: cdb_stgCrystal   = 16
 
   ! Main Database Arrays
   character(len=:), allocatable, public, save :: cdb_cName(:)       ! Collimator name
   character(len=:), allocatable, public, save :: cdb_cMaterial(:)   ! Collimator material
   integer,          allocatable, public, save :: cdb_cFamily(:)     ! Collimator family
-  integer,          allocatable, public, save :: cdb_cType(:)       ! Collimator type
+  integer,          allocatable, public, save :: cdb_cStage(:)      ! Collimator type
   real(kind=fPrec), allocatable, public, save :: cdb_cNSig(:)       ! Collimator sigma
   real(kind=fPrec), allocatable, public, save :: cdb_cNSigOrig(:)   ! Collimator sigma
   real(kind=fPrec), allocatable, public, save :: cdb_cLength(:)     ! Collimator length
@@ -57,7 +57,7 @@ module coll_db
   character(len=:), allocatable, public, save :: cdb_famName(:)     ! Family name
   real(kind=fPrec), allocatable, public, save :: cdb_famNSig(:)     ! Family sigma
   real(kind=fPrec), allocatable, public, save :: cdb_famNSigOrig(:) ! Family sigma (original value from DB)
-  integer,          allocatable, public, save :: cdb_famType(:)     ! Family type
+  integer,          allocatable, public, save :: cdb_famStage(:)    ! Family type
 
   ! Element Map
   integer,          allocatable, public, save :: cdb_elemMap(:)     ! Map from single elements to DB
@@ -80,7 +80,7 @@ subroutine cdb_allocDB
   call alloc(cdb_cName,       mNameLen, cdb_nColl, " ",           "cdb_cName")
   call alloc(cdb_cMaterial,   4,        cdb_nColl, " ",           "cdb_cMaterial")
   call alloc(cdb_cFamily,               cdb_nColl, 0,             "cdb_cFamily")
-  call alloc(cdb_cType,                 cdb_nColl, 0,             "cdb_cType")
+  call alloc(cdb_cStage,                cdb_nColl, 0,             "cdb_cStage")
   call alloc(cdb_cNSig,                 cdb_nColl, cdb_defColGap, "cdb_cNSig")
   call alloc(cdb_cNSigOrig,             cdb_nColl, cdb_defColGap, "cdb_cNSigOrig")
   call alloc(cdb_cLength,               cdb_nColl, zero,          "cdb_cLength")
@@ -113,7 +113,7 @@ subroutine cdb_allocFam
   call alloc(cdb_famName, cdb_fNameLen, cdb_nFam, " ",           "cdb_famName")
   call alloc(cdb_famNSig,               cdb_nFam, cdb_defColGap, "cdb_famNSig")
   call alloc(cdb_famNSigOrig,           cdb_nFam, cdb_defColGap, "cdb_famNSigOrig")
-  call alloc(cdb_famType,               cdb_nFam, 0,             "cdb_famType")
+  call alloc(cdb_famStage,              cdb_nFam, 0,             "cdb_famStage")
 
 end subroutine cdb_allocFam
 
@@ -201,7 +201,7 @@ subroutine cdb_readCollDB
   if(cdb_nFam > 0) then
     do i=1,cdb_nColl
       if(cdb_cFamily(i) > 0) then
-        cdb_cType(i) = cdb_famType(cdb_cFamily(i))
+        cdb_cStage(i) = cdb_famStage(cdb_cFamily(i))
       end if
     end do
   end if
@@ -242,7 +242,7 @@ end subroutine cdb_readCollDB
 ! ================================================================================================ !
 !  V.K. Berglyd Olsen, BE-ABP-HSS
 !  Created: 2019-03-19
-!  Updated: 2019-08-30
+!  Updated: 2019-10-16
 !  Parsing the collimator section of the new database format. That is, the sigma settings and the
 !  collimator descriptions. The parsing ends when it reaches the SETTINGS keyword.
 ! ================================================================================================ !
@@ -300,9 +300,9 @@ subroutine cdb_readDB_newFormat
   end if
 
   if(lnSplit(1) == "NSIG_FAM") then ! Collimator Family
-    if(nSplit /= 4) then
-      write(lerr,"(a,i0,a)") "COLLDB> ERROR Collimator family description on line ",iLine," must be 4 values."
-      write(lerr,"(a)")      "COLLDB>       NSIG_FAM famName sigmaSetting collType"
+    if(nSplit /= 3 .and. nSplit /= 4) then
+      write(lerr,"(a,i0,a)") "COLLDB> ERROR Collimator family description on line ",iLine," must be 3 or 4 values."
+      write(lerr,"(a)")      "COLLDB>       NSIG_FAM famName sigmaSetting [stage]"
       call prror
     end if
     call chr_cast(lnSplit(3), nSig, cErr)
@@ -312,24 +312,28 @@ subroutine cdb_readDB_newFormat
       cdb_famNSig(famID)     = nSig
       cdb_famNSigOrig(famID) = nSig
     end if
-    select case(chr_toUpper(lnSplit(4)(1:3))) ! We only check the first three characters
-    case("PRI")
-      cdb_famType(famID) = cdb_typPrimary
-    case("SEC")
-      cdb_famType(famID) = cdb_typSecondary
-    case("TER")
-      cdb_famType(famID) = cdb_typTertiary
-    case("OTH")
-      cdb_famType(famID) = cdb_typOther
-    case("CRY")
-      cdb_famType(famID) = cdb_typCrystal
-    case("UNK")
-      cdb_famType(famID) = 0
-    case default
-      write(lerr,"(a,i0)") "COLLDB> ERROR Unknown collimator type '"//trim(lnSplit(4))//"' on line ",iLine
-      call prror
-    end select
-    goto 10
+    if(nSplit > 3) then
+      select case(chr_toUpper(lnSplit(4)(1:3))) ! We only check the first three characters
+      case("UNK")
+        cdb_famStage(famID) = 0
+      case("PRI")
+        cdb_famStage(famID) = cdb_stgPrimary
+      case("SEC")
+        cdb_famStage(famID) = cdb_stgSecondary
+      case("TER")
+        cdb_famStage(famID) = cdb_stgTertiary
+      case("OTH")
+        cdb_famStage(famID) = cdb_stgOther
+      case("CRY")
+        cdb_famStage(famID) = cdb_stgCrystal
+      case default
+        write(lerr,"(a,i0)") "COLLDB> ERROR Unknown collimator type '"//trim(lnSplit(4))//"' on line ",iLine
+        call prror
+      end select
+      goto 10
+    end if
+  else
+    cdb_famStage(famID) = 0
   end if
 
   ! If not a family definition, it should be a collimator
@@ -504,8 +508,8 @@ subroutine cdb_readDB_oldFormat
     end if
     cdb_cFamily(j) = famID
 
-    call cdb_getCollType(cdb_cName(j), collType)
-    cdb_famType(famID) = collType
+    call cdb_getCollStage(cdb_cName(j), collType)
+    cdb_famStage(famID) = collType
 
     matID = collmat_getCollMatID(cdb_cMaterial(j))
     if(matID > 0) then
@@ -557,7 +561,7 @@ subroutine cdb_writeDB_newFromOld
   write(dbNew,"(a)") "# Families"
   do j=1,cdb_nFam
     write(dbNew,"(a,1x,a16,1x,f13.6,1x,a)") "NSIG_FAM",cdb_famName(j),&
-      cdb_famNSig(j),trim(cdb_getTypeName(cdb_famType(j)))
+      cdb_famNSig(j),trim(cdb_getTypeName(cdb_famStage(j)))
   end do
   write(dbNew,"(a)") "#"
   write(dbNew,"(a)") "# Collimators"
@@ -1037,15 +1041,15 @@ character(len=9) function cdb_getTypeName(typID)
 
   integer, intent(in) :: typID
 
-  if(iand(typID,cdb_typPrimary) == cdb_typPrimary) then
+  if(iand(typID,cdb_stgPrimary) == cdb_stgPrimary) then
     cdb_getTypeName = "PRIMARY"
-  elseif(iand(typID,cdb_typSecondary) == cdb_typSecondary) then
+  elseif(iand(typID,cdb_stgSecondary) == cdb_stgSecondary) then
     cdb_getTypeName = "SECONDARY"
-  elseif(iand(typID,cdb_typTertiary) == cdb_typTertiary) then
+  elseif(iand(typID,cdb_stgTertiary) == cdb_stgTertiary) then
     cdb_getTypeName = "TERTIARY"
-  elseif(iand(typID,cdb_typOther) == cdb_typOther) then
+  elseif(iand(typID,cdb_stgOther) == cdb_stgOther) then
     cdb_getTypeName = "OTHER"
-  elseif(iand(typID,cdb_typCrystal) == cdb_typCrystal) then
+  elseif(iand(typID,cdb_stgCrystal) == cdb_stgCrystal) then
     cdb_getTypeName = "CRYSTAL"
   else
     cdb_getTypeName = "UNKNOWN"
@@ -1070,7 +1074,7 @@ subroutine cdb_writeFam
 
   write(famUnit,"(a16,1x,a3,2(1x,a13))") "# famName       ","typ","nSig","nSigOrig"
   do j=1,cdb_nFam
-    write(famUnit,"(a16,1x,a3,2(1x,f13.6))") cdb_famName(j),cdb_getTypeName(cdb_famType(j)), &
+    write(famUnit,"(a16,1x,a3,2(1x,f13.6))") cdb_famName(j),cdb_getTypeName(cdb_famStage(j)), &
       cdb_famNSig(j),cdb_famNSigOrig(j)
   end do
 
@@ -1104,7 +1108,7 @@ subroutine cdb_writeDB
       famName = " "
     end if
     write(dbUnit,"(a20,1x,a16,1x,a3,2(1x,f13.6),1x,a4,5(1x,f13.6))") cdb_cName(j),famName,          &
-      cdb_getTypeName(cdb_cType(j)),cdb_cNSig(j),cdb_cNSigOrig(j),cdb_cMaterial(j),cdb_cLength(j),  &
+      cdb_getTypeName(cdb_cStage(j)),cdb_cNSig(j),cdb_cNSigOrig(j),cdb_cMaterial(j),cdb_cLength(j),  &
       cdb_cRotation(j),cdb_cOffset(j),cdb_cBx(j),cdb_cBy(j)
   end do
 
@@ -1282,10 +1286,10 @@ end subroutine cdb_generateFamName
 ! ================================================================================================ !
 !  V.K. Berglyd Olsen, BE-ABP-HSS
 !  Created: 2019-10-07
-!  Updated: 2019-10-07
-!  Checks the type of the collimator based on LHC naming convention (for support with old format)
+!  Updated: 2019-10-16
+!  Checks the stage of the collimator based on LHC naming convention (for support with old format)
 ! ================================================================================================ !
-subroutine cdb_getCollType(inElem, collType)
+subroutine cdb_getCollStage(inElem, collType)
 
   use string_tools
 
@@ -1294,19 +1298,19 @@ subroutine cdb_getCollType(inElem, collType)
 
   character(len=mNameLen) elemName
 
-  collType = cdb_typOther
+  collType = cdb_stgOther
   elemName = chr_toLower(inElem)
 
   if(elemName(1:3) == "tcp") then
-    collType = cdb_typPrimary
+    collType = cdb_stgPrimary
   else if(elemName(1:3) == "tcs") then
-    collType = cdb_typSecondary
+    collType = cdb_stgSecondary
   else if(elemName(1:3) == "tcl" .or. elemName(1:3) == "tct" .or. &
           elemName(1:3) == "tcd" .or. elemName(1:3) == "tdi") then
-    collType = cdb_typTertiary
+    collType = cdb_stgTertiary
   end if
 
-end subroutine cdb_getCollType
+end subroutine cdb_getCollStage
 
 ! ================================================================================================ !
 !  V.K. Berglyd Olsen, BE-ABP-HSS

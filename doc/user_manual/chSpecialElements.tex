@@ -1915,17 +1915,17 @@ The family declaration is optional, but it makes it easier to assign parameters 
 In the main section, this is used to provide the default collimator opening.
 
 The collimator family settings are povided similarly to the \texttt{NISG\_FAM} keyword in the \texttt{COLL} block in \texttt{fort.3}.
-The keyword takes a family name, a collimator opening setting, and a collimator type as input parameters.
+The keyword takes a family name, a collimator opening setting, and a collimator stage as input parameters.
 Note that the sigma settings in \texttt{fort.3} overrides the settings of the database.
 
-The collimator type is required, but \texttt{UNKNOWN} is a valid option.
-Each collimator type has a number associated with it that is an exponent of 2 (se table below).
-In files like \texttt{coll\_ellipse.dat} and \texttt{tracks2.dat}, the sum of these are printed, meaning the information of what collimator types a particle (that has not been absorbed) has hit can be extracted.
-Only the first three characters of the collimator type is required, the rest of the word is optional for clarity.
+The collimator stage is not required, and defaults to \texttt{UNKNOWN}.
+Each collimator stage has a number associated with it that is an exponent of 2 (se table below).
+In files like \texttt{coll\_ellipse.dat} and \texttt{tracks2.dat}, the sum of these are printed, meaning the information of what collimator stages a particle (that has not been absorbed) has hit can be extracted.
+Only the first three characters of the collimator stage is required, the rest of the word is optional for clarity.
 
 \bigskip
 \begin{tabular}{@{}llp{0.7\linewidth}}
-    \texttt{UNKNOWN}   &  0 & Use this to disable checking of type \\
+    \texttt{UNKNOWN}   &  0 & Use this to disable logging stages \\
     \texttt{PRIMARY}   &  1 & Primary collimators \\
     \texttt{SECONDARY} &  2 & Secondary collimators \\
     \texttt{TERTIARY}  &  4 & Tertiary collimators \\
