@@ -1,5 +1,4 @@
 ! start include/mul4v05.f90
-print *, "aaaaaa1", aaiv(1,i), yv2j
 yv1j = (bbiv(1,i) + bbiv(2,i)*xlvj) + aaiv(2,i)*zlvj
 yv2j = (aaiv(1,i) - bbiv(2,i)*zlvj) + aaiv(2,i)*xlvj
 if(curveff .and. abs(dki(ix,3)) > pieni) then !check for length and that flag is set
