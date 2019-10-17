@@ -330,10 +330,10 @@ subroutine cdb_readDB_newFormat
         write(lerr,"(a,i0)") "COLLDB> ERROR Unknown collimator stage '"//trim(lnSplit(4))//"' on line ",iLine
         call prror
       end select
-      goto 10
+    else
+      cdb_famStage(famID) = 0
     end if
-  else
-    cdb_famStage(famID) = 0
+    goto 10
   end if
 
   ! If not a family definition, it should be a collimator
