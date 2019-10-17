@@ -40,6 +40,7 @@ module coll_db
 
   ! Additional Settings Arrays
   real(kind=fPrec), allocatable, public, save :: cdb_cTilt(:,:)     ! Collimator jaw tilt
+  integer,          allocatable, public, save :: cdb_cMaterialID(:) ! Collimator material ID number
   integer,          allocatable, public, save :: cdb_cJawFit(:,:)   ! Collimator jaw fit index
   integer,          allocatable, public, save :: cdb_cSliced(:)     ! Collimator jaw fit sliced data index
   integer,          allocatable, public, save :: cdb_cSides(:)      ! 0 = two-sided, or 1,2 for single side 1 or 2
@@ -67,23 +68,24 @@ subroutine cdb_allocDB
   use numerical_constants
 
   ! Main Database Arrays
-  call alloc(cdb_cName,     mNameLen, cdb_nColl, " ",           "cdb_cName")
-  call alloc(cdb_cMaterial, 4,        cdb_nColl, " ",           "cdb_cMaterial")
-  call alloc(cdb_cFamily,             cdb_nColl, 0,             "cdb_cFamily")
-  call alloc(cdb_cNSig,               cdb_nColl, cdb_defColGap, "cdb_cNSig")
-  call alloc(cdb_cNSigOrig,           cdb_nColl, cdb_defColGap, "cdb_cNSigOrig")
-  call alloc(cdb_cLength,             cdb_nColl, zero,          "cdb_cLength")
-  call alloc(cdb_cOffset,             cdb_nColl, zero,          "cdb_cOffset")
-  call alloc(cdb_cRotation,           cdb_nColl, zero,          "cdb_cRotation")
-  call alloc(cdb_cBx,                 cdb_nColl, zero,          "cdb_cBx")
-  call alloc(cdb_cBy,                 cdb_nColl, zero,          "cdb_cBy")
-  call alloc(cdb_cFound,              cdb_nColl, .false.,       "cdb_cFound")
+  call alloc(cdb_cName,       mNameLen, cdb_nColl, " ",           "cdb_cName")
+  call alloc(cdb_cMaterial,   4,        cdb_nColl, " ",           "cdb_cMaterial")
+  call alloc(cdb_cFamily,               cdb_nColl, 0,             "cdb_cFamily")
+  call alloc(cdb_cNSig,                 cdb_nColl, cdb_defColGap, "cdb_cNSig")
+  call alloc(cdb_cNSigOrig,             cdb_nColl, cdb_defColGap, "cdb_cNSigOrig")
+  call alloc(cdb_cLength,               cdb_nColl, zero,          "cdb_cLength")
+  call alloc(cdb_cOffset,               cdb_nColl, zero,          "cdb_cOffset")
+  call alloc(cdb_cRotation,             cdb_nColl, zero,          "cdb_cRotation")
+  call alloc(cdb_cBx,                   cdb_nColl, zero,          "cdb_cBx")
+  call alloc(cdb_cBy,                   cdb_nColl, zero,          "cdb_cBy")
+  call alloc(cdb_cFound,                cdb_nColl, .false.,       "cdb_cFound")
 
   ! Additional Settings Arrays
-  call alloc(cdb_cTilt,     2,        cdb_nColl, zero,          "cdb_cTilt")
-  call alloc(cdb_cJawFit,   2,        cdb_nColl, 0,             "cdb_cJawFit")
-  call alloc(cdb_cSliced,             cdb_nColl, 0,             "cdb_cSliced")
-  call alloc(cdb_cSides,              cdb_nColl, 0,             "cdb_cSides")
+  call alloc(cdb_cTilt,       2,        cdb_nColl, zero,          "cdb_cTilt")
+  call alloc(cdb_cMaterialID,           cdb_nColl, 0,             "cdb_cMaterialID")
+  call alloc(cdb_cJawFit,     2,        cdb_nColl, 0,             "cdb_cJawFit")
+  call alloc(cdb_cSliced,               cdb_nColl, 0,             "cdb_cSliced")
+  call alloc(cdb_cSides,                cdb_nColl, 0,             "cdb_cSides")
 
 end subroutine cdb_allocDB
 
@@ -227,15 +229,16 @@ subroutine cdb_readDB_newFormat
 
   use parpro
   use crcoall
-  use string_tools
-  use mod_units
   use mod_alloc
+  use mod_units
+  use string_tools
+  use coll_materials
   use numerical_constants
 
   character(len=:), allocatable :: lnSplit(:)
   character(len=mInputLn) inLine
   real(kind=fPrec) nSig
-  integer i, dbUnit, ioStat, nSplit, iLine, famID, iColl
+  integer i, dbUnit, ioStat, nSplit, iLine, famID, iColl, matID
   logical cErr, fErr, fExists
 
   fErr  = .false.
@@ -302,6 +305,14 @@ subroutine cdb_readDB_newFormat
   cdb_cName(iColl)     = lnSplit(1)
   cdb_cMaterial(iColl) = lnSplit(3)
 
+  matID = collmat_getCollMatID(cdb_cMaterial(iColl))
+  if(matID > 0) then
+    cdb_cMaterialID(iColl) = matID
+  else
+    write(lerr,"(a)") "COLLDB> ERROR Material '"//trim(lnSplit(3))//"' not supported. Check your CollDB."
+    call prror
+  end if
+
   call chr_cast(lnSplit(4),cdb_cLength(iColl),  cErr)
   call chr_cast(lnSplit(5),cdb_cRotation(iColl),cErr)
   call chr_cast(lnSplit(6),cdb_cOffset(iColl),  cErr)
@@ -344,21 +355,22 @@ end subroutine cdb_readDB_newFormat
 !  V.K. Berglyd Olsen, BE-ABP-HSS
 !  Created: 2019-03-19
 !  Updated: 2019-09-02
-!  Parses the old style database format with one calue per line.
+!  Parses the old style database format with one value per line.
 ! ================================================================================================ !
 subroutine cdb_readDB_oldFormat
 
-  use crcoall
   use parpro
-  use string_tools
+  use crcoall
   use mod_units
+  use string_tools
+  use coll_materials
   use numerical_constants
 
   character(len=mInputLn) inLine
   character(len=cdb_fNameLen) famName
   character(len=mNameLen) collDummy
   logical cErr, fExists
-  integer j, dbUnit, ioStat, iLine, famID
+  integer j, dbUnit, ioStat, iLine, famID, matID
 
   cErr = .false.
 
@@ -450,6 +462,14 @@ subroutine cdb_readDB_oldFormat
     end if
     cdb_cFamily(j) = famID
 
+    matID = collmat_getCollMatID(cdb_cMaterial(j))
+    if(matID > 0) then
+      cdb_cMaterialID(j) = matID
+    else
+      write(lerr,"(a)") "COLLDB> ERROR Material '"//trim(cdb_cMaterial(j))//"' not supported. Check your CollDB."
+      call prror
+    end if
+  
   end do
 
   call f_freeUnit(dbUnit)

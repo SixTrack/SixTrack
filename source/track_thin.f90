@@ -535,6 +535,7 @@ subroutine thin4d(nthinerr)
     ! increase napxto, to get an estimation of particles*turns
     napxto = napxto + napx
 #endif
+    firstrun = .false.
 
   640 continue
 
@@ -651,9 +652,9 @@ subroutine thin6d(nthinerr)
 #ifdef BEAMGAS
       !YIL Call beamGas subroutine whenever a pressure-element is found
       ! should be faster/safer to first check the turn then do the name search
-      if( iturn.eq.1 ) then
-        if (bez(myix)(1:5).eq.'PRESS' .or.  bez(myix)(1:5).eq.'press' ) then
-          call beamGas(myix,secondary,dcum(i),myenom)
+      if(n == 1) then
+        if(bez(myix)(1:5) == "PRESS" .or. bez(myix)(1:5) == "press") then
+          call beamGas(myix,secondary,dcum(i),myenom,n,i)
         end if
       end if
 #endif
@@ -1324,11 +1325,7 @@ subroutine thin6d(nthinerr)
     ! increase napxto, to get an estimation of particles*turns
     napxto = napxto + napx
 #endif
-
-    if(do_coll) then
-      !GRD HERE WE SET THE FLAG FOR INITIALIZATION TO FALSE AFTER TURN 1
-      firstrun = .false.
-    end if
+    firstrun = .false.
 
 660 continue !END loop over turns
 

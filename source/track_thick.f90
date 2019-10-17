@@ -552,6 +552,7 @@ subroutine thck4d(nthinerr)
     ! increase napxto, to get an estimation of particles*turns
     napxto = napxto + napx
 #endif
+    firstrun = .false.
 
 490 continue
 
@@ -1145,6 +1146,7 @@ subroutine thck6d(nthinerr)
     ! increase napxto, to get an estimation of particles*turns
     napxto = napxto + napx
 #endif
+    firstrun = .false.
 
 510 continue
 ! end loop over turns
