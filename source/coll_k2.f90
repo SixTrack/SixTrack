@@ -560,6 +560,7 @@ end subroutine k2coll_collimate
 subroutine k2coll_scatin(plab)
 
   use mod_funlux
+  use coll_common
   use coll_materials
   use mathlib_bouncer
   use physical_constants
