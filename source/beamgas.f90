@@ -58,13 +58,12 @@ end module lorentzcommon
 !! \param mysecondary This is the array that tells which of the 64 particles are secondaries
 !! \param totals This is the position around the ring, calculated from the start flag in fort.2
 !! \param myenom This is an array with the energy of the 64 particles
-!! \param ipart This is an array with the id number of each particle
 !!
 !! \warning This is the one-turn version
 !! \return The subroutine does not return anything
 !! \see thin6d, beamGasInit and rotateMatrix
 !<
-subroutine beamGas( myix, mysecondary, totals, myenom, ipart ,turn, el_idx )
+subroutine beamGas( myix, mysecondary, totals, myenom, turn, el_idx )
   use floatPrecision
   use numerical_constants
   use physical_constants
@@ -80,12 +79,11 @@ subroutine beamGas( myix, mysecondary, totals, myenom, ipart ,turn, el_idx )
   use mod_common
   use mod_common_track
   use mod_common_main
-  use collimation, only : numeff, numeffdpop, max_ncoll, iturn, part_abs_pos, part_abs_turn, secondary
+  use collimation, only : numeff, numeffdpop, iturn, part_abs_pos, part_abs_turn, secondary
 
   implicit none
 
   real(kind=fPrec) myenom
-  integer ipart(npart)
 
 ! KNS (22/08/2017): The variable "secondary" is now visible
 ! from a +cd block as a COMMON variable;
@@ -148,11 +146,11 @@ subroutine beamGas( myix, mysecondary, totals, myenom, ipart ,turn, el_idx )
 
   if(bgid.lt.bgiddb(ibgloc)) then ! no proton for this scattering event
 !   check that this works correctly!!!!!!
-    write(bg_locLossesUnit,*) ipart(j),iturn,totals,xv1(j),yv1(j),xv2(j),yv2(j),sigmv(j),(0-myenom)/myenom, &
+    write(bg_locLossesUnit,*) partID(j),iturn,totals,xv1(j),yv1(j),xv2(j),yv2(j),sigmv(j),(0-myenom)/myenom, &
       bgid+njobthis*dpmjetevents
 
 !   writing down the scattering location information
-    write(bg_scatterLocUnit,*) ipart(j),iturn,totals,xv1(j),yv1(j),xv2(j),yv2(j),sigmv(j),ejv(j),bgid+njobthis*dpmjetevents,&
+    write(bg_scatterLocUnit,*) partID(j),iturn,totals,xv1(j),yv1(j),xv2(j),yv2(j),sigmv(j),ejv(j),bgid+njobthis*dpmjetevents,&
       bgid,ejv(j),xv1(j),xv2(j),yv1(j),yv2(j)
 !    part_abs(j) = 1
     part_abs_pos(j)  = el_idx
@@ -240,7 +238,7 @@ subroutine beamGas( myix, mysecondary, totals, myenom, ipart ,turn, el_idx )
     omoidpsv(j)=c1e3*((one-mtc(j))*oidpsv(j))
     dpsv1(j)=(dpsv(j)*c1e3)*oidpsv(j)
 ! writing down the scattering location information
-  write(bg_scatterLocUnit,*) ipart(j),iturn,totals,xv1(j),        &
+  write(bg_scatterLocUnit,*) partID(j),iturn,totals,xv1(j),        &
     yv1(j),xv2(j),yv2(j),sigmv(j),oldCoordinates(3),            &
     bgid+njobthis*dpmjetevents,bgid,ejv(j),oldCoordinates(4),      &
     oldCoordinates(5),oldCoordinates(1),oldCoordinates(2)
