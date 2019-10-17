@@ -10,7 +10,7 @@ module coll_crystal
   use floatPrecision
   use numerical_constants
   use coll_materials, only : nmat
-  use physical_constants, only : pmap
+  use physical_constants
 
   implicit none
 
@@ -32,29 +32,24 @@ module coll_crystal
   integer,           save :: C_orient ! Crystal orientation [0-1]
 
   ! Rutherford Scatter
-  real(kind=fPrec), parameter :: tlcut_cry   = 0.0009982d0
+  real(kind=fPrec), parameter :: tlcut_cry = 0.0009982_fPrec
   real(kind=fPrec), save      :: cgen_cry(200,nmat)
   integer,          save      :: mcurr_cry
 
   real(kind=fPrec), save :: enr,mom,betar,gammar,bgr !Daniele: energy,momentum,beta relativistic, gamma relativistic
   real(kind=fPrec), save :: Tmax,plen !Daniele: maximum energy tranfer in single collision, plasma energy (see pdg)
 
-  real(kind=fPrec), parameter :: re  = 2.818d-15   ! electron radius [m]
-  real(kind=fPrec), parameter :: me  = 0.510998910 ! electron mass [MeV/c^2]
-  real(kind=fPrec), parameter :: mp  = pmap  ! proton mass [MeV/c^2]
+  real(kind=fPrec), parameter :: re  = crade ! Electron radius [m]
+  real(kind=fPrec), parameter :: me  = pmae  ! Electron mass [MeV/c^2]
+  real(kind=fPrec), parameter :: mp  = pmap  ! Proton mass [MeV/c^2]
 
-  real(kind=fPrec), parameter :: aTF = 0.194d-10   ! Screening function [m]
-  real(kind=fPrec), parameter :: dP  = 1.92d-10    ! Distance between planes (110) [m]
-  real(kind=fPrec), parameter :: u1  = 0.075d-10   ! Thermal vibrations amplitude
+  real(kind=fPrec), parameter :: aTF = 0.194e-10_fPrec ! Screening function [m]
+  real(kind=fPrec), parameter :: dP  = 1.920e-10_fPrec ! Distance between planes (110) [m]
+  real(kind=fPrec), parameter :: u1  = 0.075e-10_fPrec ! Thermal vibrations amplitude
 
   ! pp cross-sections and parameters for energy dependence
-  real(kind=fPrec), parameter :: pptref_cry = 0.04d0
-  real(kind=fPrec), parameter :: pperef_cry = 0.007d0
-  real(kind=fPrec), parameter :: sdcoe_cry  = 0.00068d0
-  real(kind=fPrec), parameter :: pref_cry   = 450.0d0
-  real(kind=fPrec), parameter :: pptco_cry  = 0.05788d0
-  real(kind=fPrec), parameter :: ppeco_cry  = 0.04792d0
-  real(kind=fPrec), parameter :: freeco_cry = 1.618d0
+  real(kind=fPrec), parameter :: pptref_cry = 0.040_fPrec
+  real(kind=fPrec), parameter :: freeco_cry = 1.618_fPrec
 
   ! Crystal Specific Material Arrays
   real(kind=fPrec), save :: dlri(nmat)   = zero
@@ -110,35 +105,35 @@ subroutine cry_init
 
   ! Si
   m = collmat_getCollMatID("Si")
-  dlri(m)   = 0.0937
-  dlyi(m)   = 0.4652
-  ai(m)     = 0.96e-7
-  eUm(m)    = 21.34
-  collnt(m) = 0.3016d0
+  dlri(m)   =  0.0937_fPrec
+  dlyi(m)   =  0.4652_fPrec
+  ai(m)     =  0.96e-7_fPrec
+  eUm(m)    = 21.34_fPrec
+  collnt(m) =  0.3016_fPrec
 
   ! W
   m = collmat_getCollMatID("W")
-  dlri(m)   = 0.0035
-  dlyi(m)   = 0.096
-  ai(m)     = 0.56e-7
-  eUm(m)    = 21.0
-  collnt(m) = 0.0d0
+  dlri(m)   =  0.0035_fPrec
+  dlyi(m)   =  0.096_fPrec
+  ai(m)     =  0.56e-7_fPrec
+  eUm(m)    = 21.0_fPrec
+  collnt(m) = zero
 
   ! C
   m = collmat_getCollMatID("C")
-  dlri(m)   = 0.188
-  dlyi(m)   = 0.400
-  ai(m)     = 0.63e-7
-  eUm(m)    = 21.0
-  collnt(m) = 0.0d0
+  dlri(m)   =  0.188_fPrec
+  dlyi(m)   =  0.400_fPrec
+  ai(m)     =  0.63e-7_fPrec
+  eUm(m)    = 21.0_fPrec
+  collnt(m) = zero
 
   ! Ge
   m = collmat_getCollMatID("Ge")
-  dlri(m)   = 0.02302
-  dlyi(m)   = 0.2686
-  ai(m)     = 1.0e-7
-  eUm(m)    = 40.0
-  collnt(m) = 0.1632d0
+  dlri(m)   =  0.02302_fPrec
+  dlyi(m)   =  0.2686_fPrec
+  ai(m)     =  1.0e-7_fPrec
+  eUm(m)    = 40.0_fPrec
+  collnt(m) =  0.1632_fPrec
 
 end subroutine cry_init
 
@@ -303,7 +298,7 @@ end module coll_crystal
 
 ! MDA: parameters assignment from new CollDB format
 
-      mirror = 1.0d0
+      mirror = one
 
       Rcurv = cdb_cryBend(icoll)
       Alayer = cdb_cryThick(icoll)
@@ -371,20 +366,20 @@ end module coll_crystal
         zp  = yp_in(j)
         p   = p_in(j)
 !
-        x_temp=0.
-        x_int=0.
-        x_rot=0
-        x_shift=0
-        s_temp=0.
-        s_int=0.
-        s_rot=0
-        s_shift=0
-        xp_int=0.
-        xp_temp=0.
-        xp_rot=0
-        xp_shift=0
-        shift=0.
-        tilt_int=0.
+        x_temp=zero
+        x_int=zero
+        x_rot=zero
+        x_shift=zero
+        s_temp=zero
+        s_int=zero
+        s_rot=zero
+        s_shift=zero
+        xp_int=zero
+        xp_temp=zero
+        xp_rot=zero
+        xp_shift=zero
+        shift=zero
+        tilt_int=zero
         dpop = (p -p0)/p0
 
 
@@ -547,18 +542,18 @@ end module coll_crystal
             ! if it hits the crystal, calculate in which point and apply the
             ! transformation and drift to that point
                          a_eq=(1.+xp**2)
-                         b_eq=2.*xp*(x-Rcurv)
-                         c_eq=-2.*x*Rcurv+x**2
-                         Delta=b_eq**2-4.*(a_eq*c_eq)
-                         S_int=(-b_eq-sqrt(Delta))/(2.*a_eq)
+                         b_eq=two*xp*(x-Rcurv)
+                         c_eq=-two*x*Rcurv+x**2
+                         Delta=b_eq**2-four*(a_eq*c_eq)
+                         S_int=(-b_eq-sqrt(Delta))/(two*a_eq)
             !             write(*,*)'s int',S_int
                          if (S_int .lt. Rcurv*sin(cry_bend)) then
             !  transform to a new ref system:shift and rotate
                            X_int=XP*S_int+X
                            XP_int=XP
                            Z=Z+ZP*S_int
-                           X=0
-                           S=0
+                           X=zero
+                           S=zero
             !               tilt_int=2*X_int/S_int
                            tilt_int=S_int/Rcurv
                            XP=XP-tilt_int
@@ -628,7 +623,7 @@ end module coll_crystal
                        endif
            else ! Marco: crystal hit from above
             write(*,*) "Crystal hit from above"
-            XP_tangent=asin((Rcurv*(1-cos(cry_bend))-x)/sqrt(2*Rcurv*(Rcurv-x)*(1-cos(cry_bend))+x**2))
+            XP_tangent=asin((Rcurv*(one-cos(cry_bend))-x)/sqrt(two*Rcurv*(Rcurv-x)*(one-cos(cry_bend))+x**2))
             !           stop
             !           write(*,*)j,'-','tangent',xp_tangent,'angle',xp
             !           write(*,*) "Rcurv", Rcurv, "cry_bend", cry_bend
@@ -638,19 +633,19 @@ end module coll_crystal
 
             ! if it hits the crystal, calculate in which point and apply the
             ! transformation and drift to that point
-                         a_eq=(1.+xp**2)
-                         b_eq=2.*xp*(x-Rcurv)
-                         c_eq=-2.*x*Rcurv+x**2
-                         Delta=b_eq**2-4.*(a_eq*c_eq)
-                         S_int=(-b_eq-sqrt(Delta))/(2.*a_eq)
+                         a_eq=(one+xp**2)
+                         b_eq=two*xp*(x-Rcurv)
+                         c_eq=-two*x*Rcurv+x**2
+                         Delta=b_eq**2-four*(a_eq*c_eq)
+                         S_int=(-b_eq-sqrt(Delta))/(two*a_eq)
             !             write(*,*)'s int',S_int
                          if (S_int .lt. Rcurv*sin(cry_bend)) then
             !  transform to a new ref system:shift and rotate
                            X_int=XP*S_int+X
                            XP_int=XP
                            Z=Z+ZP*S_int
-                           X=0
-                           S=0
+                           X=zero
+                           S=zero
             !               tilt_int=2*X_int/S_int
                            tilt_int=S_int/Rcurv
                            XP=XP-tilt_int
@@ -679,7 +674,7 @@ end module coll_crystal
                              S_shift=S_rot*cos(-Cry_tilt)+X_rot*sin(-Cry_tilt)
                              X_shift=-S_rot*sin(-Cry_tilt)+X_rot*cos(-Cry_tilt)
                              XP_shift=XP_rot + Cry_tilt
-                             if (Cry_tilt .lt. 0) then
+                             if (Cry_tilt .lt. zero) then
                                S_impact=S_shift
                                X_in0(j)=X_shift+shift
                                XP_in0(j)=XP_shift
@@ -740,7 +735,7 @@ end module coll_crystal
                X_shift=-S_rot*sin(-Cry_tilt)+X_rot*cos(-Cry_tilt)
                XP_shift=XP_rot + Cry_tilt
 !     2nd: shift back the reference frame
-               if (Cry_tilt .lt. 0) then
+               if (Cry_tilt .lt. zero) then
                  S=S_shift
                  X=X_shift+shift
                  XP=XP_shift
@@ -793,10 +788,10 @@ end module coll_crystal
 !
 !++  Include collimator tilt
 !
-         IF (tiltangle.GT.0.) THEN
+         IF (tiltangle.GT.zero) THEN
            X  = X  + tiltangle*C_LENGTH
            XP = XP + tiltangle
-         ELSEIF (tiltangle.LT.0.) THEN
+         ELSEIF (tiltangle.LT.zero) THEN
            X  = X + tiltangle*C_LENGTH
            XP = XP + tiltangle
 !
@@ -834,21 +829,21 @@ end module coll_crystal
            X_IN(J) = X_IN(J) + MIRROR*X_PENCIL(ICOLL)
            Y_IN(J) = Y_IN(J) + MIRROR*Y_PENCIL(ICOLL)
 
-           IF (.NOT. CHANGED_TILT1(ICOLL) .AND. MIRROR.GT.0.) THEN
+           IF (.NOT. CHANGED_TILT1(ICOLL) .AND. MIRROR.GT.zero) THEN
                    WRITE (*,*) 'NEVER!!!'
                    C_TILT(1) = XP_PENCIL0*cRot+sRot*YP_PENCIL0
                    WRITE(*,*) 'INFO> Changed tilt1  ICOLL  to  ANGLE  ',ICOLL, C_TILT(1)
 !
                    CHANGED_TILT1(ICOLL) = .true.
-           ELSEIF (.NOT. CHANGED_TILT2(ICOLL) .AND. MIRROR.LT.0.) THEN
+           ELSEIF (.NOT. CHANGED_TILT2(ICOLL) .AND. MIRROR.LT.zero) THEN
                    C_TILT(2) = -1.*(XP_PENCIL0*cRot+sRot*YP_PENCIL0)
                    WRITE(*,*) 'INFO> Changed tilt2  ICOLL  to  ANGLE  ',ICOLL, C_TILT(2)
 !
                    CHANGED_TILT2(ICOLL) = .true.
            ENDIF
          ELSE
-           C_TILT(1) = 0.
-           C_TILT(2) = 0.
+           C_TILT(1) = zero
+           C_TILT(2) = zero
            CHANGED_TILT1(ICOLL) = .true.
            CHANGED_TILT2(ICOLL) = .true.
          ENDIF
@@ -964,8 +959,6 @@ subroutine cryst(is,x,xp,y,yp,pc,length,j)
   real(kind=fPrec) s                    ! Long coordinates of the particle [m]
   real(kind=fPrec) a_eq,b_eq,c_eq,Delta ! Second order equation param.
   real(kind=fPrec) Ang_rms, Ang_avr     ! Volume reflection mean angle [rad]
-  real(kind=fPrec) c_v1                 ! Fitting coefficient
-  real(kind=fPrec) c_v2                 ! Fitting coefficient
   real(kind=fPrec) Dechan               ! Probability for dechanneling
   real(kind=fPrec) Lrefl, Srefl         ! Distance of the reflection point [m]
   real(kind=fPrec) Vcapt                ! Volume capture probability
@@ -988,6 +981,9 @@ subroutine cryst(is,x,xp,y,yp,pc,length,j)
 
   real(kind=fPrec) const_dech,xpin,ypin,tchan,L_chan
 
+  real(kind=fPrec), parameter :: c_v1 =  1.7_fPrec ! Fitting coefficient
+  real(kind=fPrec), parameter :: c_v2 = -1.5_fPrec ! Fitting coefficient
+
   nam = 1 ! Switch on/off the nuclear interaction (NAM) and the MCS (ZN)
   zn  = 1
 
@@ -1001,11 +997,11 @@ subroutine cryst(is,x,xp,y,yp,pc,length,j)
   tmax = (two*me*bgr**2)/(one + two*gammar*me/mp+(me/mp)**2)  ! [MeV]
   plen = ((rho(is)*zatom(is)/anuc(is))**half)*28.816e-6_fPrec ! [MeV]
 
-  const_dech = (256.0/(9.0*pi**2))* &
+  const_dech = (256.0_fPrec/(nine*pi**2))* &
     (one/(log(two*me*gammar/(exenergy(is)*c1e3))-one))*((aTF*dP)/(re*me)) ! [m/MeV]
   const_dech = const_dech*c1e3 ! [m/GeV]
 
-  s        = 0
+  s        = zero
   s_length = Rcurv*(sin(length/Rcurv))
   L_chan   = length
 
@@ -1061,7 +1057,7 @@ subroutine cryst(is,x,xp,y,yp,pc,length,j)
     y = y + yp*(s_length-s)
     return
 
-  elseif ((x.gt.(c_xmax-alayer)) .and. x.lt.(c_xmax)  ) then
+  else if(x > c_xmax-alayer .and. x < c_xmax) then
     iProc = proc_AM
     call calc_ion_loss_cry(is,pc,s_length,dest)
     call move_am(is,nam,s_length,dest,dlyi(is),dlri(is),xp,yp,pc)
@@ -1071,52 +1067,49 @@ subroutine cryst(is,x,xp,y,yp,pc,length,j)
 
   ! THIRD CASE: the p interacts with the crystal.
   ! Define typical angles/probabilities for orientation 110
-  xpcrit0 = (2.0e-9*eUm(is)/pc)**half  ! Critical angle (rad) for straight crystals
-  Rcrit   = pc/(2.0e-6*eum(is))*ai(is) ! Critical curvature radius [m]
+  xpcrit0 = (c2m9*eUm(is)/pc)**half  ! Critical angle (rad) for straight crystals
+  Rcrit   = pc/(c2m6*eUm(is))*ai(is) ! Critical curvature radius [m]
 
   ! If R>Rcritical=>no channeling is possible (ratio<1)
   ratio  = Rcurv/Rcrit
   xpcrit = xpcrit0*(Rcurv-Rcrit)/Rcurv ! Critical angle for curved crystal
 
-  c_v1 =  1.7 ! Fitting coefficient ???
-  c_v2 = -1.5 ! Fitting coefficient ???
-
   if(ratio <= one) then ! no possibile channeling
-    Ang_rms = c_v1*0.42*xpcrit0*sin(1.4*ratio)  ! rms scattering
-    Ang_avr = c_v2*xpcrit0*0.05*ratio           ! average angle reflection
-    Vcapt   = zero                              ! probability of VC
+    Ang_rms = c_v1*0.42_fPrec*xpcrit0*sin(1.4_fPrec*ratio) ! RMS scattering
+    Ang_avr = c_v2*xpcrit0*c5m2*ratio                      ! Average angle reflection
+    Vcapt   = zero                                         ! Probability of VC
 
-  else if(ratio <= three) then ! Strongly bent xstal
-    Ang_rms = c_v1*0.42*xpcrit0*sin(1.571*0.3*ratio+0.85) ! rms scattering
-    Ang_avr = c_v2*xpcrit0*(0.1972*ratio-0.1472)          ! avg angle reflection
-    Vcapt   = 0.0007*(ratio-0.7)/PC**0.2                  ! correction by sasha drozdin/armen
-    ! K=0.00070 is taken based on simulations using CATCH.f (V.Biryukov)
+  else if(ratio <= three) then ! Strongly bent crystal
+    Ang_rms = c_v1*0.42_fPrec*xpcrit0*sin(0.4713_fPrec*ratio + 0.85_fPrec) ! RMS scattering
+    Ang_avr = c_v2*xpcrit0*(0.1972_fPrec*ratio - 0.1472_fPrec)             ! Average angle reflection
+    Vcapt   = 7.0e-4_fPrec*(ratio - 0.7_fPrec)/pc**c2m1                    ! Correction by sasha drozdin/armen
+    ! K=0.0007 is taken based on simulations using CATCH.f (V.Biryukov)
 
   else ! Rcry >> Rcrit
-    Ang_rms = c_v1*xpcrit0*(1./ratio)        ! rms scattering
-    Ang_avr = c_v2*xpcrit0*(1.-1.6667/ratio) ! average angle for VR
-    Vcapt   = 0.0007*(ratio-0.7)/PC**0.2     ! probability for VC correction by sasha drozdin/armen
+    Ang_rms = c_v1*xpcrit0*(one/ratio)                  ! RMS scattering
+    Ang_avr = c_v2*xpcrit0*(one - 1.6667_fPrec/ratio)   ! Average angle for VR
+    Vcapt   = 7.0e-4_fPrec*(ratio - 0.7_fPrec)/pc**c2m1 ! Probability for VC correction by sasha drozdin/armen
     ! K=0.0007 is taken based on simulations using CATCH.f (V.Biryukov)
 
   end if
 
   if(C_orient == 2) then
-    Ang_avr = Ang_avr * 0.93
-    Ang_rms = Ang_rms * 1.05
-    xpcrit  = xpcrit * 0.98
+    Ang_avr = Ang_avr*0.93_fPrec
+    Ang_rms = Ang_rms*1.05_fPrec
+    xpcrit  = xpcrit*0.98_fPrec
   end if
 
   if(abs(xp_rel) < xpcrit) then
     alpha  = xp_rel/xpcrit
-    Chann  = ((0.9-alpha*alpha*0.9)**half)*(one-(one/ratio))**half ! Saturation at 95%
-    N_atom = 0.1
+    Chann  = ((0.9_fPrec*(one - alpha**2))**half)*(one-(one/ratio))**half ! Saturation at 95%
+    N_atom = c1m1
 
     ! if they can channel: 2 options
     if(rndm4() <= chann) then ! option 1:channeling
 
       TLdech1 = const_dech*PC*(one-one/ratio)**2 ! Updated calculate typical dech. length(m)
       if(rndm4() <= n_atom) then
-        TLdech1 = (const_dech/200.d0)*PC*(one-one/ratio)**2  ! Updated dechanneling length (m)
+        TLdech1 = (const_dech/c2e2)*PC*(one-one/ratio)**2  ! Updated dechanneling length (m)
       end if
 
       Dechan = -log(rndm4())  ! probability of dechanneling
@@ -1174,7 +1167,7 @@ subroutine cryst(is,x,xp,y,yp,pc,length,j)
       ! good for channeling but don't channel (1-2)
       iProc = proc_VR
 
-      xp = xp + 0.45*(xp/xpcrit+1)*Ang_avr
+      xp = xp + 0.45_fPrec*(xp/xpcrit + one)*Ang_avr
       x  = x  + half*s_length*xp
       y  = y  + half*s_length*yp
 
@@ -1215,8 +1208,8 @@ subroutine cryst(is,x,xp,y,yp,pc,length,j)
         x = x + xp*Srefl
         y = y + yp*Srefl
 
-        TLdech2 = (const_dech/c1e1)*pc*(one-one/ratio)**2    ! updated typical dechanneling length(m)
-        Ldech   = TLdech2*(sqrt(0.01-log(rndm4())) - 0.1)**2 ! updated DC length
+        TLdech2 = (const_dech/c1e1)*pc*(one-one/ratio)**2       ! Updated typical dechanneling length(m)
+        Ldech   = TLdech2*(sqrt(c1m2 - log(rndm4())) - c1m1)**2 ! Updated DC length
         tdech   = Ldech/Rcurv
         Sdech   = Ldech*cos(xp + half*tdech)
 
@@ -1224,7 +1217,7 @@ subroutine cryst(is,x,xp,y,yp,pc,length,j)
 
           iProc = proc_DC
           Dxp   = Ldech/Rcurv + half*ran_gauss(one)*xpcrit
-          x     = x + Ldech*(sin(half*Dxp+xp)) ! trajectory at channeling exit
+          x     = x + Ldech*(sin(half*Dxp+xp)) ! Trajectory at channeling exit
           y     = y + Sdech*yp
           xp    =  Dxp
           Red_S = s_length - Srefl - Sdech
@@ -1311,8 +1304,8 @@ subroutine cryst(is,x,xp,y,yp,pc,length,j)
           iProc = proc_TRAM
           x = x + xp*Srefl
           y = y + yp*Srefl
-          Dxp = -one*(13.6/pc)*sqrt(s_length/dlri(is))*0.001*xp_rel/(two*xpcrit) + &
-            (13.6/pc)*sqrt(s_length/DLRi(is))*0.001*(one+(L_chan/Rcurv)/(two*xpcrit))
+          Dxp = -one*(13.6_fPrec/pc)*sqrt(s_length/dlri(is))*c1m3*xp_rel/(two*xpcrit) + &
+            (13.6_fPrec/pc)*sqrt(s_length/DLRi(is))*c1m3*(one+(L_chan/Rcurv)/(two*xpcrit))
           xp = xp+Dxp
           x  = x + half*xp*(s_length-Srefl)
           y  = y + half*yp*(s_length-Srefl)
@@ -1347,14 +1340,15 @@ subroutine calc_ion_loss_cry(is,pc,dz,EnLo)
   real(kind=fPrec), intent(out) :: EnLo
 
   real(kind=fPrec) thl,tt,cs_tail,prob_tail
-  real(kind=fPrec), parameter :: k = 0.307075 ! Constant in front bethe-bloch [mev g^-1 cm^2]
+  real(kind=fPrec), parameter :: k = 0.307075_fPrec ! Constant in front bethe-bloch [mev g^-1 cm^2]
 
   thl       = four*k*zatom(is)*dz*c1e2*rho(is)/(anuc(is)*betar**2) ! [MeV]
   EnLo      = ((k*zatom(is))/(anuc(is)*betar**2))*( &
     half*log((two*me*bgr*bgr*Tmax)/(c1e6*exenergy(is)**2)) - &
     betar**2-log(plen/(exenergy(is)*c1e3))-log(bgr)+half)
-  EnLo      = EnLo*rho(is)*0.1*dz ! [GeV]
+  EnLo      = EnLo*rho(is)*c1m1*dz ! [GeV]
   Tt        = EnLo*c1e3+thl ! [MeV]
+
   cs_tail   = ((k*zatom(is))/(anuc(is)*betar**2))*((half*((one/Tt)-(one/Tmax))) - &
     (log(Tmax/Tt)*(betar**2)/(two*Tmax)) + ((Tmax-Tt)/(four*(gammar**2)*(mp**2))))
   prob_tail = cs_tail*rho(is)*dz*c1e2
@@ -1364,7 +1358,7 @@ subroutine calc_ion_loss_cry(is,pc,dz,EnLo)
       half*log((two*me*bgr*bgr*Tmax)/(c1e6*exenergy(is)**2)) - &
       betar**2-log(plen/(exenergy(is)*c1e3))-log(bgr)+half   + &
       (TMax**2)/(eight*(gammar**2)*(mp**2)))
-    EnLo = EnLo*rho(is)*0.1 ! [GeV/m]
+    EnLo = EnLo*rho(is)*c1m1 ! [GeV/m]
   else
     EnLo = EnLo/dz ! [GeV/m]
   end if
@@ -1406,13 +1400,13 @@ subroutine move_am(is,nam,dz,dei,dly,dlr,xp,yp,pc)
   ! New treatment of scattering routine based on standard sixtrack routine
   ! useful calculations for cross-section and event topology calculation
   ecmsq  = two*pmap*c1m3*pc
-  xln15s = log(0.15*ecmsq)
+  xln15s = log(0.15_fPrec*ecmsq)
 
   ! New models, see Claudia's thesis
-  pptot = 0.041084d0-0.0023302d0*log(ecmsq)+0.00031514d0*log(ecmsq)**2
-  ppel  = (11.7d0-1.59d0*log(ecmsq)+0.134d0*log(ecmsq)**2)/1000
-  ppsd  = (4.3d0+0.3d0*log(ecmsq))/1000
-  bpp   = 7.156d0+1.439d0*log(sqrt(ecmsq))
+  pptot = 0.041084_fPrec - 0.0023302_fPrec*log(ecmsq) + 0.00031514_fPrec*log(ecmsq)**2
+  ppel  = (11.7_fPrec - 1.59_fPrec*log(ecmsq) + 0.134_fPrec*log(ecmsq)**2)/c1e3
+  ppsd  = (4.3_fPrec + 0.3_fPrec*log(ecmsq))/c1e3
+  bpp   = 7.156_fPrec + 1.439_fPrec*log(sqrt(ecmsq))
 
   ! Distribution for Ruth. scatt.
   tlow      = tlcut_cry
@@ -1455,7 +1449,7 @@ subroutine move_am(is,nam,dz,dei,dly,dlr,xp,yp,pc)
   yp  = yp*c1e3
   pc  = pc-dei*dz ! Energy lost because of ionization process[GeV]
 
-  dya   = (13.6/pc)*sqrt(dz/dlr) ! rms of coloumb scattering MCS (mrad)
+  dya   = (13.6_fPrec/pc)*sqrt(dz/dlr) ! RMS of coloumb scattering MCS (mrad)
   kxmcs = dya*ran_gauss(one)
   kymcs = dya*ran_gauss(one)
 
@@ -1498,9 +1492,9 @@ subroutine move_am(is,nam,dz,dei,dly,dlr,xp,yp,pc)
       if(xm2 < two) then
         bsd = two*bpp
       else if(xm2 >= two .and. xm2 <= five) then
-        bsd = (106.d0 - 17.d0*xm2)* bpp/36.d0
+        bsd = (106.0_fPrec - 17.0_fPrec*xm2)* bpp/36.0_fPrec
       else if(xm2 > five) then
-        bsd = 7.d0*bpp/12.d0
+        bsd = 7.0_fPrec*bpp/12.0_fPrec
       end if
       t = -log(rndm4())/bsd
 
@@ -1544,7 +1538,6 @@ subroutine move_ch(is,nam,dz,x,xp,yp,pc,r,rc)
   use coll_common, only : coll_debug
   use coll_crystal
   use coll_materials, only : nmat, rho, anuc, hcut, bnref, csref, csect
-  use physical_constants
 
   implicit none
 
@@ -1571,14 +1564,14 @@ subroutine move_ch(is,nam,dz,x,xp,yp,pc,r,rc)
   ! New treatment of scattering routine based on standard sixtrack routine
 
   ! Useful calculations for cross-section and event topology calculation
-  ecmsq = two*pmap*c1m3*pc
-  xln15s=log(0.15*ecmsq)
+  ecmsq  = two*pmap*c1m3*pc
+  xln15s = log(0.15_fPrec*ecmsq)
 
   ! New models, see Claudia's thesis
-  pptot = 0.041084d0-0.0023302d0*log(ecmsq)+0.00031514d0*log(ecmsq)**2
-  ppel  = (11.7d0-1.59d0*log(ecmsq)+0.134d0*log(ecmsq)**2)/1000
-  ppsd  = (4.3d0+0.3d0*log(ecmsq))/1000
-  bpp   = 7.156d0+1.439d0*log(sqrt(ecmsq))
+  pptot = 0.041084_fPrec - 0.0023302_fPrec*log(ecmsq) + 0.00031514_fPrec*log(ecmsq)**2
+  ppel  = (11.7_fPrec - 1.59_fPrec*log(ecmsq) + 0.134_fPrec*log(ecmsq)**2)/c1e3
+  ppsd  = (4.3_fPrec + 0.3_fPrec*log(ecmsq))/c1e3
+  bpp   = 7.156_fPrec + 1.439_fPrec*log(sqrt(ecmsq))
 
   ! Distribution for Ruth. scatt.
   tlow      = tlcut_cry
@@ -1712,9 +1705,9 @@ subroutine move_ch(is,nam,dz,x,xp,yp,pc,r,rc)
       if(xm2 < two) then
         bsd = two*bpp
       else if(xm2 >= two .and. xm2 <= five) then
-        bsd = (106.d0 - 17.d0*xm2) * bpp / 36.d0
+        bsd = (106.0_fPrec - 17.0_fPrec*xm2)*bpp/36.0_fPrec
       else if(xm2 > five) then
-        bsd = seven*bpp / 12.d0
+        bsd = seven*bpp/12.0_fPrec
       end if
       t = -log(rndm4())/bsd
 
