@@ -4,45 +4,38 @@
 ! ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 !
 ! ============================================================================ !
-
 module coll_crystal
 
   use floatPrecision
   use numerical_constants
   use coll_materials, only : nmat
-  use physical_constants
 
   implicit none
 
-  integer, parameter :: max_ncoll = 99
+  integer,          private, save :: iProc
+  integer,          private, save :: n_chan
+  integer,          private, save :: n_VR
+  integer,          private, save :: n_amorphous
 
-  logical,           save :: bool_create
-
-  integer,           save :: iProc
-  integer,           save :: n_chan
-  integer,           save :: n_VR
-  integer,           save :: n_amorphous
-  logical,           save :: changed_tilt1(max_ncoll)
-  logical,           save :: changed_tilt2(max_ncoll)
-
-  real(kind=fPrec),  save :: Rcurv    ! Crystal geometrical parameters [m]
-  real(kind=fPrec),  save :: C_xmax   ! Crystal geometrical parameters [m]
-  real(kind=fPrec),  save :: C_ymax   ! Crystal geometrical parameters [m]
-  real(kind=fPrec),  save :: Alayer   ! Crystal amorphous layer [mm]
-  real(kind=fPrec),  save :: miscut   ! Crystal miscut angle in rad
-  integer,           save :: C_orient ! Crystal orientation [0-1]
+  real(kind=fPrec), private, save :: Rcurv    ! Crystal geometrical parameters [m]
+  real(kind=fPrec), private, save :: C_xmax   ! Crystal geometrical parameters [m]
+  real(kind=fPrec), private, save :: C_ymax   ! Crystal geometrical parameters [m]
+  real(kind=fPrec), private, save :: Alayer   ! Crystal amorphous layer [mm]
+  real(kind=fPrec), private, save :: miscut   ! Crystal miscut angle in rad
+  integer,          private, save :: C_orient ! Crystal orientation [0-1]
 
   ! Rutherford Scatter
-  real(kind=fPrec), parameter :: tlcut_cry = 0.0009982_fPrec
-  real(kind=fPrec), save      :: cgen_cry(200,nmat)
-  integer,          save      :: mcurr_cry
+  real(kind=fPrec), parameter     :: tlcut_cry = 0.0009982_fPrec
+  real(kind=fPrec), private, save :: cgen_cry(200,nmat)
+  integer,          private, save :: mcurr_cry
 
-  real(kind=fPrec), save :: enr,mom,betar,gammar,bgr !Daniele: energy,momentum,beta relativistic, gamma relativistic
-  real(kind=fPrec), save :: Tmax,plen !Daniele: maximum energy tranfer in single collision, plasma energy (see pdg)
-
-  real(kind=fPrec), parameter :: re  = crade ! Electron radius [m]
-  real(kind=fPrec), parameter :: me  = pmae  ! Electron mass [MeV/c^2]
-  real(kind=fPrec), parameter :: mp  = pmap  ! Proton mass [MeV/c^2]
+  real(kind=fPrec), private, save :: enr
+  real(kind=fPrec), private, save :: mom
+  real(kind=fPrec), private, save :: betar
+  real(kind=fPrec), private, save :: gammar
+  real(kind=fPrec), private, save :: bgr
+  real(kind=fPrec), private, save :: tmax
+  real(kind=fPrec), private, save :: plen
 
   real(kind=fPrec), parameter :: aTF = 0.194e-10_fPrec ! Screening function [m]
   real(kind=fPrec), parameter :: dP  = 1.920e-10_fPrec ! Distance between planes (110) [m]
@@ -53,11 +46,11 @@ module coll_crystal
   real(kind=fPrec), parameter :: freeco_cry = 1.618_fPrec
 
   ! Crystal Specific Material Arrays
-  real(kind=fPrec), save :: dlri(nmat)   = zero
-  real(kind=fPrec), save :: dlyi(nmat)   = zero
-  real(kind=fPrec), save :: ai(nmat)     = zero
-  real(kind=fPrec), save :: eUm(nmat)    = zero
-  real(kind=fPrec), save :: collnt(nmat) = zero ! Nuclear Collision length [m]
+  real(kind=fPrec), private, save :: dlri(nmat)   = zero
+  real(kind=fPrec), private, save :: dlyi(nmat)   = zero
+  real(kind=fPrec), private, save :: ai(nmat)     = zero
+  real(kind=fPrec), private, save :: eUm(nmat)    = zero
+  real(kind=fPrec), private, save :: collnt(nmat) = zero ! Nuclear Collision length [m]
 
   ! Processes
   integer, parameter :: proc_out         =  -1
@@ -80,15 +73,6 @@ module coll_crystal
   integer, parameter :: proc_TRAM        = 101
 
 contains
-
-subroutine cry_expandArrays(npart_new)
-
-  use mod_alloc
-  use numerical_constants
-
-  integer, intent(in) :: npart_new
-
-end subroutine cry_expandArrays
 
 subroutine cry_init
 
@@ -135,8 +119,6 @@ subroutine cry_init
 
 end subroutine cry_init
 
-end module coll_crystal
-
 subroutine collimate_cry(icoll, iturn, ie, c_length, c_rotation, c_aperture, c_offset, c_tilt, &
   x_in, xp_in, y_in, yp_in, p_in, s_in, enom, lhit, lhit_turn, part_abs, part_abs_turn, impact, &
   indiv, lint, cry_tilt, cry_length)
@@ -149,10 +131,7 @@ subroutine collimate_cry(icoll, iturn, ie, c_length, c_rotation, c_aperture, c_o
   use mod_common, only : napx
   use coll_common, only : cry_proc, xp_pencil0, yp_pencil0, x_pencil, y_pencil, pencil_dx, ipencil
   use floatPrecision
-  use coll_crystal
   use mathlib_bouncer
-
-  implicit none
 
   integer,          intent(in)    :: icoll
   integer,          intent(in)    :: iturn
@@ -188,13 +167,13 @@ subroutine collimate_cry(icoll, iturn, ie, c_length, c_rotation, c_aperture, c_o
     tiltangle,cry_bend,cRot,sRot,cRRot,sRRot
 
   ! CRY ---------------------
-  Rcurv = cdb_cryBend(icoll)
-  Alayer = cdb_cryThick(icoll)
-  C_xmax = cdb_cryXDim(icoll)
-  C_ymax = cdb_cryYDim(icoll)
-  C_orient = cdb_cryOrient(icoll)
-  miscut = cdb_cryMisCut(icoll)
-  Cry_bend =  Cry_length/Rcurv
+  rcurv    = cdb_crybend(icoll)
+  alayer   = cdb_crythick(icoll)
+  c_xmax   = cdb_cryxdim(icoll)
+  c_ymax   = cdb_cryydim(icoll)
+  c_orient = cdb_cryorient(icoll)
+  miscut   = cdb_crymiscut(icoll)
+  cry_bend = cry_length/rcurv
   ! CRY ---------------------
 
   mat = cdb_cMaterialID(icoll)
@@ -208,9 +187,9 @@ subroutine collimate_cry(icoll, iturn, ie, c_length, c_rotation, c_aperture, c_o
   mirror = one
 
   ! CRY ---------------------
-  tiltangle = c_tilt(1)
-  n_chan  = 0
-  n_VR    = 0
+  tiltangle   = c_tilt(1)
+  n_chan      = 0
+  n_VR        = 0
   n_amorphous = 0
   ! CRY ---------------------
 
@@ -231,7 +210,7 @@ subroutine collimate_cry(icoll, iturn, ie, c_length, c_rotation, c_aperture, c_o
     indiv(j)  = -one
 
     ! CRY ---------------------
-    iProc = proc_out
+    iProc       = proc_out
     cry_proc(j) = proc_out
     ! CRY ---------------------
 
@@ -247,14 +226,12 @@ subroutine collimate_cry(icoll, iturn, ie, c_length, c_rotation, c_aperture, c_o
     p   = p_in(j)
 
     ! CRY ---------------------
-    dpop     = (p-p0)/p0
-
-    s_in0   = s_in(j)
-  ! x_in0   = x
-    xp_in0  = xp
-    y_in0   = z
-    yp_in0  = zp
-    p_in0   = p
+    dpop   = (p-p0)/p0
+    s_in0  = s_in(j)
+    xp_in0 = xp
+    y_in0  = z
+    yp_in0 = zp
+    p_in0  = p
     ! CRY ---------------------
 
     x  =  x_in(j)*cRot + sRot*y_in(j)
@@ -327,11 +304,8 @@ subroutine cry_doCrystal(ie,iturn,j,mat,x,xp,z,zp,s,p,x0,s0,xp0,zlm,nhit,nabs,  
   lhit,lhit_turn,part_abs,part_abs_turn,impact,indiv,cry_tilt,cry_length,cry_bend,c_length)
 
   use parpro
-  use coll_crystal
   use coll_common, only : cry_proc
   use mathlib_bouncer
-
-  implicit none
 
   integer,          intent(in)    :: ie
   integer,          intent(in)    :: iturn
@@ -638,11 +612,9 @@ subroutine cryst(is,x,xp,y,yp,pc,length,j)
   use mod_funlux
   use mod_common_main
   use floatPrecision
-  use coll_crystal
   use coll_materials, only : zatom, exenergy, rho, anuc
   use mathlib_bouncer
-
-  implicit none
+  use physical_constants
 
   integer,          intent(in)    :: is
   real(kind=fPrec), intent(inout) :: x
@@ -701,7 +673,7 @@ subroutine cryst(is,x,xp,y,yp,pc,length,j)
   plen = sqrt((rho(is)*zatom(is))/anuc(is))*28.816e-6_fPrec ! [MeV]
 
   const_dech = ((256.0_fPrec/(nine*pi**2)) * &
-    (one/(log_mb(((two*pmae)*gammar)/(exenergy(is)*c1e3)) - one))) * ((aTF*dP)/(re*pmae)) ! [m/MeV]
+    (one/(log_mb(((two*pmae)*gammar)/(exenergy(is)*c1e3)) - one))) * ((aTF*dP)/(crade*pmae)) ! [m/MeV]
   const_dech = const_dech*c1e3 ! [m/GeV]
 
   s        = zero
@@ -1032,11 +1004,9 @@ subroutine calc_ion_loss_cry(is,pc,dz,EnLo)
   use mod_ranlux
   use mod_funlux
   use floatPrecision
-  use coll_crystal
   use coll_materials, only : zatom, exenergy, rho, anuc
   use mathlib_bouncer
-
-  implicit none
+  use physical_constants
 
   integer,          intent(in)  :: is
   real(kind=fPrec), intent(in)  :: pc
@@ -1079,11 +1049,9 @@ subroutine move_am(is,nam,dz,dei,dly,dlr,xp,yp,pc)
   use mod_ranlux
   use mod_funlux
   use floatPrecision
-  use coll_crystal
   use coll_materials, only : anuc, hcut, bnref, csref
   use mathlib_bouncer
-
-  implicit none
+  use physical_constants
 
   integer,          intent(in)    :: is
   integer,          intent(in)    :: nam
@@ -1098,7 +1066,6 @@ subroutine move_am(is,nam,dz,dei,dly,dlr,xp,yp,pc)
   integer i,length_cry,ichoix
   real(kind=fPrec) t,xran_cry(1),bn,cs(0:5),cprob(0:5),freep,zlm,xp_in,yp_in,xm2,xln15s,tz,tx,tlow, &
     thigh,teta,pptot,ppsd,ppel,pc_in,kymcs,kxmcs,ecmsq,dya,bsd,bpp,aran
-  real(kind=fPrec), external :: ruth_cry
 
   xp_in = xp
   yp_in = yp
@@ -1243,11 +1210,9 @@ subroutine move_ch(is,nam,dz,x,xp,yp,pc,r,rc)
   use mod_funlux
   use floatPrecision
   use coll_common, only : coll_debug
-  use coll_crystal
   use coll_materials, only : nmat, rho, anuc, hcut, bnref, csref, csect
   use mathlib_bouncer
-
-  implicit none
+  use physical_constants
 
   integer,          intent(in)    :: is
   integer,          intent(in)    :: nam
@@ -1263,7 +1228,6 @@ subroutine move_ch(is,nam,dz,x,xp,yp,pc,r,rc)
   real(kind=fPrec) t,xran_cry(1),bn,cs(0:5),cprob(0:5),freep,zlm,xp_in,yp_in,xminU,xm2,xln15s,x_min,&
     x_max,x_i,Umin,Ueff,tz,tx,tlow,thigh,teta,rho_min,rho_max,pv,pptot,ppsd,ppel,PC_in,nuc_cl_l,    &
     N_am,Et,ecmsq,Ec,csref_inel_rsc,csref_tot_rsc,bsd,bpp,aran,avrrho
-  real(kind=fPrec), external :: ruth_cry
 
   xp_in = xp
   yp_in = yp
@@ -1454,11 +1418,8 @@ end subroutine move_ch
 function ruth_cry(t_cry)
 
   use floatPrecision
-  use coll_crystal
   use coll_materials
   use mathlib_bouncer
-
-  implicit none
 
   real(kind=fPrec) ruth_cry,t_cry
   real(kind=fPrec), parameter :: cnorm  = 2.607e-4_fPrec
@@ -1467,3 +1428,5 @@ function ruth_cry(t_cry)
   ruth_cry = (cnorm*exp_mb((-t_cry*cnform)*emr(mcurr_cry)**2))*(zatom(mcurr_cry)/t_cry)**2
 
 end function ruth_cry
+
+end module coll_crystal

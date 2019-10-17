@@ -653,7 +653,6 @@ subroutine collimate_init
   call k2coll_init
   if(coll_hasCrystal) then
     call cry_init
-    call cry_expandArrays(npart)
   end if
 #ifdef MERLINSCATTER
   call k2coll_merlinInit
@@ -2017,6 +2016,7 @@ subroutine collimate_do_collimator(stracki)
   use coll_k2
   use coll_jawfit
   use coll_dist
+  use coll_crystal, only : collimate_cry
   use mod_units
   use mathlib_bouncer
   use mod_alloc
