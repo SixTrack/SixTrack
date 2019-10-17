@@ -16,11 +16,12 @@ module coll_crystal
 
   integer, parameter :: max_ncoll = 99
 
-  logical,              save :: bool_create
-  integer, allocatable, save :: bool_proc(:)
-  integer, allocatable, save :: bool_proc_old(:)
+  logical,           save :: bool_create
 
   integer,           save :: iProc
+  integer,           save :: n_chan
+  integer,           save :: n_VR
+  integer,           save :: n_amorphous
   logical,           save :: changed_tilt1(max_ncoll)
   logical,           save :: changed_tilt2(max_ncoll)
 
@@ -87,9 +88,6 @@ subroutine cry_expandArrays(npart_new)
 
   integer, intent(in) :: npart_new
 
-  call alloc(bool_proc,     npart_new, 0, "bool_proc")
-  call alloc(bool_proc_old, npart_new, 0, "bool_proc_old")
-
 end subroutine cry_expandArrays
 
 subroutine cry_init
@@ -139,46 +137,16 @@ end subroutine cry_init
 
 end module coll_crystal
 
-!===============================================================
-! MDA: added icoll and MAX_NPART parameters
-!
-      SUBROUTINE collimate_cry(icoll, iturn, ie, C_LENGTH, &
-     &                   C_ROTATION, &
-     &                   C_APERTURE, C_OFFSET, C_TILT, &
-     &                   X_IN, XP_IN, Y_IN,   &
-     &                   YP_IN, P_IN, S_IN, NP, ENOM, LHIT, LHIT_TURN, &
-     &                   PART_ABS, PART_ABS_TURN, IMPACT, INDIV, LINT, &
-     &                   BX,BY,AX, &
-     &                   AY,EMITX0,EMITY0, &
-     &                   name,flagsec,dowrite_impact,MAX_NPART, Cry_tilt, Cry_length)!
+subroutine collimate_cry(icoll, iturn, ie, c_length, &
+     &                   c_rotation, &
+     &                   c_aperture, c_offset, c_tilt, &
+     &                   x_in, xp_in, y_in,   &
+     &                   yp_in, p_in, s_in, np, enom, lhit, lhit_turn, &
+     &                   part_abs, part_abs_turn, impact, indiv, lint, &
+     &                   bx,by,ax, &
+     &                   ay,emitx0,emity0, &
+     &                   name,flagsec,dowrite_impact,max_npart, cry_tilt, cry_length)!
 
-!
-!++  Based on routines by JBJ-R.assmann... Re-written for the crystal
-! case by V.previtali in september 2008
-!
-!++  - Deleted all HBOOK stuff.
-!++  - Deleted optics routine and all parser routines.
-!++  - Replaced RANMAR call by RANLUX call
-!++  - Included RANLUX code from CERNLIB into source
-!++  - Changed dimensions from CGen(100,nmat) to CGen(200,nmat)
-!++  - Replaced FUNPRE with FUNLXP
-!++  - Replaced FUNRAN with FUNLUX
-!++  - Included all CERNLIB code into source: RANLUX, FUNLXP, FUNLUX,
-!++	                                      FUNPCT, FUNLZ, RADAPT,
-!++                                           RGS56P
-!++	 with additional entries:             RLUXIN, RLUXUT, RLUXAT,
-!++                                           RLUXGO
-!++
-!++  - Changed program so that Nev is total number of particles
-!++    (scattered and not-scattered)
-!++  - Added debug comments
-!++  - Put real dp/dx
-!
-!
-!   !!!!!!!!   KNOWN ISSUES:  !!!!!!!
-!      1- the pencil beam is not working in the 6track version (I did not change
-!      the colltrack version yet)
-!
       use coll_db
       use mod_ranlux
       use mod_funlux
@@ -198,7 +166,7 @@ end module coll_crystal
          integer         Nev
          integer         j
          integer         nabs
-         integer         NHIT
+         integer         nhit
          integer         MAX_NPART
          integer         NP
 !        PARAMETER         (MAX_NPART=1500000)
@@ -206,11 +174,6 @@ end module coll_crystal
          real(kind=fPrec)            p0
          real(kind=fPrec)            zlm
          real(kind=fPrec)            x,xp
-         real(kind=fPrec)            shift
-         real(kind=fPrec)            x_shift, xp_shift,s_shift !coordinates after shift/rotation
-         real(kind=fPrec)            x_rot, xp_rot,s_rot
-         real(kind=fPrec)            x_temp, xp_temp,s_temp !!all the _temp variables are used when you hit the cry from below
-         real(kind=fPrec)            tilt_int, x_int,xp_int,s_int       !all the _int variables are used when you hit the cry from below (int=interaction point)
          real(kind=fPrec)            x00
          real(kind=fPrec)            z
          real(kind=fPrec)            z00
@@ -218,7 +181,6 @@ end module coll_crystal
          real(kind=fPrec)            p
          real(kind=fPrec)            dpop
          real(kind=fPrec)            s
-         real(kind=fPrec)            a_eq,b_eq,c_eq,Delta
          real(kind=fPrec)            ENOM
 !
          real(kind=fPrec)            x_PRINT,xp_PRINT,y_PRINT,yp_PRINT
@@ -246,7 +208,6 @@ end module coll_crystal
          real(kind=fPrec)            yp_in0(MAX_NPART)
          real(kind=fPrec)            p_in0(MAX_NPART)    !be careful: [Gev]
          real(kind=fPrec)            s_in0(MAX_NPART)
-         real(kind=fPrec)            s_impact
          integer                     flagsec(MAX_NPART)
          logical                     dowrite_impact
 
@@ -294,9 +255,6 @@ end module coll_crystal
       real(kind=fPrec) Cry_tilt0                        !tilt of the crystal for having channeling (determined by divergence of the beam) [rad]
       real(kind=fPrec) Cry_length                       !original length (from the db) [m]
 
-      integer n_chan
-      integer n_VR
-      integer n_amorphous
 
 
   ! CRY ---------------------
@@ -346,16 +304,8 @@ end module coll_crystal
     indiv(j)  = -one
 
     ! CRY ---------------------
-    if(iturn == 1) then
-      bool_proc_old(j) = -1
-    else
-      if(bool_proc(j) /= -1) then
-        bool_proc_old(j) = bool_proc(j)
-      end if
-    end if
     iProc = proc_out
-    bool_proc(j) = -1
-    cry_proc(j)  = -1
+    cry_proc(j) = proc_out
     ! CRY ---------------------
 
     ! CRY ---------------------
@@ -370,20 +320,6 @@ end module coll_crystal
     p   = p_in(j)
 
     ! CRY ---------------------
-    x_temp   = zero
-    x_int    = zero
-    x_rot    = zero
-    x_shift  = zero
-    s_temp   = zero
-    s_int    = zero
-    s_rot    = zero
-    s_shift  = zero
-    xp_int   = zero
-    xp_temp  = zero
-    xp_rot   = zero
-    xp_shift = zero
-    shift    = zero
-    tilt_int = zero
     dpop     = (p-p0)/p0
 
     s_in0(j)   = s_in(j)
@@ -415,249 +351,8 @@ end module coll_crystal
     ! CRY ---------------------
 
     ! CRY ---------------------
-    ! Transform in the crystal rerference system
-    ! 1st transformation: shift of the center of the reference frame
-    if(Cry_tilt < zero) then
-      S_shift = S
-      shift   = Rcurv*(1-cos_mb(Cry_tilt))
-      if(Cry_tilt < -Cry_bend) then
-        shift = Rcurv*(cos_mb(-Cry_tilt) - cos_mb(Cry_bend-Cry_tilt))
-      end if
-      X_shift = X-shift
-    else
-      S_shift = S
-      X_shift = X
-    end if
-
-    ! 2nd transformation: rotation
-    S_rot  = X_shift*sin_mb(Cry_tilt)+S_shift*cos_mb(Cry_tilt)
-    X_rot  = X_shift*cos_mb(Cry_tilt)-S_shift*sin_mb(Cry_tilt)
-    XP_rot = XP - Cry_tilt
-
-    ! 3rd transformation: drift to the new coordinate s=0
-    XP = XP_rot
-    X  = X_rot - XP_rot*S_rot
-    Z  = Z - ZP*S_rot
-    S  = zero
-
-    ! Now check if the particle hit the crystal
-    if(x >= zero .and. x < C_xmax) then ! Check that part. hit cry
-
-      s_impact = s_in0(j) ! (for the first impact)
-      call cryst(mat,x,xp,z,zp,p,cry_length,j)
-      s   = Rcurv*sin_mb(cry_bend)
-      zlm = Rcurv*sin_mb(cry_bend)
-      if(iProc /= proc_out) then
-        nhit = nhit + 1
-        lhit(j) = ie
-        lhit_turn(j) = iturn
-        impact(j) = x_in0(j)
-        indiv(j) = xp_in0(j)
-      end if
-
-    else
-
-      if(x < zero) then ! Crystal hit from below
-        XP_tangent = sqrt((-(two*x)*Rcurv + x**2)/(Rcurv**2))
-        if(xp >= XP_tangent) then
-          ! if it hits the crystal, calculate in which point and apply the
-          ! transformation and drift to that point
-          a_eq  = (one + xp**2)
-          b_eq  = (two*xp)*(x-Rcurv)
-          c_eq  = -(two*x)*Rcurv + x**2
-          Delta = b_eq**2 - four*(a_eq*c_eq)
-          S_int = (-b_eq - sqrt(Delta))/(two*a_eq)
-
-          if(S_int < Rcurv*sin_mb(cry_bend)) then
-            !  transform to a new ref system:shift and rotate
-            x_int  = xp*s_int + x
-            xp_int = xp
-            z      = z + zp*s_int
-            x      = zero
-            s      = zero
-
-            tilt_int = s_int/Rcurv
-            xp       = xp-tilt_int
-
-            call cryst(mat,x,xp,z,zp,p,(cry_length-(tilt_int*rcurv)),j)
-            s   = Rcurv*sin_mb(cry_bend-tilt_int)
-            zlm = Rcurv*sin_mb(cry_bend-tilt_int)
-            if(iProc /= proc_out) then
-              x_rot    = x_int
-              s_rot    = s_int
-              xp_rot   = xp_int
-              s_shift  =  s_rot*cos_mb(-cry_tilt) + x_rot*sin_mb(-cry_tilt)
-              x_shift  = -s_rot*sin_mb(-cry_tilt) + x_rot*cos_mb(-cry_tilt)
-              xp_shift = xp_rot + cry_tilt
-
-              if(Cry_tilt < zero) then
-                s_impact  = s_shift
-                x_in0(j)  = x_shift+shift
-                xp_in0(j) = xp_shift
-              else
-                x_in0(j)  = x_shift
-                s_impact  = s_shift
-                xp_in0(j) = xp_shift
-              end if
-
-              nhit = nhit + 1
-              lhit(j) = ie
-              lhit_turn(j) = iturn
-              impact(j) = x_in0(j)
-              indiv(j) = xp_in0(j)
-            end if
-
-            ! un-rotate
-            X_temp  = X
-            S_temp  = S
-            XP_temp = XP
-            S       =  S_temp*cos_mb(-tilt_int) + X_temp*sin_mb(-tilt_int)
-            X       = -S_temp*sin_mb(-tilt_int) + X_temp*cos_mb(-tilt_int)
-            XP      = XP_temp + tilt_int
-
-            ! 2nd: shift back the 2 axis
-            X = X+X_int
-            S = S+S_int
-
-          else
-
-            s = rcurv*sin_mb(cry_length/rcurv)
-            x = x + s*xp
-            z = z + s*zp
-
-          end if
-
-        else
-
-          s = rcurv*sin_mb(cry_length/rcurv)
-          x = x + s*xp
-          z = z + s*zp
-
-        end if
-
-      else ! Crystal hit from above
-
-        xp_tangent = asin_mb((rcurv*(one-cos_mb(cry_bend))-x)/sqrt(two*rcurv*(rcurv-x)*(one-cos_mb(cry_bend))+x**2))
-        if(xp <= xp_tangent) then
-          ! if it hits the crystal, calculate in which point and apply the
-          ! transformation and drift to that point
-          a_eq  = one + xp**2
-          b_eq  = (two*xp)*(x - Rcurv)
-          c_eq  = -(two*x)*Rcurv + x**2
-          Delta = b_eq**2 - four*(a_eq*c_eq)
-          S_int = (-b_eq-sqrt(Delta))/(two*a_eq)
-
-          if(s_int < rcurv*sin_mb(cry_bend)) then
-            !  transform to a new ref system:shift and rotate
-            x_int  = xp*s_int + x
-            xp_int = xp
-            z      = z + zp*s_int
-            x      = zero
-            s      = zero
-
-            tilt_int = s_int/rcurv
-            xp       = xp-tilt_int
-
-            call cryst(mat,x,xp,z,zp,p,(cry_length-(tilt_int*rcurv)),j)
-            s   = Rcurv*sin_mb(cry_bend-tilt_int)
-            zlm = Rcurv*sin_mb(cry_bend-tilt_int)
-            if(iProc /= proc_out) then
-              x_rot    = x_int
-              s_rot    = s_int
-              xp_rot   = xp_int
-              s_shift  =  s_rot*cos_mb(-cry_tilt)+x_rot*sin_mb(-cry_tilt)
-              x_shift  = -s_rot*sin_mb(-cry_tilt)+x_rot*cos_mb(-cry_tilt)
-              xp_shift = xp_rot + cry_tilt
-
-              if(Cry_tilt < zero) then
-                s_impact  = s_shift
-                x_in0(j)  = x_shift + shift
-                xp_in0(j) = xp_shift
-              else
-                x_in0(j)  = x_shift
-                s_impact  = s_shift
-                xp_in0(j) = xp_shift
-              end if
-
-              nhit = nhit + 1
-              lhit(j) = ie
-              lhit_turn(j) = iturn
-              impact(j) = x_in0(j)
-              indiv(j) = xp_in0(j)
-            end if
-
-            ! un-rotate
-            x_temp  = x
-            s_temp  = s
-            xp_temp = xp
-            s  =  s_temp*cos_mb(-tilt_int)+x_temp*sin_mb(-tilt_int)
-            x  = -s_temp*sin_mb(-tilt_int)+x_temp*cos_mb(-tilt_int)
-            xp = xp_temp + tilt_int
-
-            ! 2nd: shift back the 2 axis
-            x = x+x_int
-            s = s+s_int
-
-          else
-
-            s = rcurv*sin_mb(cry_length/rcurv)
-            x = x + s*xp
-            z = z + s*zp
-
-          end if
-
-        else
-
-          s = rcurv*sin_mb(cry_length/rcurv)
-          x = x+s*xp
-          z = z+s*zp
-
-        end if
-      end if
-    end if
-
-    ! transform back from the crystal to the collimator reference system
-    ! 1st: un-rotate the coordinates
-    x_rot  = x
-    s_rot  = s
-    xp_rot = xp
-
-    s_shift  =  s_rot*cos_mb(-cry_tilt)+x_rot*sin_mb(-cry_tilt)
-    x_shift  = -s_rot*sin_mb(-cry_tilt)+x_rot*cos_mb(-cry_tilt)
-    xp_shift = xp_rot + cry_tilt
-
-    ! 2nd: shift back the reference frame
-    if(cry_tilt < zero) then
-      s  = s_shift
-      x  = x_shift + shift
-      xp = xp_shift
-    else
-      x  = x_shift
-      s  = s_shift
-      xp = xp_shift
-    end if
-
-    ! 3rd: shift to new S=Length position
-    x = xp*(c_length-s) + x
-    z = zp*(c_length-s) + z
-    s = c_length
-    ! CRY ---------------------
-
-    ! CRY ---------------------
-    nabs = 0
-    bool_proc(j)=iProc
-    cry_proc(j)=iProc
-    if(iProc == proc_AM) then
-      n_amorphous = n_amorphous + 1
-    else if(iProc == proc_VR) then
-      n_VR = n_VR + 1
-    else if(iProc == proc_CH) then
-      n_chan = n_Chan + 1
-    else if(iProc == proc_absorbed) then
-      nabs = 1
-    else if(iProc == proc_ch_absorbed) then
-      nabs = 1
-    end if
+    call cry_doCrystal(ie,iturn,j,mat,x,xp,z,zp,s,p,x_in0(j),xp_in0(j),s_in0(j),zlm,nhit,nabs,lhit,lhit_turn,&
+      part_abs,part_abs_turn,impact,indiv,cry_tilt,cry_length,cry_bend,c_length)
     ! CRY ---------------------
 
     ! Transform back to particle coordinates with opening and offset
@@ -705,7 +400,289 @@ end module coll_crystal
 
   end do
 
-end
+end subroutine collimate_cry
+
+subroutine cry_doCrystal(ie,iturn,j,mat,x,xp,z,zp,s,p,x0,s0,xp0,zlm,nhit,nabs,  &
+  lhit,lhit_turn,part_abs,part_abs_turn,impact,indiv,cry_tilt,cry_length,cry_bend,c_length)
+
+  use parpro
+  use coll_crystal
+  use coll_common, only : cry_proc
+  use mathlib_bouncer
+
+  implicit none
+
+  integer,          intent(in)    :: ie
+  integer,          intent(in)    :: iturn
+  integer,          intent(in)    :: j
+  integer,          intent(in)    :: mat
+
+  real(kind=fPrec), intent(inout) :: x,xp
+  real(kind=fPrec), intent(inout) :: z,zp
+  real(kind=fPrec), intent(inout) :: s,p
+  real(kind=fPrec), intent(inout) :: x0,xp0
+  real(kind=fPrec), intent(inout) :: s0
+  real(kind=fPrec), intent(inout) :: zlm
+  integer,          intent(inout) :: nhit,nabs
+  integer,          intent(inout) :: lhit(npart)
+  integer,          intent(inout) :: lhit_turn(npart)
+  integer,          intent(inout) :: part_abs(npart)
+  integer,          intent(inout) :: part_abs_turn(npart)
+  real(kind=fPrec), intent(inout) :: impact(npart)
+  real(kind=fPrec), intent(inout) :: indiv(npart)
+  real(kind=fPrec), intent(in)    :: cry_tilt
+  real(kind=fPrec), intent(in)    :: cry_length
+  real(kind=fPrec), intent(in)    :: cry_bend
+  real(kind=fPrec), intent(in)    :: c_length
+
+  real(kind=fPrec) s_temp,s_shift,s_rot,s_int,s_impact
+  real(kind=fPrec) x_temp,x_shift,x_rot,x_int
+  real(kind=fPrec) xp_temp,xp_tangent,xp_shift,xp_rot,xp_int
+  real(kind=fPrec) tilt_int,shift,delta,a_eq,b_eq,c_eq
+
+  ! Transform in the crystal rerference system
+  ! 1st transformation: shift of the center of the reference frame
+  if(Cry_tilt < zero) then
+    s_shift = s
+    shift   = Rcurv*(1-cos_mb(Cry_tilt))
+    if(Cry_tilt < -Cry_bend) then
+      shift = Rcurv*(cos_mb(-Cry_tilt) - cos_mb(Cry_bend-Cry_tilt))
+    end if
+    x_shift = x-shift
+  else
+    s_shift = s
+    x_shift = x
+  end if
+
+  ! 2nd transformation: rotation
+  s_rot  = x_shift*sin_mb(cry_tilt)+s_shift*cos_mb(cry_tilt)
+  x_rot  = x_shift*cos_mb(cry_tilt)-s_shift*sin_mb(cry_tilt)
+  xp_rot = xp - cry_tilt
+
+  ! 3rd transformation: drift to the new coordinate s=0
+  xp = xp_rot
+  x  = x_rot - xp_rot*s_rot
+  z  = z - zp*s_rot
+  s  = zero
+
+  if(x >= zero .and. x < C_xmax) then ! Check that part. hit cry
+
+    s_impact = s0 ! (for the first impact)
+    call cryst(mat,x,xp,z,zp,p,cry_length,j)
+    s   = Rcurv*sin_mb(cry_bend)
+    zlm = Rcurv*sin_mb(cry_bend)
+    if(iProc /= proc_out) then
+      nhit = nhit + 1
+      lhit(j) = ie
+      lhit_turn(j) = iturn
+      impact(j) = x0
+      indiv(j) = xp0
+    end if
+
+  else
+
+    if(x < zero) then ! Crystal hit from below
+      XP_tangent = sqrt((-(two*x)*Rcurv + x**2)/(Rcurv**2))
+      if(xp >= XP_tangent) then
+        ! if it hits the crystal, calculate in which point and apply the
+        ! transformation and drift to that point
+        a_eq  = (one + xp**2)
+        b_eq  = (two*xp)*(x-Rcurv)
+        c_eq  = -(two*x)*Rcurv + x**2
+        Delta = b_eq**2 - four*(a_eq*c_eq)
+        S_int = (-b_eq - sqrt(Delta))/(two*a_eq)
+
+        if(S_int < Rcurv*sin_mb(cry_bend)) then
+          !  transform to a new ref system:shift and rotate
+          x_int  = xp*s_int + x
+          xp_int = xp
+          z      = z + zp*s_int
+          x      = zero
+          s      = zero
+
+          tilt_int = s_int/Rcurv
+          xp       = xp-tilt_int
+
+          call cryst(mat,x,xp,z,zp,p,(cry_length-(tilt_int*rcurv)),j)
+          s   = Rcurv*sin_mb(cry_bend-tilt_int)
+          zlm = Rcurv*sin_mb(cry_bend-tilt_int)
+          if(iProc /= proc_out) then
+            x_rot    = x_int
+            s_rot    = s_int
+            xp_rot   = xp_int
+            s_shift  =  s_rot*cos_mb(-cry_tilt) + x_rot*sin_mb(-cry_tilt)
+            x_shift  = -s_rot*sin_mb(-cry_tilt) + x_rot*cos_mb(-cry_tilt)
+            xp_shift = xp_rot + cry_tilt
+
+            if(Cry_tilt < zero) then
+              s_impact  = s_shift
+              x0  = x_shift+shift
+              xp0 = xp_shift
+            else
+              x0  = x_shift
+              s_impact  = s_shift
+              xp0 = xp_shift
+            end if
+
+            nhit = nhit + 1
+            lhit(j) = ie
+            lhit_turn(j) = iturn
+            impact(j) = x0
+            indiv(j) = xp0
+          end if
+
+          ! un-rotate
+          x_temp  = x
+          s_temp  = s
+          xp_temp = xp
+          s       =  s_temp*cos_mb(-tilt_int) + x_temp*sin_mb(-tilt_int)
+          x       = -s_temp*sin_mb(-tilt_int) + x_temp*cos_mb(-tilt_int)
+          xp      = xp_temp + tilt_int
+
+          ! 2nd: shift back the 2 axis
+          x = x+x_int
+          s = s+s_int
+
+        else
+
+          s = rcurv*sin_mb(cry_length/rcurv)
+          x = x + s*xp
+          z = z + s*zp
+
+        end if
+
+      else
+
+        s = rcurv*sin_mb(cry_length/rcurv)
+        x = x + s*xp
+        z = z + s*zp
+
+      end if
+
+    else ! Crystal hit from above
+
+      xp_tangent = asin_mb((rcurv*(one-cos_mb(cry_bend))-x)/sqrt(two*rcurv*(rcurv-x)*(one-cos_mb(cry_bend))+x**2))
+      if(xp <= xp_tangent) then
+        ! if it hits the crystal, calculate in which point and apply the
+        ! transformation and drift to that point
+        a_eq  = one + xp**2
+        b_eq  = (two*xp)*(x - Rcurv)
+        c_eq  = -(two*x)*Rcurv + x**2
+        Delta = b_eq**2 - four*(a_eq*c_eq)
+        S_int = (-b_eq-sqrt(Delta))/(two*a_eq)
+
+        if(s_int < rcurv*sin_mb(cry_bend)) then
+          !  transform to a new ref system:shift and rotate
+          x_int  = xp*s_int + x
+          xp_int = xp
+          z      = z + zp*s_int
+          x      = zero
+          s      = zero
+
+          tilt_int = s_int/rcurv
+          xp       = xp-tilt_int
+
+          call cryst(mat,x,xp,z,zp,p,(cry_length-(tilt_int*rcurv)),j)
+          s   = Rcurv*sin_mb(cry_bend-tilt_int)
+          zlm = Rcurv*sin_mb(cry_bend-tilt_int)
+          if(iProc /= proc_out) then
+            x_rot    = x_int
+            s_rot    = s_int
+            xp_rot   = xp_int
+            s_shift  =  s_rot*cos_mb(-cry_tilt)+x_rot*sin_mb(-cry_tilt)
+            x_shift  = -s_rot*sin_mb(-cry_tilt)+x_rot*cos_mb(-cry_tilt)
+            xp_shift = xp_rot + cry_tilt
+
+            if(Cry_tilt < zero) then
+              s_impact  = s_shift
+              x0  = x_shift + shift
+              xp0 = xp_shift
+            else
+              x0  = x_shift
+              s_impact  = s_shift
+              xp0 = xp_shift
+            end if
+
+            nhit = nhit + 1
+            lhit(j) = ie
+            lhit_turn(j) = iturn
+            impact(j) = x0
+            indiv(j) = xp0
+          end if
+
+          ! un-rotate
+          x_temp  = x
+          s_temp  = s
+          xp_temp = xp
+          s  =  s_temp*cos_mb(-tilt_int)+x_temp*sin_mb(-tilt_int)
+          x  = -s_temp*sin_mb(-tilt_int)+x_temp*cos_mb(-tilt_int)
+          xp = xp_temp + tilt_int
+
+          ! 2nd: shift back the 2 axis
+          x = x+x_int
+          s = s+s_int
+
+        else
+
+          s = rcurv*sin_mb(cry_length/rcurv)
+          x = x + s*xp
+          z = z + s*zp
+
+        end if
+
+      else
+
+        s = rcurv*sin_mb(cry_length/rcurv)
+        x = x+s*xp
+        z = z+s*zp
+
+      end if
+    end if
+  end if
+
+  ! transform back from the crystal to the collimator reference system
+  ! 1st: un-rotate the coordinates
+  x_rot  = x
+  s_rot  = s
+  xp_rot = xp
+
+  s_shift  =  s_rot*cos_mb(-cry_tilt)+x_rot*sin_mb(-cry_tilt)
+  x_shift  = -s_rot*sin_mb(-cry_tilt)+x_rot*cos_mb(-cry_tilt)
+  xp_shift = xp_rot + cry_tilt
+
+  ! 2nd: shift back the reference frame
+  if(cry_tilt < zero) then
+    s  = s_shift
+    x  = x_shift + shift
+    xp = xp_shift
+  else
+    x  = x_shift
+    s  = s_shift
+    xp = xp_shift
+  end if
+
+  ! 3rd: shift to new S=Length position
+  x = xp*(c_length-s) + x
+  z = zp*(c_length-s) + z
+  s = c_length
+  ! CRY ---------------------
+
+  ! CRY ---------------------
+  nabs = 0
+  cry_proc(j) = iProc
+  if(iProc == proc_AM) then
+    n_amorphous = n_amorphous + 1
+  else if(iProc == proc_VR) then
+    n_VR = n_VR + 1
+  else if(iProc == proc_CH) then
+    n_chan = n_Chan + 1
+  else if(iProc == proc_absorbed) then
+    nabs = 1
+  else if(iProc == proc_ch_absorbed) then
+    nabs = 1
+  end if
+
+end subroutine cry_doCrystal
 
 ! ================================================================================================ !
 !  Subroutine for the movements of the particles in the crystal
