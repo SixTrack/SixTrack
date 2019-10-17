@@ -115,7 +115,7 @@ An aperture profile can be assigned to a SINGLE ELEMENT specifying its type and 
                       that can have an ellyptical corner. See Tab.~\ref{tab:apeSpecs} for their
                       meanings. Only the Transition type needs 8 specifiers (hence from \texttt{aper\_1} to \texttt{aper\_8}). \\
     \texttt{x\_off} and \texttt{y\_off}  & Hor.~and ver.~offsets in mm. \\
-    \texttt{angle}  & Tilt angle in rad. The tilt is around the offset point.\\
+    \texttt{angle}  & Tilt angle is in degrees. The tilt is around the offset point.\\
 \end{longtabu}
 
 The last three numerical specifiers are optional, whereas the others are mandatory, depending on the type.
@@ -155,8 +155,8 @@ For the convention on signs for the last three (optional) aperture specifiers, p
 
     Octagon & \texttt{OC} & \texttt{aper\_1} & hor.~position of ver.~side [mm] \\*
     & & \texttt{aper\_2} & ver.~position of hor.~side [mm] \\*
-    & & \texttt{aper\_3} & angle of first cut corner [rad] \\*
-    & & \texttt{aper\_4} & angle of second cut corner [rad] \\*
+    & & \texttt{aper\_3} & angle of first cut corner [degree] \\*
+    & & \texttt{aper\_4} & angle of second cut corner [degree] \\*
     \hline
 
     Ractetrack & \texttt{RT} & \texttt{aper\_1} & hor.~displ.~of ellypse centre [mm] \\*
