@@ -2446,7 +2446,7 @@ subroutine collimate_do_collimator(stracki)
     end do
   else
     call k2coll_collimate(icoll, iturn, ie, c_length, c_rotation, c_aperture, c_offset, &
-      c_tilt, rcx, rcxp, rcy, rcyp, rcp, rcs, enom_gev, part_hit_pos,part_hit_turn,     &
+      c_tilt, rcx, rcxp, rcy, rcyp, rcp, rcs, enom_gev, part_hit_pos, part_hit_turn,    &
       part_abs_pos, part_abs_turn, part_impact, part_indiv, part_linteract,             &
       onesided, nhit_type, 1, nabs_type, linside)
   end if
