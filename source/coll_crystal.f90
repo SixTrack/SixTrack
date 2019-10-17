@@ -981,7 +981,7 @@ subroutine cryst(is,x,xp,y,yp,pc,length,j)
   real(kind=fPrec) alpha                ! Par for new chann prob
   real(kind=fPrec) Pvr                  ! Prob for VR->AM transition
 
-  real(kind=fPrec) const_dech,xpin,ypin,tchan,L_chan
+  real(kind=fPrec) const_dech,xpin,ypin,tchan,L_chan,mep
 
   real(kind=fPrec), parameter :: c_v1 =  1.7_fPrec ! Fitting coefficient
   real(kind=fPrec), parameter :: c_v2 = -1.5_fPrec ! Fitting coefficient
@@ -990,17 +990,18 @@ subroutine cryst(is,x,xp,y,yp,pc,length,j)
   zn  = 1
 
   ! dE/dX and dechanneling length calculation
-  mom    = pc*c1e3               ! [GeV]
-  enr    = (mom*mom+mp*mp)**half ! [MeV]
-  gammar = enr/mp
+  mom    = pc*c1e3                ! [GeV]
+  enr    = sqrt(mom**2 + pmap**2) ! [MeV]
+  gammar = enr/pmap
   betar  = mom/enr
   bgr    = betar*gammar
+  mep    = pmae/pmap  ! Electron/proton
 
-  tmax = (two*me*bgr**2)/(one + two*gammar*me/mp+(me/mp)**2)  ! [MeV]
-  plen = ((rho(is)*zatom(is)/anuc(is))**half)*28.816e-6_fPrec ! [MeV]
+  tmax = (two*pmae*bgr**2)/(one + two*gammar*mep + mep**2)  ! [MeV]
+  plen = sqrt((rho(is)*zatom(is))/anuc(is))*28.816e-6_fPrec ! [MeV]
 
-  const_dech = (256.0_fPrec/(nine*pi**2))* &
-    (one/(log_mb(two*me*gammar/(exenergy(is)*c1e3))-one))*((aTF*dP)/(re*me)) ! [m/MeV]
+  const_dech = ((256.0_fPrec/(nine*pi**2)) * &
+    (one/(log_mb(((two*pmae)*gammar)/(exenergy(is)*c1e3)) - one))) * ((aTF*dP)/(re*pmae)) ! [m/MeV]
   const_dech = const_dech*c1e3 ! [m/GeV]
 
   s        = zero
@@ -1011,8 +1012,8 @@ subroutine cryst(is,x,xp,y,yp,pc,length,j)
     L_chan = -x/sin_mb(miscut)
   end if
 
-  tchan   = L_chan/Rcurv
-  xp_rel = xp-miscut
+  tchan  = L_chan/Rcurv
+  xp_rel = xp - miscut
 
   ymin = -C_ymax/two
   ymax =  C_ymax/two
@@ -1029,9 +1030,9 @@ subroutine cryst(is,x,xp,y,yp,pc,length,j)
     x0    = x
     y0    = y
     a_eq  = one + xp**2
-    b_eq  = two*x*xp - two*xp*Rcurv
-    c_eq  = x**2 - two*x*Rcurv
-    Delta = b_eq**2 - four*a_eq*c_eq
+    b_eq  = (two*x)*xp - (two*xp)*Rcurv
+    c_eq  = x**2 - (two*x)*Rcurv
+    Delta = b_eq**2 - (four*a_eq)*c_eq
     s     = (-b_eq+sqrt(Delta))/(two*a_eq)
     if(s >= s_length) then
       s = s_length
@@ -1069,27 +1070,27 @@ subroutine cryst(is,x,xp,y,yp,pc,length,j)
 
   ! THIRD CASE: the p interacts with the crystal.
   ! Define typical angles/probabilities for orientation 110
-  xpcrit0 = (c2m9*eUm(is)/pc)**half  ! Critical angle (rad) for straight crystals
-  Rcrit   = pc/(c2m6*eUm(is))*ai(is) ! Critical curvature radius [m]
+  xpcrit0 = sqrt((c2m9*eUm(is))/pc)    ! Critical angle (rad) for straight crystals
+  Rcrit   = (pc/(c2m6*eUm(is)))*ai(is) ! Critical curvature radius [m]
 
   ! If R>Rcritical=>no channeling is possible (ratio<1)
   ratio  = Rcurv/Rcrit
-  xpcrit = xpcrit0*(Rcurv-Rcrit)/Rcurv ! Critical angle for curved crystal
+  xpcrit = (xpcrit0*(Rcurv-Rcrit))/Rcurv ! Critical angle for curved crystal
 
   if(ratio <= one) then ! no possibile channeling
-    Ang_rms = c_v1*0.42_fPrec*xpcrit0*sin_mb(1.4_fPrec*ratio) ! RMS scattering
-    Ang_avr = c_v2*xpcrit0*c5m2*ratio                         ! Average angle reflection
-    Vcapt   = zero                                            ! Probability of VC
+    Ang_rms = ((c_v1*0.42_fPrec)*xpcrit0)*sin_mb(1.4_fPrec*ratio) ! RMS scattering
+    Ang_avr = ((c_v2*xpcrit0)*c5m2)*ratio                         ! Average angle reflection
+    Vcapt   = zero                                                ! Probability of VC
 
   else if(ratio <= three) then ! Strongly bent crystal
-    Ang_rms = c_v1*0.42_fPrec*xpcrit0*sin_mb(0.4713_fPrec*ratio + 0.85_fPrec) ! RMS scattering
-    Ang_avr = c_v2*xpcrit0*(0.1972_fPrec*ratio - 0.1472_fPrec)                ! Average angle reflection
-    Vcapt   = 7.0e-4_fPrec*(ratio - 0.7_fPrec)/pc**c2m1                       ! Correction by sasha drozdin/armen
+    Ang_rms = ((c_v1*0.42_fPrec)*xpcrit0)*sin_mb(0.4713_fPrec*ratio + 0.85_fPrec) ! RMS scattering
+    Ang_avr = (c_v2*xpcrit0)*(0.1972_fPrec*ratio - 0.1472_fPrec)                  ! Average angle reflection
+    Vcapt   = 7.0e-4_fPrec*(ratio - 0.7_fPrec)/pc**c2m1                           ! Correction by sasha drozdin/armen
     ! K=0.0007 is taken based on simulations using CATCH.f (V.Biryukov)
 
   else ! Rcry >> Rcrit
-    Ang_rms = c_v1*xpcrit0*(one/ratio)                  ! RMS scattering
-    Ang_avr = c_v2*xpcrit0*(one - 1.6667_fPrec/ratio)   ! Average angle for VR
+    Ang_rms = (c_v1*xpcrit0)*(one/ratio)                ! RMS scattering
+    Ang_avr = (c_v2*xpcrit0)*(one - 1.6667_fPrec/ratio) ! Average angle for VR
     Vcapt   = 7.0e-4_fPrec*(ratio - 0.7_fPrec)/pc**c2m1 ! Probability for VC correction by sasha drozdin/armen
     ! K=0.0007 is taken based on simulations using CATCH.f (V.Biryukov)
 
@@ -1103,15 +1104,15 @@ subroutine cryst(is,x,xp,y,yp,pc,length,j)
 
   if(abs(xp_rel) < xpcrit) then
     alpha  = xp_rel/xpcrit
-    Chann  = ((0.9_fPrec*(one - alpha**2))**half)*(one-(one/ratio))**half ! Saturation at 95%
+    Chann  = sqrt(0.9_fPrec*(one - alpha**2))*sqrt(one-(one/ratio)) ! Saturation at 95%
     N_atom = c1m1
 
     ! if they can channel: 2 options
     if(rndm4() <= chann) then ! option 1:channeling
 
-      TLdech1 = const_dech*PC*(one-one/ratio)**2 ! Updated calculate typical dech. length(m)
+      TLdech1 = (const_dech*pc)*(one-one/ratio)**2 ! Updated calculate typical dech. length(m)
       if(rndm4() <= n_atom) then
-        TLdech1 = (const_dech/c2e2)*PC*(one-one/ratio)**2  ! Updated dechanneling length (m)
+        TLdech1 = ((const_dech/c2e2)*pc)*(one-one/ratio)**2  ! Updated dechanneling length (m)
       end if
 
       Dechan = -log_mb(rndm4()) ! Probability of dechanneling
@@ -1123,19 +1124,19 @@ subroutine cryst(is,x,xp,y,yp,pc,length,j)
         iProc = proc_DC
         Dxp   = Ldech/Rcurv ! Change angle from channeling [mrad]
         Sdech = Ldech*cos_mb(miscut + half*Dxp)
-        x     = x + Ldech*(sin_mb(half*Dxp+miscut)) ! Trajectory at channeling exit
-        xp    = xp + Dxp + two*(rndm4()-half)*xpcrit
-        y     = y + yp * Sdech
+        x     = x  + Ldech*(sin_mb(half*Dxp+miscut)) ! Trajectory at channeling exit
+        xp    = xp + Dxp + (two*(rndm4()-half))*xpcrit
+        y     = y  + yp * Sdech
 
         call calc_ion_loss_cry(is,pc,ldech,dest)
         pc = pc - half*dest*Ldech ! Energy loss to ionization while in CH [GeV]
-        x  = x  + half*(s_length-Sdech)*xp
-        y  = y  + half*(s_length-Sdech)*yp
+        x  = x  + (half*(s_length-Sdech))*xp
+        y  = y  + (half*(s_length-Sdech))*yp
 
         call calc_ion_loss_cry(is,pc,s_length-sdech,dest)
         call move_am(is,nam,s_length-sdech,dest,dlyi(is),dlri(is),xp,yp,pc)
-        x = x + half*(s_length-Sdech)*xp
-        y = y + half*(s_length-Sdech)*yp
+        x = x + (half*(s_length-Sdech))*xp
+        y = y + (half*(s_length-Sdech))*yp
       else
         iProc = proc_CH
         xpin  = XP
@@ -1146,21 +1147,21 @@ subroutine cryst(is,x,xp,y,yp,pc,length,j)
           ! if an nuclear interaction happened, move until the middle with initial xp,yp then
           ! propagate until the "crystal exit" with the new xp,yp accordingly with the rest
           ! of the code in "thin lens approx"
-          x = x + half*L_chan*xpin
-          y = y + half*L_chan*ypin
-          x = x + half*L_chan*XP
-          y = y + half*L_chan*YP
+          x = x + (half*L_chan)*xpin
+          y = y + (half*L_chan)*ypin
+          x = x + (half*L_chan)*XP
+          y = y + (half*L_chan)*YP
 
           call calc_ion_loss_cry(is,pc,length,dest)
           pc = pc - dest*length ! energy loss to ionization [GeV]
         else
-          Dxp = L_chan/Rcurv + half*ran_gauss(one)*xpcrit ! change angle[rad]
+          Dxp = L_chan/Rcurv + (half*ran_gauss(one))*xpcrit ! Change angle[rad]
           xp  = Dxp
-          x   = x+ L_chan*(sin(half*Dxp+miscut)) ! trajectory at channeling exit
+          x   = x + L_chan*(sin(half*Dxp+miscut)) ! Trajectory at channeling exit
           y   = y + s_length * yp
 
           call calc_ion_loss_cry(is,pc,length,dest)
-          pc = pc - half*dest*length ! energy loss to ionization [GeV]
+          pc = pc - (half*dest)*length ! energy loss to ionization [GeV]
         end if
       end if
 
@@ -1169,15 +1170,15 @@ subroutine cryst(is,x,xp,y,yp,pc,length,j)
       ! good for channeling but don't channel (1-2)
       iProc = proc_VR
 
-      xp = xp + 0.45_fPrec*(xp/xpcrit + one)*Ang_avr
-      x  = x  + half*s_length*xp
-      y  = y  + half*s_length*yp
+      xp = xp + (0.45_fPrec*(xp/xpcrit + one))*Ang_avr
+      x  = x  + (half*s_length)*xp
+      y  = y  + (half*s_length)*yp
 
       call calc_ion_loss_cry(is,pc,s_length,dest)
       call move_am(is,nam,s_length,dest,dlyi(is),dlri(is),xp,yp,pc)
 
-      x = x + half*s_length*xp
-      y = y + half*s_length*yp
+      x = x + (half*s_length)*xp
+      y = y + (half*s_length)*yp
 
     end if
 
@@ -1197,13 +1198,13 @@ subroutine cryst(is,x,xp,y,yp,pc,length,j)
         y     = y + yp*Srefl
         Dxp   = Ang_avr
         xp    = xp + Dxp + Ang_rms*ran_gauss(one)
-        x     = x + half*xp*(s_length - Srefl)
-        y     = y + half*yp*(s_length - Srefl)
+        x     = x  + (half*xp)*(s_length - Srefl)
+        y     = y  + (half*yp)*(s_length - Srefl)
 
         call calc_ion_loss_cry(is,pc,s_length-srefl,dest)
         call move_am(is,nam,s_length-srefl,dest,dlyi(is),dlri(is),xp,yp,pc)
-        x = x + half*xp*(s_length - Srefl)
-        y = y + half*yp*(s_length - Srefl)
+        x = x + (half*xp)*(s_length - Srefl)
+        y = y + (half*yp)*(s_length - Srefl)
 
       else ! Option 2: VC
 
@@ -1218,29 +1219,29 @@ subroutine cryst(is,x,xp,y,yp,pc,length,j)
         if(Ldech < Length-Lrefl) then
 
           iProc = proc_DC
-          Dxp   = Ldech/Rcurv + half*ran_gauss(one)*xpcrit
+          Dxp   = Ldech/Rcurv + (half*ran_gauss(one))*xpcrit
           x     = x + Ldech*(sin_mb(half*Dxp+xp)) ! Trajectory at channeling exit
           y     = y + Sdech*yp
           xp    =  Dxp
-          Red_S = s_length - Srefl - Sdech
-          x     = x + half*xp*Red_S
-          y     = y + half*yp*Red_S
+          Red_S = (s_length - Srefl) - Sdech
+          x     = x + (half*xp)*Red_S
+          y     = y + (half*yp)*Red_S
 
           call calc_ion_loss_cry(is,pc,srefl,dest)
           pc = pc - dest*Srefl ! "added" energy loss before capture
 
           call calc_ion_loss_cry(is,pc,sdech,dest)
-          pc = pc - half*dest*Sdech ! "added" energy loss while captured
+          pc = pc - (half*dest)*Sdech ! "added" energy loss while captured
 
           call calc_ion_loss_cry(is,pc,red_s,dest)
           call move_am(is,nam,red_s,dest,dlyi(is),dlri(is),xp,yp,pc)
-          x = x + half*xp*Red_S
-          y = y + half*yp*Red_S
+          x = x + (half*xp)*Red_S
+          y = y + (half*yp)*Red_S
 
         else
 
           iProc   = proc_VC
-          Rlength = Length-Lrefl
+          Rlength = Length - Lrefl
           tchan   = Rlength/Rcurv
           Red_S   = Rlength*cos_mb(xp + half*tchan)
 
@@ -1253,21 +1254,21 @@ subroutine cryst(is,x,xp,y,yp,pc,length,j)
           if(iProc /= proc_VC) then
             ! if an nuclear interaction happened, move until the middle with initial xp,yp then propagate until
             ! the "crystal exit" with the new xp,yp accordingly with the rest of the code in "thin lens approx"
-            x = x + half*Rlength*xpin
-            y = y + half*Rlength*ypin
-            x = x + half*Rlength*XP
-            y = y + half*Rlength*YP
+            x = x + (half*Rlength)*xpin
+            y = y + (half*Rlength)*ypin
+            x = x + (half*Rlength)*XP
+            y = y + (half*Rlength)*YP
 
             call calc_ion_loss_cry(is,pc,rlength,dest)
             pc = pc - dest*Rlength
           else
             Dxp = (Length-Lrefl)/Rcurv
             x   = x + sin_mb(half*Dxp+xp)*Rlength ! Trajectory at channeling exit
-            y   = y + red_S * yp
-            xp  = Length/Rcurv + half*ran_gauss(one)*xpcrit ! [mrad]
+            y   = y + red_S*yp
+            xp  = Length/Rcurv + (half*ran_gauss(one))*xpcrit ! [mrad]
 
             call calc_ion_loss_cry(is,pc,rlength,dest)
-            pc = pc - half*dest*Rlength  ! "added" energy loss once captured
+            pc = pc - (half*dest)*Rlength  ! "added" energy loss once captured
           end if
         end if
       end if
@@ -1278,14 +1279,14 @@ subroutine cryst(is,x,xp,y,yp,pc,length,j)
       ! Modified for transition vram daniele
       if(xp_rel > L_chan/Rcurv + two*xpcrit .or. xp_rel < -xpcrit) then
         iProc = proc_AM
-        x     = x + half*s_length*xp
-        y     = y + half*s_length*yp
+        x     = x + (half*s_length)*xp
+        y     = y + (half*s_length)*yp
         if(zn > zero) then
           call calc_ion_loss_cry(is,pc,s_length,dest)
           call move_am(is,nam,s_length,dest,dlyi(is),dlri(is),xp,yp,pc)
         end if
-        x = x + half*s_length*xp
-        y = y + half*s_length*yp
+        x = x + (half*s_length)*xp
+        y = y + (half*s_length)*yp
       else
         Pvr = (xp_rel-(L_chan/Rcurv))/(two*xpcrit)
         if(rndm4() > Pvr) then
@@ -1293,29 +1294,29 @@ subroutine cryst(is,x,xp,y,yp,pc,length,j)
           x     = x + xp*Srefl
           y     = y + yp*Srefl
 
-          Dxp = -three*Ang_rms*xp_rel/(two*xpcrit) + Ang_avr + (three*Ang_rms*(L_chan/Rcurv)/(two*xpcrit))
-          xp  = xp+Dxp
-          x   = x + half*xp*(s_length-Srefl)
-          y   = y + half*yp*(s_length-Srefl)
+          Dxp = (((-three*Ang_rms)*xp_rel)/(two*xpcrit) + Ang_avr) + ((three*Ang_rms)*(L_chan/Rcurv))/(two*xpcrit)
+          xp  = xp + Dxp
+          x   = x + (half*xp)*(s_length-Srefl)
+          y   = y + (half*yp)*(s_length-Srefl)
 
           call calc_ion_loss_cry(is,pc,s_length-srefl,dest)
           call move_am(is,nam,s_length-srefl,dest,dlyi(is),dlri(is),xp,yp,pc)
-          x = x + half*xp*(s_length - Srefl)
-          y = y + half*yp*(s_length - Srefl)
+          x = x + (half*xp)*(s_length - Srefl)
+          y = y + (half*yp)*(s_length - Srefl)
         else
           iProc = proc_TRAM
           x = x + xp*Srefl
           y = y + yp*Srefl
-          Dxp = -one*(13.6_fPrec/pc)*sqrt(s_length/dlri(is))*c1m3*xp_rel/(two*xpcrit) + &
-            (13.6_fPrec/pc)*sqrt(s_length/DLRi(is))*c1m3*(one+(L_chan/Rcurv)/(two*xpcrit))
+          Dxp = ((((-one*(13.6_fPrec/pc))*sqrt(s_length/dlri(is)))*c1m3)*xp_rel)/(two*xpcrit) + &
+            (((13.6_fPrec/pc)*sqrt(s_length/DLRi(is)))*c1m3)*(one+(L_chan/Rcurv)/(two*xpcrit))
           xp = xp+Dxp
-          x  = x + half*xp*(s_length-Srefl)
-          y  = y + half*yp*(s_length-Srefl)
+          x  = x + (half*xp)*(s_length-Srefl)
+          y  = y + (half*yp)*(s_length-Srefl)
 
           call calc_ion_loss_cry(is,pc,s_length-srefl,dest)
           call move_am(is,nam,s_length-srefl,dest,dlyi(is),dlri(is),xp,yp,pc)
-          x = x + half*xp*(s_length - Srefl)
-          y = y + half*yp*(s_length - Srefl)
+          x = x + (half*xp)*(s_length - Srefl)
+          y = y + (half*yp)*(s_length - Srefl)
         end if
       end if
     end if
@@ -1345,23 +1346,25 @@ subroutine calc_ion_loss_cry(is,pc,dz,EnLo)
   real(kind=fPrec) thl,tt,cs_tail,prob_tail
   real(kind=fPrec), parameter :: k = 0.307075_fPrec ! Constant in front bethe-bloch [mev g^-1 cm^2]
 
-  thl       = four*k*zatom(is)*dz*c1e2*rho(is)/(anuc(is)*betar**2) ! [MeV]
-  EnLo      = ((k*zatom(is))/(anuc(is)*betar**2))*( &
-    half*log_mb((two*me*bgr*bgr*Tmax)/(c1e6*exenergy(is)**2)) - &
-    betar**2-log_mb(plen/(exenergy(is)*c1e3))-log_mb(bgr)+half)
-  EnLo      = EnLo*rho(is)*c1m1*dz ! [GeV]
-  Tt        = EnLo*c1e3+thl ! [MeV]
+  thl       = (((((four*k)*zatom(is))*dz)*c1e2)*rho(is))/(anuc(is)*betar**2) ! [MeV]
+  EnLo      = ((k*zatom(is))/(anuc(is)*betar**2)) * ( &
+    half*log_mb(((((two*pmae)*bgr)*bgr)*Tmax)/(c1e6*exenergy(is)**2)) - &
+    betar**2 - log_mb(plen/(exenergy(is)*c1e3)) - log_mb(bgr) + half    &
+  )
+  EnLo      = ((EnLo*rho(is))*c1m1)*dz ! [GeV]
+  Tt        = (EnLo*c1e3)+thl          ! [MeV]
 
-  cs_tail   = ((k*zatom(is))/(anuc(is)*betar**2))*((half*((one/Tt)-(one/Tmax))) - &
-    (log_mb(Tmax/Tt)*(betar**2)/(two*Tmax)) + ((Tmax-Tt)/(four*(gammar**2)*(mp**2))))
-  prob_tail = cs_tail*rho(is)*dz*c1e2
+  cs_tail   = ((k*zatom(is))/(anuc(is)*betar**2)) * ((half*((one/Tt)-(one/Tmax))) - &
+    (log_mb(Tmax/Tt)*(betar**2)/(two*Tmax)) + ((Tmax-Tt)/((four*(gammar**2))*(pmap**2))))
+  prob_tail = ((cs_tail*rho(is))*dz)*c1e2
 
   if(rndm4() < prob_tail) then
-    EnLo = ((k*zatom(is))/(anuc(is)*betar**2))*( &
-      half*log_mb((two*me*bgr*bgr*Tmax)/(c1e6*exenergy(is)**2))  - &
-      betar**2-log_mb(plen/(exenergy(is)*c1e3))-log_mb(bgr)+half + &
-      (TMax**2)/(eight*(gammar**2)*(mp**2)))
-    EnLo = EnLo*rho(is)*c1m1 ! [GeV/m]
+    EnLo = ((k*zatom(is))/(anuc(is)*betar**2)) * ( &
+      half*log_mb((two*pmae*bgr*bgr*Tmax)/(c1e6*exenergy(is)**2)) -      &
+      betar**2 - log_mb(plen/(exenergy(is)*c1e3)) - log_mb(bgr) + half + &
+      TMax**2/(eight*(gammar**2)*(pmap**2)) &
+    )
+    EnLo = (EnLo*rho(is))*c1m1 ! [GeV/m]
   else
     EnLo = EnLo/dz ! [GeV/m]
   end if
@@ -1403,11 +1406,11 @@ subroutine move_am(is,nam,dz,dei,dly,dlr,xp,yp,pc)
 
   ! New treatment of scattering routine based on standard sixtrack routine
   ! useful calculations for cross-section and event topology calculation
-  ecmsq  = two*pmap*c1m3*pc
+  ecmsq  = ((two*pmap)*c1m3)*pc
   xln15s = log_mb(0.15_fPrec*ecmsq)
 
   ! New models, see Claudia's thesis
-  pptot = 0.041084_fPrec - 0.0023302_fPrec*log_mb(ecmsq) + 0.00031514_fPrec*log_mb(ecmsq)**2
+  pptot = (0.041084_fPrec - 0.0023302_fPrec*log_mb(ecmsq)) + 0.00031514_fPrec*log_mb(ecmsq)**2
   ppel  = (11.7_fPrec - 1.59_fPrec*log_mb(ecmsq) + 0.134_fPrec*log_mb(ecmsq)**2)/c1e3
   ppsd  = (4.3_fPrec + 0.3_fPrec*log_mb(ecmsq))/c1e3
   bpp   = 7.156_fPrec + 1.439_fPrec*log_mb(sqrt(ecmsq))
@@ -1429,13 +1432,13 @@ subroutine move_am(is,nam,dz,dei,dly,dlr,xp,yp,pc)
   ! Correct TOT-CSec for energy dependence of qel
   ! TOT CS is here without a Coulomb contribution
   cs(0) = csref(0,is) + freep*(pptot - pptref_cry)
-  bn    = bnref(is)*cs(0)/csref(0,is)
+  bn    = (bnref(is)*cs(0))/csref(0,is)
 
   ! Also correct inel-CS
-  cs(1) = csref(1,is)*cs(0)/csref(0,is)
+  cs(1) = (csref(1,is)*cs(0))/csref(0,is)
 
   ! Nuclear Elastic is TOT-inel-qel ( see definition in RPP)
-  cs(2) = cs(0) - cs(1) - cs(3) - cs(4)
+  cs(2) = ((cs(0) - cs(1)) - cs(3)) - cs(4)
   cs(5) = csref(5,is)
 
   ! Now add Coulomb
@@ -1445,13 +1448,13 @@ subroutine move_am(is,nam,dz,dei,dly,dlr,xp,yp,pc)
   cprob(:) = zero
   cprob(5) = one
   do i=1,4
-    cprob(i) = cprob(i-1)+cs(i)/cs(0)
+    cprob(i) = cprob(i-1) + cs(i)/cs(0)
   end do
 
   ! Multiple Coulomb Scattering
   xp  = xp*c1e3
   yp  = yp*c1e3
-  pc  = pc-dei*dz ! Energy lost because of ionization process[GeV]
+  pc  = pc - dei*dz ! Energy lost because of ionization process[GeV]
 
   dya   = (13.6_fPrec/pc)*sqrt(dz/dlr) ! RMS of coloumb scattering MCS (mrad)
   kxmcs = dya*ran_gauss(one)
@@ -1496,7 +1499,7 @@ subroutine move_am(is,nam,dz,dei,dly,dlr,xp,yp,pc)
       if(xm2 < two) then
         bsd = two*bpp
       else if(xm2 >= two .and. xm2 <= five) then
-        bsd = (106.0_fPrec - 17.0_fPrec*xm2)* bpp/36.0_fPrec
+        bsd = ((106.0_fPrec - 17.0_fPrec*xm2)*bpp)/36.0_fPrec
       else if(xm2 > five) then
         bsd = 7.0_fPrec*bpp/12.0_fPrec
       end if
@@ -1517,8 +1520,8 @@ subroutine move_am(is,nam,dz,dei,dly,dlr,xp,yp,pc)
       teta = sqrt(t)/pc
     end if
 
-    tx = teta*ran_gauss(one)*c1e3
-    tz = teta*ran_gauss(one)*c1e3
+    tx = (teta*ran_gauss(one))*c1e3
+    tz = (teta*ran_gauss(one))*c1e3
 
     ! Change p angle
     xp = xp + tx
@@ -1569,11 +1572,11 @@ subroutine move_ch(is,nam,dz,x,xp,yp,pc,r,rc)
   ! New treatment of scattering routine based on standard sixtrack routine
 
   ! Useful calculations for cross-section and event topology calculation
-  ecmsq  = two*pmap*c1m3*pc
+  ecmsq  = ((two*pmap)*c1m3)*pc
   xln15s = log_mb(0.15_fPrec*ecmsq)
 
   ! New models, see Claudia's thesis
-  pptot = 0.041084_fPrec - 0.0023302_fPrec*log_mb(ecmsq) + 0.00031514_fPrec*log_mb(ecmsq)**2
+  pptot = (0.041084_fPrec - 0.0023302_fPrec*log_mb(ecmsq)) + 0.00031514_fPrec*log_mb(ecmsq)**2
   ppel  = (11.7_fPrec - 1.59_fPrec*log_mb(ecmsq) + 0.134_fPrec*log_mb(ecmsq)**2)/c1e3
   ppsd  = (4.3_fPrec + 0.3_fPrec*log_mb(ecmsq))/c1e3
   bpp   = 7.156_fPrec + 1.439_fPrec*log_mb(sqrt(ecmsq))
@@ -1590,35 +1593,35 @@ subroutine move_ch(is,nam,dz,x,xp,yp,pc,r,rc)
   x_i = x_i - Np*dP    ! Rescale the incoming x at the left crystalline plane
   x_i = x_i - (dP/two) ! Rescale the incoming x in the middle of crystalline planes
 
-  pv   = pc**2/sqrt(pc**2 + (pmap*c1m3)**2)*c1e9    ! Calculate pv=P/E
-  Ueff = eUm(is)*(two*x_i/dp)*(two*x_i/dp)+pv*x_i/r ! Calculate effective potential
-  Et   = pv*xp*xp/two+Ueff                          ! Calculate transverse energy
-  Ec   = eUm(is)*(one-rc/r)*(one-rc/r)              ! Calculate critical energy in bent crystals
+  pv   = pc**2/sqrt(pc**2 + (pmap*c1m3)**2)*c1e9          ! Calculate pv=P/E
+  Ueff = eUm(is)*((two*x_i)/dp)*((two*x_i)/dp) + pv*x_i/r ! Calculate effective potential
+  Et   = (pv*xp**2)/two + Ueff                            ! Calculate transverse energy
+  Ec   = (eUm(is)*(one-rc/r))*(one-rc/r)                  ! Calculate critical energy in bent crystals
 
   ! To avoid negative Et
-  xminU = -dp*dp*pc*c1e9/(eight*eUm(is)*r)
-  Umin  = abs(eUm(is)*(two*xminU/dp)*(two*xminU/dP)+pv*xminU/R)
-  Et    = Et+Umin
-  Ec    = Ec+Umin
+  xminU = ((-dp**2*pc)*c1e9)/(eight*eUm(is)*r)
+  Umin  = abs((eUm(is)*((two*xminU)/dp))*((two*xminU)/dP) + pv*xminU/R)
+  Et    = Et + Umin
+  Ec    = Ec + Umin
 
   ! Calculate min e max of the trajectory between crystalline planes
-  x_min = -(dP/two)*Rc/R-(dP/two)*sqrt(Et/Ec)
-  x_Max = -(dP/two)*Rc/R+(dP/two)*sqrt(Et/Ec)
+  x_min = (-(dP/two)*Rc)/R - (dP/two)*sqrt(Et/Ec)
+  x_Max = (-(dP/two)*Rc)/R + (dP/two)*sqrt(Et/Ec)
 
   ! Change ref. frame and go back with 0 on the crystalline plane on the left
   x_min = x_min - dp/two
   x_max = x_max - dp/two
 
   ! Calculate the "normal density" in m^-3
-  N_am  = rho(is)*6.022e23_fPrec*c1e6/anuc(is)
+  N_am  = ((rho(is)*6.022e23_fPrec)*c1e6)/anuc(is)
 
   ! Calculate atomic density at min and max of the trajectory oscillation
-  rho_max = n_am*dp/two*(erf(x_max/sqrt(two*u1*u1)) - erf((dP-x_Max)/sqrt(two*u1*u1)))
-  rho_min = N_am*dP/two*(erf(x_min/sqrt(two*u1*u1)) - erf((dP-x_min)/sqrt(two*u1*u1)))
+  rho_max = ((N_am*dp)/two)*(erf(x_max/sqrt(two*u1**2)) - erf((dP-x_Max)/sqrt(two*u1**2)))
+  rho_min = ((N_am*dP)/two)*(erf(x_min/sqrt(two*u1**2)) - erf((dP-x_min)/sqrt(two*u1**2)))
 
   ! "zero-approximation" of average nuclear density seen along the trajectory
-  avrrho  = (rho_max-rho_min)/(x_max-x_min)
-  avrrho  = two*avrrho/N_am
+  avrrho  = (rho_max - rho_min)/(x_max - x_min)
+  avrrho  = (two*avrrho)/N_am
 
   csref_tot_rsc  = csref(0,is)*avrrho ! Rescaled total ref cs
   csref_inel_rsc = csref(1,is)*avrrho ! Rescaled inelastic ref cs
@@ -1638,11 +1641,11 @@ subroutine move_ch(is,nam,dz,x,xp,yp,pc,r,rc)
   if(csref_tot_rsc == zero) then
     cs(1) = zero
   else
-    cs(1) = csref_inel_rsc*cs(0)/csref_tot_rsc
+    cs(1) = (csref_inel_rsc*cs(0))/csref_tot_rsc
   end if
 
   ! Nuclear Elastic is TOT-inel-qel ( see definition in RPP)
-  cs(2) = cs(0) - cs(1) - cs(3) - cs(4)
+  cs(2) = ((cs(0) - cs(1)) - cs(3)) - cs(4)
   cs(5) = csref(5,is)
 
   ! Now add Coulomb
@@ -1696,7 +1699,7 @@ subroutine move_ch(is,nam,dz,x,xp,yp,pc,r,rc)
 
     case(2) ! p-n elastic
       iProc = proc_ch_pne
-      bn    = bnref(is)*cs(0)/csref_tot_rsc
+      bn    = (bnref(is)*cs(0))/csref_tot_rsc
       t     = -log_mb(rndm4())/bn
 
     case(3) ! p-p elastic
@@ -1710,9 +1713,9 @@ subroutine move_ch(is,nam,dz,x,xp,yp,pc,r,rc)
       if(xm2 < two) then
         bsd = two*bpp
       else if(xm2 >= two .and. xm2 <= five) then
-        bsd = (106.0_fPrec - 17.0_fPrec*xm2)*bpp/36.0_fPrec
+        bsd = ((106.0_fPrec - 17.0_fPrec*xm2)*bpp)/36.0_fPrec
       else if(xm2 > five) then
-        bsd = seven*bpp/12.0_fPrec
+        bsd = (seven*bpp)/12.0_fPrec
       end if
       t = -log_mb(rndm4())/bsd
 
@@ -1726,13 +1729,13 @@ subroutine move_ch(is,nam,dz,x,xp,yp,pc,r,rc)
 
     ! Calculate the related kick -----------
     if(ichoix == 4) then
-      teta = sqrt(t)/PC_in ! DIFF has changed PC!!!
+      teta = sqrt(t)/pc_in ! DIFF has changed PC!!!
     else
-      teta = sqrt(t)/PC
+      teta = sqrt(t)/pc
     end if
 
-    tx = teta*ran_gauss(one)*c1e3
-    tz = teta*ran_gauss(one)*c1e3
+    tx = (teta*ran_gauss(one))*c1e3
+    tz = (teta*ran_gauss(one))*c1e3
 
     ! Change p angle
     xp = xp + tx
@@ -1761,6 +1764,6 @@ function ruth_cry(t_cry)
   real(kind=fPrec), parameter :: cnorm  = 2.607e-4_fPrec
   real(kind=fPrec), parameter :: cnform = 0.8561e3_fPrec
 
-  ruth_cry = cnorm*exp_mb(-t_cry*cnform*emr(mcurr_cry)**2)*(zatom(mcurr_cry)/t_cry)**2
+  ruth_cry = (cnorm*exp_mb((-t_cry*cnform)*emr(mcurr_cry)**2))*(zatom(mcurr_cry)/t_cry)**2
 
 end function ruth_cry
