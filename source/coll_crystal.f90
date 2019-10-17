@@ -278,6 +278,7 @@ end module coll_crystal
          real(kind=fPrec)      C_TILT(2)      !Tilt in radian
          real(kind=fPrec)      C_TILT0(2)      !Tilt in radian
          real(kind=fPrec)      cry_bend
+         real(kind=fPrec)      cRot, sRot, cMRot, sMRot
 
 !
 !
@@ -337,6 +338,11 @@ end module coll_crystal
       n_chan  = 0          !valentina :initialize to zero the counters for crystal effects
       n_VR    = 0          !
       n_amorphous = 0      !
+
+      cRot  = cos(c_rotation)
+      sRot  = sin(c_rotation)
+      cMRot = cos(-c_rotation)
+      sMRot = sin(-c_rotation)
 
       do j = 1, nev
 !
@@ -412,10 +418,10 @@ end module coll_crystal
 !
 
 !          write(*,*) "debug - rotazione" ,c_rotation
-          x  = x_in(j)*cos(c_rotation) +sin(c_rotation)*y_in(j)
-          z  = y_in(j)*cos(c_rotation) -sin(c_rotation)*x_in(j)
-          xp = xp_in(j)*cos(c_rotation)+sin(c_rotation)*yp_in(j)
-          zp = yp_in(j)*cos(c_rotation)-sin(c_rotation)*xp_in(j)
+          x  = x_in(j)*cRot +sRot*y_in(j)
+          z  = y_in(j)*cRot -sRot*x_in(j)
+          xp = xp_in(j)*cRot+sRot*yp_in(j)
+          zp = yp_in(j)*cRot-sRot*xp_in(j)
 
 !          write(*,*) x, xp, z, zp
 
@@ -811,16 +817,16 @@ end module coll_crystal
 !
 !++  Last do rotation into collimator frame
 !
-         X_IN(J)  = X  *COS(-1.*C_ROTATION) + Z  *SIN(-1.*C_ROTATION)
-         Y_IN(J)  = Z  *COS(-1.*C_ROTATION) - X  *SIN(-1.*C_ROTATION)
-         XP_IN(J) = XP *COS(-1.*C_ROTATION) + ZP *SIN(-1.*C_ROTATION)
-         YP_IN(J) = ZP *COS(-1.*C_ROTATION) - XP *SIN(-1.*C_ROTATION)
+         X_IN(J)  = X  *cMRot + Z  *sMRot
+         Y_IN(J)  = Z  *cMRot - X  *sMRot
+         XP_IN(J) = XP *cMRot + ZP *sMRot
+         YP_IN(J) = ZP *cMRot - XP *sMRot
 
 !----- other pencil beam stuff-------
          IF ( ICOLL.EQ.IPENCIL) then
            X00  = MIRROR * X00
-           X_IN(J)  = X00  *COS(-1.*C_ROTATION) + Z00  *SIN(-1.*C_ROTATION)
-           Y_IN(J)  = Z00  *COS(-1.*C_ROTATION) - X00  *SIN(-1.*C_ROTATION)
+           X_IN(J)  = X00  *cMRot + Z00  *sMRot
+           Y_IN(J)  = Z00  *cMRot - X00  *sMRot
 !
            XP_IN(J) = XP_IN(J) + MIRROR*XP_PENCIL0
            YP_IN(J) = YP_IN(J) + MIRROR*YP_PENCIL0
@@ -829,12 +835,12 @@ end module coll_crystal
 
            IF (.NOT. CHANGED_TILT1(ICOLL) .AND. MIRROR.GT.0.) THEN
                    WRITE (*,*) 'NEVER!!!'
-                   C_TILT(1) = XP_PENCIL0*COS(C_ROTATION)+SIN(C_ROTATION)*YP_PENCIL0
+                   C_TILT(1) = XP_PENCIL0*cRot+sRot*YP_PENCIL0
                    WRITE(*,*) 'INFO> Changed tilt1  ICOLL  to  ANGLE  ',ICOLL, C_TILT(1)
 !
                    CHANGED_TILT1(ICOLL) = .true.
            ELSEIF (.NOT. CHANGED_TILT2(ICOLL) .AND. MIRROR.LT.0.) THEN
-                   C_TILT(2) = -1.*(XP_PENCIL0*COS(C_ROTATION)+SIN(C_ROTATION)*YP_PENCIL0)
+                   C_TILT(2) = -1.*(XP_PENCIL0*cRot+sRot*YP_PENCIL0)
                    WRITE(*,*) 'INFO> Changed tilt2  ICOLL  to  ANGLE  ',ICOLL, C_TILT(2)
 !
                    CHANGED_TILT2(ICOLL) = .true.
