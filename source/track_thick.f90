@@ -779,8 +779,8 @@ subroutine thck6d(nthinerr)
         call part_updatePartEnergy(1,.false.)
 
         ! We have to go back to angles after we updated the energy.
-        yv1(1:napx) = yv1(1:napx)*mtc(1:napx)/(one+dpsv(1:napx))
-        yv2(1:napx) = yv2(1:napx)*mtc(1:napx)/(one+dpsv(1:napx))
+        yv1(1:napx) = yv1(1:napx)*moidpsv(1:napx)
+        yv2(1:napx) = yv2(1:napx)*moidpsv(1:napx)
 
         goto 490
       case (4,5,6,7,8,9,10)
