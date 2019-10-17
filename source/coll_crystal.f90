@@ -137,125 +137,55 @@ end subroutine cry_init
 
 end module coll_crystal
 
-subroutine collimate_cry(icoll, iturn, ie, c_length, &
-     &                   c_rotation, &
-     &                   c_aperture, c_offset, c_tilt, &
-     &                   x_in, xp_in, y_in,   &
-     &                   yp_in, p_in, s_in, np, enom, lhit, lhit_turn, &
-     &                   part_abs, part_abs_turn, impact, indiv, lint, &
-     &                   bx,by,ax, &
-     &                   ay,emitx0,emity0, &
-     &                   name,flagsec,dowrite_impact,max_npart, cry_tilt, cry_length)!
+subroutine collimate_cry(icoll, iturn, ie, c_length, c_rotation, c_aperture, c_offset, c_tilt, &
+  x_in, xp_in, y_in, yp_in, p_in, s_in, enom, lhit, lhit_turn, part_abs, part_abs_turn, impact, &
+  indiv, lint, cry_tilt, cry_length)
 
-      use coll_db
-      use mod_ranlux
-      use mod_funlux
-      use coll_k2
-      use mod_common, only : napx
-      use coll_common, only : cry_proc, xp_pencil0, yp_pencil0, x_pencil, y_pencil, pencil_dx, ipencil
-      use floatPrecision
-      use coll_crystal
-      use mathlib_bouncer
+  use parpro
+  use coll_db
+  use mod_ranlux
+  use mod_funlux
+  use coll_k2
+  use mod_common, only : napx
+  use coll_common, only : cry_proc, xp_pencil0, yp_pencil0, x_pencil, y_pencil, pencil_dx, ipencil
+  use floatPrecision
+  use coll_crystal
+  use mathlib_bouncer
 
-      IMPLICIT NONE
-!
+  implicit none
 
-!
-         integer         icoll      ! MDA: collimator ID to read parameters from new CollDB format
-         integer         mat
-         integer         Nev
-         integer         j
-         integer         nabs
-         integer         nhit
-         integer         MAX_NPART
-         integer         NP
-!        PARAMETER         (MAX_NPART=1500000)
-!
-         real(kind=fPrec)            p0
-         real(kind=fPrec)            zlm
-         real(kind=fPrec)            x,xp
-         real(kind=fPrec)            x00
-         real(kind=fPrec)            z
-         real(kind=fPrec)            z00
-         real(kind=fPrec)            zp
-         real(kind=fPrec)            p
-         real(kind=fPrec)            dpop
-         real(kind=fPrec)            s
-         real(kind=fPrec)            ENOM
-!
-         real(kind=fPrec)            x_PRINT,xp_PRINT,y_PRINT,yp_PRINT
-         real(kind=fPrec)            AX,BX,AY,BY
-         real(kind=fPrec)            X_NORM,XP_NORM,Y_NORM,YP_NORM
-         real(kind=fPrec)            EMITX0
-         real(kind=fPrec)            EMITY0
-!
-         integer         LHIT(MAX_NPART)
-         integer         LHIT_TURN(MAX_NPART)
-         integer         PART_ABS(MAX_NPART)
-         integer         PART_ABS_TURN(MAX_NPART)
-!
-!
-         real(kind=fPrec)            x_in(MAX_NPART)
-         real(kind=fPrec)            xp_in(MAX_NPART)
-         real(kind=fPrec)            y_in(MAX_NPART)
-         real(kind=fPrec)            yp_in(MAX_NPART)
-         real(kind=fPrec)            p_in(MAX_NPART)    !be careful: [Gev]
-         real(kind=fPrec)            s_in(MAX_NPART)
-!        adding variables for the pencil beam. Variables in the absolute reference frame.
-         real(kind=fPrec)            x_in0(MAX_NPART)
-         real(kind=fPrec)            xp_in0(MAX_NPART)
-         real(kind=fPrec)            y_in0(MAX_NPART)
-         real(kind=fPrec)            yp_in0(MAX_NPART)
-         real(kind=fPrec)            p_in0(MAX_NPART)    !be careful: [Gev]
-         real(kind=fPrec)            s_in0(MAX_NPART)
-         integer                     flagsec(MAX_NPART)
-         logical                     dowrite_impact
+  integer,          intent(in)    :: icoll
+  integer,          intent(in)    :: iturn
+  integer,          intent(in)    :: ie
 
-!
-         real(kind=fPrec)            IMPACT(MAX_NPART)
-         real(kind=fPrec)            INDIV(MAX_NPART)
-         real(kind=fPrec)            LINT(MAX_NPART)
-         integer                     name(MAX_NPART)
-!
-         real(kind=fPrec)            x_out(MAX_NPART)
-         real(kind=fPrec)            xp_out(MAX_NPART)
-         real(kind=fPrec)            y_out(MAX_NPART)
-         real(kind=fPrec)            yp_out(MAX_NPART)
-         real(kind=fPrec)            p_out(MAX_NPART)
-         real(kind=fPrec)            s_out(MAX_NPART)
-!
-         real(kind=fPrec)            fracab
-         real(kind=fPrec)            drift_length
-         real(kind=fPrec)            mirror
-         real(kind=fPrec)            tiltangle
-         real(kind=fPrec)            tiltangle2
-!
-         real(kind=fPrec)      C_LENGTH       !Length in m
-         real(kind=fPrec)      C_ROTATION     !Rotation angle vs vertical in radian
-         real(kind=fPrec)      C_APERTURE     !Aperture in m
-         real(kind=fPrec)      C_OFFSET       !Offset in m
-         real(kind=fPrec)      C_TILT(2)      !Tilt in radian
-         real(kind=fPrec)      C_TILT0(2)      !Tilt in radian
-         real(kind=fPrec)      cry_bend
-         real(kind=fPrec)      cRot, sRot, cRRot, sRRot
+  real(kind=fPrec), intent(in)    :: c_length   ! Length in m
+  real(kind=fPrec), intent(in)    :: c_rotation ! Rotation angle vs vertical in radian
+  real(kind=fPrec), intent(in)    :: c_aperture ! Aperture in m
+  real(kind=fPrec), intent(in)    :: c_offset   ! Offset in m
+  real(kind=fPrec), intent(in)    :: c_tilt(2)  ! Tilt in radians
 
-!
-!
-!
-        integer ie,iturn,nabs_total
-!
-!
-!
-        real(kind=fPrec)        AMPLZ
-!
-      real(kind=fPrec) XP_tangent
-!
-      real(kind=fPrec) Cry_tilt_part                    !crystal tilt [rad]
-      real(kind=fPrec) Cry_tilt                         !crystal tilt [rad]
-      real(kind=fPrec) Cry_tilt0                        !tilt of the crystal for having channeling (determined by divergence of the beam) [rad]
-      real(kind=fPrec) Cry_length                       !original length (from the db) [m]
+  real(kind=fPrec), intent(inout) :: x_in(npart)
+  real(kind=fPrec), intent(inout) :: xp_in(npart)
+  real(kind=fPrec), intent(inout) :: y_in(npart)
+  real(kind=fPrec), intent(inout) :: yp_in(npart)
+  real(kind=fPrec), intent(inout) :: s_in(npart)
+  real(kind=fPrec), intent(inout) :: p_in(npart) ! [Gev]
 
+  real(kind=fPrec), intent(in)    :: enom
+  integer,          intent(inout) :: lhit(npart)
+  integer,          intent(inout) :: lhit_turn(npart)
+  integer,          intent(inout) :: part_abs(npart)
+  integer,          intent(inout) :: part_abs_turn(npart)
+  real(kind=fPrec), intent(inout) :: impact(npart)
+  real(kind=fPrec), intent(inout) :: indiv(npart)
+  real(kind=fPrec), intent(inout) :: lint(npart)
 
+  real(kind=fPrec), intent(in)    :: cry_tilt   ! Crystal tilt [rad]
+  real(kind=fPrec), intent(in)    :: cry_length ! Original length (from the db) [m]
+
+  integer j,mat,nabs,nhit
+  real(kind=fPrec) p0,zlm,x,xp,z,zp,s,p,dpop,x_in0,xp_in0,y_in0,yp_in0,p_in0,s_in0,fracab,mirror, &
+    tiltangle,cry_bend,cRot,sRot,cRRot,sRRot
 
   ! CRY ---------------------
   Rcurv = cdb_cryBend(icoll)
@@ -278,10 +208,7 @@ subroutine collimate_cry(icoll, iturn, ie, c_length, &
   mirror = one
 
   ! CRY ---------------------
-  NEV = NP
-  c_tilt0(1) = c_tilt(1)
-  c_tilt0(2) = c_tilt(2)
-  tiltangle  = c_tilt0(1)
+  tiltangle = c_tilt(1)
   n_chan  = 0
   n_VR    = 0
   n_amorphous = 0
@@ -322,12 +249,12 @@ subroutine collimate_cry(icoll, iturn, ie, c_length, &
     ! CRY ---------------------
     dpop     = (p-p0)/p0
 
-    s_in0(j)   = s_in(j)
-  ! x_in0(j)   = x
-    xp_in0(j)  = xp
-    y_in0(j)   = z
-    yp_in0(j)  = zp
-    p_in0(j)   = p
+    s_in0   = s_in(j)
+  ! x_in0   = x
+    xp_in0  = xp
+    y_in0   = z
+    yp_in0  = zp
+    p_in0   = p
     ! CRY ---------------------
 
     x  =  x_in(j)*cRot + sRot*y_in(j)
@@ -347,11 +274,11 @@ subroutine collimate_cry(icoll, iturn, ie, c_length, &
     end if
 
     ! CRY ---------------------
-    x_in0(j) = x
+    x_in0 = x
     ! CRY ---------------------
 
     ! CRY ---------------------
-    call cry_doCrystal(ie,iturn,j,mat,x,xp,z,zp,s,p,x_in0(j),xp_in0(j),s_in0(j),zlm,nhit,nabs,lhit,lhit_turn,&
+    call cry_doCrystal(ie,iturn,j,mat,x,xp,z,zp,s,p,x_in0,xp_in0,s_in0,zlm,nhit,nabs,lhit,lhit_turn,&
       part_abs,part_abs_turn,impact,indiv,cry_tilt,cry_length,cry_bend,c_length)
     ! CRY ---------------------
 
@@ -367,8 +294,6 @@ subroutine collimate_cry(icoll, iturn, ie, c_length, &
       end if
 
       ! Transform back to particle coordinates with opening and offset
-      z00 = z
-      x00 = x + mirror*c_offset
       x   = x + c_aperture/2 + mirror*c_offset
 
       ! Now mirror at the horizontal axis for negative X offset
@@ -392,10 +317,6 @@ subroutine collimate_cry(icoll, iturn, ie, c_length, &
         x = 99.99d-3
         z = 99.99d-3
       end if
-    end if
-
-    if(flagsec(j) == 0 .and. iProc /= proc_out) then
-      flagsec(j) = 1
     end if
 
   end do
@@ -439,6 +360,23 @@ subroutine cry_doCrystal(ie,iturn,j,mat,x,xp,z,zp,s,p,x0,s0,xp0,zlm,nhit,nabs,  
   real(kind=fPrec) x_temp,x_shift,x_rot,x_int
   real(kind=fPrec) xp_temp,xp_tangent,xp_shift,xp_rot,xp_int
   real(kind=fPrec) tilt_int,shift,delta,a_eq,b_eq,c_eq
+
+  s_temp     = zero
+  s_shift    = zero
+  s_rot      = zero
+  s_int      = zero
+  s_impact   = zero
+  x_temp     = zero
+  x_shift    = zero
+  x_rot      = zero
+  x_int      = zero
+  xp_temp    = zero
+  xp_tangent = zero
+  xp_shift   = zero
+  xp_rot     = zero
+  xp_int     = zero
+  tilt_int   = zero
+  shift      = zero
 
   ! Transform in the crystal rerference system
   ! 1st transformation: shift of the center of the reference frame
