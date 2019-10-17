@@ -183,7 +183,7 @@ if(MERLINSCATTER)
   set(SIXTRACK_FEAT_CR "merlinscatter_${SIXTRACK_FEAT_CR}")
 endif()
 if(G4COLLIMATION)
-  SET(SIXTRACK_FEAT_CR "g4collimation_${SIXTRACK_FEAT_CR}")
+  set(SIXTRACK_FEAT_CR "g4collimation_${SIXTRACK_FEAT_CR}")
 endif(G4COLLIMATION)
 if(FLUKA)
   set(SIXTRACK_FEAT_CR "FLUKA_${SIXTRACK_FEAT_CR}")
@@ -278,9 +278,11 @@ list(APPEND FORT90_LIB
   bouncy_castle
   cheby
   close
+  coll_common
   coll_db
   coll_dist
   coll_jawfit
+  coll_k2
   collimation
   common_modules
   constants
@@ -302,6 +304,7 @@ list(APPEND FORT90_LIB
   mod_ffield_aux
   mod_find
   mod_fluc
+  mod_funlux
   mod_geometry
   mod_meta
   mod_particles
@@ -358,7 +361,7 @@ if(ROOT)
 endif(ROOT)
 
 if(G4COLLIMATION)
-  LIST(APPEND FORT90_LIB geant4)
+  list(APPEND FORT90_LIB geant4)
 endif(G4COLLIMATION)
 
 if(BOINC)
@@ -399,19 +402,18 @@ endif(ZLIB)
 
 ##Possible check for Root
 if(ROOT)
-  #/usr/share/root/cmake/FindROOT.cmake
-  SET(CMAKE_MODULE_PATH /usr/share/root/cmake/ ${CMAKE_MODULE_PATH})
+  set(CMAKE_MODULE_PATH /usr/share/root/cmake/ ${CMAKE_MODULE_PATH})
   if(STATIC)
     find_package(ROOT REQUIRED static)
   else()
     find_package(ROOT REQUIRED)
   endif(STATIC)
   if(NOT ROOT_FOUND)
-    MESSAGE(FATAL_ERROR "Root enabled build requested but root was not found!")
+    message(FATAL_ERROR "Root enabled build requested but root was not found!")
   endif(NOT ROOT_FOUND)
-  MESSAGE(STATUS "ROOT include folders: ${ROOT_INCLUDE_DIRS}")
-  MESSAGE(STATUS "ROOT definitions:${ROOT_DEFINITIONS}")
-  MESSAGE(STATUS "ROOT CXX flags:  ${ROOT_CXX_FLAGS}")
+  message(STATUS "ROOT include folders: ${ROOT_INCLUDE_DIRS}")
+  message(STATUS "ROOT definitions:${ROOT_DEFINITIONS}")
+  message(STATUS "ROOT CXX flags:  ${ROOT_CXX_FLAGS}")
   add_subdirectory(${CMAKE_SOURCE_DIR}/source/root_output)
 endif(ROOT)
 

@@ -141,24 +141,16 @@ subroutine thin4d(nthinerr)
       select case (ktrack(i))
       case (1)
         stracki=strack(i)
-        if(iexact) then ! exact drift?
+        if(iexact) then ! EXACT DRIFT
           do j=1,napx
-            xv1(j)=xv1(j)*c1m3
-            xv2(j)=xv2(j)*c1m3
-            yv1(j)=yv1(j)*c1m3
-            yv2(j)=yv2(j)*c1m3
-            pz=sqrt(one-(yv1(j)**2+yv2(j)**2))
-            xv1(j)=xv1(j)+stracki*(yv1(j)/pz)
-            xv2(j)=xv2(j)+stracki*(yv2(j)/pz)
-            xv1(j)=xv1(j)*c1e3
-            xv2(j)=xv2(j)*c1e3
-            yv1(j)=yv1(j)*c1e3
-            yv2(j)=yv2(j)*c1e3
-          enddo
+            pz     = sqrt(c1e6 - (yv1(j)**2 + yv2(j)**2))*c1m3 ! pz/p0
+            xv1(j) = xv1(j) + stracki*(yv1(j)/pz)
+            xv2(j) = xv2(j) + stracki*(yv2(j)/pz)
+          end do
         else
           do j=1,napx
-            xv1(j)=xv1(j)+stracki*yv1(j)
-            xv2(j)=xv2(j)+stracki*yv2(j)
+            xv1(j) = xv1(j) + stracki*yv1(j)
+            xv2(j) = xv2(j) + stracki*yv2(j)
           end do
         end if
         ! A.Mereghetti and P.Garcia Ortega, for the FLUKA Team
@@ -553,6 +545,7 @@ subroutine thin4d(nthinerr)
     ! increase napxto, to get an estimation of particles*turns
     napxto = napxto + napx
 #endif
+    firstrun = .false.
 
   640 continue
 
@@ -590,6 +583,7 @@ subroutine thin6d(nthinerr)
 #endif
 
   use collimation
+  use coll_db
   use postprocessing, only : writebin
   use crcoall
   use parpro
@@ -612,13 +606,12 @@ subroutine thin6d(nthinerr)
 
   implicit none
 
-  integer i,irrtr,ix,j,k,n,nmz,nthinerr,dotrack,xory,nac,nfree,nramp1,nplato,nramp2,elemEnd,&
-    kxxa,nfirst
+  integer i,irrtr,ix,j,k,n,nmz,nthinerr,dotrack,xory,nac,nfree,nramp1,nplato,nramp2,kxxa,nfirst
   real(kind=fPrec) pz,cccc,cikve,crkve,crkveuk,r0,stracki,xlvj,yv1j,yv2j,zlvj,acdipamp,qd,          &
     acphase,acdipamp2,acdipamp1,crabamp,crabfreq,crabamp2,crabamp3,crabamp4,kcrab,RTWO,NNORM,l,cur, &
     dx,dy,tx,ty,embl,chi,xi,yi,dxi,dyi,rrelens,frrelens,xelens,yelens, onedp,fppsig,costh_temp,     &
     sinth_temp,tan_t,sin_t,cos_t,pxf,pyf,r_temp,z_temp,sigf,q_temp,pttemp,xlv,zlv,temp_angle
-  logical llost, doFField
+  logical llost, doFField, is_coll
   real(kind=fPrec) crkveb(npart),cikveb(npart),rho2b(npart),tkb(npart),rb(npart),rkb(npart),        &
     xrb(npart),zrb(npart),xbb(npart),zbb(npart),crxb(npart),crzb(npart),cbxb(npart),cbzb(npart)
   real(kind=fPrec) :: krf, x_t, y_t
@@ -643,15 +636,14 @@ subroutine thin6d(nthinerr)
     if(nthinerr /= 0) return
 
     if(do_coll) then
-      ! This subroutine sets variables iturn and totals
       call collimate_start_turn(n)
-    endif
+    end if
 
     !! This is the loop over each element: label 650
     do 650 i=1,iu !Loop over elements
 
       if(do_coll) then
-        ! This subroutine sets variables myktrack and myix
+        ! This subroutine sets variable myix
         call collimate_start_element(i)
       endif
 
@@ -670,9 +662,9 @@ subroutine thin6d(nthinerr)
 #ifdef BEAMGAS
       !YIL Call beamGas subroutine whenever a pressure-element is found
       ! should be faster/safer to first check the turn then do the name search
-      if( iturn.eq.1 ) then
-        if (bez(myix)(1:5).eq.'PRESS' .or.  bez(myix)(1:5).eq.'press' ) then
-          call beamGas(myix, secondary,totals,myenom,ipart)
+      if(n == 1) then
+        if(bez(myix)(1:5) == "PRESS" .or. bez(myix)(1:5) == "press") then
+          call beamGas(myix,secondary,dcum(i),myenom,n,i)
         end if
       end if
 #endif
@@ -729,124 +721,49 @@ subroutine thin6d(nthinerr)
         if(bdex_enable .and. kz(ix) == 0 .and. bdex_elementAction(ix) /= 0) call bdex_track(i,ix,n)
       end if
 
-      if (do_coll) then
-        dotrack = myktrack
+      ! The below splitting of if-statements is needed to prevent out of bounds error
+      ! when building with gfortran/debug
+      is_coll = .false.
+      if(do_coll) then
+        if(cdb_elemMap(myix) > 0) then
+          is_coll = .true.
+        end if
+      end if
+
+      if(is_coll) then
+        dotrack = 1
       else
         dotrack = ktrack(i)
       end if
 
       select case(dotrack)
       case (1)
-        stracki=strack(i)
-
-        if (do_coll) then
-          !==========================================
-          !Ralph drift length is stracki
-          !bez(ix) is name of drift
-          totals=totals+stracki
-
-          !________________________________________________________________________
-          !++  If we have a collimator then...
-          !
-          !Feb2006
-          !GRD (June 2005) 'COL' option is for RHIC collimators
-          !
-          !     SR (17-01-2006): Special assignment to the TCS.TCDQ for B1 and B4,
-          !     using the new naming as in V6.500.
-          !     Note that this must be in the loop "if TCSG"!!
-          !
-          !     SR, 17-01-2006: Review the TCT assignments because the MADX names
-          !     have changes (TCTH.L -> TCTH.4L)
-          !
-          ! JULY 2008 added changes (V6.503) for names in TCTV -> TCTVA and TCTVB
-          ! both namings before and after V6.503 can be used
-          !
-          elemEnd = len_trim(bez(myix))
-          if((    bez(myix)(1:2) == 'TC'  .or. bez(myix)(1:2) == 'tc'   &
-            .or.  bez(myix)(1:2) == 'TD'  .or. bez(myix)(1:2) == 'td'   &
-            .or.  bez(myix)(1:3) == 'COL' .or. bez(myix)(1:3) == 'col') &
-            .and. bez(myix)(elemEnd-2:elemEnd) /= "_AP") then
-
-            call time_startClock(time_clockCOLL)
-            call collimate_start_collimator(stracki)
-
-            !++ For known collimators
-            if(found) then
-              call collimate_do_collimator(stracki)
-              call collimate_end_collimator(stracki)
-            end if ! end of check for 'found'
-            call time_stopClock(time_clockCOLL)
-            !------------------------------------------------------------------
-            !++  Here leave the known collimator IF loop...
-            !_______________________________________________________________________
-            !++  If it is just a drift (i.e. did not pass the namecheck)
-          else
-            ! TODO: Could just as well call normal sixtrack code (below)...
-            do j=1,napx
-              xv1(j)  = xv1(j) + stracki*yv1(j)
-              xv2(j)  = xv2(j) + stracki*yv2(j)
-              sigmv(j) = sigmv(j) + stracki*(c1e3-rvv(j)*(c1e3+(yv1(j)*yv1(j)+yv2(j)*yv2(j))*c5m4))
-              xj     = (xv1(j)-torbx(ie))/c1e3
-              xpj    = (yv1(j)-torbxp(ie))/c1e3
-              yj     = (xv2(j)-torby(ie))/c1e3
-              ypj    = (yv2(j)-torbyp(ie))/c1e3
-              pj     = ejv(j)/c1e3
-
-              if(firstrun) then
-                if (iturn.eq.1.and.j.eq.1) then
-                  sum_ax(ie)=zero
-                  sum_ay(ie)=zero
-                end if
-              end if
-
-              gammax = (one + talphax(ie)**2)/tbetax(ie)
-              gammay = (one + talphay(ie)**2)/tbetay(ie)
-
-              if (part_abs_pos(j).eq.0 .and. part_abs_turn(j).eq.0) then
-                nspx    = sqrt(abs(gammax*(xj)**2 + two*talphax(ie)*xj*xpj + tbetax(ie)*xpj**2)/myemitx0_collgap)
-                nspy    = sqrt(abs(gammay*(yj)**2 + two*talphay(ie)*yj*ypj + tbetay(ie)*ypj**2)/myemity0_collgap)
-                sum_ax(ie)   = sum_ax(ie) + nspx
-                sqsum_ax(ie) = sqsum_ax(ie) + nspx**2
-                sum_ay(ie)   = sum_ay(ie) + nspy
-                sqsum_ay(ie) = sqsum_ay(ie) + nspy**2
-                nampl(ie)    = nampl(ie) + 1
-              else
-                nspx = zero
-                nspy = zero
-              end if
-              sampl(ie)    = totals
-              ename(ie)    = bez(myix)(1:mNameLen)
-            end do
-          endif
-          !GRD END OF THE CHANGES FOR COLLIMATION STUDIES, BACK TO NORMAL SIXTRACK STUFF
-
+        stracki = strack(i)
+        ! Check if collimation is enabled, and call the collimation code as necessary
+        if(do_coll .and. is_coll) then
+          ! Collimator is in database, and we're doing collimation
+          call collimate_trackThin(stracki,.true.)
         else ! Normal SixTrack drifts
-          if(iexact) then
-            ! EXACT DRIFT
+          if(iexact) then ! EXACT DRIFT
             do j=1,napx
-              xv1(j)=xv1(j)*c1m3
-              xv2(j)=xv2(j)*c1m3
-              yv1(j)=yv1(j)*c1m3
-              yv2(j)=yv2(j)*c1m3
-              sigmv(j)=sigmv(j)*c1m3
-              pz=sqrt(one-(yv1(j)**2+yv2(j)**2))
-              xv1(j)=xv1(j)+stracki*(yv1(j)/pz)
-              xv2(j)=xv2(j)+stracki*(yv2(j)/pz)
-              sigmv(j)=sigmv(j)+stracki*(one-(rvv(j)/pz))
-              xv1(j)=xv1(j)*c1e3
-              xv2(j)=xv2(j)*c1e3
-              yv1(j)=yv1(j)*c1e3
-              yv2(j)=yv2(j)*c1e3
-              sigmv(j)=sigmv(j)*c1e3
-            enddo
+              pz       = sqrt(c1e6 - (yv1(j)**2 + yv2(j)**2))*c1m3 ! pz/p0
+              xv1(j)   = xv1(j)   + stracki*(yv1(j)/pz)
+              xv2(j)   = xv2(j)   + stracki*(yv2(j)/pz)
+              sigmv(j) = sigmv(j) + stracki*((one - rvv(j)/pz)*c1e3)
+            end do
           else
             do j=1,napx
-              xv1(j)  = xv1(j) + stracki*yv1(j)
-              xv2(j)  = xv2(j) + stracki*yv2(j)
+              xv1(j)   = xv1(j)   + stracki*yv1(j)
+              xv2(j)   = xv2(j)   + stracki*yv2(j)
               sigmv(j) = sigmv(j) + stracki*(c1e3-rvv(j)*(c1e3+(yv1(j)**2+yv2(j)**2)*c5m4))
             end do
           end if
+          if(do_coll) then
+            ! Not a collimator, but collimation still need to perform additional calculations
+            call collimate_trackThin(stracki,.false.)
+          end if
         end if
+
         ! A.Mereghetti and P.Garcia Ortega, for the FLUKA Team
         ! last modified: 07-03-2018
         ! store old particle coordinates
@@ -870,8 +787,7 @@ subroutine thin6d(nthinerr)
           endif
           ejfv(j)=sqrt(ejv(j)**2-nucm(j)**2)
           rvv(j)=(ejv(j)*e0f)/(e0*ejfv(j))
-          dpsv(j) = (ejfv(j)*(nucm0/nucm(j))-e0f)/e0f
-!          dpsv(j)=(ejfv(j)-e0f)/e0f
+          dpsv(j)=(ejfv(j)*(nucm0/nucm(j))-e0f)/e0f
           oidpsv(j)=one/(one+dpsv(j))
           moidpsv(j)=mtc(j)/(one+dpsv(j))
           omoidpsv(j)=c1e3*((one-mtc(j))*oidpsv(j))
@@ -1433,6 +1349,7 @@ subroutine thin6d(nthinerr)
     ! increase napxto, to get an estimation of particles*turns
     napxto = napxto + napx
 #endif
+    firstrun = .false.
 
 660 continue !END loop over turns
 

@@ -198,20 +198,16 @@ if(NOT CR)
     collimation_dist_5
     collimation_dist_6
     collimation_dist_radial
-    collimation_new-db_new-block
-    collimation_old-db_new-block
-    collimation_old-db_old-block
-    scatter_collimation
-  )
-endif()
-
-if(NOT CR AND STF)
-  list(APPEND SIXTRACK_TESTS
     collimation_jaw_fit
     collimation_jaw_fit_b4
     collimation_jaw_fit_b4_offsets_tilts
     collimation_jaw_fit_b4_onesided
     collimation_k2
+    collimation_new-db_new-block
+    collimation_old-db_new-block
+    collimation_old-db_old-block
+    collimation_tracks2
+    scatter_collimation
   )
 endif()
 
@@ -277,6 +273,7 @@ set(TESTS_NOFORT10
   collimation_new-db_new-block
   collimation_old-db_new-block
   collimation_old-db_old-block
+  collimation_tracks2
   dist_file_6d
   dist_file_6d_direct
   distlib_normalised
@@ -352,6 +349,7 @@ set(TESTS_NO_STF
   collimation_new-db_new-block
   collimation_old-db_new-block
   collimation_old-db_old-block
+  collimation_tracks2
   crabs
   orbit6d-element-rotations
   dipedge
@@ -621,6 +619,7 @@ set(FAST_TESTS
   collimation_new-db_new-block
   collimation_old-db_new-block
   collimation_old-db_old-block
+  collimation_tracks2
   crabs
   dist_file_6d
   dist_file_6d_direct

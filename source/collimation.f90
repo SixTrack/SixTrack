@@ -7,57 +7,39 @@
 !  Y.I. Levinsen, C. Tambasco, J. Molson, K.N. Sjobak, V.K. Berglyd Olsen
 !
 !  Created: 2004-10-27
-!  Updated: 2019-03-25
+!  Updated: 2019-09-12
 !
 ! ================================================================================================ !
-
 module collimation
 
   use parpro
   use floatPrecision
   use numerical_constants
-
-#ifdef G4COLLIMATION
-  use geant4
-#endif
+  use coll_common, only : max_ncoll
 
   implicit none
 
-  integer, parameter :: max_ncoll  = 100
   integer, parameter :: numeff     = 32
   integer, parameter :: numeffdpop = 29
   integer, parameter :: nc         = 32
 
-  ! Variables for collimator material numbers
-  integer, parameter :: nmat       = 14
-  integer, parameter :: nrmat      = 12
-
   ! Logical Flags
-  logical, public,  save :: do_coll           = .false.
-  logical, public,  save :: coll_oldBlock     = .false.
-  logical, private, save :: do_select         = .false.
-  logical, private, save :: do_nominal        = .false.
-  logical, private, save :: dowrite_dist      = .false.
-  logical, private, save :: do_oneside        = .false.
-  logical, private, save :: dowrite_impact    = .false.
-  logical, private, save :: dowrite_secondary = .false.
-  logical, private, save :: dowrite_amplitude = .false.
-  logical, private, save :: systilt_antisymm  = .false.
-  logical, private, save :: dowritetracks     = .false.
-  logical, private, save :: cern              = .false.
-  logical, private, save :: do_mingap         = .false.
-  logical, public,  save :: firstrun          = .true.
-  logical, private, save :: cut_input         = .false. ! Not in use?
+  logical, public,  save :: do_coll          = .false.
+  logical, public,  save :: coll_oldBlock    = .false.
+  logical, private, save :: do_select        = .false.
+  logical, private, save :: do_nominal       = .false.
+  logical, private, save :: do_oneside       = .false.
+  logical, private, save :: systilt_antisymm = .false.
+  logical, private, save :: do_mingap        = .false.
 
-  integer, private, save :: icoll      = 0
-  integer, private, save :: nloop      = 1
-  integer, private, save :: rnd_seed   = 0
-  integer, private, save :: ibeam      = 1
-  integer, private, save :: jobnumber  = 0
+  integer, private, save :: icoll = 0
+  integer, private, save :: ie    = 0
+  integer, private, save :: iturn = 0
 
   ! Distribution
   integer,          private, save :: do_thisdis   = 0
   real(kind=fPrec), public,  save :: myenom       = zero
+  logical,          private, save :: radial       = .false.
 
   ! Jaw Slicing
   integer,          private, save :: n_slices     = 0
@@ -85,19 +67,9 @@ module collimation
   real(kind=fPrec), private, save :: c_rmserror_gap    = zero
   integer,          private, save :: c_offsettilt_seed = 0
 
-  ! Radial Dist
-  logical,          private, save :: radial  = .false.
-
   ! Emittance Drift
   real(kind=fPrec), private, save :: driftsx = zero
   real(kind=fPrec), private, save :: driftsy = zero
-
-  ! Pencil Beam
-  integer,          private, save :: ipencil       = 0
-  real(kind=fPrec), private, save :: pencil_offset = zero
-  real(kind=fPrec), private, save :: pencil_rmsx   = zero
-  real(kind=fPrec), private, save :: pencil_rmsy   = zero
-  integer,          private, save :: pencil_distr  = 0
 
   real(kind=fPrec), private, save :: sigsecut3 = one
   real(kind=fPrec), private, save :: sigsecut2 = one
@@ -107,12 +79,7 @@ module collimation
   real(kind=fPrec), private, save :: emitnx0_collgap = zero
   real(kind=fPrec), private, save :: emitny0_collgap = zero
 
-
-  character(len=mNameLen),  private, save :: name_sel  = " "
-  character(len=16),        private, save :: castordir = " "
-
-  integer, save :: ie, iturn, nabs_total
-
+  character(len=mNameLen), private, save :: name_sel = " "
 
   integer ieff,ieffdpop
 
@@ -125,13 +92,12 @@ module collimation
   real(kind=fPrec), private, save :: mybetay
   real(kind=fPrec), private, save :: myalphax
   real(kind=fPrec), private, save :: mybetax
-  real(kind=fPrec), private, save :: rselect = 64.0 ! Not set anywhere, but used in if statements
   real(kind=fPrec), private, save :: myemitx
 
-! M. Fiascaris for the collimation team
-! variables for global inefficiencies studies
-! of normalized and off-momentum halo
-! Last modified: July 2016
+  ! M. Fiascaris for the collimation team
+  ! variables for global inefficiencies studies
+  ! of normalized and off-momentum halo
+  ! Last modified: July 2016
 
   real(kind=fPrec), allocatable, save :: neff(:) !(numeff)
   real(kind=fPrec), allocatable, save :: rsig(:) !(numeff)
@@ -149,13 +115,11 @@ module collimation
   real(kind=fPrec), allocatable, save :: sumimpact(:) !(50)
   real(kind=fPrec), allocatable, save :: sqsumimpact(:) !(50)
 
-  character(len=:), allocatable, save :: ename(:) !(mNameLen)(nblz)
   integer, allocatable, save :: nampl(:) !(nblz)
   real(kind=fPrec), allocatable, save :: sum_ax(:) !(nblz)
   real(kind=fPrec), allocatable, save :: sqsum_ax(:) !(nblz)
   real(kind=fPrec), allocatable, save :: sum_ay(:) !(nblz)
   real(kind=fPrec), allocatable, save :: sqsum_ay(:) !(nblz)
-  real(kind=fPrec), allocatable, save :: sampl(:) !(nblz)
 
   real(kind=fPrec), allocatable, save :: neffx(:) !(numeff)
   real(kind=fPrec), allocatable, save :: neffy(:) !(numeff)
@@ -178,6 +142,7 @@ module collimation
   integer, allocatable, save :: nabs_type(:) !(npart)
   integer, save :: n_tot_absorbed
   integer, save :: n_absorbed
+  integer, save :: nabs_total
 
   real(kind=fPrec), allocatable, save :: part_impact(:) !(npart)
 
@@ -195,22 +160,10 @@ module collimation
   character(len=4), save :: smpl
   character(len=80), save :: pfile
 
-  ! These vatiables are common to writelin,linopt,trauthin,thin6d and maincr
-  real(kind=fPrec), allocatable, save :: tbetax(:)  !(nblz)
-  real(kind=fPrec), allocatable, save :: tbetay(:)  !(nblz)
-  real(kind=fPrec), allocatable, save :: talphax(:) !(nblz)
-  real(kind=fPrec), allocatable, save :: talphay(:) !(nblz)
-  real(kind=fPrec), allocatable, save :: torbx(:)   !(nblz)
-  real(kind=fPrec), allocatable, save :: torbxp(:)  !(nblz)
-  real(kind=fPrec), allocatable, save :: torby(:)   !(nblz)
-  real(kind=fPrec), allocatable, save :: torbyp(:)  !(nblz)
-  real(kind=fPrec), allocatable, save :: tdispx(:)  !(nblz)
-  real(kind=fPrec), allocatable, save :: tdispy(:)  !(nblz)
-
   ! Variables for finding the collimator with the smallest gap
   ! and defining, stroring the gap rms error
 
-  character(len=mNameLen) :: coll_mingap1, coll_mingap2
+  character(len=mNameLen) :: coll_mingap2
   real(kind=fPrec), allocatable, save :: gap_rms_error(:) !(max_ncoll)
   real(kind=fPrec) :: nsig_err, sig_offset
   real(kind=fPrec) :: mingap, gap_h1, gap_h2, gap_h3, gap_h4
@@ -218,14 +171,13 @@ module collimation
 
   real(kind=fPrec), save :: remitx_dist,remity_dist,remitx_collgap,remity_collgap
 
-  logical, save :: firstcoll,found
+  logical, save :: firstcoll
   integer rnd_lux,rnd_k1,rnd_k2
 
-  integer, save :: myix,myktrack
+  integer, save :: myix
 
   real(kind=fPrec), public  :: nspx,nspy,mux0,muy0
   real(kind=fPrec), private :: ax0,ay0,bx0,by0     ! These are set, but never used
-  real(kind=fPrec), public, save :: totals
 
   real(kind=fPrec), allocatable, save :: xbob(:) !(nblz)
   real(kind=fPrec), allocatable, save :: ybob(:) !(nblz)
@@ -239,20 +191,6 @@ module collimation
 
   real(kind=fPrec), allocatable, save :: mux(:) !(nblz)
   real(kind=fPrec), allocatable, save :: muy(:) !(nblz)
-
-  real(kind=fPrec), save :: xp_pencil0,yp_pencil0
-  real(kind=fPrec), allocatable, save :: x_pencil(:) !(max_ncoll)
-  real(kind=fPrec), allocatable, save :: y_pencil(:) !(max_ncoll)
-  real(kind=fPrec), allocatable, save :: pencil_dx(:) !(max_ncoll)
-
-  ! Mean excitation energy (GeV) values added by Claudia for Bethe-Bloch implementation:
-  real(kind=fPrec), parameter :: exenergy(nmat) = [ &
-    63.7e-9_fPrec, 166.0e-9_fPrec, 322.0e-9_fPrec, 727.0e-9_fPrec, 823.0e-9_fPrec, 78.0e-9_fPrec, 78.0e-9_fPrec, &
-    87.1e-9_fPrec, 152.9e-9_fPrec, 424.0e-9_fPrec, 320.8e-9_fPrec, 682.2e-9_fPrec, zero, c1e10 ]
-
-  ! RB DM 2014 added variables for FLUKA output
-  real(kind=fPrec), private, save :: xInt,xpInt,yInt,ypInt,sInt
-  real(kind=fPrec), private, save :: tftot
 
   integer, save :: num_surhit
   integer, save :: numbin
@@ -274,23 +212,16 @@ module collimation
   real(kind=fPrec), save :: c_tilt(2)   !tilt in radian
   character(len=4), save :: c_material  !material
 
-  integer, allocatable, save :: ipart(:) !(npart)
-  integer, allocatable, save :: flukaname(:) !(npart)
-  real(kind=fPrec), allocatable, private, save :: rcx(:) !(npart)
-  real(kind=fPrec), allocatable, private, save :: rcxp(:) !(npart)
-  real(kind=fPrec), allocatable, private, save :: rcy(:) !(npart)
-  real(kind=fPrec), allocatable, private, save :: rcyp(:) !(npart)
-  real(kind=fPrec), allocatable, private, save :: rcp(:) !(npart)
-  real(kind=fPrec), allocatable, private, save :: rcs(:) !(npart)
-  real(kind=fPrec), allocatable, private, save :: rcx0(:) !(npart)
+  real(kind=fPrec), allocatable, private, save :: rcx0(:)  !(npart)
   real(kind=fPrec), allocatable, private, save :: rcxp0(:) !(npart)
-  real(kind=fPrec), allocatable, private, save :: rcy0(:) !(npart)
+  real(kind=fPrec), allocatable, private, save :: rcy0(:)  !(npart)
   real(kind=fPrec), allocatable, private, save :: rcyp0(:) !(npart)
-  real(kind=fPrec), allocatable, private, save :: rcp0(:) !(npart)
+  real(kind=fPrec), allocatable, private, save :: rcp0(:)  !(npart)
+
+  real(kind=fPrec), private, save :: xj, xpj, yj, ypj, pj
 
   real(kind=fPrec), save :: enom_gev,betax,betay,xmax,ymax
   real(kind=fPrec), save :: nsig,calc_aperture,gammax,gammay,gammax0,gammay0,gammax1,gammay1
-  real(kind=fPrec), save :: xj,xpj,yj,ypj,pj
   real(kind=fPrec), save :: arcdx,arcbetax,xdisp,rxjco,ryjco
   real(kind=fPrec), save :: rxpjco,rypjco,c_rmstilt,c_systilt
   real(kind=fPrec), save :: scale_bx, scale_by, scale_bx0, scale_by0, xkick, ykick, bx_dist, by_dist
@@ -306,176 +237,9 @@ module collimation
 
   real(kind=fPrec), save :: dnormx,dnormy,driftx,drifty,xnorm,xpnorm,xangle,ynorm,ypnorm,yangle,grdpiover2,grdpiover4,grd3piover4
 
-  ! SEPT2005-SR, 29-08-2005 --- add parameter for the array length ---- TW
-  real(kind=fPrec), allocatable, save :: x_sl(:) !(100)
-  real(kind=fPrec), allocatable, save :: x1_sl(:) !(100)
-  real(kind=fPrec), allocatable, save :: x2_sl(:) !(100)
-  real(kind=fPrec), allocatable, save :: y1_sl(:) !(100)
-  real(kind=fPrec), allocatable, save :: y2_sl(:) !(100)
-  real(kind=fPrec), allocatable, save :: angle1(:) !(100)
-  real(kind=fPrec), allocatable, save :: angle2(:) !(100)
-
   real(kind=fPrec), save :: max_tmp, a_tmp1, a_tmp2, ldrift, mynex2, myney2, Nap1pos,Nap2pos,Nap1neg,Nap2neg
   real(kind=fPrec), save :: tiltOffsPos1,tiltOffsPos2,tiltOffsNeg1,tiltOffsNeg2
   real(kind=fPrec), save :: beamsize1, beamsize2,betax1,betax2,betay1,betay2, alphax1, alphax2,alphay1,alphay2,minAmpl
-
-  integer,          private, save :: nev
-  integer,          private, save :: mat
-  real(kind=fPrec), private, save :: length
-  real(kind=fPrec), private, save :: x,xp,z,zp,dpop
-  real(kind=fPrec), private, save :: p0
-  real(kind=fPrec), private, save :: zlm
-
-  real(kind=fPrec), parameter :: tlcut = 0.0009982_fPrec
-
-  integer,          private, save :: mcurr
-  real(kind=fPrec), private, save :: xintl(nmat)
-  real(kind=fPrec), private, save :: zlm1
-  real(kind=fPrec), private, save :: xpsd
-  real(kind=fPrec), private, save :: zpsd
-  real(kind=fPrec), private, save :: psd
-  real(kind=fPrec), private, save :: csect(0:5,nmat)
-  real(kind=fPrec), private, save :: freep(nmat)
-  real(kind=fPrec), private, save :: cprob(0:5,nmat)
-  real(kind=fPrec), private, save :: bn(nmat)
-  real(kind=fPrec), private, save :: bpp
-  real(kind=fPrec), private, save :: xln15s
-  real(kind=fPrec), private, save :: ecmsq
-  real(kind=fPrec), private, save :: pptot
-  real(kind=fPrec), private, save :: ppel
-  real(kind=fPrec), private, save :: ppsd
-  real(kind=fPrec), private, save :: cgen(200,nmat)
-
-  ! Electron density and plasma energy
-  real(kind=fPrec), private, save :: edens(nmat)
-  real(kind=fPrec), private, save :: pleng(nmat)
-
-  ! Cross section inputs and material property database
-  ! GRD CHANGED ON 2/2003 TO INCLUDE CODE FOR C, C2 from JBJ (rwa)
-  ! Total number of materials are defined in nmat
-  ! Number of real materials are defined in nrmat
-  ! The last materials in nmat are 'vacuum' and 'black',see in sub. SCATIN
-  ! Reference data at pRef=450Gev
-
-  ! pp cross-sections and parameters for energy dependence
-  real(kind=fPrec), private, save :: pptref = 0.04_fPrec
-  real(kind=fPrec), private, save :: pperef = 0.007_fPrec
-  real(kind=fPrec), private, save :: sdcoe  = 0.00068_fPrec
-  real(kind=fPrec), private, save :: pref   = 450.0_fPrec
-  real(kind=fPrec), private, save :: pptco  = 0.05788_fPrec
-  real(kind=fPrec), private, save :: ppeco  = 0.04792_fPrec
-  real(kind=fPrec), private, save :: freeco = 1.618_fPrec
-
-  character(4), private, save :: mname(nmat) = &
-    ["Be  ","Al  ","Cu  ","W   ","Pb  ","C   ","C2  ","MoGR","CuCD","Mo  ","Glid","Iner","vacu","blac"]
-
-  ! GRD IMPLEMENT CHANGES FROM JBJ, 2/2003 RWA
-  real(kind=fPrec), private, save :: anuc(nmat)  = &
-    [ 9.01_fPrec,  26.98_fPrec,  63.55_fPrec, 183.85_fPrec, 207.19_fPrec,    12.01_fPrec,  12.01_fPrec,  &
-     13.53_fPrec,  25.24_fPrec,  95.96_fPrec,  63.15_fPrec, 166.70_fPrec,     zero,         zero         ]
-  real(kind=fPrec), private, save :: zatom(nmat) = &
-    [ 4.00_fPrec,  13.00_fPrec,  29.00_fPrec,  74.00_fPrec,  82.00_fPrec,     6.00_fPrec,   6.00_fPrec,  &
-      6.65_fPrec,  11.90_fPrec,  42.00_fPrec,  28.80_fPrec,  67.70_fPrec,     zero,         zero         ]
-  real(kind=fPrec), private, save :: rho(nmat)   = &
-    [ 1.848_fPrec,  2.70_fPrec,   8.96_fPrec,  19.30_fPrec,   11.35_fPrec,    1.67_fPrec,   4.52_fPrec,  &
-      2.500_fPrec,  5.40_fPrec,  10.22_fPrec,   8.93_fPrec,   18.00_fPrec,    zero,         zero         ]
-  real(kind=fPrec), private, save :: radl(nmat)  = &
-    [ 0.353_fPrec,  0.089_fPrec,  0.0143_fPrec, 0.0035_fPrec,  0.0056_fPrec,  0.2557_fPrec, 0.094_fPrec, &
-      0.1193_fPrec, 0.0316_fPrec, 0.0096_fPrec, 0.0144_fPrec,  0.00385_fPrec, 1.0e12_fPrec, 1.0e12_fPrec ]
-  real(kind=fPrec), private, save :: emr(nmat)   = &
-    [ 0.22_fPrec,   0.302_fPrec,  0.366_fPrec,  0.520_fPrec,   0.542_fPrec,   0.25_fPrec,   0.25_fPrec,  &
-      0.25_fPrec,   0.308_fPrec,  0.481_fPrec,  0.418_fPrec,   0.578_fPrec,   zero,         zero         ]
-  real(kind=fPrec), private, save :: hcut(nmat)  = &
-    [ 0.02_fPrec,   0.02_fPrec,   0.01_fPrec,   0.01_fPrec,    0.01_fPrec,    0.02_fPrec,    0.02_fPrec, &
-      0.02_fPrec,   0.02_fPrec,   0.02_fPrec,   0.02_fPrec,    0.02_fPrec,    zero,          zero        ]
-  real(kind=fPrec), private, save :: dpodx(nmat) = &
-    [ 0.55_fPrec,   0.81_fPrec,   2.69_fPrec,   5.79_fPrec,    3.40_fPrec,    0.75_fPrec,   1.50_fPrec,  &
-      zero,         zero,         zero,         zero,          zero,          zero,         zero         ]
-
-  ! Nuclear elastic slope from Schiz et al.,PRD 21(3010)1980
-  ! MAY06-GRD value for Tungsten (W) not stated. Last 2 ones interpolated
-  real(kind=fPrec), private, save :: bnref(nmat) = &
-    [74.7_fPrec, 120.3_fPrec, 217.8_fPrec, 440.3_fPrec, 455.3_fPrec, 70.0_fPrec, 70.0_fPrec, &
-     76.7_fPrec, 115.0_fPrec, 273.9_fPrec, 208.7_fPrec, 392.1_fPrec, zero,       zero        ]
-
-  ! All cross-sections are in barns,nuclear values from RPP at 20geV
-  ! Coulomb is integerated above t=tLcut[Gev2] (+-1% out Gauss mcs)
-
-  ! in Cs and CsRef,1st index: Cross-sections for processes
-  ! 0:Total, 1:absorption, 2:nuclear elastic, 3:pp or pn elastic
-  ! 4:Single Diffractive pp or pn, 5:Coulomb for t above mcs
-
-  ! Claudia 2013: updated cross section values. Unit: Barn. New 2013:
-  real(kind=fPrec), private, save :: csref(0:5,nmat)
-  data csref(0,1), csref(1,1), csref(5,1) /0.271_fPrec, 0.192_fPrec, 0.0035e-2_fPrec/
-  data csref(0,2), csref(1,2), csref(5,2) /0.643_fPrec, 0.418_fPrec, 0.0340e-2_fPrec/
-  data csref(0,3), csref(1,3), csref(5,3) /1.253_fPrec, 0.769_fPrec, 0.1530e-2_fPrec/
-  data csref(0,4), csref(1,4), csref(5,4) /2.765_fPrec, 1.591_fPrec, 0.7680e-2_fPrec/
-  data csref(0,5), csref(1,5), csref(5,5) /3.016_fPrec, 1.724_fPrec, 0.9070e-2_fPrec/
-  data csref(0,6), csref(1,6), csref(5,6) /0.337_fPrec, 0.232_fPrec, 0.0076e-2_fPrec/
-  data csref(0,7), csref(1,7), csref(5,7) /0.337_fPrec, 0.232_fPrec, 0.0076e-2_fPrec/
-  data csref(0,8), csref(1,8), csref(5,8) /0.362_fPrec, 0.247_fPrec, 0.0094e-2_fPrec/
-  data csref(0,9), csref(1,9), csref(5,9) /0.572_fPrec, 0.370_fPrec, 0.0279e-2_fPrec/
-  data csref(0,10),csref(1,10),csref(5,10)/1.713_fPrec, 1.023_fPrec, 0.2650e-2_fPrec/
-  data csref(0,11),csref(1,11),csref(5,11)/1.246_fPrec, 0.765_fPrec, 0.1390e-2_fPrec/
-  data csref(0,12),csref(1,12),csref(5,12)/2.548_fPrec, 1.473_fPrec, 0.5740e-2_fPrec/
-
-  ! Cprob to choose an interaction in iChoix
-  data cprob(0,1:nmat)/nmat*zero/
-  data cprob(5,1:nmat)/nmat*one/
-
-  ! Output Files
-  character(len=12), parameter :: coll_survivalFile   = "survival.dat"
-  character(len=12), parameter :: coll_gapsFile       = "collgaps.dat"
-  character(len=18), parameter :: coll_tempDbFile     = "collimator-temp.db"
-  character(len=10), parameter :: coll_impactFile     = "impact.dat"
-  character(len=11), parameter :: coll_tracksFile     = "tracks2.dat"
-  character(len=17), parameter :: coll_positionsFile  = "CollPositions.dat"
-  character(len=20), parameter :: coll_pencilFile     = "pencilbeam_distr.dat"
-  character(len=16), parameter :: coll_ellipseFile    = "coll_ellipse.dat"
-  character(len=15), parameter :: coll_allImpactFile  = "all_impacts.dat"
-  character(len=19), parameter :: coll_allAbsorbFile  = "all_absorptions.dat"
-  character(len=16), parameter :: coll_scatterFile    = "Coll_Scatter.dat"
-  character(len=16), parameter :: coll_fstImpactFile  = "FirstImpacts.dat"
-  character(len=17), parameter :: coll_flukImpFile    = "FLUKA_impacts.dat"
-  character(len=21), parameter :: coll_flukImpAllFile = "FLUKA_impacts_all.dat"
-  character(len=13), parameter :: coll_twissLikeFile  = "twisslike.out"
-  character(len=17), parameter :: coll_sigmaSetFile   = "sigmasettings.out"
-  character(len=16), parameter :: coll_settingsFile   = "collsettings.dat"
-  character(len=16), parameter :: coll_jawProfileFile = "jaw_profiles.dat"
-
-  integer, private, save :: coll_survivalUnit   = -1
-  integer, private, save :: coll_gapsUnit       = -1
-  integer, private, save :: coll_tempDbUnit     = -1
-  integer, private, save :: coll_impactUnit     = -1
-  integer, private, save :: coll_tracksUnit     = -1
-  integer, private, save :: coll_positionsUnit  = -1
-  integer, private, save :: coll_pencilUnit     = -1
-  integer, private, save :: coll_ellipseUnit    = -1
-  integer, private, save :: coll_allImpactUnit  = -1
-  integer, private, save :: coll_allAbsorbUnit  = -1
-  integer, private, save :: coll_scatterUnit    = -1
-  integer, private, save :: coll_fstImpactUnit  = -1
-  integer, private, save :: coll_flukImpUnit    = -1
-  integer, private, save :: coll_flukImpAllUnit = -1
-  integer, private, save :: coll_twissLikeUnit  = -1
-  integer, private, save :: coll_sigmaSetUnit   = -1
-  integer, private, save :: coll_settingsUnit   = -1
-  integer, private, save :: coll_jawProfileUnit = -1
-
-  integer, private, save :: distsec_unit, efficiency_unit, efficiency_dpop_unit
-  integer, private, save :: coll_summary_unit, amplitude_unit, amplitude2_unit, betafunctions_unit, orbitchecking_unit
-  integer, private, save :: efficiency_2d_unit
-  integer, private, save :: outlun
-
-#ifdef HDF5
-  ! Variables to save hdf5 dataset indices
-  integer, private, save :: coll_hdf5_survival
-  integer, private, save :: coll_hdf5_allImpacts
-  integer, private, save :: coll_hdf5_fstImpacts
-  integer, private, save :: coll_hdf5_allAbsorb
-  integer, private, save :: coll_hdf5_collScatter
-#endif
 
 contains
 
@@ -494,19 +258,6 @@ subroutine collimation_allocate_arrays
   call alloc(yp_pencil, max_ncoll, zero, "yp_pencil")
   call alloc(csum,      max_ncoll, zero, "csum")
   call alloc(csqsum,    max_ncoll, zero, "csqsum")
-
-  call alloc(x_pencil,  max_ncoll, zero, "x_pencil") !(max_ncoll)
-  call alloc(y_pencil,  max_ncoll, zero, "y_pencil") !(max_ncoll)
-  call alloc(pencil_dx, max_ncoll, zero, "pencil_dx") !(max_ncoll)
-
-  !SEPT2005-SR, 29-08-2005 --- add parameter for the array length ---- TW
-  call alloc(x_sl, 100, zero, "x_sl") !(100)
-  call alloc(x1_sl, 100, zero, "x1_sl") !(100)
-  call alloc(x2_sl, 100, zero, "x2_sl") !(100)
-  call alloc(y1_sl, 100, zero, "y1_sl") !(100)
-  call alloc(y2_sl, 100, zero, "y2_sl") !(100)
-  call alloc(angle1, 100, zero, "angle1") !(100)
-  call alloc(angle2, 100, zero, "angle2") !(100)
 
   call alloc(npartdpop, numeffdpop, 0, "npartdpop") !(numeffdpop)
   call alloc(neff, numeff, zero, "neff") !(numeff)
@@ -532,8 +283,7 @@ end subroutine collimation_allocate_arrays
 subroutine collimation_expand_arrays(npart_new, nblz_new)
 
   use mod_alloc
-
-  implicit none
+  use coll_common
 
   integer, intent(in) :: npart_new
   integer, intent(in) :: nblz_new
@@ -544,25 +294,9 @@ subroutine collimation_expand_arrays(npart_new, nblz_new)
   if(.not. do_coll) return
   ! Arrays that are only needed if Collimation is enabled
 
-  call alloc(tbetax,  nblz_new, zero, 'tbetax')  !(nblz)
-  call alloc(tbetay,  nblz_new, zero, 'tbetay')  !(nblz)
-  call alloc(talphax, nblz_new, zero, 'talphax') !(nblz)
-  call alloc(talphay, nblz_new, zero, 'talphay') !(nblz)
-  call alloc(torbx,   nblz_new, zero, 'torbx')   !(nblz)
-  call alloc(torbxp,  nblz_new, zero, 'torbxp')  !(nblz)
-  call alloc(torby,   nblz_new, zero, 'torby')   !(nblz)
-  call alloc(torbyp,  nblz_new, zero, 'torbyp')  !(nblz)
-  call alloc(tdispx,  nblz_new, zero, 'tdispx')  !(nblz)
-  call alloc(tdispy,  nblz_new, zero, 'tdispy')  !(nblz)
+  ! Allocate Common Variables
+  call coll_expandArrays(npart_new, nblz_new)
 
-  call alloc(flukaname, npart_new, 0, "flukaname") !(npart)
-  call alloc(ipart, npart_new, 0, "ipart") !(npart)
-  call alloc(rcx,   npart_new, zero, "rcx") !(npart)
-  call alloc(rcxp,  npart_new, zero, "rcxp") !(npart)
-  call alloc(rcy,   npart_new, zero, "rcy") !(npart)
-  call alloc(rcyp,  npart_new, zero, "rcyp") !(npart)
-  call alloc(rcp,   npart_new, zero, "rcp") !(npart)
-  call alloc(rcs,   npart_new, zero, "rcs") !(npart)
   call alloc(rcx0,  npart_new, zero, "rcx0") !(npart)
   call alloc(rcxp0, npart_new, zero, "rcxp0") !(npart)
   call alloc(rcy0,  npart_new, zero, "rcy0") !(npart)
@@ -585,13 +319,11 @@ subroutine collimation_expand_arrays(npart_new, nblz_new)
   call alloc(counteddpop, npart_new, numeffdpop, 0, "counteddpop") !(npart,numeffdpop)
   call alloc(counted2d,   npart_new, numeff, numeffdpop, 0, "counted2d") !(npart,numeff,numeffdpop)
 
-  call alloc(ename,    mNameLen, nblz_new, ' ', "ename") !(nblz_new)
   call alloc(nampl,    nblz_new, 0, "nampl") !(nblz_new)
   call alloc(sum_ax,   nblz_new, zero, "sum_ax") !(nblz_new)
   call alloc(sqsum_ax, nblz_new, zero, "sqsum_ax") !(nblz_new)
   call alloc(sum_ay,   nblz_new, zero, "sum_ay") !(nblz_new)
   call alloc(sqsum_ay, nblz_new, zero, "sqsum_ay") !(nblz_new)
-  call alloc(sampl,    nblz_new, zero, "sampl") !(nblz_new)
 
   call alloc(secondary,            npart_new, 0, "secondary") !(npart_new)
   call alloc(tertiary,             npart_new, 0, "tertiary") !(npart_new)
@@ -624,23 +356,28 @@ subroutine collimate_init
 
   use crcoall
   use parpro
+  use coll_common
   use mod_common
   use mod_common_main
   use mod_commons
   use mod_common_track
   use mod_common_da
   use mod_settings
+  use mod_time
   use string_tools
+  use coll_k2
   use coll_db
   use coll_dist
+  use coll_materials
   use mod_units
   use mod_ranlux
   use mod_particles
 #ifdef HDF5
   use hdf5_output
 #endif
-
-  implicit none
+#ifdef G4COLLIMATION
+  use geant4
+#endif
 
 #ifdef HDF5
   type(h5_dataField), allocatable :: fldDist0(:)
@@ -715,7 +452,6 @@ subroutine collimate_init
     call prror
   end if
 
-  write(lout,"(a,i0)")    'COLL> Info: NLOOP               = ', nloop
   write(lout,"(a,i0)")    'COLL> Info: DIST_TYPES          = ', do_thisdis
   write(lout,"(a,e15.8)") 'COLL> Info: DIST_NEX            = ', cdist_ampX
   write(lout,"(a,e15.8)") 'COLL> Info: DIST_DEX            = ', cdist_smearX
@@ -724,7 +460,6 @@ subroutine collimate_init
   write(lout,"(a,a)")     'COLL> Info: DIST_FILE           = ', trim(cdist_fileName)
   write(lout,"(a,e15.8)") 'COLL> Info: DIST_EN_ERROR       = ', cdist_spreadE
   write(lout,"(a,e15.8)") 'COLL> Info: DIST_BUNCHLENGTH    = ', cdist_bunchLen
-  write(lout,"(a,i0)")    'COLL> Info: RSELECT             = ', int(rselect)
   write(lout,"(a,l1)")    'COLL> Info: DO_COLL             = ', do_coll
   write(lout,"(a,l1)")    'COLL> Info: DO_NSIG             = ', cdb_doNSig
   do i=1,cdb_nFam
@@ -793,7 +528,6 @@ subroutine collimate_init
   write(lout,"(a)")
   write(lout,"(a,e15.8)") 'COLL: Info: DRIFTSX             = ', driftsx
   write(lout,"(a,e15.8)") 'COLL: Info: DRIFTSY             = ', driftsy
-  write(lout,"(a,l1)")    'COLL: Info: CUT_INPUT           = ', cut_input
   write(lout,"(a,l1)")    'COLL: Info: SYSTILT_ANTISYMM    = ', systilt_antisymm
   write(lout,"(a)")
   write(lout,"(a,i0)")    'COLL> Info: IPENCIL             = ', ipencil
@@ -803,15 +537,8 @@ subroutine collimate_init
   write(lout,"(a,i0)")    'COLL> Info: PENCIL_DISTR        = ', pencil_distr
   write(lout,"(a)")
   write(lout,"(a,a)")     'COLL> Info: COLL_DB             = ', cdb_fileName
-  write(lout,"(a,i0)")    'COLL> Info: IBEAM               = ', ibeam
   write(lout,"(a)")
   write(lout,"(a,l1)")    'COLL> Info: DOWRITETRACKS       = ', dowritetracks
-  write(lout,"(a)")
-  write(lout,"(a,l1)")    'COLL> Info: CERN                = ', cern
-  write(lout,"(a)")
-  write(lout,"(a,a)")     'COLL> Info: CASTORDIR           = ', castordir
-  write(lout,"(a)")
-  write(lout,"(a,i0)")    'COLL> Info: JOBNUMBER           = ', jobnumber
   write(lout,"(a)")
   write(lout,"(a,e15.8)") 'COLL> Info: SIGSECUT2           = ', sigsecut2
   write(lout,"(a,e15.8)") 'COLL> Info: SIGSECUT3           = ', sigsecut3
@@ -822,7 +549,7 @@ subroutine collimate_init
   write(lout,"(a)")
 
   ! Initialize random number generator
-  if(rnd_seed == 0) rnd_seed = mclock_liar()
+  if(rnd_seed == 0) rnd_seed = time_getSysClock()
   if(rnd_seed <  0) rnd_seed = abs(rnd_seed)
   rnd_lux = 3
   rnd_k1  = 0
@@ -831,14 +558,15 @@ subroutine collimate_init
   write(outlun,*) 'INFO>  rnd_seed: ', rnd_seed
 
   ! Call distribution routines only if collimation block is in fort.3
-  cdist_logUnit = outlun
-  cdist_energy  = myenom
-  cdist_alphaX  = myalphax
-  cdist_alphaY  = myalphay
-  cdist_betaX   = mybetax
-  cdist_betaY   = mybetay
-  cdist_emitX   = myemitx0_dist
-  cdist_emitY   = myemity0_dist
+  cdist_energy    = myenom
+  cdist_alphaX    = myalphax
+  cdist_alphaY    = myalphay
+  cdist_betaX     = mybetax
+  cdist_betaY     = mybetay
+  cdist_emitX     = myemitx0_dist
+  cdist_emitY     = myemity0_dist
+  cdist_emitXColl = myemitx0_collgap
+  cdist_emitYColl = myemity0_collgap
   if(radial) then
     call cdist_makeRadial
   else
@@ -897,7 +625,6 @@ subroutine collimate_init
     sum_ay(i)   = zero
     sqsum_ay(i) = zero
     nampl(i)    = zero
-    sampl(i)    = zero
   end do
 
   nspx = zero
@@ -912,17 +639,18 @@ subroutine collimate_init
   ie    = 1
   n_tot_absorbed = 0
 
-  ! Collimator Database
+  ! Collimator Database and Materials
+  call collmat_init                   ! Set default values for collimator materials
   call cdb_readCollDB                 ! Read the collimator DB
   call cdb_setLHCOnesided(do_oneside) ! Set LHC onesided collimators
   call cdb_writeDB_newFromOld         ! Write a copy of the db in new format, if provided in old format
 
   ! Then do any implementation specific initial loading
 #ifdef COLLIMATE_K2
-  call collimate_init_k2
+  call k2coll_init
 #endif
 #ifdef MERLINSCATTER
-  call collimate_init_merlin
+  call k2coll_merlinInit
 #endif
 
 #ifdef G4COLLIMATION
@@ -981,6 +709,7 @@ subroutine collimate_parseInputLine(inLine, iLine, iErr)
   use coll_db
   use coll_dist
   use string_tools
+  use coll_common
   use mod_common, only : napx
 
   implicit none
@@ -991,7 +720,7 @@ subroutine collimate_parseInputLine(inLine, iLine, iErr)
 
   character(len=:), allocatable   :: lnSplit(:)
   real(kind=fPrec) nSigIn(23), rTmp
-  integer nSplit, famID
+  integer nSplit, famID, iDum
   logical spErr, fErr
 
   nSigIn(:) = cdb_defColGap
@@ -1156,7 +885,7 @@ subroutine collimate_parseInputLine(inLine, iLine, iErr)
       return
     end if
     call chr_cast(lnSplit(2), do_select, iErr)
-    name_sel = trim(lnSplit(3))
+    name_sel = chr_toLower(trim(lnSplit(3)))
 
   case("DO_NOMINAL")
     if(nSplit /= 2) then
@@ -1334,18 +1063,9 @@ subroutine collimate_parseInputLine(inLine, iLine, iErr)
     cdb_fileName = trim(lnSplit(2))
 
   case("BEAM_NUM")
-    if(nSplit /= 2) then
-      write(lerr,"(a,i0)") "COLL> ERROR BEAM_NUM expects 1 value, got ",nSplit-1
-      write(lerr,"(a)")    "COLL>       BEAM_NUM 1|2"
-      iErr = .true.
-      return
-    end if
-    call chr_cast(lnSplit(2), ibeam, iErr)
-    if(ibeam /= 1 .and. ibeam /= 2) then
-      write(lerr,"(a,i0)") "COLL> ERROR BEAM_NUM must be 1 or 2, got ",ibeam
-      iErr = .true.
-      return
-    end if
+    write(lerr,"(a)") "COLL> ERROR The BEAM_NUM flag has been removed"
+    iErr = .true.
+    return
 
   case("WRITE_TRACKS")
     if(nSplit /= 2) then
@@ -1355,15 +1075,6 @@ subroutine collimate_parseInputLine(inLine, iLine, iErr)
       return
     end if
     call chr_cast(lnSplit(2), dowritetracks, iErr)
-
-  case("CERN")
-    if(nSplit /= 2) then
-      write(lerr,"(a,i0)") "COLL> ERROR CERN expects 1 value, got ",nSplit-1
-      write(lerr,"(a)")    "COLL>       CERN true|false"
-      iErr = .true.
-      return
-    end if
-    call chr_cast(lnSplit(2), cern, iErr)
 
   case("SIGSECUT")
     if(nSplit /= 3) then
@@ -1406,11 +1117,11 @@ subroutine collimate_parseInputLine(inLine, iLine, iErr)
       iErr = .true.
       return
     end if
-    call chr_cast(lnSplit(1),nloop,iErr)
+    call chr_cast(lnSplit(1),iDum,iErr)
     call chr_cast(lnSplit(2),myenom,iErr)
 
-    if(nloop /= 1) then
-      write(lerr,"(a,i0)") "COLL> ERROR Multiple samples is no longer supported. nloop must be 1, got ",nloop
+    if(iDum /= 1) then
+      write(lerr,"(a,i0)") "COLL> ERROR Multiple samples is no longer supported. nloop must be 1, got ",iDum
       iErr = .true.
       return
     end if
@@ -1556,7 +1267,7 @@ subroutine collimate_parseInputLine(inLine, iLine, iErr)
     call chr_cast(lnSplit(2), do_nominal,       iErr)
     call chr_cast(lnSplit(3), rnd_seed,         iErr)
     call chr_cast(lnSplit(4), dowrite_dist,     iErr)
-    name_sel = lnSplit(5)
+    name_sel = chr_toLower(lnSplit(5))
     call chr_cast(lnSplit(6), do_oneside,       iErr)
     call chr_cast(lnSplit(7), dowrite_impact,   iErr)
     call chr_cast(lnSplit(8), dowrite_secondary,iErr)
@@ -1609,7 +1320,7 @@ subroutine collimate_parseInputLine(inLine, iLine, iErr)
     end if
     call chr_cast(lnSplit(1), driftsx,         iErr)
     call chr_cast(lnSplit(2), driftsy,         iErr)
-    call chr_cast(lnSplit(3), cut_input,       iErr)
+    ! Value 3 is ignored
     call chr_cast(lnSplit(4), systilt_antisymm,iErr)
 
   case(15)
@@ -1637,8 +1348,8 @@ subroutine collimate_parseInputLine(inLine, iLine, iErr)
       iErr = .true.
       return
     end if
-    cdb_fileName = lnSPlit(1)
-    call chr_cast(lnSPlit(2), ibeam, iErr)
+    cdb_fileName = lnSplit(1)
+    ! The second value is ignored
 
   case(17)
     if(nSplit /= 6) then
@@ -1647,11 +1358,11 @@ subroutine collimate_parseInputLine(inLine, iLine, iErr)
       return
     end if
     call chr_cast(lnSplit(1), dowritetracks,iErr)
-    call chr_cast(lnSplit(2), cern,         iErr)
-    castordir = lnSplit(3)
-    call chr_cast(lnSplit(4), jobnumber,    iErr)
-    call chr_cast(lnSplit(5), sigsecut2,    iErr)
-    call chr_cast(lnSplit(6), sigsecut3,    iErr)
+    ! The second value is ignored
+    ! The third value is ignored
+    ! The fourth value is ignored
+    call chr_cast(lnSplit(5), sigsecut2, iErr)
+    call chr_cast(lnSplit(6), sigsecut3, iErr)
 
   case default
     write(lerr,"(a,i0,a)") "COLL> ERROR Unexpected line ",iLine," encountered."
@@ -1692,6 +1403,7 @@ subroutine collimate_openFiles
   use mod_units
   use string_tools
   use mod_common, only : numl
+  use coll_common
 #ifdef HDF5
   use hdf5_output
   use hdf5_tracks2
@@ -1713,10 +1425,6 @@ subroutine collimate_openFiles
   write(coll_gapsUnit,"(a1,1x,a2,1x,a16,4(1x,a19),1x,a4,5(1x,a13),1x,a13)")     &
     "#","ID","name            ","angle[rad]","betax[m]","betay[m]","halfgap[m]",&
     "mat.","length[m]","sigx[m]","sigy[m]","tilt1[rad]","tilt2[rad]","nsig"
-
-  ! Temporary Database
-  call f_requestUnit(coll_tempDbFile,coll_tempDbUnit)
-  call f_open(unit=coll_tempDbUnit,file=coll_tempDbFile,formatted=.true.,mode="w")
 
   ! Collimator Settings (Jaw Slices)
   call f_requestUnit(coll_settingsFile,coll_settingsUnit)
@@ -1864,14 +1572,16 @@ subroutine collimate_start
 
   use parpro
   use crcoall
+  use coll_common
   use mod_common
   use mod_common_main
+  use mod_common_track
   use coll_db
   use mod_ranlux
   use mathlib_bouncer
   use mod_units
 
-  integer i,j,k,jb
+  integer i,j,k
   real(kind=fPrec) dummy
 
   do i=1,napx
@@ -1920,8 +1630,6 @@ subroutine collimate_start
     other(j)          = 0
     scatterhit(j)     = 0
     nabs_type(j)      = 0
-    ipart(j)          = j
-    flukaname(j)      = 0
   end do
 
 #ifdef BEAMGAS
@@ -1932,7 +1640,7 @@ subroutine collimate_start
   write(lout,"(a)") ""
   write(lout,"(a,i0)") "COLL> Number of collimators: ",cdb_nColl
   do icoll = 1, cdb_nColl
-    write(lout,"(a,i5,a)") "COLL> Collimator ",icoll,": "//cdb_cNameUC(icoll)//" "//cdb_cName(icoll)
+    write(lout,"(a,i5,a)") "COLL> Collimator ",icoll,": "//cdb_cName(icoll)
   end do
   write(lout,"(a)") ""
 
@@ -1969,7 +1677,7 @@ subroutine collimate_start
 !++  sample.
   if(c_rmstilt_prim.gt.zero .or. c_rmstilt_sec.gt.zero .or. c_systilt_prim.ne.zero .or. c_systilt_sec.ne.zero) then
     do icoll = 1, cdb_nColl
-      if(cdb_cNameUC(icoll)(1:3).eq.'TCP') then
+      if(cdb_cName(icoll)(1:3) == "tcp") then
         c_rmstilt = c_rmstilt_prim
         c_systilt = c_systilt_prim
       else
@@ -1985,8 +1693,8 @@ subroutine collimate_start
         cdb_cTilt(2,icoll) =      c_systilt+c_rmstilt*ran_gauss2(three)
       end if
 
-      write(outlun,*) 'INFO>  Collimator ', cdb_cNameUC(icoll), ' jaw 1 has tilt [rad]: ', cdb_cTilt(1,icoll)
-      write(outlun,*) 'INFO>  Collimator ', cdb_cNameUC(icoll), ' jaw 2 has tilt [rad]: ', cdb_cTilt(2,icoll)
+      write(outlun,*) 'INFO>  Collimator ', cdb_cName(icoll), ' jaw 1 has tilt [rad]: ', cdb_cTilt(1,icoll)
+      write(outlun,*) 'INFO>  Collimator ', cdb_cName(icoll), ' jaw 2 has tilt [rad]: ', cdb_cTilt(2,icoll)
     end do
   end if
 
@@ -2002,13 +1710,13 @@ subroutine collimate_start
  if(c_sysoffset_prim.ne.zero .or. c_sysoffset_sec.ne.zero .or.c_rmsoffset_prim.gt.zero .or.c_rmsoffset_sec.gt.zero) then
    do icoll = 1, cdb_nColl
 
-     if(cdb_cNameUC(icoll)(1:3).eq.'TCP') then
+     if(cdb_cName(icoll)(1:3) == "tcp") then
        cdb_cOffset(icoll) = c_sysoffset_prim + c_rmsoffset_prim*ran_gauss2(three)
      else
        cdb_cOffset(icoll) = c_sysoffset_sec +  c_rmsoffset_sec*ran_gauss2(three)
      end if
 
-     write(outlun,*) 'INFO>  offset: ', cdb_cNameUC(icoll), cdb_cOffset(icoll)
+     write(outlun,*) 'INFO>  offset: ', cdb_cName(icoll), cdb_cOffset(icoll)
    end do
  endif
 
@@ -2021,7 +1729,7 @@ subroutine collimate_start
 !            write(outlun,*) 'INFO> c_rmserror_gap = ',c_rmserror_gap
   do icoll = 1, cdb_nColl
     gap_rms_error(icoll) = c_rmserror_gap * ran_gauss2(three)
-    write(outlun,*) 'INFO>  gap_rms_error: ', cdb_cNameUC(icoll),gap_rms_error(icoll)
+    write(outlun,*) 'INFO>  gap_rms_error: ', cdb_cName(icoll),gap_rms_error(icoll)
   end do
 
 !---- creating a file with beta-functions at TCP/TCS
@@ -2030,12 +1738,10 @@ subroutine collimate_start
   do j=1,iu
 ! this transformation gives the right marker/name to the corresponding
 ! beta-dunctions or vice versa ;)
-    if(ic(j).le.nblo) then
-      do jb=1,mel(ic(j))
-        myix=mtyp(ic(j),jb)
-      end do
+    if(ic(j) <= nblo) then
+      myix = mtyp(ic(j),mel(ic(j)))
     else
-      myix=ic(j)-nblo
+      myix = ic(j)-nblo
     end if
 
     if(cdb_elemMap(myix) > 0) then
@@ -2044,11 +1750,10 @@ subroutine collimate_start
       nsig = cdb_defColGap
     end if
 
-    do i = 1, cdb_nColl
+    do i=1,cdb_nColl
 ! start searching minimum gap
-      if((cdb_cNameUC(i)(1:mNameLen).eq.bez(myix)(1:mNameLen)).or. &
-          (cdb_cName(i)(1:mNameLen).eq.bez(myix)(1:mNameLen))) then
-        if( cdb_cLength(i) .gt. zero ) then
+      if(cdb_cName(i) == bez(myix)) then
+        if( cdb_cLength(i) > zero ) then
           nsig_err = nsig + gap_rms_error(i)
 
 ! jaw 1 on positive side x-axis
@@ -2085,22 +1790,18 @@ subroutine collimate_start
           if((gap_h1 + sig_offset) .le. mingap) then
             mingap = gap_h1 + sig_offset
             coll_mingap_id = i
-            coll_mingap1 = cdb_cNameUC(i)
             coll_mingap2 = cdb_cName(i)
           else if((gap_h2 + sig_offset) .le. mingap) then
             mingap = gap_h2 + sig_offset
             coll_mingap_id = i
-            coll_mingap1 = cdb_cNameUC(i)
             coll_mingap2 = cdb_cName(i)
           else if((gap_h3 - sig_offset) .le. mingap) then
             mingap = gap_h3 - sig_offset
             coll_mingap_id = i
-            coll_mingap1 = cdb_cNameUC(i)
             coll_mingap2 = cdb_cName(i)
           else if((gap_h4 - sig_offset) .le. mingap) then
             mingap = gap_h4 - sig_offset
             coll_mingap_id = i
-            coll_mingap1 = cdb_cNameUC(i)
             coll_mingap2 = cdb_cName(i)
           end if
         end if
@@ -2109,7 +1810,7 @@ subroutine collimate_start
 
   end do !do j=1,iu
 
-  write(coll_twissLikeUnit,*) coll_mingap_id, coll_mingap1, coll_mingap2,  mingap
+  write(coll_twissLikeUnit,*) coll_mingap_id, coll_mingap2,  mingap
   write(coll_twissLikeUnit,*) 'INFO> IPENCIL initial ', ipencil
 
 ! if pencil beam is used and on collimator with smallest gap the
@@ -2119,7 +1820,7 @@ subroutine collimate_start
   end if
 
   write(coll_twissLikeUnit,*) 'INFO> IPENCIL new (if do_mingap) ', ipencil
-  write(coll_sigmaSetUnit,*) coll_mingap_id, coll_mingap1, coll_mingap2,  mingap
+  write(coll_sigmaSetUnit,*) coll_mingap_id, coll_mingap2,  mingap
 
 ! if pencil beam is used and on collimator with smallest gap the
 ! distribution should be generated, set ipencil to coll_mingap_id
@@ -2180,94 +1881,130 @@ subroutine collimate_start
 
 end subroutine collimate_start
 
-!>
-!! collimate_start_collimator()
-!! This routine is called each time we hit a collimator
-!<
-subroutine collimate_start_collimator(stracki)
+! ================================================================================================ !
+!  V.K. Berglyd Olsen, BE-ABP-HSS
+!  Created: 2019-09-11
+!  Updated: 2019-09-11
+!  Wrapper routine for main collimation call in tracking.
+! ================================================================================================ !
+subroutine collimate_trackThin(stracki, isColl)
 
-  use crcoall
-  use parpro
+  use mod_time
   use mod_common
   use mod_common_main
-  use mod_commons
   use mod_common_track
-  use mod_common_da
-  use numerical_constants, only : c5m4
+
+  real(kind=fPrec), intent(in) :: stracki
+  logical,          intent(in) :: isColl
+
+  integer j
+
+  if(isColl) then
+
+    call time_startClock(time_clockCOLL)
+    call collimate_start_collimator(stracki)
+    call collimate_do_collimator(stracki)
+    call collimate_end_collimator(stracki)
+    call time_stopClock(time_clockCOLL)
+
+  else
+
+    gammax = (one + talphax(ie)**2)/tbetax(ie)
+    gammay = (one + talphay(ie)**2)/tbetay(ie)
+
+    if(firstrun .and. iturn == 1) then
+      sum_ax(ie) = zero
+      sum_ay(ie) = zero
+    end if
+
+    do j=1,napx
+      xj  = (xv1(j)-torbx(ie))/c1e3
+      xpj = (yv1(j)-torbxp(ie))/c1e3
+      yj  = (xv2(j)-torby(ie))/c1e3
+      ypj = (yv2(j)-torbyp(ie))/c1e3
+      pj  = ejv(j)/c1e3
+
+      if(part_abs_pos(j) == 0 .and. part_abs_turn(j) == 0) then
+        nspx         = sqrt(abs(gammax*(xj)**2 + two*talphax(ie)*xj*xpj + tbetax(ie)*xpj**2)/myemitx0_collgap)
+        nspy         = sqrt(abs(gammay*(yj)**2 + two*talphay(ie)*yj*ypj + tbetay(ie)*ypj**2)/myemity0_collgap)
+        sum_ax(ie)   = sum_ax(ie) + nspx
+        sqsum_ax(ie) = sqsum_ax(ie) + nspx**2
+        sum_ay(ie)   = sum_ay(ie) + nspy
+        sqsum_ay(ie) = sqsum_ay(ie) + nspy**2
+        nampl(ie)    = nampl(ie) + 1
+      else
+        nspx = zero
+        nspy = zero
+      end if
+    end do
+
+  end if
+
+end subroutine collimate_trackThin
+
+! ================================================================================================ !
+!  Updated: 2019-09-12
+!  Called when we enter a collimator.
+!  The routine doesn't check that the collimator exists! This should be checked before calling it.
+! ================================================================================================ !
+subroutine collimate_start_collimator(stracki)
+
   use coll_db
+  use mod_common
+  use mod_common_main
+  use mod_common_track
 
-  implicit none
-
-  integer :: j
   real(kind=fPrec), intent(in) :: stracki
 
-  if(cdb_elemMap(myix) > 0) then
-    nsig = cdb_cNSig(cdb_elemMap(myix))
-  else
-    nsig = cdb_defColGap
-  end if
+  integer j
 
-!++  Write trajectory for any selected particle
+  icoll    = cdb_elemMap(myix)
+  nsig     = cdb_cNSig(icoll)
   c_length = zero
 
-! SR, 23-11-2005: To avoid binary entries in 'amplitude.dat'
-  if( firstrun ) then
-    if(rselect.gt.0 .and. rselect.lt.65) then
-      do j = 1, napx
-        xj  = (xv1(j)-torbx(ie))/c1e3
-        xpj = (yv1(j)-torbxp(ie))/c1e3
-        yj  = (xv2(j)-torby(ie))/c1e3
-        ypj = (yv2(j)-torbyp(ie))/c1e3
-        pj  = ejv(j)/c1e3
+  ! SR, 23-11-2005: To avoid binary entries in 'amplitude.dat'
+  if(firstrun) then
 
-        if(iturn.eq.1.and.j.eq.1) then
-          sum_ax(ie)=zero
-          sum_ay(ie)=zero
-        end if
+    gammax = (one + talphax(ie)**2)/tbetax(ie)
+    gammay = (one + talphay(ie)**2)/tbetay(ie)
 
-!-- DRIFT PART
-        if(stracki.eq.0.) then
-          if(iexact) then
-            zpj = sqrt(one-xpj**2-ypj**2)
-            xj  = xj + half*c_length*(xpj/zpj)
-            yj  = yj + half*c_length*(ypj/zpj)
-          else
-            xj  = xj + half*c_length*xpj
-            yj  = yj + half*c_length*ypj
-          end if
-        end if
+    if(iturn == 1) then
+      sum_ax(ie) = zero
+      sum_ay(ie) = zero
+    end if
 
-        gammax = (one + talphax(ie)**2)/tbetax(ie)
-        gammay = (one + talphay(ie)**2)/tbetay(ie)
+    do j=1,napx
+      xj  = (xv1(j)-torbx(ie))/c1e3
+      xpj = (yv1(j)-torbxp(ie))/c1e3
+      yj  = (xv2(j)-torby(ie))/c1e3
+      ypj = (yv2(j)-torbyp(ie))/c1e3
+      pj  = ejv(j)/c1e3
 
-        if(part_abs_pos(j).eq.0 .and. part_abs_turn(j).eq.0) then
-          nspx = sqrt(abs( gammax*(xj)**2 + two*talphax(ie)*xj*xpj +tbetax(ie)*xpj**2 )/myemitx0_collgap)
-          nspy = sqrt(abs( gammay*(yj)**2 + two*talphay(ie)*yj*ypj +tbetay(ie)*ypj**2 )/myemity0_collgap)
-          sum_ax(ie)   = sum_ax(ie) + nspx
-          sqsum_ax(ie) = sqsum_ax(ie) + nspx**2
-          sum_ay(ie)   = sum_ay(ie) + nspy
-          sqsum_ay(ie) = sqsum_ay(ie) + nspy**2
-          nampl(ie)    = nampl(ie) + 1
+      ! DRIFT PART
+      if(stracki == zero) then
+        if(iexact) then
+          zpj = sqrt(one-xpj**2-ypj**2)
+          xj  = xj + half*c_length*(xpj/zpj)
+          yj  = yj + half*c_length*(ypj/zpj)
         else
-          nspx = zero
-          nspy = zero
+          xj  = xj + half*c_length*xpj
+          yj  = yj + half*c_length*ypj
         end if
+      end if
 
-          sampl(ie)    = totals
-          ename(ie)    = bez(myix)(1:mNameLen)
-      end do !do j = 1, napx
-    end if !if(rselect.gt.0 .and. rselect.lt.65) then
-  end if !if( firstrun ) then
-
-!GRD HERE WE LOOK FOR ADEQUATE DATABASE INFORMATION
-  found = .false.
-  if(cdb_elemMap(myix) > 0) then
-    icoll = cdb_elemMap(myix)
-    found = .true.
-  end if
-
-  if(.not. found .and. firstrun .and. iturn.eq.1) then
-    write(lout,"(a)") "COLL> WARNING Collimator not found in colldb: '"//trim(bez(myix))//"'"
+      if(part_abs_pos(j) == 0 .and. part_abs_turn(j) == 0) then
+        nspx = sqrt(abs(gammax*xj**2 + two*talphax(ie)*xj*xpj +tbetax(ie)*xpj**2)/myemitx0_collgap)
+        nspy = sqrt(abs(gammay*yj**2 + two*talphay(ie)*yj*ypj +tbetay(ie)*ypj**2)/myemity0_collgap)
+        sum_ax(ie)   = sum_ax(ie) + nspx
+        sqsum_ax(ie) = sqsum_ax(ie) + nspx**2
+        sum_ay(ie)   = sum_ay(ie) + nspy
+        sqsum_ay(ie) = sqsum_ay(ie) + nspy**2
+        nampl(ie)    = nampl(ie) + 1
+      else
+        nspx = zero
+        nspy = zero
+      end if
+    end do
   end if
 
 end subroutine collimate_start_collimator
@@ -2280,22 +2017,26 @@ subroutine collimate_do_collimator(stracki)
 
   use crcoall
   use parpro
+  use coll_common
   use mod_common
-  use mod_common_main
   use mod_commons
-  use mod_common_track
   use mod_common_da
+  use mod_common_main
+  use mod_common_track
   use numerical_constants, only : c5m4
   use coll_db
+  use coll_k2
   use coll_jawfit
   use coll_dist
   use mod_units
   use mathlib_bouncer
-  use string_tools, only : chr_rpad, chr_lpad
   use mod_alloc
-
+  use string_tools
 #ifdef ROOT
   use root_output
+#endif
+#ifdef G4COLLIMATION
+  use geant4
 #endif
 
   implicit none
@@ -2346,30 +2087,21 @@ subroutine collimate_do_collimator(stracki)
     by_dist = tbetay(ie) * scale_by / scale_by0
   end if
 
-!++  Write beam ellipse at selected collimator
-  if (((cdb_cNameUC(icoll).eq.name_sel(1:mNameLen)) .or. (cdb_cName(icoll).eq.name_sel(1:mNameLen))) .and. do_select) then
-    do j = 1, napx
-      write(coll_ellipseUnit,'(1X,I8,6(1X,E15.7),3(1X,I4,1X,I4))') ipart(j),xv1(j), xv2(j), yv1(j), yv2(j), &
-     &        ejv(j), sigmv(j),iturn,secondary(j)+tertiary(j)+other(j)+scatterhit(j),nabs_type(j)
+  ! Write beam ellipse at selected collimator
+  ! Checking lower case of collimator name against name_sel (which is already lower case)
+  ! This is to ensure compatibility with old style COLL block which used upper case collimator name
+  if(chr_toLower(cdb_cName(icoll)) == name_sel .and. do_select) then
+    do j=1,napx
+      write(coll_ellipseUnit,"(1x,i8,6(1x,e15.7),3(1x,i4,1x,i4))") partID(j),xv1(j),xv2(j),yv1(j),yv2(j), &
+        ejv(j),sigmv(j),iturn,secondary(j)+tertiary(j)+other(j)+scatterhit(j),nabs_type(j)
     end do
   end if
 
-!-------------------------------------------------------------------
-!++  Output to temporary database and screen
-  if(iturn.eq.1.and.firstrun) then
-    write(coll_tempDbUnit,*) '# '
-    write(coll_tempDbUnit,*) cdb_cNameUC(icoll)!(1:11)
-    write(coll_tempDbUnit,*) cdb_cMaterial(icoll)
-    write(coll_tempDbUnit,*) cdb_cLength(icoll)
-    write(coll_tempDbUnit,*) cdb_cRotation(icoll)
-    write(coll_tempDbUnit,*) cdb_cOffset(icoll)
-    write(coll_tempDbUnit,*) tbetax(ie)
-    write(coll_tempDbUnit,*) tbetay(ie)
-
+  if(iturn == 1 .and. firstrun) then
     write(outlun,*) ' '
     write(outlun,*)   'Collimator information: '
     write(outlun,*) ' '
-    write(outlun,*) 'Name:                ', cdb_cNameUC(icoll)!(1:11)
+    write(outlun,*) 'Name:                ', cdb_cName(icoll)
     write(outlun,*) 'Material:            ', cdb_cMaterial(icoll)
     write(outlun,*) 'Length [m]:          ', cdb_cLength(icoll)
     write(outlun,*) 'Rotation [rad]:      ', cdb_cRotation(icoll)
@@ -2384,36 +2116,35 @@ subroutine collimate_do_collimator(stracki)
 !++  Calculate aperture of collimator
 !JUNE2005   HERE ONE HAS TO HAVE PARTICULAR TREATMENT OF THE OPENING OF
 !JUNE2005   THE PRIMARY COLLIMATOR OF RHIC
-  if(cdb_cNameUC(icoll)(1:4).ne.'COLM') then
-    nsig = nsig + gap_rms_error(icoll)
-    xmax = nsig*sqrt(bx_dist*myemitx0_collgap)
-    ymax = nsig*sqrt(by_dist*myemity0_collgap)
-    xmax_pencil = (nsig+pencil_offset)*sqrt(bx_dist*myemitx0_collgap)
-    ymax_pencil = (nsig+pencil_offset)*sqrt(by_dist*myemity0_collgap)
-    xmax_nom   = cdb_cNSig(icoll)*sqrt(cdb_cBx(icoll)*myemitx0_collgap)
-    ymax_nom   = cdb_cNSig(icoll)*sqrt(cdb_cBy(icoll)*myemity0_collgap)
-    c_rotation = cdb_cRotation(icoll)
-    c_length   = cdb_cLength(icoll)
-    c_material = cdb_cMaterial(icoll)
-    c_offset   = cdb_cOffset(icoll)
-    c_tilt(1)  = cdb_cTilt(1,icoll)
-    c_tilt(2)  = cdb_cTilt(2,icoll)
+  nsig = nsig + gap_rms_error(icoll)
+  xmax = nsig*sqrt(bx_dist*myemitx0_collgap)
+  ymax = nsig*sqrt(by_dist*myemity0_collgap)
+  xmax_pencil = (nsig+pencil_offset)*sqrt(bx_dist*myemitx0_collgap)
+  ymax_pencil = (nsig+pencil_offset)*sqrt(by_dist*myemity0_collgap)
+  xmax_nom   = cdb_cNSig(icoll)*sqrt(cdb_cBx(icoll)*myemitx0_collgap)
+  ymax_nom   = cdb_cNSig(icoll)*sqrt(cdb_cBy(icoll)*myemity0_collgap)
+  c_rotation = cdb_cRotation(icoll)
+  c_length   = cdb_cLength(icoll)
+  c_material = cdb_cMaterial(icoll)
+  c_offset   = cdb_cOffset(icoll)
+  c_tilt(1)  = cdb_cTilt(1,icoll)
+  c_tilt(2)  = cdb_cTilt(2,icoll)
 
-    calc_aperture   = sqrt( xmax**2 * cos_mb(c_rotation)**2 + ymax**2 * sin_mb(c_rotation)**2 )
-    nom_aperture    = sqrt( xmax_nom**2 * cos_mb(c_rotation)**2 + ymax_nom**2 * sin_mb(c_rotation)**2 )
-    pencil_aperture = sqrt( xmax_pencil**2 * cos_mb(c_rotation)**2+ ymax_pencil**2 * sin_mb(c_rotation)**2 )
+  calc_aperture   = sqrt( xmax**2 * cos_mb(c_rotation)**2 + ymax**2 * sin_mb(c_rotation)**2 )
+  nom_aperture    = sqrt( xmax_nom**2 * cos_mb(c_rotation)**2 + ymax_nom**2 * sin_mb(c_rotation)**2 )
+  pencil_aperture = sqrt( xmax_pencil**2 * cos_mb(c_rotation)**2+ ymax_pencil**2 * sin_mb(c_rotation)**2 )
 
 !++  Get x and y offsets at collimator center point
-    x_pencil(icoll) = xmax_pencil * (cos_mb(c_rotation))
-    y_pencil(icoll) = ymax_pencil * (sin_mb(c_rotation))
+  x_pencil(icoll) = xmax_pencil * (cos_mb(c_rotation))
+  y_pencil(icoll) = ymax_pencil * (sin_mb(c_rotation))
 
 !++  Get corresponding beam angles (uses xp_max)
-    xp_pencil(icoll) = -one * sqrt(myemitx0_collgap/tbetax(ie))*talphax(ie)* xmax / sqrt(myemitx0_collgap*tbetax(ie))
-    yp_pencil(icoll) = -one * sqrt(myemity0_collgap/tbetay(ie))*talphay(ie)* ymax / sqrt(myemity0_collgap*tbetay(ie))
-    xp_pencil0 = xp_pencil(icoll)
-    yp_pencil0 = yp_pencil(icoll)
+  xp_pencil(icoll) = -one * sqrt(myemitx0_collgap/tbetax(ie))*talphax(ie)* xmax / sqrt(myemitx0_collgap*tbetax(ie))
+  yp_pencil(icoll) = -one * sqrt(myemity0_collgap/tbetay(ie))*talphay(ie)* ymax / sqrt(myemity0_collgap*tbetay(ie))
+  xp_pencil0 = xp_pencil(icoll)
+  yp_pencil0 = yp_pencil(icoll)
 
-    pencil_dx(icoll) = sqrt(xmax_pencil**2 * cos_mb(c_rotation)**2 + ymax_pencil**2 * sin_mb(c_rotation)**2)-calc_aperture
+  pencil_dx(icoll) = sqrt(xmax_pencil**2 * cos_mb(c_rotation)**2 + ymax_pencil**2 * sin_mb(c_rotation)**2)-calc_aperture
 
 !++ TW -- tilt for of jaw for pencil beam
 !++ as in Ralphs orig routine, but not in collimate subroutine itself
@@ -2422,11 +2153,11 @@ subroutine collimate_do_collimator(stracki)
 !     &           icoll.le.nprim .and. (j.ge.(icoll-1)*nev/nprim)        &
 !     &           .and. (j.le.(icoll)*nev/nprim))) then
 ! this is done for every bunch (64 particle bucket)
-! important: Sixtrack calculates in "mm" and collimate2 in "m"
+! important: Sixtrack calculates in "mm" and k2coll_collimate in "m"
 ! therefore 1E-3 is used to
 
 ! RB: added condition that pencil_distr.ne.3 in order to do the tilt
-    if((icoll.eq.ipencil).and.(iturn.eq.1).and. (pencil_distr.ne.3)) then
+  if((icoll.eq.ipencil).and.(iturn.eq.1).and. (pencil_distr.ne.3)) then
 !!               write(*,*) " ************************************** "
 !!               write(*,*) " * INFO> seting tilt for pencil beam  * "
 !!               write(*,*) " ************************************** "
@@ -2436,27 +2167,12 @@ subroutine collimate_do_collimator(stracki)
 !!               if (systilt_antisymm) then
 !! to align the jaw/pencil to the beam always use the minus regardless which
 !! orientation of the jaws was used (symmetric/antisymmetric)
-      c_tilt(1) = c_tilt(1) +    (xp_pencil0*cos_mb(c_rotation) + sin_mb(c_rotation)*yp_pencil0)
-      c_tilt(2) = c_tilt(2) -one*(xp_pencil0*cos_mb(c_rotation) + sin_mb(c_rotation)*yp_pencil0)
-      write(lout,*) "INFO> Changed tilt1  ICOLL  to  ANGLE  ", icoll, c_tilt(1)
-      write(lout,*) "INFO> Changed tilt2  ICOLL  to  ANGLE  ", icoll, c_tilt(2)
-    end if
-!++ TW -- tilt angle changed (added to genetated on if spec. in fort.3)
-
-!JUNE2005   HERE IS THE SPECIAL TREATMENT...
-  else if(cdb_cNameUC(icoll)(1:4).eq.'COLM') then
-    xmax = cdb_getFamilyNSig("tcth1")*sqrt(bx_dist*myemitx0_collgap)
-    ymax = cdb_getFamilyNSig("tcth2")*sqrt(by_dist*myemity0_collgap)
-
-    c_rotation = cdb_cRotation(icoll)
-    c_length   = cdb_cLength(icoll)
-    c_material = cdb_cMaterial(icoll)
-    c_offset   = cdb_cOffset(icoll)
-    c_tilt(1)  = cdb_cTilt(1,icoll)
-    c_tilt(2)  = cdb_cTilt(2,icoll)
-    calc_aperture = xmax
-    nom_aperture = ymax
+    c_tilt(1) = c_tilt(1) +    (xp_pencil0*cos_mb(c_rotation) + sin_mb(c_rotation)*yp_pencil0)
+    c_tilt(2) = c_tilt(2) -one*(xp_pencil0*cos_mb(c_rotation) + sin_mb(c_rotation)*yp_pencil0)
+    write(lout,*) "INFO> Changed tilt1  ICOLL  to  ANGLE  ", icoll, c_tilt(1)
+    write(lout,*) "INFO> Changed tilt2  ICOLL  to  ANGLE  ", icoll, c_tilt(2)
   end if
+!++ TW -- tilt angle changed (added to genetated on if spec. in fort.3)
 
   ! Extract number of jaw fit slices for this collimator
   if(cdb_cSliced(icoll) > 0) then ! Collimator is sliced
@@ -2498,27 +2214,9 @@ subroutine collimate_do_collimator(stracki)
     end if
   end if
 
-!++  Assign aperture which we define as the FULL width (factor 2)!!!
-!JUNE2005 AGAIN, SOME SPECIFIC STUFF FOR RHIC
-  if(cdb_cNameUC(icoll)(1:4).eq.'COLM') then
-    c_aperture = two*calc_aperture
-    nom_aperture = two*nom_aperture
-  else if(cdb_cNameUC(icoll)(1:4).ne.'COLM') then
-    c_aperture = two*calc_aperture
-  end if
-
   c_aperture = two*calc_aperture
 !          IF(IPENCIL.GT.zero) THEN
 !          C_APERTURE = 2.*pencil_aperture
-
-  if(firstrun.and.iturn.eq.1.and.icoll.eq.7) then
-    call f_requestUnit('distsec', distsec_unit)
-    open(unit=distsec_unit,file='distsec') !was 99
-    do j=1,napx
-      write(distsec_unit,'(4(1X,E15.7))') xv1(j),yv1(j),xv2(j),yv2(j)
-    end do
-    close(distsec_unit)
-  end if
 
 ! RB: addition matched halo sampled directly on the TCP using pencil beam flag
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -2625,7 +2323,7 @@ subroutine collimate_do_collimator(stracki)
 !   but it might be then that only one jaw is hit on the first turn, thus only by half of the particles
 !   the particle generated on the other side will then hit the same jaw several turns later, possibly smearing the impact parameter
 !   This could possibly be improved in the future.
-    call makedis_coll(myalphax,myalphay,mybetax,mybetay,mynex2,myney2)
+    call cdist_makeDist_coll(myalphax,myalphay,mybetax,mybetay,mynex2,myney2)
 
     do j = 1, napx
       xv1(j)  = c1e3*xv1(j) + torbx(ie)
@@ -2676,8 +2374,6 @@ subroutine collimate_do_collimator(stracki)
       write(lerr,"(a,f13.6)") "COLL> ERROR Non-zero length collimator '"//trim(cdb_cName(icoll))//"' with length = ",stracki
       call prror
     end if
-
-    flukaname(j) = ipart(j)
   end do
 
 !++  Do the collimation tracking
@@ -2695,7 +2391,7 @@ subroutine collimate_do_collimator(stracki)
   linside(:) = .false.
 
   if(cdb_cSliced(icoll) > 0) then ! Treatment of sliced collimators
-    ! Now, loop over the number of slices and call collimate2 each time.
+    ! Now, loop over the number of slices and call k2coll_collimate each time.
     ! For each slice, the corresponding offset and angle are to be used.
     do iSlice=1,nSlices
       jawAperture = c_aperture
@@ -2703,34 +2399,34 @@ subroutine collimate_do_collimator(stracki)
       jawTilt     = c_tilt
       call jaw_getFitSliceValues(cdb_cSliced(icoll), iSlice, jawLength, jawAperture, jawOffset, jawTilt)
       if(firstrun) then
-        write(coll_settingsUnit,"(a20,1x,i10,5(1x,1pe13.6),1x,a)") cdb_cName(icoll)(1:20), iSlice, &
+        write(coll_settingsUnit,"(a20,1x,i10,5(1x,1pe13.6),1x,a)") cdb_cName(icoll)(1:20), iSlice,  &
           jawAperture/two, jawOffset, jawTilt(1), jawTilt(2), jawLength, cdb_cMaterial(icoll)
       end if
-      call collimate2(c_material, jawLength, c_rotation, jawAperture, jawOffset, jawTilt, &
-        rcx, rcxp, rcy, rcyp, rcp, rcs, napx, enom_gev, part_hit_pos, part_hit_turn,      &
-        part_abs_pos, part_abs_turn, part_impact, part_indiv, part_linteract, onesided,   &
-        flukaname, secondary, iSlice, nabs_type, linside)
+      call k2coll_collimate(icoll, iturn, ie, jawLength, c_rotation, jawAperture,       &
+        jawOffset, jawTilt, rcx, rcxp, rcy, rcyp, rcp, rcs, enom_gev, part_hit_pos,           &
+        part_hit_turn, part_abs_pos, part_abs_turn, part_impact, part_indiv, part_linteract,        &
+        onesided, secondary, iSlice, nabs_type, linside)
     end do
 
   else ! Treatment of non-sliced collimators
 
 #ifndef G4COLLIMATION
 
-    call collimate2(c_material, c_length, c_rotation, c_aperture, c_offset, c_tilt, &
-      rcx, rcxp, rcy, rcyp, rcp, rcs, napx, enom_gev, part_hit_pos,part_hit_turn,   &
-      part_abs_pos, part_abs_turn, part_impact, part_indiv, part_linteract,         &
-      onesided, flukaname, secondary, 1, nabs_type, linside)
+    call k2coll_collimate(icoll, iturn, ie, c_length, c_rotation, c_aperture, c_offset, &
+      c_tilt, rcx, rcxp, rcy, rcyp, rcp, rcs, enom_gev, part_hit_pos,part_hit_turn,           &
+      part_abs_pos, part_abs_turn, part_impact, part_indiv, part_linteract, onesided, secondary, 1, &
+      nabs_type, linside)
 
 #else
 
     !! Add the geant4 geometry
     if(firstrun .and. iturn == 1) then
-      call g4_add_collimator(cdb_cNameUC(icoll), c_material, c_length, c_aperture, c_rotation, torbx(ie), torby(ie))
+      call g4_add_collimator(cdb_cName(icoll), c_material, c_length, c_aperture, c_rotation, torbx(ie), torby(ie))
     end if
 
 !! Here we do the real collimation
 !! First set the correct collimator
-    call g4_set_collimator(cdb_cNameUC(icoll))
+    call g4_set_collimator(cdb_cName(icoll))
     flush(lout)
 
 !! Loop over all our particles
@@ -2741,7 +2437,7 @@ subroutine collimate_do_collimator(stracki)
     ien1  = zero
 
     if(g4_debug .eqv. .true.) then
-      write(lout,"(2a)") 'COLLIMATOR:', cdb_cNameUC(icoll)
+      write(lout,"(2a)") 'COLLIMATOR:', cdb_cName(icoll)
       write(lout,"(12a)") chr_lpad('id',33), chr_lpad('pdgid',12), chr_lpad('mass',25), chr_lpad('x',25), chr_lpad('y',25), &
                           chr_lpad('xp',25), chr_lpad('yp',25), chr_lpad('p',25), chr_lpad('spin_x',25), chr_lpad('spin_y',25),&
                           chr_lpad('spin_z',25)
@@ -2891,7 +2587,7 @@ subroutine collimate_do_collimator(stracki)
         ypDump = rcyp(j)*cos_mb(c_rotation)-sin_mb(c_rotation)*rcxp(j)
         s_Dump = c_length
         write(coll_jawProfileUnit,"(3(1x,i7),5(1x,e17.9),1x,i1)") &
-          icoll,iturn,flukaname(j),x_Dump,xpDump,y_Dump,ypDump,s_Dump,2
+          icoll,iturn,partID(j),x_Dump,xpDump,y_Dump,ypDump,s_Dump,2
       end if
     end do
   end if
@@ -2906,17 +2602,22 @@ subroutine collimate_end_collimator(stracki)
 
   use crcoall
   use parpro
+  use coll_common
   use mod_common
-  use mod_common_main
   use mod_commons
-  use mod_common_track
   use mod_common_da
+  use mod_common_main
+  use mod_common_track
   use numerical_constants, only : c5m4
   use coll_db
   use mod_units
+  use string_tools
 #ifdef HDF5
   use hdf5_output
   use hdf5_tracks2
+#endif
+#ifdef G4COLLIMATION
+  use geant4
 #endif
 
   implicit none
@@ -3075,13 +2776,13 @@ end do
 #ifdef HDF5
         if(h5_useForCOLL) then
           call h5_prepareWrite(coll_hdf5_allImpacts, 1)
-          call h5_writeData(coll_hdf5_allImpacts, 1, 1, ipart(j))
+          call h5_writeData(coll_hdf5_allImpacts, 1, 1, partID(j))
           call h5_writeData(coll_hdf5_allImpacts, 2, 1, iturn)
-          call h5_writeData(coll_hdf5_allImpacts, 3, 1, sampl(ie))
+          call h5_writeData(coll_hdf5_allImpacts, 3, 1, dcum(ie))
           call h5_finaliseWrite(coll_hdf5_allImpacts)
         else
 #endif
-          write(coll_allImpactUnit,'(i8,1x,i4,1x,f8.2)') ipart(j),iturn,sampl(ie)
+          write(coll_allImpactUnit,"(i8,1x,i4,1x,f8.2)") partID(j),iturn,dcum(ie)
 #ifdef HDF5
         end if
 #endif
@@ -3093,13 +2794,13 @@ end do
 #ifdef HDF5
           if(h5_useForCOLL) then
             call h5_prepareWrite(coll_hdf5_allAbsorb, 1)
-            call h5_writeData(coll_hdf5_allAbsorb, 1, 1, ipart(j))
+            call h5_writeData(coll_hdf5_allAbsorb, 1, 1, partID(j))
             call h5_writeData(coll_hdf5_allAbsorb, 2, 1, iturn)
-            call h5_writeData(coll_hdf5_allAbsorb, 3, 1, sampl(ie))
+            call h5_writeData(coll_hdf5_allAbsorb, 3, 1, dcum(ie))
             call h5_finaliseWrite(coll_hdf5_allAbsorb)
           else
 #endif
-            write(coll_allAbsorbUnit,'(i8,1x,i4,1x,f8.2)') ipart(j),iturn,sampl(ie)
+            write(coll_allAbsorbUnit,"(i8,1x,i4,1x,f8.2)") partID(j),iturn,dcum(ie)
 #ifdef HDF5
           end if
 #endif
@@ -3112,26 +2813,17 @@ end do
 
         ! Indicate wether this is a secondary / tertiary / other particle;
         !  note that 'scatterhit' (equals 8 when set) is set in SCATTER.
-        if(cdb_cNameUC(icoll)(1:3).eq.'TCP'   .or. &
-           cdb_cNameUC(icoll)(1:4).eq.'COLM'  .or. &
-           cdb_cNameUC(icoll)(1:5).eq.'COLH0' .or. &
-           cdb_cNameUC(icoll)(1:5).eq.'COLV0'       ) then
+        if(cdb_cName(icoll)(1:3) == "tcp") then
           secondary(j) = 1
-        else if(cdb_cNameUC(icoll)(1:3).eq.'TCS'   .or. &
-                cdb_cNameUC(icoll)(1:4).eq.'COLH1' .or. &
-                cdb_cNameUC(icoll)(1:4).eq.'COLV1' .or. &
-                cdb_cNameUC(icoll)(1:4).eq.'COLH2'       ) then
+        else if(cdb_cName(icoll)(1:3) == "tcs") then
           tertiary(j)  = 2
-       else if((cdb_cNameUC(icoll)(1:3).eq.'TCL') .or. &
-               (cdb_cNameUC(icoll)(1:3).eq.'TCT') .or. &
-               (cdb_cNameUC(icoll)(1:3).eq.'TCD') .or. &
-               (cdb_cNameUC(icoll)(1:3).eq.'TDI')       ) then
+        else if((cdb_cName(icoll)(1:3) == "tcl") .or. (cdb_cName(icoll)(1:3) == "tct") .or. &
+                (cdb_cName(icoll)(1:3) == "tcd") .or. (cdb_cName(icoll)(1:3) == "tdi")) then
           other(j)     = 4
         end if
       else
-        write(lout,*) "Error in collimate_end_collimator"
-        write(lout,*) "Particle cannot be both absorbed and not absorbed."
-        write(lout,*) part_abs_pos (j),  part_abs_turn(j)
+        write(lerr,"(a)")          "COLL> ERROR Particle cannot be both absorbed and not absorbed"
+        write(lerr,"(a,2(1x,i0))") "COLL>      ",part_abs_pos (j),part_abs_turn(j)
         call prror
       end if
 
@@ -3157,9 +2849,9 @@ end do
 #ifdef HDF5
             if(h5_writeTracks2) then
               ! We write trajectories before and after element in this case.
-              hdfpid  = ipart(j)
+              hdfpid  = partID(j)
               hdfturn = iturn
-              hdfs    = sampl(ie)-half*c_length
+              hdfs    = dcum(ie)-half*c_length
               hdfx    = (rcx0(j)*c1e3+torbx(ie)) - half*c_length*(rcxp0(j)*c1e3+torbxp(ie))
               hdfxp   = rcxp0(j)*c1e3+torbxp(ie)
               hdfy    = (rcy0(j)*c1e3+torby(ie)) - half*c_length*(rcyp0(j)*c1e3+torbyp(ie))
@@ -3168,7 +2860,7 @@ end do
               hdftyp  = secondary(j)+tertiary(j)+other(j)+scatterhit(j)
               call h5tr2_writeLine(hdfpid,hdfturn,hdfs,hdfx,hdfxp,hdfy,hdfyp,hdfdee,hdftyp)
 
-              hdfs  = sampl(ie)+half*c_length
+              hdfs  = dcum(ie)+half*c_length
               hdfx  = xv1(j) + half*c_length*yv1(j)
               hdfxp = yv1(j)
               hdfy  = xv2(j) + half*c_length*yv2(j)
@@ -3176,16 +2868,16 @@ end do
               call h5tr2_writeLine(hdfpid,hdfturn,hdfs,hdfx,hdfxp,hdfy,hdfyp,hdfdee,hdftyp)
             else
 #endif
-              write(coll_tracksUnit,'(1x,i8,1x,i4,1x,f10.2,4(1x,e12.5),1x,e11.3,1x,i4)') &
-                ipart(j),iturn,sampl(ie)-half*c_length,           &
+              write(coll_tracksUnit,"(1x,i8,1x,i4,1x,f10.2,4(1x,e12.5),1x,e11.3,1x,i4)") &
+                partID(j),iturn,dcum(ie)-half*c_length,                            &
                 (rcx0(j)*c1e3+torbx(ie))-half*c_length*(rcxp0(j)*c1e3+torbxp(ie)), &
                 rcxp0(j)*c1e3+torbxp(ie),                                          &
                 (rcy0(j)*c1e3+torby(ie))-half*c_length*(rcyp0(j)*c1e3+torbyp(ie)), &
                 rcyp0(j)*c1e3+torbyp(ie),                                          &
                 (ejv(j)-myenom)/myenom,secondary(j)+tertiary(j)+other(j)+scatterhit(j)
 
-              write(coll_tracksUnit,'(1x,i8,1x,i4,1x,f10.2,4(1x,e12.5),1x,e11.3,1x,i4)') &
-                ipart(j),iturn,sampl(ie)+half*c_length,           &
+              write(coll_tracksUnit,"(1x,i8,1x,i4,1x,f10.2,4(1x,e12.5),1x,e11.3,1x,i4)") &
+                partID(j),iturn,dcum(ie)+half*c_length,                         &
                 xv1(j)+half*c_length*yv1(j),yv1(j),                             &
                 xv2(j)+half*c_length*yv2(j),yv2(j),(ejv(j)-myenom)/myenom,      &
                 secondary(j)+tertiary(j)+other(j)+scatterhit(j)
@@ -3255,29 +2947,25 @@ end do
 !++  - This is switched on with the DO_SELECT flag in the input file.
 !++  - Note that the part_select(j) flag defaults to 1 for all particles.
 
-! should name_sel(1:11) extended to allow longer names as done for
-! coll the coll_ellipse.dat file !!!!!!!!
-  if(((cdb_cNameUC(icoll).eq.name_sel(1:mNameLen)).or.&
-      (cdb_cName(icoll).eq.name_sel(1:mNameLen))) .and. iturn.eq.1  ) then
+  ! Checking lower case of collimator name against name_sel (which is already lower case)
+  ! This is to ensure compatibility with old style COLL block which used upper case collimator name
+  if(chr_toLower(cdb_cName(icoll)) == name_sel .and. iturn == 1) then
     num_selhit = 0
     num_surhit = 0
     num_selabs = 0
 
-    do j = 1, napx
-      if( part_hit_pos (j).eq.ie .and. part_hit_turn(j).eq.iturn ) then
-
-      num_selhit = num_selhit+1
-
-      if(part_abs_pos(j) .eq.0 .and. part_abs_turn(j).eq.0) then
-        num_surhit = num_surhit+1
-      else
-        num_selabs = num_selabs + 1
-      end if
-
+    do j=1,napx
+      if(part_hit_pos (j) == ie .and. part_hit_turn(j) == iturn) then
+        num_selhit = num_selhit+1
+        if(part_abs_pos(j)  == 0 .and. part_abs_turn(j) == 0) then
+          num_surhit = num_surhit+1
+        else
+          num_selabs = num_selabs + 1
+        end if
 !++  If we want to select only partciles interacting at the specified
 !++  collimator then remove all other particles and reset the number
 !++  of the absorbed particles to the selected collimator.
-      else if(do_select.and.firstrun) then
+      else if(do_select .and. firstrun) then
         part_select(j) = 0
         n_tot_absorbed = num_selabs
       end if
@@ -3289,10 +2977,10 @@ end do
     sum      = zero
     sqsum    = zero
 
-    do j = 1, napx
-      if( part_hit_pos (j).eq.ie .and. part_hit_turn(j).eq.iturn ) then
-        if(part_impact(j).lt.-half) then
-          write(lout,*) 'ERR>  Found invalid impact parameter!', part_impact(j)
+    do j=1,napx
+      if(part_hit_pos(j) == ie .and. part_hit_turn(j) == iturn) then
+        if(part_impact(j) < -half) then
+          write(lerr,"(a,i0)") "COLL> ERROR Found invalid impact parameter ", part_impact(j)
           write(outlun,*) 'ERR>  Invalid impact parameter!', part_impact(j)
           call prror
         end if
@@ -3333,22 +3021,22 @@ end do
 
 end subroutine collimate_end_collimator
 
-!>
-!! collimate_end_sample()
-!! This routine is called from trauthin after each sample
-!! has been tracked by thin6d
-!<
-subroutine collimate_end_sample(j)
+! ================================================================================================ !
+!  Collimate Exit
+! ================================================================================================ !
+subroutine collimate_exit
 
   use parpro
+  use coll_common
   use mod_common
-  use mod_common_main
   use mod_commons
-  use mod_common_track
   use mod_common_da
+  use mod_common_main
+  use mod_common_track
   use crcoall
   use coll_db
   use mod_units
+  use string_tools
 #ifdef ROOT
   use root_output
 #endif
@@ -3356,16 +3044,19 @@ subroutine collimate_end_sample(j)
   use hdf5_output
   use hdf5_tracks2
 #endif
+#ifdef G4COLLIMATION
+  use geant4
+#endif
 
   implicit none
 
-  integer, intent(in) :: j
+  ! integer, intent(in) :: j
 
 #ifdef HDF5
   type(h5_dataField), allocatable :: fldHdf(:)
   integer fmtHdf, setHdf
 #endif
-  integer i,k
+  integer i,k,ix
 
 !++  Save particle offsets to a file
   call f_close(coll_survivalUnit)
@@ -3395,10 +3086,10 @@ subroutine collimate_end_sample(j)
     write(outlun,*) ' INFO>  Eff_r @ 10-20 sigma [e-4] : ', ((neff(9)-neff(19))/(real(n_tot_absorbed,fPrec)))/c1m4
     write(outlun,*)
     write(outlun,*) neff(5)/real(n_tot_absorbed,fPrec), neff(9)/real(n_tot_absorbed,fPrec), &
- & (neff(9)-neff(19))/(real(n_tot_absorbed,fPrec)), ' !eff'
+      (neff(9)-neff(19))/(real(n_tot_absorbed,fPrec)), ' !eff'
     write(outlun,*)
   else
-    write(lout,*) 'NO PARTICLE ABSORBED'
+    write(lout,"(a)") "COLL> No particles absorbed"
   endif
 
   write(lout,"(a)")
@@ -3444,18 +3135,19 @@ subroutine collimate_end_sample(j)
     deallocate(fldHdf)
   else
 #endif
-    call f_requestUnit('efficiency.dat', efficiency_unit)
-    open(unit=efficiency_unit, file='efficiency.dat') !was 1991
+    call f_requestUnit(coll_efficFile,coll_efficUnit)
+    call f_open(unit=coll_efficUnit,file=coll_efficFile,formatted=.true.,mode="w")
     if(n_tot_absorbed /= 0) then
-      write(efficiency_unit,*) '# 1=rad_sigma 2=frac_x 3=frac_y 4=frac_r' ! This is not correct?
+      write(coll_efficUnit,"(a1,1x,a13,6(1x,a15),1x,a8)") "#","rad_sigma",&
+        "frac_x","frac_y","frac_r","eff_x","eff_y","eff_r","n_abs"
       do k=1,numeff
-        write(efficiency_unit,'(7(1x,e15.7),1x,I5)') rsig(k), neffx(k)/real(n_tot_absorbed,fPrec), &
- & neffy(k)/real(n_tot_absorbed,fPrec), neff(k)/real(n_tot_absorbed,fPrec), neffx(k), neffy(k), neff(k), n_tot_absorbed
+        write(coll_efficUnit,"(7(1x,e15.7),1x,i8)") rsig(k), neffx(k)/real(n_tot_absorbed,fPrec), &
+          neffy(k)/real(n_tot_absorbed,fPrec), neff(k)/real(n_tot_absorbed,fPrec), neffx(k), neffy(k), neff(k), n_tot_absorbed
       end do
     else
-      write(lout,*) 'NO PARTICLE ABSORBED'
+      write(coll_efficUnit,"(a)") "No particles absorbed"
     end if
-    close(efficiency_unit)
+    call f_close(coll_efficUnit)
 #ifdef HDF5
   end if
 #endif
@@ -3481,18 +3173,18 @@ subroutine collimate_end_sample(j)
     deallocate(fldHdf)
   else
 #endif
-    call f_requestUnit('efficiency_dpop.dat', efficiency_dpop_unit)
-    open(unit=efficiency_dpop_unit, file='efficiency_dpop.dat') !was 1992
+    call f_requestUnit(coll_efficDPFile,coll_efficDPUnit)
+    call f_open(unit=coll_efficDPUnit,file=coll_efficDPFile,formatted=.true.,mode="w")
     if(n_tot_absorbed /= 0) then
-      write(efficiency_dpop_unit,*) '# 1=dp/p 2=n_dpop/tot_nabs 3=n_dpop 4=tot_nabs 5=npart'
+      write(coll_efficDPUnit,"(a1,1x,a13,2(1x,a15),2(1x,a8))") "#","dp/p","n_dpop/tot_nabs","n_dpop","tot_nabs","npart"
       do k=1,numeffdpop
-        write(efficiency_dpop_unit,'(3(1x,e15.7),2(1x,I5))') dpopbins(k), neffdpop(k)/real(n_tot_absorbed,fPrec), neffdpop(k), &
-            n_tot_absorbed, npartdpop(k)
+        write(coll_efficDPUnit,"(e15.7,2(1x,e15.7),2(1x,i8))") dpopbins(k), neffdpop(k)/real(n_tot_absorbed,fPrec), neffdpop(k), &
+          n_tot_absorbed, npartdpop(k)
       end do
     else
-      write(lout,*) 'NO PARTICLE ABSORBED'
+      write(coll_efficDPUnit,"(a)") "No particles absorbed"
     end if
-    close(efficiency_dpop_unit)
+    call f_close(coll_efficDPUnit)
 #ifdef HDF5
   end if
 #endif
@@ -3520,20 +3212,20 @@ subroutine collimate_end_sample(j)
     deallocate(fldHdf)
   else
 #endif
-    call f_requestUnit('efficiency_2d.dat', efficiency_2d_unit)
-    open(unit=efficiency_2d_unit, file='efficiency_2d.dat') !was 1993
+    call f_requestUnit(coll_effic2DFile,coll_effic2DUnit)
+    call f_open(unit=coll_effic2DUnit,file=coll_effic2DFile,formatted=.true.,mode="w")
     if(n_tot_absorbed /= 0) then
-      write(efficiency_2d_unit,*) '# 1=rad_sigma 2=dp/p 3=n/tot_nabs 4=n 5=tot_nabs'
+      write(coll_effic2DUnit,"(a1,1x,a13,3(1x,a15),1x,a8)") "#","rad_sigma","dp/p","n/tot_nabs","n","tot_nabs"
       do i=1,numeff
         do k=1,numeffdpop
-          write(efficiency_2d_unit,'(4(1x,e15.7),1(1x,I5))') rsig(i), dpopbins(k),neff2d(i,k)/real(n_tot_absorbed,fPrec), &
-                neff2d(i,k), n_tot_absorbed
+          write(coll_effic2DUnit,"(e15.7,3(1x,e15.7),1x,i8)") rsig(i), dpopbins(k), &
+            neff2d(i,k)/real(n_tot_absorbed,fPrec), neff2d(i,k), n_tot_absorbed
         end do
       end do
     else
-      write(lout,*) 'NO PARTICLE ABSORBED'
+      write(coll_effic2DUnit,"(a)") "No particles absorbed"
     end if
-    close(efficiency_2d_unit)
+    call f_close(coll_effic2DUnit)
 #ifdef HDF5
   end if
 #endif
@@ -3556,7 +3248,7 @@ subroutine collimate_end_sample(j)
       if(cdb_cLength(i) > zero .and. cdb_cFound(i)) then
         call h5_prepareWrite(setHdf, 1)
         call h5_writeData(setHdf, 1, 1, i)
-        call h5_writeData(setHdf, 2, 1, cdb_cNameUC(i))
+        call h5_writeData(setHdf, 2, 1, cdb_cName(i))
         call h5_writeData(setHdf, 3, 1, cn_impact(i))
         call h5_writeData(setHdf, 4, 1, cn_absorbed(i))
         call h5_writeData(setHdf, 5, 1, caverage(i))
@@ -3568,16 +3260,17 @@ subroutine collimate_end_sample(j)
     deallocate(fldHdf)
   else
 #endif
-    call f_requestUnit('coll_summary.dat', coll_summary_unit)
-    open(unit=coll_summary_unit, file='coll_summary.dat') !was 50
-    write(coll_summary_unit,*) '# 1=icoll 2=collname 3=nimp 4=nabs 5=imp_av 6=imp_sig 7=length'
+    call f_requestUnit(coll_summaryFile,coll_summaryUnit)
+    call f_open(unit=coll_summaryUnit,file=coll_summaryFile,formatted=.true.,mode="w")
+    write(coll_summaryUnit,"(a1,1x,a5,1x,a20,2(1x,a8),2(1x,a15),1x,a6)") "#","icoll",chr_rPad("collname",20),&
+      "nimp","nabs","imp_av","imp_sig","length"
     do icoll = 1, cdb_nColl
       if(cdb_cLength(icoll) > zero .and. cdb_cFound(icoll)) then
-        write(coll_summary_unit,'(i4,1x,a,2(1x,i5),2(1x,e15.7),3x,f4.1)') icoll, cdb_cNameUC(icoll), cn_impact(icoll), &
-          cn_absorbed(icoll), caverage(icoll), csigma(icoll),cdb_cLength(icoll)
+        write(coll_summaryUnit,"(i7,1x,a20,2(1x,i8),2(1x,e15.7),1x,f6.2)") icoll, cdb_cName(icoll)(1:20), cn_impact(icoll), &
+          cn_absorbed(icoll), caverage(icoll), csigma(icoll), cdb_cLength(icoll)
       end if
     end do
-    close(coll_summary_unit)
+    call f_close(coll_summaryUnit)
 #ifdef HDF5
   end if
 #endif
@@ -3586,47 +3279,16 @@ subroutine collimate_end_sample(j)
   if(root_flag .and. root_Collimation.eq.1) then
     do icoll = 1, cdb_nColl
       if(cdb_cLength(icoll).gt.zero) then
-        call CollimatorLossRootWrite(icoll, cdb_cNameUC(icoll), len(cdb_cNameUC(icoll)), cn_impact(icoll), cn_absorbed(icoll), &
+        call CollimatorLossRootWrite(icoll, cdb_cName(icoll), len(cdb_cName(icoll)), cn_impact(icoll), cn_absorbed(icoll), &
           caverage(icoll), csigma(icoll), cdb_cLength(icoll))
       end if
     end do
   end if
-
-  ! flush the root file
-!  call SixTrackRootWrite()
 #endif
-
-end subroutine collimate_end_sample
-
-!>
-!! collimate_exit()
-!! This routine is called once at the end of the simulation and
-!! can be used to do any final postrocessing and/or file saving.
-!<
-subroutine collimate_exit()
-
-  use crcoall
-  use parpro
-  use mod_common
-  use mod_common_main
-  use mod_commons
-  use mod_common_track
-  use mod_common_da
-  use mod_units
-#ifdef HDF5
-  use hdf5_output
-  use hdf5_tracks2
-#endif
-
-  implicit none
-
-  integer :: i,j
-
-  ! Just call it here since samples are no longer supported
-  call collimate_end_sample(1)
 
   call f_close(outlun)
   call f_close(coll_gapsUnit)
+  call f_close(coll_positionsUnit)
 
   if(dowritetracks) then
     call f_close(coll_tracksUnit)
@@ -3649,101 +3311,37 @@ subroutine collimate_exit()
     call f_close(coll_jawProfileUnit)
   end if
 
-  call f_requestUnit('amplitude.dat', amplitude_unit)
-  call f_requestUnit('amplitude2.dat', amplitude2_unit)
-  call f_requestUnit('betafunctions.dat', betafunctions_unit)
-  open(unit=amplitude_unit, file='amplitude.dat') !was 56
-  open(unit=amplitude2_unit, file='amplitude2.dat') !was 51
-  open(unit=betafunctions_unit, file='betafunctions.dat') !was 57
-
   if(dowrite_amplitude) then
-    write(amplitude_unit,"(a)")                                         &
-      "# 1=ielem 2=name 3=s 4=AX_AV 5=AX_RMS 6=AY_AV 7=AY_RMS "//       &
-      "8=alphax 9=alphay 10=betax 11=betay 12=orbitx "//                &
-      "13=orbity 14=tdispx 15=tdispy 16=xbob 17=ybob 18=xpbob 19=ypbob"
-
+    ! Write amplitude.dat
+    call f_requestUnit(coll_ampFile,coll_ampUnit)
+    call f_open(unit=coll_ampUnit,file=coll_ampFile,formatted=.true.,mode="w")
+    write(coll_ampUnit,"(a1,1x,a6,1x,a20,19(1x,a20))") "#","ielem",chr_rPad("name",20),"s","AX_AV","AX_RMS","AY_AV","AY_RMS",&
+      "alphax","alphay","betax","betay","orbitx","orbity","dispx","dispy","xbob","ybob","xpbob","ypbob","mux","muy"
     do i=1,iu
-       write(amplitude_unit,'(i4, (1x,a16), 17(1x,e20.13))')             &
-      &i, ename(i), sampl(i),                                            &
-      &sum_ax(i)/real(max(nampl(i),1),fPrec),                            &
-      &sqrt(abs((sqsum_ax(i)/real(max(nampl(i),1),fPrec))-               &
-      &(sum_ax(i)/real(max(nampl(i),1),fPrec))**2)),                     &
-      &sum_ay(i)/real(max(nampl(i),1),fPrec),                            &
-      &sqrt(abs((sqsum_ay(i)/real(max(nampl(i),1),fPrec))-               &
-      &(sum_ay(i)/real(max(nampl(i),1),fPrec))**2)),                     &
-      &talphax(i), talphay(i),                                           &
-      &tbetax(i), tbetay(i), torbx(i), torby(i),                         &
-      &tdispx(i), tdispy(i),                                             &
-      &xbob(i),ybob(i),xpbob(i),ypbob(i)
+      if(ic(i) <= nblo) then
+        ix = mtyp(ic(i),mel(ic(i)))
+      else
+        ix = ic(i)-nblo
+      end if
+      write(coll_ampUnit,"(i8,1x,a20,19(1x,1pe20.13))") i, bez(ix)(1:20), dcum(i),                       &
+        sum_ax(i)/real(max(nampl(i),1),fPrec),                                                           &
+        sqrt(abs((sqsum_ax(i)/real(max(nampl(i),1),fPrec))-(sum_ax(i)/real(max(nampl(i),1),fPrec))**2)), &
+        sum_ay(i)/real(max(nampl(i),1),fPrec),                                                           &
+        sqrt(abs((sqsum_ay(i)/real(max(nampl(i),1),fPrec))-(sum_ay(i)/real(max(nampl(i),1),fPrec))**2)), &
+        talphax(i), talphay(i), tbetax(i), tbetay(i), torbx(i), torby(i), tdispx(i), tdispy(i),          &
+        xbob(i), ybob(i), xpbob(i), ypbob(i), mux(i), muy(i)
     end do
+    call f_close(coll_ampUnit)
+  end if
 
-    write(amplitude2_unit,"(a)") "# 1=ielem 2=name 3=s 4=ORBITX 5=orbity 6=tdispx 7=tdispy 8=xbob 9=ybob 10=xpbob 11=ypbob"
-
-    do i=1,iu
-      write(amplitude2_unit,'(i4, (1x,a16), 9(1x,e15.7))') i, ename(i), sampl(i), torbx(i), torby(i), tdispx(i), tdispy(i), &
-            xbob(i), ybob(i), xpbob(i), ypbob(i)
-    end do
-
-    write(betafunctions_unit,"(a)") "# 1=ielem 2=name       3=s             4=TBETAX(m)     5=TBETAY(m)     6=TORBX(mm)"// &
-      "    7=TORBY(mm) 8=TORBXP(mrad)   9=TORBYP(mrad)  10=TDISPX(m)  11=MUX()    12=MUY()"
-
-
-    do i=1,iu
-!     RB: added printout of closed orbit and angle
-      write(betafunctions_unit,'(i5, (1x,a16), 10(1x,e15.7))') i, ename(i), sampl(i), tbetax(i), tbetay(i), torbx(i), torby(i), &
-        torbxp(i), torbyp(i), tdispx(i), mux(i), muy(i)
-    end do
-  endif
-
-  close(amplitude_unit)
-  close(amplitude2_unit)
-  close(betafunctions_unit)
-
-!GRD
-!      DO J=1,iu
-!        DO I=1,numl
-!        xaveragesumoverturns(j)  = xaverage(j,i)
-!     &                             + xaverage(j,MAX((i-1),1))
-!        yaveragesumoverturns(j)  = yaverage(j,i)
-!     &                             + yaverage(j,MAX((i-1),1))
-!        xpaveragesumoverturns(j) = xpaverage(j,i)
-!     &                             + xpaverage(j,MAX((i-1),1))
-!        ypaveragesumoverturns(j) = ypaverage(j,i)
-!     &                             + ypaverage(j,MAX((i-1),1))
-!        END DO
-!        xclosedorbitcheck(j)=(xaveragesumoverturns(j)
-!     &                        +xaverage(j,numl))/(2*numl)
-!        yclosedorbitcheck(j)=(yaveragesumoverturns(j)
-!     &                        +yaverage(j,numl))/(2*numl)
-!        xpclosedorbitcheck(j)=(xpaveragesumoverturns(j)
-!     &                        +xpaverage(j,numl))/(2*numl)
-!        ypclosedorbitcheck(j)=(ypaveragesumoverturns(j)
-!     &                        +ypaverage(j,numl))/(2*numl)
-!      END DO
-!
-!      OPEN(unit=99, file='xchecking.dat')
-!      WRITE(99,*) '# 1=s 2=x 3=xp 4=y 5=yp'
-!      DO J=1,iu
-!      WRITE(99,'(i, 5(1x,e15.7))')
-!     &     j, SAMPL(j),
-!     &     xclosedorbitcheck(j), xpclosedorbitcheck(j),
-!     &     yclosedorbitcheck(j), ypclosedorbitcheck(j)
-!      END DO
-!      CLOSE(99)
-!GRD
-!GRD WE CAN ALSO MAKE AN ORBIT CHECKING
-!GRD
-
-  call f_requestUnit('orbitchecking.dat', orbitchecking_unit)
-  open(unit=orbitchecking_unit, file='orbitchecking.dat') !was 99
-  write(orbitchecking_unit,*) '# 1=s 2=torbitx 3=torbity'
-
-  do j=1,iu
-    write(orbitchecking_unit,'(i5, 3(1x,e15.7))') j, sampl(j),torbx(j), torby(j)
+  ! Write orbitchecking.dat
+  call f_requestUnit(coll_orbitCheckFile,coll_orbitCheckUnit)
+  call f_open(unit=coll_orbitCheckUnit,file=coll_orbitCheckFile,formatted=.true.,mode="w")
+  write(coll_orbitCheckUnit,"(a1,1x,a6,3(1x,a15))") "#","s","torbitx","torbity"
+  do i=1,iu
+    write(coll_orbitCheckUnit,"(i8,3(1x,1pe15.7))") i, dcum(i), torbx(i), torby(i)
   end do
-
-  close(orbitchecking_unit)
-  close(coll_positionsUnit)
+  call f_close(coll_orbitCheckUnit)
 
 #ifdef G4COLLIMATION
   call g4_terminate()
@@ -3769,7 +3367,7 @@ subroutine collimate_start_turn(n)
   integer, intent(in) :: n
 
   iturn=n
-  totals=zero !This keeps track of the s position of the current element, which is also done by cadcum
+
 end subroutine collimate_start_turn
 
 !>
@@ -3777,40 +3375,32 @@ end subroutine collimate_start_turn
 !<
 subroutine collimate_start_element(i)
 
-  use crcoall
-  use parpro
   use mod_common
   use mod_common_main
-  use mod_commons
-  use mod_common_track
-  use mod_common_da
-
-  implicit none
 
   integer, intent(in) :: i
-  integer j,jb
+  integer j
 
   ie=i
 #ifndef G4COLLIMATION
-!++  For absorbed particles set all coordinates to zero. Also
-!++  include very large offsets, let's say above 100mm or
-!++  100mrad.
-  do j = 1, napx
-    if( (part_abs_pos(j).ne.0 .and. part_abs_turn(j).ne.0) .or.&
- &  xv1(j).gt.c1e2 .or. yv1(j).gt.c1e2 .or. xv2(j).gt.c1e2 .or. yv2(j).gt.c1e2) then
-      xv1(j) = zero
-      yv1(j) = zero
-      xv2(j) = zero
-      yv2(j) = zero
-      ejv(j) = myenom
-      sigmv(j)= zero
-      part_abs_pos(j)=ie
-      part_abs_turn(j)=iturn
-      secondary(j) = 0
-      tertiary(j)  = 0
-      other(j)     = 0
-      scatterhit(j)= 0
-      nabs_type(j) = 0
+  ! For absorbed particles set all coordinates to zero. Also
+  ! include very large offsets, let's say above 100mm or 100mrad.
+  do j=1,napx
+    if((part_abs_pos(j) /= 0 .and. part_abs_turn(j) /= 0) .or. &
+      xv1(j) > c1e2 .or. yv1(j) > c1e2 .or. xv2(j) > c1e2 .or. yv2(j) > c1e2) then
+      xv1(j)   = zero
+      yv1(j)   = zero
+      xv2(j)   = zero
+      yv2(j)   = zero
+      ejv(j)   = myenom
+      sigmv(j) = zero
+      secondary(j)  = 0
+      tertiary(j)   = 0
+      other(j)      = 0
+      scatterhit(j) = 0
+      nabs_type(j)  = 0
+      part_abs_pos(j)  = ie
+      part_abs_turn(j) = iturn
     end if
   end do
 #endif
@@ -3824,37 +3414,11 @@ subroutine collimate_start_element(i)
   end if
 
 !++  Here comes sixtrack stuff
-  if(ic(i).le.nblo) then
-    do jb=1,mel(ic(i))
-      myix=mtyp(ic(i),jb)
-    end do
+  if(ic(i) <= nblo) then
+    myix = mtyp(ic(i),mel(ic(i)))
   else
-    myix=ic(i)-nblo
+    myix = ic(i)-nblo
   end if
-
-!++  Make sure we go into collimation routine for any definition
-!++  of collimator element, relying on element name instead.
-  if (                                                          &
-!GRD HERE ARE SOME CHANGES TO MAKE RHIC TRAKING AVAILABLE
-!APRIL2005
-     &(bez(myix)(1:3).eq.'TCP'.or.bez(myix)(1:3).eq.'tcp') .or.         &
-     &(bez(myix)(1:3).eq.'TCS'.or.bez(myix)(1:3).eq.'tcs') .or.         &
-!UPGRADE January 2005
-     &(bez(myix)(1:3).eq.'TCL'.or.bez(myix)(1:3).eq.'tcl') .or.         &
-     &(bez(myix)(1:3).eq.'TCT'.or.bez(myix)(1:3).eq.'tct') .or.         &
-     &(bez(myix)(1:3).eq.'TCD'.or.bez(myix)(1:3).eq.'tcd') .or.         &
-     &(bez(myix)(1:3).eq.'TDI'.or.bez(myix)(1:3).eq.'tdi') .or.         &
-! UPGRADE MAI 2006 -> TOTEM
-     &(bez(myix)(1:3).eq.'TCX'.or.bez(myix)(1:3).eq.'tcx') .or.         &
-! TW 04/2008 adding TCRYO
-     &(bez(myix)(1:3).eq.'TCR'.or.bez(myix)(1:3).eq.'tcr') .or.         &
-!RHIC
-     &(bez(myix)(1:3).eq.'COL'.or.bez(myix)(1:3).eq.'col') ) then
-
-    myktrack = 1
-  else
-    myktrack = ktrack(i)
-  endif
 
 end subroutine collimate_start_element
 
@@ -3866,11 +3430,12 @@ subroutine collimate_end_element
 
   use crcoall
   use parpro
+  use coll_common
   use mod_common
-  use mod_common_main
   use mod_commons
-  use mod_common_track
   use mod_common_da
+  use mod_common_main
+  use mod_common_track
 #ifdef HDF5
   use hdf5_output
   use hdf5_tracks2
@@ -3886,50 +3451,46 @@ subroutine collimate_end_element
 #endif
 
   if(firstrun) then
-    if(rselect.gt.0 .and. rselect.lt.65) then
-      do j = 1, napx
-        xj  = (xv1(j)-torbx(ie)) /c1e3
-        xpj = (yv1(j)-torbxp(ie))/c1e3
-        yj  = (xv2(j)-torby(ie)) /c1e3
-        ypj = (yv2(j)-torbyp(ie))/c1e3
-        pj  = ejv(j)/c1e3
 
-        if(iturn.eq.1.and.j.eq.1) then
-          sum_ax(ie) = zero
-          sum_ay(ie) = zero
-        endif
+    if(iturn == 1) then
+      sum_ax(ie) = zero
+      sum_ay(ie) = zero
+    end if
 
-        if(tbetax(ie).gt.zero) then
-          gammax = (one + talphax(ie)**2)/tbetax(ie)
-          gammay = (one + talphay(ie)**2)/tbetay(ie)
+    do j = 1, napx
+      xj  = (xv1(j)-torbx(ie)) /c1e3
+      xpj = (yv1(j)-torbxp(ie))/c1e3
+      yj  = (xv2(j)-torby(ie)) /c1e3
+      ypj = (yv2(j)-torbyp(ie))/c1e3
+      pj  = ejv(j)/c1e3
+
+      if(tbetax(ie).gt.zero) then
+        gammax = (one + talphax(ie)**2)/tbetax(ie)
+        gammay = (one + talphay(ie)**2)/tbetay(ie)
+      else
+        gammax = (one + talphax(ie-1)**2)/tbetax(ie-1)
+        gammay = (one + talphay(ie-1)**2)/tbetay(ie-1)
+      endif
+
+      if(part_abs_pos(j).eq.0 .and. part_abs_turn(j).eq.0) then
+        if(tbetax(ie).gt.0.) then
+          nspx = sqrt(abs( gammax*(xj)**2 + two*talphax(ie)*xj*xpj +   tbetax(ie)*xpj**2 )/myemitx0_collgap)
+          nspy = sqrt(abs( gammay*(yj)**2 + two*talphay(ie)*yj*ypj +   tbetay(ie)*ypj**2 )/myemity0_collgap)
         else
-          gammax = (one + talphax(ie-1)**2)/tbetax(ie-1)
-          gammay = (one + talphay(ie-1)**2)/tbetay(ie-1)
-        endif
-
-        if(part_abs_pos(j).eq.0 .and. part_abs_turn(j).eq.0) then
-          if(tbetax(ie).gt.0.) then
-            nspx = sqrt(abs( gammax*(xj)**2 + two*talphax(ie)*xj*xpj +   tbetax(ie)*xpj**2 )/myemitx0_collgap)
-            nspy = sqrt(abs( gammay*(yj)**2 + two*talphay(ie)*yj*ypj +   tbetay(ie)*ypj**2 )/myemity0_collgap)
-          else
-            nspx = sqrt(abs( gammax*(xj)**2 + two*talphax(ie-1)*xj*xpj + tbetax(ie-1)*xpj**2 )/myemitx0_collgap)
-            nspy = sqrt(abs( gammay*(yj)**2 + two*talphay(ie-1)*yj*ypj + tbetay(ie-1)*ypj**2 )/myemity0_collgap)
-          end if
-
-          sum_ax(ie)   = sum_ax(ie) + nspx
-          sqsum_ax(ie) = sqsum_ax(ie) + nspx**2
-          sum_ay(ie)   = sum_ay(ie) + nspy
-          sqsum_ay(ie) = sqsum_ay(ie) + nspy**2
-          nampl(ie)    = nampl(ie) + 1
-        else
-          nspx = zero
-          nspy = zero
+          nspx = sqrt(abs( gammax*(xj)**2 + two*talphax(ie-1)*xj*xpj + tbetax(ie-1)*xpj**2 )/myemitx0_collgap)
+          nspy = sqrt(abs( gammay*(yj)**2 + two*talphay(ie-1)*yj*ypj + tbetay(ie-1)*ypj**2 )/myemity0_collgap)
         end if
 
-        sampl(ie) = totals
-        ename(ie) = bez(myix)(1:mNameLen)
-      end do
-    end if
+        sum_ax(ie)   = sum_ax(ie) + nspx
+        sqsum_ax(ie) = sqsum_ax(ie) + nspx**2
+        sum_ay(ie)   = sum_ay(ie) + nspy
+        sqsum_ay(ie) = sqsum_ay(ie) + nspy**2
+        nampl(ie)    = nampl(ie) + 1
+      else
+        nspx = zero
+        nspy = zero
+      end if
+    end do
   end if
 
 !GRD THIS LOOP MUST NOT BE WRITTEN INTO THE "IF(FIRSTRUN)" LOOP !!!!
@@ -3974,19 +3535,11 @@ subroutine collimate_end_element
           ypj = (yv2(j)-torbyp(ie))/c1e3
 #ifdef HDF5
           if(h5_writeTracks2) then
-            hdfpid=ipart(j)
-            hdfturn=iturn
-            hdfs=sampl(ie)
-            hdfx=xv1(j)
-            hdfxp=yv1(j)
-            hdfy=xv2(j)
-            hdfyp=yv2(j)
-            hdfdee=(ejv(j)-myenom)/myenom
-            hdftyp=secondary(j)+tertiary(j)+other(j)+scatterhit(j)
-            call h5tr2_writeLine(hdfpid,hdfturn,hdfs,hdfx,hdfxp,hdfy,hdfyp,hdfdee,hdftyp)
+            call h5tr2_writeLine(partID(j),iturn,dcum(ie),xv1(j),yv1(j),xv2(j),yv2(j),&
+              (ejv(j)-myenom)/myenom,secondary(j)+tertiary(j)+other(j)+scatterhit(j))
           else
 #endif
-            write(coll_tracksUnit,'(1x,i8,1x,i4,1x,f10.2,4(1x,e12.5),1x,e11.3,1x,i4)') ipart(j), iturn, sampl(ie), &
+            write(coll_tracksUnit,"(1x,i8,1x,i4,1x,f10.2,4(1x,e12.5),1x,e11.3,1x,i4)") partID(j), iturn, dcum(ie), &
               xv1(j), yv1(j), xv2(j), yv2(j), (ejv(j)-myenom)/myenom, secondary(j)+tertiary(j)+other(j)+scatterhit(j)
 #ifdef HDF5
           end if
@@ -4005,11 +3558,12 @@ end subroutine collimate_end_element
 subroutine collimate_end_turn
 
   use parpro
+  use coll_common
   use mod_common
-  use mod_common_main
   use mod_commons
-  use mod_common_track
   use mod_common_da
+  use mod_common_main
+  use mod_common_track
   use crcoall
   use mod_units
   use mathlib_bouncer
@@ -4266,49 +3820,46 @@ subroutine collimate_end_turn
   end if
 
   if(firstrun) then
-    if(rselect > 0 .and. rselect < 65) then ! The value rselect is fixed to 64, this if is probably redundant.
-      do j=1,napx
-        xj  = (xv1(j)-torbx(ie)) /c1e3
-        xpj = (yv1(j)-torbxp(ie))/c1e3
-        yj  = (xv2(j)-torby(ie)) /c1e3
-        ypj = (yv2(j)-torbyp(ie))/c1e3
-        pj  = ejv(j)/c1e3
 
-        if(iturn == 1 .and. j == 1) then
-          sum_ax(ie) = zero
-          sum_ay(ie) = zero
-        end if
+    if(iturn == 1) then
+      sum_ax(ie) = zero
+      sum_ay(ie) = zero
+    end if
 
+    do j=1,napx
+      xj  = (xv1(j)-torbx(ie)) /c1e3
+      xpj = (yv1(j)-torbxp(ie))/c1e3
+      yj  = (xv2(j)-torby(ie)) /c1e3
+      ypj = (yv2(j)-torbyp(ie))/c1e3
+      pj  = ejv(j)/c1e3
+
+      if(tbetax(ie) > 0.) then
+        gammax = (one + talphax(ie)**2)/tbetax(ie)
+        gammay = (one + talphay(ie)**2)/tbetay(ie)
+      else
+        gammax = (one + talphax(ie-1)**2)/tbetax(ie-1)
+        gammay = (one + talphay(ie-1)**2)/tbetay(ie-1)
+      end if
+
+      if(part_abs_pos(j) == 0 .and. part_abs_turn(j) == 0) then
         if(tbetax(ie) > 0.) then
-          gammax = (one + talphax(ie)**2)/tbetax(ie)
-          gammay = (one + talphay(ie)**2)/tbetay(ie)
+          nspx = sqrt(abs( gammax*(xj)**2 + two*talphax(ie)*xj*xpj + tbetax(ie)*xpj**2 )/myemitx0_collgap)
+          nspy = sqrt(abs( gammay*(yj)**2 + two*talphay(ie)*yj*ypj + tbetay(ie)*ypj**2 )/myemity0_collgap)
         else
-          gammax = (one + talphax(ie-1)**2)/tbetax(ie-1)
-          gammay = (one + talphay(ie-1)**2)/tbetay(ie-1)
+          nspx = sqrt(abs( gammax*(xj)**2 + two*talphax(ie-1)*xj*xpj +tbetax(ie-1)*xpj**2 )/myemitx0_collgap)
+          nspy = sqrt(abs( gammay*(yj)**2 + two*talphay(ie-1)*yj*ypj +tbetay(ie-1)*ypj**2 )/myemity0_collgap)
         end if
 
-        if(part_abs_pos(j) == 0 .and. part_abs_turn(j) == 0) then
-          if(tbetax(ie) > 0.) then
-            nspx = sqrt(abs( gammax*(xj)**2 + two*talphax(ie)*xj*xpj + tbetax(ie)*xpj**2 )/myemitx0_collgap)
-            nspy = sqrt(abs( gammay*(yj)**2 + two*talphay(ie)*yj*ypj + tbetay(ie)*ypj**2 )/myemity0_collgap)
-          else
-            nspx = sqrt(abs( gammax*(xj)**2 + two*talphax(ie-1)*xj*xpj +tbetax(ie-1)*xpj**2 )/myemitx0_collgap)
-            nspy = sqrt(abs( gammay*(yj)**2 + two*talphay(ie-1)*yj*ypj +tbetay(ie-1)*ypj**2 )/myemity0_collgap)
-          end if
-
-          sum_ax(ie)   = sum_ax(ie) + nspx
-          sqsum_ax(ie) = sqsum_ax(ie) + nspx**2
-          sum_ay(ie)   = sum_ay(ie) + nspy
-          sqsum_ay(ie) = sqsum_ay(ie) + nspy**2
-          nampl(ie)    = nampl(ie) + 1
-          sampl(ie)    = totals
-          ename(ie)    = bez(myix)(1:mNameLen)
-        else
-          nspx = zero
-          nspy = zero
-        end if !if(part_abs_pos(j).eq.0 .and. part_abs_turn(j).eq.0) then
-      end do !do j = 1, napx
-    end if !if(rselect.gt.0 .and. rselect.lt.65) then
+        sum_ax(ie)   = sum_ax(ie) + nspx
+        sqsum_ax(ie) = sqsum_ax(ie) + nspx**2
+        sum_ay(ie)   = sum_ay(ie) + nspy
+        sqsum_ay(ie) = sqsum_ay(ie) + nspy**2
+        nampl(ie)    = nampl(ie) + 1
+      else
+        nspx = zero
+        nspy = zero
+      end if !if(part_abs_pos(j).eq.0 .and. part_abs_turn(j).eq.0) then
+    end do !do j = 1, napx
   end if !if(firstrun) then
 
 !GRD THIS LOOP MUST NOT BE WRITTEN INTO THE "IF(FIRSTRUN)" LOOP !!!!
@@ -4344,25 +3895,17 @@ subroutine collimate_end_turn
             (((xv1(j)*c1m3)**2  / (tbetax(ie)*myemitx0_collgap)) + &
             ((xv2(j)*c1m3)**2  / (tbetay(ie)*myemity0_collgap)) .ge. sigsecut3)) ) then
 
-          xj     = (xv1(j)-torbx(ie))/c1e3
-          xpj    = (yv1(j)-torbxp(ie))/c1e3
-          yj     = (xv2(j)-torby(ie))/c1e3
-          ypj    = (yv2(j)-torbyp(ie))/c1e3
+          xj  = (xv1(j)-torbx(ie))/c1e3
+          xpj = (yv1(j)-torbxp(ie))/c1e3
+          yj  = (xv2(j)-torby(ie))/c1e3
+          ypj = (yv2(j)-torbyp(ie))/c1e3
 #ifdef HDF5
           if(h5_writeTracks2) then
-            hdfpid=ipart(j)
-            hdfturn=iturn
-            hdfs=sampl(ie)
-            hdfx=xv1(j)
-            hdfxp=yv1(j)
-            hdfy=xv2(j)
-            hdfyp=yv2(j)
-            hdfdee=(ejv(j)-myenom)/myenom
-            hdftyp=secondary(j)+tertiary(j)+other(j)+scatterhit(j)
-            call h5tr2_writeLine(hdfpid,hdfturn,hdfs,hdfx,hdfxp,hdfy,hdfyp,hdfdee,hdftyp)
+            call h5tr2_writeLine(partID(j),iturn,dcum(ie),xv1(j),yv1(j),xv2(j),yv2(j),&
+              (ejv(j)-myenom)/myenom,secondary(j)+tertiary(j)+other(j)+scatterhit(j))
           else
 #endif
-            write(coll_tracksUnit,'(1x,i8,1x,i4,1x,f10.2,4(1x,e12.5),1x,e11.3,1x,i4)') ipart(j),iturn,sampl(ie), &
+            write(coll_tracksUnit,"(1x,i8,1x,i4,1x,f10.2,4(1x,e12.5),1x,e11.3,1x,i4)") partID(j),iturn,dcum(ie), &
               xv1(j),yv1(j),xv2(j),yv2(j),(ejv(j)-myenom)/myenom,secondary(j)+tertiary(j)+other(j)+scatterhit(j)
 #ifdef HDF5
           end if
@@ -4373,2199 +3916,5 @@ subroutine collimate_end_turn
   end if !if(dowritetracks) then
 !=======================================================================
 end subroutine collimate_end_turn
-
-!>
-!! "Merlin" scattering collimation configuration
-!! This routine pre-calcuates some varibles for
-!! the nuclear properties
-!<
-subroutine collimate_init_merlin()
-
-  implicit none
-
-  integer i
-
-! compute the electron densnity and plasma energy for each material
-  do i=1, nmat
-    edens(i) = CalcElectronDensity(zatom(i),rho(i),anuc(i))
-    pleng(i) = CalcPlasmaEnergy(edens(i))
-  end do
-
-end subroutine collimate_init_merlin
-
-!>
-!! K2 scattering collimation configuration
-!<
-subroutine collimate_init_k2()
-!nothing currently
-end subroutine collimate_init_k2
-
-!>
-!! subroutine collimate2(c_material, c_length, c_rotation,           &
-!!-----GRD-----GRD-----GRD-----GRD-----GRD-----GRD-----GRD-----GRD-----GRD-----
-!!----                                                                    -----
-!!-----  NEW ROUTINES PROVIDED FOR THE COLLIMATION STUDIES VIA SIXTRACK   -----
-!!-----                                                                   -----
-!!-----          G. ROBERT-DEMOLAIZE, November 1st, 2004                  -----
-!!-----                                                                   -----
-!!-----GRD-----GRD-----GRD-----GRD-----GRD-----GRD-----GRD-----GRD-----GRD-----
-!!++  Based on routines by JBJ. Changed by RA 2001.
-!!GRD
-!!GRD MODIFIED VERSION FOR COLLIMATION SYSTEM: G. ROBERT-DEMOLAIZE
-!!GRD
-!!
-!!++  - Deleted all HBOOK stuff.
-!!++  - Deleted optics routine and all parser routines.
-!!++  - Replaced RANMAR call by RANLUX call
-!!++  - Included RANLUX code from CERNLIB into source
-!!++  - Changed dimensions from CGen(100,nmat) to CGen(200,nmat)
-!!++  - Replaced FUNPRE with FUNLXP
-!!++  - Replaced FUNRAN with FUNLUX
-!!++  - Included all CERNLIB code into source: RANLUX, FUNLXP, FUNLUX,
-!!++                                         FUNPCT, FUNLZ, RADAPT,
-!!++                                           RGS56P
-!!++    with additional entries:             RLUXIN, RLUXUT, RLUXAT,
-!!++                                           RLUXGO
-!!++
-!!++  - Changed program so that Nev is total number of particles
-!!++    (scattered and not-scattered)
-!!++  - Added debug comments
-!!++  - Put real dp/dx
-!<
-subroutine collimate2(c_material, c_length, c_rotation,           &
-     &c_aperture, c_offset, c_tilt,x_in, xp_in, y_in,yp_in,p_in, s_in,  &
-     &     np, enom,                                                    &
-     &     lhit_pos, lhit_turn,                                         &
-     &     part_abs_pos_local, part_abs_turn_local,                     &
-     &     impact, indiv, lint, onesided,name,                          &
-     &     flagsec, j_slices, nabs_type, linside)
-
-  use crcoall
-  use parpro
-  use mod_common, only : iexact, napx
-  use mathlib_bouncer
-  use mod_ranlux
-#ifdef HDF5
-  use hdf5_output
-#endif
-
-  implicit none
-
-  logical onesided,hit
-! integer nprim,filel,mat,nev,j,nabs,nhit,np,icoll,nabs_tmp
-  integer nprim,j,nabs,nhit,np
-
-  integer, allocatable :: lhit_pos(:) !(npart)
-  integer, allocatable :: lhit_turn(:) !(npart)
-  integer, allocatable :: part_abs_pos_local(:) !(npart)
-  integer, allocatable :: part_abs_turn_local(:) !(npart)
-  integer, allocatable :: name(:) !(npart)
-  integer, allocatable :: nabs_type(:) !(npart)
-!MAY2005
-
-  logical linside(napx)
-  real(kind=fPrec), allocatable :: x_in(:) !(npart)
-  real(kind=fPrec), allocatable :: xp_in(:) !(npart)
-  real(kind=fPrec), allocatable :: y_in(:) !(npart)
-  real(kind=fPrec), allocatable :: yp_in(:) !(npart)
-  real(kind=fPrec), allocatable :: p_in(:) !(npart)
-  real(kind=fPrec), allocatable :: s_in(:) !(npart)
-  real(kind=fPrec), allocatable :: indiv(:) !(npart)
-  real(kind=fPrec), allocatable :: lint(:) !(npart)
-  real(kind=fPrec), allocatable :: impact(:) !(npart)
-  real(kind=fPrec) keeps,fracab,drift_length,mirror,tiltangle
-
-  real(kind=fPrec) c_length    !length in m
-  real(kind=fPrec) c_rotation  !rotation angle vs vertical in radian
-  real(kind=fPrec) c_aperture  !aperture in m
-  real(kind=fPrec) c_offset    !offset in m
-  real(kind=fPrec) c_tilt(2)   !tilt in radian
-  character(len=4) c_material  !material
-
-  real(kind=fPrec) x00,z00,p,sp,s,enom
-
-!AUGUST2006 Added ran_gauss for generation of pencil/     ------- TW
-!           sheet beam distribution  (smear in x and y)
-!
-
-  real(kind=fPrec) x_flk,xp_flk,y_flk,yp_flk,zpj
-  real(kind=fPrec) x_Dump,xpDump,y_Dump,ypDump,s_Dump
-
-  real(kind=fPrec) s_impact
-  integer flagsec(npart)
-
-!     SR, 18-08-2005: add temporary variable to write in FirstImpacts
-!     the initial distribution of the impacting particles in the
-!     collimator frame.
-  real(kind=fPrec) xinn,xpinn,yinn,ypinn
-
-!     SR, 29-08-2005: add the slice number to calculate the impact
-!     location within the collimator.
-!     j_slices = 1 for the a non sliced collimator!
-  integer j_slices
-
-  save
-!      write(lout,*) 'In col2 ', c_material, c_length, c_aperture,       &
-!     &c_offset, c_tilt, x_in, xp_in, y_in,p_in, np, enom
-!=======================================================================
-! Be=1 Al=2 Cu=3 W=4 Pb=5
-! LHC uses:    Al, 0.2 m
-!              Cu, 1.0 m
-
-  if(c_material.eq.'BE') then
-    mat = 1
-  else if(c_material.eq.'AL') then
-    mat = 2
-  else if(c_material.eq.'CU') then
-    mat = 3
-  else if(c_material.eq.'W') then
-    mat = 4
-  else if(c_material.eq.'PB') then
-    mat = 5
-  else if(c_material.eq.'C') then
-    mat = 6
-  else if(c_material.eq.'C2') then
-    mat = 7
-  else if(c_material.eq.'MoGR') then
-    mat = 8
-  else if(c_material.eq.'CuCD') then
-    mat = 9
-  else if(c_material.eq.'Mo') then
-    mat = 10
-  else if(c_material.eq.'Glid') then
-    mat = 11
-  else if(c_material.eq.'Iner') then
-    mat = 12
-!02/2008 TW added vacuum and black absorber (was missing)
-  else if(c_material.eq.'VA') then
-    mat = nmat-1
-  else if(c_material.eq.'BL') then
-    mat = nmat
-  else
-    write(lout,*)
-    write(lout,*) 'ERR>  In subroutine collimate2:'
-    write(lout,*) 'ERR>  Material "', c_material, '" not found.'
-    write(lout,*) 'ERR>  Check your CollDB! Stopping now.'
-    call prror
-  end if
-
-  length  = c_length
-  nev = np
-  p0  = enom
-
-!++  Initialize scattering processes
-  call scatin(p0)
-
-! EVENT LOOP,  initial distribution is here a flat distribution with
-! xmin=x-, xmax=x+, etc. from the input file
-
-  nhit    = 0
-  fracab  = zero
-  mirror  = one
-
-!==> SLICE here
-
-!- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-  do j = 1, nev
-! SR-GRD (04-08-2005):
-!   Don't do scattering process for particles already absorbed
-    if ( part_abs_pos_local(j) .ne. 0 .and. part_abs_turn_local(j) .ne. 0) goto 777
-
-    impact(j) = -one
-    lint(j)   = -one
-    indiv(j)  = -one
-
-    x   = x_in(j)
-    xp  = xp_in(j)
-    z   = y_in(j)
-    zp  = yp_in(j)
-    p   = p_in(j)
-    sp   = zero
-    dpop = (p - p0)/p0
-    x_flk  = zero
-    y_flk  = zero
-    xp_flk = zero
-    yp_flk = zero
-
-!++  Transform particle coordinates to get into collimator coordinate
-!++  system
-!
-!++  First check whether particle was lost before
-!        if (x.lt.99d-3 .and. z.lt.99d-3) then
-!++  First do rotation into collimator frame
-    x  = x_in(j) *cos_mb(c_rotation)+sin_mb(c_rotation)*y_in(j)
-    z  = y_in(j) *cos_mb(c_rotation)-sin_mb(c_rotation)*x_in(j)
-    xp = xp_in(j)*cos_mb(c_rotation)+sin_mb(c_rotation)*yp_in(j)
-    zp = yp_in(j)*cos_mb(c_rotation)-sin_mb(c_rotation)*xp_in(j)
-!
-!++  For one-sided collimators consider only positive X. For negative
-!++  X jump to the next particle
-
-
-! RB: adding exception from goto if it's
-    if ((onesided .and. x.lt.zero).and. ((icoll.ne.ipencil) .or. (iturn.ne.1))) goto 777
-
-!++  Now mirror at the horizontal axis for negative X offset
-    if(x.lt.zero) then
-      mirror = -one
-      tiltangle = -one*c_tilt(2)
-    end if
-
-    if(x.ge.zero) then
-      mirror = one
-      tiltangle = c_tilt(1)
-    end if
-
-    x  = mirror * x
-    xp = mirror * xp
-!
-!          if (j.eq.1) then
-!             write(*,*) 'INFOtilt',
-!     &            icoll, j_slices, c_tilt(1), c_tilt(2),
-!     &            mirror, tiltangle, c_offset, c_aperture/2
-!          endif
-!
-!++  Shift with opening and offset
-!
-    x  = (x - c_aperture/two) - mirror*c_offset
-!
-!++  Include collimator tilt
-!
-    if(tiltangle.gt.zero) then
-      xp = xp - tiltangle
-    end if
-
-    if(tiltangle.lt.zero) then
-      x  = x + sin_mb(tiltangle) * c_length
-      xp = xp - tiltangle
-    end if
-
-!++  For selected collimator, first turn reset particle distribution
-!++  to simple pencil beam
-!
-! -- TW why did I set this to 0, seems to be needed for getting
-!       right amplitude => no "tilt" of jaw for the first turn !!!!
-!          c_tilt(1) = 0d0
-!          c_tilt(2) = 0d0
-
-    nprim = 3
-
-    if(( (icoll.eq.ipencil .and. iturn.eq.1) .or. (iturn.eq.1.and. ipencil.eq.999 .and. icoll.le.nprim .and. &
- &    (j.ge.(icoll-1)*nev/nprim) .and. (j.le.(icoll)*nev/nprim))).and.(pencil_distr.ne.3)) then
-! RB addition : don't go in this if-statement if pencil_distr=3. This distribution is generated in main loop instead
-
-! -- TW why did I set this to 0, seems to be needed for getting
-!       right amplitude => no "tilt" of jaw for the first turn !!!!
-      c_tilt(1) = zero
-      c_tilt(2) = zero
-
-!AUGUST2006: Standard pencil beam as implemented by GRD ------- TW
-      if(pencil_rmsx.eq.zero .and. pencil_rmsy.eq.zero) then
-        x  = pencil_dx(icoll)
-        xp = zero
-        z  = zero
-        zp = zero
-      end if
-
-!AUGUST2006: Rectangular (pencil-beam) sheet-beam with  ------ TW
-!            pencil_offset is the rectangulars center
-!            pencil_rmsx defines spread of impact parameter
-!            pencil_rmsy defines spread parallel to jaw surface
-
-      if(pencil_distr.eq.0 .and.(pencil_rmsx.ne.0..or.pencil_rmsy.ne.0.)) then
-! how to assure that all generated particles are on the jaw ?!
-        x  = pencil_dx(icoll)+pencil_rmsx*(real(rndm4(),fPrec)-half)
-        xp = zero
-        z  = pencil_rmsy*(real(rndm4(),fPrec)-half)
-        zp = zero
-      end if
-
-!AUGUST2006: Gaussian (pencil-beam) sheet-beam with ------- TW
-!            pencil_offset is the mean  gaussian distribution
-!            pencil_rmsx defines spread of impact parameter
-!            pencil_rmsy defines spread parallel to jaw surface
-
-      if(pencil_distr.eq.1 .and.(pencil_rmsx.ne.zero.or.pencil_rmsy.ne.zero )) then
-        x  = pencil_dx(icoll) + pencil_rmsx*ran_gauss(two)
-! all generated particles are on the jaw now
-        x  = sqrt(x**2)
-        xp = zero
-        z  = pencil_rmsy*ran_gauss(two)
-        zp = zero
-      end if
-
-!AUGUST2006: Gaussian (pencil-beam) sheet-beam with ------- TW
-!            pencil_offset is the mean  gaussian distribution
-!            pencil_rmsx defines spread of impact parameter
-!                        here pencil_rmsx is not gaussian!!!
-!            pencil_rmsy defines spread parallel to jaw surface
-
-      if(pencil_distr.eq.2 .and.(pencil_rmsx.ne.zero.or.pencil_rmsy.ne.zero )) then
-        x  = pencil_dx(icoll) + pencil_rmsx*(real(rndm4(),fPrec)-half)
-! all generated particles are on the jaw now
-        x  = sqrt(x**2)
-        xp = zero
-        z  = pencil_rmsy*ran_gauss(two)
-        zp = zero
-      end if
-
-!JULY2007: Selection of pos./neg. jaw  implemented by GRD ---- TW
-
-! ensure that for onesided only particles on pos. jaw are created
-      if(onesided) then
-        mirror = one
-      else
-!     if(rndm4().lt.0.5) mirror = -1d0
-!     if(rndm4().ge.0.5) mirror = 1d0  => using two different random
-        if(rndm4().lt.half) then
-          mirror = -one
-        else
-          mirror = one
-        end if
-      end if
-
-! -- TW SEP07 if c_tilt is set to zero before entering pencil beam
-!             section the assigning of the tilt will result in
-!             assigning zeros
-      if(mirror.lt.zero) then
-!!     tiltangle = -one*c_tilt(2)
-        tiltangle = c_tilt(2)
-      else
-        tiltangle = c_tilt(1)
-      end if
-!!!!--- commented this out since particle is tilted after leaving
-!!!!--- collimator -> remove this  code fragment in final verion
-!!             x  = mirror * x
-!!             xp = mirror * xp
-
-
-!++  Include collimator tilt
-! this is propably not correct
-!
-!             xp =  (xp_pencil0*cos_mb(c_rotation)+                         &
-!     &            sin_mb(c_rotation)*yp_pencil0)
-!             if (tiltangle.gt.0.) then
-!                xp = xp - tiltangle
-!!             endif
-!!             elseif (tiltangle.lt.0.) then
-!             else
-!               x  = x + sin_mb(tiltangle) * c_length
-!               xp = xp - tiltangle
-!             endif
-!
-      write(coll_pencilUnit,'(f10.8,(2x,f10.8),(2x,f10.8),(2x,f10.8),(2x,f10.8))') x, xp, z, zp, tiltangle
-
-    end if !if(( (icoll.eq.ipencil .and. iturn.eq.1) .or. (itu
-
-!          if(rndm4().lt.0.5) mirror = -abs(mirror)
-!          if(rndm4().ge.0.5) mirror = abs(mirror)
-!        endif
-!
-!     SR, 18-08-2005: after finishing the coordinate transformation,
-!     or the coordinate manipulations in case of pencil beams,
-!     write down the initial coordinates of the impacting particles
-    xinn  = x
-    xpinn = xp
-    yinn  = z
-    ypinn = zp
-!
-!++  Possibility to slice here (RA,SR: 29-08-2005)
-!
-!++  particle passing above the jaw are discarded => take new event
-!++  entering by the face, shorten the length (zlm) and keep track of
-!++  entrance longitudinal coordinate (keeps) for histograms
-!
-!++  The definition is that the collimator jaw is at x>=0.
-!
-!++  1) Check whether particle hits the collimator
-    hit   = .false.
-    s     = zero
-    keeps = zero
-    zlm   = -one * length
-
-    if(x.ge.zero) then
-
-!++  Particle hits collimator and we assume interaction length ZLM equal
-!++  to collimator length (what if it would leave collimator after
-!++  small length due to angle???)
-      zlm = length
-      impact(j) = x
-      indiv(j) = xp
-    else if(xp.le.zero) then
-
-!++  Particle does not hit collimator. Interaction length ZLM is zero.
-      zlm = zero
-    else
-!
-!++  Calculate s-coordinate of interaction point
-      s = (-one*x) / xp
-      if(s.le.0) then
-        write(lout,*) 'S.LE.0 -> This should not happen'
-        call prror
-      end if
-
-      if(s .lt. length) then
-        zlm = length - s
-        impact(j) = zero
-        indiv(j) = xp
-      else
-        zlm = zero
-      end if
-    end if !if(x.ge.0.d0) then
-
-!++  First do the drift part
-! DRIFT PART
-    drift_length = length - zlm
-    if(drift_length.gt.zero) then
-      if(iexact) then
-        zpj = sqrt(one-xp**2-zp**2)
-        x = x + drift_length*(xp/zpj)
-        z = z + drift_length*(zp/zpj)
-        sp = sp + drift_length
-      else
-        x  = x + xp* drift_length
-        z  = z + zp * drift_length
-        sp = sp + drift_length
-      end if
-    end if
-!
-!++  Now do the scattering part
-!
-    if (zlm.gt.zero) then
-      if(.not.linside(j)) then
-        ! first time particle hits collimator: entering jaw
-        linside(j)=.true.
-        if(dowrite_impact) then
-          if ( tiltangle.gt.zero ) then
-            x_Dump=(x+c_aperture/two+tiltangle*sp)*mirror+c_offset
-          else
-            x_Dump=(x+c_aperture/two+tiltangle*(sp-c_length))*mirror+c_offset
-          end if
-          xpDump=(xp+tiltangle)*mirror
-          y_Dump=z
-          ypDump=zp
-          s_Dump=sp+real(j_slices-1,fPrec)*c_length
-          write(coll_jawProfileUnit,"(3(1x,i7),5(1x,e17.9),1x,i1)") &
-            icoll,iturn,name(j),x_Dump,xpDump,y_Dump,ypDump,s_Dump,1
-        end if
-      end if
-!JUNE2005
-      s_impact = sp
-!JUNE2005
-      nhit = nhit + 1
-!            WRITE(*,*) J,X,XP,Z,ZP,SP,DPOP
-!     RB: add new input arguments to jaw icoll,iturn,ipart for writeout
-      call jaw(s, nabs, icoll,iturn,name(j),dowrite_impact)
-
-      nabs_type(j) = nabs
-!JUNE2005
-!JUNE2005 SR+GRD: CREATE A FILE TO CHECK THE VALUES OF IMPACT PARAMETERS
-!JUNE2005
-!     SR, 29-08-2005: Add to the longitudinal coordinates the position
-!     of the slice beginning
-
-      if(dowrite_impact) then
-        if(flagsec(j).eq.0) then
-#ifdef HDF5
-          if(h5_useForCOLL) then
-            call h5_prepareWrite(coll_hdf5_fstImpacts, 1)
-            call h5_writeData(coll_hdf5_fstImpacts, 1,  1, name(j))
-            call h5_writeData(coll_hdf5_fstImpacts, 2,  1, iturn)
-            call h5_writeData(coll_hdf5_fstImpacts, 3,  1, icoll)
-            call h5_writeData(coll_hdf5_fstImpacts, 4,  1, nabs)
-            call h5_writeData(coll_hdf5_fstImpacts, 5,  1, s_impact + (real(j_slices,fPrec)-one) * c_length)
-            call h5_writeData(coll_hdf5_fstImpacts, 6,  1, s+sp + (real(j_slices,fPrec)-one) * c_length)
-            call h5_writeData(coll_hdf5_fstImpacts, 7,  1, xinn)
-            call h5_writeData(coll_hdf5_fstImpacts, 8,  1, xpinn)
-            call h5_writeData(coll_hdf5_fstImpacts, 9,  1, yinn)
-            call h5_writeData(coll_hdf5_fstImpacts, 10, 1, ypinn)
-            call h5_writeData(coll_hdf5_fstImpacts, 11, 1, x)
-            call h5_writeData(coll_hdf5_fstImpacts, 12, 1, xp)
-            call h5_writeData(coll_hdf5_fstImpacts, 13, 1, z)
-            call h5_writeData(coll_hdf5_fstImpacts, 14, 1, zp)
-            call h5_finaliseWrite(coll_hdf5_fstImpacts)
-          else
-#endif
-            write(coll_fstImpactUnit,'(i5,1x,i7,1x,i2,1x,i1,2(1x,f5.3),8(1x,e17.9))') &
-                name(j),iturn,icoll,nabs,                               &
-                s_impact + (real(j_slices,fPrec)-one) * c_length,       &
-                s+sp + (real(j_slices,fPrec)-one) * c_length,           &
-                xinn,xpinn,yinn,ypinn,                                  &
-                x,xp,z,zp
-#ifdef HDF5
-          end if
-#endif
-        end if
-      end if
-!!     SR, 18-08-2005: add also the initial coordinates of the
-!!                     impacting particles!
-!            if(flagsec(j).eq.0) then
-!              write(333,'(i5,1x,i7,1x,i2,1x,i1,2(1x,f5.3),8(1x,e17.9))')&
-!     +              name(j),iturn,icoll,nabs,s_impact,s+sp,
-!     +              xinn,xpinn,yinn,ypinn,
-!     +              x,xp,z,zp
-!            endif
-!     !Old format...
-!            if(flagsec(j).eq.0) then
-!              write(333,'(i5,1x,i4,1x,i2,1x,i1,2(1x,f5.3),2(1x,e16.7))')
-!     &name(j),iturn,icoll,nabs,s_impact,s+sp,impact(j),x
-!            endif
-!JUNE2005
-
-      lhit_pos(j)  = ie
-      lhit_turn(j) = iturn
-
-!-- September2006  TW added from Ralphs code
-!--------------------------------------------------------------
-!++ Change tilt for pencil beam impact
-!
-!            if ( (icoll.eq.ipencil                                      &
-!     &           .and. iturn.eq.1)   .or.                               &
-!     &           (iturn.eq.1 .and. ipencil.eq.999 .and.                 &
-!     &                             icoll.le.nprim .and.                 &
-!     &            (j.ge.(icoll-1)*nev/nprim) .and.                      &
-!     &            (j.le.(icoll)*nev/nprim)                              &
-!     &           )  ) then
-!
-!               if (.not. changed_tilt1(icoll) .and. mirror.gt.0.) then
-! ----- Maybe a warning would be nice that c_tilt is overwritten !!!!!
-! changed xp_pencil0(icoll) to xp_pencil0 due to definition mismatch
-! this has to be solved if necassary and understood
-!                 c_tilt(1) = xp_pencil0(icoll)*cos_mb(c_rotation)+         &
-!     &                       sin_mb(c_rotation)*yp_pencil0(icoll)
-!                 c_tilt(1) = xp_pencil0*cos_mb(c_rotation)+                &
-!     &                       sin_mb(c_rotation)*yp_pencil0
-!                 write(*,*) "INFO> Changed tilt1  ICOLL  to  ANGLE  ",  &
-!     &                   icoll, c_tilt(1), j
-!                 changed_tilt1(icoll) = .true.
-!               elseif (.not. changed_tilt2(icoll)                       &
-!     &                                   .and. mirror.lt.0.) then
-! changed xp_pencil0(icoll) to xp_pencil0 due to definition mismatch
-! this has to be solved if necassary and understood
-!                 c_tilt(2) = -1.*(xp_pencil0(icoll)*cos_mb(c_rotation)+    &
-!     &                       sin_mb(c_rotation)*yp_pencil0(icoll))
-!                 c_tilt(2) = -1.*(xp_pencil0*cos_mb(c_rotation)+           &
-!     &                       sin_mb(c_rotation)*yp_pencil0)
-!                 write(*,*) "INFO> Changed tilt2  ICOLL  to  ANGLE  ",  &
-!     &                   icoll, c_tilt(2), j
-!                 changed_tilt2(icoll) = .true.
-!               endif
-!            endif
-!
-!----------------------------------------------------------------
-!-- September 2006
-!
-!++  If particle is absorbed then set x and y to 99.99 mm
-!     SR: before assigning new (x,y) for nabs=1, write the
-!     inelastic impact file .
-
-!     RB: writeout should be done for both inelastic and single diffractive. doing all transformations
-!       in x_flk and making the set to 99.99 mm conditional for nabs=1
-!!! /* start RB fix */
-
-! transform back to lab system for writeout.
-! keep x,y,xp,yp unchanged for continued tracking, store lab system variables in x_flk etc
-
-      x_flk = xInt
-      xp_flk = xpInt
-
-      if(tiltangle.gt.zero) then
-        x_flk  = x_flk  + tiltangle*(sInt+sp)
-        xp_flk = xp_flk + tiltangle
-      else if(tiltangle.lt.zero) then
-        xp_flk = xp_flk + tiltangle
-        x_flk  = x_flk - sin_mb(tiltangle) * ( length -(sInt+sp) )
-      end if
-
-      x_flk  = (x_flk + c_aperture/two) + mirror*c_offset
-      x_flk  = mirror * x_flk
-      xp_flk = mirror * xp_flk
-      y_flk  = yInt   * cos_mb(-one*c_rotation) - x_flk  * sin_mb(-one*c_rotation)
-      yp_flk = ypInt  * cos_mb(-one*c_rotation) - xp_flk * sin_mb(-one*c_rotation)
-      x_flk  = x_flk  * cos_mb(-one*c_rotation) + yInt   * sin_mb(-one*c_rotation)
-      xp_flk = xp_flk * cos_mb(-one*c_rotation) + ypInt  * sin_mb(-one*c_rotation)
-
-! write out all impacts to all_impacts.dat
-      if(dowrite_impact) then
-        write(coll_flukImpAllUnit,'(i4,(1x,f6.3),(1x,f8.6),4(1x,e19.10),i2,2(1x,i7))') &
-     &              icoll,c_rotation,                                   &
-     &              sInt + sp + (real(j_slices,fPrec)-one) * c_length,  &
-     &              x_flk*c1e3, xp_flk*c1e3, y_flk*c1e3, yp_flk*c1e3,   &
-     &              nabs,name(j),iturn
-      end if
-
-! standard FLUKA_impacts writeout of inelastic and single diffractive
-      if((nabs.eq.1).OR.(nabs.eq.4)) then
-
-!     SR, 29-08-2005: Include the slice numer!
-        if(dowrite_impact) then
-          write(coll_flukImpUnit,'(i4,(1x,f6.3),(1x,f8.6),4(1x,e19.10),i2,2(1x,i7))') &
-     &icoll,c_rotation,                                                 &
-     &sInt + sp + (real(j_slices,fPrec)-one) * c_length,                &
-     &x_flk*c1e3, xp_flk*c1e3, y_flk*c1e3, yp_flk*c1e3,                 &
-     &nabs,name(j),iturn
-        end if
-!
-!     Finally, the actual coordinate change to 99 mm
-        if(nabs.eq.1) then
-          fracab = fracab + 1
-          x = 99.99e-3_fPrec
-          z = 99.99e-3_fPrec
-          part_abs_pos_local(j) = ie
-          part_abs_turn_local(j) = iturn
-          lint(j) = zlm
-        end if
-      end if !if((nabs.eq.1).OR.(nabs.eq.4)) then
-    end if !if (zlm.gt.0.) then
-!!! /* end RB fix */
-
-!++  Do the rest drift, if particle left collimator early
-!  DRIFT PART
-    if(nabs.ne.1 .and. zlm.gt.zero) then
-      drift_length = (length-(s+sp))
-      if(drift_length.gt.c1m15) then
-        linside(j)=.false.
-        if(dowrite_impact) then
-          if ( tiltangle.gt.zero ) then
-            x_Dump=(x+c_aperture/two+tiltangle*(s+sp))*mirror+c_offset
-          else
-            x_Dump=(x+c_aperture/two+tiltangle*(s+sp-c_length))*mirror+c_offset
-          end if
-          xpDump=(xp+tiltangle)*mirror
-          y_Dump=z
-          ypDump=zp
-          s_Dump=s+sp+real(j_slices-1,fPrec)*c_length
-          write(coll_jawProfileUnit,"(3(1x,i7),5(1x,e17.9),1x,i1)") &
-            icoll,iturn,name(j),x_Dump,xpDump,y_Dump,ypDump,s_Dump,2
-        end if
-        if(iexact) then
-          zpj = sqrt(one-xp**2-zp**2)
-          x   = x + drift_length*(xp/zpj)
-          z   = z + drift_length*(zp/zpj)
-          sp  = sp + drift_length
-        else
-          x  = x + xp * drift_length
-          z  = z + zp * drift_length
-          sp = sp + drift_length
-        end if
-      end if
-      lint(j) = zlm - drift_length
-    end if
-
-!++  Transform back to particle coordinates with opening and offset
-    if(x.lt.99.0d-3) then
-
-!++  Include collimator tilt
-      if(tiltangle.gt.zero) then
-        x  = x  + tiltangle*c_length
-        xp = xp + tiltangle
-      else if(tiltangle.lt.zero) then
-        x  = x + tiltangle*c_length
-        xp = xp + tiltangle
-        x  = x - sin_mb(tiltangle) * c_length
-      end if
-
-!++  Transform back to particle coordinates with opening and offset
-      z00 = z
-      x00 = x + mirror*c_offset
-      x = (x + c_aperture/two) + mirror*c_offset
-
-!++  Now mirror at the horizontal axis for negative X offset
-      x  = mirror * x
-      xp = mirror * xp
-
-!++  Last do rotation into collimator frame
-      x_in(j)  = x  *cos_mb(-one*c_rotation) + z  *sin_mb(-one*c_rotation)
-      y_in(j)  = z  *cos_mb(-one*c_rotation) - x  *sin_mb(-one*c_rotation)
-      xp_in(j) = xp *cos_mb(-one*c_rotation) + zp *sin_mb(-one*c_rotation)
-      yp_in(j) = zp *cos_mb(-one*c_rotation) - xp *sin_mb(-one*c_rotation)
-
-      if(( (icoll.eq.ipencil.and. iturn.eq.1).or. &
-  &        (iturn.eq.1 .and.ipencil.eq.999 .and.icoll.le.nprim .and.(j.ge.(icoll-1)*nev/nprim) .and.(j.le.(icoll)*nev/nprim)))&
-  &             .and.(pencil_distr.ne.3)) then    ! RB: adding condition that this shouldn't be done if pencil_distr=3
-
-        x00  = mirror * x00
-        x_in(j)  = x00  *cos_mb(-one*c_rotation) + z00  *sin_mb(-one*c_rotation)
-        y_in(j)  = z00  *cos_mb(-one*c_rotation) - x00  *sin_mb(-one*c_rotation)
-
-        xp_in(j) = xp_in(j) + mirror*xp_pencil0
-        yp_in(j) = yp_in(j) + mirror*yp_pencil0
-        x_in(j)  = x_in(j)  + mirror*x_pencil(icoll)
-        y_in(j)  = y_in(j)  + mirror*y_pencil(icoll)
-      end if
-
-      p_in(j) = (one + dpop) * p0
-!     SR, 30-08-2005: add the initial position of the slice
-      s_in(j) = sp + (real(j_slices,fPrec)-one) * c_length
-
-    else
-      x_in(j) = x
-      y_in(j) = z
-    end if !if(x.lt.99.0d-3) then
-
-! output for comparing the particle in accelerator frame
-!
-!c$$$          if(dowrite_impact) then
-!c$$$             write(9996,'(i5,1x,i7,1x,i2,1x,i1,2(1x,f5.3),8(1x,e17.9))')  &
-!c$$$     &            name(j),iturn,icoll,nabs,                             &
-!c$$$     &            s_in(j),                                              &
-!c$$$     &            s+sp + (dble(j_slices)-1d0) * c_length,               &
-!c$$$     &            x_in(j),xp_in(j),y_in(j),yp_in(j),                    &
-!c$$$     &            x,xp,z,zp
-!c$$$          endif
-!
-!++  End of check for particles not being lost before
-!
-!        endif
-!
-!        IF (X.GT.99.00) WRITE(*,*) 'After : ', X, X_IN(J)
-!
-!++  End of loop over all particles
-!
- 777  continue
-  end do
-!- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-!
-!      WRITE(*,*) 'Number of particles:            ', Nev
-!      WRITE(*,*) 'Number of particle hits:        ', Nhit
-!      WRITE(*,*) 'Number of absorped particles:   ', fracab
-!      WRITE(*,*) 'Number of escaped particles:    ', Nhit-fracab
-!      WRITE(*,*) 'Fraction of absorped particles: ', 100.*fracab/Nhit
-!
-end subroutine collimate2
-
-!>
-!! ichoix(ma)
-!! Select a scattering type (elastic, sd, inelastic, ...)
-!<
-function ichoix(ma)
-  use mod_ranlux
-  implicit none
-  integer ma,i,ichoix
-  real(kind=fPrec) aran
-  aran=real(rndm4(),fPrec)
-  i=1
-10  if( aran.gt.cprob(i,ma) ) then
-      i=i+1
-      goto 10
-    end if
-
-    ichoix=i
-    return
-end function ichoix
-
-!>
-!! gettran(inter,xmat,p)
-!! This function determines: GETTRAN - rms transverse momentum transfer
-!! Note: For single-diffractive scattering the vector p of momentum
-!! is modified (energy loss is applied)
-!<
-real(kind=fPrec) function gettran(inter,xmat,p)
-
-  use mathlib_bouncer
-  use mod_ranlux
-
-  implicit none
-
-  integer, intent(in) :: inter,xmat
-  real(kind=fPrec) :: p
-
-  integer :: length
-  real(kind=fPrec) :: t,xm2,bsd
-  real(kind=fPrec) :: truth,xran(1)
-
-  ! Neither if-statements below have an else, so defaultingfuction return to zero.
-  gettran = zero ! -Wmaybe-uninitialized
-
-! inter=2: Nuclear Elastic, 3: pp Elastic, 4: Single Diffractive, 5:Coulomb
-#ifndef MERLINSCATTER
-  if( inter.eq.2 ) then
-    gettran = (-one*log_mb(real(rndm4(),fPrec)))/bn(xmat)
-
-  else if( inter .eq. 3 ) then
-    gettran = (-one*log_mb(real(rndm4(),fPrec)))/bpp
-
-  else if( inter .eq. 4 ) then
-    xm2 = exp_mb( real(rndm4(),fPrec) * xln15s )
-    p = p  * (one - xm2/ecmsq)
-    if( xm2 .lt. two ) then
-      bsd = two * bpp
-    else if (( xm2 .ge. two ).and. ( xm2 .le. five )) then
-      bsd = ((106.0_fPrec-17.0_fPrec*xm2) *  bpp )/ 36.0_fPrec
-!    else if ( xm2 .gt. five ) then
-    else !makes the compiler more happy
-      bsd = (seven * bpp) / 12.0_fPrec
-    end if
-      gettran = (-one*log_mb(real(rndm4(),fPrec)))/bsd
-
-  else if( inter.eq.5 ) then
-    length=1
-    call funlux( cgen(1,mat), xran, length)
-    truth=xran(1)
-    t=real(truth,fPrec)
-    gettran = t
-  end if
-#else
-
-  if( inter.eq.2 ) then
-    gettran = (-one*log_mb(real(rndm4(),fPrec)))/bn(xmat)
-
-  else if( inter .eq. 3 ) then
-    call merlinscatter_get_elastic_t(gettran)
-
-  else if( inter .eq. 4 ) then
-    call merlinscatter_get_sd_xi(xm2)
-    call merlinscatter_get_sd_t(gettran)
-    p = p  * (one - (xm2/ecmsq))
-
-  else if ( inter.eq.5 ) then
-    length=1
-    call funlux( cgen(1,mat) , xran, length)
-    truth=xran(1)
-    t=real(truth,fPrec)
-    gettran = t
-  end if
-
-#endif
-  return
-end function gettran
-
-!>
-!! tetat(t,p,tx,tz)
-!! ???
-!!
-!<
-subroutine tetat(t,p,tx,tz)
-
-  use mod_ranlux
-
-  implicit none
-
-  real(kind=fPrec) t,p,tx,tz,va,vb,va2,vb2,r2,teta
-  teta = sqrt(t)/p
-
-! Generate sine and cosine of an angle uniform in [0,2pi](see RPP)
-10 va  =(two*real(rndm4(),fPrec))-one
-  vb = real(rndm4(),fPrec)
-  va2 = va**2
-  vb2 = vb**2
-  r2 = va2 + vb2
-  if ( r2.gt.one) go to 10
-  tx = teta * ((two*va)*vb) / r2
-  tz = teta * (va2 - vb2) / r2
-  return
-end subroutine tetat
-
-!>
-!! ruth(t)
-!! Calculate the rutherford scattering cross section
-!<
-function ruth(t)
-
-  use mathlib_bouncer
-
-  implicit none
-
-  real(kind=fPrec) ruth,t
-  real(kind=fPrec) cnorm,cnform
-  parameter(cnorm=2.607e-5_fPrec,cnform=0.8561e3_fPrec) ! DM: changed 2.607d-4 to 2.607d-5 to fix Rutherford bug
-
-  ruth=(cnorm*exp_mb(((-one*real(t,fPrec))*cnform)*emr(mcurr)**2))*(zatom(mcurr)/real(t,fPrec))**2
-end function ruth
-
-
-!>
-!! scatin(plab)
-!! Configure the K2 scattering routine cross sections
-!!
-!<
-subroutine scatin(plab)
-  use physical_constants
-  use mathlib_bouncer
-#ifdef HDF5
-  use hdf5_output
-  use hdf5_tracks2
-#endif
-
-  implicit none
-
-  integer ma,i
-  real(kind=fPrec) plab
-  real(kind=fPrec) tlow,thigh
-
-  ecmsq = (two * pmap) * plab
-#ifndef MERLINSCATTER
-  xln15s=log_mb(0.15_fPrec*ecmsq)
-
-!Claudia Fit from COMPETE collaboration points "arXiv:hep-ph/0206172v1 19Jun2002"
-  pptot=0.041084_fPrec-0.0023302_fPrec*log_mb(ecmsq)+0.00031514_fPrec*log_mb(ecmsq)**2
-
-!Claudia used the fit from TOTEM for ppel (in barn)
-  ppel=(11.7_fPrec-1.59_fPrec*log_mb(ecmsq)+0.134_fPrec*log_mb(ecmsq)**2)/c1e3
-
-!Claudia updated SD cross that cointains renormalized pomeron flux (in barn)
-  ppsd=(4.3_fPrec+0.3_fPrec*log_mb(ecmsq))/c1e3
-#endif
-
-#ifdef MERLINSCATTER
-!No crlibm...
-  call merlinscatter_setup(plab,rnd_seed)
-  call merlinscatter_setdata(pptot,ppel,ppsd)
-#endif
-
-!Claudia new fit for the slope parameter with new data at sqrt(s)=7 TeV from TOTEM
-  bpp=7.156_fPrec+1.439_fPrec*log_mb(sqrt(ecmsq))
-
-! unmeasured tungsten data,computed with lead data and power laws
-  bnref(4) = bnref(5)*(anuc(4) / anuc(5))**(two/three)
-  emr(4) = emr(5) * (anuc(4)/anuc(5))**(one/three)
-
-! Compute cross-sections (CS) and probabilities + Interaction length
-! Last two material treated below statement number 100
-
-  tlow=tlcut
-  do ma=1,nrmat
-    mcurr=ma
-! prepare for Rutherford differential distribution
-    thigh=hcut(ma)
-    call funlxp ( ruth , cgen(1,ma) ,tlow, thigh )
-
-! freep: number of nucleons involved in single scattering
-    freep(ma) = freeco * anuc(ma)**(one/three)
-
-! compute pp and pn el+single diff contributions to cross-section
-! (both added : quasi-elastic or qel later)
-    csect(3,ma) = freep(ma) * ppel
-    csect(4,ma) = freep(ma) * ppsd
-
-! correct TOT-CSec for energy dependence of qel
-! TOT CS is here without a Coulomb contribution
-    csect(0,ma) = csref(0,ma) + freep(ma) * (pptot - pptref)
-    bn(ma) = (bnref(ma) * csect(0,ma)) / csref(0,ma)
-! also correct inel-CS
-    csect(1,ma) = (csref(1,ma) * csect(0,ma)) / csref(0,ma)
-!
-! Nuclear Elastic is TOT-inel-qel ( see definition in RPP)
-    csect(2,ma) = ((csect(0,ma) - csect(1,ma)) - csect(3,ma)) - csect(4,ma)
-    csect(5,ma) = csref(5,ma)
-! Now add Coulomb
-    csect(0,ma) = csect(0,ma) + csect(5,ma)
-! Interaction length in meter
-  xintl(ma) = (c1m2*anuc(ma))/(((fnavo * rho(ma))*csect(0,ma))*1d-24)
-
-! Filling CProb with cumulated normalised Cross-sections
-    do i=1,4
-      cprob(i,ma)=cprob(i-1,ma)+csect(i,ma)/csect(0,ma)
-    end do
-  end do
-
-! Last two materials for 'vaccum' (nmat-1) and 'full black' (nmat)
-  cprob(1,nmat-1) = one
-  cprob(1,nmat)   = one
-  xintl(nmat-1)   = c1e12
-  xintl(nmat)     = zero
-  return
-end subroutine scatin
-
-!>
-!! jaw(s,nabs,icoll,iturn,ipart,dowrite_impact)
-!! ???
-!!     RB: adding as input arguments to jaw variables icoll,iturn,ipart
-!!         these are only used for the writeout of particle histories
-!!
-!!++  Input:   ZLM is interaction length
-!!++           MAT is choice of material
-!!
-!!++  Output:  nabs = 1   Particle is absorped
-!!++           nabs = 4   Single-diffractive scattering
-!!++           dpop       Adjusted for momentum loss (dE/dx)
-!!++           s          Exit longitudinal position
-!!
-!!++  Physics:  If monte carlo interaction length greater than input
-!!++            interaction length, then use input interaction length
-!!++            Is that justified???
-!!
-!!     nabs=1....absorption
-!!
-!<
-subroutine jaw(s,nabs,icoll,iturn,ipart,dowrite_impact)
-
-  use mathlib_bouncer
-  use mod_ranlux
-#ifdef HDF5
-  use hdf5_output
-#endif
-
-  implicit none
-
-  integer nabs,inter,iturn,icoll,ipart,nabs_tmp ! RB: added variables icoll,iturn,ipart for writeout
-  logical dowrite_impact
-  real(kind=fPrec) m_dpodx     !CT, RB, DM
-  real(kind=fPrec) p,rlen,s,t,dxp,dzp,p1,zpBef,xpBef,pBef
-!...cne=1/(sqrt(b))
-!...dpodx=dE/(dx*c)
-
-!++  Note that the input parameter is dpop. Here the momentum p is
-!++  constructed out of this input.
-
-  p=p0*(one+dpop)
-  nabs=0
-  nabs_tmp=nabs
-
-  if(mat.eq.nmat) then
-!++  Collimator treated as black absorber
-    nabs=1
-    nabs_tmp=nabs
-    s=zero
-
-    if(dowrite_impact) then
-      ! write coll_scatter.dat for complete scattering histories
-#ifdef HDF5
-      if(h5_useForCOLL) then
-        call coll_hdf5_writeCollScatter(icoll, iturn, ipart, nabs_tmp, -one, zero, zero)
-      else
-#endif
-      write(coll_scatterUnit,'(1x,i2,2x,i4,2x,i5,2x,i1,3(2x,e14.6))') icoll, iturn, ipart, nabs_tmp, -one, zero, zero
-#ifdef HDF5
-      endif
-#endif
-    end if
-    return
-  else if(mat.eq.nmat-1) then
-!++  Collimator treated as drift
-    s=zlm
-    x=x+s*xp
-    z=z+s*zp
-
-    if(dowrite_impact) then
-      ! write coll_scatter.dat for complete scattering histories
-#ifdef HDF5
-      if(h5_useForCOLL) then
-        call coll_hdf5_writeCollScatter(icoll, iturn, ipart, nabs_tmp, -one, zero, zero)
-      else
-#endif
-      write(coll_scatterUnit,'(1x,i2,2x,i4,2x,i5,2x,i1,3(2x,e14.6))') icoll, iturn, ipart, nabs_tmp, -one, zero, zero
-#ifdef HDF5
-      endif
-#endif
-    end if
-
-    return
-  end if
-
-!++  Initialize the interaction length to input interaction length
-  rlen=zlm
-
-!++  Do a step for a point-like interaction. This is a loop with
-!++  label 10!!!
-! - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-!++  Get monte-carlo interaction length.
-
-10  zlm1=(-one*xintl(mat))*log_mb(real(rndm4(),fPrec))
-  nabs_tmp=0 !! type of interaction reset before following scattering process
-  xpBef=xp ! save angles and momentum before scattering
-  zpBef=zp
-  pBef=p
-
-!++  If the monte-carlo interaction length is longer than the
-!++  remaining collimator length, then put it to the remaining
-!++  length, do multiple coulomb scattering and return.
-!++  LAST STEP IN ITERATION LOOP
-  if(zlm1.gt.rlen) then
-    zlm1=rlen
-    call mcs(s)
-    s=(zlm-rlen)+s
-#ifndef MERLINSCATTER
-    call calc_ion_loss(mat,p,rlen,m_dpodx)  ! DM routine to include tail
-    p=p-m_dpodx*s
-#endif
-#ifdef MERLINSCATTER
-!void calc_ion_loss_merlin_(double* p, double* ElectronDensity, double* PlasmaEnergy, double* MeanIonisationEnergy, double* result)
-    call merlinscatter_calc_ion_loss(p,edens(mat), pleng(mat),exenergy(mat),s,m_dpodx)
-    p=p-m_dpodx
-#endif
-
-    dpop=(p-p0)/p0
-    if(dowrite_impact) then
-      ! write coll_scatter.dat for complete scattering histories
-#ifdef HDF5
-      if(h5_useForCOLL) then
-        call coll_hdf5_writeCollScatter(icoll,iturn,ipart,nabs_tmp,(p-pBef)/pBef,xp-xpBef,zp-zpBef)
-      else
-#endif
-      write(coll_scatterUnit,'(1x,i2,2x,i4,2x,i5,2x,i1,3(2x,e18.10))') icoll,iturn,ipart,nabs_tmp,(p-pBef)/pBef,xp-xpBef,zp-zpBef
-#ifdef HDF5
-      endif
-#endif
-    end if
-    return
-  end if
-
-!++  Otherwise do multi-coulomb scattering.
-!++  REGULAR STEP IN ITERATION LOOP
-  call mcs(s)
-
-!++  Check if particle is outside of collimator (X.LT.0) after
-!++  MCS. If yes, calculate output longitudinal position (s),
-!++  reduce momentum (output as dpop) and return.
-!++  PARTICLE LEFT COLLIMATOR BEFORE ITS END.
-  if(x.le.zero) then
-    s=(zlm-rlen)+s
-
-#ifndef MERLINSCATTER
-    call calc_ion_loss(mat,p,rlen,m_dpodx)
-    p=p-m_dpodx*s
-#endif
-#ifdef MERLINSCATTER
-    call merlinscatter_calc_ion_loss(p,edens(mat),pleng(mat),exenergy(mat),s,m_dpodx)
-    p=p-m_dpodx
-#endif
-    dpop=(p-p0)/p0
-
-    if(dowrite_impact) then
-      ! write coll_scatter.dat for complete scattering histories
-#ifdef HDF5
-      if(h5_useForCOLL) then
-        call coll_hdf5_writeCollScatter(icoll,iturn,ipart,nabs_tmp,(p-pBef)/pBef,xp-xpBef,zp-zpBef)
-      else
-#endif
-      write(coll_scatterUnit,'(1x,i2,2x,i4,2x,i5,2x,i1,3(2x,e18.10))') icoll,iturn,ipart,nabs_tmp,(p-pBef)/pBef,xp-xpBef,zp-zpBef
-#ifdef HDF5
-      endif
-#endif
-    end if
-
-    return
-  end if
-
-!++  Check whether particle is absorbed. If yes, calculate output
-!++  longitudinal position (s), reduce momentum (output as dpop)
-!++  and return.
-!++  PARTICLE WAS ABSORBED INSIDE COLLIMATOR DURING MCS.
-
-  inter=ichoix(mat)
-  nabs=inter
-  nabs_tmp=nabs
-
-! RB, DM: save coordinates before interaction for writeout to FLUKA_impacts.dat
-  xInt=x
-  xpInt=xp
-  yInt=z
-  ypInt=zp
-  sInt=(zlm-rlen)+zlm1
-
-  if(inter.eq.1) then
-    s=(zlm-rlen)+zlm1
-
-#ifndef MERLINSCATTER
-    call calc_ion_loss(mat,p,rlen,m_dpodx)
-    p=p-m_dpodx*s
-#endif
-#ifdef MERLINSCATTER
-    call merlinscatter_calc_ion_loss(p,edens(mat),pleng(mat),exenergy(mat),s,m_dpodx)
-    p=p-m_dpodx
-#endif
-
-    dpop=(p-p0)/p0
-
-    ! write coll_scatter.dat for complete scattering histories
-#ifdef HDF5
-    if(h5_useForCOLL) then
-      call coll_hdf5_writeCollScatter(icoll,iturn,ipart,nabs_tmp,-one,zero,zero)
-    else
-#endif
-    write(coll_scatterUnit,'(1x,i2,2x,i4,2x,i5,2x,i1,3(2x,e14.6))') icoll,iturn,ipart,nabs_tmp,-one,zero,zero
-#ifdef HDF5
-    endif
-#endif
-    return
-  end if
-
-!++  Now treat the other types of interaction, as determined by ICHOIX:
-
-!++      Nuclear-Elastic:          inter = 2
-!++      pp Elastic:               inter = 3
-!++      Single-Diffractive:       inter = 4    (changes momentum p)
-!++      Coulomb:                  inter = 5
-
-!++  As the single-diffractive interaction changes the momentum, save
-!++  input momentum in p1.
-  p1 = p
-
-!++  Gettran returns some monte carlo number, that, as I believe, gives
-!++  the rms transverse momentum transfer.
-  t = gettran(inter,mat,p)
-
-!++  Tetat calculates from the rms transverse momentum transfer in
-!++  monte-carlo fashion the angle changes for x and z planes. The
-!++  angle change is proportional to SQRT(t) and 1/p, as expected.
-  call tetat(t,p,dxp,dzp)
-
-!++  Apply angle changes
-  xp=xp+dxp
-  zp=zp+dzp
-
-!++  Treat single-diffractive scattering.
-  if(inter.eq.4) then
-
-!++ added update for s
-    s=(zlm-rlen)+zlm1
-    xpsd=dxp
-    zpsd=dzp
-    psd=p1
-!
-!++  Add this code to get the momentum transfer also in the calling
-!++  routine...
-    dpop=(p-p0)/p0
-  end if
-
-  if(dowrite_impact) then
-    ! write coll_scatter.dat for complete scattering histories.
-    ! Includes changes in angle from both
-#ifdef HDF5
-    if(h5_useForCOLL) then
-      call coll_hdf5_writeCollScatter(icoll,iturn,ipart,nabs_tmp,(p-pBef)/pBef,xp-xpBef,zp-zpBef)
-    else
-#endif
-    write(coll_scatterUnit,'(1x,i2,2x,i4,2x,i5,2x,i1,3(2x,e18.10))') icoll,iturn,ipart,nabs_tmp,(p-pBef)/pBef,xp-xpBef,zp-zpBef
-#ifdef HDF5
-    endif
-#endif
-  end if
-
-!++  Calculate the remaining interaction length and close the iteration
-!++  loop.
-  rlen=rlen-zlm1
-  goto 10
-
-end subroutine jaw
-
-#ifdef HDF5
-subroutine coll_hdf5_writeCollScatter(icoll,iturn,ipart,nabs,dp,dx,dy)
-
-  use hdf5_output
-
-  integer,          intent(in) :: icoll,iturn,ipart,nabs
-  real(kind=fPrec), intent(in) :: dp,dx,dy
-
-  call h5_prepareWrite(coll_hdf5_collScatter, 1)
-  call h5_writeData(coll_hdf5_collScatter, 1, 1, ipart)
-  call h5_writeData(coll_hdf5_collScatter, 2, 1, iturn)
-  call h5_writeData(coll_hdf5_collScatter, 3, 1, icoll)
-  call h5_writeData(coll_hdf5_collScatter, 4, 1, nabs)
-  call h5_writeData(coll_hdf5_collScatter, 5, 1, dp)
-  call h5_writeData(coll_hdf5_collScatter, 6, 1, dx)
-  call h5_writeData(coll_hdf5_collScatter, 7, 1, dy)
-  call h5_finaliseWrite(coll_hdf5_collScatter)
-
-end subroutine coll_hdf5_writeCollScatter
-#endif
-
-!>
-!! mcs(s)
-!!++  Input:   zlm1   Monte-carlo interaction length
-!!
-!!++  Output:  s      Longitudinal position
-!!++           p0     Reference momentum
-!!++           dpop   Relative momentum offset
-!!
-!!     collimator: x>0 and y<zlm1
-!<
-subroutine mcs(s)
-      implicit none
-!      save h,dh,bn
-      real(kind=fPrec) h,dh,theta,rlen0,rlen,ae,be,bn0,s
-      real(kind=fPrec) radl_mat,rad_len ! Claudia 2013 added variables
-
-
-!   bn=sqrt(3)/(number of sigmas for s-determination(=4))
-      data h/.001d0/dh/.0001d0/bn0/.4330127019d0/
-
-      radl_mat=radl(mat)
-      theta=13.6d-3/(p0*(1.d0+dpop))      !Claudia added log part
-      rad_len=radl(mat)                    !Claudia
-
-      x=(x/theta)/radl(mat)
-      xp=xp/theta
-      z=(z/theta)/radl(mat)
-      zp=zp/theta
-      rlen0=zlm1/radl(mat)
-      rlen=rlen0
-10    ae=bn0*x
-      be=bn0*xp
-      call soln3(ae,be,dh,rlen,s)
-      if(s.lt.h) s=h
-      call scamcs(x,xp,s,radl_mat)
-      if(x.le.0.d0) then
-       s=(rlen0-rlen)+s
-       goto 20
-      end if
-      if(s+dh.ge.rlen) then
-       s=rlen0
-       goto 20
-      end if
-      rlen=rlen-s
-      goto 10
-20    call scamcs(z,zp,s,radl_mat)
-      s=s*radl(mat)
-      x=(x*theta)*radl(mat)
-      xp=xp*theta
-      z=(z*theta)*radl(mat)
-      zp=zp*theta
-end subroutine mcs
-
-!>
-!! scamcs(xx,xxp,s,radl_mat)
-!! ???
-!<
-subroutine scamcs(xx,xxp,s,radl_mat)
-
-  use mathlib_bouncer
-  use mod_ranlux
-
-  implicit none
-
-  real(kind=fPrec) v1,v2,r2,a,z1,z2,ss,s,xx,xxp,x0,xp0
-  real(kind=fPrec) radl_mat
-
-  x0=xx
-  xp0=xxp
-
-5 v1=2d0*real(rndm4(),fPrec)-1d0
-  v2=2d0*real(rndm4(),fPrec)-1d0
-  r2=v1**2+v2**2
-  if(r2.ge.1.d0) goto 5
-
-  a=sqrt((-2.d0*log_mb(r2))/r2)
-  z1=v1*a
-  z2=v2*a
-  ss=sqrt(s)
-  xx=x0+s*(xp0+(half*ss)*(one+0.038_fPrec*log_mb(s))*(z2+z1*0.577350269_fPrec)) !Claudia: added logarithmic part in mcs formula
-  xxp=xp0+ss*z2*(one+0.038_fPrec*log_mb(s))
-end subroutine scamcs
-
-!>
-!! soln3(a,b,dh,smax,s)
-!! ???
-!<
-subroutine soln3(a,b,dh,smax,s)
-
-  implicit none
-
-  real(kind=fPrec) b,a,s,smax,c,dh
-  if(b.eq.zero) then
-    s=a**0.6666666666666667_fPrec
-!      s=a**(two/three)
-    if(s.gt.smax) s=smax
-    return
-  end if
-
-  if(a.eq.zero) then
-    if(b.gt.zero) then
-      s=b**2
-    else
-      s=zero
-    end if
-    if(s.gt.smax) s=smax
-    return
-  end if
-
-  if(b.gt.zero) then
-    if(smax**3.le.(a+b*smax)**2) then
-      s=smax
-      return
-    else
-      s=smax*half
-      call iterat(a,b,dh,s)
-    end if
-  else
-    c=(-one*a)/b
-    if(smax.lt.c) then
-      if(smax**3.le.(a+b*smax)**2) then
-        s=smax
-        return
-      else
-        s=smax*half
-        call iterat(a,b,dh,s)
-      end if
-    else
-      s=c*half
-      call iterat(a,b,dh,s)
-    end if
-  end if
-
-end subroutine soln3
-
-subroutine iterat(a,b,dh,s)
-
-  implicit none
-
-  real(kind=fPrec) ds,s,a,b,dh
-
-  ds=s
-10 ds=ds*half
-
-  if(s**3.lt.(a+b*s)**2) then
-    s=s+ds
-  else
-    s=s-ds
-  end if
-
-  if(ds.lt.dh) then
-    return
-  else
-    goto 10
-  end if
-
-end subroutine iterat
-
-!>
-!! get_dpodx(p,mat_i)
-!! calculate mean ionization energy loss according to Bethe-Bloch
-!<
-function get_dpodx(p, mat_i)          !Claudia
-  use physical_constants
-  use mathlib_bouncer
-
-  implicit none
-
-  real(kind=fPrec), intent(in) :: p
-  integer, intent(in) :: mat_i
-
-  real(kind=fPrec) PE,K,gamma_p
-  real(kind=fPrec) beta_p,gamma_s,beta_s,me2,mp2,T,part_1,part_2,I_s,delta
-  parameter(K=0.307075)
-  real(kind=fPrec) get_dpodx
-
-  mp2       = pmap**2
-  me2       = pmae**2
-  beta_p    = one
-  gamma_p   = p/pmap
-  beta_s    = beta_p**2
-  gamma_s   = gamma_p**2
-  T         = (2*pmae*beta_s*gamma_s)/(1+(2*gamma_p*pmae/pmap)+me2/mp2)
-  PE        = sqrt(rho(mat_i)*zatom(mat_i)/anuc(mat_i))*28.816e-9_fPrec
-  I_s       = exenergy(mat_i)**2
-  part_1    = K*zatom(mat_i)/(anuc(mat_i)*beta_s)
-  delta     = log_mb(PE/exenergy(mat_i))+log_mb(beta_p*gamma_p)-half
-  part_2    = half*log_mb((two*pmae*beta_s*gamma_s*T)/I_s)
-  get_dpodx = part_1*(part_2-beta_s-delta)*rho(mat_i)*c1m1
-  return
-end function get_dpodx
-
-!>
-!! CalcElectronDensity(AtomicNumber, Density, AtomicMass)
-!! Function to calculate the electron density in a material
-!! Should give the number per cubic meter
-!<
-function CalcElectronDensity(AtomicNumber, Density, AtomicMass)
-  implicit none
-
-  real(kind=fPrec) AtomicNumber, Density, AtomicMass
-  real(kind=fPrec) Avogadro
-  real(kind=fPrec) CalcElectronDensity
-  real(kind=fPrec) PartA, PartB
-  parameter (Avogadro = 6.022140857e23_fPrec)
-  PartA = AtomicNumber * Avogadro * Density
-  !1e-6 factor converts to n/m^-3
-  PartB = AtomicMass * c1m6
-  CalcElectronDensity = PartA/PartB
-  return
-end function CalcElectronDensity
-
-!>
-!! CalcPlasmaEnergy(ElectronDensity)
-!! Function to calculate the plasma energy in a material
-!! CalculatePlasmaEnergy = (PlanckConstantBar * sqrt((ElectronDensity *(ElectronCharge**2)) / &
-!!& (ElectronMass * FreeSpacePermittivity)))/ElectronCharge*eV;
-!<
-function CalcPlasmaEnergy(ElectronDensity)
-
-  implicit none
-
-  real(kind=fPrec) ElectronDensity
-  real(kind=fPrec) CalcPlasmaEnergy
-  real(kind=fPrec) sqrtAB,PartA,PartB,FSPC2
-
-  !Values from the 2016 PDG
-  real(kind=fPrec) PlanckConstantBar,ElectronCharge,ElectronMass
-  real(kind=fPrec) ElectronCharge2
-  real(kind=fPrec) FreeSpacePermittivity,FreeSpacePermeability
-  real(kind=fPrec) SpeedOfLight,SpeedOfLight2
-
-  parameter (PlanckConstantBar = 1.054571800e-34_fPrec)
-  parameter (ElectronCharge = 1.6021766208e-19_fPrec)
-  parameter (ElectronCharge2 = ElectronCharge*ElectronCharge)
-  parameter (ElectronMass = 9.10938356e-31_fPrec)
-  parameter (SpeedOfLight = 299792458.0_fPrec)
-  parameter (SpeedOfLight2 = SpeedOfLight*SpeedOfLight)
-
-  parameter (FreeSpacePermeability = 16.0e-7_fPrec*atan(one)) ! Henry per meter
-  parameter (FSPC2 = FreeSpacePermeability*SpeedOfLight2)
-  parameter (FreeSpacePermittivity = one/FSPC2)
-  parameter (PartB = ElectronMass * FreeSpacePermittivity)
-
-  PartA = ElectronDensity * ElectronCharge2
-
-  sqrtAB = sqrt(PartA/PartB)
-  CalcPlasmaEnergy=PlanckConstantBar*sqrtAB/ElectronCharge*c1m9
-  return
-end function CalcPlasmaEnergy
-
-!>
-!! calc_ion_loss(IS,PC,DZ,EnLo)
-!! subroutine for the calculazion of the energy loss by ionization
-!! Either mean energy loss from Bethe-Bloch, or higher energy loss, according to finite probability from cross section
-!! written by DM for crystals, introduced in main code by RB
-!<
-subroutine calc_ion_loss(IS, PC, DZ, EnLo)
-
-! IS material ID
-! PC momentum in GeV
-! DZ length traversed in material (meters)
-! EnLo energy loss in GeV/meter
-
-  use physical_constants
-  use mathlib_bouncer
-  use mod_ranlux
-
-  implicit none
-
-  integer IS
-
-  real(kind=fPrec) PC,DZ,EnLo,exEn
-  real(kind=fPrec) k !Daniele: parameters for dE/dX calculation (const,electron radius,el. mass, prot.mass)
-  real(kind=fPrec) enr,mom,betar,gammar,bgr !Daniele: energy,momentum,beta relativistic, gamma relativistic
-  real(kind=fPrec) Tmax,plen !Daniele: maximum energy tranfer in single collision, plasma energy (see pdg)
-  real(kind=fPrec) thl,Tt,cs_tail,prob_tail
-  real(kind=fPrec) ranc
-
-  data k/0.307075_fPrec/      !constant in front bethe-bloch [MeV g^-1 cm^2]
-! The following values are now taken from physical_constants
-!  data re/2.818d-15/    !electron radius [m]
-!  data me/0.510998910/  !electron mass [MeV/c^2]
-!  data mp/938.272013/   !proton mass [MeV/c^2]
-
-  mom    = PC*c1e3                    ! [GeV/c] -> [MeV/c]
-  enr    = (mom*mom+pmap*pmap)**half  ! [MeV]
-  gammar = enr/pmap
-  betar  = mom/enr
-  bgr    = betar*gammar
-
-! mean excitation energy - convert to MeV
-  exEn=exenergy(IS)*c1e3
-
-! Tmax is max energy loss from kinematics
-  Tmax=(two*pmae*bgr**2)/(one+two*gammar*pmae/pmap+(pmae/pmap)**2) ![MeV]
-
-! plasma energy - see PDG 2010 table 27.1
-  plen = ((rho(IS)*zatom(IS)/anuc(IS))**half)*28.816e-6_fPrec ![MeV]
-
-! calculate threshold energy
-! Above this threshold, the cross section for high energy loss is calculated and then
-! a random number is generated to determine if tail energy loss should be applied, or only mean from Bethe-Bloch
-! below threshold, only the standard bethe-bloch is used (all particles get average energy loss)
-
-! thl is 2* width of landau distribution (as in fig 27.7 in PDG 2010). See Alfredo's presentation for derivation
-  thl = four*k*zatom(IS)*DZ*c1e2*rho(IS)/(anuc(IS)*betar**2) ![MeV]
-!     write(3456,*) thl     ! should typically be >0.06MeV for approximations to be valid - check!
-
-! Bethe Bloch mean energy loss
-  EnLo = ((k*zatom(IS))/(anuc(IS)*betar**2))*(half*log_mb((two*pmae*bgr*bgr*Tmax)/(exEn*exEn))-betar**two-&
-& log_mb(plen/exEn)-log_mb(bgr)+half)
-
-  EnLo = EnLo*rho(IS)*c1m1*DZ  ![GeV]
-
-! threshold Tt is bethe bloch + 2*width of Landau distribution
-  Tt = EnLo*c1e3+thl      ![MeV]
-
-! cross section - see Alfredo's presentation for derivation
-  cs_tail = ((k*zatom(IS))/(anuc(IS)*betar**2))*((half*((one/Tt)-(one/Tmax)))-(log_mb(Tmax/Tt)*(betar**2) &
- &        /(two*Tmax))+((Tmax-Tt)/(four*(gammar**2)*(pmap**2))))
-
-! probability of being in tail: cross section * density * path length
-  prob_tail = cs_tail*rho(IS)*DZ*c1e2;
-
-  ranc = real(rndm4(),fPrec)
-
-! determine based on random number if tail energy loss occurs.
-  if(ranc.lt.prob_tail) then
-    EnLo = ((k*zatom(IS))/(anuc(IS)*betar**2))*(half*log_mb((two*pmae*bgr*bgr*Tmax)/(exEn*exEn))-betar**two- &
- &       log_mb(plen/exEn)-log_mb(bgr)+half+(TMax**2)/(eight*(gammar**2)*(pmap**2)))
-
-    EnLo = EnLo*rho(IS)*c1m1 ![GeV/m]
-  else
-    ! if tial energy loss does not occur, just use the standard Bethe Bloch
-    EnLo = EnLo/DZ  ![GeV/m]
-  endif
-
-  RETURN
-
-end subroutine calc_ion_loss
-
-!========================================================================
-!
-!     RB: new routine to sample part of matched phase ellipse which is outside
-!     the cut of the jaws
-!     Assuming cut of the jaw at mynex for hor plane.
-!     largest amplitude outside of jaw is mynex + mdex.  Analog for vertical plane.
-
-!     same routine as makedis_st, but rejection sampling to get
-!     only particles hitting the collimator on the same turn.
-
-!     Treat as a pencil beam in main routine.
-
-subroutine makedis_coll(myalphax, myalphay, mybetax, mybetay, mynex, myney)
-
-  use crcoall
-  use mathlib_bouncer
-  use mod_ranlux
-  use mod_common, only : napx
-  use mod_common_main, only : xv1, xv2, yv1, yv2, ejv, sigmv
-  use coll_dist
-
-  implicit none
-
-  integer :: j
-
-  real(kind=fPrec) myalphax,mybetax,myemitx0,myemitx,mynex,myalphay,mybetay,&
-    myemity0,myemity,myney,xsigmax,ysigmay
-
-  real(kind=fPrec) iix, iiy, phix,phiy,cutoff
-
-  myemitx0 = myemitx0_collgap
-  myemity0 = myemity0_collgap
-
-  ! Calculate cutoff in x or y from the collimator jaws.
-  if((mynex.gt.zero).and.(myney.eq.zero)) then
-    cutoff=mynex*sqrt(mybetax*myemitx0)
-  else
-    cutoff=myney*sqrt(mybetay*myemity0)
-  end if
-
-  do j=1,napx
-    if(mynex > zero .and. myney == zero) then ! halo in x
-10    continue
-      myemitx = myemitx0*(mynex+(rndm4()*cdist_smearX))**2
-      xsigmax = sqrt(mybetax*myemitx)
-      xv1(j)  = xsigmax * sin_mb(twopi*rndm4())
-      if(abs(xv1(j)).lt.cutoff) goto 10
-
-      if(rndm4() > half) then
-        yv1(j) = sqrt(myemitx/mybetax-xv1(j)**2/mybetax**2)-(myalphax*xv1(j))/mybetax
-      else
-        yv1(j) = -one*sqrt(myemitx/mybetax-xv1(j)**2/mybetax**2)-(myalphax*xv1(j))/mybetax
-      end if
-
-      phiy   = twopi*rndm4()
-      iiy    = (-one*myemity0) * log_mb(rndm4())
-      xv2(j) = sqrt((two*iiy)*mybetay) * cos_mb(phiy)
-      yv2(j) = (-one*sqrt((two*iiy)/mybetay)) * (sin_mb(phiy) + myalphay * cos_mb(phiy))
-
-    else if(mynex == zero .and. myney > zero) then ! halo in y
-20    continue
-      myemity = myemity0*(myney+(rndm4()*cdist_smearY))**2
-      ysigmay = sqrt(mybetay*myemity)
-      xv2(j)  = ysigmay * sin_mb(twopi*rndm4())
-      if(abs(xv2(j)).lt.cutoff) goto 20
-
-      if(rndm4() > half) then
-        yv2(j) = sqrt(myemity/mybetay-xv2(j)**2/mybetay**2)-(myalphay*xv2(j))/mybetay
-      else
-        yv2(j) = -one*sqrt(myemity/mybetay-xv2(j)**2/mybetay**2)-(myalphay*xv2(j))/mybetay
-      end if
-
-      phix   = twopi*rndm4()
-      iix    = (-one* myemitx0) * log_mb(rndm4())
-      xv1(j) = sqrt((two*iix)*mybetax) * cos_mb(phix)
-      yv1(j) = (-one*sqrt((two*iix)/mybetax)) * (sin_mb(phix) + myalphax * cos_mb(phix))
-
-    ! nominal bunches centered in the aperture - can't apply rejection sampling. return with error
-    else if(mynex == zero .and. myney == zero) then
-      write(lerr,"(a)") "COLL> ERROR in makedis_coll. Attempting to use halo type 3 with Gaussian dist."
-      call prror
-    else
-      write(lerr,"(a)") "COLL> ERROR Beam parameters not correctly set!"
-    end if
-
-    ejv(j)   = myenom
-    sigmv(j) = zero
-  end do
-
-end subroutine makedis_coll
-
-!cccccccccccccccccccccccccccccccccccccccccccccccccc
-subroutine funlxp (func,xfcum,x2low,x2high)
-!         F. JAMES,   Sept, 1994
-!
-!         Prepares the user function FUNC for FUNLUX
-!         Inspired by and mostly copied from FUNPRE and FUNRAN
-!         except that
-!    1. FUNLUX uses RANLUX underneath,
-!    2. FUNLXP expands the first and last bins to cater for
-!              functions with long tails on left and/or right,
-!    3. FUNLXP calls FUNPCT to do the actual finding of percentiles.
-!    4. both FUNLXP and FUNPCT use RADAPT for Gaussian integration.
-!
-      use crcoall
-      implicit none
-      external func
-      integer ifunc,ierr
-      real(kind=fPrec) x2high,x2low,xfcum,rteps,xhigh,xlow,xrange,uncert,x2,tftot1,x3,tftot2,func
-      dimension xfcum(200)
-      parameter (rteps=0.0002)
-      save ifunc
-      data ifunc/0/
-      ifunc = ifunc + 1
-!         FIND RANGE WHERE FUNCTION IS NON-ZERO.
-      call funlz(func,x2low,x2high,xlow,xhigh)
-      xrange = xhigh-xlow
-      if(xrange .le. 0.)  then
-        write(lout,'(A,2G15.5)') ' FUNLXP finds function range .LE.0',xlow,xhigh
-        go to 900
-      endif
-      call radapt(func,xlow,xhigh,1,rteps,zero,tftot ,uncert)
-!      WRITE(6,1003) IFUNC,XLOW,XHIGH,TFTOT
-! 1003 format(' FUNLXP: integral of USER FUNCTION', i3,' from ',e12.5,' to ',e12.5,' is ',e14.6)
-!
-!      WRITE (6,'(A,A)') ' FUNLXP preparing ',
-!     + 'first the whole range, then left tail, then right tail.'
-      call funpct(func,ifunc,xlow,xhigh,xfcum,1,99,tftot,ierr)
-      if (ierr .gt. 0)  go to 900
-      x2 = xfcum(3)
-      call radapt(func,xlow,x2,1,rteps,zero,tftot1 ,uncert)
-      call funpct(func,ifunc,xlow,x2 ,xfcum,101,49,tftot1,ierr)
-      if (ierr .gt. 0)  go to 900
-      x3 = xfcum(98)
-      call radapt(func,x3,xhigh,1,rteps,zero,tftot2 ,uncert)
-      call funpct(func,ifunc,x3,xhigh,xfcum,151,49,tftot2,ierr)
-      if (ierr .gt. 0)  go to 900
-!      WRITE(6,1001) IFUNC,XLOW,XHIGH
-! 1001 format(' FUNLXP has prepared USER FUNCTION', i3, ' between',g12.3,' and',g12.3,' for FUNLUX')
-
-      return
-  900 continue
-      write(lout,*) ' Fatal error in FUNLXP. FUNLUX will not work.'
-end subroutine funlxp
-
-subroutine funpct(func,ifunc,xlow,xhigh,xfcum,nlo,nbins,tftot,ierr)
-!        Array XFCUM is filled from NLO to NLO+NBINS, which makes
-!        the number of values NBINS+1, or the number of bins NBINS
-      use crcoall
-      implicit none
-      external func
-      integer ierr,nbins,nlo,ifunc,nz,ibin,maxz,iz,nitmax,ihome
-      real(kind=fPrec) tftot,xhigh,xlow,func,xfcum,rteps,tpctil,tz,tzmax,x,f,tcum,  &
-     &x1,f1,dxmax,fmin,fminz,xincr,tincr,xbest,dtbest,tpart,x2,precis,  &
-     &refx,uncert,tpart2,dtpar2,dtabs,aberr
-      dimension xfcum(*)
-      parameter (rteps=0.005, nz=10, maxz=20, nitmax=6,precis=1e-6)
-!      DOUBLE PRECISION TPCTIL, TZ, TCUM, XINCR, DTABS,
-!     &  TINCR, TZMAX, XBEST, DTBEST, DTPAR2
-!
-      ierr = 0
-      if (tftot .le. 0.) go to 900
-      tpctil = tftot/real(nbins)
-      tz = tpctil/real(nz)
-      tzmax = tz * 2.
-      xfcum(nlo) = xlow
-      xfcum(nlo+nbins) = xhigh
-      x = xlow
-      f = func(x)
-      if (f .lt. 0.) go to 900
-!         Loop over percentile bins
-      do 600 ibin = nlo, nlo+nbins-2
-      tcum = 0.
-      x1 = x
-      f1 = f
-      dxmax = (xhigh -x) / nz
-      fmin = tz/dxmax
-      fminz = fmin
-!         Loop over trapezoids within a supposed percentil
-      do 500 iz= 1, maxz
-      xincr = tz/max(f1,fmin,fminz)
-  350 x = x1 + xincr
-      f = func(x)
-      if (f .lt. 0.) go to 900
-      tincr = ((x-x1) * 0.5) * (f+f1)
-      if (tincr .lt. tzmax) go to 370
-      xincr = xincr * 0.5
-      go to 350
-  370 continue
-      tcum = tcum + tincr
-      if (tcum .ge. tpctil*0.99) go to 520
-      fminz = (tz*f)/ (tpctil-tcum)
-      f1 = f
-      x1 = x
-  500 continue
-      write(lout,*) ' FUNLUX:  WARNING. FUNPCT fails trapezoid.'
-!         END OF TRAPEZOID LOOP
-!         Adjust interval using Gaussian integration with
-!             Newton corrections since F is the derivative
-  520 continue
-      x1 = xfcum(ibin)
-      xbest = x
-      dtbest = tpctil
-      tpart = tpctil
-!         Allow for maximum NITMAX more iterations on RADAPT
-      do 550 ihome= 1, nitmax
-  535 xincr = (tpctil-tpart) / max(f,fmin)
-      x = xbest + xincr
-      x2 = x
-        if (ihome .gt. 1 .and. x2 .eq. xbest) then
-        write(lout,'(A,G12.3)') ' FUNLUX: WARNING from FUNPCT: insufficient precision at X=',x
-        go to 580
-        endif
-      refx = abs(x)+precis
-      call radapt(func,x1,x2,1,rteps,zero,tpart2,uncert)
-      dtpar2 = tpart2-tpctil
-      dtabs = abs(dtpar2)
-      if(abs(xincr)/refx .lt. precis) goto 545
-      if(dtabs .lt. dtbest) goto 545
-      xincr = xincr * 0.5
-      goto 535
-  545 dtbest = dtabs
-      xbest = x
-      tpart = tpart2
-      f = func(x)
-      if(f .lt. 0.) goto 900
-      if(dtabs .lt. rteps*tpctil) goto 580
-  550 continue
-      write(lout,'(A,I4)') ' FUNLUX: WARNING from FUNPCT: cannot converge, bin',ibin
-
-  580 continue
-      xincr = (tpctil-tpart) / max(f,fmin)
-      x = xbest + xincr
-      xfcum(ibin+1) = x
-      f = func(x)
-      if(f .lt. 0.) goto 900
-  600 continue
-!         END OF LOOP OVER BINS
-      x1 = xfcum((nlo+nbins)-1)
-      x2 = xhigh
-      call radapt(func,x1,x2,1,rteps,zero,tpart ,uncert)
-      aberr = abs(tpart-tpctil)/tftot
-!      WRITE(6,1001) IFUNC,XLOW,XHIGH
-      if(aberr .gt. rteps)  write(lout,1002) aberr
-      return
-  900 write(lout,1000) x,f
-      ierr = 1
-      return
- 1000 format(/' FUNLUX fatal error in FUNPCT: function negative:'/      &
-&,' at X=',e15.6,', F=',e15.6/)
-! 1001 FORMAT(' FUNPCT has prepared USER FUNCTION',I3,
-!     + ' between',G12.3,' and',G12.3,' for FUNLUX.')
- 1002 format(' WARNING: Relative error in cumulative distribution may be as big as',f10.7)
-
-end subroutine funpct
-
-!cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
-
-subroutine funlux(array,xran,len)
-!         Generation of LEN random numbers in any given distribution,
-!         by 4-point interpolation in the inverse cumulative distr.
-!         which was previously generated by FUNLXP
-  use mod_ranlux
-  implicit none
-      integer len,ibuf,j,j1
-      real(kind=fPrec) array,xran,gap,gapinv,tleft,bright,gaps,gapins,x,p,a,b
-      dimension array(200)
-      dimension xran(len)
-!  Bin width for main sequence, and its inverse
-      parameter (gap= 1./99.,  gapinv=99.)
-!  Top of left tail, bottom of right tail (each tail replaces 2 bins)
-      parameter (tleft= 2./99.,bright=97./99.)
-!  Bin width for minor sequences (tails), and its inverse
-      parameter (gaps=tleft/49.,  gapins=1./gaps)
-!
-!   The array ARRAY is assumed to have the following structure:
-!        ARRAY(1-100) contains the 99 bins of the inverse cumulative
-!                     distribution of the entire function.
-!        ARRAY(101-150) contains the 49-bin blowup of main bins
-!                       1 and 2 (left tail of distribution)
-!        ARRAY(151-200) contains the 49-bin blowup of main bins
-!                       98 and 99 (right tail of distribution)
-!
-      x = zero ! -Wmaybe-uninitialized
-      call ranlux(xran,len)
-!      call ranecu(xran,len,-1)
-
-      do 500 ibuf= 1, len
-      x = xran(ibuf)
-      j = int(  x    *gapinv) + 1
-      if (j .lt. 3)  then
-         j1 = int( x *gapins)
-             j = j1 + 101
-             j = max(j,102)
-             j = min(j,148)
-         p = (   x -gaps*real(j1-1)) * gapins
-         a = (p+1.0) * array(j+2) - (p-2.0)*array(j-1)
-         b = (p-1.0) * array(j) - p * array(j+1)
-      xran(ibuf) = ((a*p)*(p-1.0))*0.16666667 + ((b*(p+1.))*(p-2.))*0.5
-      else if (j .gt. 97)  then
-         j1 = int((x-bright)*gapins)
-             j = j1 + 151
-             j = max(j,152)
-             j = min(j,198)
-         p = ((x -bright) -gaps*(j1-1)) * gapins
-         a = (p+1.0) * array(j+2) - (p-2.0)*array(j-1)
-         b = (p-1.0) * array(j) - p * array(j+1)
-      xran(ibuf) = ((a*p)*(p-1.0))*0.16666667 + ((b*(p+1.))*(p-2.))*0.5
-      else
-!      J = MAX(J,2)
-!      J = MIN(J,98)
-         p = (   x -gap*real(j-1)) * gapinv
-         a = (p+1.) * array(j+2) - (p-2.)*array(j-1)
-         b = (p-1.) * array(j) - p * array(j+1)
-      xran(ibuf) = ((a*p)*(p-1.))*0.16666667 + ((b*(p+1.))*(p-2.))*0.5
-      endif
-  500 continue
-      tftot = x
-      return
-end subroutine funlux
-
-subroutine funlz(func,x2low,x2high,xlow,xhigh)
-! FIND RANGE WHERE FUNC IS NON-ZERO.
-! WRITTEN 1980, F. JAMES
-! MODIFIED, NOV. 1985, TO FIX BUG AND GENERALIZE
-! TO FIND SIMPLY-CONNECTED NON-ZERO REGION (XLOW,XHIGH)
-! ANYWHERE WITHIN THE GIVEN REGION (X2LOW,H2HIGH).
-!    WHERE 'ANYWHERE' MEANS EITHER AT THE LOWER OR UPPER
-!    EDGE OF THE GIVEN REGION, OR, IF IN THE MIDDLE,
-!    COVERING AT LEAST 1% OF THE GIVEN REGION.
-! OTHERWISE IT IS NOT GUARANTEED TO FIND THE NON-ZERO REGION.
-! IF FUNCTION EVERYWHERE ZERO, FUNLZ SETS XLOW=XHIGH=0.
-      use crcoall
-      implicit none
-      external func
-      integer logn,nslice,i,k
-      real(kind=fPrec) xhigh,xlow,x2high,x2low,func,xmid,xh,xl,xnew
-      xlow = x2low
-      xhigh = x2high
-!         FIND OUT IF FUNCTION IS ZERO AT ONE END OR BOTH
-      xmid = xlow
-      if (func(xlow) .gt. 0.) go to 120
-      xmid = xhigh
-      if (func(xhigh) .gt. 0.)  go to 50
-!         FUNCTION IS ZERO AT BOTH ENDS,
-!         LOOK FOR PLACE WHERE IT IS NON-ZERO.
-      do 30 logn= 1, 7
-      nslice = 2**logn
-      do 20 i= 1, nslice, 2
-      xmid = xlow + (real(i) * (xhigh-xlow)) / real(nslice)
-      if (func(xmid) .gt. 0.)  go to 50
-   20 continue
-   30 continue
-!         FALLING THROUGH LOOP MEANS CANNOT FIND NON-ZERO VALUE
-      write(lout,554)
-      write(lout,555) xlow, xhigh
-      xlow = 0.
-      xhigh = 0.
-      go to 220
-!
-   50 continue
-!         DELETE 'LEADING' ZERO RANGE
-      xh = xmid
-      xl = xlow
-      do 70 k= 1, 20
-      xnew = 0.5*(xh+xl)
-      if (func(xnew) .eq. 0.) go to 68
-      xh = xnew
-      go to 70
-   68 xl = xnew
-   70 continue
-      xlow = xl
-      write(lout,555) x2low,xlow
-  120 continue
-      if (func(xhigh) .gt. 0.) go to 220
-!         DELETE 'TRAILING' RANGE OF ZEROES
-      xl = xmid
-      xh = xhigh
-      do 170 k= 1, 20
-      xnew = 0.5*(xh+xl)
-      if (func(xnew) .eq. 0.) go to 168
-      xl = xnew
-      go to 170
-  168 xh = xnew
-  170 continue
-      xhigh = xh
-      write(lout,555) xhigh, x2high
-!
-  220 continue
-      return
-  554 format('0CANNOT FIND NON-ZERO FUNCTION VALUE')
-  555 format(' FUNCTION IS ZERO FROM X=',e12.5,' TO ',e12.5)
-end subroutine funlz
-
-!ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
-subroutine radapt(f,a,b,nseg,reltol,abstol,res,err)
-
-! RES = Estimated Integral of F from A to B,
-! ERR = Estimated absolute error on RES.
-! NSEG  specifies how the adaptation is to be done:
-!    =0   means use previous binning,
-!    =1   means fully automatic, adapt until tolerance attained.
-!    =n>1 means first split interval into n equal segments,
-!         then adapt as necessary to attain tolerance.
-! The specified tolerances are:
-!        relative: RELTOL ;  absolute: ABSTOL.
-!    It stop s when one OR the other is satisfied, or number of
-!    segments exceeds NDIM.  Either TOLA or TOLR (but not both!)
-!    can be set to zero, in which case only the other is used.
-
-      implicit none
-
-      external f
-      integer nseg,ndim,nter,nsegd,i,iter,ibig
-      real(kind=fPrec) err,res,abstol,reltol,b,a,xlo,xhi,tval,ters,te,root,xhib,bin,xlob,bige,hf,xnew,r1,f
-      real(kind=fPrec) tvals,terss
-
-      parameter (ndim=100)
-      parameter (r1 = 1., hf = r1/2.)
-
-      dimension xlo(ndim),xhi(ndim),tval(ndim),ters(ndim)
-      save xlo,xhi,tval,ters,nter
-      data nter /0/
-
-      if(nseg .le. 0)  then
-       if(nter .eq. 0) then
-        nsegd=1
-        go to 2
-       endif
-       tvals=zero
-       terss=zero
-       do 1 i = 1,nter
-       call rgs56p(f,xlo(i),xhi(i),tval(i),te)
-       ters(i)=te**2
-       tvals=tvals+tval(i)
-       terss=terss+ters(i)
-    1  continue
-       root= sqrt(two*terss)
-       go to 9
-      endif
-      nsegd=min(nseg,ndim)
-    2 xhib=a
-      bin=(b-a)/real(nsegd,fPrec)
-      do 3 i = 1,nsegd
-      xlo(i)=xhib
-      xlob=xlo(i)
-      xhi(i)=xhib+bin
-      if(i .eq. nsegd) xhi(i)=b
-      xhib=xhi(i)
-      call rgs56p(f,xlob,xhib,tval(i),te)
-      ters(i)=te**2
-    3 continue
-      nter=nsegd
-      do 4 iter = 1,ndim
-      tvals=tval(1)
-      terss=ters(1)
-      do 5 i = 2,nter
-      tvals=tvals+tval(i)
-      terss=terss+ters(i)
-    5 continue
-      root=sqrt(two*terss)
-
-      if(root .le. abstol .or. root .le. reltol*abs(tvals)) then
-        goto 9
-      end if
-
-      if(nter .eq. ndim) go to 9
-      bige=ters(1)
-      ibig=1
-      do 6 i = 2,nter
-      if(ters(i) .gt. bige) then
-       bige=ters(i)
-       ibig=i
-      endif
-    6 continue
-      nter=nter+1
-      xhi(nter)=xhi(ibig)
-      xnew=hf*(xlo(ibig)+xhi(ibig))
-      xhi(ibig)=xnew
-      xlo(nter)=xnew
-      call rgs56p(f,xlo(ibig),xhi(ibig),tval(ibig),te)
-      ters(ibig)=te**2
-      call rgs56p(f,xlo(nter),xhi(nter),tval(nter),te)
-      ters(nter)=te**2
-    4 continue
-    9 res=tvals
-      err=root
-      return
-end subroutine radapt
-
-!cccccccccccccccccccccccccccccccccccccccccccccccccccccc
-subroutine rgs56p(f,a,b,res,err)
-
-  implicit none
-
-  integer i
-  real(kind=fPrec) err,res,b,a,f,w6,x6,w5,x5,rang,r1,hf
-  real(kind=fPrec) e5,e6
-
-  parameter (r1 = 1., hf = r1/2.)
-  dimension x5(5),w5(5),x6(6),w6(6)
-
-  data (x5(i),w5(i),i=1,5)                                          &
- &/4.6910077030668004e-02, 1.1846344252809454e-01,                  &
- &2.3076534494715846e-01, 2.3931433524968324e-01,                   &
- &5.0000000000000000e-01, 2.8444444444444444e-01,                   &
- &7.6923465505284154e-01, 2.3931433524968324e-01,                   &
- &9.5308992296933200e-01, 1.1846344252809454e-01/
-
-  data (x6(i),w6(i),i=1,6)                                          &
- &/3.3765242898423989e-02, 8.5662246189585178e-02,                  &
- &1.6939530676686775e-01, 1.8038078652406930e-01,                   &
- &3.8069040695840155e-01, 2.3395696728634552e-01,                   &
- &6.1930959304159845e-01, 2.3395696728634552e-01,                   &
- &8.3060469323313225e-01, 1.8038078652406930e-01,                   &
- &9.6623475710157601e-01, 8.5662246189585178e-02/
-
-  rang=b-a
-  e5=zero
-  e6=zero
-  do i = 1,5
-    e5=e5+dble(w5(i)*f(a+rang*x5(i)))
-    e6=e6+dble(w6(i)*f(a+rang*x6(i)))
-  end do
-
-  e6=e6+dble(w6(6)*f(a+rang*x6(6)))
-  res=real((dble(hf)*(e6+e5))*dble(rang))
-  err=real(abs((e6-e5)*dble(rang)))
-  return
-end subroutine rgs56p
-
-!*********************************************************************
-!
-! Define INTEGER function MCLOCK that can differ from system to system
-! For re-initializtion of random generator
-!
-!*********************************************************************
-integer function mclock_liar( )
-  use crcoall
-  implicit none
-
-  save
-
-  integer    mclock
-  integer    count_rate, count_max
-  logical    clock_ok
-
-!        MCLOCK_LIAR = MCLOCK()
-
-  clock_ok = .true.
-
-  if (clock_ok) then
-    call system_clock( mclock, count_rate, count_max )
-    if ( count_max .eq. 0 ) then
-      clock_ok = .false.
-      write(lout,"(a)") 'COLL> System Clock not present or not Responding'
-      write(lout,"(a)") 'COLL> R.N.G. Reseed operation disabled.'
-    endif
-  endif
-
-  mclock_liar = mclock
-
-  return
-end function mclock_liar
 
 end module collimation
