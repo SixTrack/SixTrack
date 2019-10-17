@@ -662,9 +662,9 @@ subroutine thin6d(nthinerr)
 #ifdef BEAMGAS
       !YIL Call beamGas subroutine whenever a pressure-element is found
       ! should be faster/safer to first check the turn then do the name search
-      if( iturn.eq.1 ) then
-        if (bez(myix)(1:5).eq.'PRESS' .or.  bez(myix)(1:5).eq.'press' ) then
-          call beamGas(myix,secondary,dcum(i),myenom)
+      if(n == 1) then
+        if(bez(myix)(1:5) == "PRESS" .or. bez(myix)(1:5) == "press") then
+          call beamGas(myix,secondary,dcum(i),myenom,n,i)
         end if
       end if
 #endif
