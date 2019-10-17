@@ -10,6 +10,7 @@ module coll_crystal
   use floatPrecision
   use numerical_constants
   use coll_materials, only : nmat
+  use physical_constants, only : pmap
 
   implicit none
 
@@ -40,7 +41,7 @@ module coll_crystal
 
   real(kind=fPrec), parameter :: re  = 2.818d-15   ! electron radius [m]
   real(kind=fPrec), parameter :: me  = 0.510998910 ! electron mass [MeV/c^2]
-  real(kind=fPrec), parameter :: mp  = 938.272013  ! proton mass [MeV/c^2]
+  real(kind=fPrec), parameter :: mp  = pmap  ! proton mass [MeV/c^2]
 
   real(kind=fPrec), parameter :: aTF = 0.194d-10   ! Screening function [m]
   real(kind=fPrec), parameter :: dP  = 1.92d-10    ! Distance between planes (110) [m]
@@ -1404,7 +1405,7 @@ subroutine move_am(is,nam,dz,dei,dly,dlr,xp,yp,pc)
 
   ! New treatment of scattering routine based on standard sixtrack routine
   ! useful calculations for cross-section and event topology calculation
-  ecmsq  = two*0.93828_fPrec*pc
+  ecmsq  = two*pmap*c1m3*pc
   xln15s = log(0.15*ecmsq)
 
   ! New models, see Claudia's thesis
@@ -1543,6 +1544,7 @@ subroutine move_ch(is,nam,dz,x,xp,yp,pc,r,rc)
   use coll_common, only : coll_debug
   use coll_crystal
   use coll_materials, only : nmat, rho, anuc, hcut, bnref, csref, csect
+  use physical_constants
 
   implicit none
 
@@ -1569,7 +1571,7 @@ subroutine move_ch(is,nam,dz,x,xp,yp,pc,r,rc)
   ! New treatment of scattering routine based on standard sixtrack routine
 
   ! Useful calculations for cross-section and event topology calculation
-  ecmsq = 2*0.93828d0*pc
+  ecmsq = two*pmap*c1m3*pc
   xln15s=log(0.15*ecmsq)
 
   ! New models, see Claudia's thesis
@@ -1590,10 +1592,10 @@ subroutine move_ch(is,nam,dz,x,xp,yp,pc,r,rc)
   x_i = x_i - Np*dP    ! Rescale the incoming x at the left crystalline plane
   x_i = x_i - (dP/two) ! Rescale the incoming x in the middle of crystalline planes
 
-  pv   = pc*c1e9*pc*c1e9/sqrt(pc*c1e9*pc*c1e9 + 93828.0e6_fPrec*93828.0e6_fPrec) ! Calculate pv=P/E
-  Ueff = eUm(is)*(two*x_i/dp)*(two*x_i/dp)+pv*x_i/r                              ! Calculate effective potential
-  Et   = pv*xp*xp/two+Ueff                                                       ! Calculate transverse energy
-  Ec   = eUm(is)*(one-rc/r)*(one-rc/r)                                           ! Calculate critical energy in bent crystals
+  pv   = pc**2/sqrt(pc**2 + (pmap*c1m3)**2)*c1e9    ! Calculate pv=P/E
+  Ueff = eUm(is)*(two*x_i/dp)*(two*x_i/dp)+pv*x_i/r ! Calculate effective potential
+  Et   = pv*xp*xp/two+Ueff                          ! Calculate transverse energy
+  Ec   = eUm(is)*(one-rc/r)*(one-rc/r)              ! Calculate critical energy in bent crystals
 
   ! To avoid negative Et
   xminU = -dp*dp*pc*c1e9/(eight*eUm(is)*r)
