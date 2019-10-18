@@ -374,6 +374,8 @@ set(TESTS_NO_STF
   dump4
   dump5
   dump6
+  dynk_filelin
+  dynk_globalvars
   dynk_IIR
   dynk_operators
   dynk_polynomial
