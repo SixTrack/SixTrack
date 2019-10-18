@@ -31,6 +31,7 @@ module coll_db
   integer, parameter :: cdb_stgTertiary  = 4
   integer, parameter :: cdb_stgOther     = 8
   integer, parameter :: cdb_stgCrystal   = 16
+  integer, parameter :: cdb_stgUnknown   = 32
 
   ! Main Database Arrays
   character(len=:), allocatable, public, save :: cdb_cName(:)       ! Collimator name
@@ -126,7 +127,7 @@ end subroutine cdb_allocFam
 subroutine cdb_expand_arrays(nele_new)
   use mod_alloc
   integer, intent(in) :: nele_new
-  call alloc(cdb_elemMap,nele_new,0,"cdb_elemMap")
+  call alloc(cdb_elemMap, nele_new, 0, "cdb_elemMap")
 end subroutine cdb_expand_arrays
 
 ! ================================================================================================ !
@@ -197,7 +198,13 @@ subroutine cdb_readCollDB
 !  Post-Processing DB
 ! ============================================================================ !
 
-  ! Set collimator stage from family stage, if we have any
+  if(cdb_nColl < 1) then
+    write(lerr,"(a)") "COLLDB> Collimator database file read, but no collimators found."
+    call prror
+  end if
+
+  ! Set collimator stage from family stage, if we have any, otherwise default to unknown
+  cdb_cStage(1:cdb_nColl) = cdb_cStage
   if(cdb_nFam > 0) then
     do i=1,cdb_nColl
       if(cdb_cFamily(i) > 0) then
@@ -314,8 +321,6 @@ subroutine cdb_readDB_newFormat
     end if
     if(nSplit > 3) then
       select case(chr_toUpper(lnSplit(4)(1:3))) ! We only check the first three characters
-      case("UNK")
-        cdb_famStage(famID) = 0
       case("PRI")
         cdb_famStage(famID) = cdb_stgPrimary
       case("SEC")
@@ -326,12 +331,14 @@ subroutine cdb_readDB_newFormat
         cdb_famStage(famID) = cdb_stgOther
       case("CRY")
         cdb_famStage(famID) = cdb_stgCrystal
+      case("UNK")
+        cdb_famStage(famID) = cdb_stgUnknown
       case default
         write(lerr,"(a,i0)") "COLLDB> ERROR Unknown collimator stage '"//trim(lnSplit(4))//"' on line ",iLine
         call prror
       end select
     else
-      cdb_famStage(famID) = 0
+      cdb_famStage(famID) = cdb_stgUnknown
     end if
     goto 10
   end if
