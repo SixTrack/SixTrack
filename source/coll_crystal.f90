@@ -173,7 +173,7 @@ subroutine collimate_cry(icoll, iturn, ie, c_length, c_rotation, c_aperture, c_o
   real(kind=fPrec), intent(in)    :: cry_length ! Original length (from the db) [m]
 
   integer j,mat,nabs,nhit
-  real(kind=fPrec) p0,zlm,x,xp,z,zp,s,p,dpop,x_in0,xp_in0,y_in0,yp_in0,p_in0,s_in0,fracab,mirror, &
+  real(kind=fPrec) p0,zlm,x,xp,z,zp,s,p,dpop,x_in0,xp_in0,y_in0,yp_in0,p_in0,s_in0,mirror, &
     tiltangle,cry_bend,cRot,sRot,cRRot,sRRot
 
   ! CRY ---------------------
@@ -197,7 +197,6 @@ subroutine collimate_cry(icoll, iturn, ie, c_length, c_rotation, c_aperture, c_o
   call k2coll_scatin(p0)
 
   nhit   = 0
-  fracab = zero
   mirror = one
 
   ! CRY ---------------------
@@ -223,16 +222,11 @@ subroutine collimate_cry(icoll, iturn, ie, c_length, c_rotation, c_aperture, c_o
     lint(j)   = -one
     indiv(j)  = -one
 
-    ! CRY ---------------------
-    nabs = 0
-    s    = zero
-    ! CRY ---------------------
-
-    x   = x_in(j)
-    xp  = xp_in(j)
-    z   = y_in(j)
-    zp  = yp_in(j)
-    p   = p_in(j)
+    x  = x_in(j)
+    xp = xp_in(j)
+    z  = y_in(j)
+    zp = yp_in(j)
+    p  = p_in(j)
 
     ! CRY ---------------------
     dpop   = (p-p0)/p0
@@ -240,7 +234,9 @@ subroutine collimate_cry(icoll, iturn, ie, c_length, c_rotation, c_aperture, c_o
     xp_in0 = xp
     y_in0  = z
     yp_in0 = zp
+    s      = zero
     p_in0  = p
+    nabs   = 0
     ! CRY ---------------------
 
     x  =  x_in(j)*cRot + sRot*y_in(j)
@@ -280,11 +276,11 @@ subroutine collimate_cry(icoll, iturn, ie, c_length, c_rotation, c_aperture, c_o
       end if
 
       ! Transform back to particle coordinates with opening and offset
-      x   = x + c_aperture/2 + mirror*c_offset
+      x  = x + c_aperture/2 + mirror*c_offset
 
       ! Now mirror at the horizontal axis for negative X offset
-      x   = mirror * x
-      xp  = mirror * xp
+      x  = mirror*x
+      xp = mirror*xp
 
       ! Last do rotation into collimator frame
       x_in(j)  =  x*cRRot +  z*sRRot
@@ -292,16 +288,13 @@ subroutine collimate_cry(icoll, iturn, ie, c_length, c_rotation, c_aperture, c_o
       xp_in(j) = xp*cRRot + zp*sRRot
       yp_in(j) = zp*cRRot - xp*sRRot
 
-      p_in(J) = P
-      s_in(J) = s_in(J) + S
+      p_in(j) = p
+      s_in(j) = s_in(j) + s
 
       if(nabs == 1) then
-        fracab = fracab + 1
-        part_abs(j) = ie
+        part_abs(j)      = ie
         part_abs_turn(j) = iturn
-        lint(j) = zlm
-        x = 99.99d-3
-        z = 99.99d-3
+        lint(j)          = zlm
       end if
     end if
 
@@ -339,25 +332,24 @@ subroutine cry_doCrystal(ie,iturn,j,mat,x,xp,z,zp,s,p,x0,s0,xp0,zlm,nhit,nabs,  
   real(kind=fPrec), intent(in)    :: cry_bend
   real(kind=fPrec), intent(in)    :: c_length
 
-  real(kind=fPrec) s_temp,s_shift,s_rot,s_int,s_impact
+  real(kind=fPrec) s_temp,s_shift,s_rot,s_int
   real(kind=fPrec) x_temp,x_shift,x_rot,x_int
-  real(kind=fPrec) xp_temp,xp_tangent,xp_shift,xp_rot,xp_int
+  real(kind=fPrec) xp_temp,xp_shift,xp_rot,xp_int,xp_tangent
   real(kind=fPrec) tilt_int,shift,delta,a_eq,b_eq,c_eq
 
   s_temp     = zero
   s_shift    = zero
   s_rot      = zero
   s_int      = zero
-  s_impact   = zero
   x_temp     = zero
   x_shift    = zero
   x_rot      = zero
   x_int      = zero
   xp_temp    = zero
-  xp_tangent = zero
   xp_shift   = zero
   xp_rot     = zero
   xp_int     = zero
+  xp_tangent = zero
   tilt_int   = zero
   shift      = zero
 
@@ -389,9 +381,9 @@ subroutine cry_doCrystal(ie,iturn,j,mat,x,xp,z,zp,s,p,x0,s0,xp0,zlm,nhit,nabs,  
   z  = z - zp*s_rot
   s  = zero
 
-  if(x >= zero .and. x < c_xmax) then ! Check that part. hit cry
+  ! Check that particle hit the crystal
+  if(x >= zero .and. x < c_xmax) then
 
-    s_impact = s0 ! (for the first impact)
     call cryst(mat,x,xp,z,zp,p,cry_length,j)
     s   = c_rcurv*sin_mb(cry_bend)
     zlm = c_rcurv*sin_mb(cry_bend)
@@ -406,74 +398,70 @@ subroutine cry_doCrystal(ie,iturn,j,mat,x,xp,z,zp,s,p,x0,s0,xp0,zlm,nhit,nabs,  
   else
 
     if(x < zero) then ! Crystal hit from below
-      XP_tangent = sqrt((-(two*x)*c_rcurv + x**2)/(c_rcurv**2))
-      if(xp >= XP_tangent) then
-        ! if it hits the crystal, calculate in which point and apply the
-        ! transformation and drift to that point
-        a_eq  = (one + xp**2)
-        b_eq  = (two*xp)*(x-c_rcurv)
-        c_eq  = -(two*x)*c_rcurv + x**2
-        Delta = b_eq**2 - four*(a_eq*c_eq)
-        S_int = (-b_eq - sqrt(Delta))/(two*a_eq)
+      xp_tangent = sqrt((-(two*x)*c_rcurv + x**2)/(c_rcurv**2))
+    else ! Crystal hit from above
+      xp_tangent = asin_mb((c_rcurv*(one-cos_mb(cry_bend))-x)/sqrt(two*c_rcurv*(c_rcurv-x)*(one-cos_mb(cry_bend))+x**2))
+    end if
 
-        if(S_int < c_rcurv*sin_mb(cry_bend)) then
-          !  transform to a new ref system:shift and rotate
-          x_int  = xp*s_int + x
-          xp_int = xp
-          z      = z + zp*s_int
-          x      = zero
-          s      = zero
+    ! If the hit is below, the angle must be greater or equal than the tangent,
+    ! or if the hit is above, the angle must be smaller or equal than the tangent
+    if((x < zero .and. xp >= xp_tangent) .or. (x >= zero .and. xp <= xp_tangent)) then
 
-          tilt_int = s_int/c_rcurv
-          xp       = xp-tilt_int
+      ! If it hits the crystal, calculate in which point and apply the transformation and drift to that point
+      a_eq  = one + xp**2
+      b_eq  = (two*xp)*(x-c_rcurv)
+      c_eq  = -(two*x)*c_rcurv + x**2
+      delta = b_eq**2 - four*(a_eq*c_eq)
+      s_int = (-b_eq - sqrt(delta))/(two*a_eq)
 
-          call cryst(mat,x,xp,z,zp,p,(cry_length-(tilt_int*c_rcurv)),j)
-          s   = c_rcurv*sin_mb(cry_bend-tilt_int)
-          zlm = c_rcurv*sin_mb(cry_bend-tilt_int)
-          if(iProc /= proc_out) then
-            x_rot    = x_int
-            s_rot    = s_int
-            xp_rot   = xp_int
-            s_shift  =  s_rot*c_cnTilt + x_rot*c_snTilt
-            x_shift  = -s_rot*c_snTilt + x_rot*c_cnTilt
-            xp_shift = xp_rot + cry_tilt
+      if(s_int < c_rcurv*sin_mb(cry_bend)) then
+        ! Transform to a new reference system: shift and rotate
+        x_int  = xp*s_int + x
+        xp_int = xp
+        z      = z + zp*s_int
+        x      = zero
+        s      = zero
 
-            if(cry_tilt < zero) then
-              s_impact  = s_shift
-              x0  = x_shift+shift
-              xp0 = xp_shift
-            else
-              x0  = x_shift
-              s_impact  = s_shift
-              xp0 = xp_shift
-            end if
+        tilt_int = s_int/c_rcurv
+        xp       = xp-tilt_int
 
-            nhit = nhit + 1
-            lhit(j) = ie
-            lhit_turn(j) = iturn
-            impact(j) = x0
-            indiv(j) = xp0
+        call cryst(mat,x,xp,z,zp,p,cry_length-(tilt_int*c_rcurv),j)
+        s   = c_rcurv*sin_mb(cry_bend-tilt_int)
+        zlm = c_rcurv*sin_mb(cry_bend-tilt_int)
+        if(iProc /= proc_out) then
+          x_rot    = x_int
+          s_rot    = s_int
+          xp_rot   = xp_int
+          s_shift  =  s_rot*c_cnTilt + x_rot*c_snTilt
+          x_shift  = -s_rot*c_snTilt + x_rot*c_cnTilt
+          xp_shift = xp_rot + cry_tilt
+
+          if(cry_tilt < zero) then
+            x0  = x_shift + shift
+            xp0 = xp_shift
+          else
+            x0  = x_shift
+            xp0 = xp_shift
           end if
 
-          ! un-rotate
-          x_temp  = x
-          s_temp  = s
-          xp_temp = xp
-          s       =  s_temp*cos_mb(-tilt_int) + x_temp*sin_mb(-tilt_int)
-          x       = -s_temp*sin_mb(-tilt_int) + x_temp*cos_mb(-tilt_int)
-          xp      = xp_temp + tilt_int
-
-          ! 2nd: shift back the 2 axis
-          x = x+x_int
-          s = s+s_int
-
-        else
-
-          s = c_rcurv*sin_mb(cry_length/c_rcurv)
-          x = x + s*xp
-          z = z + s*zp
-
+          nhit         = nhit + 1
+          lhit(j)      = ie
+          lhit_turn(j) = iturn
+          impact(j)    = x0
+          indiv(j)     = xp0
         end if
+
+        ! un-rotate
+        x_temp  = x
+        s_temp  = s
+        xp_temp = xp
+        s       =  s_temp*cos_mb(-tilt_int) + x_temp*sin_mb(-tilt_int)
+        x       = -s_temp*sin_mb(-tilt_int) + x_temp*cos_mb(-tilt_int)
+        xp      = xp_temp + tilt_int
+
+        ! 2nd: shift back the 2 axis
+        x = x + x_int
+        s = s + s_int
 
       else
 
@@ -483,85 +471,14 @@ subroutine cry_doCrystal(ie,iturn,j,mat,x,xp,z,zp,s,p,x0,s0,xp0,zlm,nhit,nabs,  
 
       end if
 
-    else ! Crystal hit from above
+    else
 
-      xp_tangent = asin_mb((c_rcurv*(one-cos_mb(cry_bend))-x)/sqrt(two*c_rcurv*(c_rcurv-x)*(one-cos_mb(cry_bend))+x**2))
-      if(xp <= xp_tangent) then
-        ! if it hits the crystal, calculate in which point and apply the
-        ! transformation and drift to that point
-        a_eq  = one + xp**2
-        b_eq  = (two*xp)*(x - c_rcurv)
-        c_eq  = -(two*x)*c_rcurv + x**2
-        Delta = b_eq**2 - four*(a_eq*c_eq)
-        S_int = (-b_eq-sqrt(Delta))/(two*a_eq)
+      s = c_rcurv*sin_mb(cry_length/c_rcurv)
+      x = x + s*xp
+      z = z + s*zp
 
-        if(s_int < c_rcurv*sin_mb(cry_bend)) then
-          !  transform to a new ref system:shift and rotate
-          x_int  = xp*s_int + x
-          xp_int = xp
-          z      = z + zp*s_int
-          x      = zero
-          s      = zero
-
-          tilt_int = s_int/c_rcurv
-          xp       = xp-tilt_int
-
-          call cryst(mat,x,xp,z,zp,p,(cry_length-(tilt_int*c_rcurv)),j)
-          s   = c_rcurv*sin_mb(cry_bend-tilt_int)
-          zlm = c_rcurv*sin_mb(cry_bend-tilt_int)
-          if(iProc /= proc_out) then
-            x_rot    = x_int
-            s_rot    = s_int
-            xp_rot   = xp_int
-            s_shift  =  s_rot*c_cnTilt+x_rot*c_snTilt
-            x_shift  = -s_rot*c_snTilt+x_rot*c_cnTilt
-            xp_shift = xp_rot + cry_tilt
-
-            if(cry_tilt < zero) then
-              s_impact  = s_shift
-              x0  = x_shift + shift
-              xp0 = xp_shift
-            else
-              x0  = x_shift
-              s_impact  = s_shift
-              xp0 = xp_shift
-            end if
-
-            nhit = nhit + 1
-            lhit(j) = ie
-            lhit_turn(j) = iturn
-            impact(j) = x0
-            indiv(j) = xp0
-          end if
-
-          ! un-rotate
-          x_temp  = x
-          s_temp  = s
-          xp_temp = xp
-          s  =  s_temp*cos_mb(-tilt_int)+x_temp*sin_mb(-tilt_int)
-          x  = -s_temp*sin_mb(-tilt_int)+x_temp*cos_mb(-tilt_int)
-          xp = xp_temp + tilt_int
-
-          ! 2nd: shift back the 2 axis
-          x = x+x_int
-          s = s+s_int
-
-        else
-
-          s = c_rcurv*sin_mb(cry_length/c_rcurv)
-          x = x + s*xp
-          z = z + s*zp
-
-        end if
-
-      else
-
-        s = c_rcurv*sin_mb(cry_length/c_rcurv)
-        x = x+s*xp
-        z = z+s*zp
-
-      end if
     end if
+
   end if
 
   ! transform back from the crystal to the collimator reference system
@@ -589,9 +506,7 @@ subroutine cry_doCrystal(ie,iturn,j,mat,x,xp,z,zp,s,p,x0,s0,xp0,zlm,nhit,nabs,  
   x = xp*(c_length-s) + x
   z = zp*(c_length-s) + z
   s = c_length
-  ! CRY ---------------------
 
-  ! CRY ---------------------
   nabs = 0
   cry_proc(j) = iProc
   if(iProc == proc_AM) then
@@ -643,10 +558,10 @@ subroutine cryst(is,x,xp,y,yp,pc,length,j)
   real(kind=fPrec) DESt                 ! Changed energy loss by ionization now calculated and not tabulated
   real(kind=fPrec) x0,y0                ! Coordinates of the particle [m]
   real(kind=fPrec) s                    ! Long coordinates of the particle [m]
-  real(kind=fPrec) a_eq,b_eq,c_eq,Delta ! Second order equation param.
+  real(kind=fPrec) a_eq,b_eq,c_eq,delta ! Second order equation param.
   real(kind=fPrec) Ang_rms, Ang_avr     ! Volume reflection mean angle [rad]
   real(kind=fPrec) Dechan               ! Probability for dechanneling
-  real(kind=fPrec) Lrefl, Srefl         ! Distance of the reflection point [m]
+  real(kind=fPrec) Lrefl,Srefl          ! Distance of the reflection point [m]
   real(kind=fPrec) Vcapt                ! Volume capture probability
   real(kind=fPrec) Chann                ! Channeling probability
   real(kind=fPrec) N_atom               ! Probability for entering channeling near atomic planes
@@ -655,12 +570,11 @@ subroutine cryst(is,x,xp,y,yp,pc,length,j)
   real(kind=fPrec) xpcrit0              ! Critical angle for str. crystal [rad]
   real(kind=fPrec) Rcrit                ! Critical curvature radius [m]
   real(kind=fPrec) ratio                ! X=c_rcurv/Rcrit
-  real(kind=fPrec) TLdech2              ! Tipical dechanneling length(1) [m]
-  real(kind=fPrec) TLdech1              ! Tipical dechanneling length(2) [m]
-  real(kind=fPrec) tdech, Ldech,Sdech   ! Angle, lenght, and S coordinate of dechanneling point
-  real(kind=fPrec) Rlength, Red_S       ! Reduced length/s coordinate (in case of dechanneling)
-  real(kind=fPrec) Am_length            ! Amorphous length
-  real(kind=fPrec) Length_xs, Length_ys ! Amorphous length
+  real(kind=fPrec) TLdech1,TLdech2      ! Typical dechanneling length(2) [m]
+  real(kind=fPrec) tdech,Ldech,Sdech    ! Angle, lenght, and S coordinate of dechanneling point
+  real(kind=fPrec) Rlength,Red_S        ! Reduced length/s coordinate (in case of dechanneling)
+  real(kind=fPrec) am_len               ! Amorphous length
+  real(kind=fPrec) len_xs,len_ys        ! Amorphous length
   real(kind=fPrec) xp_rel               ! Xp-c_miscut angle in mrad
   real(kind=fPrec) alpha                ! Par for new chann prob
   real(kind=fPrec) Pvr                  ! Prob for VR->AM transition
@@ -716,30 +630,30 @@ subroutine cryst(is,x,xp,y,yp,pc,length,j)
     a_eq  = one + xp**2
     b_eq  = (two*x)*xp - (two*xp)*c_rcurv
     c_eq  = x**2 - (two*x)*c_rcurv
-    Delta = b_eq**2 - (four*a_eq)*c_eq
-    s     = (-b_eq+sqrt(Delta))/(two*a_eq)
+    delta = b_eq**2 - (four*a_eq)*c_eq
+    s     = (-b_eq+sqrt(delta))/(two*a_eq)
     if(s >= s_length) then
       s = s_length
     end if
     x         =  xp*s + x0
-    Length_xs = sqrt((x-x0)**2 + s**2)
+    len_xs = sqrt((x-x0)**2 + s**2)
     if(yp >= zero .and. y + yp*s <= ymax) then
-      Length_ys = yp*Length_xs
+      len_ys = yp*len_xs
     else if(yp < zero .and. y + yp*s >= ymin) then
-      Length_ys = yp*Length_xs
+      len_ys = yp*len_xs
     else
-      s         = (ymax-y)/yp
-      Length_ys = sqrt((ymax-y)**2 + s**2)
-      x         = x0 + xp*s
-      Length_xs = sqrt((x-x0)**2 + s**2)
+      s      = (ymax-y)/yp
+      len_ys = sqrt((ymax-y)**2 + s**2)
+      x      = x0 + xp*s
+      len_xs = sqrt((x-x0)**2 + s**2)
     end if
-    Am_length = sqrt(Length_xs**2 + Length_ys**2)
+    am_len = sqrt(len_xs**2 + len_ys**2)
     s     = s/two
     x     = x0 + xp*s
     y     = y0 + yp*s
     iProc = proc_AM
-    call calc_ion_loss_cry(is,pc,am_length,dest)
-    call move_am(is,nam,am_length,dest,dlyi(is),dlri(is),xp,yp,pc)
+    call calc_ion_loss_cry(is,pc,am_len,dest)
+    call move_am(is,nam,am_len,dest,dlyi(is),dlri(is),xp,yp,pc)
     x = x + xp*(s_length-s)
     y = y + yp*(s_length-s)
     return
