@@ -33,6 +33,8 @@ module coll_crystal
   real(kind=fPrec), private, save :: c_spTilt = zero ! Sine of positive crystal tilt
   real(kind=fPrec), private, save :: c_cnTilt = zero ! Cosine of negative crystal tilt
   real(kind=fPrec), private, save :: c_snTilt = zero ! Sine of negative crystal tilt
+  real(kind=fPrec), private, save :: c_cBend  = zero ! Cosine of crystal bend
+  real(kind=fPrec), private, save :: c_sBend  = zero ! Sine of crystal bend
 
   ! Rutherford Scatter
   real(kind=fPrec), parameter     :: tlcut_cry = 0.0009982_fPrec
@@ -184,6 +186,8 @@ subroutine collimate_cry(icoll, iturn, ie, c_length, c_rotation, c_aperture, c_o
   c_orient = cdb_cryOrient(icoll)
   c_miscut = cdb_cryMiscut(icoll)
   cry_bend = cry_length/c_rcurv
+  c_cBend  = cos_mb(cry_bend)
+  c_sBend  = sin_mb(cry_bend)
   c_cpTilt = cos_mb(cry_tilt)
   c_spTilt = sin_mb(cry_tilt)
   c_cnTilt = cos_mb(-cry_tilt)
@@ -360,19 +364,19 @@ subroutine cry_doCrystal(ie,iturn,j,mat,x,xp,z,zp,s,p,x0,s0,xp0,zlm,nhit,nabs,  
   ! 1st transformation: shift of the center of the reference frame
   if(cry_tilt < zero) then
     s_shift = s
-    shift   = c_rcurv*(1-c_cpTilt)
+    shift   = c_rcurv*(one - c_cpTilt)
     if(cry_tilt < -cry_bend) then
-      shift = c_rcurv*(c_cnTilt - cos_mb(cry_bend-cry_tilt))
+      shift = c_rcurv*(c_cnTilt - cos_mb(cry_bend - cry_tilt))
     end if
-    x_shift = x-shift
+    x_shift = x - shift
   else
     s_shift = s
     x_shift = x
   end if
 
   ! 2nd transformation: rotation
-  s_rot  = x_shift*c_spTilt+s_shift*c_cpTilt
-  x_rot  = x_shift*c_cpTilt-s_shift*c_spTilt
+  s_rot  = x_shift*c_spTilt + s_shift*c_cpTilt
+  x_rot  = x_shift*c_cpTilt - s_shift*c_spTilt
   xp_rot = xp - cry_tilt
 
   ! 3rd transformation: drift to the new coordinate s=0
@@ -384,23 +388,23 @@ subroutine cry_doCrystal(ie,iturn,j,mat,x,xp,z,zp,s,p,x0,s0,xp0,zlm,nhit,nabs,  
   ! Check that particle hit the crystal
   if(x >= zero .and. x < c_xmax) then
 
-    call cryst(mat,x,xp,z,zp,p,cry_length,j)
-    s   = c_rcurv*sin_mb(cry_bend)
-    zlm = c_rcurv*sin_mb(cry_bend)
+    call cryst(mat,x,xp,z,zp,p,cry_length)
+    s   = c_rcurv*c_sBend
+    zlm = c_rcurv*c_sBend
     if(iProc /= proc_out) then
-      nhit = nhit + 1
-      lhit(j) = ie
+      nhit         = nhit + 1
+      lhit(j)      = ie
       lhit_turn(j) = iturn
-      impact(j) = x0
-      indiv(j) = xp0
+      impact(j)    = x0
+      indiv(j)     = xp0
     end if
 
   else
 
     if(x < zero) then ! Crystal hit from below
-      xp_tangent = sqrt((-(two*x)*c_rcurv + x**2)/(c_rcurv**2))
+      xp_tangent = sqrt((-(two*x)*c_rcurv + x**2)/c_rcurv**2)
     else ! Crystal hit from above
-      xp_tangent = asin_mb((c_rcurv*(one-cos_mb(cry_bend))-x)/sqrt(two*c_rcurv*(c_rcurv-x)*(one-cos_mb(cry_bend))+x**2))
+      xp_tangent = asin_mb((c_rcurv*(one - c_cBend) - x)/sqrt(((two*c_rcurv)*(c_rcurv - x))*(one - c_cBend) + x**2))
     end if
 
     ! If the hit is below, the angle must be greater or equal than the tangent,
@@ -409,12 +413,12 @@ subroutine cry_doCrystal(ie,iturn,j,mat,x,xp,z,zp,s,p,x0,s0,xp0,zlm,nhit,nabs,  
 
       ! If it hits the crystal, calculate in which point and apply the transformation and drift to that point
       a_eq  = one + xp**2
-      b_eq  = (two*xp)*(x-c_rcurv)
+      b_eq  = (two*xp)*(x - c_rcurv)
       c_eq  = -(two*x)*c_rcurv + x**2
       delta = b_eq**2 - four*(a_eq*c_eq)
       s_int = (-b_eq - sqrt(delta))/(two*a_eq)
 
-      if(s_int < c_rcurv*sin_mb(cry_bend)) then
+      if(s_int < c_rcurv*c_sBend) then
         ! Transform to a new reference system: shift and rotate
         x_int  = xp*s_int + x
         xp_int = xp
@@ -425,9 +429,9 @@ subroutine cry_doCrystal(ie,iturn,j,mat,x,xp,z,zp,s,p,x0,s0,xp0,zlm,nhit,nabs,  
         tilt_int = s_int/c_rcurv
         xp       = xp-tilt_int
 
-        call cryst(mat,x,xp,z,zp,p,cry_length-(tilt_int*c_rcurv),j)
-        s   = c_rcurv*sin_mb(cry_bend-tilt_int)
-        zlm = c_rcurv*sin_mb(cry_bend-tilt_int)
+        call cryst(mat,x,xp,z,zp,p,cry_length-(tilt_int*c_rcurv))
+        s   = c_rcurv*sin_mb(cry_bend - tilt_int)
+        zlm = c_rcurv*sin_mb(cry_bend - tilt_int)
         if(iProc /= proc_out) then
           x_rot    = x_int
           s_rot    = s_int
@@ -487,8 +491,8 @@ subroutine cry_doCrystal(ie,iturn,j,mat,x,xp,z,zp,s,p,x0,s0,xp0,zlm,nhit,nabs,  
   s_rot  = s
   xp_rot = xp
 
-  s_shift  =  s_rot*c_cnTilt+x_rot*c_snTilt
-  x_shift  = -s_rot*c_snTilt+x_rot*c_cnTilt
+  s_shift  =  s_rot*c_cnTilt + x_rot*c_snTilt
+  x_shift  = -s_rot*c_snTilt + x_rot*c_cnTilt
   xp_shift = xp_rot + cry_tilt
 
   ! 2nd: shift back the reference frame
@@ -503,8 +507,8 @@ subroutine cry_doCrystal(ie,iturn,j,mat,x,xp,z,zp,s,p,x0,s0,xp0,zlm,nhit,nabs,  
   end if
 
   ! 3rd: shift to new S=Length position
-  x = xp*(c_length-s) + x
-  z = zp*(c_length-s) + z
+  x = xp*(c_length - s) + x
+  z = zp*(c_length - s) + z
   s = c_length
 
   nabs = 0
@@ -526,14 +530,8 @@ end subroutine cry_doCrystal
 ! ================================================================================================ !
 !  Subroutine for the movements of the particles in the crystal
 !  Simple tranport protons in crystal 2
-!   J         - number of element
-!   S         - longitudinal coordinate
-!   IS        - number of substance 1-4: Si,W,C,Ge(110)
-!   x,xp,y,yp - coordinates at input of crystal
-!   PC        - momentum of particle*c [GeV]
-!   W         - weigth of particle
 ! ================================================================================================ !
-subroutine cryst(is,x,xp,y,yp,pc,length,j)
+subroutine cryst(is,x,xp,y,yp,pc,length)
 
   use mod_ranlux
   use mod_funlux
@@ -543,14 +541,13 @@ subroutine cryst(is,x,xp,y,yp,pc,length,j)
   use mathlib_bouncer
   use physical_constants
 
-  integer,          intent(in)    :: is
+  integer,          intent(in)    :: is  ! Material number
   real(kind=fPrec), intent(inout) :: x
   real(kind=fPrec), intent(inout) :: xp
   real(kind=fPrec), intent(inout) :: y
   real(kind=fPrec), intent(inout) :: yp
   real(kind=fPrec), intent(inout) :: pc
   real(kind=fPrec), intent(in)    :: length
-  integer,          intent(in)    :: j
 
   integer nam,zn                        ! Switch on/off the nuclear interaction (NAM) and the MCS (ZN)
   real(kind=fPrec) ymax,ymin            ! Crystal geometrical parameters
