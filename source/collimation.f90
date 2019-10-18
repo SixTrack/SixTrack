@@ -238,15 +238,6 @@ module collimation
   real(kind=fPrec), save :: tiltOffsPos1,tiltOffsPos2,tiltOffsNeg1,tiltOffsNeg2
   real(kind=fPrec), save :: beamsize1, beamsize2,betax1,betax2,betay1,betay2, alphax1, alphax2,alphay1,alphay2,minAmpl
 
-#ifdef HDF5
-  ! Variables to save hdf5 dataset indices
-  integer, private, save :: coll_hdf5_survival
-  integer, private, save :: coll_hdf5_allImpacts
-  integer, private, save :: coll_hdf5_fstImpacts
-  integer, private, save :: coll_hdf5_allAbsorb
-  integer, private, save :: coll_hdf5_collScatter
-#endif
-
 contains
 
 subroutine collimation_allocate_arrays
@@ -3849,26 +3840,5 @@ subroutine collimate_end_turn
   end if !if(dowritetracks) then
 !=======================================================================
 end subroutine collimate_end_turn
-
-#ifdef HDF5
-subroutine coll_hdf5_writeCollScatter(icoll,iturn,ipart,nabs,dp,dx,dy)
-
-  use hdf5_output
-
-  integer,          intent(in) :: icoll,iturn,ipart,nabs
-  real(kind=fPrec), intent(in) :: dp,dx,dy
-
-  call h5_prepareWrite(coll_hdf5_collScatter, 1)
-  call h5_writeData(coll_hdf5_collScatter, 1, 1, ipart)
-  call h5_writeData(coll_hdf5_collScatter, 2, 1, iturn)
-  call h5_writeData(coll_hdf5_collScatter, 3, 1, icoll)
-  call h5_writeData(coll_hdf5_collScatter, 4, 1, nabs)
-  call h5_writeData(coll_hdf5_collScatter, 5, 1, dp)
-  call h5_writeData(coll_hdf5_collScatter, 6, 1, dx)
-  call h5_writeData(coll_hdf5_collScatter, 7, 1, dy)
-  call h5_finaliseWrite(coll_hdf5_collScatter)
-
-end subroutine coll_hdf5_writeCollScatter
-#endif
 
 end module collimation

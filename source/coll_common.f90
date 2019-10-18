@@ -91,6 +91,15 @@ module coll_common
   integer, save :: coll_efficDPUnit    = -1
   integer, save :: coll_effic2DUnit    = -1
 
+#ifdef HDF5
+  ! Variables to save hdf5 dataset indices
+  integer, save :: coll_hdf5_survival
+  integer, save :: coll_hdf5_allImpacts
+  integer, save :: coll_hdf5_fstImpacts
+  integer, save :: coll_hdf5_allAbsorb
+  integer, save :: coll_hdf5_collScatter
+#endif
+
 contains
 
 subroutine coll_expandArrays(npart_new, nblz_new)

@@ -430,7 +430,7 @@ subroutine aperture_initroffpos( ix, xoff, yoff, tilt )
   implicit none
   integer ix
   real(kind=fPrec) tilt, xoff, yoff
-  ape( 9,ix)=tilt
+  ape( 9,ix)=tilt*rad ! Converts it to radians which is used in the rest of the code. 
   ape(10,ix)=xoff
   ape(11,ix)=yoff
   lapeofftlt(ix)=ape(9,ix).ne.zero.or.ape(10,ix).ne.zero.or.ape(11,ix).ne.zero
