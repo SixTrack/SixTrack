@@ -7,7 +7,7 @@
 !  Y.I. Levinsen, C. Tambasco, J. Molson, K.N. Sjobak, V.K. Berglyd Olsen
 !
 !  Created: 2004-10-27
-!  Updated: 2019-09-12
+!  Updated: 2019-10-21
 !
 ! ================================================================================================ !
 module collimation
@@ -23,7 +23,7 @@ module collimation
 
   ! Logical Flags
   logical, public,  save :: do_coll          = .false.
-  logical, public,  save :: coll_oldBlock    = .false.
+  logical, private, save :: coll_oldBlock    = .false.
   logical, private, save :: do_select        = .false.
   logical, private, save :: do_nominal       = .false.
   logical, private, save :: do_oneside       = .false.
@@ -34,11 +34,11 @@ module collimation
   integer, private, save :: icoll            = 0
   integer, private, save :: ie               = 1
   integer, private, save :: iturn            = 1
-  integer, public,  save :: c_ix             = 0
+  integer, private, save :: c_ix             = 0
 
   ! Distribution
   integer,          private, save :: do_thisdis   = 0
-  real(kind=fPrec), public,  save :: c_enom       = zero
+  real(kind=fPrec), private, save :: c_enom       = zero
   logical,          private, save :: radial       = .false.
 
   ! Jaw Slicing
@@ -88,9 +88,6 @@ module collimation
 
   character(len=mNameLen), private, save :: name_sel = " "
 
-  real(kind=fPrec), private, save :: c_length = zero
-  real(kind=fPrec), private, save :: nsig     = zero
-
   ! M. Fiascaris for the collimation team
   ! Variables for global inefficiencies studies of normalized and off-momentum halo
   integer,          allocatable, private, save :: counteddpop(:,:) ! (npart,numeffdpop)
@@ -115,18 +112,16 @@ module collimation
   real(kind=fPrec), allocatable, private, save :: sqsum_ay(:)
 
   ! Arrays allocated to npart
-  integer,          allocatable, private, save :: part_hit_pos(:)         ! Hit flag for last hit
-  integer,          allocatable, private, save :: part_hit_turn(:)        ! Hit flag for last hit
-  integer,          allocatable, private, save :: part_abs_pos(:)         ! Absorbed in element
-  integer,          allocatable, public,  save :: part_abs_turn(:)        ! Absorbed in turn
-  integer,          allocatable, private, save :: part_hit_before_pos(:)
-  integer,          allocatable, private, save :: part_hit_before_turn(:)
+  integer,          allocatable, private, save :: part_hit_pos(:)   ! Hit flag for last hit
+  integer,          allocatable, private, save :: part_hit_turn(:)  ! Hit flag for last hit
+  integer,          allocatable, private, save :: part_abs_pos(:)   ! Absorbed in element
+  integer,          allocatable, public,  save :: part_abs_turn(:)  ! Absorbed in turn
   integer,          allocatable, private, save :: part_select(:)
   integer,          allocatable, private, save :: nabs_type(:)
   integer,          allocatable, private, save :: nhit_type(:)
   real(kind=fPrec), allocatable, private, save :: part_linteract(:)
-  real(kind=fPrec), allocatable, private, save :: part_indiv(:)            ! Divergence of impacting particles
-  real(kind=fPrec), allocatable, private, save :: part_impact(:)           ! Impact parameter (0 for inner face)
+  real(kind=fPrec), allocatable, private, save :: part_indiv(:)     ! Divergence of impacting particles
+  real(kind=fPrec), allocatable, private, save :: part_impact(:)    ! Impact parameter (0 for inner face)
   real(kind=fPrec), allocatable, private, save :: rcx0(:)
   real(kind=fPrec), allocatable, private, save :: rcxp0(:)
   real(kind=fPrec), allocatable, private, save :: rcy0(:)
@@ -140,19 +135,15 @@ module collimation
   integer, private, save :: nsurvive_end   = 0
   integer, private, save :: num_selhit     = 0
 
-  ! Variables for finding the collimator with the smallest gap and defining, stroring the gap rms error
-  real(kind=fPrec), allocatable, save :: xbob(:)    ! (nblz)
-  real(kind=fPrec), allocatable, save :: ybob(:)    ! (nblz)
-  real(kind=fPrec), allocatable, save :: xpbob(:)   ! (nblz)
-  real(kind=fPrec), allocatable, save :: ypbob(:)   ! (nblz)
-
-  real(kind=fPrec), allocatable, save :: xineff(:)  ! (npart)
-  real(kind=fPrec), allocatable, save :: yineff(:)  ! (npart)
-  real(kind=fPrec), allocatable, save :: xpineff(:) ! (npart)
-  real(kind=fPrec), allocatable, save :: ypineff(:) ! (npart)
-
-  integer, private, save :: iturn_last_hit = 0
-  integer, private, save :: iturn_absorbed = 0
+  ! Variables for finding the collimator with the smallest gap and defining, storing the gap rms error
+  real(kind=fPrec), allocatable, private, save :: xbob(:)    ! (nblz)
+  real(kind=fPrec), allocatable, private, save :: ybob(:)    ! (nblz)
+  real(kind=fPrec), allocatable, private, save :: xpbob(:)   ! (nblz)
+  real(kind=fPrec), allocatable, private, save :: ypbob(:)   ! (nblz)
+  real(kind=fPrec), allocatable, private, save :: xineff(:)  ! (npart)
+  real(kind=fPrec), allocatable, private, save :: yineff(:)  ! (npart)
+  real(kind=fPrec), allocatable, private, save :: xpineff(:) ! (npart)
+  real(kind=fPrec), allocatable, private, save :: ypineff(:) ! (npart)
 
   real(kind=fPrec), private, save :: scale_bx0 = zero
   real(kind=fPrec), private, save :: scale_by0 = zero
@@ -181,24 +172,22 @@ subroutine collimation_expand_arrays(npart_new, nblz_new)
   ! Allocate Common Variables
   call coll_expandArrays(npart_new, nblz_new)
 
-  call alloc(rcx0,     npart_new, zero, "rcx0")
-  call alloc(rcxp0,    npart_new, zero, "rcxp0")
-  call alloc(rcy0,     npart_new, zero, "rcy0")
-  call alloc(rcyp0,    npart_new, zero, "rcyp0")
-  call alloc(rcp0,     npart_new, zero, "rcp0")
+  call alloc(rcx0,           npart_new,  zero, "rcx0")
+  call alloc(rcxp0,          npart_new,  zero, "rcxp0")
+  call alloc(rcy0,           npart_new,  zero, "rcy0")
+  call alloc(rcyp0,          npart_new,  zero, "rcyp0")
+  call alloc(rcp0,           npart_new,  zero, "rcp0")
 
-  call alloc(part_hit_before_pos,  npart_new, 0, "part_hit_before_pos")
-  call alloc(part_hit_before_turn, npart_new, 0, "part_hit_before_turn")
-  call alloc(part_hit_pos,         npart_new, 0, "part_hit_pos")
-  call alloc(part_hit_turn,        npart_new, 0, "part_hit_turn")
-  call alloc(part_abs_pos,         npart_new, 0, "part_abs_pos")
-  call alloc(part_select,          npart_new, 1, "part_select")
-  call alloc(nabs_type,            npart_new, 0, "nabs_type")
-  call alloc(nhit_type,            npart_new, 0, "nhit_type")
+  call alloc(part_hit_pos,   npart_new,  0,    "part_hit_pos")
+  call alloc(part_hit_turn,  npart_new,  0,    "part_hit_turn")
+  call alloc(part_abs_pos,   npart_new,  0,    "part_abs_pos")
+  call alloc(part_select,    npart_new,  1,    "part_select")
+  call alloc(nabs_type,      npart_new,  0,    "nabs_type")
+  call alloc(nhit_type,      npart_new,  0,    "nhit_type")
 
-  call alloc(part_impact,          npart_new,  zero, "part_impact")
-  call alloc(part_indiv,           npart_new, -c1m6, "part_indiv")
-  call alloc(part_linteract,       npart_new,  zero, "part_linteract")
+  call alloc(part_impact,    npart_new,  zero, "part_impact")
+  call alloc(part_indiv,     npart_new, -c1m6, "part_indiv")
+  call alloc(part_linteract, npart_new,  zero, "part_linteract")
 
   if(dowrite_amplitude) then
     call alloc(nampl,    nblz_new,  0,    "nampl")
@@ -251,19 +240,17 @@ subroutine coll_shuffleLostPart
   do j=napx,1,-1
     if(llostp(j) .eqv. .false.) cycle
 
-    part_hit_pos(j:tnapx)         = cshift(part_hit_pos(j:tnapx),         1)
-    part_hit_turn(j:tnapx)        = cshift(part_hit_turn(j:tnapx),        1)
-    part_abs_pos(j:tnapx)         = cshift(part_abs_pos(j:tnapx),         1)
-    part_abs_turn(j:tnapx)        = cshift(part_abs_turn(j:tnapx),        1)
-    part_select(j:tnapx)          = cshift(part_select(j:tnapx),          1)
-    part_impact(j:tnapx)          = cshift(part_impact(j:tnapx),          1)
-    part_indiv(j:tnapx)           = cshift(part_indiv(j:tnapx),           1)
-    part_linteract(j:tnapx)       = cshift(part_linteract(j:tnapx),       1)
-    part_hit_before_pos(j:tnapx)  = cshift(part_hit_before_pos(j:tnapx),  1)
-    part_hit_before_turn(j:tnapx) = cshift(part_hit_before_turn(j:tnapx), 1)
+    part_hit_pos(j:tnapx)         = cshift(part_hit_pos(j:tnapx),   1)
+    part_hit_turn(j:tnapx)        = cshift(part_hit_turn(j:tnapx),  1)
+    part_abs_pos(j:tnapx)         = cshift(part_abs_pos(j:tnapx),   1)
+    part_abs_turn(j:tnapx)        = cshift(part_abs_turn(j:tnapx),  1)
+    part_select(j:tnapx)          = cshift(part_select(j:tnapx),    1)
+    part_impact(j:tnapx)          = cshift(part_impact(j:tnapx),    1)
+    part_indiv(j:tnapx)           = cshift(part_indiv(j:tnapx),     1)
+    part_linteract(j:tnapx)       = cshift(part_linteract(j:tnapx), 1)
 
-    nabs_type(j:tnapx)            = cshift(nabs_type(j:tnapx),            1)
-    nhit_type(j:tnapx)            = cshift(nhit_type(j:tnapx),            1)
+    nabs_type(j:tnapx)            = cshift(nabs_type(j:tnapx),      1)
+    nhit_type(j:tnapx)            = cshift(nhit_type(j:tnapx),      1)
 
     tnapx = tnapx - 1
   end do
@@ -1530,9 +1517,10 @@ subroutine coll_doCollimator(stracki)
 
   integer j, iSlice, nSlices
   logical onesided, linside(napx), isAbs, isHit
-  real(kind=fPrec) jawLength,jawAperture,jawOffset,jawTilt(2),x_Dump,xpDump,y_Dump,ypDump,s_Dump,   &
-    xmax,ymax,calc_aperture,zpj,xmax_pencil,ymax_pencil,xmax_nom,ymax_nom,nom_aperture,scale_bx,    &
-    scale_by,c_tilt(2),c_offset,c_aperture,c_rotation,cry_bendangle,cry_tilt,cry_tilt0
+  real(kind=fPrec) nsig,c_length,jawLength,jawAperture,jawOffset,jawTilt(2),x_Dump,xpDump,y_Dump,   &
+    ypDump,s_Dump,xmax,ymax,calc_aperture,zpj,xmax_pencil,ymax_pencil,xmax_nom,ymax_nom,            &
+    nom_aperture,scale_bx,scale_by,c_tilt(2),c_offset,c_aperture,c_rotation,cry_bendangle,cry_tilt, &
+    cry_tilt0
 
   call time_startClock(time_clockCOLL)
 
@@ -1676,7 +1664,7 @@ subroutine coll_doCollimator(stracki)
 
   ! Addition matched halo sampled directly on the TCP using pencil beam flag
   if(iturn == 1 .and. ipencil == icoll .and. pencil_distr == 3) then
-    call coll_matchedHalo(c_tilt,c_offset,c_aperture)
+    call coll_matchedHalo(c_tilt,c_offset,c_aperture,c_length)
   end if
 
   ! Copy particle data to 1-dim array and go back to meters
@@ -1694,9 +1682,6 @@ subroutine coll_doCollimator(stracki)
     rcyp0(j) = rcyp(j)
     rcp0(j)  = rcp(j)
     ejf0v(j) = ejfv(j)
-
-    part_hit_before_turn(j) = part_hit_turn(j)
-    part_hit_before_pos(j)  = part_hit_pos(j)
 
     ! For zero length element track back half collimator length
     ! DRIFT PART
@@ -1786,7 +1771,7 @@ subroutine coll_doCollimator(stracki)
       onesided, nhit_type, 1, nabs_type, linside)
   end if
 #else
-  call coll_doCollimator_Geant4(c_aperture,c_rotation)
+  call coll_doCollimator_Geant4(c_aperture,c_rotation,c_length)
 #endif
   end if
 
@@ -1923,11 +1908,6 @@ subroutine coll_doCollimator(stracki)
         n_absorbed         = n_absorbed + 1
         cn_absorbed(icoll) = cn_absorbed(icoll) + 1
         n_tot_absorbed     = n_tot_absorbed + 1
-        iturn_last_hit     = part_hit_before_turn(j)
-        iturn_absorbed     = part_hit_turn(j)
-        if(iturn_last_hit == 0) then
-          iturn_last_hit = iturn_absorbed
-        end if
 
       elseif(part_abs_pos (j) == 0 .and. part_abs_turn(j) == 0) then
         nhit_type(j) = ior(nhit_type(j),cdb_cStage(icoll)) ! Record the hit type
@@ -2508,7 +2488,7 @@ end subroutine coll_endTurn
 !
 ! Using standard twiss transfer matrix for a drift at start of collimator
 ! ================================================================================================ !
-subroutine coll_matchedHalo(c_tilt,c_offset,c_aperture)
+subroutine coll_matchedHalo(c_tilt,c_offset,c_aperture,c_length)
 
   use crcoall
   use coll_dist
@@ -2520,6 +2500,7 @@ subroutine coll_matchedHalo(c_tilt,c_offset,c_aperture)
   real(kind=fPrec), intent(in) :: c_tilt(2)
   real(kind=fPrec), intent(in) :: c_offset
   real(kind=fPrec), intent(in) :: c_aperture
+  real(kind=fPrec), intent(in) :: c_length
 
   integer j
   real(kind=fPrec) Nap1pos,Nap2pos,Nap1neg,Nap2neg,tiltOffsPos1,tiltOffsPos2,tiltOffsNeg1,     &
@@ -3053,7 +3034,7 @@ end subroutine coll_writeTracks2
 ! ================================================================================================ !
 
 #ifdef G4COLLIMATION
-subroutine coll_doCollimator_Geant4(c_aperture,c_rotation)
+subroutine coll_doCollimator_Geant4(c_aperture,c_rotation,c_length)
 
   use crcoall
   use mod_common
@@ -3070,6 +3051,7 @@ subroutine coll_doCollimator_Geant4(c_aperture,c_rotation)
 
   real(kind=fPrec), intent(in) :: c_aperture
   real(kind=fPrec), intent(in) :: c_rotation
+  real(kind=fPrec), intent(in) :: c_length
 
   integer j
 
