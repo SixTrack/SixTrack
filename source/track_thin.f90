@@ -731,7 +731,7 @@ subroutine thin6d(nthinerr)
         ! Check if collimation is enabled, and call the collimation code as necessary
         if(do_coll .and. is_coll) then
           ! Collimator is in database, and we're doing collimation
-          call collimate_trackThin(stracki,.true.)
+          call coll_doCollimator(stracki)
         else ! Normal SixTrack drifts
           if(iexact) then ! EXACT DRIFT
             do j=1,napx
@@ -749,7 +749,7 @@ subroutine thin6d(nthinerr)
           end if
           if(do_coll) then
             ! Not a collimator, but collimation still need to perform additional calculations
-            call collimate_trackThin(stracki,.false.)
+            call coll_computeStats
           end if
         end if
 

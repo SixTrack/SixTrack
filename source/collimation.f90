@@ -600,7 +600,7 @@ subroutine collimate_init
   ! Set the energy cut at 70% - i.e. 30% energy loss
   ! g4_ecut = 0.7_fPrec
   ! g4_ecut = zero
-  
+
   ! Select the physics engine to use
   ! 0 = FTFP_BERT
   ! 1 = QGSP_BERT
@@ -743,8 +743,6 @@ subroutine collimate_parseInputLine(inLine, iLine, iErr)
   use string_tools
   use coll_common
   use mod_common, only : napx
-
-  implicit none
 
   character(len=*), intent(in)    :: inLine
   integer,          intent(inout) :: iLine
@@ -1623,47 +1621,6 @@ subroutine collimate_openFiles
 end subroutine collimate_openFiles
 
 ! ================================================================================================ !
-!  V.K. Berglyd Olsen, BE-ABP-HSS
-!  Created: 2019-09-11
-!  Updated: 2019-09-11
-!  Wrapper routine for main collimation call in tracking.
-! ================================================================================================ !
-subroutine collimate_trackThin(stracki, isColl)
-
-  use coll_db
-  use mod_time
-  use mod_common
-  use coll_common
-
-  real(kind=fPrec), intent(in) :: stracki
-  logical,          intent(in) :: isColl
-
-  if(isColl) then
-
-    call time_startClock(time_clockCOLL)
-
-    icoll    = cdb_elemMap(c_ix)
-    nsig     = cdb_cNSig(icoll)
-    c_length = zero
-  
-    if(firstrun .and. dowrite_amplitude) then
-      call coll_computeStats
-    end if
-
-    call coll_doCollimator(stracki)
-    call coll_endCollimator(stracki)
-
-    call time_stopClock(time_clockCOLL)
-
-  else
-    if(dowrite_amplitude) then
-      call coll_computeStats
-    end if
-  end if
-
-end subroutine collimate_trackThin
-
-! ================================================================================================ !
 !  Statistics for the amplitude.dat file
 ! ================================================================================================ !
 subroutine coll_computeStats
@@ -1713,38 +1670,47 @@ subroutine coll_computeStats
 
 end subroutine coll_computeStats
 
-!>
-!! coll_doCollimator()
-!! This routine is calls the actual scattering functions
-!<
+! ================================================================================================ !
+!  The routine that calls the actual scattering modules for a collimator
+! ================================================================================================ !
 subroutine coll_doCollimator(stracki)
 
   use crcoall
-  use parpro
-  use coll_common
+  use mod_time
   use mod_common
-  use mod_commons
-  use mod_common_da
+  use coll_common
   use mod_common_main
   use mod_common_track
-  use numerical_constants, only : c5m4
   use coll_db
   use coll_k2
   use coll_jawfit
-  use coll_dist
   use coll_crystal
-  use mod_units
   use mathlib_bouncer
-  use mod_alloc
   use string_tools
+#ifdef G4COLLIMATION
+  use geant4
+#endif
 
   real(kind=fPrec), intent(in) :: stracki
 
   integer j, iSlice, nSlices
   logical onesided, linside(napx), isAbs, isHit
   real(kind=fPrec) jawLength,jawAperture,jawOffset,jawTilt(2),x_Dump,xpDump,y_Dump,ypDump,s_Dump,   &
-    xmax,ymax,calc_aperture,zpj,xmax_pencil,ymax_pencil,xmax_nom,ymax_nom,nom_aperture,     &
-    scale_bx,scale_by,c_tilt(2),c_offset,c_aperture,c_rotation,cry_bendangle,cry_tilt,cry_tilt0
+    xmax,ymax,calc_aperture,zpj,xmax_pencil,ymax_pencil,xmax_nom,ymax_nom,nom_aperture,scale_bx,    &
+    scale_by,c_tilt(2),c_offset,c_aperture,c_rotation,cry_bendangle,cry_tilt,cry_tilt0
+
+  call time_startClock(time_clockCOLL)
+
+  ! Get collimator values from DB
+  icoll      = cdb_elemMap(c_ix)
+  nsig       = cdb_cNSig(icoll)
+  c_rotation = cdb_cRotation(icoll)
+  c_length   = cdb_cLength(icoll)
+  c_offset   = cdb_cOffset(icoll)
+  c_tilt(:)  = cdb_cTilt(:,icoll)
+  if(firstrun .and. dowrite_amplitude) then
+    call coll_computeStats
+  end if
 
   ! Get the aperture from the beta functions and emittance
   ! A simple estimate of beta beating can be included that has twice the betatron phase advance
@@ -1797,11 +1763,6 @@ subroutine coll_doCollimator(stracki)
 
   ! Calculate aperture of collimator
   nsig        = nsig + gap_rms_error(icoll)
-  c_rotation  = cdb_cRotation(icoll)
-  c_length    = cdb_cLength(icoll)
-  c_offset    = cdb_cOffset(icoll)
-  c_tilt(:)   = cdb_cTilt(:,icoll)
-
   xmax        = nsig*sqrt(bx_dist*c_emitx0_collgap)
   ymax        = nsig*sqrt(by_dist*c_emity0_collgap)
   xmax_pencil = (nsig+pencil_offset)*sqrt(bx_dist*c_emitx0_collgap)
@@ -1994,6 +1955,10 @@ subroutine coll_doCollimator(stracki)
 #endif
   end if
 
+  ! End of collimator stuff
+  ! Calculate average impact parameter and save info for all collimators.
+  ! Copy information back and do negative drift.
+
   if(dowrite_impact) then
     ! Update writeout of jaw profiles
     do j=1,napx
@@ -2008,33 +1973,6 @@ subroutine coll_doCollimator(stracki)
       end if
     end do
   end if
-
-end subroutine coll_doCollimator
-
-! ================================================================================================ !
-!  Calculate average impact parameter and save info for all collimators.
-!  Copy information back and do negative drift.
-! ================================================================================================ !
-subroutine coll_endCollimator(stracki)
-
-  use crcoall
-  use mod_common
-  use mod_common_main
-  use mod_common_track
-  use mod_units
-  use string_tools
-  use coll_db
-  use coll_common
-#ifdef G4COLLIMATION
-  use geant4
-#endif
-
-  real(kind=fPrec), intent(in) :: stracki
-
-  integer j
-  real(kind=fPrec) zpj
-
-  n_absorbed = 0
 
 #ifdef G4COLLIMATION
   do j=1,napx
@@ -2134,6 +2072,7 @@ subroutine coll_endCollimator(stracki)
     call coll_writeImpactAbsorb
   end if
 
+  n_absorbed = 0
   do j=1,napx
     if(part_hit_pos(j) == ie .and. part_hit_turn(j) == iturn) then
 
@@ -2187,7 +2126,9 @@ subroutine coll_endCollimator(stracki)
   end if
 #endif
 
-end subroutine coll_endCollimator
+  call time_stopClock(time_clockCOLL)
+
+end subroutine coll_doCollimator
 
 ! ================================================================================================ !
 !  Collimate Exit
@@ -2582,6 +2523,7 @@ end subroutine coll_endElement
 !<
 subroutine coll_endTurn
 
+  use mod_time
   use mod_units
   use mod_common
   use mod_common_main
@@ -2600,6 +2542,8 @@ subroutine coll_endTurn
   type(h5_dataField), allocatable :: fldHdf(:)
   integer fmtHdf, setHdf
 #endif
+
+  call time_startClock(time_clockCOLL)
 
   do j=1,napx
     if(dowrite_efficiency) then
@@ -2709,8 +2653,9 @@ subroutine coll_endTurn
   ! Call end element one extra time
   call coll_endElement
 
-end subroutine coll_endTurn
+  call time_stopClock(time_clockCOLL)
 
+end subroutine coll_endTurn
 
 ! ================================================================================================ !
 !  R. Bruce
@@ -2938,8 +2883,8 @@ subroutine coll_getMinGapID(minGapID)
 end subroutine coll_getMinGapID
 
 ! ================================================================================================ !
-! Do collimation analysis at last element.
-! If selecting, look at number of scattered particles at selected collimator.
+!  Do collimation analysis at last element.
+!  If selecting, look at number of scattered particles at selected collimator.
 ! ================================================================================================ !
 subroutine coll_doEfficiency
 
@@ -3277,6 +3222,10 @@ subroutine coll_writeTracks2(iMode)
   end if
 
 end subroutine coll_writeTracks2
+
+! ================================================================================================ !
+!  Additional Routines under Compiler Flags
+! ================================================================================================ !
 
 #ifdef G4COLLIMATION
 subroutine coll_doCollimator_Geant4(c_aperture,c_rotation)
