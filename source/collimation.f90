@@ -2110,7 +2110,6 @@ subroutine collimate_do_collimator(stracki)
   c_offset   = cdb_cOffset(icoll)
   c_tilt(1)  = cdb_cTilt(1,icoll)
   c_tilt(2)  = cdb_cTilt(2,icoll)
-  cry_proc(:) = -1
 
   calc_aperture   = sqrt( xmax**2 * cos_mb(c_rotation)**2 + ymax**2 * sin_mb(c_rotation)**2 )
   nom_aperture    = sqrt( xmax_nom**2 * cos_mb(c_rotation)**2 + ymax_nom**2 * sin_mb(c_rotation)**2 )

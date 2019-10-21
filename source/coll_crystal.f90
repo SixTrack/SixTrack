@@ -137,6 +137,7 @@ end subroutine cry_init
 subroutine cry_initElement(icoll)
 
   use coll_db
+  use coll_common
   use mathlib_bouncer
 
   integer, intent(in) :: icoll
@@ -158,6 +159,8 @@ subroutine cry_initElement(icoll)
   n_chan      = 0
   n_VR        = 0
   n_amorphous = 0
+
+  cry_proc(:) = proc_out
 
 end subroutine cry_initElement
 
