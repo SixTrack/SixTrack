@@ -2410,8 +2410,6 @@ subroutine collimate_do_collimator(stracki)
     else
       c_length = cdb_cryBend(icoll)*(sin_mb(cry_bendangle-cry_tilt) + sin_mb(cry_tilt))
     end if
-    if (dowrite_crycoord) then
-    end if
     call collimate_cry(icoll, iturn, ie, c_length, c_rotation, c_aperture, c_offset, &
       c_tilt, rcx, rcxp, rcy, rcyp, rcp, rcs, enom_gev, part_hit_pos, part_hit_turn, part_abs_pos,&
       part_abs_turn, part_impact, part_indiv, part_linteract, cry_tilt, c_length)

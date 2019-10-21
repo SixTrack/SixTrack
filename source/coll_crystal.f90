@@ -3,7 +3,7 @@
 !  Crystal Collimation Module
 ! ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 !
-!  Written by: Daniele Mirarchi, BE-ABP-HSS
+!  Written by: Valentina Previtali and Daniele Mirarchi, BE-ABP-HSS
 !  Re-written for SixTrack 5 by: Marco D'Andrea and Veronica K. Berglyd Olsen, BE-ABP-HSS (2019)
 !
 !  Last modified: 2019-10-18
@@ -23,18 +23,21 @@ module coll_crystal
   integer,          private, save :: n_amorphous = 0
 
   ! Shared settings for the currently active crystal
-  integer,          private, save :: c_orient = zero ! Crystal orientation [0-1]
-  real(kind=fPrec), private, save :: c_rcurv  = zero ! Crystal geometrical parameters [m]
-  real(kind=fPrec), private, save :: c_xmax   = zero ! Crystal geometrical parameters [m]
-  real(kind=fPrec), private, save :: c_ymax   = zero ! Crystal geometrical parameters [m]
-  real(kind=fPrec), private, save :: c_alayer = zero ! Crystal amorphous layer [mm]
-  real(kind=fPrec), private, save :: c_miscut = zero ! Crystal c_miscut angle in rad
-  real(kind=fPrec), private, save :: c_cpTilt = zero ! Cosine of positive crystal tilt
-  real(kind=fPrec), private, save :: c_spTilt = zero ! Sine of positive crystal tilt
-  real(kind=fPrec), private, save :: c_cnTilt = zero ! Cosine of negative crystal tilt
-  real(kind=fPrec), private, save :: c_snTilt = zero ! Sine of negative crystal tilt
-  real(kind=fPrec), private, save :: c_cBend  = zero ! Cosine of crystal bend
-  real(kind=fPrec), private, save :: c_sBend  = zero ! Sine of crystal bend
+  integer,          private, save :: c_orient   = zero ! Crystal orientation [0-1]
+  real(kind=fPrec), private, save :: c_rcurv    = zero ! Crystal geometrical parameters [m]
+  real(kind=fPrec), private, save :: c_xmax     = zero ! Crystal geometrical parameters [m]
+  real(kind=fPrec), private, save :: c_ymax     = zero ! Crystal geometrical parameters [m]
+  real(kind=fPrec), private, save :: c_alayer   = zero ! Crystal amorphous layer [mm]
+  real(kind=fPrec), private, save :: c_miscut   = zero ! Crystal miscut angle in rad
+  real(kind=fPrec), private, save :: c_cpTilt   = zero ! Cosine of positive crystal tilt
+  real(kind=fPrec), private, save :: c_spTilt   = zero ! Sine of positive crystal tilt
+  real(kind=fPrec), private, save :: c_cnTilt   = zero ! Cosine of negative crystal tilt
+  real(kind=fPrec), private, save :: c_snTilt   = zero ! Sine of negative crystal tilt
+  real(kind=fPrec), private, save :: c_cBend    = zero ! Cosine of crystal bend
+  real(kind=fPrec), private, save :: c_sBend    = zero ! Sine of crystal bend
+  real(kind=fPrec), private, save :: cry_tilt   = zero ! Crystal tilt angle in rad
+  real(kind=fPrec), private, save :: cry_length = zero ! Crystal length [m]
+  real(kind=fPrec), private, save :: cry_bend   = zero ! Crystal bending angle in rad
 
   ! Rutherford Scatter
   real(kind=fPrec), parameter     :: tlcut_cry = 0.0009982_fPrec
@@ -131,9 +134,36 @@ subroutine cry_init
 
 end subroutine cry_init
 
+subroutine cry_initElement(icoll)
+
+  use coll_db
+  use mathlib_bouncer
+
+  integer, intent(in) :: icoll
+
+  c_rcurv  = cdb_cryBend(icoll)
+  c_alayer = cdb_cryThick(icoll)
+  c_xmax   = cdb_cryXDim(icoll)
+  c_ymax   = cdb_cryYDim(icoll)
+  c_orient = cdb_cryOrient(icoll)
+  c_miscut = cdb_cryMiscut(icoll)
+  cry_bend = cry_length/c_rcurv
+  c_cBend  = cos_mb(cry_bend)
+  c_sBend  = sin_mb(cry_bend)
+  c_cpTilt = cos_mb(cry_tilt)
+  c_spTilt = sin_mb(cry_tilt)
+  c_cnTilt = cos_mb(-cry_tilt)
+  c_snTilt = sin_mb(-cry_tilt)
+
+  n_chan      = 0
+  n_VR        = 0
+  n_amorphous = 0
+
+end subroutine cry_initElement
+
 subroutine collimate_cry(icoll, iturn, ie, c_length, c_rotation, c_aperture, c_offset, c_tilt, &
   x_in, xp_in, y_in, yp_in, p_in, s_in, enom, lhit, lhit_turn, part_abs, part_abs_turn, impact, &
-  indiv, lint, cry_tilt, cry_length)
+  indiv, lint, cry_tilt_in, cry_length_in)
 
   use parpro
   use coll_db
@@ -171,28 +201,17 @@ subroutine collimate_cry(icoll, iturn, ie, c_length, c_rotation, c_aperture, c_o
   real(kind=fPrec), intent(inout) :: indiv(npart)
   real(kind=fPrec), intent(inout) :: lint(npart)
 
-  real(kind=fPrec), intent(in)    :: cry_tilt   ! Crystal tilt [rad]
-  real(kind=fPrec), intent(in)    :: cry_length ! Original length (from the db) [m]
+  real(kind=fPrec), intent(in)    :: cry_tilt_in   ! Crystal tilt [rad]
+  real(kind=fPrec), intent(in)    :: cry_length_in ! Original length (from the db) [m]
 
   integer j,mat,nabs,nhit
   real(kind=fPrec) p0,zlm,x,xp,z,zp,s,p,dpop,x_in0,xp_in0,y_in0,yp_in0,p_in0,s_in0,mirror, &
-    tiltangle,cry_bend,cRot,sRot,cRRot,sRRot
+    tiltangle,cRot,sRot,cRRot,sRRot
 
-  ! CRY ---------------------
-  c_rcurv  = cdb_cryBend(icoll)
-  c_alayer = cdb_cryThick(icoll)
-  c_xmax   = cdb_cryXDim(icoll)
-  c_ymax   = cdb_cryYDim(icoll)
-  c_orient = cdb_cryOrient(icoll)
-  c_miscut = cdb_cryMiscut(icoll)
-  cry_bend = cry_length/c_rcurv
-  c_cBend  = cos_mb(cry_bend)
-  c_sBend  = sin_mb(cry_bend)
-  c_cpTilt = cos_mb(cry_tilt)
-  c_spTilt = sin_mb(cry_tilt)
-  c_cnTilt = cos_mb(-cry_tilt)
-  c_snTilt = sin_mb(-cry_tilt)
-  ! CRY ---------------------
+  cry_tilt = cry_tilt_in
+  cry_length = cry_length_in
+
+  call cry_initElement(icoll)
 
   mat = cdb_cMaterialID(icoll)
   p0  = enom
@@ -203,12 +222,7 @@ subroutine collimate_cry(icoll, iturn, ie, c_length, c_rotation, c_aperture, c_o
   nhit   = 0
   mirror = one
 
-  ! CRY ---------------------
   tiltangle   = c_tilt(1)
-  n_chan      = 0
-  n_VR        = 0
-  n_amorphous = 0
-  ! CRY ---------------------
 
   cRot  = cos_mb(c_rotation)
   sRot  = sin_mb(c_rotation)
@@ -265,7 +279,7 @@ subroutine collimate_cry(icoll, iturn, ie, c_length, c_rotation, c_aperture, c_o
 
     ! CRY ---------------------
     call cry_doCrystal(ie,iturn,j,mat,x,xp,z,zp,s,p,x_in0,xp_in0,s_in0,zlm,nhit,nabs,lhit,lhit_turn,&
-      part_abs,part_abs_turn,impact,indiv,cry_tilt,cry_length,cry_bend,c_length)
+      part_abs,part_abs_turn,impact,indiv,c_length)
     ! CRY ---------------------
 
     ! Transform back to particle coordinates with opening and offset
@@ -307,7 +321,7 @@ subroutine collimate_cry(icoll, iturn, ie, c_length, c_rotation, c_aperture, c_o
 end subroutine collimate_cry
 
 subroutine cry_doCrystal(ie,iturn,j,mat,x,xp,z,zp,s,p,x0,s0,xp0,zlm,nhit,nabs,  &
-  lhit,lhit_turn,part_abs,part_abs_turn,impact,indiv,cry_tilt,cry_length,cry_bend,c_length)
+  lhit,lhit_turn,part_abs,part_abs_turn,impact,indiv,c_length)
 
   use parpro
   use coll_common, only : cry_proc
@@ -331,9 +345,6 @@ subroutine cry_doCrystal(ie,iturn,j,mat,x,xp,z,zp,s,p,x0,s0,xp0,zlm,nhit,nabs,  
   integer,          intent(inout) :: part_abs_turn(npart)
   real(kind=fPrec), intent(inout) :: impact(npart)
   real(kind=fPrec), intent(inout) :: indiv(npart)
-  real(kind=fPrec), intent(in)    :: cry_tilt
-  real(kind=fPrec), intent(in)    :: cry_length
-  real(kind=fPrec), intent(in)    :: cry_bend
   real(kind=fPrec), intent(in)    :: c_length
 
   real(kind=fPrec) s_temp,s_shift,s_rot,s_int
