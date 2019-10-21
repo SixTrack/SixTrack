@@ -40,6 +40,35 @@ contains
 
 ! ================================================================================================ !
 !  V.K. Berglyd Olsen, BE-ABP-HSS
+!  Created: 2019-10-21
+!  Updated: 2019-10-21
+!  Initialise the parameters needed for generating distributions
+! ================================================================================================ !
+subroutine cdist_init(enom,emitx0_dist,emity0_dist,emitx0_gap,emity0_gap)
+
+  use mod_common_track
+
+  real(kind=fPrec), intent(in) :: enom
+  real(kind=fPrec), intent(in) :: emitx0_dist
+  real(kind=fPrec), intent(in) :: emity0_dist
+  real(kind=fPrec), intent(in) :: emitx0_gap
+  real(kind=fPrec), intent(in) :: emity0_gap
+
+  cdist_energy    = enom
+  cdist_emitX     = emitx0_dist
+  cdist_emitY     = emity0_dist
+  cdist_emitXColl = emitx0_gap
+  cdist_emitYColl = emity0_gap
+
+  cdist_alphaX    = talphax(1)
+  cdist_alphaY    = talphay(1)
+  cdist_betaX     = tbetax(1)
+  cdist_betaY     = tbetay(1)
+
+end subroutine cdist_init
+
+! ================================================================================================ !
+!  V.K. Berglyd Olsen, BE-ABP-HSS
 !  Created: 2019-03-26
 !  Updated: 2019-04-16
 !  Generate the distribution in the correct order, based on the distFormat flag

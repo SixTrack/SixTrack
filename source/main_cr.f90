@@ -40,7 +40,7 @@ program maincr
   use mod_fluc,       only : fluc_randomReport, fluc_errAlign, fluc_errZFZ
   use postprocessing, only : postpr, writebin_header, writebin
   use read_write,     only : writeFort12, readFort13, readFort33
-  use collimation,    only : do_coll, collimate_init, coll_exitCollimation
+  use collimation,    only : do_coll, coll_init, coll_exitCollimation
   use mod_ffield,     only : ffield_mod_init,ffield_mod_end
 
 #ifdef FLUKA
@@ -1180,7 +1180,7 @@ program maincr
   call dump_initialise
   if(ithick == 0 .and. do_coll) then
     ! Only if thin and collimation enabled
-    call collimate_init
+    call coll_init
   end if
 
   call time_timeStamp(time_afterInitialisation)
