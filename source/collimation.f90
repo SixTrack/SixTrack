@@ -1744,16 +1744,12 @@ subroutine coll_doCollimator(stracki)
   use geant4
 #endif
 
-  implicit none
-
   real(kind=fPrec), intent(in) :: stracki
 
   integer j, iSlice, nSlices
   logical onesided, linside(napx), isAbs, isHit
   real(kind=fPrec) jawLength,jawAperture,jawOffset,jawTilt(2),x_Dump,xpDump,y_Dump,ypDump,s_Dump,   &
-    xmax,ymax,calc_aperture,ldrift,c_nex2,c_ney2,Nap1pos,Nap2pos,Nap1neg,Nap2neg,tiltOffsPos1,      &
-    tiltOffsPos2,tiltOffsNeg1,tiltOffsNeg2,beamsize1,beamsize2,betax1,betax2,betay1,betay2,alphax1, &
-    alphax2,alphay1,alphay2,minAmpl,zpj,xmax_pencil,ymax_pencil,xmax_nom,ymax_nom,nom_aperture,     &
+    xmax,ymax,calc_aperture,zpj,xmax_pencil,ymax_pencil,xmax_nom,ymax_nom,nom_aperture,     &
     scale_bx,scale_by,c_tilt(2),c_offset,c_aperture,c_rotation,cry_bendangle,cry_tilt,cry_tilt0
 
 #ifdef G4COLLIMATION
@@ -1769,12 +1765,8 @@ subroutine coll_doCollimator(stracki)
   integer(kind=int16) :: nnuc0,nnuc1
 #endif
 
-!-----------------------------------------------------------------------
-!GRD NEW COLLIMATION PARAMETERS
-!-----------------------------------------------------------------------
-!++  Get the aperture from the beta functions and emittance
-!++  A simple estimate of beta beating can be included that
-!++  has twice the betatron phase advance
+  ! Get the aperture from the beta functions and emittance
+  ! A simple estimate of beta beating can be included that has twice the betatron phase advance
   if(.not. cdb_doNSig) then
     nsig = cdb_cNSig(icoll)
   end if
@@ -1787,8 +1779,8 @@ subroutine coll_doCollimator(stracki)
     scale_by0 = scale_by
     firstcoll = .false.
   end if
-!-------------------------------------------------------------------
-!++  Assign nominal OR design beta functions for later
+
+  ! Assign nominal OR design beta functions for later
   if(do_nominal) then
     bx_dist = cdb_cBx(icoll) * scale_bx / scale_bx0
     by_dist = cdb_cBy(icoll) * scale_by / scale_by0
@@ -1822,67 +1814,46 @@ subroutine coll_doCollimator(stracki)
     write(outlun,*) 'Optics beta y [m]:   ', tbetay(ie)
   end if
 
-!-------------------------------------------------------------------
-!++  Calculate aperture of collimator
-!JUNE2005   HERE ONE HAS TO HAVE PARTICULAR TREATMENT OF THE OPENING OF
-!JUNE2005   THE PRIMARY COLLIMATOR OF RHIC
-  nsig = nsig + gap_rms_error(icoll)
-  xmax = nsig*sqrt(bx_dist*c_emitx0_collgap)
-  ymax = nsig*sqrt(by_dist*c_emity0_collgap)
+  ! Calculate aperture of collimator
+  nsig        = nsig + gap_rms_error(icoll)
+  c_rotation  = cdb_cRotation(icoll)
+  c_length    = cdb_cLength(icoll)
+  c_offset    = cdb_cOffset(icoll)
+  c_tilt(:)   = cdb_cTilt(:,icoll)
+
+  xmax        = nsig*sqrt(bx_dist*c_emitx0_collgap)
+  ymax        = nsig*sqrt(by_dist*c_emity0_collgap)
   xmax_pencil = (nsig+pencil_offset)*sqrt(bx_dist*c_emitx0_collgap)
   ymax_pencil = (nsig+pencil_offset)*sqrt(by_dist*c_emity0_collgap)
-  xmax_nom   = cdb_cNSig(icoll)*sqrt(cdb_cBx(icoll)*c_emitx0_collgap)
-  ymax_nom   = cdb_cNSig(icoll)*sqrt(cdb_cBy(icoll)*c_emity0_collgap)
-  c_rotation = cdb_cRotation(icoll)
-  c_length   = cdb_cLength(icoll)
-  c_offset   = cdb_cOffset(icoll)
-  c_tilt(1)  = cdb_cTilt(1,icoll)
-  c_tilt(2)  = cdb_cTilt(2,icoll)
+  xmax_nom    = cdb_cNSig(icoll)*sqrt(cdb_cBx(icoll)*c_emitx0_collgap)
+  ymax_nom    = cdb_cNSig(icoll)*sqrt(cdb_cBy(icoll)*c_emity0_collgap)
+
   cry_proc(:) = -1
 
-  calc_aperture   = sqrt(xmax**2 * cos_mb(c_rotation)**2 + ymax**2 * sin_mb(c_rotation)**2)
-  nom_aperture    = sqrt(xmax_nom**2 * cos_mb(c_rotation)**2 + ymax_nom**2 * sin_mb(c_rotation)**2)
-! pencil_aperture = sqrt(xmax_pencil**2 * cos_mb(c_rotation)**2+ ymax_pencil**2 * sin_mb(c_rotation)**2) ! Not in use
+  calc_aperture = sqrt(xmax**2 * cos_mb(c_rotation)**2 + ymax**2 * sin_mb(c_rotation)**2)
+  nom_aperture  = sqrt(xmax_nom**2 * cos_mb(c_rotation)**2 + ymax_nom**2 * sin_mb(c_rotation)**2)
 
-!++  Get x and y offsets at collimator center point
+  ! Get x and y offsets at collimator center point
   x_pencil(icoll) = xmax_pencil * (cos_mb(c_rotation))
   y_pencil(icoll) = ymax_pencil * (sin_mb(c_rotation))
 
-!++  Get corresponding beam angles (uses xp_max)
-  xp_pencil(icoll) = -one * sqrt(c_emitx0_collgap/tbetax(ie))*talphax(ie)* xmax / sqrt(c_emitx0_collgap*tbetax(ie))
-  yp_pencil(icoll) = -one * sqrt(c_emity0_collgap/tbetay(ie))*talphay(ie)* ymax / sqrt(c_emity0_collgap*tbetay(ie))
+  ! Get corresponding beam angles (uses xp_max)
+  xp_pencil(icoll) = -one*sqrt(c_emitx0_collgap/tbetax(ie))*talphax(ie)*xmax / sqrt(c_emitx0_collgap*tbetax(ie))
+  yp_pencil(icoll) = -one*sqrt(c_emity0_collgap/tbetay(ie))*talphay(ie)*ymax / sqrt(c_emity0_collgap*tbetay(ie))
   xp_pencil0 = xp_pencil(icoll)
   yp_pencil0 = yp_pencil(icoll)
 
   pencil_dx(icoll) = sqrt(xmax_pencil**2 * cos_mb(c_rotation)**2 + ymax_pencil**2 * sin_mb(c_rotation)**2)-calc_aperture
 
-!++ TW -- tilt for of jaw for pencil beam
-!++ as in Ralphs orig routine, but not in collimate subroutine itself
-!            nprim = 3
-!            if ( (icoll.eq.ipencil) &
-!     &           icoll.le.nprim .and. (j.ge.(icoll-1)*nev/nprim)        &
-!     &           .and. (j.le.(icoll)*nev/nprim))) then
-! this is done for every bunch (64 particle bucket)
-! important: Sixtrack calculates in "mm" and k2coll_collimate in "m"
-! therefore 1E-3 is used to
-
-! RB: added condition that pencil_distr.ne.3 in order to do the tilt
-  if((icoll.eq.ipencil).and.(iturn.eq.1).and. (pencil_distr.ne.3)) then
-!!               write(*,*) " ************************************** "
-!!               write(*,*) " * INFO> seting tilt for pencil beam  * "
-!!               write(*,*) " ************************************** "
-
-!! respects if the tilt symmetric or not, for systilt_antiymm c_tilt is
-!! -systilt + rmstilt otherwise +systilt + rmstilt
-!!               if (systilt_antisymm) then
-!! to align the jaw/pencil to the beam always use the minus regardless which
-!! orientation of the jaws was used (symmetric/antisymmetric)
+  ! Added condition that pencil_distr /= 3 in order to do the tilt
+  if(icoll == ipencil .and. iturn == 1 .and. pencil_distr /= 3) then
+    ! To align the jaw/pencil to the beam always use the minus regardless which
+    ! orientation of the jaws was used (symmetric/antisymmetric)
     c_tilt(1) = c_tilt(1) +    (xp_pencil0*cos_mb(c_rotation) + sin_mb(c_rotation)*yp_pencil0)
     c_tilt(2) = c_tilt(2) -one*(xp_pencil0*cos_mb(c_rotation) + sin_mb(c_rotation)*yp_pencil0)
     write(lout,*) "INFO> Changed tilt1  ICOLL  to  ANGLE  ", icoll, c_tilt(1)
     write(lout,*) "INFO> Changed tilt2  ICOLL  to  ANGLE  ", icoll, c_tilt(2)
   end if
-!++ TW -- tilt angle changed (added to genetated on if spec. in fort.3)
 
   ! Extract number of jaw fit slices for this collimator
   if(cdb_cSliced(icoll) > 0) then ! Collimator is sliced
@@ -1926,131 +1897,12 @@ subroutine coll_doCollimator(stracki)
 
   c_aperture = two*calc_aperture
 
-! RB: addition matched halo sampled directly on the TCP using pencil beam flag
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-  if ((iturn.eq.1).and.(ipencil.eq.icoll).and.(pencil_distr.eq.3)) then
-
-!     create distribution where the normalized distance between jaw and beam is the smallest
-!     - this is where particles will first impact:
-!     without imperfections, it is:
-!              -- at the face of the collimator for the case of beta'<0 (POSITIVE alpha - beam converging) and
-!              -- at the exit of the collimator for the case of beta'>0 (NEGATIVE alpha beam diverging)
-
-!     with imperfections: include errors on gap, tilt and offset. We have to calculate the normalized distance
-!     to each corner separately!
-
-!     First: calculate optical parameters at start and end of collimator (half a collimator length upstream and
-!     downstream of present s-position)
-!     Assuming a purely vertical or horizontal halo - need to add more conditions for other cases!
-
-!     Using standard twiss transfer matrix for a drift : ( new_halo_model_checks.nb )
-!     at start of collimator:
-    ldrift = -c_length / two !Assign the drift length over which the optics functions are propagated
-    betax1 = tbetax(ie) - two*ldrift*talphax(ie) + (ldrift**2 * (one+talphax(ie)**2))/tbetax(ie)
-    betay1 = tbetay(ie) - two*ldrift*talphay(ie) + (ldrift**2 * (one+talphay(ie)**2))/tbetay(ie)
-
-    alphax1 = talphax(ie) - (ldrift*(1+talphax(ie)**2))/tbetax(ie)
-    alphay1 = talphay(ie) - (ldrift*(1+talphay(ie)**2))/tbetay(ie)
-
-!   at end of collimator:
-    ldrift = c_length / two
-    betax2 = tbetax(ie) - two*ldrift*talphax(ie) + (ldrift**2 * (one+talphax(ie)**2))/tbetax(ie)
-    betay2 = tbetay(ie) - two*ldrift*talphay(ie) + (ldrift**2 * (one+talphay(ie)**2))/tbetay(ie)
-
-    alphax2 = talphax(ie) - (ldrift*(1+talphax(ie)**2))/tbetax(ie)
-    alphay2 = talphay(ie) - (ldrift*(1+talphay(ie)**2))/tbetay(ie)
-
-!   calculate beam size at start and end of collimator. account for collimation plane
-    if((cdist_ampX.gt.0).and.(cdist_ampY.eq.zero)) then  ! horizontal halo
-      beamsize1 = sqrt(betax1 * c_emitx0_collgap)
-      beamsize2 = sqrt(betax2 * c_emitx0_collgap)
-    else if((cdist_ampX.eq.0).and.(cdist_ampY.gt.zero)) then   ! vertical halo
-      beamsize1 = sqrt(betay1 * c_emity0_collgap)
-      beamsize2 = sqrt(betay2 * c_emity0_collgap)
-    else
-      write(lerr,"(a)") "COLL> ERROR Attempting to use a halo not purely in the horizontal "//&
-        "or vertical plane with pencil_dist=3 - abort."
-      call prror
-    end if
-
-!   calculate offset from tilt of positive and negative jaws, at start and end
-!   remember: tilt angle is defined such that one corner stays at nominal position, the other corner is more open
-
-!   jaw in positive x (or y):
-    if(c_tilt(1).ge.0) then
-      tiltOffsPos1 = zero
-      tiltOffsPos2 = abs(sin_mb(c_tilt(1))) * c_length
-    else
-      tiltOffsPos1 = abs(sin_mb(c_tilt(1))) * c_length
-      tiltOffsPos2 = zero
-    end if
-
-!   jaw in negative x (or y):
-    if(c_tilt(2).ge.0) then
-      tiltOffsNeg1 = abs(sin_mb(c_tilt(2))) * c_length
-      tiltOffsNeg2 = zero
-    else
-      tiltOffsNeg1 = zero
-      tiltOffsNeg2 = abs(sin_mb(c_tilt(2))) * c_length
-    end if
-
-!   calculate half distance from jaws to beam center (in units of beam sigma) at the beginning of the collimator,
-!     positive and neg jaws.
-    Nap1pos=((c_aperture/two + c_offset) + tiltOffsPos1)/beamsize1
-    Nap2pos=((c_aperture/two + c_offset) + tiltOffsPos2)/beamsize2
-    Nap1neg=((c_aperture/two - c_offset) + tiltOffsNeg1)/beamsize1
-    Nap2neg=((c_aperture/two - c_offset) + tiltOffsNeg2)/beamsize2
-
-!   Minimum normalized distance from jaw to beam center - this is the n_sigma at which the halo should be generated
-    minAmpl = min(Nap1pos,Nap2pos,Nap1neg,Nap2neg)
-
-!   Assign amplitudes in x and y for the halo generation function
-    if((cdist_ampX.gt.0).and.(cdist_ampY.eq.zero)) then ! horizontal halo
-      c_nex2 = minAmpl
-    else if((cdist_ampX.eq.0).and.(cdist_ampY.gt.zero)) then ! vertical halo
-      c_ney2 = minAmpl
-    end if               ! other cases taken care of above - in these cases, program has already stopped
-
-!   assign optics parameters to use for the generation of the starting halo - at start or end of collimator
-    if((minAmpl.eq.Nap1pos).or.(minAmpl.eq.Nap1neg)) then ! min normalized distance occurs at start of collimator
-      c_betax=betax1
-      c_betay=betay1
-      c_alphax=alphax1
-      c_alphay=alphay1
-      ldrift = -c_length / two
-    else               ! min normalized distance occurs at end of collimator
-      c_betax=betax2
-      c_betay=betay2
-      c_alphax=alphax2
-      c_alphay=alphay2
-      ldrift = c_length / two
-    end if
-
-!   create new pencil beam distribution with spread at start or end of collimator at the minAmpl
-!   note: if imperfections are active, equal amounts of particles are still generated on the two jaws.
-!   but it might be then that only one jaw is hit on the first turn, thus only by half of the particles
-!   the particle generated on the other side will then hit the same jaw several turns later, possibly smearing the impact parameter
-!   This could possibly be improved in the future.
-    call cdist_makeDist_coll(c_alphax,c_alphay,c_betax,c_betay,c_nex2,c_ney2)
-
-    do j = 1, napx
-      xv1(j)  = c1e3*xv1(j) + torbx(ie)
-      yv1(j)  = c1e3*yv1(j) + torbxp(ie)
-      xv2(j)  = c1e3*xv2(j) + torby(ie)
-      yv2(j)  = c1e3*yv2(j) + torbyp(ie)
-
-!      as main routine will track particles back half a collimator length (to start of jaw),
-!      track them now forward (if generated at face) or backward (if generated at end)
-!      1/2 collimator length to center of collimator (ldrift pos or neg)
-       xv1(j)  = xv1(j) - ldrift*yv1(j)
-       xv2(j)  = xv2(j) - ldrift*yv2(j)
-    end do
+  ! Addition matched halo sampled directly on the TCP using pencil beam flag
+  if(iturn == 1 .and. ipencil == icoll .and. pencil_distr == 3) then
+    call coll_matchedHalo(c_tilt,c_offset,c_aperture)
   end if
 
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-! end RB addition
-
-!++  Copy particle data to 1-dim array and go back to meters
+  ! Copy particle data to 1-dim array and go back to meters
   do j=1,napx
     rcx(j)  = (xv1(j)-torbx(ie)) /c1e3
     rcxp(j) = (yv1(j)-torbxp(ie))/c1e3
@@ -3032,6 +2884,147 @@ subroutine coll_endTurn
   call coll_endElement
 
 end subroutine coll_endTurn
+
+
+! ================================================================================================ !
+!  R. Bruce
+!
+!  Create distribution where the normalized distance between jaw and beam is the smallest.
+!  This is where particles will first impact:
+!  Without imperfections, it is:
+!   - at the face of the collimator for the case of beta'<0 (POSITIVE alpha - beam converging) and
+!   - at the exit of the collimator for the case of beta'>0 (NEGATIVE alpha beam diverging)
+!  With imperfections:
+!   - include errors on gap, tilt and offset. We have to calculate the normalized distance to each
+!     corner separately!
+!
+! Calculate optical parameters at start and end of collimator (half a collimator length upstream
+! and downstream of present s-position). Assuming a purely vertical or horizontal halo - need to
+! add more conditions for other cases!
+!
+! Using standard twiss transfer matrix for a drift at start of collimator
+! ================================================================================================ !
+subroutine coll_matchedHalo(c_tilt,c_offset,c_aperture)
+
+  use crcoall
+  use coll_dist
+  use mod_common
+  use mod_common_main
+  use mod_common_track
+  use mathlib_bouncer
+
+  real(kind=fPrec), intent(in) :: c_tilt(2)
+  real(kind=fPrec), intent(in) :: c_offset
+  real(kind=fPrec), intent(in) :: c_aperture
+
+  integer j
+  real(kind=fPrec) Nap1pos,Nap2pos,Nap1neg,Nap2neg,tiltOffsPos1,tiltOffsPos2,tiltOffsNeg1,     &
+    tiltOffsNeg2,beamsize1,beamsize2,minAmpl,ldrift,c_nex2,c_ney2,betax1,betax2,betay1,betay2, &
+    alphax1,alphax2,alphay1,alphay2
+
+  ! Assign the drift length over which the optics functions are propagated
+  ldrift = -c_length/two
+  betax1 = tbetax(ie) - two*ldrift*talphax(ie) + (ldrift**2 * (one+talphax(ie)**2))/tbetax(ie)
+  betay1 = tbetay(ie) - two*ldrift*talphay(ie) + (ldrift**2 * (one+talphay(ie)**2))/tbetay(ie)
+
+  alphax1 = talphax(ie) - (ldrift*(1+talphax(ie)**2))/tbetax(ie)
+  alphay1 = talphay(ie) - (ldrift*(1+talphay(ie)**2))/tbetay(ie)
+
+  ! At end of collimator:
+  ldrift = c_length/two
+  betax2 = tbetax(ie) - two*ldrift*talphax(ie) + (ldrift**2 * (one+talphax(ie)**2))/tbetax(ie)
+  betay2 = tbetay(ie) - two*ldrift*talphay(ie) + (ldrift**2 * (one+talphay(ie)**2))/tbetay(ie)
+
+  alphax2 = talphax(ie) - (ldrift*(1+talphax(ie)**2))/tbetax(ie)
+  alphay2 = talphay(ie) - (ldrift*(1+talphay(ie)**2))/tbetay(ie)
+
+  ! Calculate beam size at start and end of collimator. account for collimation plane
+  if(cdist_ampX > zero .and. cdist_ampY == zero) then ! Horizontal halo
+    beamsize1 = sqrt(betax1 * c_emitx0_collgap)
+    beamsize2 = sqrt(betax2 * c_emitx0_collgap)
+  else if(cdist_ampX == zero .and. cdist_ampY > zero) then ! Vertical halo
+    beamsize1 = sqrt(betay1 * c_emity0_collgap)
+    beamsize2 = sqrt(betay2 * c_emity0_collgap)
+  else
+    write(lerr,"(a)") "COLL> ERROR Attempting to use a halo not purely in the horizontal "//&
+      "or vertical plane with pencil_dist=3 - abort."
+    call prror
+  end if
+
+  ! Calculate offset from tilt of positive and negative jaws, at start and end
+  ! Remember: tilt angle is defined such that one corner stays at nominal position, the other corner is more open
+
+  ! Jaw in positive x (or y):
+  if(c_tilt(1) >= zero) then
+    tiltOffsPos1 = zero
+    tiltOffsPos2 = abs(sin_mb(c_tilt(1))) * c_length
+  else
+    tiltOffsPos1 = abs(sin_mb(c_tilt(1))) * c_length
+    tiltOffsPos2 = zero
+  end if
+
+  ! Jaw in negative x (or y):
+  if(c_tilt(2) >= zero) then
+    tiltOffsNeg1 = abs(sin_mb(c_tilt(2))) * c_length
+    tiltOffsNeg2 = zero
+  else
+    tiltOffsNeg1 = zero
+    tiltOffsNeg2 = abs(sin_mb(c_tilt(2))) * c_length
+  end if
+
+  ! Calculate half distance from jaws to beam center (in units of beam sigma) at the beginning of the collimator,
+  ! Positive and neg jaws.
+  Nap1pos = ((c_aperture/two + c_offset) + tiltOffsPos1)/beamsize1
+  Nap2pos = ((c_aperture/two + c_offset) + tiltOffsPos2)/beamsize2
+  Nap1neg = ((c_aperture/two - c_offset) + tiltOffsNeg1)/beamsize1
+  Nap2neg = ((c_aperture/two - c_offset) + tiltOffsNeg2)/beamsize2
+
+  ! Minimum normalized distance from jaw to beam center - this is the n_sigma at which the halo should be generated
+  minAmpl = min(Nap1pos,Nap2pos,Nap1neg,Nap2neg)
+
+  ! Assign amplitudes in x and y for the halo generation function
+  if(cdist_ampX > zero .and. cdist_ampY == zero) then ! Horizontal halo
+    c_nex2 = minAmpl
+  else if(cdist_ampX == zero .and. cdist_ampY > zero) then ! Vertical halo
+    c_ney2 = minAmpl
+  end if ! Other cases taken care of above - in these cases, program has already stopped
+
+  ! Assign optics parameters to use for the generation of the starting halo - at start or end of collimator
+  if(minAmpl == Nap1pos .or. minAmpl == Nap1neg) then ! min normalized distance occurs at start of collimator
+    c_betax  = betax1
+    c_betay  = betay1
+    c_alphax = alphax1
+    c_alphay = alphay1
+    ldrift   = -c_length/two
+  else ! Min normalized distance occurs at end of collimator
+    c_betax  = betax2
+    c_betay  = betay2
+    c_alphax = alphax2
+    c_alphay = alphay2
+    ldrift   = c_length/two
+  end if
+
+  ! create new pencil beam distribution with spread at start or end of collimator at the minAmpl
+  ! note: if imperfections are active, equal amounts of particles are still generated on the two jaws.
+  ! but it might be then that only one jaw is hit on the first turn, thus only by half of the particles
+  ! the particle generated on the other side will then hit the same jaw several turns later, possibly smearing the impact parameter
+  ! This could possibly be improved in the future.
+  call cdist_makeDist_coll(c_alphax,c_alphay,c_betax,c_betay,c_nex2,c_ney2)
+
+  do j=1,napx
+    xv1(j)  = c1e3*xv1(j) + torbx(ie)
+    yv1(j)  = c1e3*yv1(j) + torbxp(ie)
+    xv2(j)  = c1e3*xv2(j) + torby(ie)
+    yv2(j)  = c1e3*yv2(j) + torbyp(ie)
+
+    ! as main routine will track particles back half a collimator length (to start of jaw),
+    ! track them now forward (if generated at face) or backward (if generated at end)
+    ! 1/2 collimator length to center of collimator (ldrift pos or neg)
+    xv1(j)  = xv1(j) - ldrift*yv1(j)
+    xv2(j)  = xv2(j) - ldrift*yv2(j)
+  end do
+
+end subroutine coll_matchedHalo
 
 ! ================================================================================================ !
 !  Find the smallest gap, and also write sigmasettings.out
