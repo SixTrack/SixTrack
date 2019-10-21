@@ -1737,12 +1737,6 @@ subroutine coll_doCollimator(stracki)
   use mathlib_bouncer
   use mod_alloc
   use string_tools
-#ifdef ROOT
-  use root_output
-#endif
-#ifdef G4COLLIMATION
-  use geant4
-#endif
 
   real(kind=fPrec), intent(in) :: stracki
 
@@ -1751,19 +1745,6 @@ subroutine coll_doCollimator(stracki)
   real(kind=fPrec) jawLength,jawAperture,jawOffset,jawTilt(2),x_Dump,xpDump,y_Dump,ypDump,s_Dump,   &
     xmax,ymax,calc_aperture,zpj,xmax_pencil,ymax_pencil,xmax_nom,ymax_nom,nom_aperture,     &
     scale_bx,scale_by,c_tilt(2),c_offset,c_aperture,c_rotation,cry_bendangle,cry_tilt,cry_tilt0
-
-#ifdef G4COLLIMATION
-  integer :: g4_lostc
-  integer :: g4_npart
-  integer :: part_hit_flag = 0
-  integer :: part_abs_flag = 0
-  real(kind=fPrec) x_tmp,y_tmp,xp_tmp,yp_tmp
-
-  ! ien0,ien1: ion energy entering/leaving the collimator
-  ! energy in MeV
-  real(kind=fPrec)    :: ien0, ien1
-  integer(kind=int16) :: nnuc0,nnuc1
-#endif
 
   ! Get the aperture from the beta functions and emittance
   ! A simple estimate of beta beating can be included that has twice the betatron phase advance
@@ -1904,14 +1885,13 @@ subroutine coll_doCollimator(stracki)
 
   ! Copy particle data to 1-dim array and go back to meters
   do j=1,napx
-    rcx(j)  = (xv1(j)-torbx(ie)) /c1e3
-    rcxp(j) = (yv1(j)-torbxp(ie))/c1e3
-    rcy(j)  = (xv2(j)-torby(ie)) /c1e3
-    rcyp(j) = (yv2(j)-torbyp(ie))/c1e3
-    rcp(j)  = ejv(j)/c1e3
-    rcs(j)  = zero
-    part_hit_before_turn(j) = part_hit_turn(j)
-    part_hit_before_pos(j)  = part_hit_pos(j)
+    rcx(j)   = (xv1(j)-torbx(ie)) /c1e3
+    rcxp(j)  = (yv1(j)-torbxp(ie))/c1e3
+    rcy(j)   = (xv2(j)-torby(ie)) /c1e3
+    rcyp(j)  = (yv2(j)-torbyp(ie))/c1e3
+    rcp(j)   = ejv(j)/c1e3
+    rcs(j)   = zero
+
     rcx0(j)  = rcx(j)
     rcxp0(j) = rcxp(j)
     rcy0(j)  = rcy(j)
@@ -1919,11 +1899,14 @@ subroutine coll_doCollimator(stracki)
     rcp0(j)  = rcp(j)
     ejf0v(j) = ejfv(j)
 
+    part_hit_before_turn(j) = part_hit_turn(j)
+    part_hit_before_pos(j)  = part_hit_pos(j)
+
     ! For zero length element track back half collimator length
     ! DRIFT PART
-    if(stracki == 0) then
+    if(stracki == zero) then
       if(iexact) then
-        zpj    = sqrt(one-rcxp(j)**2-rcyp(j)**2)
+        zpj    = sqrt(one - rcxp(j)**2 - rcyp(j)**2)
         rcx(j) = rcx(j) - (half*c_length)*(rcxp(j)/zpj)
         rcy(j) = rcy(j) - (half*c_length)*(rcyp(j)/zpj)
       else
@@ -1962,7 +1945,6 @@ subroutine coll_doCollimator(stracki)
   else ! Treatment of non-sliced collimators
 
 #ifndef G4COLLIMATION
-
   if(cdb_isCrystal(icoll)) then
     if (modulo(cdb_cRotation(icoll),pi) < c1m9) then
       cry_tilt0 = (-one)*sqrt(c_emitx0_dist/tbetax(ie))*talphax(ie)*nsig
@@ -2007,164 +1989,8 @@ subroutine coll_doCollimator(stracki)
       part_abs_pos, part_abs_turn, part_impact, part_indiv, part_linteract,             &
       onesided, nhit_type, 1, nabs_type, linside)
   end if
-
 #else
-
-    !! Add the geant4 geometry
-    if(firstrun .and. iturn == 1) then
-      call g4_add_collimator(cdb_cName(icoll), cdb_cMaterial(icoll), c_length, c_aperture, c_rotation, torbx(ie), torby(ie))
-    end if
-
-!! Here we do the real collimation
-!! First set the correct collimator
-    call g4_set_collimator(cdb_cName(icoll))
-    flush(lout)
-
-!! Loop over all our particles
-    g4_lostc = 0
-    nnuc0 = 0
-    ien0  = zero
-    nnuc1 = 0
-    ien1  = zero
-
-    if(g4_debug .eqv. .true.) then
-      write(lout,"(2a)") 'COLLIMATOR:', cdb_cName(icoll)
-      write(lout,"(12a)") chr_lpad('id',33), chr_lpad('pdgid',12), chr_lpad('mass',25), chr_lpad('x',25), chr_lpad('y',25), &
-                          chr_lpad('xp',25), chr_lpad('yp',25), chr_lpad('p',25), chr_lpad('spin_x',25), chr_lpad('spin_y',25),&
-                          chr_lpad('spin_z',25)
-      flush(lout)
-    end if
-
-    do j = 1, napx
-!!!!          if(part_abs_pos(j).eq.0 .and. part_abs_turn(j).eq.0) then
-!! Rotate particles in the frame of the collimator
-!! There is more precision if we do it here rather
-!! than in the g4 geometry
-
-      if(g4_debug .eqv. .true.) then
-        write(lout,"(a,2(1X,I11),10(1X,E24.16))") 'g4 sending particle: ', j, pdgid(j), nucm(j), rcx(j), rcy(j), rcxp(j), &
-          rcyp(j), rcp(j), spin_x(j), spin_y(j), spin_z(j), sigmv(j)
-      end if
-
-      x_tmp = rcx(j)
-      y_tmp = rcy(j)
-      xp_tmp = rcxp(j)
-      yp_tmp = rcyp(j)
-      rcx(j) =  x_tmp *cos_mb(c_rotation) + sin_mb(c_rotation)*y_tmp
-      rcy(j) =  y_tmp *cos_mb(c_rotation) - sin_mb(c_rotation)*x_tmp
-      rcxp(j) = xp_tmp*cos_mb(c_rotation) + sin_mb(c_rotation)*yp_tmp
-      rcyp(j) = yp_tmp*cos_mb(c_rotation) - sin_mb(c_rotation)*xp_tmp
-
-!! Add all particles
-      call g4_add_particle(rcx(j), rcy(j), rcxp(j), rcyp(j), rcp(j), pdgid(j), nzz(j), naa(j), nqq(j), nucm(j), &
-        sigmv(j), spin_x(j), spin_y(j), spin_z(j))
-
-! Log input energy + nucleons as per the FLUKA coupling
-      nnuc0   = nnuc0 + naa(j)
-      ien0    = ien0 + rcp(j) * c1e3
-    end do
-
-!! Call the geant4 collimation function
-!            call g4_collimate(rcx(j), rcy(j), rcxp(j), rcyp(j), rcp(j))
-    call g4_collimate()
-
-!! Get the particle number back
-    call g4_get_particle_count(g4_npart)
-
-!! resize arrays
-    call expand_arrays(nele, g4_npart, nblz, nblo, nbb)
-
-!! Reset napx to the correct value
-    napx = g4_npart
-
-    if(g4_debug .eqv. .true.) then
-      write(lout,"(12a)") chr_lpad('id',33), chr_lpad('pdgid',12), chr_lpad('mass',25), chr_lpad('x',25), chr_lpad('y',25), &
-                          chr_lpad('xp',25), chr_lpad('yp',25), chr_lpad('p',25), chr_lpad('spin_x',25), chr_lpad('spin_y',25),&
-                          chr_lpad('spin_z',25)
-      flush(lout)
-    end if
-
-    do j = 1, napx
-!! Get the particle back + information
-!! Remember C arrays start at 0, fortran at 1 here.
-      call g4_collimate_return(j-1, rcx(j), rcy(j), rcxp(j), rcyp(j), rcp(j), pdgid(j), nucm(j), nzz(j), naa(j), nqq(j), &
-        sigmv(j), part_hit_flag, part_abs_flag, part_impact(j), part_indiv(j), part_linteract(j), spin_x(j), spin_y(j), spin_z(j))
-
-      partID(j) = j
-      pstop (j) = .false.
-
-!! Rotate back into the accelerator frame
-      x_tmp   = rcx(j)
-      y_tmp   = rcy(j)
-      xp_tmp  = rcxp(j)
-      yp_tmp  = rcyp(j)
-      rcx(j)  = x_tmp *cos_mb(-one*c_rotation) + sin_mb(-one*c_rotation)*y_tmp
-      rcy(j)  = y_tmp *cos_mb(-one*c_rotation) - sin_mb(-one*c_rotation)*x_tmp
-      rcxp(j) = xp_tmp*cos_mb(-one*c_rotation) + sin_mb(-one*c_rotation)*yp_tmp
-      rcyp(j) = yp_tmp*cos_mb(-one*c_rotation) - sin_mb(-one*c_rotation)*xp_tmp
-
-! This needs fixing - FIXME
-!            sigmv(j) = zero
-!            sigmv(j) = s - (g4_v0*g4_time)
-      part_impact(j) = 0
-      part_indiv(j) = 0
-      part_linteract(j) = 0
-
-! Log output energy + nucleons as per the FLUKA coupling
-      nnuc1       = nnuc1 + naa(j)                          ! outcoming nucleons
-      ien1        = ien1  + rcp(j) * c1e3                   ! outcoming energy
-
-! Fix hits
-! if(part_hit_pos(j) .eq.ie .and. part_hit_turn(j).eq.iturn)
-      part_hit_pos(j)  = ie
-      part_hit_turn(j) = iturn
-      part_abs_pos(j) = 0
-      part_abs_turn(j) = 0
-
-!!           If a particle hit
-!            if(part_hit_flag.ne.0) then
-!              part_hit_pos(j) = ie
-!              part_hit_turn(j) = iturn
-!            end if
-!
-!!           If a particle died (the checking if it is already dead is at the start of the loop)
-!!           Geant just has a general inelastic process that single diffraction is part of
-!!           Therefore we can not know if this interaction was SD or some other inelastic type
-!            if(part_abs_flag.ne.0) then
-!              if(dowrite_impact) then
-!!! FLUKA_impacts.dat
-!                write(coll_flukImpUnit,'(i4,(1x,f6.3),(1x,f8.6),4(1x,e19.10),i2,2(1x,i7))') &
-! &                    icoll,c_rotation,zero,zero,zero,zero,zero,part_abs_flag,flukaname(j),iturn
-!              end if
-!
-!              part_abs_pos(j)  = ie
-!              part_abs_turn(j) = iturn
-!              rcx(j) = 99.99e-3_fPrec
-!              rcy(j) = 99.99e-3_fPrec
-!              g4_lostc = g4_lostc + 1
-!            end if
-
-      if(g4_debug .eqv. .true.) then
-        write(lout,"(a,2(1X,I11),10(1X,E24.16))") 'g4 return particle:  ', j, pdgid(j), nucm(j), rcx(j), rcy(j), rcxp(j), &
-              rcyp(j), rcp(j), spin_x(j), spin_y(j), spin_z(j), sigmv(j)
-      end if
-
-      flush(lout)
-!!!!          end if !part_abs_pos(j) .ne. 0 .and. part_abs_turn(j) .ne. 0
-    end do   !do j = 1, napx
-
-    call g4_collimation_clear()
-
-    if((ien0-ien1) > one) then
-#ifdef ROOT
-      if(root_flag .and. root_Collimation == 1) then
-        call root_EnergyDeposition(icoll, nnuc0-nnuc1,c1m3*(ien0-ien1))
-      end if
-#endif
-      write(unit208,"(2(i5,1x),e24.16)") icoll, (nnuc0-nnuc1), c1m3*(ien0-ien1)
-      flush(unit208)
-    end if
-
+  call coll_doCollimator_Geant4(c_aperture,c_rotation)
 #endif
   end if
 
@@ -3451,5 +3277,195 @@ subroutine coll_writeTracks2(iMode)
   end if
 
 end subroutine coll_writeTracks2
+
+#ifdef G4COLLIMATION
+subroutine coll_doCollimator_Geant4(c_aperture,c_rotation)
+
+  use crcoall
+  use mod_common
+  use mod_common_main
+  use mod_common_track
+  use coll_db
+  use coll_common
+  use geant4
+  use string_tools
+  use mathlib_bouncer
+#ifdef ROOT
+  use root_output
+#endif
+
+  real(kind=fPrec), intent(in) :: c_aperture
+  real(kind=fPrec), intent(in) :: c_rotation
+
+  integer j
+
+  integer :: g4_lostc
+  integer :: g4_npart
+  integer :: part_hit_flag = 0
+  integer :: part_abs_flag = 0
+  real(kind=fPrec) x_tmp,y_tmp,xp_tmp,yp_tmp
+
+  ! ien0,ien1: ion energy entering/leaving the collimator
+  ! energy in MeV
+  real(kind=fPrec)    :: ien0, ien1
+  integer(kind=int16) :: nnuc0,nnuc1
+
+  !! Add the geant4 geometry
+  if(firstrun .and. iturn == 1) then
+    call g4_add_collimator(cdb_cName(icoll), cdb_cMaterial(icoll), c_length, c_aperture, c_rotation, torbx(ie), torby(ie))
+  end if
+
+!! Here we do the real collimation
+!! First set the correct collimator
+  call g4_set_collimator(cdb_cName(icoll))
+  flush(lout)
+
+!! Loop over all our particles
+  g4_lostc = 0
+  nnuc0 = 0
+  ien0  = zero
+  nnuc1 = 0
+  ien1  = zero
+
+  if(g4_debug .eqv. .true.) then
+    write(lout,"(2a)") 'COLLIMATOR:', cdb_cName(icoll)
+    write(lout,"(12a)") chr_lpad('id',33), chr_lpad('pdgid',12), chr_lpad('mass',25), chr_lpad('x',25), chr_lpad('y',25), &
+                        chr_lpad('xp',25), chr_lpad('yp',25), chr_lpad('p',25), chr_lpad('spin_x',25), chr_lpad('spin_y',25),&
+                        chr_lpad('spin_z',25)
+    flush(lout)
+  end if
+
+  do j = 1, napx
+!!!!          if(part_abs_pos(j).eq.0 .and. part_abs_turn(j).eq.0) then
+!! Rotate particles in the frame of the collimator
+!! There is more precision if we do it here rather
+!! than in the g4 geometry
+
+    if(g4_debug .eqv. .true.) then
+      write(lout,"(a,2(1X,I11),10(1X,E24.16))") 'g4 sending particle: ', j, pdgid(j), nucm(j), rcx(j), rcy(j), rcxp(j), &
+        rcyp(j), rcp(j), spin_x(j), spin_y(j), spin_z(j), sigmv(j)
+    end if
+
+    x_tmp = rcx(j)
+    y_tmp = rcy(j)
+    xp_tmp = rcxp(j)
+    yp_tmp = rcyp(j)
+    rcx(j) =  x_tmp *cos_mb(c_rotation) + sin_mb(c_rotation)*y_tmp
+    rcy(j) =  y_tmp *cos_mb(c_rotation) - sin_mb(c_rotation)*x_tmp
+    rcxp(j) = xp_tmp*cos_mb(c_rotation) + sin_mb(c_rotation)*yp_tmp
+    rcyp(j) = yp_tmp*cos_mb(c_rotation) - sin_mb(c_rotation)*xp_tmp
+
+!! Add all particles
+    call g4_add_particle(rcx(j), rcy(j), rcxp(j), rcyp(j), rcp(j), pdgid(j), nzz(j), naa(j), nqq(j), nucm(j), &
+      sigmv(j), spin_x(j), spin_y(j), spin_z(j))
+
+! Log input energy + nucleons as per the FLUKA coupling
+    nnuc0   = nnuc0 + naa(j)
+    ien0    = ien0 + rcp(j) * c1e3
+  end do
+
+!! Call the geant4 collimation function
+!            call g4_collimate(rcx(j), rcy(j), rcxp(j), rcyp(j), rcp(j))
+  call g4_collimate()
+
+!! Get the particle number back
+  call g4_get_particle_count(g4_npart)
+
+!! resize arrays
+  call expand_arrays(nele, g4_npart, nblz, nblo, nbb)
+
+!! Reset napx to the correct value
+  napx = g4_npart
+
+  if(g4_debug .eqv. .true.) then
+    write(lout,"(12a)") chr_lpad('id',33), chr_lpad('pdgid',12), chr_lpad('mass',25), chr_lpad('x',25), chr_lpad('y',25), &
+                        chr_lpad('xp',25), chr_lpad('yp',25), chr_lpad('p',25), chr_lpad('spin_x',25), chr_lpad('spin_y',25),&
+                        chr_lpad('spin_z',25)
+    flush(lout)
+  end if
+
+  do j = 1, napx
+!! Get the particle back + information
+!! Remember C arrays start at 0, fortran at 1 here.
+    call g4_collimate_return(j-1, rcx(j), rcy(j), rcxp(j), rcyp(j), rcp(j), pdgid(j), nucm(j), nzz(j), naa(j), nqq(j), &
+      sigmv(j), part_hit_flag, part_abs_flag, part_impact(j), part_indiv(j), part_linteract(j), spin_x(j), spin_y(j), spin_z(j))
+
+    partID(j) = j
+    pstop (j) = .false.
+
+!! Rotate back into the accelerator frame
+    x_tmp   = rcx(j)
+    y_tmp   = rcy(j)
+    xp_tmp  = rcxp(j)
+    yp_tmp  = rcyp(j)
+    rcx(j)  = x_tmp *cos_mb(-one*c_rotation) + sin_mb(-one*c_rotation)*y_tmp
+    rcy(j)  = y_tmp *cos_mb(-one*c_rotation) - sin_mb(-one*c_rotation)*x_tmp
+    rcxp(j) = xp_tmp*cos_mb(-one*c_rotation) + sin_mb(-one*c_rotation)*yp_tmp
+    rcyp(j) = yp_tmp*cos_mb(-one*c_rotation) - sin_mb(-one*c_rotation)*xp_tmp
+
+! This needs fixing - FIXME
+!            sigmv(j) = zero
+!            sigmv(j) = s - (g4_v0*g4_time)
+    part_impact(j) = 0
+    part_indiv(j) = 0
+    part_linteract(j) = 0
+
+! Log output energy + nucleons as per the FLUKA coupling
+    nnuc1       = nnuc1 + naa(j)                          ! outcoming nucleons
+    ien1        = ien1  + rcp(j) * c1e3                   ! outcoming energy
+
+! Fix hits
+! if(part_hit_pos(j) .eq.ie .and. part_hit_turn(j).eq.iturn)
+    part_hit_pos(j)  = ie
+    part_hit_turn(j) = iturn
+    part_abs_pos(j) = 0
+    part_abs_turn(j) = 0
+
+!!           If a particle hit
+!            if(part_hit_flag.ne.0) then
+!              part_hit_pos(j) = ie
+!              part_hit_turn(j) = iturn
+!            end if
+!
+!!           If a particle died (the checking if it is already dead is at the start of the loop)
+!!           Geant just has a general inelastic process that single diffraction is part of
+!!           Therefore we can not know if this interaction was SD or some other inelastic type
+!            if(part_abs_flag.ne.0) then
+!              if(dowrite_impact) then
+!!! FLUKA_impacts.dat
+!                write(coll_flukImpUnit,'(i4,(1x,f6.3),(1x,f8.6),4(1x,e19.10),i2,2(1x,i7))') &
+! &                    icoll,c_rotation,zero,zero,zero,zero,zero,part_abs_flag,flukaname(j),iturn
+!              end if
+!
+!              part_abs_pos(j)  = ie
+!              part_abs_turn(j) = iturn
+!              rcx(j) = 99.99e-3_fPrec
+!              rcy(j) = 99.99e-3_fPrec
+!              g4_lostc = g4_lostc + 1
+!            end if
+
+    if(g4_debug .eqv. .true.) then
+      write(lout,"(a,2(1X,I11),10(1X,E24.16))") 'g4 return particle:  ', j, pdgid(j), nucm(j), rcx(j), rcy(j), rcxp(j), &
+            rcyp(j), rcp(j), spin_x(j), spin_y(j), spin_z(j), sigmv(j)
+    end if
+
+    flush(lout)
+!!!!          end if !part_abs_pos(j) .ne. 0 .and. part_abs_turn(j) .ne. 0
+  end do   !do j = 1, napx
+
+  call g4_collimation_clear()
+
+  if((ien0-ien1) > one) then
+#ifdef ROOT
+    if(root_flag .and. root_Collimation == 1) then
+      call root_EnergyDeposition(icoll, nnuc0-nnuc1,c1m3*(ien0-ien1))
+    end if
+#endif
+    write(unit208,"(2(i5,1x),e24.16)") icoll, (nnuc0-nnuc1), c1m3*(ien0-ien1)
+    flush(unit208)
+  end if
+
+end subroutine coll_doCollimator_Geant4
+#endif
 
 end module collimation
