@@ -240,17 +240,17 @@ subroutine coll_shuffleLostPart
   do j=napx,1,-1
     if(llostp(j) .eqv. .false.) cycle
 
-    part_hit_pos(j:tnapx)         = cshift(part_hit_pos(j:tnapx),   1)
-    part_hit_turn(j:tnapx)        = cshift(part_hit_turn(j:tnapx),  1)
-    part_abs_pos(j:tnapx)         = cshift(part_abs_pos(j:tnapx),   1)
-    part_abs_turn(j:tnapx)        = cshift(part_abs_turn(j:tnapx),  1)
-    part_select(j:tnapx)          = cshift(part_select(j:tnapx),    1)
-    part_impact(j:tnapx)          = cshift(part_impact(j:tnapx),    1)
-    part_indiv(j:tnapx)           = cshift(part_indiv(j:tnapx),     1)
-    part_linteract(j:tnapx)       = cshift(part_linteract(j:tnapx), 1)
+    part_hit_pos(j:tnapx)   = cshift(part_hit_pos(j:tnapx),   1)
+    part_hit_turn(j:tnapx)  = cshift(part_hit_turn(j:tnapx),  1)
+    part_abs_pos(j:tnapx)   = cshift(part_abs_pos(j:tnapx),   1)
+    part_abs_turn(j:tnapx)  = cshift(part_abs_turn(j:tnapx),  1)
+    part_select(j:tnapx)    = cshift(part_select(j:tnapx),    1)
+    part_impact(j:tnapx)    = cshift(part_impact(j:tnapx),    1)
+    part_indiv(j:tnapx)     = cshift(part_indiv(j:tnapx),     1)
+    part_linteract(j:tnapx) = cshift(part_linteract(j:tnapx), 1)
 
-    nabs_type(j:tnapx)            = cshift(nabs_type(j:tnapx),      1)
-    nhit_type(j:tnapx)            = cshift(nhit_type(j:tnapx),      1)
+    nabs_type(j:tnapx)      = cshift(nabs_type(j:tnapx),      1)
+    nhit_type(j:tnapx)      = cshift(nhit_type(j:tnapx),      1)
 
     tnapx = tnapx - 1
   end do
@@ -309,10 +309,10 @@ subroutine coll_init
   if(h5_useForCOLL) call h5_initForCollimation
 #endif
 
-  c_emitx0_dist    = emitnx0_dist*gammar*c1m6
-  c_emity0_dist    = emitny0_dist*gammar*c1m6
-  c_emitx0_collgap = emitnx0_collgap*gammar*c1m6
-  c_emity0_collgap = emitny0_collgap*gammar*c1m6
+  c_emitx0_dist    = (emitnx0_dist*gammar)*c1m6
+  c_emity0_dist    = (emitny0_dist*gammar)*c1m6
+  c_emitx0_collgap = (emitnx0_collgap*gammar)*c1m6
+  c_emity0_collgap = (emitny0_collgap*gammar)*c1m6
 
   if(c_emitx0_dist <= zero .or. c_emity0_dist <= zero .or. c_emitx0_collgap <= zero .or. c_emity0_collgap <= zero) then
     write(lerr,"(a)") "COLL> ERROR Emittances not defined! check collimat block!"
@@ -432,10 +432,10 @@ subroutine coll_init
 
   ! Adding the orbit offset at start of ring
   if(do_thisdis /= 0 .or. radial) then
-    xv1(1:napx) = c1e3 * xv1(1:napx) + torbx(1)
-    yv1(1:napx) = c1e3 * yv1(1:napx) + torbxp(1)
-    xv2(1:napx) = c1e3 * xv2(1:napx) + torby(1)
-    yv2(1:napx) = c1e3 * yv2(1:napx) + torbyp(1)
+    xv1(1:napx) = c1e3*xv1(1:napx) + torbx(1)
+    yv1(1:napx) = c1e3*yv1(1:napx) + torbxp(1)
+    xv2(1:napx) = c1e3*xv2(1:napx) + torby(1)
+    yv2(1:napx) = c1e3*yv2(1:napx) + torbyp(1)
   end if
 
   call part_updatePartEnergy(1,.false.)
@@ -498,11 +498,11 @@ subroutine coll_init
         c_rmstilt = c_rmstilt_sec
         c_systilt = c_systilt_sec
       end if
-      cdb_cTilt(1,i) = c_systilt+c_rmstilt*ran_gauss2(three)
+      cdb_cTilt(1,i) = c_systilt + c_rmstilt*ran_gauss2(three)
       if(systilt_antisymm) then
-        cdb_cTilt(2,i) = -one*c_systilt+c_rmstilt*ran_gauss2(three)
+        cdb_cTilt(2,i) = -one*c_systilt + c_rmstilt*ran_gauss2(three)
       else
-        cdb_cTilt(2,i) =      c_systilt+c_rmstilt*ran_gauss2(three)
+        cdb_cTilt(2,i) =      c_systilt + c_rmstilt*ran_gauss2(three)
       end if
       write(outlun,*) 'INFO>  Collimator ',trim(cdb_cName(i)),' jaw 1 has tilt [rad]: ',cdb_cTilt(1,i)
       write(outlun,*) 'INFO>  Collimator ',trim(cdb_cName(i)),' jaw 2 has tilt [rad]: ',cdb_cTilt(2,i)
@@ -512,7 +512,7 @@ subroutine coll_init
       if(cdb_cStage(i) == cdb_stgPrimary) then
         cdb_cOffset(i) = c_sysoffset_prim + c_rmsoffset_prim*ran_gauss2(three)
       else
-        cdb_cOffset(i) = c_sysoffset_sec +  c_rmsoffset_sec*ran_gauss2(three)
+        cdb_cOffset(i) = c_sysoffset_sec  + c_rmsoffset_sec*ran_gauss2(three)
       end if
       write(outlun,*) 'INFO>  Offset: ',trim(cdb_cName(i)),cdb_cOffset(i)
     end do
@@ -1477,8 +1477,8 @@ subroutine coll_computeStats
     pj  = ejv(j)/c1e3
 
     if(part_abs_pos(j) == 0 .and. part_abs_turn(j) == 0) then
-      nspx         = sqrt(abs(gammax*(xj)**2 + two*talphax(ie)*xj*xpj + tbetax(ie)*xpj**2)/c_emitx0_collgap)
-      nspy         = sqrt(abs(gammay*(yj)**2 + two*talphay(ie)*yj*ypj + tbetay(ie)*ypj**2)/c_emity0_collgap)
+      nspx         = sqrt(abs((gammax*(xj)**2 + ((two*talphax(ie))*xj)*xpj) + tbetax(ie)*xpj**2)/c_emitx0_collgap)
+      nspy         = sqrt(abs((gammay*(yj)**2 + ((two*talphay(ie))*yj)*ypj) + tbetay(ie)*ypj**2)/c_emity0_collgap)
       sum_ax(ie)   = sum_ax(ie) + nspx
       sqsum_ax(ie) = sqsum_ax(ie) + nspx**2
       sum_ay(ie)   = sum_ay(ie) + nspy
@@ -1520,7 +1520,7 @@ subroutine coll_doCollimator(stracki)
   real(kind=fPrec) nsig,c_length,jawLength,jawAperture,jawOffset,jawTilt(2),x_Dump,xpDump,y_Dump,   &
     ypDump,s_Dump,xmax,ymax,calc_aperture,zpj,xmax_pencil,ymax_pencil,xmax_nom,ymax_nom,            &
     nom_aperture,scale_bx,scale_by,c_tilt(2),c_offset,c_aperture,c_rotation,cry_bendangle,cry_tilt, &
-    cry_tilt0
+    cry_tilt0,cRot,sRot
 
   call time_startClock(time_clockCOLL)
 
@@ -1531,6 +1531,8 @@ subroutine coll_doCollimator(stracki)
   c_length   = cdb_cLength(icoll)
   c_offset   = cdb_cOffset(icoll)
   c_tilt(:)  = cdb_cTilt(:,icoll)
+  cRot       = cos_mb(c_rotation)
+  sRot       = sin_mb(c_rotation)
   if(firstrun .and. dowrite_amplitude) then
     call coll_computeStats
   end if
@@ -1552,11 +1554,11 @@ subroutine coll_doCollimator(stracki)
 
   ! Assign nominal OR design beta functions for later
   if(do_nominal) then
-    bx_dist = cdb_cBx(icoll) * scale_bx / scale_bx0
-    by_dist = cdb_cBy(icoll) * scale_by / scale_by0
+    bx_dist = (cdb_cBx(icoll)*scale_bx)/scale_bx0
+    by_dist = (cdb_cBy(icoll)*scale_by)/scale_by0
   else
-    bx_dist = tbetax(ie) * scale_bx / scale_bx0
-    by_dist = tbetay(ie) * scale_by / scale_by0
+    bx_dist = (tbetax(ie)*scale_bx)/scale_bx0
+    by_dist = (tbetay(ie)*scale_by)/scale_by0
   end if
 
   ! Write beam ellipse at selected collimator
@@ -1588,34 +1590,34 @@ subroutine coll_doCollimator(stracki)
   nsig        = nsig + gap_rms_error(icoll)
   xmax        = nsig*sqrt(bx_dist*c_emitx0_collgap)
   ymax        = nsig*sqrt(by_dist*c_emity0_collgap)
-  xmax_pencil = (nsig+pencil_offset)*sqrt(bx_dist*c_emitx0_collgap)
-  ymax_pencil = (nsig+pencil_offset)*sqrt(by_dist*c_emity0_collgap)
+  xmax_pencil = (nsig + pencil_offset)*sqrt(bx_dist*c_emitx0_collgap)
+  ymax_pencil = (nsig + pencil_offset)*sqrt(by_dist*c_emity0_collgap)
   xmax_nom    = cdb_cNSig(icoll)*sqrt(cdb_cBx(icoll)*c_emitx0_collgap)
   ymax_nom    = cdb_cNSig(icoll)*sqrt(cdb_cBy(icoll)*c_emity0_collgap)
 
   cry_proc(:) = -1
 
-  calc_aperture = sqrt(xmax**2 * cos_mb(c_rotation)**2 + ymax**2 * sin_mb(c_rotation)**2)
-  nom_aperture  = sqrt(xmax_nom**2 * cos_mb(c_rotation)**2 + ymax_nom**2 * sin_mb(c_rotation)**2)
+  calc_aperture = sqrt(    xmax**2*cRot**2 +     ymax**2*sRot**2)
+  nom_aperture  = sqrt(xmax_nom**2*cRot**2 + ymax_nom**2*sRot**2)
 
   ! Get x and y offsets at collimator center point
-  x_pencil(icoll) = xmax_pencil * (cos_mb(c_rotation))
-  y_pencil(icoll) = ymax_pencil * (sin_mb(c_rotation))
+  x_pencil(icoll) = xmax_pencil * cRot
+  y_pencil(icoll) = ymax_pencil * sRot
 
   ! Get corresponding beam angles (uses xp_max)
-  xp_pencil(icoll) = -one*sqrt(c_emitx0_collgap/tbetax(ie))*talphax(ie)*xmax / sqrt(c_emitx0_collgap*tbetax(ie))
-  yp_pencil(icoll) = -one*sqrt(c_emity0_collgap/tbetay(ie))*talphay(ie)*ymax / sqrt(c_emity0_collgap*tbetay(ie))
+  xp_pencil(icoll) = (((-one*sqrt(c_emitx0_collgap/tbetax(ie)))*talphax(ie))*xmax)/sqrt(c_emitx0_collgap*tbetax(ie))
+  yp_pencil(icoll) = (((-one*sqrt(c_emity0_collgap/tbetay(ie)))*talphay(ie))*ymax)/sqrt(c_emity0_collgap*tbetay(ie))
   xp_pencil0 = xp_pencil(icoll)
   yp_pencil0 = yp_pencil(icoll)
 
-  pencil_dx(icoll) = sqrt(xmax_pencil**2 * cos_mb(c_rotation)**2 + ymax_pencil**2 * sin_mb(c_rotation)**2)-calc_aperture
+  pencil_dx(icoll) = sqrt(xmax_pencil**2 * cRot**2 + ymax_pencil**2 * sRot**2) - calc_aperture
 
   ! Added condition that pencil_distr /= 3 in order to do the tilt
   if(icoll == ipencil .and. iturn == 1 .and. pencil_distr /= 3) then
     ! To align the jaw/pencil to the beam always use the minus regardless which
     ! orientation of the jaws was used (symmetric/antisymmetric)
-    c_tilt(1) = c_tilt(1) +    (xp_pencil0*cos_mb(c_rotation) + sin_mb(c_rotation)*yp_pencil0)
-    c_tilt(2) = c_tilt(2) -one*(xp_pencil0*cos_mb(c_rotation) + sin_mb(c_rotation)*yp_pencil0)
+    c_tilt(1) = c_tilt(1) + (xp_pencil0 * cRot + sRot * yp_pencil0)
+    c_tilt(2) = c_tilt(2) - (xp_pencil0 * cRot + sRot * yp_pencil0)
     write(lout,*) "INFO> Changed tilt1  ICOLL  to  ANGLE  ", icoll, c_tilt(1)
     write(lout,*) "INFO> Changed tilt2  ICOLL  to  ANGLE  ", icoll, c_tilt(2)
   end if
@@ -1783,10 +1785,10 @@ subroutine coll_doCollimator(stracki)
     ! Update writeout of jaw profiles
     do j=1,napx
       if(linside(j) .and. sqrt(rcx(j)**2 + rcy(j)**2) < 99.0e-3_fPrec) then
-        x_Dump = rcx (j)*cos_mb(c_rotation)+sin_mb(c_rotation)*rcy (j)
-        xpDump = rcxp(j)*cos_mb(c_rotation)+sin_mb(c_rotation)*rcyp(j)
-        y_Dump = rcy (j)*cos_mb(c_rotation)-sin_mb(c_rotation)*rcx (j)
-        ypDump = rcyp(j)*cos_mb(c_rotation)-sin_mb(c_rotation)*rcxp(j)
+        x_Dump =  rcx(j)*cRot + sRot*rcy(j)
+        xpDump = rcxp(j)*cRot + sRot*rcyp(j)
+        y_Dump =  rcy(j)*cRot - sRot*rcx(j)
+        ypDump = rcyp(j)*cRot - sRot*rcxp(j)
         s_Dump = c_length
         write(coll_jawProfileUnit,"(3(1x,i7),5(1x,e17.9),1x,i1)") &
           icoll,iturn,partID(j),x_Dump,xpDump,y_Dump,ypDump,s_Dump,2
@@ -1798,21 +1800,21 @@ subroutine coll_doCollimator(stracki)
   do j=1,napx
     if(stracki == zero) then
       if(iexact .eqv. .false.) then
-        rcx(j) = rcx(j) - half*c_length*rcxp(j)
-        rcy(j) = rcy(j) - half*c_length*rcyp(j)
+        rcx(j) = rcx(j) - (half*c_length)*rcxp(j)
+        rcy(j) = rcy(j) - (half*c_length)*rcyp(j)
       else
         zpj    = sqrt(one-rcxp(j)**2-rcyp(j)**2)
-        rcx(j) = rcx(j) - half*c_length*(rcxp(j)/zpj)
-        rcy(j) = rcy(j) - half*c_length*(rcyp(j)/zpj)
+        rcx(j) = rcx(j) - (half*c_length)*(rcxp(j)/zpj)
+        rcy(j) = rcy(j) - (half*c_length)*(rcyp(j)/zpj)
       end if
     end if
 
     ! Now copy data back to original verctor
-    xv1(j) = rcx(j)  * c1e3 + torbx(ie)
-    yv1(j) = rcxp(j) * c1e3 + torbxp(ie)
-    xv2(j) = rcy(j)  * c1e3 + torby(ie)
-    yv2(j) = rcyp(j) * c1e3 + torbyp(ie)
-    ejv(j) = rcp(j)  * c1e3
+    xv1(j) =  rcx(j)*c1e3 + torbx(ie)
+    yv1(j) = rcxp(j)*c1e3 + torbxp(ie)
+    xv2(j) =  rcy(j)*c1e3 + torby(ie)
+    yv2(j) = rcyp(j)*c1e3 + torbyp(ie)
+    ejv(j) =  rcp(j)*c1e3
 
     ! Update mtc and other arrays.
     ejfv    (j) = sqrt(ejv(j)**2-nucm(j)**2)
@@ -1836,20 +1838,20 @@ subroutine coll_doCollimator(stracki)
       if(stracki == zero) then
         if(iexact) then
           zpj    = sqrt(one-rcxp(j)**2-rcyp(j)**2)
-          rcx(j) = rcx(j) - half*c_length*(rcxp(j)/zpj)
-          rcy(j) = rcy(j) - half*c_length*(rcyp(j)/zpj)
+          rcx(j) = rcx(j) - (half*c_length)*(rcxp(j)/zpj)
+          rcy(j) = rcy(j) - (half*c_length)*(rcyp(j)/zpj)
         else
-          rcx(j) = rcx(j) - half*c_length*rcxp(j)
-          rcy(j) = rcy(j) - half*c_length*rcyp(j)
+          rcx(j) = rcx(j) - (half*c_length)*rcxp(j)
+          rcy(j) = rcy(j) - (half*c_length)*rcyp(j)
         end if
       end if
 
       ! Now copy data back to original verctor
-      xv1(j) = rcx(j)  * c1e3 + torbx(ie)
-      yv1(j) = rcxp(j) * c1e3 + torbxp(ie)
-      xv2(j) = rcy(j)  * c1e3 + torby(ie)
-      yv2(j) = rcyp(j) * c1e3 + torbyp(ie)
-      ejv(j) = rcp(j)  * c1e3
+      xv1(j) =  rcx(j)*c1e3 + torbx(ie)
+      yv1(j) = rcxp(j)*c1e3 + torbxp(ie)
+      xv2(j) =  rcy(j)*c1e3 + torby(ie)
+      yv2(j) = rcyp(j)*c1e3 + torbyp(ie)
+      ejv(j) =  rcp(j)*c1e3
 
       !  Energy update, as recommended by Frank
       ejfv(j)     = sqrt(ejv(j)**2-nucm(j)**2)
@@ -1880,11 +1882,11 @@ subroutine coll_doCollimator(stracki)
       end if
     else
       ! Otherwise just get back former coordinates
-      xv1(j) = rcx0(j)  * c1e3 + torbx(ie)
-      yv1(j) = rcxp0(j) * c1e3 + torbxp(ie)
-      xv2(j) = rcy0(j)  * c1e3 + torby(ie)
-      yv2(j) = rcyp0(j) * c1e3 + torbyp(ie)
-      ejv(j) = rcp0(j)  * c1e3
+      xv1(j) =  rcx0(j)*c1e3 + torbx(ie)
+      yv1(j) = rcxp0(j)*c1e3 + torbxp(ie)
+      xv2(j) =  rcy0(j)*c1e3 + torby(ie)
+      yv2(j) = rcyp0(j)*c1e3 + torbyp(ie)
+      ejv(j) =  rcp0(j)*c1e3
     end if
   end do
 
