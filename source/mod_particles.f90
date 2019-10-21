@@ -189,12 +189,13 @@ subroutine part_updatePartEnergy(refArray, updateAngle)
 
   ! Modify the Energy Dependent Arrays
   ! Keep in sync with checpoint/restart crstart
-  dpsv1(1:napx)    = (dpsv(1:napx)*c1e3)/(one + dpsv(1:napx))
+  ! dpsv1(1:napx)    = (dpsv(1:napx)*c1e3)/(one + dpsv(1:napx))
   dpd(1:napx)      = one + dpsv(1:napx)                      ! For thick tracking
   dpsq(1:napx)     = sqrt(dpd(1:napx))                       ! For thick tracking
   oidpsv(1:napx)   = one/(one + dpsv(1:napx))
   moidpsv(1:napx)  = mtc(1:napx)/(one + dpsv(1:napx))        ! Relative rigidity offset [MV/c^2]
   omoidpsv(1:napx) = ((one-mtc(1:napx))*oidpsv(1:napx))*c1e3
+  dpsv1(1:napx)    = (dpsv(1:napx)*c1e3)*oidpsv(1:napx)
   rvv(1:napx)      = (ejv(1:napx)*e0f)/(e0*ejfv(1:napx))     ! Beta_0 / beta(j)
 
   if(updateAngle) then ! Update particle angles

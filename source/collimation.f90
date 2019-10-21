@@ -170,15 +170,6 @@ module collimation
   real(kind=fPrec), private, save :: bx_dist   = zero
   real(kind=fPrec), private, save :: by_dist   = zero
 
-#ifdef HDF5
-  ! Variables to save hdf5 dataset indices
-  integer, private, save :: coll_hdf5_survival
-  integer, private, save :: coll_hdf5_allImpacts
-  integer, private, save :: coll_hdf5_fstImpacts
-  integer, private, save :: coll_hdf5_allAbsorb
-  integer, private, save :: coll_hdf5_collScatter
-#endif
-
 contains
 
 subroutine collimation_expand_arrays(npart_new, nblz_new)
@@ -324,6 +315,7 @@ subroutine collimate_init
   use coll_k2
   use coll_db
   use coll_dist
+  use coll_crystal
   use coll_materials
   use mod_units
   use mod_ranlux
@@ -347,7 +339,7 @@ subroutine collimate_init
 #endif
 
   call f_requestUnit("colltrack.out", outlun)
-  call f_open(unit=outlun,file="colltrack.out",formatted=.true.,mode="w")
+  call f_open(unit=outlun,file="colltrack.out",formatted=.true.,mode="w",status="replace")
 
   write(outlun,*)
   write(outlun,*)
@@ -563,7 +555,7 @@ subroutine collimate_init
     else
 #endif
       call f_requestUnit("dist0.dat", fUnit)
-      call f_open(unit=fUnit,file="dist0.dat",formatted=.true.,mode="w")
+      call f_open(unit=fUnit,file="dist0.dat",formatted=.true.,mode="w",status="replace")
       do j=1, napx
         write(fUnit,"(6(1x,e23.15))") xv1(j), yv1(j), xv2(j), yv2(j), sigmv(j), ejv(j)
       end do
@@ -584,9 +576,10 @@ subroutine collimate_init
   call cdb_writeDB_newFromOld         ! Write a copy of the db in new format, if provided in old format
 
   ! Then do any implementation specific initial loading
-#ifdef COLLIMATE_K2
   call k2coll_init
-#endif
+  if(coll_hasCrystal) then
+    call cry_init
+  end if
 #ifdef MERLINSCATTER
   call k2coll_merlinInit
 #endif
@@ -600,7 +593,7 @@ subroutine collimate_init
 
   ! Open the edep file
   call f_requestUnit(fort208,unit208)
-  call f_open(unit=unit208,file=fort208,formatted=.true.,mode="w")
+  call f_open(unit=unit208,file=fort208,formatted=.true.,mode="w",status="replace")
 
   ! This function lives in the G4Interface.cpp file in the g4collimat folder
   ! Accessed by linking libg4collimat.a
@@ -682,7 +675,7 @@ subroutine collimate_init
   ! Generate random tilts (Gaussian distribution plus systematic)
   if(c_rmstilt_prim > zero .or. c_rmstilt_sec > zero .or. c_systilt_prim /= zero .or. c_systilt_sec /= zero) then
     do i=1,cdb_nColl
-      if(cdb_cType(i) == cdb_typPrimary) then
+      if(cdb_cStage(i) == cdb_stgPrimary) then
         c_rmstilt = c_rmstilt_prim
         c_systilt = c_systilt_prim
       else
@@ -700,7 +693,7 @@ subroutine collimate_init
     end do
 
     do i=1,cdb_nColl
-      if(cdb_cType(i) == cdb_typPrimary) then
+      if(cdb_cStage(i) == cdb_stgPrimary) then
         cdb_cOffset(i) = c_sysoffset_prim + c_rmsoffset_prim*ran_gauss2(three)
       else
         cdb_cOffset(i) = c_sysoffset_sec +  c_rmsoffset_sec*ran_gauss2(three)
@@ -1124,6 +1117,15 @@ subroutine collimate_parseInputLine(inLine, iLine, iErr)
     end if
     call chr_cast(lnSplit(2), dowrite_tracks, iErr)
 
+  case("WRITE_CRYCOORDS")
+    if(nSplit /= 2) then
+      write(lerr,"(a,i0)") "COLL> ERROR WRITE_CRYCOORDS expects 1 value, got ",nSplit-1
+      write(lerr,"(a)")    "COLL>       WRITE_CRYCOORDS true|false"
+      iErr = .true.
+      return
+    end if
+    call chr_cast(lnSplit(2), dowrite_crycoord, iErr)
+
   case("SIGSECUT")
     if(nSplit /= 3) then
       write(lerr,"(a,i0)") "COLL> ERROR SIGSECUT expects 2 values, got ",nSplit-1
@@ -1464,41 +1466,61 @@ subroutine collimate_openFiles
 
   ! Survival File
   call f_requestUnit(coll_survivalFile,coll_survivalUnit)
-  call f_open(unit=coll_survivalUnit,file=coll_survivalFile,formatted=.true.,mode="w")
+  call f_open(unit=coll_survivalUnit,file=coll_survivalFile,formatted=.true.,mode="w",status="replace")
   write(coll_survivalUnit,"(a7,1x,a9)") "#  turn","n_part"
 
   ! Collimator Gaps File
   call f_requestUnit(coll_gapsFile,coll_gapsUnit)
-  call f_open(unit=coll_gapsUnit,file=coll_gapsFile,formatted=.true.,mode="w")
+  call f_open(unit=coll_gapsUnit,file=coll_gapsFile,formatted=.true.,mode="w",status="replace")
   write(coll_gapsUnit,"(a1,1x,a2,1x,a16,4(1x,a19),1x,a4,5(1x,a13),1x,a13)")     &
     "#","ID","name            ","angle[rad]","betax[m]","betay[m]","halfgap[m]",&
     "mat.","length[m]","sigx[m]","sigy[m]","tilt1[rad]","tilt2[rad]","nsig"
 
   ! Collimator Settings (Jaw Slices)
   call f_requestUnit(coll_settingsFile,coll_settingsUnit)
-  call f_open(unit=coll_settingsUnit,file=coll_settingsFile,formatted=.true.,mode="w")
+  call f_open(unit=coll_settingsUnit,file=coll_settingsFile,formatted=.true.,mode="w",status="replace")
   write(coll_settingsUnit,"(a20,1x,a10,5(1x,a13),1x,a4)") chr_rPad("# name",20),"slice","halfgap[m]","gapoffset[m]",&
     "tiltjaw1[rad]","tiltjaw2[rad]","length[m]","mat."
 
   ! Positions
   call f_requestUnit(coll_positionsFile,coll_positionsUnit)
-  call f_open(unit=coll_positionsUnit,file=coll_positionsFile,formatted=.true.,mode="w")
+  call f_open(unit=coll_positionsUnit,file=coll_positionsFile,formatted=.true.,mode="w",status="replace")
   write(coll_positionsUnit,"(a)") "# Ind           Name   Pos[m]"
 
   ! Tracks Files
   if(dowrite_tracks) then
     call f_requestUnit(coll_tracksFile,coll_tracksUnit)
-    call f_open(unit=coll_tracksUnit,file=coll_tracksFile,formatted=.true.,mode="w")
+    call f_open(unit=coll_tracksUnit,file=coll_tracksFile,formatted=.true.,mode="w",status="replace")
     write(coll_tracksUnit,"(a)") "# name turn s x xp y yp DE/E type"
 
     call f_requestUnit(coll_pencilFile,coll_pencilUnit)
-    call f_open(unit=coll_pencilUnit, file=coll_pencilFile,formatted=.true.,mode="w")
+    call f_open(unit=coll_pencilUnit, file=coll_pencilFile,formatted=.true.,mode="w",status="replace")
     write(coll_pencilUnit,"(a)") "# x xp y yp"
+  end if
+
+  ! Crystal Files
+  if(coll_hasCrystal) then
+    if(dowrite_crycoord) then
+      call f_requestUnit(coll_cryEntFile,coll_cryEntUnit)
+      call f_open(unit=coll_cryEntUnit,file=coll_cryEntFile,formatted=.true.,mode="w",status="replace")
+      write(coll_cryEntUnit,"(a1,1x,a6,1x,a8,1x,a20,1x,a4,2(1x,a3),5(1x,a15))") &
+        "#","partID","turn",chr_rPad("collimator",20),"mat.","hit","abs","x","xp","y","yp","p"
+
+      call f_requestUnit(coll_cryExitFile,coll_cryExitUnit)
+      call f_open(unit=coll_cryExitUnit,file=coll_cryExitFile,formatted=.true.,mode="w",status="replace")
+      write(coll_cryExitUnit,"(a1,1x,a6,1x,a8,1x,a20,1x,a4,2(1x,a3),5(1x,a15))") &
+        "#","partID","turn",chr_rPad("collimator",20),"mat.","hit","abs","x","xp","y","yp","p"
+    end if
+
+    call f_requestUnit(coll_cryInterFile,coll_cryInterUnit)
+    call f_open(unit=coll_cryInterUnit,file=coll_cryInterFile,formatted=.true.,mode="w",status="replace")
+    write(coll_cryInterUnit,"(a1,1x,a6,1x,a8,1x,a20,1x,a4,10(1x,a15))") &
+        "#","partID","turn",chr_rPad("collimator",20),"proc","kickx","kicky","Ein","Eout","xpin","ypin","cryangle","xin","yin"
   end if
 
   if(do_select) then
     call f_requestUnit(coll_ellipseFile,coll_ellipseUnit)
-    call f_open(unit=coll_ellipseUnit,file=coll_ellipseFile,formatted=.true.,mode="w")
+    call f_open(unit=coll_ellipseUnit,file=coll_ellipseFile,formatted=.true.,mode="w",status="replace")
     write(coll_ellipseUnit,"(a)") "# name x y xp yp E s turn halo nabs_type"
   end if
 
@@ -1710,6 +1732,7 @@ subroutine coll_doCollimator(stracki)
   use coll_k2
   use coll_jawfit
   use coll_dist
+  use coll_crystal
   use mod_units
   use mathlib_bouncer
   use mod_alloc
@@ -1726,12 +1749,12 @@ subroutine coll_doCollimator(stracki)
   real(kind=fPrec), intent(in) :: stracki
 
   integer j, iSlice, nSlices
-  logical onesided, linside(napx)
+  logical onesided, linside(napx), isAbs, isHit
   real(kind=fPrec) jawLength,jawAperture,jawOffset,jawTilt(2),x_Dump,xpDump,y_Dump,ypDump,s_Dump,   &
     xmax,ymax,calc_aperture,ldrift,c_nex2,c_ney2,Nap1pos,Nap2pos,Nap1neg,Nap2neg,tiltOffsPos1,      &
     tiltOffsPos2,tiltOffsNeg1,tiltOffsNeg2,beamsize1,beamsize2,betax1,betax2,betay1,betay2,alphax1, &
     alphax2,alphay1,alphay2,minAmpl,zpj,xmax_pencil,ymax_pencil,xmax_nom,ymax_nom,nom_aperture,     &
-    scale_bx,scale_by,c_tilt(2),c_offset,c_aperture,c_rotation
+    scale_bx,scale_by,c_tilt(2),c_offset,c_aperture,c_rotation,cry_bendangle,cry_tilt,cry_tilt0
 
 #ifdef G4COLLIMATION
   integer :: g4_lostc
@@ -1815,6 +1838,7 @@ subroutine coll_doCollimator(stracki)
   c_offset   = cdb_cOffset(icoll)
   c_tilt(1)  = cdb_cTilt(1,icoll)
   c_tilt(2)  = cdb_cTilt(2,icoll)
+  cry_proc(:) = -1
 
   calc_aperture   = sqrt(xmax**2 * cos_mb(c_rotation)**2 + ymax**2 * sin_mb(c_rotation)**2)
   nom_aperture    = sqrt(xmax_nom**2 * cos_mb(c_rotation)**2 + ymax_nom**2 * sin_mb(c_rotation)**2)
@@ -2087,10 +2111,50 @@ subroutine coll_doCollimator(stracki)
 
 #ifndef G4COLLIMATION
 
+  if(cdb_isCrystal(icoll)) then
+    if (modulo(cdb_cRotation(icoll),pi) < c1m9) then
+      cry_tilt0 = (-one)*sqrt(c_emitx0_dist/tbetax(ie))*talphax(ie)*nsig
+    elseif (modulo(cdb_cRotation(icoll)-pi2,pi) < c1m9) then
+      cry_tilt0 = (-one)*sqrt(c_emity0_dist/tbetay(ie))*talphay(ie)*nsig
+    else
+      write(lerr,"(a)") "COLL> ERROR Crystal collimator has to be horizontal or vertical"
+      call prror
+    end if
+    cry_tilt = cdb_cryTilt(icoll) + cry_tilt0
+    cry_bendangle = cdb_cLength(icoll)/cdb_cryBend(icoll)
+    if(cry_tilt >= (-one)*cry_bendangle) then
+      c_length = cdb_cryBend(icoll)*(sin_mb(cry_bendangle+cry_tilt) - sin_mb(cry_tilt))
+    else
+      c_length = cdb_cryBend(icoll)*(sin_mb(cry_bendangle-cry_tilt) + sin_mb(cry_tilt))
+    end if
+    call collimate_cry(icoll, iturn, ie, c_length, c_rotation, c_aperture, c_offset, &
+      c_tilt, rcx, rcxp, rcy, rcyp, rcp, rcs, c_enom*c1m3, part_hit_pos, part_hit_turn, part_abs_pos,&
+      part_abs_turn, part_impact, part_indiv, part_linteract, cry_tilt, c_length)
+    if (dowrite_crycoord) then
+      do j=1, napx
+        isHit = part_hit_pos(j) == ie .and. part_hit_turn(j) == iturn
+        isAbs = part_abs_pos(j) == ie .and. part_abs_turn(j) == iturn
+        write(coll_cryEntUnit,"(i8,1x,i8,1x,a20,1x,a4,2(3x,l1),5(1x,1pe15.8))") &
+          partID(j),iturn,cdb_cName(icoll)(1:20),cdb_cMaterial(icoll),isHit,isAbs, &
+          rcx0(j),rcxp0(j),rcy0(j),rcyp0(j),rcp0(j)
+        write(coll_cryExitUnit,"(i8,1x,i8,1x,a20,1x,a4,2(3x,l1),5(1x,1pe15.8))") &
+          partID(j),iturn,cdb_cName(icoll)(1:20),cdb_cMaterial(icoll),isHit,isAbs, &
+          rcx(j),rcxp(j),rcy(j),rcyp(j),rcp(j)
+      end do
+    end if
+    do j=1, napx
+      if(cry_proc(j) > 0) then
+        write(coll_cryInterUnit,"(i8,1x,i8,1x,a20,1x,i4,10(1x,1pe15.8))") &
+          partID(j), iturn, cdb_cName(icoll)(1:20),cry_proc(j),rcxp(j)-rcxp0(j), &
+          rcyp(j)-rcyp0(j),rcp0(j),rcp(j),rcxp0(j),rcyp0(j),cry_tilt,rcx0(j),rcy0(j)
+      end if
+    end do
+  else
     call k2coll_collimate(icoll, iturn, ie, c_length, c_rotation, c_aperture, c_offset, &
-      c_tilt, rcx, rcxp, rcy, rcyp, rcp, rcs, c_enom*c1m3, part_hit_pos,part_hit_turn,     &
+      c_tilt, rcx, rcxp, rcy, rcyp, rcp, rcs, c_enom*c1m3, part_hit_pos, part_hit_turn, &
       part_abs_pos, part_abs_turn, part_impact, part_indiv, part_linteract,             &
       onesided, nhit_type, 1, nabs_type, linside)
+  end if
 
 #else
 
@@ -2414,8 +2478,7 @@ subroutine coll_endCollimator(stracki)
         end if
 
       elseif(part_abs_pos (j) == 0 .and. part_abs_turn(j) == 0) then
-        nhit_type(j) = ior(nhit_type(j),cdb_cType(icoll)) ! Record the hit type
-
+        nhit_type(j) = ior(nhit_type(j),cdb_cStage(icoll)) ! Record the hit type
       else
         write(lerr,"(a)")          "COLL> ERROR Particle cannot be both absorbed and not absorbed"
         write(lerr,"(a,2(1x,i0))") "COLL>      ",part_abs_pos (j),part_abs_turn(j)
@@ -2641,7 +2704,7 @@ subroutine coll_exitCollimation
 #endif
   end if
 
-! Write collimation summary file
+  ! Write collimation summary file
 #ifdef HDF5
   if(h5_useForCOLL) then
     allocate(fldHdf(7))
@@ -2672,7 +2735,7 @@ subroutine coll_exitCollimation
   else
 #endif
     call f_requestUnit(coll_summaryFile,coll_summaryUnit)
-    call f_open(unit=coll_summaryUnit,file=coll_summaryFile,formatted=.true.,mode="w")
+    call f_open(unit=coll_summaryUnit,file=coll_summaryFile,formatted=.true.,mode="w",status="replace")
     write(coll_summaryUnit,"(a1,1x,a5,1x,a20,2(1x,a8),2(1x,a15),1x,a6)") "#","icoll",chr_rPad("collname",20),&
       "nimp","nabs","imp_av","imp_sig","length"
     do icoll = 1, cdb_nColl
@@ -2748,7 +2811,7 @@ subroutine coll_exitCollimation
 
   ! Write orbitchecking.dat
   call f_requestUnit(coll_orbitCheckFile,coll_orbitCheckUnit)
-  call f_open(unit=coll_orbitCheckUnit,file=coll_orbitCheckFile,formatted=.true.,mode="w")
+  call f_open(unit=coll_orbitCheckUnit,file=coll_orbitCheckFile,formatted=.true.,mode="w",status="replace")
   write(coll_orbitCheckUnit,"(a1,1x,a6,3(1x,a15))") "#","s","torbitx","torbity"
   do i=1,iu
     write(coll_orbitCheckUnit,"(i8,3(1x,1pe15.7))") i, dcum(i), torbx(i), torby(i)
@@ -3395,26 +3458,5 @@ subroutine coll_writeTracks2(iMode)
   end if
 
 end subroutine coll_writeTracks2
-
-#ifdef HDF5
-subroutine coll_hdf5_writeCollScatter(icoll,iturn,ipart,nabs,dp,dx,dy)
-
-  use hdf5_output
-
-  integer,          intent(in) :: icoll,iturn,ipart,nabs
-  real(kind=fPrec), intent(in) :: dp,dx,dy
-
-  call h5_prepareWrite(coll_hdf5_collScatter, 1)
-  call h5_writeData(coll_hdf5_collScatter, 1, 1, ipart)
-  call h5_writeData(coll_hdf5_collScatter, 2, 1, iturn)
-  call h5_writeData(coll_hdf5_collScatter, 3, 1, icoll)
-  call h5_writeData(coll_hdf5_collScatter, 4, 1, nabs)
-  call h5_writeData(coll_hdf5_collScatter, 5, 1, dp)
-  call h5_writeData(coll_hdf5_collScatter, 6, 1, dx)
-  call h5_writeData(coll_hdf5_collScatter, 7, 1, dy)
-  call h5_finaliseWrite(coll_hdf5_collScatter)
-
-end subroutine coll_hdf5_writeCollScatter
-#endif
 
 end module collimation

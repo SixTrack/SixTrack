@@ -158,43 +158,33 @@ subroutine thin4d(nthinerr)
         ! store old particle coordinates
         if (lbacktracking) call aperture_saveLastCoordinates(i,ix,0)
         goto 630
-      case (3)  !Phase Trombone
-        irrtr=imtr(ix)
+
+      case (2) ! RF Cavity
+        goto 630
+
+      case (3) ! Phase Trombone
+        irrtr = imtr(ix)
         do j=1,napx
-          ! The values are stored in the temp vector which are used for the multiplication.
-          temptr(1)=xv1(j)
-          temptr(2)=yv1(j)/moidpsv(j)
-          temptr(3)=xv2(j)
-          temptr(4)=yv2(j)/moidpsv(j)
-          temptr(5)=sigmv(j)
-          temptr(6)=((mtc(j)*ejv(j)-e0)/e0f)*c1e3*(e0/e0f)
-          ! Adding the closed orbit. The previous values are stored in the temptr vector.
-          xv1(j)  = cotr(irrtr,1)
-          yv1(j)  = cotr(irrtr,2)
-          xv2(j)  = cotr(irrtr,3)
-          yv2(j)  = cotr(irrtr,4)
-          sigmv(j) = cotr(irrtr,5)
-          pttemp   = cotr(irrtr,6)
+          temptr(1) = xv1(j)
+          temptr(2) = yv1(j)
+          temptr(3) = xv2(j)
+          temptr(4) = yv2(j)
 
-          ! Multiplying the arbitrary matrix to the coordinates.
-          do kxxa=1,6
-            xv1(j)   =  xv1(j)+temptr(kxxa)*rrtr(irrtr,1,kxxa)
-            yv1(j)   =  yv1(j)+temptr(kxxa)*rrtr(irrtr,2,kxxa)
-            xv2(j)   =  xv2(j)+temptr(kxxa)*rrtr(irrtr,3,kxxa)
-            yv2(j)   =  yv2(j)+temptr(kxxa)*rrtr(irrtr,4,kxxa)
-            sigmv(j)  =  sigmv(j)+temptr(kxxa)*rrtr(irrtr,5,kxxa)
-            pttemp    =  pttemp+temptr(kxxa)*rrtr(irrtr,6,kxxa)
-          enddo
-          ! Transforming back to the tracked coordinates of Sixtrack...
-          ejv(j)  = (e0f*pttemp/(c1e3*(e0/e0f))+e0)/mtc(j)
-          call part_updatePartEnergy(1,.false.)
+          xv1(j) = cotr(irrtr,1)
+          yv1(j) = cotr(irrtr,2)
+          xv2(j) = cotr(irrtr,3)
+          yv2(j) = cotr(irrtr,4)
 
-          ! We have to go back to angles after we updated the energy.
-          yv1(j) = yv1(j)*moidpsv(j)
-          yv2(j) = yv2(j)*moidpsv(j)
-        enddo
+          do kxxa=1,4
+            xv1(j) = xv1(j) + temptr(kxxa)*rrtr(irrtr,1,kxxa)
+            yv1(j) = yv1(j) + temptr(kxxa)*rrtr(irrtr,2,kxxa)
+            xv2(j) = xv2(j) + temptr(kxxa)*rrtr(irrtr,3,kxxa)
+            yv2(j) = yv2(j) + temptr(kxxa)*rrtr(irrtr,4,kxxa)
+          end do
+        end do
         goto 620
-      case (2,4,5,6,7,8,9,10)
+
+      case (4,5,6,7,8,9,10)
         goto 630
       case (11) ! HORIZONTAL DIPOLE
         do j=1,napx
@@ -659,16 +649,16 @@ subroutine thin6d(nthinerr)
       end if
 
 #ifdef BEAMGAS
-      !YIL Call beamGas subroutine whenever a pressure-element is found
-      ! should be faster/safer to first check the turn then do the name search
-      if(iturn == 1 ) then
-        if(bez(c_ix)(1:5).eq.'PRESS' .or.  bez(c_ix)(1:5).eq.'press' ) then
-          call beamGas(c_ix,nhit_type,dcum(i),myenom)
+      ! Call beamGas subroutine whenever a pressure-element is found.
+      ! Should be faster/safer to first check the turn then do the name search
+      if(n == 1 .and. ix > 0) then
+        if(bez(ix)(1:5) == "PRESS" .or. bez(ix)(1:5) == "press") then
+          call beamGas(ix,secondary,dcum(i),myenom,n,i)
         end if
       end if
 #endif
 
-      if (ldumpfront) then
+      if(ldumpfront) then
         call dump_lines(n,i,ix)
       end if
 
@@ -723,8 +713,8 @@ subroutine thin6d(nthinerr)
       ! The below splitting of if-statements is needed to prevent out of bounds error
       ! when building with gfortran/debug
       is_coll = .false.
-      if(do_coll) then
-        if(cdb_elemMap(c_ix) > 0) then
+      if(do_coll .and. ix > 0) then
+        if(cdb_elemMap(ix) > 0) then
           is_coll = .true.
         end if
       end if
@@ -773,76 +763,62 @@ subroutine thin6d(nthinerr)
         if (lbacktracking) call aperture_saveLastCoordinates(i,ix,0)
         goto 650
 
-      case (2)
-        do j=1,napx
-          ejf0v(j)=ejfv(j)
-          if(abs(dppoff).gt.pieni) then
-            sigmv(j)=sigmv(j)-sigmoff(i)
-          endif
-          if(abs(kz(ix)) == 12) then
-            ejv(j)=ejv(j)+(ed(ix)*sin_mb(hsyc(ix)*sigmv(j)+phasc(ix)))*nqq(j)
-          else
-            ejv(j)=ejv(j)+(hsy(1)*sin_mb(hsy(3)*sigmv(j)))*nqq(j)
-          endif
-          ejfv(j)=sqrt(ejv(j)**2-nucm(j)**2)
-          rvv(j)=(ejv(j)*e0f)/(e0*ejfv(j))
-          dpsv(j)=(ejfv(j)*(nucm0/nucm(j))-e0f)/e0f
-          oidpsv(j)=one/(one+dpsv(j))
-          moidpsv(j)=mtc(j)/(one+dpsv(j))
-          omoidpsv(j)=c1e3*((one-mtc(j))*oidpsv(j))
-          dpsv1(j)=(dpsv(j)*c1e3)*oidpsv(j)
-          yv1(j)=(ejf0v(j)/ejfv(j))*yv1(j)
-          yv2(j)=(ejf0v(j)/ejfv(j))*yv2(j)
-        end do
+      case (2) ! RF Cavity
+        if(abs(dppoff) > pieni) then
+          sigmv(1:napx) = sigmv(1:napx)-sigmoff(i)
+        end if
+        if(abs(kz(ix)) == 12) then
+          do j=1,napx
+            ejv(j) = ejv(j)+(ed(ix)*sin_mb(hsyc(ix)*sigmv(j)+phasc(ix)))*nqq(j)
+          end do
+        else
+          do j=1,napx
+            ejv(j) = ejv(j)+(hsy(1)*sin_mb(hsy(3)*sigmv(j)))*nqq(j)
+          end do
+        end if
+        call part_updatePartEnergy(1,.true.)
         goto 640
-      case (3)
-        irrtr=imtr(ix)
+
+      case (3) ! Phase Trombone
+        irrtr = imtr(ix)
         do j=1,napx
-            !The values are stored in the temp vector which are used for the multiplication.
-          temptr(1)=xv1(j)
-          temptr(2)=yv1(j)/moidpsv(j)
-          temptr(3)=xv2(j)
-          temptr(4)=yv2(j)/moidpsv(j)
-          temptr(5)=sigmv(j)
-          temptr(6)=((mtc(j)*ejv(j)-e0)/e0f)*c1e3*(e0/e0f)
+          ! The values are stored in the temp vector which are used for the multiplication.
+          temptr(1) = xv1(j)
+          temptr(2) = yv1(j)/moidpsv(j)
+          temptr(3) = xv2(j)
+          temptr(4) = yv2(j)/moidpsv(j)
+          temptr(5) = sigmv(j)
+          temptr(6) = ((mtc(j)*ejv(j)-e0)/e0f)*c1e3*(e0/e0f)
+
           ! Adding the closed orbit. The previous values are stored in the temptr vector.
-          xv1(j)  = cotr(irrtr,1)
-          yv1(j)  = cotr(irrtr,2)
-          xv2(j)  = cotr(irrtr,3)
-          yv2(j)  = cotr(irrtr,4)
+          xv1(j)   = cotr(irrtr,1)
+          yv1(j)   = cotr(irrtr,2)
+          xv2(j)   = cotr(irrtr,3)
+          yv2(j)   = cotr(irrtr,4)
           sigmv(j) = cotr(irrtr,5)
           pttemp   = cotr(irrtr,6)
 
           ! Multiplying the arbitrary matrix to the coordinates.
           do kxxa=1,6
-            xv1(j)   =  xv1(j)+temptr(kxxa)*rrtr(irrtr,1,kxxa)
-            yv1(j)   =  yv1(j)+temptr(kxxa)*rrtr(irrtr,2,kxxa)
-            xv2(j)   =  xv2(j)+temptr(kxxa)*rrtr(irrtr,3,kxxa)
-            yv2(j)   =  yv2(j)+temptr(kxxa)*rrtr(irrtr,4,kxxa)
-            sigmv(j)  =  sigmv(j)+temptr(kxxa)*rrtr(irrtr,5,kxxa)
-            pttemp    =  pttemp+temptr(kxxa)*rrtr(irrtr,6,kxxa)
-          enddo
-          ! Transforming back to the tracked coordinates of Sixtrack...
-          ejv(j)  = (e0f*pttemp/(c1e3*(e0/e0f))+e0)/mtc(j)
+            xv1(j)   = xv1(j)   + temptr(kxxa)*rrtr(irrtr,1,kxxa)
+            yv1(j)   = yv1(j)   + temptr(kxxa)*rrtr(irrtr,2,kxxa)
+            xv2(j)   = xv2(j)   + temptr(kxxa)*rrtr(irrtr,3,kxxa)
+            yv2(j)   = yv2(j)   + temptr(kxxa)*rrtr(irrtr,4,kxxa)
+            sigmv(j) = sigmv(j) + temptr(kxxa)*rrtr(irrtr,5,kxxa)
+            pttemp   = pttemp   + temptr(kxxa)*rrtr(irrtr,6,kxxa)
+          end do
 
+          ! Transforming back to the tracked coordinates of SixTrack
+          ejv(j) = (e0f*pttemp/(c1e3*(e0/e0f))+e0)/mtc(j)
+        end do
+        call part_updatePartEnergy(1,.false.)
 
-          ejfv(j)=sqrt(ejv(j)**2-nucm(j)**2)
-          rvv(j)=(ejv(j)*e0f)/(e0*ejfv(j))
-          dpsv(j)=(ejfv(j)*(nucm0/nucm(j))-e0f)/e0f
-          oidpsv(j)=one/(one+dpsv(j))
-          moidpsv(j)=mtc(j)/(one+dpsv(j))
-          omoidpsv(j)=c1e3*((one-mtc(j))*oidpsv(j))
-          dpsv1(j)=(dpsv(j)*c1e3)*oidpsv(j)
+        ! We have to go back to angles after we updated the energy.
+        yv1(1:napx) = yv1(1:napx)*moidpsv(1:napx)
+        yv2(1:napx) = yv2(1:napx)*moidpsv(1:napx)
 
-
-          ! We have to go back to angles after we updated the energy.
-          yv1(j) = yv1(j)*mtc(j)/(one+dpsv(j))
-          yv2(j) = yv2(j)*mtc(j)/(one+dpsv(j))
-
-          !yv(j,1) = yv(j,1)*moidpsv(j)
-          !yv(j,2) = yv(j,2)*moidpsv(j)
-        enddo
         goto 640
+
       case (4,5,6,7,8,9,10)
         goto 650
       case (11) ! HORIZONTAL DIPOLE

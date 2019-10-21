@@ -373,7 +373,7 @@ subroutine k2coll_collimate(icoll, iturn, ie, c_length, c_rotation, c_aperture, 
       ! SR+GRD: CREATE A FILE TO CHECK THE VALUES OF IMPACT PARAMETERS
       ! SR, 29-08-2005: Add to the longitudinal coordinates the position of the slice beginning
       if(dowrite_impact) then
-        if(iand(nhit_type(j),cdb_typPrimary) == 0) then
+        if(iand(nhit_type(j),cdb_stgPrimary) == 0) then
 #ifdef HDF5
           if(h5_useForCOLL) then
             call h5_prepareWrite(coll_hdf5_fstImpacts, 1)
@@ -560,6 +560,7 @@ end subroutine k2coll_collimate
 subroutine k2coll_scatin(plab)
 
   use mod_funlux
+  use coll_common
   use coll_materials
   use mathlib_bouncer
   use physical_constants
@@ -628,7 +629,7 @@ subroutine k2coll_scatin(plab)
 
     ! Filling CProb with cumulated normalised Cross-sections
     do i=1,4
-      cprob(i,ma)=cprob(i-1,ma)+csect(i,ma)/csect(0,ma)
+      cprob(i,ma) = cprob(i-1,ma) + csect(i,ma)/csect(0,ma)
     end do
   end do
 
@@ -687,7 +688,7 @@ subroutine k2coll_jaw(s, nabs, icoll, iturn, ipart)
     if(dowrite_impact) then ! Write coll_scatter.dat for complete scattering histories
 #ifdef HDF5
       if(h5_useForCOLL) then
-        call coll_hdf5_writeCollScatter(icoll, iturn, ipart, 1, -one, zero, zero)
+        call k2coll_hdf5_writeCollScatter(icoll, iturn, ipart, 1, -one, zero, zero)
       else
 #endif
       write(coll_scatterUnit,"(1x,i2,2x,i4,2x,i5,2x,i1,3(2x,e14.6))") icoll, iturn, ipart, 1, -one, zero, zero
@@ -703,7 +704,7 @@ subroutine k2coll_jaw(s, nabs, icoll, iturn, ipart)
     if(dowrite_impact) then ! Write coll_scatter.dat for complete scattering histories
 #ifdef HDF5
       if(h5_useForCOLL) then
-        call coll_hdf5_writeCollScatter(icoll, iturn, ipart, 0, -one, zero, zero)
+        call k2coll_hdf5_writeCollScatter(icoll, iturn, ipart, 0, -one, zero, zero)
       else
 #endif
       write(coll_scatterUnit,"(1x,i2,2x,i4,2x,i5,2x,i1,3(2x,e14.6))") icoll, iturn, ipart, 0, -one, zero, zero
@@ -747,7 +748,7 @@ subroutine k2coll_jaw(s, nabs, icoll, iturn, ipart)
       ! write coll_scatter.dat for complete scattering histories
 #ifdef HDF5
       if(h5_useForCOLL) then
-        call coll_hdf5_writeCollScatter(icoll,iturn,ipart,nabs_tmp,(p-pBef)/pBef,xp-xpBef,zp-zpBef)
+        call k2coll_hdf5_writeCollScatter(icoll,iturn,ipart,nabs_tmp,(p-pBef)/pBef,xp-xpBef,zp-zpBef)
       else
 #endif
       write(coll_scatterUnit,'(1x,i2,2x,i4,2x,i5,2x,i1,3(2x,e18.10))') icoll,iturn,ipart,nabs_tmp,(p-pBef)/pBef,xp-xpBef,zp-zpBef
@@ -782,7 +783,7 @@ subroutine k2coll_jaw(s, nabs, icoll, iturn, ipart)
       ! write coll_scatter.dat for complete scattering histories
 #ifdef HDF5
       if(h5_useForCOLL) then
-        call coll_hdf5_writeCollScatter(icoll,iturn,ipart,nabs_tmp,(p-pBef)/pBef,xp-xpBef,zp-zpBef)
+        call k2coll_hdf5_writeCollScatter(icoll,iturn,ipart,nabs_tmp,(p-pBef)/pBef,xp-xpBef,zp-zpBef)
       else
 #endif
       write(coll_scatterUnit,'(1x,i2,2x,i4,2x,i5,2x,i1,3(2x,e18.10))') icoll,iturn,ipart,nabs_tmp,(p-pBef)/pBef,xp-xpBef,zp-zpBef
@@ -825,7 +826,7 @@ subroutine k2coll_jaw(s, nabs, icoll, iturn, ipart)
     ! write coll_scatter.dat for complete scattering histories
 #ifdef HDF5
     if(h5_useForCOLL) then
-      call coll_hdf5_writeCollScatter(icoll,iturn,ipart,nabs_tmp,-one,zero,zero)
+      call k2coll_hdf5_writeCollScatter(icoll,iturn,ipart,nabs_tmp,-one,zero,zero)
     else
 #endif
     write(coll_scatterUnit,'(1x,i2,2x,i4,2x,i5,2x,i1,3(2x,e14.6))') icoll,iturn,ipart,nabs_tmp,-one,zero,zero
@@ -875,7 +876,7 @@ subroutine k2coll_jaw(s, nabs, icoll, iturn, ipart)
     ! Includes changes in angle from both
 #ifdef HDF5
     if(h5_useForCOLL) then
-      call coll_hdf5_writeCollScatter(icoll,iturn,ipart,nabs_tmp,(p-pBef)/pBef,xp-xpBef,zp-zpBef)
+      call k2coll_hdf5_writeCollScatter(icoll,iturn,ipart,nabs_tmp,(p-pBef)/pBef,xp-xpBef,zp-zpBef)
     else
 #endif
     write(coll_scatterUnit,'(1x,i2,2x,i4,2x,i5,2x,i1,3(2x,e18.10))') icoll,iturn,ipart,nabs_tmp,(p-pBef)/pBef,xp-xpBef,zp-zpBef
@@ -1330,5 +1331,27 @@ real(kind=fPrec) function k2coll_calcPlasmaEnergy(ElectronDensity)
   k2coll_calcPlasmaEnergy = ((PlanckConstantBar*sqrtAB)/ElectronCharge)*c1m9
 
 end function k2coll_calcPlasmaEnergy
+
+#ifdef HDF5
+subroutine k2coll_hdf5_writeCollScatter(icoll,iturn,ipart,nabs,dp,dx,dy)
+
+  use hdf5_output
+  use coll_common
+
+  integer,          intent(in) :: icoll,iturn,ipart,nabs
+  real(kind=fPrec), intent(in) :: dp,dx,dy
+
+  call h5_prepareWrite(coll_hdf5_collScatter, 1)
+  call h5_writeData(coll_hdf5_collScatter, 1, 1, ipart)
+  call h5_writeData(coll_hdf5_collScatter, 2, 1, iturn)
+  call h5_writeData(coll_hdf5_collScatter, 3, 1, icoll)
+  call h5_writeData(coll_hdf5_collScatter, 4, 1, nabs)
+  call h5_writeData(coll_hdf5_collScatter, 5, 1, dp)
+  call h5_writeData(coll_hdf5_collScatter, 6, 1, dx)
+  call h5_writeData(coll_hdf5_collScatter, 7, 1, dy)
+  call h5_finaliseWrite(coll_hdf5_collScatter)
+
+end subroutine k2coll_hdf5_writeCollScatter
+#endif
 
 end module coll_k2
