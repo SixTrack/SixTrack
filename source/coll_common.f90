@@ -137,6 +137,8 @@ subroutine coll_expandArrays(npart_new, nblz_new)
   call alloc(rcp,  npart_new, zero, "rcp")
   call alloc(rcs,  npart_new, zero, "rcs")
 
+  call alloc(cry_proc, npart_new, -1, "cry_proc")
+
 end subroutine coll_expandArrays
 
 subroutine coll_expandNColl(nColl)
@@ -146,8 +148,8 @@ subroutine coll_expandNColl(nColl)
 
   integer, intent(in) :: nColl
 
-  call alloc(cn_impact,     nColl, 0,    "cn_impact(:)")
-  call alloc(cn_absorbed,   nColl, 0,    "cn_absorbed(:)")
+  call alloc(cn_impact,     nColl, 0,    "cn_impact")
+  call alloc(cn_absorbed,   nColl, 0,    "cn_absorbed")
   call alloc(caverage,      nColl, zero, "caverage")
   call alloc(csigma,        nColl, zero, "csigma")
   call alloc(gap_rms_error, nColl, zero, "gap_rms_error")
