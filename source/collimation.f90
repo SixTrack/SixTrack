@@ -2578,9 +2578,9 @@ subroutine coll_matchedHalo(c_tilt,c_offset,c_aperture,c_length)
 
   ! Assign optics parameters to use for the generation of the starting halo - at start or end of collimator
   if(minAmpl == Nap1pos .or. minAmpl == Nap1neg) then ! min normalized distance occurs at start of collimator
-    ldrift   = -c_length/two
+    ldrift = -c_length/two
   else ! Min normalized distance occurs at end of collimator
-    ldrift   = c_length/two
+    ldrift = c_length/two
   end if
 
   ! create new pencil beam distribution with spread at start or end of collimator at the minAmpl
@@ -2591,16 +2591,16 @@ subroutine coll_matchedHalo(c_tilt,c_offset,c_aperture,c_length)
   call cdist_makeDist_coll(alphax1,alphay1,betax1,betay1,c_nex2,c_ney2)
 
   do j=1,napx
-    xv1(j)  = c1e3*xv1(j) + torbx(ie)
-    yv1(j)  = c1e3*yv1(j) + torbxp(ie)
-    xv2(j)  = c1e3*xv2(j) + torby(ie)
-    yv2(j)  = c1e3*yv2(j) + torbyp(ie)
+    xv1(j) = c1e3*xv1(j) + torbx(ie)
+    yv1(j) = c1e3*yv1(j) + torbxp(ie)
+    xv2(j) = c1e3*xv2(j) + torby(ie)
+    yv2(j) = c1e3*yv2(j) + torbyp(ie)
 
     ! as main routine will track particles back half a collimator length (to start of jaw),
     ! track them now forward (if generated at face) or backward (if generated at end)
     ! 1/2 collimator length to center of collimator (ldrift pos or neg)
-    xv1(j)  = xv1(j) - ldrift*yv1(j)
-    xv2(j)  = xv2(j) - ldrift*yv2(j)
+    xv1(j) = xv1(j) - ldrift*yv1(j)
+    xv2(j) = xv2(j) - ldrift*yv2(j)
   end do
 
 end subroutine coll_matchedHalo
