@@ -71,6 +71,7 @@ subroutine k2coll_collimate(icoll, iturn, ie, c_length, c_rotation, c_aperture, 
   use crcoall
   use coll_db
   use coll_common
+  use coll_crystal
   use coll_materials
   use mod_common, only : iexact, napx
   use mod_common_main, only : partID
@@ -122,6 +123,7 @@ subroutine k2coll_collimate(icoll, iturn, ie, c_length, c_rotation, c_aperture, 
   real(kind=fPrec) x_Dump,xpDump,y_Dump,ypDump,s_Dump
   real(kind=fPrec) cRot,sRot,cRRot,sRRot
   real(kind=fPrec) s_impact,xinn,xpinn,yinn,ypinn
+  real(kind=fPrec) x_in0,xp_in0,s_cry
 
   ! Initilaisation
 
@@ -133,6 +135,7 @@ subroutine k2coll_collimate(icoll, iturn, ie, c_length, c_rotation, c_aperture, 
   call k2coll_scatin(p0)
 
   nhit   = 0
+  nabs   = 0
   fracab = zero
   mirror = one
 
@@ -155,9 +158,11 @@ subroutine k2coll_collimate(icoll, iturn, ie, c_length, c_rotation, c_aperture, 
 
     x      = x_in(j)
     xp     = xp_in(j)
+    xp_in0 = xp_in(j)
     z      = y_in(j)
     zp     = yp_in(j)
     p      = p_in(j)
+    s_cry  = zero
     sp     = zero
     dpop   = (p - p0)/p0
     x_flk  = zero
@@ -188,6 +193,9 @@ subroutine k2coll_collimate(icoll, iturn, ie, c_length, c_rotation, c_aperture, 
     end if
     x  = mirror * x
     xp = mirror * xp
+
+    ! CRY Only x_in0 (i.e. b) have to be assigned after the change of reference frame
+    x_in0 = x
 
     ! Shift with opening and offset
     x = (x - c_aperture/two) - mirror*c_offset
@@ -303,7 +311,9 @@ subroutine k2coll_collimate(icoll, iturn, ie, c_length, c_rotation, c_aperture, 
     zlm   = -one * length
 
     if (cdb_isCrystal(icoll)) then
-
+      call cry_doCrystal(ie,iturn,j,mat,x,xp,z,zp,s_cry,p,x_in0,xp_in0,zlm,nhit,nabs,lhit_pos,lhit_turn,&
+        part_abs_pos_local,part_abs_turn_local,impact,indiv,c_length)
+!      p = sqrt(p**2+pmap**2)
     else
       if(x >= zero) then
         ! Particle hits collimator and we assume interaction length ZLM equal
@@ -546,7 +556,12 @@ subroutine k2coll_collimate(icoll, iturn, ie, c_length, c_rotation, c_aperture, 
         y_in(j)  = y_in(j)  + mirror*y_pencil(icoll)
       end if
 
-      p_in(j) = (one + dpop) * p0
+      if (cdb_isCrystal(icoll)) then
+        p_in(j) = p
+      else
+        p_in(j) = (one + dpop) * p0
+      end if
+
       s_in(j) = sp + (real(j_slices,fPrec)-one) * c_length
     else
       x_in(j) = x

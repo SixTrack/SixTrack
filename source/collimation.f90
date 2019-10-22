@@ -2007,7 +2007,7 @@ subroutine collimate_do_collimator(stracki)
   use coll_k2
   use coll_jawfit
   use coll_dist
-  use coll_crystal, only : collimate_cry
+  use coll_crystal
   use mod_units
   use mathlib_bouncer
   use mod_alloc
@@ -2409,17 +2409,18 @@ subroutine collimate_do_collimator(stracki)
     else
       c_length = cdb_cryBend(icoll)*(sin_mb(cry_bendangle-cry_tilt) + sin_mb(cry_tilt))
     end if
+    call cry_startElement(icoll, cry_tilt, c_length)
   end if
-  if(cdb_isCrystal(icoll)) then
-    call collimate_cry(icoll, iturn, ie, c_length, c_rotation, c_aperture, c_offset, &
-      c_tilt, rcx, rcxp, rcy, rcyp, rcp, rcs, enom_gev, part_hit_pos, part_hit_turn, part_abs_pos,&
-      part_abs_turn, part_impact, part_indiv, part_linteract, cry_tilt, c_length)
-  else
+  ! if(cdb_isCrystal(icoll)) then
+  !   call collimate_cry(icoll, iturn, ie, c_length, c_rotation, c_aperture, c_offset, &
+  !     c_tilt, rcx, rcxp, rcy, rcyp, rcp, rcs, enom_gev, part_hit_pos, part_hit_turn, part_abs_pos,&
+  !     part_abs_turn, part_impact, part_indiv, part_linteract)
+  ! else
     call k2coll_collimate(icoll, iturn, ie, c_length, c_rotation, c_aperture, c_offset, &
       c_tilt, rcx, rcxp, rcy, rcyp, rcp, rcs, enom_gev, part_hit_pos, part_hit_turn,    &
       part_abs_pos, part_abs_turn, part_impact, part_indiv, part_linteract,             &
       onesided, nhit_type, 1, nabs_type, linside)
-  end if
+  ! end if
   if(cdb_isCrystal(icoll)) then
     if (dowrite_crycoord) then
       do j=1, napx

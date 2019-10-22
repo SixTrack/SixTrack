@@ -134,13 +134,18 @@ subroutine cry_init
 
 end subroutine cry_init
 
-subroutine cry_startElement(icoll)
+subroutine cry_startElement(icoll,cry_tilt_in,cry_length_in)
 
   use coll_db
   use coll_common
   use mathlib_bouncer
 
   integer, intent(in) :: icoll
+  real(kind=fPrec), intent(in)    :: cry_tilt_in   ! Crystal tilt [rad]
+  real(kind=fPrec), intent(in)    :: cry_length_in ! Original length (from the db) [m]
+
+  cry_tilt = cry_tilt_in
+  cry_length = cry_length_in
 
   c_rcurv  = cdb_cryBend(icoll)
   c_alayer = cdb_cryThick(icoll)
@@ -166,13 +171,12 @@ end subroutine cry_startElement
 
 subroutine collimate_cry(icoll, iturn, ie, c_length, c_rotation, c_aperture, c_offset, c_tilt, &
   x_in, xp_in, y_in, yp_in, p_in, s_in, enom, lhit, lhit_turn, part_abs, part_abs_turn, impact, &
-  indiv, lint, cry_tilt_in, cry_length_in)
+  indiv, lint)
 
   use parpro
   use coll_db
   use mod_ranlux
   use mod_funlux
-  use coll_k2
   use mod_common, only : napx
   use coll_common, only : cry_proc, xp_pencil0, yp_pencil0, x_pencil, y_pencil, pencil_dx, ipencil
   use floatPrecision
@@ -204,23 +208,12 @@ subroutine collimate_cry(icoll, iturn, ie, c_length, c_rotation, c_aperture, c_o
   real(kind=fPrec), intent(inout) :: indiv(npart)
   real(kind=fPrec), intent(inout) :: lint(npart)
 
-  real(kind=fPrec), intent(in)    :: cry_tilt_in   ! Crystal tilt [rad]
-  real(kind=fPrec), intent(in)    :: cry_length_in ! Original length (from the db) [m]
-
   integer j,mat,nabs,nhit
-  real(kind=fPrec) p0,zlm,x,xp,z,zp,s,p,dpop,x_in0,xp_in0,y_in0,yp_in0,p_in0,mirror, &
+  real(kind=fPrec) p0,zlm,x,xp,z,zp,s,p,x_in0,xp_in0,y_in0,yp_in0,p_in0,mirror, &
     tiltangle,cRot,sRot,cRRot,sRRot
-
-  cry_tilt = cry_tilt_in
-  cry_length = cry_length_in
-
-  call cry_startElement(icoll)
 
   mat = cdb_cMaterialID(icoll)
   p0  = enom
-
-  ! Initialise scattering processes
-  call k2coll_scatin(p0)
 
   nhit   = 0
   mirror = one
@@ -250,7 +243,6 @@ subroutine collimate_cry(icoll, iturn, ie, c_length, c_rotation, c_aperture, c_o
     p  = p_in(j)
 
     ! CRY ---------------------
-    dpop   = (p-p0)/p0
     xp_in0 = xp
     s      = zero
     nabs   = 0
@@ -273,6 +265,7 @@ subroutine collimate_cry(icoll, iturn, ie, c_length, c_rotation, c_aperture, c_o
     end if
 
     ! CRY ---------------------
+    ! Only x_in0 (i.e. b) have to be assigned after the change of reference frame
     x_in0 = x
     ! CRY ---------------------
 
