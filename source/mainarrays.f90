@@ -281,11 +281,8 @@ subroutine shuffleLostParticles
       part_hit_before_pos(j:tnapx)  = cshift(part_hit_before_pos(j:tnapx),  1)
       part_hit_before_turn(j:tnapx) = cshift(part_hit_before_turn(j:tnapx), 1)
 
-      secondary(j:tnapx)            = cshift(secondary(j:tnapx),            1)
-      tertiary(j:tnapx)             = cshift(tertiary(j:tnapx),             1)
-      other(j:tnapx)                = cshift(other(j:tnapx),                1)
-      scatterhit(j:tnapx)           = cshift(scatterhit(j:tnapx),           1)
       nabs_type(j:tnapx)            = cshift(nabs_type(j:tnapx),            1)
+      nhit_stage(j:tnapx)           = cshift(nhit_stage(j:tnapx),           1)
 
       counted_r(j:tnapx,:)          = cshift(counted_r(j:tnapx,:),          1, 1)
       counted_x(j:tnapx,:)          = cshift(counted_x(j:tnapx,:),          1, 1)

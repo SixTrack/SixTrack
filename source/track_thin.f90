@@ -650,16 +650,16 @@ subroutine thin6d(nthinerr)
       end if
 
 #ifdef BEAMGAS
-      !YIL Call beamGas subroutine whenever a pressure-element is found
-      ! should be faster/safer to first check the turn then do the name search
-      if(n == 1) then
-        if(bez(myix)(1:5) == "PRESS" .or. bez(myix)(1:5) == "press") then
-          call beamGas(myix,secondary,dcum(i),myenom,n,i)
+      ! Call beamGas subroutine whenever a pressure-element is found.
+      ! Should be faster/safer to first check the turn then do the name search
+      if(n == 1 .and. ix > 0) then
+        if(bez(ix)(1:5) == "PRESS" .or. bez(ix)(1:5) == "press") then
+          call beamGas(ix,secondary,dcum(i),myenom,n,i)
         end if
       end if
 #endif
 
-      if (ldumpfront) then
+      if(ldumpfront) then
         call dump_lines(n,i,ix)
       end if
 
@@ -714,8 +714,8 @@ subroutine thin6d(nthinerr)
       ! The below splitting of if-statements is needed to prevent out of bounds error
       ! when building with gfortran/debug
       is_coll = .false.
-      if(do_coll) then
-        if(cdb_elemMap(myix) > 0) then
+      if(do_coll .and. ix > 0) then
+        if(cdb_elemMap(ix) > 0) then
           is_coll = .true.
         end if
       end if
