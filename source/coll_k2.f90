@@ -123,7 +123,7 @@ subroutine k2coll_collimate(icoll, iturn, ie, c_length, c_rotation, c_aperture, 
   real(kind=fPrec) x_Dump,xpDump,y_Dump,ypDump,s_Dump
   real(kind=fPrec) cRot,sRot,cRRot,sRRot
   real(kind=fPrec) s_impact,xinn,xpinn,yinn,ypinn
-  real(kind=fPrec) x_in0,xp_in0,s_cry
+  real(kind=fPrec) x_in0,xp_in0
 
   ! Initilaisation
 
@@ -162,7 +162,6 @@ subroutine k2coll_collimate(icoll, iturn, ie, c_length, c_rotation, c_aperture, 
     z      = y_in(j)
     zp     = yp_in(j)
     p      = p_in(j)
-    s_cry  = zero
     sp     = zero
     dpop   = (p - p0)/p0
     x_flk  = zero
@@ -194,9 +193,6 @@ subroutine k2coll_collimate(icoll, iturn, ie, c_length, c_rotation, c_aperture, 
     x  = mirror * x
     xp = mirror * xp
 
-    ! CRY Only x_in0 (i.e. b) have to be assigned after the change of reference frame
-    x_in0 = x
-
     ! Shift with opening and offset
     x = (x - c_aperture/two) - mirror*c_offset
 
@@ -208,6 +204,9 @@ subroutine k2coll_collimate(icoll, iturn, ie, c_length, c_rotation, c_aperture, 
       x  = x + sin_mb(tiltangle) * c_length
       xp = xp - tiltangle
     end if
+
+    ! CRY Only x_in0 (i.e. b) have to be assigned after the change of reference frame
+    x_in0 = x
 
     ! For selected collimator, first turn reset particle distribution to simple pencil beam
     nprim = 3
@@ -311,7 +310,7 @@ subroutine k2coll_collimate(icoll, iturn, ie, c_length, c_rotation, c_aperture, 
     zlm   = -one * length
 
     if (cdb_isCrystal(icoll)) then
-      call cry_doCrystal(ie,iturn,j,mat,x,xp,z,zp,s_cry,p,x_in0,xp_in0,zlm,nhit,nabs,lhit_pos,lhit_turn,&
+      call cry_doCrystal(ie,iturn,j,mat,x,xp,z,zp,s,p,x_in0,xp_in0,zlm,nhit,nabs,lhit_pos,lhit_turn,&
         part_abs_pos_local,part_abs_turn_local,impact,indiv,c_length)
 !      p = sqrt(p**2+pmap**2)
     else
@@ -516,6 +515,7 @@ subroutine k2coll_collimate(icoll, iturn, ie, c_length, c_rotation, c_aperture, 
         lint(j) = zlm - drift_length
       end if
     end if
+
     !++  Transform back to particle coordinates with opening and offset
     if(x < 99.0d-3) then
       ! Include collimator tilt
@@ -558,11 +558,12 @@ subroutine k2coll_collimate(icoll, iturn, ie, c_length, c_rotation, c_aperture, 
 
       if (cdb_isCrystal(icoll)) then
         p_in(j) = p
+        s_in(j) = s_in(j) + s
       else
         p_in(j) = (one + dpop) * p0
+        s_in(j) = sp + (real(j_slices,fPrec)-one) * c_length
       end if
 
-      s_in(j) = sp + (real(j_slices,fPrec)-one) * c_length
     else
       x_in(j) = x
       y_in(j) = z
