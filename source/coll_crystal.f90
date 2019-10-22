@@ -3,7 +3,7 @@
 !  Crystal Collimation Module
 ! ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 !
-!  Written by: Valentina Previtali and Daniele Mirarchi, BE-ABP-HSS
+!  Written by: Igor Yazynin, Valentina Previtali and Daniele Mirarchi, BE-ABP-HSS
 !  Re-written for SixTrack 5 by: Marco D'Andrea and Veronica K. Berglyd Olsen, BE-ABP-HSS (2019)
 !
 !  Last modified: 2019-10-18
@@ -134,7 +134,7 @@ subroutine cry_init
 
 end subroutine cry_init
 
-subroutine cry_initElement(icoll)
+subroutine cry_startElement(icoll)
 
   use coll_db
   use coll_common
@@ -162,7 +162,7 @@ subroutine cry_initElement(icoll)
 
   cry_proc(:) = proc_out
 
-end subroutine cry_initElement
+end subroutine cry_startElement
 
 subroutine collimate_cry(icoll, iturn, ie, c_length, c_rotation, c_aperture, c_offset, c_tilt, &
   x_in, xp_in, y_in, yp_in, p_in, s_in, enom, lhit, lhit_turn, part_abs, part_abs_turn, impact, &
@@ -208,13 +208,13 @@ subroutine collimate_cry(icoll, iturn, ie, c_length, c_rotation, c_aperture, c_o
   real(kind=fPrec), intent(in)    :: cry_length_in ! Original length (from the db) [m]
 
   integer j,mat,nabs,nhit
-  real(kind=fPrec) p0,zlm,x,xp,z,zp,s,p,dpop,x_in0,xp_in0,y_in0,yp_in0,p_in0,s_in0,mirror, &
+  real(kind=fPrec) p0,zlm,x,xp,z,zp,s,p,dpop,x_in0,xp_in0,y_in0,yp_in0,p_in0,mirror, &
     tiltangle,cRot,sRot,cRRot,sRRot
 
   cry_tilt = cry_tilt_in
   cry_length = cry_length_in
 
-  call cry_initElement(icoll)
+  call cry_startElement(icoll)
 
   mat = cdb_cMaterialID(icoll)
   p0  = enom
@@ -251,12 +251,8 @@ subroutine collimate_cry(icoll, iturn, ie, c_length, c_rotation, c_aperture, c_o
 
     ! CRY ---------------------
     dpop   = (p-p0)/p0
-    s_in0  = s_in(j)
     xp_in0 = xp
-    y_in0  = z
-    yp_in0 = zp
     s      = zero
-    p_in0  = p
     nabs   = 0
     ! CRY ---------------------
 
@@ -281,7 +277,7 @@ subroutine collimate_cry(icoll, iturn, ie, c_length, c_rotation, c_aperture, c_o
     ! CRY ---------------------
 
     ! CRY ---------------------
-    call cry_doCrystal(ie,iturn,j,mat,x,xp,z,zp,s,p,x_in0,xp_in0,s_in0,zlm,nhit,nabs,lhit,lhit_turn,&
+    call cry_doCrystal(ie,iturn,j,mat,x,xp,z,zp,s,p,x_in0,xp_in0,zlm,nhit,nabs,lhit,lhit_turn,&
       part_abs,part_abs_turn,impact,indiv,c_length)
     ! CRY ---------------------
 
@@ -323,7 +319,7 @@ subroutine collimate_cry(icoll, iturn, ie, c_length, c_rotation, c_aperture, c_o
 
 end subroutine collimate_cry
 
-subroutine cry_doCrystal(ie,iturn,j,mat,x,xp,z,zp,s,p,x0,s0,xp0,zlm,nhit,nabs,  &
+subroutine cry_doCrystal(ie,iturn,j,mat,x,xp,z,zp,s,p,x0,xp0,zlm,nhit,nabs,  &
   lhit,lhit_turn,part_abs,part_abs_turn,impact,indiv,c_length)
 
   use parpro
@@ -339,7 +335,6 @@ subroutine cry_doCrystal(ie,iturn,j,mat,x,xp,z,zp,s,p,x0,s0,xp0,zlm,nhit,nabs,  
   real(kind=fPrec), intent(inout) :: z,zp
   real(kind=fPrec), intent(inout) :: s,p
   real(kind=fPrec), intent(inout) :: x0,xp0
-  real(kind=fPrec), intent(inout) :: s0
   real(kind=fPrec), intent(inout) :: zlm
   integer,          intent(inout) :: nhit,nabs
   integer,          intent(inout) :: lhit(npart)
@@ -374,7 +369,7 @@ subroutine cry_doCrystal(ie,iturn,j,mat,x,xp,z,zp,s,p,x0,s0,xp0,zlm,nhit,nabs,  
   iProc       = proc_out
   cry_proc(j) = proc_out
 
-  ! Transform in the crystal rerference system
+  ! Transform in the crystal reference system
   ! 1st transformation: shift of the center of the reference frame
   if(cry_tilt < zero) then
     s_shift = s
