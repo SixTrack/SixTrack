@@ -71,7 +71,7 @@ subroutine k2coll_collimate(icoll, iturn, ie, c_length, c_rotation, c_aperture, 
   use crcoall
   use coll_db
   use coll_common
-  use coll_crystal
+  use coll_crystal, only : cry_doCrystal
   use coll_materials
   use mod_common, only : iexact, napx
   use mod_common_main, only : partID
@@ -177,21 +177,26 @@ subroutine k2coll_collimate(icoll, iturn, ie, c_length, c_rotation, c_aperture, 
     zp = yp_in(j)*cRot - sRot*xp_in(j)
 
     ! For one-sided collimators consider only positive X. For negative X jump to the next particle
-    if((onesided .and. x < zero) .and. ((icoll /= ipencil) .or. (iturn /= 1))) then
+    if((.not.cdb_isCrystal(icoll)) .and. (onesided .and. x < zero) .and. ((icoll /= ipencil) .or. (iturn /= 1))) then
       cycle
     end if
 
+    if(x < zero) then
+      tiltangle = -one*c_tilt(2)
+    else
+      tiltangle = c_tilt(1)
+    end if
+
+    if (.not.cdb_isCrystal(icoll)) then
     ! Now mirror at the horizontal axis for negative X offset
     if(x < zero) then
       mirror    = -one
-      tiltangle = -one*c_tilt(2)
-    end if
-    if(x >= zero) then
+    else
       mirror    = one
-      tiltangle = c_tilt(1)
     end if
     x  = mirror * x
     xp = mirror * xp
+    end if
 
     ! Shift with opening and offset
     x = (x - c_aperture/two) - mirror*c_offset
@@ -313,6 +318,11 @@ subroutine k2coll_collimate(icoll, iturn, ie, c_length, c_rotation, c_aperture, 
       call cry_doCrystal(ie,iturn,j,mat,x,xp,z,zp,s,p,x_in0,xp_in0,zlm,nhit,nabs,lhit_pos,lhit_turn,&
         part_abs_pos_local,part_abs_turn_local,impact,indiv,c_length)
 !      p = sqrt(p**2+pmap**2)
+      if(nabs == 1) then
+        part_abs_pos_local(j)      = ie
+        part_abs_turn_local(j) = iturn
+        lint(j)          = zlm
+      end if
     else
       if(x >= zero) then
         ! Particle hits collimator and we assume interaction length ZLM equal
