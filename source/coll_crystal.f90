@@ -134,6 +134,9 @@ subroutine cry_init
 
 end subroutine cry_init
 
+! ================================================================================================ !
+!  Initialise a crystal collimator
+! ================================================================================================ !
 subroutine cry_startElement(icoll, ie, emitX, emitY, o_tilt, o_length)
 
   use crcoall
@@ -191,149 +194,9 @@ subroutine cry_startElement(icoll, ie, emitX, emitY, o_tilt, o_length)
 
 end subroutine cry_startElement
 
-subroutine collimate_cry(icoll, iturn, ie, c_length, c_rotation, c_aperture, c_offset, c_tilt, &
-  x_in, xp_in, y_in, yp_in, p_in, s_in, enom, lhit, lhit_turn, part_abs, part_abs_turn, impact, &
-  indiv, lint)
-
-  use parpro
-  use coll_db
-  use mod_ranlux
-  use mod_funlux
-  use mod_common, only : napx
-  use coll_common, only : cry_proc, xp_pencil0, yp_pencil0, x_pencil, y_pencil, pencil_dx, ipencil
-  use floatPrecision
-  use mathlib_bouncer
-
-  integer,          intent(in)    :: icoll
-  integer,          intent(in)    :: iturn
-  integer,          intent(in)    :: ie
-
-  real(kind=fPrec), intent(in)    :: c_length   ! Length in m
-  real(kind=fPrec), intent(in)    :: c_rotation ! Rotation angle vs vertical in radian
-  real(kind=fPrec), intent(in)    :: c_aperture ! Aperture in m
-  real(kind=fPrec), intent(in)    :: c_offset   ! Offset in m
-  real(kind=fPrec), intent(in)    :: c_tilt(2)  ! Tilt in radians
-
-  real(kind=fPrec), intent(inout) :: x_in(npart)
-  real(kind=fPrec), intent(inout) :: xp_in(npart)
-  real(kind=fPrec), intent(inout) :: y_in(npart)
-  real(kind=fPrec), intent(inout) :: yp_in(npart)
-  real(kind=fPrec), intent(inout) :: s_in(npart)
-  real(kind=fPrec), intent(inout) :: p_in(npart) ! [Gev]
-
-  real(kind=fPrec), intent(in)    :: enom
-  integer,          intent(inout) :: lhit(npart)
-  integer,          intent(inout) :: lhit_turn(npart)
-  integer,          intent(inout) :: part_abs(npart)
-  integer,          intent(inout) :: part_abs_turn(npart)
-  real(kind=fPrec), intent(inout) :: impact(npart)
-  real(kind=fPrec), intent(inout) :: indiv(npart)
-  real(kind=fPrec), intent(inout) :: lint(npart)
-
-  integer j,mat,nabs,nhit
-  real(kind=fPrec) p0,zlm,x,xp,z,zp,s,p,x_in0,xp_in0,y_in0,yp_in0,p_in0,mirror, &
-    tiltangle,cRot,sRot,cRRot,sRRot
-
-  mat = cdb_cMaterialID(icoll)
-  p0  = enom
-
-  nhit   = 0
-  mirror = one
-
-  tiltangle   = c_tilt(1)
-
-  cRot  = cos_mb(c_rotation)
-  sRot  = sin_mb(c_rotation)
-  cRRot = cos_mb(-c_rotation)
-  sRRot = sin_mb(-c_rotation)
-
-  do j=1,napx
-
-    if(part_abs(j) /= 0 .and. part_abs_turn(j) /= 0) then
-      ! Don't do scattering process for particles already absorbed
-      cycle
-    end if
-
-    impact(j) = -one
-    lint(j)   = -one
-    indiv(j)  = -one
-
-    x  = x_in(j)
-    xp = xp_in(j)
-    z  = y_in(j)
-    zp = yp_in(j)
-    p  = p_in(j)
-
-    ! CRY ---------------------
-    xp_in0 = xp
-    s      = zero
-    nabs   = 0
-    ! CRY ---------------------
-
-    x  =  x_in(j)*cRot + sRot*y_in(j)
-    z  =  y_in(j)*cRot - sRot*x_in(j)
-    xp = xp_in(j)*cRot + sRot*yp_in(j)
-    zp = yp_in(j)*cRot - sRot*xp_in(j)
-
-    x  = (x - c_aperture/two) - c_offset
-
-    ! Include collimator tilt
-    if(tiltangle > zero) then
-      xp = xp - tiltangle
-    end if
-    if(tiltangle < zero) then
-      x  = x + sin_mb(tiltangle) * c_length
-      xp = xp - tiltangle
-    end if
-
-    ! CRY ---------------------
-    ! Only x_in0 (i.e. b) have to be assigned after the change of reference frame
-    x_in0 = x
-    ! CRY ---------------------
-
-    ! CRY ---------------------
-    ! call cry_doCrystal(ie,iturn,j,mat,x,xp,z,zp,s,p,x_in0,xp_in0,zlm,nhit,nabs,lhit,lhit_turn,&
-    !   part_abs,part_abs_turn,impact,indiv,c_length)
-    ! CRY ---------------------
-
-    ! Transform back to particle coordinates with opening and offset
-    if(part_abs(j) == 0) then
-      if(tiltangle > zero) then
-        x  = x  + tiltangle*c_length
-        xp = xp + tiltangle
-      else if(tiltangle < zero) then
-        x  = x + tiltangle*c_length
-        xp = xp + tiltangle
-        x  = x - sin_mb(tiltangle) * c_length
-      end if
-
-      ! Transform back to particle coordinates with opening and offset
-      x  = x + c_aperture/2 + mirror*c_offset
-
-      ! Now mirror at the horizontal axis for negative X offset
-      x  = mirror*x
-      xp = mirror*xp
-
-      ! Last do rotation into collimator frame
-      x_in(j)  =  x*cRRot +  z*sRRot
-      y_in(j)  =  z*cRRot -  x*sRRot
-      xp_in(j) = xp*cRRot + zp*sRRot
-      yp_in(j) = zp*cRRot - xp*sRRot
-
-      p_in(j) = p
-      s_in(j) = s_in(j) + s
-
-      if(nabs == 1) then
-        part_abs(j)      = ie
-        part_abs_turn(j) = iturn
-        lint(j)          = zlm
-      end if
-    end if
-
-  end do
-
-end subroutine collimate_cry
-
+! ================================================================================================ !
+!  Subroutine for checking for interactions with crystal
+! ================================================================================================ !
 subroutine cry_doCrystal(ie,iturn,j,mat,x,xp,z,zp,s,p,x0,xp0,zlm,s_imp,nhit,nabs, &
   lhit,lhit_turn,part_abs,part_abs_turn,impact,indiv,c_length)
 
