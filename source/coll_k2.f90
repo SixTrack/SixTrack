@@ -65,7 +65,7 @@ end subroutine k2coll_init
 ! ================================================================================================ !
 subroutine k2coll_collimate(icoll, iturn, ie, c_length, c_rotation, c_aperture, c_offset, c_tilt,  &
   x_in, xp_in, y_in, yp_in, p_in, s_in, enom, lhit_pos, lhit_turn, part_abs_pos_local,             &
-  part_abs_turn_local, impact, indiv, lint, onesided, nhit_type, j_slices, nabs_type, linside)
+  part_abs_turn_local, impact, indiv, lint, onesided, nhit_stage, j_slices, nabs_type, linside)
 
   use parpro
   use crcoall
@@ -106,7 +106,7 @@ subroutine k2coll_collimate(icoll, iturn, ie, c_length, c_rotation, c_aperture, 
   integer,          intent(inout) :: part_abs_pos_local(npart)
   integer,          intent(inout) :: part_abs_turn_local(npart)
   integer,          intent(inout) :: nabs_type(npart)
-  integer,          intent(inout) :: nhit_type(npart)
+  integer,          intent(inout) :: nhit_stage(npart)
   real(kind=fPrec), intent(inout) :: indiv(npart)
   real(kind=fPrec), intent(inout) :: lint(npart)
   real(kind=fPrec), intent(inout) :: impact(npart)
@@ -395,7 +395,7 @@ subroutine k2coll_collimate(icoll, iturn, ie, c_length, c_rotation, c_aperture, 
         ! SR+GRD: CREATE A FILE TO CHECK THE VALUES OF IMPACT PARAMETERS
         ! SR, 29-08-2005: Add to the longitudinal coordinates the position of the slice beginning
         if(dowrite_impact) then
-          if(iand(nhit_type(j),cdb_stgPrimary) == 0) then
+          if(iand(nhit_stage(j),cdb_stgPrimary) == 0) then
 #ifdef HDF5
             if(h5_useForCOLL) then
               call h5_prepareWrite(coll_hdf5_fstImpacts, 1)
