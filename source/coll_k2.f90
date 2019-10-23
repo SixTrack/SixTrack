@@ -116,7 +116,7 @@ subroutine k2coll_collimate(icoll, iturn, ie, c_length, c_rotation, c_aperture, 
   integer nprim,j,nabs,nhit,j_slices
   real(kind=fPrec) keeps,fracab,drift_length,mirror,tiltangle
   real(kind=fPrec) x00,z00,p,sp,s
-  real(kind=fPrec) x_flk,xp_flk,y_flk,yp_flk,zpj
+  real(kind=fPrec) x_flk,xp_flk,y_flk,yp_flk,s_flk,zpj
   real(kind=fPrec) x_Dump,xpDump,y_Dump,ypDump,s_Dump
   real(kind=fPrec) cRot,sRot,cRRot,sRRot
   real(kind=fPrec) s_impact,xinn,xpinn,yinn,ypinn
@@ -417,19 +417,16 @@ subroutine k2coll_collimate(icoll, iturn, ie, c_length, c_rotation, c_aperture, 
           end if
         end if
 
-        ! SR, 18-08-2005: add also the initial coordinates of the impacting particles!
         lhit_pos(j)  = ie
         lhit_turn(j) = iturn
 
-        ! September 2006
         ! If particle is absorbed then set x and y to 99.99 mm
-        ! SR: before assigning new (x,y) for nabs=1, write the inelastic impact file .
+        ! SR: before assigning new (x,y) for nabs=1, write the inelastic impact file.
 
-        ! RB: writeout should be done for both inelastic and single diffractive. doing all transformations
+        ! Writeout should be done for both inelastic and single diffractive. doing all transformations
         ! in x_flk and making the set to 99.99 mm conditional for nabs=1
-
         if(dowrite_impact .or. nabs == 1 .or. nabs == 4) then
-          ! transform back to lab system for writeout.
+          ! Transform back to lab system for writeout.
           ! keep x,y,xp,yp unchanged for continued tracking, store lab system variables in x_flk etc
 
           x_flk  = xInt
@@ -444,42 +441,39 @@ subroutine k2coll_collimate(icoll, iturn, ie, c_length, c_rotation, c_aperture, 
           end if
 
           x_flk  = (x_flk + c_aperture/two) + mirror*c_offset
-          x_flk  = mirror * x_flk
-          xp_flk = mirror * xp_flk
-          y_flk  = yInt   * cRRot - x_flk  * sRRot
-          yp_flk = ypInt  * cRRot - xp_flk * sRRot
-          x_flk  = x_flk  * cRRot + yInt   * sRRot
-          xp_flk = xp_flk * cRRot + ypInt  * sRRot
+          x_flk  = mirror*x_flk
+          xp_flk = mirror*xp_flk
+          y_flk  = (  yInt*cRRot -  x_flk*sRRot)*c1e3
+          yp_flk = ( ypInt*cRRot - xp_flk*sRRot)*c1e3
+          x_flk  = ( x_flk*cRRot +   yInt*sRRot)*c1e3
+          xp_flk = (xp_flk*cRRot +  ypInt*sRRot)*c1e3
+          s_flk  =  (sInt+sp)+(real(j_slices,fPrec)-one)*c_length
 
           if(dowrite_impact) then
             ! Write out all impacts to all_impacts.dat
             write(coll_flukImpAllUnit,"(i4,(1x,f6.3),(1x,f8.6),4(1x,e19.10),i2,2(1x,i7))") &
-              icoll,c_rotation, (sInt+sp)+(real(j_slices,fPrec)-one)*c_length,             &
-              x_flk*c1e3, xp_flk*c1e3, y_flk*c1e3, yp_flk*c1e3, nabs, partID(j), iturn
-
+              icoll,c_rotation,s_flk,x_flk,xp_flk,y_flk,yp_flk,nabs,partID(j),iturn
+            if(nabs == 1 .or. nabs == 4) then
               ! Standard FLUKA_impacts writeout of inelastic and single diffractive
-            write(coll_flukImpUnit,"(i4,(1x,f6.3),(1x,f8.6),4(1x,e19.10),i2,2(1x,i7))") &
-              icoll,c_rotation,                                                 &
-              sInt + sp + (real(j_slices,fPrec)-one) * c_length,                &
-              x_flk*c1e3, xp_flk*c1e3, y_flk*c1e3, yp_flk*c1e3,                 &
-              nabs,partID(j),iturn
+              write(coll_flukImpUnit,"(i4,(1x,f6.3),(1x,f8.6),4(1x,e19.10),i2,2(1x,i7))") &
+                icoll,c_rotation,s_flk,x_flk,xp_flk,y_flk,yp_flk,nabs,partID(j),iturn
+            end if
+          end if
+
+          ! Finally, the actual coordinate change to 99 mm
+          if(nabs == 1) then
+            fracab  = fracab + 1
+            x       = 99.99e-3_fPrec
+            z       = 99.99e-3_fPrec
+            lint(j) = zlm
+            part_abs_pos_local(j)  = ie
+            part_abs_turn_local(j) = iturn
           end if
         end if
+      end if ! Collimator jaw interaction
 
-        ! Finally, the actual coordinate change to 99 mm
-        if(nabs == 1) then
-          fracab  = fracab + 1
-          x       = 99.99e-3_fPrec
-          z       = 99.99e-3_fPrec
-          lint(j) = zlm
-          part_abs_pos_local(j)  = ie
-          part_abs_turn_local(j) = iturn
-        end if
-      end if ! Collimator interaction
-
-      ! Do the rest drift, if particle left collimator early
-      ! DRIFT PART
       if(nabs /= 1 .and. zlm > zero) then
+        ! Do the rest drift, if particle left collimator early
         drift_length = (length-(s+sp))
         if(drift_length > c1m15) then
           linside(j) = .false.
