@@ -2374,6 +2374,10 @@ subroutine collimate_do_collimator(stracki)
   if(cdb_cSliced(icoll) > 0) then ! Treatment of sliced collimators
     ! Now, loop over the number of slices and call k2coll_collimate each time.
     ! For each slice, the corresponding offset and angle are to be used.
+    if(cdb_isCrystal(icoll)) then
+      write(lerr,"(a)") "COLL> ERROR A crystal collimator cannot be sliced"
+      call prror
+    end if
     do iSlice=1,nSlices
       jawAperture = c_aperture
       jawOffset   = c_offset
@@ -2394,7 +2398,7 @@ subroutine collimate_do_collimator(stracki)
 #ifndef G4COLLIMATION
 
   if(cdb_isCrystal(icoll)) then
-    if (modulo(cdb_cRotation(icoll),pi) < c1m9) then
+    if(modulo(cdb_cRotation(icoll),pi) < c1m9) then
       cry_tilt0 = (-one)*sqrt(myemitx0_dist/tbetax(ie))*talphax(ie)*nsig
     elseif (modulo(cdb_cRotation(icoll)-pi2,pi) < c1m9) then
       cry_tilt0 = (-one)*sqrt(myemity0_dist/tbetay(ie))*talphay(ie)*nsig
@@ -2402,27 +2406,24 @@ subroutine collimate_do_collimator(stracki)
       write(lerr,"(a)") "COLL> ERROR Crystal collimator has to be horizontal or vertical"
       call prror
     end if
+
     cry_tilt = cdb_cryTilt(icoll) + cry_tilt0
     cry_bendangle = cdb_cLength(icoll)/cdb_cryBend(icoll)
-    if(cry_tilt.ge.(-one)*cry_bendangle) then
+    if(cry_tilt >= (-one)*cry_bendangle) then
       c_length = cdb_cryBend(icoll)*(sin_mb(cry_bendangle+cry_tilt) - sin_mb(cry_tilt))
     else
       c_length = cdb_cryBend(icoll)*(sin_mb(cry_bendangle-cry_tilt) + sin_mb(cry_tilt))
     end if
+
     call cry_startElement(icoll, cry_tilt, c_length)
   end if
-  ! if(cdb_isCrystal(icoll)) then
-  !   call collimate_cry(icoll, iturn, ie, c_length, c_rotation, c_aperture, c_offset, &
-  !     c_tilt, rcx, rcxp, rcy, rcyp, rcp, rcs, enom_gev, part_hit_pos, part_hit_turn, part_abs_pos,&
-  !     part_abs_turn, part_impact, part_indiv, part_linteract)
-  ! else
-    call k2coll_collimate(icoll, iturn, ie, c_length, c_rotation, c_aperture, c_offset, &
-      c_tilt, rcx, rcxp, rcy, rcyp, rcp, rcs, enom_gev, part_hit_pos, part_hit_turn,    &
-      part_abs_pos, part_abs_turn, part_impact, part_indiv, part_linteract,             &
-      onesided, nhit_stage, 1, nabs_type, linside)
-  ! end if
+  call k2coll_collimate(icoll, iturn, ie, c_length, c_rotation, c_aperture, c_offset, &
+    c_tilt, rcx, rcxp, rcy, rcyp, rcp, rcs, enom_gev, part_hit_pos, part_hit_turn,    &
+    part_abs_pos, part_abs_turn, part_impact, part_indiv, part_linteract,             &
+    onesided, nhit_stage, 1, nabs_type, linside)
+
   if(cdb_isCrystal(icoll)) then
-    if (dowrite_crycoord) then
+    if(dowrite_crycoord) then
       do j=1, napx
         isHit = part_hit_pos(j) == ie .and. part_hit_turn(j) == iturn
         isAbs = part_abs_pos(j) == ie .and. part_abs_turn(j) == iturn

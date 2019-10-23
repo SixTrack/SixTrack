@@ -112,11 +112,8 @@ subroutine k2coll_collimate(icoll, iturn, ie, c_length, c_rotation, c_aperture, 
   real(kind=fPrec), intent(inout) :: impact(npart)
   logical,          intent(inout) :: linside(napx)
 
-  ! Internal Variables
-
-  logical hit
+  logical hit,doPencil
   integer nprim,j,nabs,nhit,j_slices
-
   real(kind=fPrec) keeps,fracab,drift_length,mirror,tiltangle
   real(kind=fPrec) x00,z00,p,sp,s
   real(kind=fPrec) x_flk,xp_flk,y_flk,yp_flk,zpj
@@ -126,7 +123,6 @@ subroutine k2coll_collimate(icoll, iturn, ie, c_length, c_rotation, c_aperture, 
   real(kind=fPrec) x_in0,xp_in0
 
   ! Initilaisation
-
   mat    = cdb_cMaterialID(icoll)
   length = c_length
   p0     = enom
@@ -144,6 +140,9 @@ subroutine k2coll_collimate(icoll, iturn, ie, c_length, c_rotation, c_aperture, 
   sRot   = sin_mb(c_rotation)
   cRRot  = cos_mb(-c_rotation)
   sRRot  = sin_mb(-c_rotation)
+
+  ! True if we're doing pencil beam
+  doPencil = icoll == ipencil .and. iturn == 1 .and. pencil_distr /= 3
 
   do j=1,napx
 
@@ -177,26 +176,20 @@ subroutine k2coll_collimate(icoll, iturn, ie, c_length, c_rotation, c_aperture, 
     zp = yp_in(j)*cRot - sRot*xp_in(j)
 
     ! For one-sided collimators consider only positive X. For negative X jump to the next particle
-    if((.not.cdb_isCrystal(icoll)) .and. (onesided .and. x < zero) .and. ((icoll /= ipencil) .or. (iturn /= 1))) then
+    if(onesided .and. x < zero .and. (icoll /= ipencil .or. iturn /= 1)) then
       cycle
     end if
 
-    if(x < zero) then
-      tiltangle = -one*c_tilt(2)
-    else
-      tiltangle = c_tilt(1)
-    end if
-
-    if (.not.cdb_isCrystal(icoll)) then
     ! Now mirror at the horizontal axis for negative X offset
     if(x < zero) then
       mirror    = -one
+      tiltangle = -one*c_tilt(2)
     else
       mirror    = one
+      tiltangle = c_tilt(1)
     end if
-    x  = mirror * x
-    xp = mirror * xp
-    end if
+    x  = mirror*x
+    xp = mirror*xp
 
     ! Shift with opening and offset
     x = (x - c_aperture/two) - mirror*c_offset
@@ -210,21 +203,18 @@ subroutine k2coll_collimate(icoll, iturn, ie, c_length, c_rotation, c_aperture, 
       xp = xp - tiltangle
     end if
 
-    ! CRY Only x_in0 (i.e. b) have to be assigned after the change of reference frame
+    ! CRY Only: x_in0 has to be assigned after the change of reference frame
     x_in0 = x
 
     ! For selected collimator, first turn reset particle distribution to simple pencil beam
     nprim = 3
-    if(((icoll == ipencil .and. iturn == 1) .or. (iturn == 1 .and. ipencil == 999 .and. icoll <= nprim .and. &
-       (j >= (icoll-1)*napx/nprim) .and. (j <= icoll*napx/nprim))) .and. (pencil_distr /= 3)) then
-      ! RB addition : don't go in this if-statement if pencil_distr=3. This distribution is generated in main loop instead
-
+    if(doPencil) then
       ! TW why did I set this to 0, seems to be needed for getting
       !    right amplitude => no "tilt" of jaw for the first turn !!!!
       c_tilt(1) = zero
       c_tilt(2) = zero
 
-      ! Standard pencil beam as implemented by GRD ------- TW
+      ! Standard pencil beam as implemented by GRD
       if(pencil_rmsx == zero .and. pencil_rmsy == zero) then
         x  = pencil_dx(icoll)
         xp = zero
@@ -232,7 +222,7 @@ subroutine k2coll_collimate(icoll, iturn, ie, c_length, c_rotation, c_aperture, 
         zp = zero
       end if
 
-      ! Rectangular (pencil-beam) sheet-beam with  ------ TW
+      ! Rectangular (pencil-beam) sheet-beam with
       ! pencil_offset is the rectangulars center
       ! pencil_rmsx defines spread of impact parameter
       ! pencil_rmsy defines spread parallel to jaw surface
@@ -290,13 +280,12 @@ subroutine k2coll_collimate(icoll, iturn, ie, c_length, c_rotation, c_aperture, 
       else
         tiltangle = c_tilt(1)
       end if
-!
-      write(coll_pencilUnit,"(f10.8,4(2x,f10.8))") x, xp, z, zp, tiltangle
-    end if !if(( (icoll.eq.ipencil .and. iturn.eq.1) .or. (itu
 
-    ! SR, 18-08-2005: after finishing the coordinate transformation,
-    ! or the coordinate manipulations in case of pencil beams,
-    ! write down the initial coordinates of the impacting particles
+      write(coll_pencilUnit,"(f10.8,4(2x,f10.8))") x, xp, z, zp, tiltangle
+    end if ! End pencil dist
+
+    ! After finishing the coordinate transformation, or the coordinate manipulations in case of pencil beams,
+    ! save the initial coordinates of the impacting particles
     xinn  = x
     xpinn = xp
     yinn  = z
@@ -312,16 +301,16 @@ subroutine k2coll_collimate(icoll, iturn, ie, c_length, c_rotation, c_aperture, 
     hit   = .false.
     s     = zero
     keeps = zero
-    zlm   = -one * length
+    zlm   = -one*length
 
-    if (cdb_isCrystal(icoll)) then
+    if(cdb_isCrystal(icoll)) then
+      ! This is a crystal collimator
       call cry_doCrystal(ie,iturn,j,mat,x,xp,z,zp,s,p,x_in0,xp_in0,zlm,nhit,nabs,lhit_pos,lhit_turn,&
         part_abs_pos_local,part_abs_turn_local,impact,indiv,c_length)
-!      p = sqrt(p**2+pmap**2)
-      if(nabs == 1) then
-        part_abs_pos_local(j)      = ie
+      if(nabs /= 0) then
+        part_abs_pos_local(j)  = ie
         part_abs_turn_local(j) = iturn
-        lint(j)          = zlm
+        lint(j)                = zlm
       end if
     else
       if(x >= zero) then
@@ -463,34 +452,30 @@ subroutine k2coll_collimate(icoll, iturn, ie, c_length, c_rotation, c_aperture, 
           xp_flk = xp_flk * cRRot + ypInt  * sRRot
 
           if(dowrite_impact) then
-            ! write out all impacts to all_impacts.dat
+            ! Write out all impacts to all_impacts.dat
             write(coll_flukImpAllUnit,"(i4,(1x,f6.3),(1x,f8.6),4(1x,e19.10),i2,2(1x,i7))") &
-            icoll,c_rotation, (sInt+sp)+(real(j_slices,fPrec)-one)*c_length,             &
-            x_flk*c1e3, xp_flk*c1e3, y_flk*c1e3, yp_flk*c1e3, nabs, partID(j), iturn
-          end if
+              icoll,c_rotation, (sInt+sp)+(real(j_slices,fPrec)-one)*c_length,             &
+              x_flk*c1e3, xp_flk*c1e3, y_flk*c1e3, yp_flk*c1e3, nabs, partID(j), iturn
 
-          ! Standard FLUKA_impacts writeout of inelastic and single diffractive
-          if(nabs == 1 .or. nabs == 4) then
-            if(dowrite_impact) then
-              write(coll_flukImpUnit,"(i4,(1x,f6.3),(1x,f8.6),4(1x,e19.10),i2,2(1x,i7))") &
-                icoll,c_rotation,                                                 &
-                sInt + sp + (real(j_slices,fPrec)-one) * c_length,                &
-                x_flk*c1e3, xp_flk*c1e3, y_flk*c1e3, yp_flk*c1e3,                 &
-                nabs,partID(j),iturn
-            end if
-
-            ! Finally, the actual coordinate change to 99 mm
-            if(nabs == 1) then
-              fracab = fracab + 1
-              x      = 99.99e-3_fPrec
-              z      = 99.99e-3_fPrec
-              part_abs_pos_local(j)  = ie
-              part_abs_turn_local(j) = iturn
-              lint(j) = zlm
-            end if
+              ! Standard FLUKA_impacts writeout of inelastic and single diffractive
+            write(coll_flukImpUnit,"(i4,(1x,f6.3),(1x,f8.6),4(1x,e19.10),i2,2(1x,i7))") &
+              icoll,c_rotation,                                                 &
+              sInt + sp + (real(j_slices,fPrec)-one) * c_length,                &
+              x_flk*c1e3, xp_flk*c1e3, y_flk*c1e3, yp_flk*c1e3,                 &
+              nabs,partID(j),iturn
           end if
         end if
-      end if !if (zlm.gt.0.) then
+
+        ! Finally, the actual coordinate change to 99 mm
+        if(nabs == 1) then
+          fracab  = fracab + 1
+          x       = 99.99e-3_fPrec
+          z       = 99.99e-3_fPrec
+          lint(j) = zlm
+          part_abs_pos_local(j)  = ie
+          part_abs_turn_local(j) = iturn
+        end if
+      end if ! Collimator interaction
 
       ! Do the rest drift, if particle left collimator early
       ! DRIFT PART
@@ -526,8 +511,8 @@ subroutine k2coll_collimate(icoll, iturn, ie, c_length, c_rotation, c_aperture, 
       end if
     end if
 
-    !++  Transform back to particle coordinates with opening and offset
-    if(x < 99.0d-3) then
+    ! Transform back to particle coordinates with opening and offset
+    if(x < 99.0e-3_fPrec) then
       ! Include collimator tilt
       if(tiltangle > zero) then
         x  = x  + tiltangle*c_length
@@ -553,10 +538,7 @@ subroutine k2coll_collimate(icoll, iturn, ie, c_length, c_rotation, c_aperture, 
       xp_in(j) = xp*cRRot + zp*sRRot
       yp_in(j) = zp*cRRot - xp*sRRot
 
-      if(((icoll == ipencil .and. iturn == 1) .or. &
-         (iturn == 1 .and. ipencil == 999 .and. icoll <= nprim .and. (j >= (icoll-1)*napx/nprim) .and. &
-         (j <= (icoll)*napx/nprim))) .and.(pencil_distr /= 3)) then
-        ! RB: adding condition that this shouldn't be done if pencil_distr=3
+      if(doPencil) then
         x00      = mirror * x00
         x_in(j)  = x00*cRRot + z00*sRRot
         y_in(j)  = z00*cRRot - x00*sRRot
@@ -566,14 +548,13 @@ subroutine k2coll_collimate(icoll, iturn, ie, c_length, c_rotation, c_aperture, 
         y_in(j)  = y_in(j)  + mirror*y_pencil(icoll)
       end if
 
-      if (cdb_isCrystal(icoll)) then
+      if(cdb_isCrystal(icoll)) then
         p_in(j) = p
         s_in(j) = s_in(j) + s
       else
         p_in(j) = (one + dpop) * p0
         s_in(j) = sp + (real(j_slices,fPrec)-one) * c_length
       end if
-
     else
       x_in(j) = x
       y_in(j) = z
