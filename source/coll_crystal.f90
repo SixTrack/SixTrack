@@ -270,8 +270,8 @@ subroutine collimate_cry(icoll, iturn, ie, c_length, c_rotation, c_aperture, c_o
     ! CRY ---------------------
 
     ! CRY ---------------------
-    call cry_doCrystal(ie,iturn,j,mat,x,xp,z,zp,s,p,x_in0,xp_in0,zlm,nhit,nabs,lhit,lhit_turn,&
-      part_abs,part_abs_turn,impact,indiv,c_length)
+    ! call cry_doCrystal(ie,iturn,j,mat,x,xp,z,zp,s,p,x_in0,xp_in0,zlm,nhit,nabs,lhit,lhit_turn,&
+    !   part_abs,part_abs_turn,impact,indiv,c_length)
     ! CRY ---------------------
 
     ! Transform back to particle coordinates with opening and offset
@@ -312,7 +312,7 @@ subroutine collimate_cry(icoll, iturn, ie, c_length, c_rotation, c_aperture, c_o
 
 end subroutine collimate_cry
 
-subroutine cry_doCrystal(ie,iturn,j,mat,x,xp,z,zp,s,p,x0,xp0,zlm,nhit,nabs,  &
+subroutine cry_doCrystal(ie,iturn,j,mat,x,xp,z,zp,s,p,x0,xp0,zlm,s_imp,nhit,nabs, &
   lhit,lhit_turn,part_abs,part_abs_turn,impact,indiv,c_length)
 
   use parpro
@@ -328,7 +328,7 @@ subroutine cry_doCrystal(ie,iturn,j,mat,x,xp,z,zp,s,p,x0,xp0,zlm,nhit,nabs,  &
   real(kind=fPrec), intent(inout) :: z,zp
   real(kind=fPrec), intent(inout) :: s,p
   real(kind=fPrec), intent(inout) :: x0,xp0
-  real(kind=fPrec), intent(inout) :: zlm
+  real(kind=fPrec), intent(inout) :: zlm,s_imp
   integer,          intent(inout) :: nhit,nabs
   integer,          intent(inout) :: lhit(npart)
   integer,          intent(inout) :: lhit_turn(npart)
@@ -358,6 +358,7 @@ subroutine cry_doCrystal(ie,iturn,j,mat,x,xp,z,zp,s,p,x0,xp0,zlm,nhit,nabs,  &
   xp_tangent = zero
   tilt_int   = zero
   shift      = zero
+  s_imp      = zero
 
   iProc       = proc_out
   cry_proc(j) = proc_out
@@ -419,6 +420,7 @@ subroutine cry_doCrystal(ie,iturn,j,mat,x,xp,z,zp,s,p,x0,xp0,zlm,nhit,nabs,  &
       c_eq  = -(two*x)*c_rcurv + x**2
       delta = b_eq**2 - four*(a_eq*c_eq)
       s_int = (-b_eq - sqrt(delta))/(two*a_eq)
+      s_imp = s_int
 
       if(s_int < c_rcurv*c_sBend) then
         ! Transform to a new reference system: shift and rotate

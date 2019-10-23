@@ -112,14 +112,14 @@ subroutine k2coll_collimate(icoll, iturn, ie, c_length, c_rotation, c_aperture, 
   real(kind=fPrec), intent(inout) :: impact(npart)
   logical,          intent(inout) :: linside(napx)
 
-  logical hit,doPencil
-  integer nprim,j,nabs,nhit,j_slices
+  logical isImp
+  integer j,nabs,nhit,j_slices
   real(kind=fPrec) keeps,fracab,drift_length,mirror,tiltangle
-  real(kind=fPrec) x00,z00,p,sp,s
+  real(kind=fPrec) x00,z00,p,sp,s,s_impact
   real(kind=fPrec) x_flk,xp_flk,y_flk,yp_flk,s_flk,zpj
   real(kind=fPrec) x_Dump,xpDump,y_Dump,ypDump,s_Dump
   real(kind=fPrec) cRot,sRot,cRRot,sRRot
-  real(kind=fPrec) s_impact,xinn,xpinn,yinn,ypinn
+  real(kind=fPrec) xIn,xpIn,yIn,ypIn,xOut,xpOut,yOut,ypOut,sImp,sOut
   real(kind=fPrec) x_in0,xp_in0
 
   ! Initilaisation
@@ -140,9 +140,6 @@ subroutine k2coll_collimate(icoll, iturn, ie, c_length, c_rotation, c_aperture, 
   sRot   = sin_mb(c_rotation)
   cRRot  = cos_mb(-c_rotation)
   sRRot  = sin_mb(-c_rotation)
-
-  ! True if we're doing pencil beam
-  doPencil = icoll == ipencil .and. iturn == 1 .and. pencil_distr /= 3
 
   do j=1,napx
 
@@ -207,8 +204,7 @@ subroutine k2coll_collimate(icoll, iturn, ie, c_length, c_rotation, c_aperture, 
     x_in0 = x
 
     ! For selected collimator, first turn reset particle distribution to simple pencil beam
-    nprim = 3
-    if(doPencil) then
+    if(icoll == ipencil .and. iturn == 1 .and. pencil_distr /= 3) then
       ! TW why did I set this to 0, seems to be needed for getting
       !    right amplitude => no "tilt" of jaw for the first turn !!!!
       c_tilt(1) = zero
@@ -286,10 +282,10 @@ subroutine k2coll_collimate(icoll, iturn, ie, c_length, c_rotation, c_aperture, 
 
     ! After finishing the coordinate transformation, or the coordinate manipulations in case of pencil beams,
     ! save the initial coordinates of the impacting particles
-    xinn  = x
-    xpinn = xp
-    yinn  = z
-    ypinn = zp
+    xIn  = x
+    xpIn = xp
+    yIn  = z
+    ypIn = zp
 
     ! particle passing above the jaw are discarded => take new event
     ! entering by the face, shorten the length (zlm) and keep track of
@@ -298,20 +294,27 @@ subroutine k2coll_collimate(icoll, iturn, ie, c_length, c_rotation, c_aperture, 
     ! The definition is that the collimator jaw is at x>=0.
 
     ! 1) Check whether particle hits the collimator
-    hit   = .false.
+    isImp = .false.
     s     = zero
     keeps = zero
     zlm   = -one*length
 
     if(cdb_isCrystal(icoll)) then
       ! This is a crystal collimator
-      call cry_doCrystal(ie,iturn,j,mat,x,xp,z,zp,s,p,x_in0,xp_in0,zlm,nhit,nabs,lhit_pos,lhit_turn,&
+      call cry_doCrystal(ie,iturn,j,mat,x,xp,z,zp,s,p,x_in0,xp_in0,zlm,sImp,nhit,nabs,lhit_pos,lhit_turn,&
         part_abs_pos_local,part_abs_turn_local,impact,indiv,c_length)
       if(nabs /= 0) then
         part_abs_pos_local(j)  = ie
         part_abs_turn_local(j) = iturn
         lint(j)                = zlm
+        isImp = .true.
       end if
+      sImp  = (s - c_length) + sImp
+      sOut  = s
+      xOut  = x
+      xpOut = xp
+      yOut  = z
+      ypOut = zp
     else
       if(x >= zero) then
         ! Particle hits collimator and we assume interaction length ZLM equal
@@ -380,48 +383,16 @@ subroutine k2coll_collimate(icoll, iturn, ie, c_length, c_rotation, c_aperture, 
         call k2coll_jaw(s,nabs,icoll,iturn,partID(j))
 
         nabs_type(j) = nabs
-
-        ! SR+GRD: CREATE A FILE TO CHECK THE VALUES OF IMPACT PARAMETERS
-        ! SR, 29-08-2005: Add to the longitudinal coordinates the position of the slice beginning
-        if(dowrite_impact) then
-          if(iand(nhit_stage(j),cdb_stgPrimary) == 0) then
-#ifdef HDF5
-            if(h5_useForCOLL) then
-              call h5_prepareWrite(coll_hdf5_fstImpacts, 1)
-              call h5_writeData(coll_hdf5_fstImpacts, 1,  1, partID(j))
-              call h5_writeData(coll_hdf5_fstImpacts, 2,  1, iturn)
-              call h5_writeData(coll_hdf5_fstImpacts, 3,  1, icoll)
-              call h5_writeData(coll_hdf5_fstImpacts, 4,  1, nabs)
-              call h5_writeData(coll_hdf5_fstImpacts, 5,  1, s_impact + (real(j_slices,fPrec)-one) * c_length)
-              call h5_writeData(coll_hdf5_fstImpacts, 6,  1, s+sp + (real(j_slices,fPrec)-one) * c_length)
-              call h5_writeData(coll_hdf5_fstImpacts, 7,  1, xinn)
-              call h5_writeData(coll_hdf5_fstImpacts, 8,  1, xpinn)
-              call h5_writeData(coll_hdf5_fstImpacts, 9,  1, yinn)
-              call h5_writeData(coll_hdf5_fstImpacts, 10, 1, ypinn)
-              call h5_writeData(coll_hdf5_fstImpacts, 11, 1, x)
-              call h5_writeData(coll_hdf5_fstImpacts, 12, 1, xp)
-              call h5_writeData(coll_hdf5_fstImpacts, 13, 1, z)
-              call h5_writeData(coll_hdf5_fstImpacts, 14, 1, zp)
-              call h5_finaliseWrite(coll_hdf5_fstImpacts)
-            else
-#endif
-              write(coll_fstImpactUnit,"(i5,1x,i7,1x,i2,1x,i1,2(1x,f5.3),8(1x,e17.9))") &
-                partID(j),iturn,icoll,nabs,                             &
-                s_impact + (real(j_slices,fPrec)-one) * c_length,       &
-                s+sp + (real(j_slices,fPrec)-one) * c_length,           &
-                xinn,xpinn,yinn,ypinn,                                  &
-                x,xp,z,zp
-#ifdef HDF5
-            end if
-#endif
-          end if
-        end if
-
         lhit_pos(j)  = ie
         lhit_turn(j) = iturn
 
-        ! If particle is absorbed then set x and y to 99.99 mm
-        ! SR: before assigning new (x,y) for nabs=1, write the inelastic impact file.
+        isImp = .true.
+        sImp  = s_impact+(real(j_slices,fPrec)-one)*c_length
+        sOut  = (s+sp)+(real(j_slices,fPrec)-one)*c_length
+        xOut  = x
+        xpOut = xp
+        yOut  = z
+        ypOut = zp
 
         ! Writeout should be done for both inelastic and single diffractive. doing all transformations
         ! in x_flk and making the set to 99.99 mm conditional for nabs=1
@@ -447,16 +418,16 @@ subroutine k2coll_collimate(icoll, iturn, ie, c_length, c_rotation, c_aperture, 
           yp_flk = ( ypInt*cRRot - xp_flk*sRRot)*c1e3
           x_flk  = ( x_flk*cRRot +   yInt*sRRot)*c1e3
           xp_flk = (xp_flk*cRRot +  ypInt*sRRot)*c1e3
-          s_flk  =  (sInt+sp)+(real(j_slices,fPrec)-one)*c_length
+          s_flk  = (sInt+sp)+(real(j_slices,fPrec)-one)*c_length
 
           if(dowrite_impact) then
             ! Write out all impacts to all_impacts.dat
             write(coll_flukImpAllUnit,"(i4,(1x,f6.3),(1x,f8.6),4(1x,e19.10),i2,2(1x,i7))") &
-              icoll,c_rotation,s_flk,x_flk,xp_flk,y_flk,yp_flk,nabs,partID(j),iturn
+              icoll,c_rotation,sOut,x_flk,xp_flk,y_flk,yp_flk,nabs,partID(j),iturn
             if(nabs == 1 .or. nabs == 4) then
               ! Standard FLUKA_impacts writeout of inelastic and single diffractive
               write(coll_flukImpUnit,"(i4,(1x,f6.3),(1x,f8.6),4(1x,e19.10),i2,2(1x,i7))") &
-                icoll,c_rotation,s_flk,x_flk,xp_flk,y_flk,yp_flk,nabs,partID(j),iturn
+                icoll,c_rotation,sOut,x_flk,xp_flk,y_flk,yp_flk,nabs,partID(j),iturn
             end if
           end if
 
@@ -505,6 +476,34 @@ subroutine k2coll_collimate(icoll, iturn, ie, c_length, c_rotation, c_aperture, 
       end if
     end if
 
+    if(dowrite_impact .and. isImp .and. iand(nhit_stage(j),cdb_stgPrimary) == 0) then
+#ifdef HDF5
+      if(h5_useForCOLL) then
+        call h5_prepareWrite(coll_hdf5_fstImpacts, 1)
+        call h5_writeData(coll_hdf5_fstImpacts, 1,  1, partID(j))
+        call h5_writeData(coll_hdf5_fstImpacts, 2,  1, iturn)
+        call h5_writeData(coll_hdf5_fstImpacts, 3,  1, icoll)
+        call h5_writeData(coll_hdf5_fstImpacts, 4,  1, nabs)
+        call h5_writeData(coll_hdf5_fstImpacts, 5,  1, sImp)
+        call h5_writeData(coll_hdf5_fstImpacts, 6,  1, sOut)
+        call h5_writeData(coll_hdf5_fstImpacts, 7,  1, xIn)
+        call h5_writeData(coll_hdf5_fstImpacts, 8,  1, xpIn)
+        call h5_writeData(coll_hdf5_fstImpacts, 9,  1, yIn)
+        call h5_writeData(coll_hdf5_fstImpacts, 10, 1, ypIn)
+        call h5_writeData(coll_hdf5_fstImpacts, 11, 1, xOut)
+        call h5_writeData(coll_hdf5_fstImpacts, 12, 1, xpOut)
+        call h5_writeData(coll_hdf5_fstImpacts, 13, 1, yOut)
+        call h5_writeData(coll_hdf5_fstImpacts, 14, 1, ypOut)
+        call h5_finaliseWrite(coll_hdf5_fstImpacts)
+      else
+#endif
+      write(coll_fstImpactUnit,"(i5,1x,i7,1x,i2,1x,i1,2(1x,f5.3),8(1x,e17.9))") &
+        partID(j),iTurn,iColl,nAbs,sImp,sOut,xIn,xpIn,yIn,ypIn,xOut,xpOut,yOut,ypOut
+#ifdef HDF5
+      end if
+#endif
+    end if
+
     ! Transform back to particle coordinates with opening and offset
     if(x < 99.0e-3_fPrec) then
       ! Include collimator tilt
@@ -532,7 +531,7 @@ subroutine k2coll_collimate(icoll, iturn, ie, c_length, c_rotation, c_aperture, 
       xp_in(j) = xp*cRRot + zp*sRRot
       yp_in(j) = zp*cRRot - xp*sRRot
 
-      if(doPencil) then
+      if(icoll == ipencil .and. iturn == 1 .and. pencil_distr /= 3) then
         x00      = mirror * x00
         x_in(j)  = x00*cRRot + z00*sRRot
         y_in(j)  = z00*cRRot - x00*sRRot
