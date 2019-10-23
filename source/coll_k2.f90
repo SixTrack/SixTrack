@@ -299,23 +299,27 @@ subroutine k2coll_collimate(icoll, iturn, ie, c_length, c_rotation, c_aperture, 
     keeps = zero
     zlm   = -one*length
 
-    if(cdb_isCrystal(icoll)) then
-      ! This is a crystal collimator
+    if(cdb_isCrystal(icoll)) then ! This is a crystal collimator
+
       call cry_doCrystal(ie,iturn,j,mat,x,xp,z,zp,s,p,x_in0,xp_in0,zlm,sImp,nhit,nabs,lhit_pos,lhit_turn,&
         part_abs_pos_local,part_abs_turn_local,impact,indiv,c_length)
+
       if(nabs /= 0) then
         part_abs_pos_local(j)  = ie
         part_abs_turn_local(j) = iturn
         lint(j)                = zlm
-        isImp = .true.
       end if
+
+      isImp = nAbs /= 0 .or. nHit /= 0
       sImp  = (s - c_length) + sImp
       sOut  = s
       xOut  = x
       xpOut = xp
       yOut  = z
       ypOut = zp
-    else
+
+    else ! "Normal" collimator
+
       if(x >= zero) then
         ! Particle hits collimator and we assume interaction length ZLM equal
         ! to collimator length (what if it would leave collimator after
@@ -423,11 +427,11 @@ subroutine k2coll_collimate(icoll, iturn, ie, c_length, c_rotation, c_aperture, 
           if(dowrite_impact) then
             ! Write out all impacts to all_impacts.dat
             write(coll_flukImpAllUnit,"(i4,(1x,f6.3),(1x,f8.6),4(1x,e19.10),i2,2(1x,i7))") &
-              icoll,c_rotation,sOut,x_flk,xp_flk,y_flk,yp_flk,nabs,partID(j),iturn
+              icoll,c_rotation,s_flk,x_flk,xp_flk,y_flk,yp_flk,nabs,partID(j),iturn
             if(nabs == 1 .or. nabs == 4) then
               ! Standard FLUKA_impacts writeout of inelastic and single diffractive
               write(coll_flukImpUnit,"(i4,(1x,f6.3),(1x,f8.6),4(1x,e19.10),i2,2(1x,i7))") &
-                icoll,c_rotation,sOut,x_flk,xp_flk,y_flk,yp_flk,nabs,partID(j),iturn
+                icoll,c_rotation,s_flk,x_flk,xp_flk,y_flk,yp_flk,nabs,partID(j),iturn
             end if
           end if
 
@@ -474,9 +478,10 @@ subroutine k2coll_collimate(icoll, iturn, ie, c_length, c_rotation, c_aperture, 
         end if
         lint(j) = zlm - drift_length
       end if
-    end if
 
-    if(dowrite_impact .and. isImp .and. iand(nhit_stage(j),cdb_stgPrimary) == 0) then
+    end if ! Collimator isCrystal
+
+    if(dowrite_impact .and. isImp .and. nhit_stage(j) == 0) then
 #ifdef HDF5
       if(h5_useForCOLL) then
         call h5_prepareWrite(coll_hdf5_fstImpacts, 1)
@@ -552,6 +557,7 @@ subroutine k2coll_collimate(icoll, iturn, ie, c_length, c_rotation, c_aperture, 
       x_in(j) = x
       y_in(j) = z
     end if
+
   end do ! End of loop over all particles
 
 end subroutine k2coll_collimate
