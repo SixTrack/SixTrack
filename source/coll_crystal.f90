@@ -134,18 +134,37 @@ subroutine cry_init
 
 end subroutine cry_init
 
-subroutine cry_startElement(icoll,cry_tilt_in,cry_length_in)
+subroutine cry_startElement(icoll, ie, emitX, emitY, o_tilt, o_length)
 
+  use crcoall
   use coll_db
   use coll_common
   use mathlib_bouncer
+  use mod_common_track
 
-  integer, intent(in) :: icoll
-  real(kind=fPrec), intent(in)    :: cry_tilt_in   ! Crystal tilt [rad]
-  real(kind=fPrec), intent(in)    :: cry_length_in ! Original length (from the db) [m]
+  integer,          intent(in)    :: icoll, ie
+  real(kind=fPrec), intent(in)    :: emitX, emitY
+  real(kind=fPrec), intent(inout) :: o_tilt
+  real(kind=fPrec), intent(inout) :: o_length
 
-  cry_tilt = cry_tilt_in
-  cry_length = cry_length_in
+  real(kind=fPrec) bendAng,cry_tilt0
+
+  if(modulo(cdb_cRotation(icoll),pi) < c1m9) then
+    cry_tilt0 = -(sqrt(emitX/tbetax(ie))*talphax(ie))*cdb_cNSig(icoll)
+  elseif (modulo(cdb_cRotation(icoll)-pi2,pi) < c1m9) then
+    cry_tilt0 = -(sqrt(emitY/tbetay(ie))*talphay(ie))*cdb_cNSig(icoll)
+  else
+    write(lerr,"(a)") "COLL> ERROR Crystal collimator has to be horizontal or vertical"
+    call prror
+  end if
+
+  cry_tilt = cdb_cryTilt(icoll) + cry_tilt0
+  bendAng  = cdb_cLength(icoll)/cdb_cryBend(icoll)
+  if(cry_tilt >= (-one)*bendAng) then
+    cry_length = cdb_cryBend(icoll)*(sin_mb(bendAng + cry_tilt) - sin_mb(cry_tilt))
+  else
+    cry_length = cdb_cryBend(icoll)*(sin_mb(bendAng - cry_tilt) + sin_mb(cry_tilt))
+  end if
 
   c_rcurv  = cdb_cryBend(icoll)
   c_alayer = cdb_cryThick(icoll)
@@ -166,6 +185,9 @@ subroutine cry_startElement(icoll,cry_tilt_in,cry_length_in)
   n_amorphous = 0
 
   cry_proc(:) = proc_out
+
+  o_tilt   = cry_tilt
+  o_length = cry_length
 
 end subroutine cry_startElement
 

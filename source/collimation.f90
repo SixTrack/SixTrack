@@ -2027,7 +2027,7 @@ subroutine collimate_do_collimator(stracki)
   logical onesided, linside(napx), isHit, isAbs
   real(kind=fPrec) jawLength, jawAperture, jawOffset, jawTilt(2)
   real(kind=fPrec) x_Dump,xpDump,y_Dump,ypDump,s_Dump
-  real(kind=fPrec) cry_tilt0,cry_tilt,cry_bendangle
+  real(kind=fPrec) cry_tilt
 
 #ifdef G4COLLIMATION
   integer :: g4_lostc
@@ -2398,24 +2398,7 @@ subroutine collimate_do_collimator(stracki)
 #ifndef G4COLLIMATION
 
   if(cdb_isCrystal(icoll)) then
-    if(modulo(cdb_cRotation(icoll),pi) < c1m9) then
-      cry_tilt0 = (-one)*sqrt(myemitx0_dist/tbetax(ie))*talphax(ie)*nsig
-    elseif (modulo(cdb_cRotation(icoll)-pi2,pi) < c1m9) then
-      cry_tilt0 = (-one)*sqrt(myemity0_dist/tbetay(ie))*talphay(ie)*nsig
-    else
-      write(lerr,"(a)") "COLL> ERROR Crystal collimator has to be horizontal or vertical"
-      call prror
-    end if
-
-    cry_tilt = cdb_cryTilt(icoll) + cry_tilt0
-    cry_bendangle = cdb_cLength(icoll)/cdb_cryBend(icoll)
-    if(cry_tilt >= (-one)*cry_bendangle) then
-      c_length = cdb_cryBend(icoll)*(sin_mb(cry_bendangle+cry_tilt) - sin_mb(cry_tilt))
-    else
-      c_length = cdb_cryBend(icoll)*(sin_mb(cry_bendangle-cry_tilt) + sin_mb(cry_tilt))
-    end if
-
-    call cry_startElement(icoll, cry_tilt, c_length)
+    call cry_startElement(icoll,ie,myemitx0_dist,myemity0_dist,cry_tilt,c_length)
   end if
   call k2coll_collimate(icoll, iturn, ie, c_length, c_rotation, c_aperture, c_offset, &
     c_tilt, rcx, rcxp, rcy, rcyp, rcp, rcs, enom_gev, part_hit_pos, part_hit_turn,    &
@@ -2424,7 +2407,7 @@ subroutine collimate_do_collimator(stracki)
 
   if(cdb_isCrystal(icoll)) then
     if(dowrite_crycoord) then
-      do j=1, napx
+      do j=1,napx
         isHit = part_hit_pos(j) == ie .and. part_hit_turn(j) == iturn
         isAbs = part_abs_pos(j) == ie .and. part_abs_turn(j) == iturn
         write(coll_cryEntUnit,"(i8,1x,i8,1x,a20,1x,a4,2(3x,l1),5(1x,1pe15.8))") &
@@ -2435,7 +2418,7 @@ subroutine collimate_do_collimator(stracki)
           rcx(j),rcxp(j),rcy(j),rcyp(j),rcp(j)
       end do
     end if
-    do j=1, napx
+    do j=1,napx
       if(cry_proc(j) > 0) then
         write(coll_cryInterUnit,"(i8,1x,i8,1x,a20,1x,i4,10(1x,1pe15.8))") &
           partID(j), iturn, cdb_cName(icoll)(1:20),cry_proc(j),rcxp(j)-rcxp0(j), &
