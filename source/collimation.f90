@@ -1506,7 +1506,9 @@ subroutine coll_doCollimator(stracki)
   use coll_db
   use coll_k2
   use coll_jawfit
+  use coll_dist
   use coll_crystal
+  use mod_units
   use mathlib_bouncer
   use string_tools
 #ifdef G4COLLIMATION
@@ -1520,7 +1522,7 @@ subroutine coll_doCollimator(stracki)
   real(kind=fPrec) nsig,c_length,jawLength,jawAperture,jawOffset,jawTilt(2),x_Dump,xpDump,y_Dump,   &
     ypDump,s_Dump,xmax,ymax,calc_aperture,zpj,xmax_pencil,ymax_pencil,xmax_nom,ymax_nom,            &
     nom_aperture,scale_bx,scale_by,c_tilt(2),c_offset,c_aperture,c_rotation,cry_bendangle,cry_tilt, &
-    cry_tilt0,cRot,sRot
+    cRot,sRot
 
   call time_startClock(time_clockCOLL)
 
@@ -1710,17 +1712,21 @@ subroutine coll_doCollimator(stracki)
   if(cdb_cSliced(icoll) > 0) then ! Treatment of sliced collimators
     ! Now, loop over the number of slices and call k2coll_collimate each time.
     ! For each slice, the corresponding offset and angle are to be used.
+    if(cdb_isCrystal(icoll)) then
+      write(lerr,"(a)") "COLL> ERROR A crystal collimator cannot be sliced"
+      call prror
+    end if
     do iSlice=1,nSlices
       jawAperture = c_aperture
       jawOffset   = c_offset
       jawTilt     = c_tilt
       call jaw_getFitSliceValues(cdb_cSliced(icoll), iSlice, jawLength, jawAperture, jawOffset, jawTilt)
       if(firstrun) then
-        write(coll_settingsUnit,"(a20,1x,i10,5(1x,1pe13.6),1x,a)") cdb_cName(icoll)(1:20), iSlice,  &
+        write(coll_settingsUnit,"(a20,1x,i10,5(1x,1pe13.6),1x,a)") cdb_cName(icoll)(1:20), iSlice, &
           jawAperture/two, jawOffset, jawTilt(1), jawTilt(2), jawLength, cdb_cMaterial(icoll)
       end if
       call k2coll_collimate(icoll, iturn, ie, jawLength, c_rotation, jawAperture,            &
-        jawOffset, jawTilt, rcx, rcxp, rcy, rcyp, rcp, rcs, c_enom*c1m3, part_hit_pos,          &
+        jawOffset, jawTilt, rcx, rcxp, rcy, rcyp, rcp, rcs, c_enom*c1m3, part_hit_pos,       &
         part_hit_turn, part_abs_pos, part_abs_turn, part_impact, part_indiv, part_linteract, &
         onesided, nhit_stage, iSlice, nabs_type, linside)
     end do
@@ -1729,49 +1735,35 @@ subroutine coll_doCollimator(stracki)
 
 #ifndef G4COLLIMATION
   if(cdb_isCrystal(icoll)) then
-    if (modulo(cdb_cRotation(icoll),pi) < c1m9) then
-      cry_tilt0 = (-one)*sqrt(c_emitx0_dist/tbetax(ie))*talphax(ie)*nsig
-    elseif (modulo(cdb_cRotation(icoll)-pi2,pi) < c1m9) then
-      cry_tilt0 = (-one)*sqrt(c_emity0_dist/tbetay(ie))*talphay(ie)*nsig
-    else
-      write(lerr,"(a)") "COLL> ERROR Crystal collimator has to be horizontal or vertical"
-      call prror
-    end if
-    cry_tilt = cdb_cryTilt(icoll) + cry_tilt0
-    cry_bendangle = cdb_cLength(icoll)/cdb_cryBend(icoll)
-    if(cry_tilt >= (-one)*cry_bendangle) then
-      c_length = cdb_cryBend(icoll)*(sin_mb(cry_bendangle+cry_tilt) - sin_mb(cry_tilt))
-    else
-      c_length = cdb_cryBend(icoll)*(sin_mb(cry_bendangle-cry_tilt) + sin_mb(cry_tilt))
-    end if
-    call collimate_cry(icoll, iturn, ie, c_length, c_rotation, c_aperture, c_offset, &
-      c_tilt, rcx, rcxp, rcy, rcyp, rcp, rcs, c_enom*c1m3, part_hit_pos, part_hit_turn, part_abs_pos,&
-      part_abs_turn, part_impact, part_indiv, part_linteract, cry_tilt, c_length)
-    if (dowrite_crycoord) then
-      do j=1, napx
+    call cry_startElement(icoll,ie,c_emitx0_dist,c_emity0_dist,cry_tilt,c_length)
+  end if
+  call k2coll_collimate(icoll, iturn, ie, c_length, c_rotation, c_aperture, c_offset, &
+    c_tilt, rcx, rcxp, rcy, rcyp, rcp, rcs, c_enom*c1m3, part_hit_pos, part_hit_turn, &
+    part_abs_pos, part_abs_turn, part_impact, part_indiv, part_linteract,             &
+    onesided, nhit_stage, 1, nabs_type, linside)
+
+  if(cdb_isCrystal(icoll)) then
+    if(dowrite_crycoord) then
+      do j=1,napx
         isHit = part_hit_pos(j) == ie .and. part_hit_turn(j) == iturn
         isAbs = part_abs_pos(j) == ie .and. part_abs_turn(j) == iturn
-        write(coll_cryEntUnit,"(i8,1x,i8,1x,a20,1x,a4,2(3x,l1),5(1x,1pe15.8))") &
+        write(coll_cryEntUnit,"(i8,1x,i8,1x,a20,1x,a4,2(3x,l1),5(1x,1pe15.8))")    &
           partID(j),iturn,cdb_cName(icoll)(1:20),cdb_cMaterial(icoll),isHit,isAbs, &
           rcx0(j),rcxp0(j),rcy0(j),rcyp0(j),rcp0(j)
-        write(coll_cryExitUnit,"(i8,1x,i8,1x,a20,1x,a4,2(3x,l1),5(1x,1pe15.8))") &
+        write(coll_cryExitUnit,"(i8,1x,i8,1x,a20,1x,a4,2(3x,l1),5(1x,1pe15.8))")   &
           partID(j),iturn,cdb_cName(icoll)(1:20),cdb_cMaterial(icoll),isHit,isAbs, &
           rcx(j),rcxp(j),rcy(j),rcyp(j),rcp(j)
       end do
     end if
-    do j=1, napx
+    do j=1,napx
       if(cry_proc(j) > 0) then
-        write(coll_cryInterUnit,"(i8,1x,i8,1x,a20,1x,i4,10(1x,1pe15.8))") &
+        write(coll_cryInterUnit,"(i8,1x,i8,1x,a20,1x,i4,10(1x,1pe15.8))")        &
           partID(j), iturn, cdb_cName(icoll)(1:20),cry_proc(j),rcxp(j)-rcxp0(j), &
           rcyp(j)-rcyp0(j),rcp0(j),rcp(j),rcxp0(j),rcyp0(j),cry_tilt,rcx0(j),rcy0(j)
       end if
     end do
-  else
-    call k2coll_collimate(icoll, iturn, ie, c_length, c_rotation, c_aperture, c_offset, &
-      c_tilt, rcx, rcxp, rcy, rcyp, rcp, rcs, c_enom*c1m3, part_hit_pos, part_hit_turn, &
-      part_abs_pos, part_abs_turn, part_impact, part_indiv, part_linteract,             &
-      onesided, nhit_stage, 1, nabs_type, linside)
   end if
+
 #else
   call coll_doCollimator_Geant4(c_aperture,c_rotation,c_length)
 #endif
