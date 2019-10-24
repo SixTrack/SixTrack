@@ -1710,6 +1710,7 @@ subroutine coll_doCollimator(stracki)
   linside(:) = .false.
 
   if(cdb_cSliced(icoll) > 0) then ! Treatment of sliced collimators
+
     ! Now, loop over the number of slices and call k2coll_collimate each time.
     ! For each slice, the corresponding offset and angle are to be used.
     if(cdb_isCrystal(icoll)) then
@@ -1734,42 +1735,41 @@ subroutine coll_doCollimator(stracki)
   else ! Treatment of non-sliced collimators
 
 #ifndef G4COLLIMATION
-  if(cdb_isCrystal(icoll)) then
-    call cry_startElement(icoll,ie,c_emitx0_dist,c_emity0_dist,cry_tilt,c_length)
-  end if
-  call k2coll_collimate(icoll, iturn, ie, c_length, c_rotation, c_aperture, c_offset, &
-    c_tilt, rcx, rcxp, rcy, rcyp, rcp, rcs, c_enom*c1m3, part_hit_pos, part_hit_turn, &
-    part_abs_pos, part_abs_turn, part_impact, part_indiv, part_linteract,             &
-    onesided, nhit_stage, 1, nabs_type, linside)
+    if(cdb_isCrystal(icoll)) then
+      call cry_startElement(icoll,ie,c_emitx0_dist,c_emity0_dist,cry_tilt,c_length)
+    end if
+    call k2coll_collimate(icoll, iturn, ie, c_length, c_rotation, c_aperture, c_offset, &
+      c_tilt, rcx, rcxp, rcy, rcyp, rcp, rcs, c_enom*c1m3, part_hit_pos, part_hit_turn, &
+      part_abs_pos, part_abs_turn, part_impact, part_indiv, part_linteract,             &
+      onesided, nhit_stage, 1, nabs_type, linside)
 
-  if(cdb_isCrystal(icoll)) then
-    if(dowrite_crycoord) then
+    if(cdb_isCrystal(icoll)) then
+      if(dowrite_crycoord) then
+        do j=1,napx
+          isHit = part_hit_pos(j) == ie .and. part_hit_turn(j) == iturn
+          isAbs = part_abs_pos(j) == ie .and. part_abs_turn(j) == iturn
+          write(coll_cryEntUnit,"(i8,1x,i8,1x,a20,1x,a4,2(3x,l1),5(1x,1pe15.8))")    &
+            partID(j),iturn,cdb_cName(icoll)(1:20),cdb_cMaterial(icoll),isHit,isAbs, &
+            rcx0(j),rcxp0(j),rcy0(j),rcyp0(j),rcp0(j)
+          write(coll_cryExitUnit,"(i8,1x,i8,1x,a20,1x,a4,2(3x,l1),5(1x,1pe15.8))")   &
+            partID(j),iturn,cdb_cName(icoll)(1:20),cdb_cMaterial(icoll),isHit,isAbs, &
+            rcx(j),rcxp(j),rcy(j),rcyp(j),rcp(j)
+        end do
+      end if
       do j=1,napx
-        isHit = part_hit_pos(j) == ie .and. part_hit_turn(j) == iturn
-        isAbs = part_abs_pos(j) == ie .and. part_abs_turn(j) == iturn
-        write(coll_cryEntUnit,"(i8,1x,i8,1x,a20,1x,a4,2(3x,l1),5(1x,1pe15.8))")    &
-          partID(j),iturn,cdb_cName(icoll)(1:20),cdb_cMaterial(icoll),isHit,isAbs, &
-          rcx0(j),rcxp0(j),rcy0(j),rcyp0(j),rcp0(j)
-        write(coll_cryExitUnit,"(i8,1x,i8,1x,a20,1x,a4,2(3x,l1),5(1x,1pe15.8))")   &
-          partID(j),iturn,cdb_cName(icoll)(1:20),cdb_cMaterial(icoll),isHit,isAbs, &
-          rcx(j),rcxp(j),rcy(j),rcyp(j),rcp(j)
+        if(cry_proc(j) > 0) then
+          write(coll_cryInterUnit,"(i8,1x,i8,1x,a20,1x,i4,10(1x,1pe15.8))")        &
+            partID(j), iturn, cdb_cName(icoll)(1:20),cry_proc(j),rcxp(j)-rcxp0(j), &
+            rcyp(j)-rcyp0(j),rcp0(j),rcp(j),rcxp0(j),rcyp0(j),cry_tilt,rcx0(j),rcy0(j)
+        end if
       end do
     end if
-    do j=1,napx
-      if(cry_proc(j) > 0) then
-        write(coll_cryInterUnit,"(i8,1x,i8,1x,a20,1x,i4,10(1x,1pe15.8))")        &
-          partID(j), iturn, cdb_cName(icoll)(1:20),cry_proc(j),rcxp(j)-rcxp0(j), &
-          rcyp(j)-rcyp0(j),rcp0(j),rcp(j),rcxp0(j),rcyp0(j),cry_tilt,rcx0(j),rcy0(j)
-      end if
-    end do
-  end if
-
 #else
-  call coll_doCollimator_Geant4(c_aperture,c_rotation,c_length)
+    call coll_doCollimator_Geant4(c_aperture,c_rotation,c_length)
 #endif
+
   end if
 
-  ! End of collimator stuff
   ! Calculate average impact parameter and save info for all collimators.
   ! Copy information back and do negative drift.
 
