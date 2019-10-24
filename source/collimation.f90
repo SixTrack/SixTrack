@@ -118,7 +118,7 @@ module collimation
   integer,          allocatable, public,  save :: part_abs_turn(:)  ! Absorbed in turn
   integer,          allocatable, private, save :: part_select(:)
   integer,          allocatable, private, save :: nabs_type(:)
-  integer,          allocatable, private, save :: nhit_type(:)
+  integer,          allocatable, private, save :: nhit_stage(:)
   real(kind=fPrec), allocatable, private, save :: part_linteract(:)
   real(kind=fPrec), allocatable, private, save :: part_indiv(:)     ! Divergence of impacting particles
   real(kind=fPrec), allocatable, private, save :: part_impact(:)    ! Impact parameter (0 for inner face)
@@ -183,7 +183,7 @@ subroutine collimation_expand_arrays(npart_new, nblz_new)
   call alloc(part_abs_pos,   npart_new,  0,    "part_abs_pos")
   call alloc(part_select,    npart_new,  1,    "part_select")
   call alloc(nabs_type,      npart_new,  0,    "nabs_type")
-  call alloc(nhit_type,      npart_new,  0,    "nhit_type")
+  call alloc(nhit_stage,     npart_new,  0,    "nhit_stage")
 
   call alloc(part_impact,    npart_new,  zero, "part_impact")
   call alloc(part_indiv,     npart_new, -c1m6, "part_indiv")
@@ -250,7 +250,7 @@ subroutine coll_shuffleLostPart
     part_linteract(j:tnapx) = cshift(part_linteract(j:tnapx), 1)
 
     nabs_type(j:tnapx)      = cshift(nabs_type(j:tnapx),      1)
-    nhit_type(j:tnapx)      = cshift(nhit_type(j:tnapx),      1)
+    nhit_stage(j:tnapx)     = cshift(nhit_stage(j:tnapx),     1)
 
     tnapx = tnapx - 1
   end do
@@ -1567,7 +1567,7 @@ subroutine coll_doCollimator(stracki)
   if(chr_toLower(cdb_cName(icoll)) == name_sel .and. do_select) then
     do j=1,napx
       write(coll_ellipseUnit,"(1x,i8,6(1x,e15.7),3(1x,i4,1x,i4))") partID(j),xv1(j),xv2(j),yv1(j),yv2(j), &
-        ejv(j),sigmv(j),iturn,nhit_type(j),nabs_type(j)
+        ejv(j),sigmv(j),iturn,nhit_stage(j),nabs_type(j)
     end do
   end if
 
@@ -1722,7 +1722,7 @@ subroutine coll_doCollimator(stracki)
       call k2coll_collimate(icoll, iturn, ie, jawLength, c_rotation, jawAperture,            &
         jawOffset, jawTilt, rcx, rcxp, rcy, rcyp, rcp, rcs, c_enom*c1m3, part_hit_pos,          &
         part_hit_turn, part_abs_pos, part_abs_turn, part_impact, part_indiv, part_linteract, &
-        onesided, nhit_type, iSlice, nabs_type, linside)
+        onesided, nhit_stage, iSlice, nabs_type, linside)
     end do
 
   else ! Treatment of non-sliced collimators
@@ -1770,7 +1770,7 @@ subroutine coll_doCollimator(stracki)
     call k2coll_collimate(icoll, iturn, ie, c_length, c_rotation, c_aperture, c_offset, &
       c_tilt, rcx, rcxp, rcy, rcyp, rcp, rcs, c_enom*c1m3, part_hit_pos, part_hit_turn, &
       part_abs_pos, part_abs_turn, part_impact, part_indiv, part_linteract,             &
-      onesided, nhit_type, 1, nabs_type, linside)
+      onesided, nhit_stage, 1, nabs_type, linside)
   end if
 #else
   call coll_doCollimator_Geant4(c_aperture,c_rotation,c_length)
@@ -1878,7 +1878,7 @@ subroutine coll_doCollimator(stracki)
         part_abs_pos(j)  = ie
         part_abs_turn(j) = iturn
         nabs_type(j)     = 0
-        nhit_type(j)     = 0
+        nhit_stage(j)    = 0
       end if
     else
       ! Otherwise just get back former coordinates
@@ -1912,7 +1912,7 @@ subroutine coll_doCollimator(stracki)
         n_tot_absorbed     = n_tot_absorbed + 1
 
       elseif(part_abs_pos (j) == 0 .and. part_abs_turn(j) == 0) then
-        nhit_type(j) = ior(nhit_type(j),cdb_cStage(icoll)) ! Record the hit type
+        nhit_stage(j) = ior(nhit_stage(j),cdb_cStage(icoll)) ! Record the hit type
       else
         write(lerr,"(a)")          "COLL> ERROR Particle cannot be both absorbed and not absorbed"
         write(lerr,"(a,2(1x,i0))") "COLL>      ",part_abs_pos (j),part_abs_turn(j)
@@ -2297,7 +2297,7 @@ subroutine coll_startElement(iStru, iSing)
       ejv(j)           = c_enom
       sigmv(j)         = zero
       nabs_type(j)     = 0
-      nhit_type(j)     = 0
+      nhit_stage(j)    = 0
       part_abs_pos(j)  = ie
       part_abs_turn(j) = iturn
     end if
@@ -2968,7 +2968,7 @@ subroutine coll_writeTracks2(iMode)
       if(                                                                                 &
         part_hit_pos(j) == ie .and. part_hit_turn(j) == iturn .and.                       &
         part_abs_pos(j) == 0  .and. part_abs_turn(j) == 0     .and.                       &
-        nhit_type(j)     > 0  .and. xv1(j) < 99.0_fPrec .and. xv2(j) < 99.0_fPrec .and. ( &
+        nhit_stage(j)    > 0  .and. xv1(j) < 99.0_fPrec .and. xv2(j) < 99.0_fPrec .and. ( &
           (xv1(j)*c1m3)**2 / sigX2 >= sigsecut2 .or.                                      &
           (xv2(j)*c1m3)**2 / sigY2 >= sigsecut2 .or.                                      &
           (xv1(j)*c1m3)**2 / sigX2 + (xv2(j)*c1m3)**2 / sigY2 >= sigsecut3                &
@@ -2987,14 +2987,14 @@ subroutine coll_writeTracks2(iMode)
 
 #ifdef HDF5
         if(h5_writeTracks2) then
-          call h5tr2_writeLine(partID(j),iturn,sj,xj,xpj,yj,ypj,pj,nhit_type(j))
-          call h5tr2_writeLine(partID(j),iturn,sk,xk,xpk,yk,ypk,pj,nhit_type(j))
+          call h5tr2_writeLine(partID(j),iturn,sj,xj,xpj,yj,ypj,pj,nhit_stage(j))
+          call h5tr2_writeLine(partID(j),iturn,sk,xk,xpk,yk,ypk,pj,nhit_stage(j))
         else
 #endif
           write(coll_tracksUnit,"(i8,1x,i8,1x,f10.2,4(1x,e12.5),1x,e11.3,1x,i4)") &
-            partID(j),iturn,sj,xj,xpj,yj,ypj,pj,nhit_type(j)
+            partID(j),iturn,sj,xj,xpj,yj,ypj,pj,nhit_stage(j)
           write(coll_tracksUnit,"(i8,1x,i8,1x,f10.2,4(1x,e12.5),1x,e11.3,1x,i4)") &
-            partID(j),iturn,sk,xk,xpk,yk,ypk,pj,nhit_type(j)
+            partID(j),iturn,sk,xk,xpk,yk,ypk,pj,nhit_stage(j)
 #ifdef HDF5
         end if
 #endif
@@ -3006,7 +3006,7 @@ subroutine coll_writeTracks2(iMode)
     do j=1,napx
       if(                                                                                &
         part_abs_pos(j) == 0 .and. part_abs_turn(j) == 0 .and.                           &
-        nhit_type(j)     > 0 .and. xv1(j) < 99.0_fPrec .and. xv2(j) < 99.0_fPrec .and. ( &
+        nhit_stage(j)    > 0 .and. xv1(j) < 99.0_fPrec .and. xv2(j) < 99.0_fPrec .and. ( &
           (xv1(j)*c1m3)**2 / sigX2 >= sigsecut2 .or.                                     &
           (xv2(j)*c1m3)**2 / sigY2 >= sigsecut2 .or.                                     &
           (xv1(j)*c1m3)**2 / sigX2 + (xv2(j)*c1m3)**2 / sigY2 >= sigsecut3               &
@@ -3016,11 +3016,11 @@ subroutine coll_writeTracks2(iMode)
 #ifdef HDF5
         if(h5_writeTracks2) then
           call h5tr2_writeLine(partID(j),iturn,dcum(ie),xv1(j),yv1(j),xv2(j),yv2(j),&
-            (ejv(j)-c_enom)/c_enom,nhit_type(j))
+            (ejv(j)-c_enom)/c_enom,nhit_stage(j))
         else
 #endif
           write(coll_tracksUnit,"(i8,1x,i8,1x,f10.2,4(1x,e12.5),1x,e11.3,1x,i4)") partID(j),iturn,&
-            dcum(ie),xv1(j),yv1(j),xv2(j),yv2(j),(ejv(j)-c_enom)/c_enom,nhit_type(j)
+            dcum(ie),xv1(j),yv1(j),xv2(j),yv2(j),(ejv(j)-c_enom)/c_enom,nhit_stage(j)
 #ifdef HDF5
         end if
 #endif
