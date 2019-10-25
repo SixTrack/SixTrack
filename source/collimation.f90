@@ -517,10 +517,12 @@ subroutine coll_init
       write(outlun,*) 'INFO>  Offset: ',trim(cdb_cName(i)),cdb_cOffset(i)
     end do
   end if
-  do i=1,cdb_nColl
-    gap_rms_error(i) = c_rmserror_gap * ran_gauss2(three)
-    write(outlun,*) 'INFO>  Gap RMS error: ',trim(cdb_cName(i)),gap_rms_error(i)
-  end do
+  if(c_rmserror_gap > zero) then
+    do i=1,cdb_nColl
+      gap_rms_error(i) = c_rmserror_gap * ran_gauss2(three)
+      write(outlun,*) 'INFO>  Gap RMS error: ',trim(cdb_cName(i)),gap_rms_error(i)
+    end do
+  end if
 
   ! In case we're using old type jaw fit, this is where we generate the parameters for the new method
   ! After this, the number of slices is also stored per collimator, and can be extracted again later
