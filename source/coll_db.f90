@@ -641,11 +641,12 @@ subroutine cdb_readDBSettings
   use mod_alloc
   use coll_jawfit
   use coll_common
+  use coll_materials
   use numerical_constants
 
   character(len=:), allocatable :: lnSplit(:)
   character(len=mInputLn) inLine
-  integer i, dbUnit, ioStat, nSplit, iLine, iColl, iFam, iTemp, iFit, fitID(2)
+  integer i, dbUnit, ioStat, nSplit, iLine, iColl, iFam, iTemp, iFit, fitID(2), matID
   logical cErr, fErr, isFam
 
   real(kind=fPrec) rParam(6)
@@ -828,6 +829,7 @@ subroutine cdb_readDBSettings
       end if
     end if
 
+    matID = -1
     call cdb_getCollimatorOrFamilyID(lnSplit(2), iFam, iColl, isFam, cErr)
     if(cErr) goto 30
     if(isFam) then
@@ -842,6 +844,12 @@ subroutine cdb_readDBSettings
           cdb_cryTilt(i)   = rParam(5)
           cdb_cryMisCut(i) = rParam(6)
           cdb_cryOrient(i) = iParam(1)
+          if(matID == -1) then
+            matID = cdb_cMaterialID(i)
+          elseif(matID /= cdb_cMaterialID(i)) then
+            write(lerr,"(a)") "COLLDB> ERROR All crystals of a collimator family must be the same material"
+            goto 30
+          end if
         end if
       end do
     else
@@ -854,6 +862,12 @@ subroutine cdb_readDBSettings
       cdb_cryTilt(iColl)   = rParam(5)
       cdb_cryMisCut(iColl) = rParam(6)
       cdb_cryOrient(iColl) = iParam(1)
+      matID = cdb_cMaterialID(iColl)
+    end if
+
+    if(iParam(1) > 0 .and. matID /= collmat_getCollMatID("Si")) then
+      write(lerr,"(a)") "COLLDB> ERROR Crystal orientation can only be set for material Silicon"
+      goto 30
     end if
 
   case default

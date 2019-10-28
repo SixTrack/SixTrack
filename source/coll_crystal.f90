@@ -23,7 +23,7 @@ module coll_crystal
   integer,          private, save :: n_amorphous = 0
 
   ! Shared settings for the currently active crystal
-  integer,          private, save :: c_orient   = zero ! Crystal orientation [0-1]
+  integer,          private, save :: c_orient   = 0    ! Crystal orientation [0-2]
   real(kind=fPrec), private, save :: c_rcurv    = zero ! Crystal geometrical parameters [m]
   real(kind=fPrec), private, save :: c_xmax     = zero ! Crystal geometrical parameters [m]
   real(kind=fPrec), private, save :: c_ymax     = zero ! Crystal geometrical parameters [m]

@@ -57,5 +57,5 @@ ONESIDED tcdqa.a4l6.b2    1
 ONESIDED tcdqa.c4l6.b2    1
 ONESIDED tcdqa.b4l6.b2    1
 
-CRYSTAL  cry.mio.b2 90.0 3.0e-3 60.0e-3 0.0 15.0e-6 0.0 1
+CRYSTAL  cry.mio.b2 90.0 3.0e-3 60.0e-3 0.0 15.0e-6 0.0
 ONESIDED cry.mio.b2       1
