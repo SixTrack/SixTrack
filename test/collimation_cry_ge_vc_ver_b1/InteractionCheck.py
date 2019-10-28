@@ -31,9 +31,9 @@ for i in range(total):
 	if proc[i] == 4:
 		countVC = countVC+1
 
-print '--- Interactions at Cry ---'
-print 'Amorphous: ', countAM, "{0:.2%}".format(countAM/float(total))
-print 'Volume reflection: ', countVR, "{0:.2%}".format(countVR/float(total))
-print 'Volume capture: ', countVC, "{0:.2%}".format(countVC/float(total))
-print 'Channeling: ', countCH, "{0:.2%}".format(countCH/float(total))
+print('--- Interactions at Cry ---')
+print('Amorphous: ', countAM, "{0:.2%}".format(countAM/float(total)))
+print('Volume reflection: ', countVR, "{0:.2%}".format(countVR/float(total)))
+print('Volume capture: ', countVC, "{0:.2%}".format(countVC/float(total)))
+print('Channeling: ', countCH, "{0:.2%}".format(countCH/float(total)))
 
