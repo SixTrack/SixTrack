@@ -8,17 +8,16 @@ module coll_common
 
   implicit none
 
-  integer, parameter :: max_ncoll  = 100
-
   ! Logical Flags
-  logical, save :: coll_debug        = .true.
-  logical, save :: dowrite_impact    = .false.
-  logical, save :: dowrite_dist      = .false.
-  logical, save :: dowrite_secondary = .false.
-  logical, save :: dowrite_amplitude = .false.
-  logical, save :: dowritetracks     = .false.
-  logical, save :: dowrite_crycoord  = .false.
-  logical, save :: coll_hasCrystal   = .false.
+  logical, save :: coll_debug         = .true.
+  logical, save :: dowrite_impact     = .false.
+  logical, save :: dowrite_dist       = .false.
+  logical, save :: dowrite_secondary  = .false.
+  logical, save :: dowrite_amplitude  = .false.
+  logical, save :: dowrite_tracks     = .false.
+  logical, save :: dowrite_efficiency = .false.
+  logical, save :: dowrite_crycoord   = .false.
+  logical, save :: coll_hasCrystal    = .false.
 
   ! Various Variables
   integer, save :: rnd_seed   = 0
@@ -44,7 +43,18 @@ module coll_common
   real(kind=fPrec), save :: yp_pencil0    = zero
   real(kind=fPrec), allocatable, save :: x_pencil(:)
   real(kind=fPrec), allocatable, save :: y_pencil(:)
+  real(kind=fPrec), allocatable, save :: xp_pencil(:)
+  real(kind=fPrec), allocatable, save :: yp_pencil(:)
   real(kind=fPrec), allocatable, save :: pencil_dx(:)
+
+  ! Other Arrays
+  integer,          allocatable, save :: cn_impact(:)
+  integer,          allocatable, save :: cn_absorbed(:)
+  real(kind=fPrec), allocatable, save :: caverage(:)
+  real(kind=fPrec), allocatable, save :: csigma(:)
+  real(kind=fPrec), allocatable, save :: gap_rms_error(:)
+  real(kind=fPrec), allocatable, save :: csum(:)
+  real(kind=fPrec), allocatable, save :: csqsum(:)
 
   ! Output File Names
   character(len=12), parameter :: coll_survivalFile   = "survival.dat"
@@ -60,7 +70,6 @@ module coll_common
   character(len=16), parameter :: coll_fstImpactFile  = "FirstImpacts.dat"
   character(len=17), parameter :: coll_flukImpFile    = "FLUKA_impacts.dat"
   character(len=21), parameter :: coll_flukImpAllFile = "FLUKA_impacts_all.dat"
-  character(len=13), parameter :: coll_twissLikeFile  = "twisslike.out"
   character(len=17), parameter :: coll_sigmaSetFile   = "sigmasettings.out"
   character(len=16), parameter :: coll_settingsFile   = "collsettings.dat"
   character(len=16), parameter :: coll_jawProfileFile = "jaw_profiles.dat"
@@ -89,7 +98,6 @@ module coll_common
   integer, save :: coll_fstImpactUnit  = -1
   integer, save :: coll_flukImpUnit    = -1
   integer, save :: coll_flukImpAllUnit = -1
-  integer, save :: coll_twissLikeUnit  = -1
   integer, save :: coll_sigmaSetUnit   = -1
   integer, save :: coll_settingsUnit   = -1
   integer, save :: coll_jawProfileUnit = -1
@@ -131,11 +139,29 @@ subroutine coll_expandArrays(npart_new, nblz_new)
 
   call alloc(cry_proc, npart_new, -1, "cry_proc")
 
-  call alloc(x_pencil,  max_ncoll, zero, "x_pencil")
-  call alloc(y_pencil,  max_ncoll, zero, "y_pencil")
-  call alloc(pencil_dx, max_ncoll, zero, "pencil_dx")
-
 end subroutine coll_expandArrays
+
+subroutine coll_expandNColl(nColl)
+
+  use mod_alloc
+  use numerical_constants
+
+  integer, intent(in) :: nColl
+
+  call alloc(cn_impact,     nColl, 0,    "cn_impact")
+  call alloc(cn_absorbed,   nColl, 0,    "cn_absorbed")
+  call alloc(caverage,      nColl, zero, "caverage")
+  call alloc(csigma,        nColl, zero, "csigma")
+  call alloc(gap_rms_error, nColl, zero, "gap_rms_error")
+  call alloc(csum,          nColl, zero, "csum")
+  call alloc(csqsum,        nColl, zero, "csqsum")
+  call alloc(x_pencil,      nColl, zero, "x_pencil")
+  call alloc(y_pencil,      nColl, zero, "y_pencil")
+  call alloc(xp_pencil,     nColl, zero, "xp_pencil")
+  call alloc(yp_pencil,     nColl, zero, "yp_pencil")
+  call alloc(pencil_dx,     nColl, zero, "pencil_dx")
+
+end subroutine coll_expandNColl
 
 end module coll_common
 

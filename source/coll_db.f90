@@ -72,6 +72,7 @@ module coll_db
 
   ! Element Map
   integer,          allocatable, public, save :: cdb_elemMap(:)     ! Map from single elements to DB
+  integer,          allocatable, public, save :: cdb_struMap(:)     ! Map from collimator to structure index
 
 contains
 
@@ -100,6 +101,7 @@ subroutine cdb_allocDB
   call alloc(cdb_cBx,                   cdb_nColl, zero,          "cdb_cBx")
   call alloc(cdb_cBy,                   cdb_nColl, zero,          "cdb_cBy")
   call alloc(cdb_cFound,                cdb_nColl, .false.,       "cdb_cFound")
+  call alloc(cdb_struMap,               cdb_nColl, 0,             "cdb_struMap")
 
   ! Additional Settings Arrays
   call alloc(cdb_cTilt,       2,        cdb_nColl, zero,          "cdb_cTilt")
@@ -163,6 +165,7 @@ subroutine cdb_readCollDB
   use mod_common
   use mod_settings
   use string_tools
+  use coll_common
 
   character(len=:), allocatable :: lnSplit(:)
   character(len=mInputLn) inLine
@@ -202,6 +205,9 @@ subroutine cdb_readCollDB
     call cdb_readDB_newFormat
   end if
 
+  ! Now we know how many collimators we have, so allocate remaining arrays
+  call coll_expandNColl(cdb_nColl)
+
   if(cdb_setPos > 0) then
     ! The DB has additional SETTINGS, parse them
     call cdb_readDBSettings
@@ -233,7 +239,7 @@ subroutine cdb_readCollDB
     end do
   end if
 
-  ! Map single elements to collimators
+  ! Map single elements to collimators and collimators to structure elements
   do i=1,iu
     ix = ic(i)-nblo
     if(ix < 1) cycle
@@ -247,15 +253,18 @@ subroutine cdb_readCollDB
     end do
 
     if(collID == -1) then
-      if(bez(ix)(1:2) == "tc" .or. bez(ix)(1:2) == "td" .or. bez(ix)(1:3) == "col") then
+      ! This warning is just for backwards compatibility with the old collimation module which
+      ! expected the collimators to follow the LHC or RHIC naming convention.
+      if(bez(ix)(1:2) == "tc" .or. bez(ix)(1:2) == "td" .or. bez(ix)(1:3) == "col" .or. bez(ix)(1:3) == "cry") then
         elemEnd = len_trim(bez(ix))
-        if(bez(ix)(elemEnd-2:elemEnd) /= "_AP") then
-          write(lout,"(a)") "COLLDB> WARNING Collimator not found in database: '"//trim(bez(ix))//"'"
+        if(bez(ix)(elemEnd-2:elemEnd) /= "_AP") then ! Don't warn on Mad-X aperture markers
+          write(lout,"(a)") "COLLDB> WARNING Collimator with LHC or RHIC style name not found in database: '"//trim(bez(ix))//"'"
         end if
       end if
     else
-      cdb_elemMap(ix)    = collID
-      cdb_cFound(collID) = .true.
+      cdb_elemMap(ix)     = collID
+      cdb_struMap(collID) = i
+      cdb_cFound(collID)  = .true.
     end if
   end do
 

@@ -626,20 +626,19 @@ subroutine thin6d(nthinerr)
     if(nthinerr /= 0) return
 
     if(do_coll) then
-      call collimate_start_turn(n)
+      call coll_startTurn(n)
     end if
 
     !! This is the loop over each element: label 650
     do 650 i=1,iu !Loop over elements
 
-      if(do_coll) then
-        ! This subroutine sets variable myix
-        call collimate_start_element(i)
-      endif
-
       ! No if(ktrack(i).eq.1) - a BLOC - is needed in thin tracking,
       ! as no dependency on ix in this case.
       ix=ic(i)-nblo
+
+      if(do_coll) then
+        call coll_startElement(i,ix)
+      end if
       meta_nPTurnEle = meta_nPTurnEle + napx
 
       ! Fringe Fields
@@ -732,7 +731,7 @@ subroutine thin6d(nthinerr)
         ! Check if collimation is enabled, and call the collimation code as necessary
         if(do_coll .and. is_coll) then
           ! Collimator is in database, and we're doing collimation
-          call collimate_trackThin(stracki,.true.)
+          call coll_doCollimator(stracki)
         else ! Normal SixTrack drifts
           if(iexact) then ! EXACT DRIFT
             do j=1,napx
@@ -750,7 +749,7 @@ subroutine thin6d(nthinerr)
           end if
           if(do_coll) then
             ! Not a collimator, but collimation still need to perform additional calculations
-            call collimate_trackThin(stracki,.false.)
+            call coll_computeStats
           end if
         end if
 
@@ -1290,7 +1289,7 @@ subroutine thin6d(nthinerr)
 640   continue ! end of the SELECT CASE over element type (dotrack)
 
       if(do_coll) then
-        call collimate_end_element
+        call coll_endElement
       end if
 
 #include "include/lostpart.f90"
@@ -1304,7 +1303,7 @@ subroutine thin6d(nthinerr)
 650 continue !END loop over structure elements
 
     if(do_coll) then
-      call collimate_end_turn
+      call coll_endTurn
     end if
 #ifdef ROOT
     if(root_flag .and. root_Collimation == 1) then
@@ -1313,9 +1312,7 @@ subroutine thin6d(nthinerr)
 #endif
 
     if(nthinerr /= 0) return
-    if(do_coll) then
-      firstrun = .false.
-    else
+    if(do_coll .eqv. .false.) then
       if(ntwin /= 2) call trackDistance
 #ifndef FLUKA
       if(mod(n,nwr(4)) == 0) call trackPairReport(n)

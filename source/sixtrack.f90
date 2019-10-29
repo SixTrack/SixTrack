@@ -723,7 +723,7 @@ subroutine daten
     elseif(closeBlock) then
       continue
     else
-      call collimate_parseInputLine(inLine,blockLine,inErr)
+      call coll_parseInputLine(inLine,blockLine,inErr)
       if(inErr) goto 9999
     end if
 
@@ -943,7 +943,7 @@ subroutine daten
     emity = sixin_emitNY*gammar
 
     if(do_coll) then
-      call collimate_postInput(gammar)
+      call coll_postInput(gammar)
     end if
 
     ! Check for incompatible flags
