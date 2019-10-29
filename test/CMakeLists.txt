@@ -188,6 +188,10 @@ list(APPEND SIXTRACK_TESTS
 
 if(NOT CR)
   list(APPEND SIXTRACK_TESTS
+    collimation_cry_ge_am_hor_b2
+    collimation_cry_ge_vc_ver_b1
+    collimation_cry_si_ch_hor_b1
+    collimation_cry_si_vr_ver_b2
     collimation_dist_1h
     collimation_dist_1v
     collimation_dist_2h
@@ -255,6 +259,10 @@ set(TESTS_NOFORT10
   beam-HO_6D-simple-oldstyle
   beambeam4dDYNK
   beambeamDYNK
+  collimation_cry_ge_am_hor_b2
+  collimation_cry_ge_vc_ver_b1
+  collimation_cry_si_ch_hor_b1
+  collimation_cry_si_vr_ver_b2
   collimation_dist_1h
   collimation_dist_1v
   collimation_dist_2h
@@ -331,6 +339,10 @@ set(TESTS_NO_STF
   chebythin6d_DYNK
   chebythin6d_ions
   chebythin6d_ramp_DYNK
+  collimation_cry_ge_am_hor_b2
+  collimation_cry_ge_vc_ver_b1
+  collimation_cry_si_ch_hor_b1
+  collimation_cry_si_vr_ver_b2
   collimation_dist_1h
   collimation_dist_1v
   collimation_dist_2h
@@ -604,6 +616,10 @@ set(FAST_TESTS
   chebythin6d_DYNK
   chebythin6d_ions
   chebythin6d_ramp_DYNK
+  collimation_cry_ge_am_hor_b2
+  collimation_cry_ge_vc_ver_b1
+  collimation_cry_si_ch_hor_b1
+  collimation_cry_si_vr_ver_b2
   collimation_dist_1h
   collimation_dist_1v
   collimation_dist_2h

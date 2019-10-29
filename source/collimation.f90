@@ -362,6 +362,7 @@ subroutine collimate_init
   use coll_k2
   use coll_db
   use coll_dist
+  use coll_crystal
   use coll_materials
   use mod_units
   use mod_ranlux
@@ -640,9 +641,10 @@ subroutine collimate_init
   call cdb_writeDB_newFromOld         ! Write a copy of the db in new format, if provided in old format
 
   ! Then do any implementation specific initial loading
-#ifdef COLLIMATE_K2
   call k2coll_init
-#endif
+  if(coll_hasCrystal) then
+    call cry_init
+  end if
 #ifdef MERLINSCATTER
   call k2coll_merlinInit
 #endif
@@ -1072,6 +1074,15 @@ subroutine collimate_parseInputLine(inLine, iLine, iErr)
     end if
     call chr_cast(lnSplit(2), dowritetracks, iErr)
 
+  case("WRITE_CRYCOORDS")
+    if(nSplit /= 2) then
+      write(lerr,"(a,i0)") "COLL> ERROR WRITE_CRYCOORDS expects 1 value, got ",nSplit-1
+      write(lerr,"(a)")    "COLL>       WRITE_CRYCOORDS true|false"
+      iErr = .true.
+      return
+    end if
+    call chr_cast(lnSplit(2), dowrite_crycoord, iErr)
+
   case("SIGSECUT")
     if(nSplit /= 3) then
       write(lerr,"(a,i0)") "COLL> ERROR SIGSECUT expects 2 values, got ",nSplit-1
@@ -1450,6 +1461,26 @@ subroutine collimate_openFiles
     call f_requestUnit(coll_pencilFile,coll_pencilUnit)
     call f_open(unit=coll_pencilUnit, file=coll_pencilFile,formatted=.true.,mode="w",status="replace")
     write(coll_pencilUnit,"(a)") "# x xp y yp"
+  end if
+
+  ! Crystal Files
+  if(coll_hasCrystal) then
+    if(dowrite_crycoord) then
+      call f_requestUnit(coll_cryEntFile,coll_cryEntUnit)
+      call f_open(unit=coll_cryEntUnit,file=coll_cryEntFile,formatted=.true.,mode="w",status="replace")
+      write(coll_cryEntUnit,"(a1,1x,a6,1x,a8,1x,a20,1x,a4,2(1x,a3),5(1x,a15))") &
+        "#","partID","turn",chr_rPad("collimator",20),"mat.","hit","abs","x","xp","y","yp","p"
+
+      call f_requestUnit(coll_cryExitFile,coll_cryExitUnit)
+      call f_open(unit=coll_cryExitUnit,file=coll_cryExitFile,formatted=.true.,mode="w",status="replace")
+      write(coll_cryExitUnit,"(a1,1x,a6,1x,a8,1x,a20,1x,a4,2(1x,a3),5(1x,a15))") &
+        "#","partID","turn",chr_rPad("collimator",20),"mat.","hit","abs","x","xp","y","yp","p"
+    end if
+
+    call f_requestUnit(coll_cryInterFile,coll_cryInterUnit)
+    call f_open(unit=coll_cryInterUnit,file=coll_cryInterFile,formatted=.true.,mode="w",status="replace")
+    write(coll_cryInterUnit,"(a1,1x,a6,1x,a8,1x,a20,1x,a4,10(1x,a15))") &
+        "#","partID","turn",chr_rPad("collimator",20),"proc","kickx","kicky","Ein","Eout","xpin","ypin","cryangle","xin","yin"
   end if
 
   if(do_select) then
@@ -1978,6 +2009,7 @@ subroutine collimate_do_collimator(stracki)
   use coll_k2
   use coll_jawfit
   use coll_dist
+  use coll_crystal
   use mod_units
   use mathlib_bouncer
   use mod_alloc
@@ -1994,9 +2026,10 @@ subroutine collimate_do_collimator(stracki)
   real(kind=fPrec), intent(in) :: stracki
 
   integer j, iSlice, nSlices
-  logical onesided, linside(napx)
+  logical onesided, linside(napx), isHit, isAbs
   real(kind=fPrec) jawLength, jawAperture, jawOffset, jawTilt(2)
   real(kind=fPrec) x_Dump,xpDump,y_Dump,ypDump,s_Dump
+  real(kind=fPrec) cry_tilt
 
 #ifdef G4COLLIMATION
   integer :: g4_lostc
@@ -2343,6 +2376,10 @@ subroutine collimate_do_collimator(stracki)
   if(cdb_cSliced(icoll) > 0) then ! Treatment of sliced collimators
     ! Now, loop over the number of slices and call k2coll_collimate each time.
     ! For each slice, the corresponding offset and angle are to be used.
+    if(cdb_isCrystal(icoll)) then
+      write(lerr,"(a)") "COLL> ERROR A crystal collimator cannot be sliced"
+      call prror
+    end if
     do iSlice=1,nSlices
       jawAperture = c_aperture
       jawOffset   = c_offset
@@ -2362,10 +2399,35 @@ subroutine collimate_do_collimator(stracki)
 
 #ifndef G4COLLIMATION
 
-    call k2coll_collimate(icoll, iturn, ie, c_length, c_rotation, c_aperture, c_offset, &
-      c_tilt, rcx, rcxp, rcy, rcyp, rcp, rcs, enom_gev, part_hit_pos,part_hit_turn,     &
-      part_abs_pos, part_abs_turn, part_impact, part_indiv, part_linteract,             &
-      onesided, nhit_stage, 1, nabs_type, linside)
+  if(cdb_isCrystal(icoll)) then
+    call cry_startElement(icoll,ie,myemitx0_dist,myemity0_dist,cry_tilt,c_length)
+  end if
+  call k2coll_collimate(icoll, iturn, ie, c_length, c_rotation, c_aperture, c_offset, &
+    c_tilt, rcx, rcxp, rcy, rcyp, rcp, rcs, enom_gev, part_hit_pos, part_hit_turn,    &
+    part_abs_pos, part_abs_turn, part_impact, part_indiv, part_linteract,             &
+    onesided, nhit_stage, 1, nabs_type, linside)
+
+  if(cdb_isCrystal(icoll)) then
+    if(dowrite_crycoord) then
+      do j=1,napx
+        isHit = part_hit_pos(j) == ie .and. part_hit_turn(j) == iturn
+        isAbs = part_abs_pos(j) == ie .and. part_abs_turn(j) == iturn
+        write(coll_cryEntUnit,"(i8,1x,i8,1x,a20,1x,a4,2(3x,l1),5(1x,1pe15.8))") &
+          partID(j),iturn,cdb_cName(icoll)(1:20),cdb_cMaterial(icoll),isHit,isAbs, &
+          rcx0(j),rcxp0(j),rcy0(j),rcyp0(j),rcp0(j)
+        write(coll_cryExitUnit,"(i8,1x,i8,1x,a20,1x,a4,2(3x,l1),5(1x,1pe15.8))") &
+          partID(j),iturn,cdb_cName(icoll)(1:20),cdb_cMaterial(icoll),isHit,isAbs, &
+          rcx(j),rcxp(j),rcy(j),rcyp(j),rcp(j)
+      end do
+    end if
+    do j=1,napx
+      if(cry_proc(j) > 0) then
+        write(coll_cryInterUnit,"(i8,1x,i8,1x,a20,1x,i4,10(1x,1pe15.8))") &
+          partID(j), iturn, cdb_cName(icoll)(1:20),cry_proc(j),rcxp(j)-rcxp0(j), &
+          rcyp(j)-rcyp0(j),rcp0(j),rcp(j),rcxp0(j),rcyp0(j),cry_tilt,rcx0(j),rcy0(j)
+      end if
+    end do
+  end if
 
 #else
 
@@ -2983,28 +3045,25 @@ subroutine collimate_exit
   use geant4
 #endif
 
-  implicit none
-
-  ! integer, intent(in) :: j
-
 #ifdef HDF5
   type(h5_dataField), allocatable :: fldHdf(:)
   integer fmtHdf, setHdf
 #endif
   integer i,k,ix
 
-!++  Save particle offsets to a file
   call f_close(coll_survivalUnit)
-
   if(dowrite_impact) then
     call f_close(coll_impactUnit)
   end if
-
   if(dowritetracks) then
     call f_close(coll_tracksUnit)
 #ifdef HDF5
     if(h5_writeTracks2) call h5tr2_finalise
 #endif
+  end if
+  if(coll_hasCrystal .and. dowrite_crycoord) then
+    call f_close(coll_cryEntUnit)
+    call f_close(coll_cryExitUnit)
   end if
 
 !------------------------------------------------------------------------
@@ -3040,10 +3099,10 @@ subroutine collimate_exit
     write(lout,"(a,f20.12)") 'COLL> Eff_r @ 10-20 sigma [e-4] : ', ((neff(9)-neff(19))/real(n_tot_absorbed,fPrec))/c1m4
   else
     write(lout,"(a)") 'COLL> No particle absorbed'
-  endif
+  end if
   write(lout,"(a)")
 
-! Write efficiency file
+  ! Write efficiency file
 #ifdef HDF5
   if(h5_useForCOLL .and. n_tot_absorbed /= 0) then
     allocate(fldHdf(8))
@@ -3087,7 +3146,7 @@ subroutine collimate_exit
   end if
 #endif
 
-! Write efficiency vs dp/p file
+  ! Write efficiency vs dp/p file
 #ifdef HDF5
   if(h5_useForCOLL .and. n_tot_absorbed /= 0) then
     allocate(fldHdf(5))
@@ -3124,7 +3183,7 @@ subroutine collimate_exit
   end if
 #endif
 
-! Write 2D efficiency file (eff vs. A_r and dp/p)
+  ! Write 2D efficiency file (eff vs. A_r and dp/p)
 #ifdef HDF5
   if(h5_useForCOLL .and. n_tot_absorbed /= 0) then
     allocate(fldHdf(5))
@@ -3165,7 +3224,7 @@ subroutine collimate_exit
   end if
 #endif
 
-! Write collimation summary file
+  ! Write collimation summary file
 #ifdef HDF5
   if(h5_useForCOLL) then
     allocate(fldHdf(7))

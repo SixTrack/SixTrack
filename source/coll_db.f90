@@ -1,8 +1,8 @@
 ! ================================================================================================ !
 !  Collimator Database Module
-!  V.K. Berglyd Olsen, BE-ABP-HSS
+!  V.K. Berglyd Olsen, M. D'Andrea, BE-ABP-HSS
 !  Created: 2018-03-22
-!  Updated: 2019-09-10
+!  Updated: 2019-10-02
 ! ================================================================================================ !
 module coll_db
 
@@ -54,6 +54,16 @@ module coll_db
   integer,          allocatable, public, save :: cdb_cSliced(:)     ! Collimator jaw fit sliced data index
   integer,          allocatable, public, save :: cdb_cSides(:)      ! 0 = two-sided, or 1,2 for single side 1 or 2
 
+  ! Additional Settings Arrays for Crystals
+  logical,          allocatable, public, save :: cdb_isCrystal(:)   ! This is a crystal collimator
+  real(kind=fPrec), allocatable, public, save :: cdb_cryBend(:)     ! Crystal collimator bending radius [m]
+  real(kind=fPrec), allocatable, public, save :: cdb_cryXDim(:)     ! Crystal collimator x dimension [m]
+  real(kind=fPrec), allocatable, public, save :: cdb_cryYDim(:)     ! Crystal collimator y dimension [m]
+  real(kind=fPrec), allocatable, public, save :: cdb_cryThick(:)    ! Crystal collimator amorphous layer thickness [m]
+  real(kind=fPrec), allocatable, public, save :: cdb_cryTilt(:)     ! Crystal collimator tilt [rad]
+  real(kind=fPrec), allocatable, public, save :: cdb_cryMisCut(:)   ! Crystal collimator miscut [rad]
+  integer,          allocatable, public, save :: cdb_cryOrient(:)   ! Crystal collimator orientation 1:Si110, 2:Si111
+
   ! Collimator Family Arrays
   character(len=:), allocatable, public, save :: cdb_famName(:)     ! Family name
   real(kind=fPrec), allocatable, public, save :: cdb_famNSig(:)     ! Family sigma
@@ -97,6 +107,16 @@ subroutine cdb_allocDB
   call alloc(cdb_cJawFit,     2,        cdb_nColl, 0,             "cdb_cJawFit")
   call alloc(cdb_cSliced,               cdb_nColl, 0,             "cdb_cSliced")
   call alloc(cdb_cSides,                cdb_nColl, 0,             "cdb_cSides")
+
+  ! Additional Settings Arrays for Crystals
+  call alloc(cdb_isCrystal,             cdb_nColl, .false.,       "cdb_isCrystal")
+  call alloc(cdb_cryBend,               cdb_nColl, zero,          "cdb_cryBend")
+  call alloc(cdb_cryXDim,               cdb_nColl, zero,          "cdb_cryXDim")
+  call alloc(cdb_cryYDim,               cdb_nColl, zero,          "cdb_cryYDim")
+  call alloc(cdb_cryThick,              cdb_nColl, zero,          "cdb_cryThick")
+  call alloc(cdb_cryTilt,               cdb_nColl, zero,          "cdb_cryTilt")
+  call alloc(cdb_cryMisCut,             cdb_nColl, zero,          "cdb_cryMisCut")
+  call alloc(cdb_cryOrient,             cdb_nColl, 0,             "cdb_cryOrient")
 
 end subroutine cdb_allocDB
 
@@ -362,7 +382,7 @@ subroutine cdb_readDB_newFormat
   if(matID > 0) then
     cdb_cMaterialID(iColl) = matID
   else
-    write(lerr,"(a)") "COLLDB> ERROR Material '"//trim(lnSplit(3))//"' not supported. Check your CollDB."
+    write(lerr,"(a)") "COLLDB> ERROR Material '"//trim(lnSplit(3))//"' not supported. Check your collimator database."
     call prror
   end if
 
@@ -525,7 +545,7 @@ subroutine cdb_readDB_oldFormat
       write(lerr,"(a)") "COLLDB> ERROR Material '"//trim(cdb_cMaterial(j))//"' not supported. Check your CollDB."
       call prror
     end if
-  
+
   end do
 
   call f_freeUnit(dbUnit)
@@ -606,7 +626,7 @@ subroutine cdb_writeDB_newFromOld
 end subroutine cdb_writeDB_newFromOld
 
 ! ================================================================================================ !
-!  V.K. Berglyd Olsen, BE-ABP-HSS
+!  V.K. Berglyd Olsen, M. D'Andrea, BE-ABP-HSS
 !  Created: 2019-08-30
 !  Updated: 2019-08-30
 !  Parse additional settings from the collimator database. This is treated separately since this
@@ -620,11 +640,13 @@ subroutine cdb_readDBSettings
   use mod_units
   use mod_alloc
   use coll_jawfit
+  use coll_common
+  use coll_materials
   use numerical_constants
 
   character(len=:), allocatable :: lnSplit(:)
   character(len=mInputLn) inLine
-  integer i, dbUnit, ioStat, nSplit, iLine, iColl, iFam, iTemp, iFit, fitID(2)
+  integer i, dbUnit, ioStat, nSplit, iLine, iColl, iFam, iTemp, iFit, fitID(2), matID
   logical cErr, fErr, isFam
 
   real(kind=fPrec) rParam(6)
@@ -734,7 +756,7 @@ subroutine cdb_readDBSettings
 
   case("JAW_FIT") ! Apply Jaw Fit Profile
     if(nSplit /= 5 .and. nSplit /= 7 .and. nSplit /= 9) then
-      write(lerr,"(a,i0)") "COLLDB> ERROR JAW_FIT expects 4, 6 ot 8 values, got ",nSplit-1
+      write(lerr,"(a,i0)") "COLLDB> ERROR JAW_FIT expects 4, 6 or 8 values, got ",nSplit-1
       write(lerr,"(a)")    "COLLDB>       JAW_FIT collname|famname nslices fit1 fit2 [scale1 scale2 [recentre1 recentre2]]"
       goto 30
     end if
@@ -782,6 +804,70 @@ subroutine cdb_readDBSettings
       call jaw_computeFit(cdb_cName(iColl), fitID, iParam(1), rParam(1:2), bParam(1:2), cdb_cLength(iColl), &
         cdb_cTilt(:,iColl), cdb_cOffset(iColl), iFit)
       cdb_cSliced(iColl) = iFit
+    end if
+
+  case("CRYSTAL") ! Set a collimator or family as crystal collimator(s)
+    if(nSplit /= 8 .and. nSplit /= 9) then
+      write(lerr,"(a,i0)") "COLLDB> ERROR CRYSTAL expects 7 or 8 values, got ",nSplit-1
+      write(lerr,"(a)")    "COLLDB>       CRYSTAL collname|famname bendrad xdim ydim thickness tilt miscut [orientation]"
+      goto 30
+    end if
+
+    rParam(:) = zero
+    iParam(:) = 0
+    call chr_cast(lnSplit(3), rParam(1), cErr)
+    call chr_cast(lnSplit(4), rParam(2), cErr)
+    call chr_cast(lnSplit(5), rParam(3), cErr)
+    call chr_cast(lnSplit(6), rParam(4), cErr)
+    call chr_cast(lnSplit(7), rParam(5), cErr)
+    call chr_cast(lnSplit(8), rParam(6), cErr)
+    if(nSplit == 9) then
+      call chr_cast(lnSplit(9), iParam(1), cErr)
+      if(iParam(1) /= 1 .and. iParam(1) /= 2) then
+        write(lerr,"(a,i0)") "COLLDB> ERROR Crystal parameter 'orientation' must be either 1 or 2, got ",iParam(1)
+        goto 30
+      end if
+    end if
+
+    matID = -1
+    call cdb_getCollimatorOrFamilyID(lnSplit(2), iFam, iColl, isFam, cErr)
+    if(cErr) goto 30
+    if(isFam) then
+      do i=1,cdb_nColl
+        if(cdb_cFamily(i) == iFam) then
+          coll_hasCrystal  = .true.
+          cdb_isCrystal(i) = .true.
+          cdb_cryBend(i)   = rParam(1)
+          cdb_cryXDim(i)   = rParam(2)
+          cdb_cryYDim(i)   = rParam(3)
+          cdb_cryThick(i)  = rParam(4)
+          cdb_cryTilt(i)   = rParam(5)
+          cdb_cryMisCut(i) = rParam(6)
+          cdb_cryOrient(i) = iParam(1)
+          if(matID == -1) then
+            matID = cdb_cMaterialID(i)
+          elseif(matID /= cdb_cMaterialID(i)) then
+            write(lerr,"(a)") "COLLDB> ERROR All crystals of a collimator family must be the same material"
+            goto 30
+          end if
+        end if
+      end do
+    else
+      coll_hasCrystal      = .true.
+      cdb_isCrystal(iColl) = .true.
+      cdb_cryBend(iColl)   = rParam(1)
+      cdb_cryXDim(iColl)   = rParam(2)
+      cdb_cryYDim(iColl)   = rParam(3)
+      cdb_cryThick(iColl)  = rParam(4)
+      cdb_cryTilt(iColl)   = rParam(5)
+      cdb_cryMisCut(iColl) = rParam(6)
+      cdb_cryOrient(iColl) = iParam(1)
+      matID = cdb_cMaterialID(iColl)
+    end if
+
+    if(iParam(1) > 0 .and. matID /= collmat_getCollMatID("Si")) then
+      write(lerr,"(a)") "COLLDB> ERROR Crystal orientation can only be set for material Silicon"
+      goto 30
     end if
 
   case default

@@ -279,6 +279,7 @@ list(APPEND FORT90_LIB
   cheby
   close
   coll_common
+  coll_crystal
   coll_db
   coll_dist
   coll_jawfit
