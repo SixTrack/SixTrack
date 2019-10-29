@@ -84,5 +84,5 @@ ONESIDED tcdqa.a4r6.b1  1
 ONESIDED tcdqa.c4r6.b1  1
 ONESIDED tcdqa.b4r6.b1  1
 
-CRYSTAL  tcpcv.a6l7.b1 70.00 2.5e-3 45.0e-3 0.0 -52.0e-6 0.0 1
-ONESIDED tcpcv.a6l7.b1  1
+CRYSTAL  cry7 70.00 2.5e-3 45.0e-3 0.0 -52.0e-6 0.0
+ONESIDED cry7  1

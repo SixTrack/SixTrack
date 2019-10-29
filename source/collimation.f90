@@ -408,8 +408,10 @@ subroutine coll_init
   end if
 
   ! Open the edep file
-  call f_requestUnit(fort208,unit208)
-  call f_open(unit=unit208,file=fort208,formatted=.true.,mode="w",status="replace")
+  if(unit208 == -1) then
+    call f_requestUnit(fort208,unit208)
+    call f_open(unit=unit208,file=fort208,formatted=.true.,mode="w",status="replace")
+  end if
 
   ! This function lives in the G4Interface.cpp file in the g4collimat folder
   ! Accessed by linking libg4collimat.a

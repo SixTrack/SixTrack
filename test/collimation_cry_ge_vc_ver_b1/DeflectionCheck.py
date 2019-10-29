@@ -18,22 +18,16 @@ with open(iFilename,'r') as readFile:
 binx = 200
 biny = 200
 binang = 200
-xmin = -3e-3
-xmax = 3e-3
-xpmin = -3e-5
-xpmax = 9e-5
-ymin = -8e-4
-ymax = 8e-4
-ypmin = -1.5e-5
-ypmax = 1.5e-5
+pmin = -100e-6
+pmax = 200e-6
+kickmin = -50e-6
+kickmax = 100e-6
 
 f1 = plt.figure(1)
-plt.hist2d(xpin, kickx, bins=[binang, binang], norm=LogNorm())
+plt.hist2d(xpin, kickx, bins=[binang, binang], range=[(pmin,pmax), (kickmin,kickmax)], norm=LogNorm())
 plt.title('Deflection along x')
 plt.xlabel('x\' in [rad]')
 plt.ylabel('kick x [rad]')
-# plt.axvline(x=collgap*1.0e3)
-# plt.axvline(x=mincoll*1.0e3)
 plt.ticklabel_format(style='sci', axis='y', scilimits=(0,0))
 plt.grid(color='gray', linestyle='--', linewidth=0.5)
 plt.colorbar(ticks = LogLocator(subs=range(10)))
@@ -45,7 +39,7 @@ f1.tight_layout(rect=[0, 0.03, 1, 0.95])
 f1.savefig('deflectionx.png')
 
 f2 = plt.figure(2)
-plt.hist2d(ypin, kicky, bins=[binang, binang], norm=LogNorm())
+plt.hist2d(ypin, kicky, bins=[binang, binang], range=[(pmin,pmax), (kickmin,kickmax)], norm=LogNorm())
 plt.title('Deflection along y')
 plt.xlabel('y\' in [rad]')
 plt.ylabel('kick y [rad]')
@@ -58,6 +52,6 @@ f2.set_size_inches((9, 6), forward=False)
 f2.tight_layout(rect=[0, 0.03, 1, 0.95])
 f2.savefig('deflectiony.png')
 
-raw_input()
+input()
 plt.close('all')
 
