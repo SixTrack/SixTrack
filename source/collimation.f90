@@ -2807,6 +2807,9 @@ subroutine coll_writeImpactAbsorb
   use mod_common
   use mod_common_main
   use coll_common
+#ifdef HDF5
+  use hdf5_output
+#endif
 
   integer j
 
