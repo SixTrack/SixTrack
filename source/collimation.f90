@@ -2954,11 +2954,12 @@ subroutine coll_writeTracks2(iMode)
   real(kind=fPrec) xj, xpj, yj, ypj, sj, pj
   real(kind=fPrec) xk, xpk, yk, ypk, sk
 
-  sigX2   = tbetax(ie)*c_emitx0_collgap
-  sigY2   = tbetay(ie)*c_emity0_collgap
-  halfLen = half*cdb_cLength(icoll)
+  sigX2 = tbetax(ie)*c_emitx0_collgap
+  sigY2 = tbetay(ie)*c_emity0_collgap
 
   if(iMode == 1) then
+
+    halfLen = half*cdb_cLength(icoll)
 
     sj = dcum(ie) - halfLen
     sk = dcum(ie) + halfLen
