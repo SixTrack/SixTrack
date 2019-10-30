@@ -38,7 +38,7 @@ module collimation
 
   ! Distribution
   integer,          private, save :: do_thisdis   = 0
-  real(kind=fPrec), private, save :: c_enom       = zero
+  real(kind=fPrec), public,  save :: c_enom       = zero
   logical,          private, save :: radial       = .false.
 
   ! Jaw Slicing
@@ -114,11 +114,11 @@ module collimation
   ! Arrays allocated to npart
   integer,          allocatable, private, save :: part_hit_pos(:)   ! Hit flag for last hit
   integer,          allocatable, private, save :: part_hit_turn(:)  ! Hit flag for last hit
-  integer,          allocatable, private, save :: part_abs_pos(:)   ! Absorbed in element
+  integer,          allocatable, public,  save :: part_abs_pos(:)   ! Absorbed in element
   integer,          allocatable, public,  save :: part_abs_turn(:)  ! Absorbed in turn
   integer,          allocatable, private, save :: part_select(:)
   integer,          allocatable, private, save :: nabs_type(:)
-  integer,          allocatable, private, save :: nhit_stage(:)
+  integer,          allocatable, public,  save :: nhit_stage(:)
   real(kind=fPrec), allocatable, private, save :: part_linteract(:)
   real(kind=fPrec), allocatable, private, save :: part_indiv(:)     ! Divergence of impacting particles
   real(kind=fPrec), allocatable, private, save :: part_impact(:)    ! Impact parameter (0 for inner face)
@@ -2807,6 +2807,9 @@ subroutine coll_writeImpactAbsorb
   use mod_common
   use mod_common_main
   use coll_common
+#ifdef HDF5
+  use hdf5_output
+#endif
 
   integer j
 
@@ -2951,11 +2954,12 @@ subroutine coll_writeTracks2(iMode)
   real(kind=fPrec) xj, xpj, yj, ypj, sj, pj
   real(kind=fPrec) xk, xpk, yk, ypk, sk
 
-  sigX2   = tbetax(ie)*c_emitx0_collgap
-  sigY2   = tbetay(ie)*c_emity0_collgap
-  halfLen = half*cdb_cLength(icoll)
+  sigX2 = tbetax(ie)*c_emitx0_collgap
+  sigY2 = tbetay(ie)*c_emity0_collgap
 
   if(iMode == 1) then
+
+    halfLen = half*cdb_cLength(icoll)
 
     sj = dcum(ie) - halfLen
     sk = dcum(ie) + halfLen

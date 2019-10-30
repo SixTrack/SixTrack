@@ -653,7 +653,7 @@ subroutine thin6d(nthinerr)
       ! Should be faster/safer to first check the turn then do the name search
       if(n == 1 .and. ix > 0) then
         if(bez(ix)(1:5) == "PRESS" .or. bez(ix)(1:5) == "press") then
-          call beamGas(ix,secondary,dcum(i),myenom,n,i)
+          call beamGas(ix,nhit_stage,dcum(i),c_enom,n,i)
         end if
       end if
 #endif

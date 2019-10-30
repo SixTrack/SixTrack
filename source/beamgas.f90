@@ -78,7 +78,7 @@ subroutine beamGas(myix, mysecondary, totals, myenom, turn, el_idx)
   use mod_common
   use mod_common_track
   use mod_common_main
-  use collimation, only : numeff, numeffdpop, part_abs_pos, part_abs_turn, secondary
+  use collimation, only : numeff, numeffdpop, part_abs_pos, part_abs_turn, nhit_stage
 
   implicit none
 
@@ -126,7 +126,7 @@ subroutine beamGas(myix, mysecondary, totals, myenom, turn, el_idx)
 
   do j = 2,napx
   choice=0
-  if ((secondary(j).eq.0) .and. (part_abs_pos (j).eq.0 .and. part_abs_turn(j).eq.0) .and. (bgParameters(1).le.totals)) then
+  if ((nhit_stage(j).eq.0) .and. (part_abs_pos (j).eq.0 .and. part_abs_turn(j).eq.0) .and. (bgParameters(1).le.totals)) then
 668 continue
 ! Warning: We round DOWN to the nearest integer at each
 ! location. It is needed in order not to run out of particles
