@@ -190,9 +190,9 @@ end function huntBin
 ! ================================================================================================ !
 !  A.Mereghetti, CERN, BE-ABP-HSS
 !  Last modified: 24-04-2019
-!  Given arrays xa and ya, each of length n, and given a value x, this function returns a
+!  Given arrays xa and ya, each of length nn, and given a value x, this function returns a
 !        value y, and an error estimate dy. If P(x) is the polynomial of degree N−1 such that
-!        P(xa_i)=ya_i, i=1,...,n , then the returned value y = P ( x ).
+!        P(xa_i)=ya_i, i=1,...,nn , then the returned value y = P ( x ).
 !  This function implements Neville's method
 !  function from Numerical Recipes in Fortran 77
 ! ================================================================================================ !
@@ -354,7 +354,7 @@ end subroutine polcof
 ! ================================================================================================ !
 !  A.Mereghetti, CERN, BE-ABP-HSS
 !  Last modified: 16-04-2019
-!  Integrate (xvals,yvals) with polynoms through mpoints data, and find the value y at x
+!  Integrate (xvals,yvals) with polynoms through mpoints data
 ! ================================================================================================ !
 real(kind=fPrec) function polintegrate(xvals,yvals,datalen,mpoints,order,cumul,rmin,rmax)
 
@@ -387,7 +387,7 @@ real(kind=fPrec) function polintegrate(xvals,yvals,datalen,mpoints,order,cumul,r
   do jj=jMin+1,jMax ! loop over data points
      kMin=min(max(jj-1-(mpoints-1)/2,1),datalen+1-mpoints)
      kMax=min(kMin+mpoints-1,datalen)
-     call polcof(xvals(kMin:kMax),yvals(kMin:kMax),mpoints,cof)
+     call polcof(xvals(kMin:kMax),yvals(kMin:kMax),kMax-kMin+1,cof)
      xmin=xvals(jj-1)
      if (present(rmin).and.jj==jMin+1) xmin=rmin
      xmax=xvals(jj)

@@ -44,7 +44,7 @@ module elens
   logical, save          :: elens_lAllowUpdate(nelens) = .true.  ! Flag for disabling updating of kick,
                                                                  !  i.e. after DYNK has touched thetaR2,
                                                                  !  the energy update is disabled.
-  logical, save          :: elens_lFox(nelens)         = .true.  ! the kick from the elens should be taken into account
+  logical, save          :: elens_lFox(nelens)         = .false. ! the kick from the elens should be taken into account
                                                                  !  when searching for the closed orbit with DA algebra
 #ifdef CR
   logical, save          :: elens_lAllowUpdate_CR(nelens)
@@ -132,7 +132,7 @@ subroutine elens_parseInputLine(inLine, iLine, iErr)
       return
     end if
     call chr_cast(lnSPlit(2), elens_radial_mpoints(melens),iErr)
-    if ( elens_radial_mpoints(melens) <=0 .or. elens_radial_mpoints(melens).gt.20 ) then
+    if ( elens_radial_mpoints(melens) <=0 .or. elens_radial_mpoints(melens)>20 ) then
       write(lerr,"(a,i0)") "ELENS> ERROR Unreasonable number of points for radial interpolation, got ",elens_radial_mpoints(melens)
       write(lerr,"(a)")    "ELENS>       Please choose a value beterrn 1 and 20 (included)"
       iErr = .true.
@@ -686,9 +686,7 @@ subroutine integrateRadialProfile(ifile)
     write(lout,"(a,i0)") "ELENS> Integrated radial profile read from file "//&
       trim(elens_radial_filename(ifile))//" - #",ifile
     do ii=0,elens_radial_profile_nPoints(ifile)
-      if(elens_radial_profile_J(ii,ifile)/= zero) then
-        write(lout,"((a,i4),2(a,1pe22.15))") "ELENS> ",ii,",",elens_radial_profile_R(ii,ifile),",",elens_radial_profile_J(ii,ifile)
-      end if
+      write(lout,"((a,i4),2(a,1pe22.15))") "ELENS> ",ii,",",elens_radial_profile_R(ii,ifile),",",elens_radial_profile_J(ii,ifile)
     end do
   end if
   write(lout,"(a,1pe22.15)") "ELENS> Total current in radial profile [A]: ", &
