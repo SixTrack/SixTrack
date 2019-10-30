@@ -38,7 +38,7 @@ module collimation
 
   ! Distribution
   integer,          private, save :: do_thisdis   = 0
-  real(kind=fPrec), private, save :: c_enom       = zero
+  real(kind=fPrec), public,  save :: c_enom       = zero
   logical,          private, save :: radial       = .false.
 
   ! Jaw Slicing
@@ -114,11 +114,11 @@ module collimation
   ! Arrays allocated to npart
   integer,          allocatable, private, save :: part_hit_pos(:)   ! Hit flag for last hit
   integer,          allocatable, private, save :: part_hit_turn(:)  ! Hit flag for last hit
-  integer,          allocatable, private, save :: part_abs_pos(:)   ! Absorbed in element
+  integer,          allocatable, public,  save :: part_abs_pos(:)   ! Absorbed in element
   integer,          allocatable, public,  save :: part_abs_turn(:)  ! Absorbed in turn
   integer,          allocatable, private, save :: part_select(:)
   integer,          allocatable, private, save :: nabs_type(:)
-  integer,          allocatable, private, save :: nhit_stage(:)
+  integer,          allocatable, public,  save :: nhit_stage(:)
   real(kind=fPrec), allocatable, private, save :: part_linteract(:)
   real(kind=fPrec), allocatable, private, save :: part_indiv(:)     ! Divergence of impacting particles
   real(kind=fPrec), allocatable, private, save :: part_impact(:)    ! Impact parameter (0 for inner face)
