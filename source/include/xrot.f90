@@ -3,7 +3,6 @@ cos_t = cos_mb(temp_angle)
 sin_t = sin_mb(temp_angle)
 tan_t = tan_mb(temp_angle)
 
-
 do j=1,napx
   temptr(1)=c1m3*xv1(j)
   temptr(2)=(c1m3*yv1(j))/moidpsv(j)
@@ -20,4 +19,4 @@ do j=1,napx
   yv2(j) = c1e3*((cos_t*temptr(4)) + (sin_t*z_temp))*moidpsv(j)
   sigmv(j) = sigmv(j) - c1e3*((tan_t*temptr(3)*(one/(e0f/e0)+temptr(6))/(z_temp*pttemp))*(e0f/e0))
 enddo
-! end include/xrot_fox.f90
+! end include/xrot.f90

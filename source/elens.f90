@@ -1,6 +1,6 @@
 ! M. Fitterer, FNAL, A. Mereghtti, CERN
-! last modified: 25-04-2019
-! Common block for electron lens
+! last modified: 10-09-2019
+! Common block for electron lens definition
 module elens
 
   use parpro
@@ -63,7 +63,7 @@ module elens
   character(len=mFileName), save:: elens_radial_filename(nelens_radial_profiles) ! names
   real(kind=fPrec), save :: elens_radial_profile_R(0:elens_radial_dim,nelens_radial_profiles) ! [mm]
   real(kind=fPrec), save :: elens_radial_profile_J(0:elens_radial_dim,nelens_radial_profiles) ! [A]
-  integer, save          :: elens_radial_profile_nPoints(nelens_radial_profiles)
+  integer, save          :: elens_radial_profile_nPoints(nelens_radial_profiles)=0
 
 contains
 
@@ -591,41 +591,42 @@ subroutine parseRadialProfile(ifile)
   end if
   call chr_cast(lnSplit(1),tmpR,spErr)
   call chr_cast(lnSplit(2),tmpJ,spErr)
-  if(tmpJ>=0.0) then
-    ii=ii+1
-    if(ii>elens_radial_dim) then
-      iErr = 2
-      write(lerr,"(a,i0,a,i0)") "ELENS> ERROR too many points in radial profile: ",ii, &
-           ". Max is ",elens_radial_dim
-      goto 30
-    end if
-    elens_radial_profile_nPoints(ifile) = ii
-    elens_radial_profile_R(ii,ifile) = tmpR
-    elens_radial_profile_J(ii,ifile) = tmpJ/c1e2
+  if(tmpR<=elens_radial_profile_R(ii,ifile)) then
+    iErr = 1
+    write(lerr,"(a,i0)") "ELENS> ERROR radius not in increasing order at ii=",ii
+    goto 30
   end if
+  ii=ii+1
+  if(ii>elens_radial_dim) then
+    iErr = 2
+    write(lerr,"(a,i0,a,i0)") "ELENS> ERROR too many points in radial profile: ",ii, &
+         ". Max is ",elens_radial_dim
+    goto 30
+  end if
+  elens_radial_profile_nPoints(ifile) = ii
+  elens_radial_profile_R(ii,ifile) = tmpR
+  elens_radial_profile_J(ii,ifile) = tmpJ/c1e2 ! from [A/cm2] to [A/mm2]
 
   goto 10
 
 20 continue
 
   call f_freeUnit(fUnit)
-  write(lout,"(a,i0,a)") "ELENS> ...acquired ",elens_radial_profile_nPoints(ifile)," points."
-
-  ! check array of x-values is sensible
-  if(.not.checkArray(elens_radial_profile_R(1:elens_radial_profile_nPoints(ifile),ifile),elens_radial_profile_nPoints(ifile))) then
-    iErr=3
-    write(lerr,"(a)") "ELENS> ERROR radial profile has problem with values of radius."
-    goto 30
+  if ( elens_radial_profile_nPoints(ifile).eq.0 ) then
+    write(lerr,"(a,i0,a,i0)") "ELENS> ERROR no points in radial profile"
+    go to 30
   end if
+
+  ! set current density at r=0 as at r=r1, to avoid 
+  elens_radial_profile_J(0,ifile)=elens_radial_profile_J(1,ifile)
   
+  write(lout,"(a,i0,a)") "ELENS> ...acquired ",elens_radial_profile_nPoints(ifile)," points."
   if(st_quiet < 2) then
     ! Echo parsed data (unless told to be quiet!)
-    write(lout,"(a,i0)") "ELENS> Radial profile as from file "//&
-      trim(elens_radial_filename(ifile))//" - #",ifile
+    write(lout,"(a,i0,a)") "ELENS> Radial profile as from file "//&
+      trim(elens_radial_filename(ifile))//" - #",ifile," - showing: ii, R[mm], J[A/mm2]"
     do ii=0,elens_radial_profile_nPoints(ifile)
-      if(elens_radial_profile_J(ii,ifile)/= zero) then
-        write(lout,"((a,i4),2(a,1pe22.15))") "ELENS> ",ii,",",elens_radial_profile_R(ii,ifile),",",elens_radial_profile_J(ii,ifile)
-      end if
+      write(lout,"((a,i4),2(a,e22.15))") "ELENS> ",ii,",",elens_radial_profile_R(ii,ifile),",",elens_radial_profile_J(ii,ifile)
     end do
   end if
   return

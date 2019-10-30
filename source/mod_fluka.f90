@@ -100,10 +100,6 @@ module mod_fluka
   ! hisix: write isotope info
   integer, public :: isotope_log_unit                  ! logical unit for isotope-id output (was 822)
 
-  integer, public :: unit208 ! Holds the actual units of fort.208
-  integer, public :: unit209 ! Holds the actual units of fort.209
-  integer, public :: unit210 ! Holds the actual units of fort.210
-
   ! fluka insertions
   logical, public :: fluka_inside = .false.                        ! Are we in a fluka insertion?
   integer(kind=int32), public, allocatable :: fluka_type(:)        ! type of insertion (one per SINGLE ELEMENT)
@@ -151,6 +147,7 @@ contains
   subroutine fluka_mod_init(npart, nele, clight)
 
     use mod_units
+    use mod_common, only : fort208, unit208
 
     implicit none
 
@@ -182,14 +179,13 @@ contains
 !    fluka_geo_index    = 0
 !    fluka_synch_length = zero
 
-    call f_requestUnit("fort.208",         unit208)
-    call f_requestUnit("fort.209",         unit209)
-    call f_requestUnit("fort.210",         unit210)
+    if(unit208 == -1) then
+      call f_requestUnit(fort208,unit208)
+      call f_open(unit=unit208,file=fort208,formatted=.true.,mode="w")
+    end if
+
     call f_requestUnit("fluka.log",        fluka_log_unit)
     call f_requestUnit("fluka_isotope.log",isotope_log_unit)
-    call f_open(unit=unit208,         file="fort.208",         formatted=.true.,mode="w")
-    call f_open(unit=unit209,         file="fort.209",         formatted=.true.,mode="w")
-    call f_open(unit=unit210,         file="fort.210",         formatted=.true.,mode="w")
     call f_open(unit=fluka_log_unit,  file="fluka.log",        formatted=.true.,mode="w")
     call f_open(unit=isotope_log_unit,file="fluka_isotope.log",formatted=.true.,mode="w")
 
@@ -609,7 +605,7 @@ contains
          if(fluka_nrecv .gt. npart) then
 
             !If we hit the particle limit, we will need to  do a global array expand on npart, lets increase by 50 for now
-            call expand_arrays(nele, npart+50, nblz, nblo)
+            call expand_arrays(nele, npart+50, nblz, nblo, nbb)
 
 !            write(fluka_log_unit, *) &
 !                 '# FlukaIO error: reached maximum number of particles, ', &
@@ -1136,19 +1132,12 @@ subroutine kernel_fluka_element( nturn, i, ix )
 !     hisix: compute the nucleon and energy difference
 !              reduce by factor 1e-3 to get the energy in GeV
       if((ien0-ien1).gt.one) then
-        write(unit208,*) fluka_geo_index(fluka_ix), nnuc0-nnuc1, c1m3*(ien0-ien1)
+        write(unit208,"(2(i5,1x),e24.16)") fluka_geo_index(fluka_ix), nnuc0-nnuc1, c1m3*(ien0-ien1)
 #ifdef ROOT
         if(root_flag .and. root_FLUKA .eq. 1) then
           call root_EnergyDeposition(fluka_geo_index(fluka_ix), nnuc0-nnuc1, c1m3*(ien0-ien1))
         end if
 #endif
-      ! hisix debugging:
-      ! write out the particle distribution after the primary
-        if(fluka_geo_index(fluka_ix).eq.11) then
-          do j=1,napx
-            write(unit210,*) naa(j), nzz(j), nucm(j),ejfv(j),mtc(j),dpsv(j)
-          end do
-        end if
       end if
 
 !     hisix: check which particle ids have not been sent back
@@ -1161,10 +1150,6 @@ subroutine kernel_fluka_element( nturn, i, ix )
             pid_q = one
           end if
         end do
-
-        if(pid_q.eq.zero.and.pids(j).ne.zero) then
-          write(unit209,*) fluka_geo_index(fluka_ix), pids(j)
-        end if
       end do
 
 !     empty places
@@ -1197,7 +1182,6 @@ subroutine kernel_fluka_element( nturn, i, ix )
       fluka_ix = -1
       fluka_nturn = -1
       flush(unit208)
-      flush(unit209)
       return
 end subroutine kernel_fluka_element
 
@@ -1367,20 +1351,12 @@ subroutine kernel_fluka_exit
 !       hisix: compute the nucleon and energy difference
 !              reduce by factor 1e-3 to get the energy in GeV
         if((ien0-ien1).gt.one) then
-          write(unit208,*) fluka_geo_index(fluka_ix), nnuc0-nnuc1, c1m3*(ien0-ien1)
+          write(unit208,"(2(i5,1x),e24.16)") fluka_geo_index(fluka_ix), nnuc0-nnuc1, c1m3*(ien0-ien1)
 #ifdef ROOT
           if(root_flag .and. root_FLUKA .eq. 1) then
             call root_EnergyDeposition(fluka_geo_index(fluka_ix), nnuc0-nnuc1, c1m3*(ien0-ien1))
           end if
 #endif
-
-          ! hisix debugging:
-          ! write out the particle distribution after the primary
-          if (fluka_geo_index(fluka_ix).eq.11) then
-            do j=1,napx
-              write(unit210,*) naa(j), nzz(j), nucm(j),ejfv(j),mtc(j),dpsv(j)
-            end do
-          end if
         end if
 !
 !     hisix: check which particle ids have not been sent back
@@ -1392,9 +1368,6 @@ subroutine kernel_fluka_exit
             pid_q = one
           end if
         end do
-        if(pid_q.eq.zero.and.pids(j).ne.zero) then
-          write(unit209,*) fluka_geo_index(fluka_ix), pids(j)
-        end if
       end do
 
 !     empty places
@@ -1427,8 +1400,6 @@ subroutine kernel_fluka_exit
       fluka_ix = -1
       fluka_nturn = -1
       flush(unit208)
-      flush(unit209)
-
       return
 end subroutine kernel_fluka_exit
 

@@ -115,7 +115,7 @@ An aperture profile can be assigned to a SINGLE ELEMENT specifying its type and 
                       that can have an ellyptical corner. See Tab.~\ref{tab:apeSpecs} for their
                       meanings. Only the Transition type needs 8 specifiers (hence from \texttt{aper\_1} to \texttt{aper\_8}). \\
     \texttt{x\_off} and \texttt{y\_off}  & Hor.~and ver.~offsets in mm. \\
-    \texttt{angle}  & Tilt angle in rad. The tilt is around the offset point.\\
+    \texttt{angle}  & Tilt angle is in degrees. The tilt is around the offset point.\\
 \end{longtabu}
 
 The last three numerical specifiers are optional, whereas the others are mandatory, depending on the type.
@@ -142,29 +142,29 @@ For the convention on signs for the last three (optional) aperture specifiers, p
     Rectangle & \texttt{RE} & \texttt{aper\_1} & hor.~half-size [mm] \\*
     & & \texttt{aper\_2} & ver.~half-size [mm] \\*
     \hline
-    
+
     Ellipse & \texttt{EL} & \texttt{aper\_1} & hor.~semi-axis [mm] \\*
     & & \texttt{aper\_2} & ver.~semi-axis [mm] \\*
     \hline
-    
+
     RectEllipse & \texttt{RL} & \texttt{aper\_1} & hor.~half-size [mm] \\*
     & & \texttt{aper\_2} & ver.~half-size [mm] \\*
     & & \texttt{aper\_3} & hor.~semi-axis [mm] \\*
     & & \texttt{aper\_4} & ver.~semi-axis [mm] \\*
     \hline
-    
+
     Octagon & \texttt{OC} & \texttt{aper\_1} & hor.~position of ver.~side [mm] \\*
     & & \texttt{aper\_2} & ver.~position of hor.~side [mm] \\*
-    & & \texttt{aper\_3} & angle of first cut corner [rad] \\*
-    & & \texttt{aper\_4} & angle of second cut corner [rad] \\*
+    & & \texttt{aper\_3} & angle of first cut corner [degree] \\*
+    & & \texttt{aper\_4} & angle of second cut corner [degree] \\*
     \hline
-    
+
     Ractetrack & \texttt{RT} & \texttt{aper\_1} & hor.~displ.~of ellypse centre [mm] \\*
     & & \texttt{aper\_2} & ver.~displ.~of ellypse centre [mm] \\*
     & & \texttt{aper\_3} & hor.~semi-axis [mm] \\*
     & & \texttt{aper\_4} & ver.~semi-axis [mm] \\*
     \hline
-    
+
     Transition & \texttt{TR} & \texttt{aper\_1} & hor.~half-size [mm] \\*
     & & \texttt{aper\_2} & ver.~half-size [mm] \\*
     & & \texttt{aper\_3} & hor.~semi-axis [mm] \\*
@@ -322,9 +322,9 @@ NEXT
 
 In the above example, the content of \texttt{fort3.limi} is the following:
 \begin{cverbatim}
-aper.1        EL     29.0      29.0            
+aper.1        EL     29.0      29.0
 aper.2        OC     40.0      30.0       0.5236    1.0472       -10.0       -2.0        0.174533
-aper.3        RL     18.95     23.85      23.85      23.85  
+aper.3        RL     18.95     23.85      23.85      23.85
 \end{cverbatim}
 \begin{itemize}
 \item \texttt{aper.1} specifies an ellyptical aperture with both axes of 29~mm. Effectively, it is a circular aperture;
@@ -374,7 +374,7 @@ The DYNamic Kicks module~\cite{DYNKpaper, DYNKpaper2} allows time-dependent modi
 The supported elements and attributes are listed in Table~\ref{tab:DYNK_SET}.
 The settings can be computed on-the fly using several functions, loaded from input files or a combination, as described in Table~\ref{tab:DYNK_FUN}.
 
-Further, unless explicitly switched off using a \texttt{NOFILE} statement, \texttt{DYNK} produces an output file \texttt{dynksets.dat}.
+If the \texttt{DYNKSETS} flag is present, \texttt{DYNK} produces an output file \texttt{dynksets.dat}.
 This file contains the setting of all elements and attributes for which \texttt{DYNK} is active.
 It is written in all turns of the simulation, even if \texttt{DYNK} is not active in that exact turn.
 
@@ -406,8 +406,6 @@ The functions may thus be evaluated multiple times in one turn (if used by multi
 The functions are always evaluated as a function of the current turn number $t$, which may be shifted by a turn-shift specified in a \texttt{SET} statement (\ref{DYNK:SET}).
 
 Function names have a maximum length of 20 characters.
-
-%\pagebreak
 
 \begin{center}
 \small
@@ -692,7 +690,7 @@ Because of this, SixTrack does not accept a real single element in \texttt{fort.
     & \texttt{harmonic}    & --      & Harmonic number of the cavity \\
     & \texttt{lag\_angle}  & degrees & Lag angle of the cavity \\
   \hline
-    
+
    \multirow{3}{*}{\parbox{4cm}{Beam-Beam 6d (expert) \index{Beam-Beam}\\ (20),\\ Section~\ref{BeamBeam}}}
     & \texttt{h-sep}     & mm      & Horizontal offset \\
     & \texttt{v-sep}     & mm      & Vertical offset \\
@@ -744,29 +742,29 @@ Because of this, SixTrack does not accept a real single element in \texttt{fort.
   \hline
 
 \caption{Element types and attributes available in \texttt{DYNK} .}
-\label{tab:DYNK_SET} 
+\label{tab:DYNK_SET}
 
 \end{longtable}
 
 \subsection{Additional Flags}
 
-\paragraph{Flag:} \texttt{NOFILE}\\
+\paragraph{Flag} \texttt{DYNKSETS}\\
 
-The presence of this statement in a \texttt{DYNK} block switches off the normal writing of the output file \texttt{dynksets.dat} in every line, instead producing a file only containing the message
-\begin{cverbatim}
-### DYNK file output was disabled with flag NOFILE in fort.3 ###
-\end{cverbatim}
+The presence of this statement in a \texttt{DYNK} block switches on the writing of the output file \texttt{dynksets.dat} in every line.
 This can be useful to save disk space in very long simulations.
 
-\paragraph{Flag:} \texttt{DEBU}
+This flag replaces the \texttt{NOFILE} flag that in version 5.3.4 and earlier was used to disable the writing of \texttt{dynksets.dat}.
+The file is now disabled by default, and has to be explicitly requested.
+
+\paragraph{Flag} \texttt{DEBUG}
 
 This statement switches on extra ``debugging'' output from \texttt{DYNK}.
 This can be useful if debugging the code or if debugging the input.
 
 \subsection{Output File \texttt{dynksets.dat}}
 
-When a \texttt{DYNK} block is present in the input file, a file \texttt{dynksets.dat} is created and in the current working directory.
-Unless a \texttt{NOFILE} statement is present, this file contains first a header
+When the \texttt{DYNKSETS} flag is present in the \texttt{DYNK} block, a file \texttt{dynksets.dat} is created and in the current working directory.
+This file contains first a header
 \begin{cverbatim}
 # turn element attribute SETidx funname value
 \end{cverbatim}
@@ -783,27 +781,25 @@ One use of the \texttt{DYNK} block is to replace the functionality of the \textt
 The \texttt{FUN} type \texttt{COSF\_RIPP} is provided for exactly this purpose, and provides an exact replacement.
 As an example, the \texttt{RIPP} block in the SixTest test-case prob1 looks like (slightly reduced in size):
 \begin{cverbatim}
-RIPPLE OF POWER SUPPLIES------------------------------------------------
-         dmqx1f50l5+2      3.2315D-10    224.9
-         dmqx2af50l5+2    -3.2315D-10    224.9
-         dmqx1f10mel5+2    2.5246D-16    0.0011245
+RIPPLE OF POWER SUPPLIES
+  dmqx1f50l5+2      3.2315D-10    224.9
+  dmqx2af50l5+2    -3.2315D-10    224.9
+  dmqx1f10mel5+2    2.5246D-16    0.0011245
 NEXT
 \end{cverbatim}
 This can be replaced by the following:
 \begin{cverbatim}
 DYNK
-NOFILE
-FUN RIPP-dmqx1f50l5+2 COSF_RIPP 3.2315D-10 224.9 0.0
-SET dmqx1f50l5+2 average_ms RIPP-dmqx1f50l5+2 1 -1 0
-FUN RIPP-dmqx2af50l5+2 COSF_RIPP -3.2315D-10 224.9 0.0
-SET dmqx2af50l5+2 average_ms RIPP-dmqx2af50l5+2 1 -1 0
-FUN RIPP-dmqx1f20kl5+2 COSF_RIPP 2.5246D-12 0.56225 0.0
-SET dmqx1f20kl5+2 average_ms RIPP-dmqx1f20kl5+2 1 -1 0
+  FUN RIPP-dmqx1f50l5+2 COSF_RIPP 3.2315D-10 224.9 0.0
+  SET dmqx1f50l5+2 average_ms RIPP-dmqx1f50l5+2 1 -1 0
+  FUN RIPP-dmqx2af50l5+2 COSF_RIPP -3.2315D-10 224.9 0.0
+  SET dmqx2af50l5+2 average_ms RIPP-dmqx2af50l5+2 1 -1 0
+  FUN RIPP-dmqx1f20kl5+2 COSF_RIPP 2.5246D-12 0.56225 0.0
+  SET dmqx1f20kl5+2 average_ms RIPP-dmqx1f20kl5+2 1 -1 0
 NEXT
 \end{cverbatim}
 Here, each \texttt{RIPP} data line is replaced with two lines, one FUN statement for generating the function, and one \texttt{SET} statement for applying the value.
-Note that the \texttt{SET} statements have an end-time \texttt{-1}, meaning it is used until the end of the simulation.
-Also note the presence of the \texttt{NOFILE} flag, which is used to not generate a potentially very large (for very long simulations) \texttt{dynkfile.dat} output file.
+Note that the \texttt{SET} statements have an end time \texttt{-1}, meaning it is used until the end of the simulation.
 
 \paragraph{Starting tracking inside a bump}~\\
 
@@ -814,19 +810,19 @@ The crab cavities opening the bump are called \texttt{CRAB\_IP1\_L1$\cdots$4}, w
 The \texttt{DYNK} block for this looks like:
 \begin{cverbatim}
 DYNK
-FUN zero CONST 0.0
-FUN CV_1R1 Get CRAB_IP1_R1 voltage
-FUN CV_1R2 GET CRAB_IP1_R2 voltage
-FUN CV_1R3 GET CRAB_IP1_R3 voltage
-FUN CV_1R4 GET CRAB_IP1_R4 voltage
-SET CRAB_IP1_R1 voltage zero 1 1 0
-SET CRAB_IP1_R2 voltage zero 1 1 0
-SET CRAB_IP1_R3 voltage zero 1 1 0
-SET CRAB_IP1_R4 voltage zero 1 1 0
-SET CRAB_IP1_R1 voltage CV_1R1 2 2 0
-SET CRAB_IP1_R2 voltage CV_1R2 2 2 0
-SET CRAB_IP1_R3 voltage CV_1R3 2 2 0
-SET CRAB_IP1_R4 voltage CV_1R4 2 2 0
+  FUN zero CONST 0.0
+  FUN CV_1R1 Get CRAB_IP1_R1 voltage
+  FUN CV_1R2 GET CRAB_IP1_R2 voltage
+  FUN CV_1R3 GET CRAB_IP1_R3 voltage
+  FUN CV_1R4 GET CRAB_IP1_R4 voltage
+  SET CRAB_IP1_R1 voltage zero 1 1 0
+  SET CRAB_IP1_R2 voltage zero 1 1 0
+  SET CRAB_IP1_R3 voltage zero 1 1 0
+  SET CRAB_IP1_R4 voltage zero 1 1 0
+  SET CRAB_IP1_R1 voltage CV_1R1 2 2 0
+  SET CRAB_IP1_R2 voltage CV_1R2 2 2 0
+  SET CRAB_IP1_R3 voltage CV_1R3 2 2 0
+  SET CRAB_IP1_R4 voltage CV_1R4 2 2 0
 NEXT
 \end{cverbatim}
 
@@ -854,50 +850,51 @@ It also demonstrates how functions can be chained together, making more complica
 Some of the resulting functions are shown in Figure~\ref{fig:DYNK_fail}, and the \texttt{DYNK} block here looks like:
 \begin{cverbatim}
 DYNK
-/DEBUG
-FUN zero CONST 0.0
-FUN CV_R1 GET CRAB_IP1_R1 voltage
-FUN CV_R2 GET CRAB_IP1_R2 voltage
-FUN CV_R3 GET CRAB_IP1_R3 voltage
-FUN CV_R4 GET CRAB_IP1_R4 voltage
-FUN CV_L  GET CRAB_IP1_L1 voltage
-FUN ramp LIN 0.02 0
-FUN ramp_R1 MUL CV_R1 ramp
-FUN ramp_R2 MUL CV_R2 ramp
-FUN ramp_R3 MUL CV_R3 ramp
-FUN ramp_R4 MUL CV_R4 ramp
-FUN ramp_L  MUL CV_L  ramp
-SET CRAB_IP1_R1 voltage zero 1 10 0
-SET CRAB_IP1_R2 voltage zero 1 10 0
-SET CRAB_IP1_R3 voltage zero 1 10 0
-SET CRAB_IP1_R4 voltage zero 1 10 0
-SET CRAB_IP1_L1 voltage zero 1 9 0
-SET CRAB_IP1_L2 voltage zero 1 9 0
-SET CRAB_IP1_L3 voltage zero 1 9 0
-SET CRAB_IP1_L4 voltage zero 1 9 0
-/
-SET CRAB_IP1_R1 voltage ramp_R1 11 61 -11
-SET CRAB_IP1_R2 voltage ramp_R2 11 61 -11
-SET CRAB_IP1_R3 voltage ramp_R3 11 61 -11
-SET CRAB_IP1_R4 voltage ramp_R4 11 61 -11
-SET CRAB_IP1_L1 voltage ramp_L 10 60 -10
-SET CRAB_IP1_L2 voltage ramp_L 10 60 -10
-SET CRAB_IP1_L3 voltage ramp_L 10 60 -10
-SET CRAB_IP1_L4 voltage ramp_L 10 60 -10
-/
-/Voltage decay and detuning
-FUN expCore LIN -0.05 0.0
-FUN decay EXP expCore
-FUN decayScaled MUL decay CV_L
-SET CRAB_IP1_L1 voltage decayScaled 70 100 -70
-SET CRAB_IP1_L2 voltage decayScaled 70 100 -70
-SET CRAB_IP1_L3 voltage decayScaled 70 100 -70
-SET CRAB_IP1_L4 voltage decayScaled 70 100 -70
-FUN phasedrift LIN 0.3141592654 0.0
-SET CRAB_IP1_L1 phase phasedrift 70 100 -70
-SET CRAB_IP1_L2 phase phasedrift 70 100 -70
-SET CRAB_IP1_L3 phase phasedrift 70 100 -70
-SET CRAB_IP1_L4 phase phasedrift 70 100 -70
+  DEBUG
+
+  FUN zero CONST 0.0
+  FUN CV_R1 GET CRAB_IP1_R1 voltage
+  FUN CV_R2 GET CRAB_IP1_R2 voltage
+  FUN CV_R3 GET CRAB_IP1_R3 voltage
+  FUN CV_R4 GET CRAB_IP1_R4 voltage
+  FUN CV_L  GET CRAB_IP1_L1 voltage
+  FUN ramp LIN 0.02 0
+  FUN ramp_R1 MUL CV_R1 ramp
+  FUN ramp_R2 MUL CV_R2 ramp
+  FUN ramp_R3 MUL CV_R3 ramp
+  FUN ramp_R4 MUL CV_R4 ramp
+  FUN ramp_L  MUL CV_L  ramp
+  SET CRAB_IP1_R1 voltage zero 1 10 0
+  SET CRAB_IP1_R2 voltage zero 1 10 0
+  SET CRAB_IP1_R3 voltage zero 1 10 0
+  SET CRAB_IP1_R4 voltage zero 1 10 0
+  SET CRAB_IP1_L1 voltage zero 1 9 0
+  SET CRAB_IP1_L2 voltage zero 1 9 0
+  SET CRAB_IP1_L3 voltage zero 1 9 0
+  SET CRAB_IP1_L4 voltage zero 1 9 0
+
+  SET CRAB_IP1_R1 voltage ramp_R1 11 61 -11
+  SET CRAB_IP1_R2 voltage ramp_R2 11 61 -11
+  SET CRAB_IP1_R3 voltage ramp_R3 11 61 -11
+  SET CRAB_IP1_R4 voltage ramp_R4 11 61 -11
+  SET CRAB_IP1_L1 voltage ramp_L 10 60 -10
+  SET CRAB_IP1_L2 voltage ramp_L 10 60 -10
+  SET CRAB_IP1_L3 voltage ramp_L 10 60 -10
+  SET CRAB_IP1_L4 voltage ramp_L 10 60 -10
+
+  ! Voltage decay and detuning
+  FUN expCore LIN -0.05 0.0
+  FUN decay EXP expCore
+  FUN decayScaled MUL decay CV_L
+  SET CRAB_IP1_L1 voltage decayScaled 70 100 -70
+  SET CRAB_IP1_L2 voltage decayScaled 70 100 -70
+  SET CRAB_IP1_L3 voltage decayScaled 70 100 -70
+  SET CRAB_IP1_L4 voltage decayScaled 70 100 -70
+  FUN phasedrift LIN 0.3141592654 0.0
+  SET CRAB_IP1_L1 phase phasedrift 70 100 -70
+  SET CRAB_IP1_L2 phase phasedrift 70 100 -70
+  SET CRAB_IP1_L3 phase phasedrift 70 100 -70
+  SET CRAB_IP1_L4 phase phasedrift 70 100 -70
 NEXT
 \end{cverbatim}
 The first functions defined here are the same as above, storing the default values (as defined in the single element list) for the relevant elements and also zero.
@@ -1352,7 +1349,7 @@ Currently, the ideal electron lens is implemented, i.e.
     & \texttt{name} & -- & Name of e-lens. Must be the same as that in the list of single elements\index{single elements}.\\*
     \hline
 
-    & \texttt{type} & -- & Type of e-lens - either \texttt{UNIFORM} or  \texttt{GAUSSIAN}. \\* 
+    & \texttt{type} & -- & Type of e-lens - either \texttt{UNIFORM} or  \texttt{GAUSSIAN}. \\*
     \hline
 
     & \texttt{theta\_r2} & mrad & Kick\footnote{Total, \emph{not} per charge.} received at $r=r_2$ where $r_2$ is the outer radius of the e-lens.\\*
@@ -1369,17 +1366,17 @@ Currently, the ideal electron lens is implemented, i.e.
 
     & \texttt{offset\_y} & mm & Vertical offset of the e-lens.\\*
     \hline
-    
+
     \hline
     \rowcolor{blue!15}
     \multicolumn{4}{|l|}{Specific to \texttt{GAUSSIAN} type} \\*
-    
+
     & \texttt{sig\_el} & mm & $\sigma$ of the electron beam.\\*
     \hline
 
     \rowcolor{blue!15}
     \multicolumn{4}{|l|}{Specific to \texttt{RADIAL} type} \\*
-    
+
     & \texttt{filename} & & filename of the radial profile. Please see Sec.~\ref{sec:elen_rad_prof} for proper formatting of the file. The profile is read from the file, radially integrated and normalised to the total current. Hence, the kick at \texttt{r2} is given by the value of \texttt{theta\_r2} (or by the optional parameters) and not by integration of the radial profile. The domain of the profile must be larger than the domain identified by $R_1$ and $R_2$. \\*
     \hline
 
@@ -1389,10 +1386,10 @@ Currently, the ideal electron lens is implemented, i.e.
 
     & \texttt{L} & m & Length of the e-lens. Must be positive. \\*
     \hline
-    
+
     & \texttt{I} & A & Electron current of the e-lens. Must be non--zero. If negative, the electron beam is considered travelling in the direction opposite to that of the main beam. \\*
     \hline
-    
+
     & \texttt{E\_k} & keV & kinetic energy of electrons in the e-lens. Must be positive.\\*
     \hline
 
@@ -1474,7 +1471,7 @@ The file format of the radial profile is
 
 Formatting rules:
 \begin{itemize}
-\item every non-commented line with a non-negative value of current density is taken as a point in the profile;
+\item every non-commented line is taken as a point in the profile;
 \item values of the radius must be in \emph{increasing} order. Otherwise, the program stops.
 \end{itemize}
 
@@ -1671,11 +1668,6 @@ If so, a converted database is written to the simulation folder with an added fi
 The energy of the beam to be tracked.
 This is independent of the energy specified in other blocks, and is a required value.
 
-\paragraph{Beam Number} \texttt{BEAM\_NUM 1|2}\\
-
-Number of the beam tracked.
-The default value is 1.
-
 \paragraph{Emittance (Required)} \texttt{EMIT eX\_d eY\_d eX\_g eY\_g}\\
 
 Specifies the normalised emittance for the distribution \texttt[eX\_d, eY\_d], and for the collimator gaps \texttt[eX\_g, eY\_g].
@@ -1776,29 +1768,15 @@ The default value is the sigma gap specified in the collimator database.
     \texttt{tcryo}   & The collimators in the DS regions.
 \end{longtabu}
 
-\paragraph{Set Jaw Slicing} \texttt{JAW\_SLICE nslice smin smax recenter1 recenter2}\\
+\paragraph{Jaw Slicing}~\\
 
-The surface model of the jaw.
-Specify the slicing of the jaw.
-All values default to 0.
+This feature has been removed from the main collimation block.
+The collimators or collimator families that are to be sliced are now set in the collimator database file.
+See Section~\ref{Sec:CollDB}.
 
-\bigskip
-\begin{tabular}{@{}llp{0.7\linewidth}}
-    \texttt{nslice}    & integer & Number of slices in which each jaw should be cut. \\
-    \texttt{smin}      & float   & S-position for the start of the slicing. \\
-    \texttt{smax}      & float   & S-position for the end of the slicing. \\
-    \texttt{recenter1} & float   & Moving the 1st jaw to the new smallest opening. \\
-    \texttt{recenter2} & float   & Moving the 2nd jaw to the new smallest opening.
-\end{tabular}
+\paragraph{One-Sided Collimators}~\\
 
-\paragraph{Set Jaw Fits} \texttt{JAW\_FIT[1|2] 0th 1st 2nd 3rd 4th 5th scale}\\
-
-Specifies the polynomial fit of the first or second jaw for the 0th to the 5th order, as well as the scaling of the polynomial.
-All values default to 0.
-
-\paragraph{One-Sided Collimators} \texttt{DO\_ONESIDE true|false}\\
-
-This feature has been removed.
+This feature has been removed from the main collimation block.
 The collimators or collimator families that are to be treated as one-sided are now set in the collimator database file.
 See Section~\ref{Sec:CollDB}.
 
@@ -1906,6 +1884,7 @@ All flags default to \texttt{false}.
     \texttt{WRITE\_IMPACT} & Writes the impact parameters for each collimator. \\
     \texttt{WRITE\_SECOND} & Writes a secondary halo file based on normalised amplitude. \\
     \texttt{WRITE\_AMPL}   & Writes checking files for amplitude, closed orbit. \\
+    \texttt{WRITE\_EFFIC}  & Writes the efficiency files. \\
     \texttt{WRITE\_TRACKS} & Writes secondary/tertiary halo files.
 \end{tabular}
 
@@ -1936,10 +1915,26 @@ The main section of the database consists of a list of collimator family declara
 The family declaration is optional, but it makes it easier to assign parameters to a group of collimators instead of specifying each one individually.
 In the main section, this is used to provide the default collimator opening.
 
-The collimator family settings are povided in exactly the same way as the \texttt{NISG\_FAM} keyword in the \texttt{COLL} block in \texttt{fort.3}.
-The keyword takes a family name and a collimator opening setting as input parameters.
-The settings in \texttt{fort.3} overrides the settings of the database.
+The collimator family settings are povided similarly to the \texttt{NISG\_FAM} keyword in the \texttt{COLL} block in \texttt{fort.3}.
+The keyword takes a family name, a collimator opening setting, and a collimator stage as input parameters.
+Note that the sigma settings in \texttt{fort.3} overrides the settings of the database.
 
+The collimator stage is not required, and defaults to \texttt{UNKNOWN}.
+Each collimator stage has a number associated with it that is an exponent of 2 (se table below).
+In files like \texttt{coll\_ellipse.dat} and \texttt{tracks2.dat}, the sum of these are printed, meaning the information of what collimator stages a particle (that has not been absorbed) has hit can be extracted.
+Only the first three characters of the collimator stage is required, the rest of the word is optional for clarity.
+
+\bigskip
+\begin{tabular}{@{}llp{0.7\linewidth}}
+    \texttt{PRIMARY}   &  1 & Primary collimators \\
+    \texttt{SECONDARY} &  2 & Secondary collimators \\
+    \texttt{TERTIARY}  &  4 & Tertiary collimators \\
+    \texttt{OTHER}     &  8 & Any other collimator \\
+    \texttt{CRYSTAL}   & 16 & Crystal collimators (not yet implemented) \\
+    \texttt{UNKNOWN}   & 32 & The collimator stage is unknown (default) \\
+\end{tabular}
+
+\bigskip
 The collimator key settings are provided in a table of either 6 or 8 columns.
 The latter two columns are optional.
 The formats are as follows:
@@ -1960,10 +1955,10 @@ The formats are as follows:
 
 \begin{cverbatim}
 # Families
-NSIG_FAM tcp3      12.000000
-NSIG_FAM tcsg3     15.600000
-NSIG_FAM tcsm3    999.000000
-NSIG_FAM tcla3     17.600000
+NSIG_FAM tcp3      12.000000 PRIMARY
+NSIG_FAM tcsg3     15.600000 SECODNARY
+NSIG_FAM tcsm3    999.000000 SECODNARY
+NSIG_FAM tcla3     17.600000 TERTIARY
 # Collimators
 # name          opening mat.   length[m]  angle[deg]  offset[m]    beta_x[m]    beta_y[m]
 tclx.4r1.b1        tclp Iner    1.000000    0.000000   0.000000  6812.605863  4597.092632
@@ -2000,13 +1995,44 @@ The \texttt{name} can either be a collimator name or a family name.
 The last parameter specifies either jaw 1 (i.e. at $x$>0 in the collimator reference system) or jaw 2 (i.e. at $x$<0 in the collimator reference system).
 If jaw 2 is selected, the collimator is rotated by 180 degrees, as only the positive $x$ side is treated when one-sided is enabled.
 
-\paragraph{Example}~
-
+\bigskip
+\noindent\textit{Example}
 \begin{cverbatim}
 SETTINGS
 ONESIDED tcdqa.a4r6.b1    1
 ONESIDED tcdqa.c4r6.b1    1
 ONESIDED tcdqa.b4r6.b1    1
+\end{cverbatim}
+
+\paragraph{Jaw Fit Profile} \texttt{JAW\_PROFILE name fac0 [... fac5]}\\
+
+Adds a named fit profile with factors $s_i$ up to fifth order on the form:\index{collimator jaw fit}
+\begin{equation}
+    P_i = A\left[s_0 + s_1 x_i + \frac{s_2 x_i^2}{L} + s_3 x_i^3 + s_4 x_i^4 + s_5 x_i^5\right]
+\end{equation}
+where $P_i$ is the profile of the $i$-th slice, $A$ is a scaling factor, $L$ is the length of the collimator, and
+\begin{equation}
+    x_i = \frac{L(i-1)}{N}
+\end{equation}
+where $N$ is the number of slices.
+The scaling factors default to zero, and only the $0$-th order factor is required.
+
+\paragraph{Jaw Fit} \texttt{JAW\_FIT target nslices fit1 fit2 [scale1 scale2 [recentre1 recentre2]]}\\
+
+Apply a fit defined with \texttt{JAW\_PROFILE} to the two jaws of a \texttt{target} collimator or family of collimators.
+The number of slices is required, and so are the prfoile names \texttt{fit1} and \texttt{fit2} for collimator jaw 1 and 2, respectively.
+The scaling factors \texttt{scale1} and \texttt{scale2} are optional, and default to one.
+It is also possible to move the collimator such that the opening corresponds to the smallest gap after the jaw fit profile has been applied.
+This can be enabled by setting the logical flags \texttt{recentre1} and \texttt{recentre2} for the two jaws.
+These flags default to \texttt{off}.
+
+\bigskip
+\noindent\textit{Example}
+\begin{cverbatim}
+SETTINGS
+JAW_PROFILE FIT_A -1.0e-5 -2.4e-3 4.3e-3 -4.1e-3 1.8e-3 3.0e-4
+JAW_PROFILE FIT_B -1.0e-5 -2.4e-3 4.3e-3 -4.1e-3 1.8e-3 3.0e-4
+JAW_FIT tcsg7 15 FIT_A FIT_B 1.0 1.0 on on
 \end{cverbatim}
 
 % ================================================================================================================================ %
@@ -2099,25 +2125,25 @@ The old input block format is illustrated in the following example, and the asso
 
 \bigskip
 \begin{cverbatim}
-COLLIMATION----------------------------------------------------------------
-    .true.
-    50   7000000
-    3  5 .958  .0015  0.  0.  "nothing"  1. 129e-4  75.5
-    .true.  15.  18.  18.  20.  6.  7.  7.  10.0 1 0.0  999.0  8.0   7.5   999.0
-    8.3  8.3  8.3  8.3  8.3  8.3  8.3  8.3  5. 15.
-    0 19789.0  20150.0  1  1
-   -1.3899e-6  -9.345e-5  5.05324e-3  -1.6595e-2  2.15955e-2  -9.96261e-3  1.0
-   -1.3899e-6  -9.345e-5  5.05324e-3  -1.6595e-2  2.15955e-2  -9.96261e-3  1.0
-    0.503E-09  0.503E-09
-   .false. .false. 0 .true. TCP.C6L7.B1 .false. .true. .true. .true.
-   0.  0.  0.  0.
+COLLIMATION
+   .true.
+   50   7000000
+   3  5  0.958  0.0015  0.0  0.0  "nothing"  1.0 129e-4  75.5
+   .true.  15.0  18.0  18.0  20.0  6.0  7.0  7.0  10.0 1 0.0  999.0  8.0   7.5   999.0
+   8.3  8.3  8.3  8.3  8.3  8.3  8.3  8.3  5.0 15.0
+   0 19789.0  20150.0  1  1
+  -1.3899e-6  -9.345e-5  5.05324e-3  -1.6595e-2  2.15955e-2  -9.96261e-3  1.0
+  -1.3899e-6  -9.345e-5  5.05324e-3  -1.6595e-2  2.15955e-2  -9.96261e-3  1.0
+   0.503E-09  0.503E-09
+  .false. .false. 0 .true. TCP.C6L7.B1 .false. .true. .true. .true. .true.
+   0.0 0.0 0.0 0.0
    0   0   0   0   0   0   0   0   0   0   .false.
-   .false.  6.003  0.0015
-   0.  0.  .false. .false.
+  .false.  6.003  0.0015
+   0.0 0.0 .false. .false.
    0   0.0025  0.0   0.0   0
    "CollDB_V6.500_lowb_st.b1.data"  1
    .true. .false. WAbsVertLowbcoll  101  1  1.
-NEXT-----------------------------------------------------------------------------
+NEXT
 \end{cverbatim}
 
 \paragraph{Old Collimator Database Format}~\\
@@ -2297,9 +2323,9 @@ This structure is then repeated within the file for each of the collimators to b
         \cline{2-4}
         & \texttt{DO\_NOMINAL}   & logical & Switches on/off the use of design $\beta$ values of collimators. \\
         \cline{2-4}
-        & \texttt{RND\_SEED}     & integer & Seed studied. If set to 0, seed will be selected randomly for every run. \\
+        & \texttt{RND\_SEED}     & integer & Seed studied. If set to 0, seed will be selected from system clock for every run. \\
         \cline{2-4}
-        & \texttt{DOWRITE\_DIST} & logical & Saves or not the initial distribution to be tracked. \\
+        & \texttt{DOWRITE\_DIST} & logical & Saves the initial distribution to be tracked. \\
         \cline{2-4}
         & \texttt{NAME\_SEL}     & char    & Name as in the \texttt{fort.2} file of the collimator one wants a dedicated study. \\
         \cline{2-4}
@@ -2307,9 +2333,11 @@ This structure is then repeated within the file for each of the collimators to b
         \cline{2-4}
         & \texttt{DOWRT\_IMPACT} & logical & Saves the impact parameters for each collimator. \\
         \cline{2-4}
-        & \texttt{DOWRT\_SECOND} & logical & Writes a secondary halo file based on normalized amplitude. \\
+        & \texttt{DOWRT\_SECOND} & logical & Writes a secondary halo file based on normalised amplitude. \\
         \cline{2-4}
         & \texttt{DOWRT\_AMPL}   & logical & Writes checking files for amplitude, closed orbit. \\
+        \cline{2-4}
+        & \texttt{DOWRT\_EFFIC}  & logical & Writes the efficiency files. \\
     \hline
 
     11  & \texttt{XBEAT}         & float   & Offset in $x$ for the computation of collimator in case of beta-beating\index{beta-beating}. \\
@@ -2355,7 +2383,7 @@ This structure is then repeated within the file for each of the collimators to b
         \cline{2-4}
         & \texttt{DRIFTSY}       & float   & Apply an emittance drift\index{emittance drift} in the $y$ direction. \\
         \cline{2-4}
-        & \texttt{CUT\_INPUT}    & logical & Formerly used to select particles to be tracked (set FALSE). \\
+        & \texttt{CUT\_INPUT}    & logical & This value is no longer used, and is ignored. \\
         \cline{2-4}
         & \texttt{SYSTILT\_ANTI} & logical & Deduce \texttt{SYSTILT} to \texttt{RMSTILT} instead of adding. \\
     \hline
@@ -2373,16 +2401,16 @@ This structure is then repeated within the file for each of the collimators to b
 
     16  & \texttt{COLL\_DB}      & char    & Name of the collimator database. \\
         \cline{2-4}
-        & \texttt{IBEAM}         & integer & Number of the beam tracked (1 or 2). \\
+        & \texttt{IBEAM}         & integer & This value is no longer used, and is ignored. \\
     \hline
 
     17  & \texttt{DOWRITETRACKS} & logical & Writes secondary/tertiary halo files. \\
         \cline{2-4}
-        & \texttt{CERN}          & logical & Switches on/off to cut halo files in separate pieces, one per 64 particles. \\
+        & \texttt{CERN}          & logical & This value is no longer used, and is ignored. \\
         \cline{2-4}
-        & \texttt{CASTORDIR}     & char    & Name of the run; MUST BE EXACTLY 16 characters. \\
+        & \texttt{CASTORDIR}     & char    & This value is no longer used, and is ignored. \\
         \cline{2-4}
-        & \texttt{JOBNUMBER}     & integer & 5 digit number, name of the complement to the name of the run (gives seed). \\
+        & \texttt{JOBNUMBER}     & integer & This value is no longer used, and is ignored. \\
         \cline{2-4}
         & \texttt{SIGSECUT2}     & float   & Cut in square sigmas $x$/$y$ for saving particles (e.g. 64 for a cut at 8 $\sigma_x$/$\sigma_y$). \\
         \cline{2-4}

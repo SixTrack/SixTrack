@@ -1,4 +1,3 @@
-
 ##
 ##  SixTrack Test Suite
 ## =====================
@@ -29,12 +28,25 @@ set_tests_properties(SelfTest_read90 PROPERTIES PASS_REGULAR_EXPRESSION "Error i
 add_test(NAME SelfTest_readDump3 COMMAND readDump3)
 set_tests_properties(SelfTest_readDump3 PROPERTIES PASS_REGULAR_EXPRESSION "Expected 2 arguments: inputfile outputfile\n.*3")
 
+add_test(NAME SelfTest_splitSingletrack COMMAND splitSingletrack)
+set_tests_properties(SelfTest_splitSingletrack PROPERTIES PASS_REGULAR_EXPRESSION "Error in splitSingletrack -- file 'singletrackfile.dat' not found\.\n.*1")
+
 if(ZLIB)
-  add_test(NAME SelfTest_zlib COMMAND ${CMAKE_BINARY_DIR}/zlib/example)
+  if(32BIT)
+    add_test(NAME SelfTest_zlib COMMAND ${CMAKE_BINARY_DIR}/zlib/example)
+  endif()
   if(64BIT)
     add_test(NAME SelfTest_zlib_64 COMMAND ${CMAKE_BINARY_DIR}/zlib/example64)
   endif()
 endif()
+
+# Check that the splitSingletrack is really working correctly
+add_custom_target(test_copy_SelfTest_splitSingletrack_run)
+add_custom_command(TARGET test_copy_SelfTest_splitSingletrack_run POST_BUILD COMMAND ${CMAKE_COMMAND} -E make_directory ${CMAKE_BINARY_DIR}/test/CheckSplitSingletrack)
+add_custom_command(TARGET test_copy_SelfTest_splitSingletrack_run POST_BUILD COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_SOURCE_DIR}/test/CheckSplitSingletrack/CheckSplitSingletrack.sh ${CMAKE_BINARY_DIR}/test/CheckSplitSingletrack/CheckSplitSingletrack.sh)
+add_dependencies(SixTrackCore test_copy_SelfTest_splitSingletrack_run)
+
+add_test(NAME SelfTest_splitSingletrack_run WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/test/CheckSplitSingletrack/ COMMAND ${CMAKE_BINARY_DIR}/test/CheckSplitSingletrack/CheckSplitSingletrack.sh ${CMAKE_BINARY_DIR}/splitSingletrack ${CMAKE_BINARY_DIR}/read90 ${CMAKE_BINARY_DIR}/test/dump7_fma/singletrackfile.dat.canonical)
 
 ##
 ## Checks
@@ -45,6 +57,8 @@ set_tests_properties(CheckTestInput_STF PROPERTIES FAIL_REGULAR_EXPRESSION "ERRO
 
 add_test(NAME CheckBuildManual COMMAND ${CMAKE_SOURCE_DIR}/test/CheckBuildManual.sh "${CMAKE_SOURCE_DIR}")
 set_tests_properties(CheckBuildManual PROPERTIES FAIL_REGULAR_EXPRESSION "ERROR")
+
+
 
 ##
 ## ERROR Tests
@@ -74,6 +88,7 @@ list(APPEND SIXTRACK_TESTS
   beam-HO_6D-newstyle
   beam-HO_6D-oldstyle
   beam-HO_6D-simple-newstyle
+  beam-HO_6D-simple-newstyle-coupling
   beam-HO_6D-simple-newstyle-orbit
   beam-HO_6D-simple-oldstyle
   beam-HO_LR-ibbc-newstyle
@@ -103,6 +118,10 @@ list(APPEND SIXTRACK_TESTS
   dump9
   dynk_filelin
   dynk_globalvars
+  dynk_IIR
+  dynk_operators
+  dynk_polynomial
+  dynk_random
   elensidealthck4d
   elensidealthck6d
   elensidealthin4d
@@ -131,10 +150,10 @@ list(APPEND SIXTRACK_TESTS
   notilt
   orbit6d-element-combinedFunction
   orbit6d-element-quadrupole
+  orbit6d-element-rotations
   orbit6d-element-solenoid
   orbit6d-element-trombone
   orbit6d-element-trombone-kick
-  orbit6d-element-rotations
   orbit6d-ions
   orbit6d-ions-long
   part_state_binary_ions
@@ -142,11 +161,13 @@ list(APPEND SIXTRACK_TESTS
   perf1
   prob1
   prob3
+  random_numbers
   rfMultipoles_2nd3rd4th_skew
   rfMultipoles_2ndOrder
   rfMultipoles_3rdOrder
   rfMultipoles_4thOrder
   s316
+  scatter_aperture
   scatter_bbelastic
   thick4
   thick6d_below_transit
@@ -167,19 +188,12 @@ list(APPEND SIXTRACK_TESTS
 # Tests depending on flags
 ##
 
-if(STF)
-  list(APPEND SIXTRACK_TESTS
-    beam-HO_6D-simple-newstyle-coupling
-    dynk_IIR
-    dynk_operators
-    dynk_polynomial
-    dynk_random
-    scatter_aperture
-  )
-endif()
-
 if(NOT CR)
   list(APPEND SIXTRACK_TESTS
+    collimation_cry_ge_am_hor_b2
+    collimation_cry_ge_vc_ver_b1
+    collimation_cry_si_ch_hor_b1
+    collimation_cry_si_vr_ver_b2
     collimation_dist_1h
     collimation_dist_1v
     collimation_dist_2h
@@ -190,6 +204,7 @@ if(NOT CR)
     collimation_dist_5
     collimation_dist_6
     collimation_dist_radial
+    collimation_jaw_fit
     collimation_jaw_fit_b4
     collimation_jaw_fit_b4_offsets_tilts
     collimation_jaw_fit_b4_onesided
@@ -197,6 +212,7 @@ if(NOT CR)
     collimation_new-db_new-block
     collimation_old-db_new-block
     collimation_old-db_old-block
+    collimation_tracks2
     scatter_collimation
   )
 endif()
@@ -213,7 +229,7 @@ if(PYTHIA)
   )
 endif()
 
-if(DISTLIB AND STF)
+if(DISTLIB)
   list(APPEND SIXTRACK_TESTS
     distlib_normalised
     distlib_tmatrix
@@ -245,6 +261,10 @@ set(TESTS_NOFORT10
   beam-HO_6D-simple-oldstyle
   beambeam4dDYNK
   beambeamDYNK
+  collimation_cry_ge_am_hor_b2
+  collimation_cry_ge_vc_ver_b1
+  collimation_cry_si_ch_hor_b1
+  collimation_cry_si_vr_ver_b2
   collimation_dist_1h
   collimation_dist_1v
   collimation_dist_2h
@@ -255,6 +275,7 @@ set(TESTS_NOFORT10
   collimation_dist_5
   collimation_dist_6
   collimation_dist_radial
+  collimation_jaw_fit
   collimation_jaw_fit_b4
   collimation_jaw_fit_b4_offsets_tilts
   collimation_jaw_fit_b4_onesided
@@ -262,6 +283,7 @@ set(TESTS_NOFORT10
   collimation_new-db_new-block
   collimation_old-db_new-block
   collimation_old-db_old-block
+  collimation_tracks2
   dist_file_6d
   dist_file_6d_direct
   distlib_normalised
@@ -297,6 +319,7 @@ set(TESTS_NOFORT10
   orbit6d-ions-long
   part_state_binary_ions
   part_state_text_ions
+  random_numbers
   rfMultipoles_2nd3rd4th_skew
   rfMultipoles_2ndOrder
   rfMultipoles_3rdOrder
@@ -312,12 +335,16 @@ set(TESTS_NOFORT10
 )
 
 # List of tests that do not produce singletrackfile.dat or fort.90
-set(TESTS_NO_STF_FORT90
+set(TESTS_NO_STF
   beam-HO_6D-simple-newstyle-coupling
   chebythin6d
   chebythin6d_DYNK
   chebythin6d_ions
   chebythin6d_ramp_DYNK
+  collimation_cry_ge_am_hor_b2
+  collimation_cry_ge_vc_ver_b1
+  collimation_cry_si_ch_hor_b1
+  collimation_cry_si_vr_ver_b2
   collimation_dist_1h
   collimation_dist_1v
   collimation_dist_2h
@@ -328,6 +355,7 @@ set(TESTS_NO_STF_FORT90
   collimation_dist_5
   collimation_dist_6
   collimation_dist_radial
+  collimation_jaw_fit
   collimation_jaw_fit_b4
   collimation_jaw_fit_b4_offsets_tilts
   collimation_jaw_fit_b4_onesided
@@ -335,6 +363,7 @@ set(TESTS_NO_STF_FORT90
   collimation_new-db_new-block
   collimation_old-db_new-block
   collimation_old-db_old-block
+  collimation_tracks2
   crabs
   orbit6d-element-rotations
   dipedge
@@ -347,6 +376,8 @@ set(TESTS_NO_STF_FORT90
   dump4
   dump5
   dump6
+  dynk_filelin
+  dynk_globalvars
   dynk_IIR
   dynk_operators
   dynk_polynomial
@@ -360,6 +391,7 @@ set(TESTS_NO_STF_FORT90
   geometry_multicol
   part_state_binary_ions
   part_state_text_ions
+  random_numbers
   rfMultipoles_2ndOrder
   rfMultipoles_4thOrder
   scatter_aperture
@@ -412,15 +444,10 @@ foreach(TST IN ITEMS ${SIXTRACK_TESTS})
   endif()
 
   # if STF, we need to use the STF flag on read90, and disable checking fort.90
-  if(STF)
-    set(STF_ENABLE 1)
-    set(FORT90 0)
-  else()
-    set(STF_ENABLE 0)
-    set(FORT90 1)
-  endif(STF)
+  set(STF_ENABLE 1)
+  set(FORT90 0)
 
-  if(TST IN_LIST TESTS_NO_STF_FORT90)
+  if(TST IN_LIST TESTS_NO_STF)
     set(STF_ENABLE 0)
     set(FORT90 0)
   endif()
@@ -591,6 +618,10 @@ set(FAST_TESTS
   chebythin6d_DYNK
   chebythin6d_ions
   chebythin6d_ramp_DYNK
+  collimation_cry_ge_am_hor_b2
+  collimation_cry_ge_vc_ver_b1
+  collimation_cry_si_ch_hor_b1
+  collimation_cry_si_vr_ver_b2
   collimation_dist_1h
   collimation_dist_1v
   collimation_dist_2h
@@ -601,12 +632,14 @@ set(FAST_TESTS
   collimation_dist_5
   collimation_dist_6
   collimation_dist_radial
+  collimation_jaw_fit
   collimation_jaw_fit_b4
   collimation_jaw_fit_b4_offsets_tilts
   collimation_jaw_fit_b4_onesided
   collimation_new-db_new-block
+  collimation_old-db_new-block
   collimation_old-db_old-block
-  collimation_old-db_old-block
+  collimation_tracks2
   crabs
   dist_file_6d
   dist_file_6d_direct
@@ -659,6 +692,7 @@ set(FAST_TESTS
   orbit6d-ions-long
   part_state_binary_ions
   part_state_text_ions
+  random_numbers
   rfMultipoles_2nd3rd4th_skew
   rfMultipoles_2ndOrder
   rfMultipoles_3rdOrder
@@ -745,6 +779,8 @@ set(SELFTEST_TOOLS
   SelfTest_checkf110
   SelfTest_read90
   SelfTest_readDump3
+  SelfTest_splitSingletrack
+  SelfTest_splitSingletrack_run
 )
 foreach(TOOL IN ITEMS ${SELFTEST_TOOLS})
   set_property(TEST ${TOOL} PROPERTY LABELS tool fast)
@@ -752,7 +788,9 @@ endforeach()
 
 # Zlib tests
 if(ZLIB)
-  set_property(TEST SelfTest_zlib PROPERTY LABELS tool fast)
+  if(32BIT)
+    set_property(TEST SelfTest_zlib PROPERTY LABELS tool fast)
+  endif()
   if(64BIT)
     set_property(TEST SelfTest_zlib_64 PROPERTY LABELS tool fast)
   endif()

@@ -33,7 +33,6 @@ Builds SixTrack release with gfortran, with checkpoint/restaring support and wit
 * **TILT**:          Allow elements to be tilted (by error)
 * **CRLIBM**:        Use correctly rounded libmath instead of system libmath
 * **SIXDA**:         Build differential algebra version (NOT dynamic aperture!)
-* **STF**:           Single Track File. Write all tracks for postprocessing to singletrackfile.dat instead of 32 separate files (fort.59 - fort.90). This option is required for more than 64 particles.
 * **ZLIB**:          Link with zlib and minizip, and is required for BOINC and the ZIPF.
 * **NAFF**:          Link to external NAFFlib for FMA.
 * **DISTLIB**:       Link to external DISTlib for the beam distribution.

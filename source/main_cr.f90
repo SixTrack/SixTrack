@@ -16,6 +16,7 @@ program maincr
   use floatPrecision
   use mod_units
   use mod_linopt
+  use mod_random
   use string_tools
   use sixtrack_input
   use mathlib_bouncer
@@ -31,6 +32,7 @@ program maincr
   use mod_meta
   use mod_time
   use aperture
+  use tracking
   use mod_ranecu
   use mod_particles
   use mod_geometry,   only : geom_calcDcum, geom_reshuffleLattice
@@ -38,7 +40,7 @@ program maincr
   use mod_fluc,       only : fluc_randomReport, fluc_errAlign, fluc_errZFZ
   use postprocessing, only : postpr, writebin_header, writebin
   use read_write,     only : writeFort12, readFort13, readFort33
-  use collimation,    only : do_coll, collimate_init, collimate_exit
+  use collimation,    only : do_coll, coll_init, coll_exitCollimation
   use mod_ffield,     only : ffield_mod_init,ffield_mod_end
 
 #ifdef FLUKA
@@ -99,9 +101,6 @@ program maincr
 
   ! New Variables
   character(len=:), allocatable :: featList, compName
-#ifndef STF
-  character(len=7)  tmpFile
-#endif
   character(len=23) timeStamp
   character(len=8)  tsDate
   character(len=10) tsTime
@@ -136,12 +135,6 @@ program maincr
 
   ! Features
   featList = ""
-#ifdef TILT
-  featList = featList//" TILT"
-#endif
-#ifdef STF
-  featList = featList//" STF"
-#endif
 #ifdef CRLIBM
   featList = featList//" CRLIBM"
   call disable_xp()
@@ -193,16 +186,8 @@ program maincr
   call f_open(unit=26,file="fort.26",formatted=.false.,mode="rw",err=fErr) ! DA file
   call f_open(unit=31,file="fort.31",formatted=.true., mode="w", err=fErr)
 
-#ifdef STF
   ! Open Single Track File
   call f_open(unit=90,file="singletrackfile.dat",formatted=.false.,mode="rw",err=fErr)
-#else
-  ! Open binary files 59 to 90 for particle pair 1 to 32
-  do i=59,90
-    write(tmpFile,"(a5,i0)") "fort.",i
-    call f_open(unit=i,file=tmpFile,formatted=.false.,mode="rw",err=fErr)
-  end do
-#endif
 
   call time_timeStamp(time_afterFileUnits)
 
@@ -258,6 +243,7 @@ program maincr
 
   call daten
   call time_timeStamp(time_afterDaten)
+  call rnd_initSeries ! Initialise random numbers
 
 #ifdef HDF5
   if(h5_isActive) then
@@ -310,17 +296,7 @@ program maincr
     call f_requestUnit(fort110,unit110)
     call f_open(unit=unit10, file=fort10, formatted=.true., mode="rw",err=fErr,status="replace",recl=8195)
     call f_open(unit=unit110,file=fort110,formatted=.false.,mode="rw",err=fErr,status="replace")
-#ifndef STF
-    do i=1,ndafi !ndafi = number of files to postprocess (set by fort.3)
-#ifndef CR
-      call postpr(91-i)
-#else
-      write(crlog,"(2(a,i0))") "SIXTRACR> Calling POSTPR Unit: ",(91-i),", turns: ",nnuml
-      flush(crlog)
-      call postpr(91-i,nnuml)
-#endif
-    end do
-#else
+
     ! ndafi normally set in fort.3 to be "number of files to postprocess"
     ! Inside the postpr subroutine ndafi is modified as:
     ! ndafi=itopa(total particles) if once particle per header i.e ntwin=1,
@@ -334,7 +310,6 @@ program maincr
       call postpr(i,nnuml)
 #endif
     end do
-#endif
 
     call sumpos
     call f_close(unit10)
@@ -353,7 +328,7 @@ program maincr
   damp  = zero
   if(napx /= 1) damp=((amp00-amp0)/real(napx-1,fPrec))/two
   napx  = 2*napx
-  call expand_arrays(nele, napx, nblz, nblo)
+  call expand_arrays(nele, napx, nblz, nblo, nbb)
 
   ! Log some meta data
   meta_nPartInit = napx
@@ -1106,57 +1081,28 @@ program maincr
         dam(ia+1) = dam1
       end if
 
-      ! Write header of track output file(s) used by postprocessing for case ntwin /= 2
-#ifndef STF
+      ! Write header of singletrackfile.dat used by postprocessing for case ntwin /= 2
 #ifdef CR
       if(.not.cr_restart) then
 #endif
-        call writebin_header(ia,ia,91-ia2,ierro,cDate,cTime,progrm)
-#ifdef CR
-        flush(91-ia2)
-        binrecs(ia2)=1
-      endif
-#endif
-#else
-#ifdef CR
-      if(.not.cr_restart) then
-#endif
-        call writebin_header(ia,ia,90,ierro,cDate,cTime,progrm)
-#ifdef CR
+        call writebin_header(ia,ia,90,cDate,cTime,progrm)
         flush(90)
+#ifdef CR
         binrecs(ia2)=1
       endif
 #endif
-#endif
-    else !ELSE for "if(ntwin.ne.2)"
-      ! Write header of track output file(s) used by postprocessing for case ntwin == 2
-#ifndef STF
+    else ! elseif(ntwin /= 2)
+      ! Write header of singletrackfile.dat used by postprocessing for case ntwin == 2
 #ifdef CR
       if(.not.cr_restart) then
 #endif
-        call writebin_header(ia,ia+1,91-ia2,ierro,cDate,cTime,progrm)
-#ifdef CR
-        flush(91-ia2)
-        binrecs(ia2)=1
-      endif
-#endif
-#else
-#ifdef CR
-      if(.not.cr_restart) then
-#endif
-        call writebin_header(ia,ia+1,90,ierro,cDate,cTime,progrm)
-#ifdef CR
+        call writebin_header(ia,ia+1,90,cDate,cTime,progrm)
         flush(90)
+#ifdef CR
         binrecs(ia2)=1
       endif
 #endif
-#endif
-    endif !ENDIF (ntwin.ne.2)
-    if(ierro /= 0) then
-      write(lerr,"(a,i0)") "MAINCR> ERROR Problems writing to file #",91-ia2
-      write(lerr,"(a,i0)") "MAINCR> ERROR Code: ",ierro
-      goto 520
-    endif
+    end if ! if(ntwin /= 2)
   end do ! napx
 
 #ifdef CR
@@ -1234,7 +1180,7 @@ program maincr
   call dump_initialise
   if(ithick == 0 .and. do_coll) then
     ! Only if thin and collimation enabled
-    call collimate_init
+    call coll_init
   end if
 
   call time_timeStamp(time_afterInitialisation)
@@ -1256,18 +1202,17 @@ program maincr
   call time_timerCheck(time1)
 
   ! time1 is now pre-processing CPU
-  ! note that this will be reset every restart as we redo pre-processing
-  pretime=time1-time0
-  part_isTracking = .true.
-  if(ithick == 0) call trauthin(nthinerr)
-  if(ithick == 1) call trauthck(nthinerr)
+  ! Note that this will be reset every restart as we redo pre-processing
+  pretime = time1-time0
+  call preTracking
+  call startTracking(nthinerr)
 
-  time2=0.
+  time2 = 0.0
   call time_timerCheck(time2)
 
-  if(iclo6 > 0 .and. ithick == 0 .and. do_coll) then
+  if(ithick == 0 .and. do_coll) then
     ! Only if thin 6D and collimation enabled
-    call collimate_exit
+    call coll_exitCollimation
   endif
 
   ! trtime is now the tracking time, BUT we must add other time for C/R
@@ -1455,23 +1400,12 @@ program maincr
     call f_open(unit=unit110,file=fort110,formatted=.false.,mode="rw",err=fErr,status="replace")
     do ia=1,napxo,2
       iposc = iposc+1
-#ifdef STF
 #ifdef CR
       write(crlog,"(3(a,i0))") "SIXTRACR> Calling POSTPR Particles: ",ia,",",(ia+1),", turns: ",nnuml
       flush(crlog)
       call postpr(ia,nnuml)
 #else
       call postpr(ia)
-#endif
-#else
-      ia2 = 91-(ia+1)/2 ! Track file unit number if not STF
-#ifdef CR
-      write(crlog,"(2(a,i0))") "SIXTRACR> Calling POSTPR Unit: ",ia2,", turns: ",nnuml
-      flush(crlog)
-      call postpr(ia2,nnuml)
-#else
-      call postpr(ia2)
-#endif
 #endif
     end do
     if(iposc >= 1) call sumpos
@@ -1489,22 +1423,12 @@ program maincr
     ndafi2 = ndafi
     do ia=1,ndafi2
       if(ia > ndafi) exit
-#ifdef STF
 #ifdef CR
       write(crlog,"(3(a,i0))") "SIXTRACR> Calling POSTPR Particles: ",ia,",",(ia+1),", turns: ",nnuml
       flush(crlog)
       call postpr(ia,nnuml)
 #else
       call postpr(ia)
-#endif
-#else
-#ifdef CR
-      write(crlog,"(2(a,i0))") "SIXTRACR> Calling POSTPR Unit: ",(91-i),", turns: ",nnuml
-      flush(crlog)
-      call postpr(91-ia,nnuml)
-#else
-      call postpr(91-ia)
-#endif
 #endif
     end do
     if(ndafi >= 1) call sumpos
@@ -1542,6 +1466,7 @@ program maincr
 
 #ifdef HASHLIB
   ! HASH library. Must be before ZIPF
+  call hash_doTrunc
   call hash_fileSums
   call time_timeStamp(time_afterHASH)
 #endif

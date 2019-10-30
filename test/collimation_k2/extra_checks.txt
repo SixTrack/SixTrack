@@ -4,4 +4,6 @@ coll_summary.dat
 efficiency.dat
 efficiency_2d.dat
 efficiency_dpop.dat
+sigmasettings.out
 hash.md5
+impact.dat

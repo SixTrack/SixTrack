@@ -95,7 +95,7 @@ logical function checkArray(xvals,datalen,lprint)
 
   if(datalen <= 0) then
     checkArray=.false.
-    if (llprint) write(lerr,"(a)") "UTILS> ERROR checkArray: datalen was 0!"
+    if (llprint) write(lerr,"(a)") "UTILS> ERROR checkArray: datalen was <=0!"
   end if
   do ii=1, datalen-1
     if(xvals(ii) >= xvals(ii+1)) then
@@ -652,8 +652,8 @@ subroutine wzsubv(n,vx,vy,vu,vv)
   use numerical_constants
 
   integer,          intent(in)  :: n
-  real(kind=fPrec), intent(out) :: vx(*)
-  real(kind=fPrec), intent(out) :: vy(*)
+  real(kind=fPrec), intent(in)  :: vx(*)
+  real(kind=fPrec), intent(in)  :: vy(*)
   real(kind=fPrec), intent(out) :: vu(*)
   real(kind=fPrec), intent(out) :: vv(*)
 
@@ -699,7 +699,7 @@ subroutine wzsubv(n,vx,vy,vu,vv)
           vu(outs(j)) = -(yy*vsreal+xx*vsimag)
           vv(outs(j)) = xx*vsreal-yy*vsimag
         end do
-        out =0
+        out = 0
       end if
     else
       in = in+1
@@ -870,8 +870,8 @@ subroutine wzsub(x,y,u,v)
   use parpro
   use parbeam
 
-  real(kind=fPrec), intent(out) :: x
-  real(kind=fPrec), intent(out) :: y
+  real(kind=fPrec), intent(in)  :: x
+  real(kind=fPrec), intent(in)  :: y
   real(kind=fPrec), intent(out) :: u
   real(kind=fPrec), intent(out) :: v
 
