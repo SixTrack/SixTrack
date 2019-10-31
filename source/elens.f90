@@ -974,7 +974,7 @@ subroutine elens_crcheck(fileUnit,readErr)
 
 10 continue
 
-  write(lout, "(a,i0,a)") "CR_CHECK> ERROR Reading C/R file fort.",fileUnit," in ELENS"
+  write(lerr, "(a,i0,a)") "CR_CHECK> ERROR Reading C/R file fort.",fileUnit," in ELENS"
   write(crlog,"(a,i0,a)") "CR_CHECK> ERROR Reading C/R file fort.",fileUnit," in ELENS"
   flush(crlog)
   readErr = .true.
@@ -996,7 +996,7 @@ subroutine elens_crpoint(fileUnit, writeErr)
 
 10 continue
 
-  write(lout, "(a,i0,a)") "CR_POINT> ERROR Writing C/R file fort.",fileUnit," in ELENS"
+  write(lerr, "(a,i0,a)") "CR_POINT> ERROR Writing C/R file fort.",fileUnit," in ELENS"
   write(crlog,"(a,i0,a)") "CR_POINT> ERROR Writing C/R file fort.",fileUnit," in ELENS"
   flush(crlog)
   writeErr = .true.
