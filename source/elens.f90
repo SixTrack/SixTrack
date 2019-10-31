@@ -568,8 +568,9 @@ subroutine parseRadialProfile(ifile)
 
   ierr = 0
   ii = 0
-  elens_radial_profile_R(ii,ifile) = zero
-  elens_radial_profile_J(ii,ifile) = zero
+  elens_radial_profile_R(:,ifile) = zero
+  elens_radial_profile_J(:,ifile) = zero
+
   write(lout,"(a)") "ELENS> Parsing file with radial profile "//trim(elens_radial_filename(ifile))
   call f_requestUnit(elens_radial_filename(ifile),fUnit)
   call f_open(unit=fUnit,file=elens_radial_filename(ifile),mode='r',err=err,formatted=.true.,status="old")
@@ -591,11 +592,6 @@ subroutine parseRadialProfile(ifile)
   end if
   call chr_cast(lnSplit(1),tmpR,spErr)
   call chr_cast(lnSplit(2),tmpJ,spErr)
-  if(tmpR<=elens_radial_profile_R(ii,ifile)) then
-    iErr = 1
-    write(lerr,"(a,i0)") "ELENS> ERROR radius not in increasing order at ii=",ii
-    goto 30
-  end if
   ii=ii+1
   if(ii>elens_radial_dim) then
     iErr = 2
@@ -612,12 +608,12 @@ subroutine parseRadialProfile(ifile)
 20 continue
 
   call f_freeUnit(fUnit)
-  if ( elens_radial_profile_nPoints(ifile).eq.0 ) then
-    write(lerr,"(a,i0,a,i0)") "ELENS> ERROR no points in radial profile"
+  if ( .not. checkArray(elens_radial_profile_R(:,ifile),elens_radial_profile_nPoints(ifile)) ) then
+    write(lerr,"(a,i0,a,i0)") "ELENS> ERROR in radial profile"
     go to 30
   end if
 
-  ! set current density at r=0 as at r=r1, to avoid 
+  ! set current density at r(0) as at r(1), to properly compute the cumulative curve
   elens_radial_profile_J(0,ifile)=elens_radial_profile_J(1,ifile)
   
   write(lout,"(a,i0,a)") "ELENS> ...acquired ",elens_radial_profile_nPoints(ifile)," points."
