@@ -4,21 +4,21 @@
 
 **Bugfixes**
 
-* Fixed an issue when opening `fort.208` when building with both FLUKA and G4COLLIMATION compiler flags. PR #1008 (V.K. Berglyd Olsen, J. Molson)
+* Fixed an issue when opening `fort.208` when building with both FLUKA and G4COLLIMATION compiler flags at the same time. PR #1008 (V.K. Berglyd Olsen, J. Molson)
 * Fixed a bug in the efficiency calculation where the vertical sigma was not correctly calculated when filling the histograms due to a missing set of parentheses. PR #987 (V.K. Berglyd Olsen)
 
 **User Side Changes**
 
-* The collimation module now supports crystal collimaters. The crystal collimation code that was written based on an older version of SixTrack has now been updated and added to SixTrack 5. Using crystal collimators requires the use of the new collimator database format. PR #1004 (M. D'Andrea, V.K. Berglyd Olsen)
+* The collimation module now supports crystal collimation. The crystal collimation code that was written based on an older version of SixTrack has now been updated and added to SixTrack 5. Using crystal collimators requires the use of the new collimator database format. PR #1004 (M. D'Andrea, V.K. Berglyd Olsen)
 * The collimation code is no longer hardcoded to assume LHC element naming convention. The collimator names are still processed assuming LHC convention when using the old input block and database format, but the new format does not rely on any naming convention. A collimator is a collimator if it's defined in the collimator database file. PR #970 (V.K. Berglyd Olsen)
-* Since the collimators are no longer dependent on naming convention, the collimator stage (primary, secondary, tertiary, etc) has to be specified in the database if an analysis based on these are intended. This has been added as an optional parameter in the collimator family definition. PR #986 (V.K. Berglyd Olsen)
-* Collimator efficiency studies are now disabled by default, and need to be explicitly requested. A flag has been added to both the old and the new input block for this. The feature is by default disabled as it requires substantial amounts of memory relative to the total memory usage of SixTrack. PR #987 (V.K. Berglyd Olsen)
+* Since the collimators are no longer dependent on naming convention, the collimator stage (primary, secondary, tertiary, etc) has to be specified in the database if an on-line analysis based on these are intended. This has been added as an optional parameter in the collimator family definition. PR #986 (V.K. Berglyd Olsen)
+* Collimator efficiency studies (histograps on normalised amplitudes) are now disabled by default, and need to be explicitly requested. A flag has been added to both the old and the new input block for this. The feature is by default disabled as it requires substantial amounts of memory relative to the total memory usage of SixTrack. PR #987 (V.K. Berglyd Olsen)
 * Aperture tilt in the input is now specified in degrees, not radians. PR #1003 (T. Persson)
 
 **Code Improvements and Changes**
 
 * This release includes a major clean-up of the collimation code. The old collimation module has been split up into separate modules. The K2 physics routines have been split out into their own module, and connected to the crystal collimation module. The funlux code has also been moved to a new module. A lot of statistics calculations and other sections of code have been extracted and put into separate routines to make the code both more readable and to avoid duplication of code. Many unused or unneeded variables have been removed, and collimator materials have been split out into a separate module; so has a lot of shared collimator variables. A test for the `tracks2.dat` file has been added. PRs #975, #987, #997, #998 and #1002 (V.K. Berglyd Olsen, A. Mereghetti)
-* Exact drifts are now computed without first converting the coordinates to m and rad and then back to mm and mrad for each drift. This adds numerical noise an unnecessary CPU cost. PR #999 (V.K. Berglyd Olsen)
+* Exact drifts are now computed without first converting the coordinates to m and rad and then back to mm and mrad for each drift. This adds numerical noise and unnecessary CPU cost. PR #999 (V.K. Berglyd Olsen)
 * Cavities and phase trombone elements now uses the general routine for updating particle energy arrays, ensuring consistency between elements. PR #1001 (V.K. Berglyd Olsen)
 
 ### Version 5.4 [10.10.2019] - Release
