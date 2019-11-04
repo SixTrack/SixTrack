@@ -2035,6 +2035,31 @@ JAW_PROFILE FIT_B -1.0e-5 -2.4e-3 4.3e-3 -4.1e-3 1.8e-3 3.0e-4
 JAW_FIT tcsg7 15 FIT_A FIT_B 1.0 1.0 on on
 \end{cverbatim}
 
+\paragraph{Crystal Collimators} \texttt{CRYSTAL name Bend XDim YDim Thick Tilt MisCut Orient}\\
+
+This flag enables the collimator specified in \texttt{name} to be treated as a crystal collimator.
+Crystal collimators require an additional set of parameters described in the following:
+
+\bigskip
+\begin{tabular}{@{}llp{0.7\linewidth}}
+    \texttt{Bend}   & float   & Bending radius of the crystal collimator in [m]. \\
+    \texttt{XDim}   & float   & Transverse dimension along the X axis of the crystal collimator in [m]. \\
+    \texttt{YDim}   & float   & Transverse dimension along the Y axis of the crystal collimator in [m]. \\
+    \texttt{Thick}  & float   & Thickness of the amorphous layer of the crystal collimator in [m]. \\
+    \texttt{Tilt}   & float   & Tilt of the crystal collimator in [rad] with respect to its default orientation (calculated as the divergence of the beam at that location, i.e. optimal orientation for channeling). \\
+    \texttt{MisCut} & float   & Miscut angle of the crystal collimator in [rad]. \\
+    \texttt{Orient} & integer & Used only for Si crystal collimators. Its value is either 1 (strip crystal, 110 planes) or 2 (quasi-mosaic crystal, 111 planes). \\
+\end{tabular}
+
+\bigskip
+All the parameters default to zero. Additional details on the physics principles of crystal collimation can be found in~\cite{crystal:1,crystal:2}.
+
+\bigskip
+\noindent\textit{Example}
+\begin{cverbatim}
+CRYSTAL  cry.h.b1 61.54 2.0e-3 50.0e-3 0.0 0.0 0.0 1
+\end{cverbatim}
+
 % ================================================================================================================================ %
 
 \subsection{Collimation with Geant4}
