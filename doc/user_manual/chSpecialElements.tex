@@ -1930,7 +1930,7 @@ Only the first three characters of the collimator stage is required, the rest of
     \texttt{SECONDARY} &  2 & Secondary collimators \\
     \texttt{TERTIARY}  &  4 & Tertiary collimators \\
     \texttt{OTHER}     &  8 & Any other collimator \\
-    \texttt{CRYSTAL}   & 16 & Crystal collimators (not yet implemented) \\
+    \texttt{CRYSTAL}   & 16 & Crystal collimators \\
     \texttt{UNKNOWN}   & 32 & The collimator stage is unknown (default) \\
 \end{tabular}
 
@@ -2037,7 +2037,7 @@ JAW_FIT tcsg7 15 FIT_A FIT_B 1.0 1.0 on on
 
 \paragraph{Crystal Collimators} \texttt{CRYSTAL name Bend XDim YDim Thick Tilt MisCut Orient}\\
 
-This flag enables the collimator specified in \texttt{name} to be treated as a crystal collimator.
+This flag enables the collimator or collimator family specified in \texttt{name} to be treated as a crystal collimator.\index{crystal collimator}
 Crystal collimators require an additional set of parameters described in the following:
 
 \bigskip
@@ -2052,11 +2052,13 @@ Crystal collimators require an additional set of parameters described in the fol
 \end{tabular}
 
 \bigskip
-All the parameters default to zero. Additional details on the physics principles of crystal collimation can be found in~\cite{crystal:1,crystal:2}.
+All the parameters default to zero.
+Additional details on the physics principles of crystal collimation and benchmark against experimental data can be found in~\cite{crystal:1,crystal:2,crystal:3,crystal:4,crystal:5,crystal:6}.
 
 \bigskip
 \noindent\textit{Example}
 \begin{cverbatim}
+SETTINGS
 CRYSTAL  cry.h.b1 61.54 2.0e-3 50.0e-3 0.0 0.0 0.0 1
 \end{cverbatim}
 
