@@ -288,7 +288,7 @@ real(kind=fPrec) function polinterp(x,xvals,yvals,datalen,mpoints,jguess)
   jMax=min(jMin+mpoints-1,datalen)
 
   ! actually interpolate
-  polinterp = nevilleMethod(xvals(jMin:jMax),yvals(jMin:jMax),mpoints,x,dy)
+  polinterp = nevilleMethod(xvals(jMin:jMax),yvals(jMin:jMax),jMax-jMin+1,x,dy)
 
 #ifdef DEBUG
   write(lout,'(/a,1pe16.9)')   'UTILS> interpolating arrays for x= ',x
@@ -297,7 +297,7 @@ real(kind=fPrec) function polinterp(x,xvals,yvals,datalen,mpoints,jguess)
   write(lout,'(a,i0)')         'UTILS>    index found at:  jj=',jj
   write(lout,'(2(a,1pe16.9))') 'UTILS>    i.e. between x= ',xvals(jj),' and x= ',xvals(jj+1)
   write(lout,'(3(a,i0))')      'UTILS>    using ',mpoints,' points: jMin= ',jMin,' and jMax= ',jMax
-  write(lout,'(2(a,1pe16.9))') 'UTILS>    i.e. between x= ',xvals(jMin),'and x= ',xvals(jMax)
+  write(lout,'(2(a,1pe16.9))') 'UTILS>    i.e. between x= ',xvals(jMin),' and x= ',xvals(jMax)
   write(lout,'(a,1pe16.9)')    'UTILS> calculated value: ',polinterp
   write(lout,'(a)')            'UTILS> arrays:'
   do ii=1,datalen
