@@ -69,24 +69,24 @@ module coll_crystal
   real(kind=fPrec), private, save :: collnt(nmat)   = zero    ! Nuclear Collision length [m]
 
   ! Processes
-  integer, parameter :: proc_out         =  -1
-  integer, parameter :: proc_AM          =   1
-  integer, parameter :: proc_VR          =   2
-  integer, parameter :: proc_CH          =   3
-  integer, parameter :: proc_VC          =   4
-  integer, parameter :: proc_absorbed    =   5
-  integer, parameter :: proc_DC          =   6
-  integer, parameter :: proc_pne         =   7
-  integer, parameter :: proc_ppe         =   8
-  integer, parameter :: proc_diff        =   9
-  integer, parameter :: proc_ruth        =  10
-  integer, parameter :: proc_ch_absorbed =  15
-  integer, parameter :: proc_ch_pne      =  17
-  integer, parameter :: proc_ch_ppe      =  18
-  integer, parameter :: proc_ch_diff     =  19
-  integer, parameter :: proc_ch_ruth     =  20
-  integer, parameter :: proc_TRVR        = 100
-  integer, parameter :: proc_TRAM        = 101
+  integer, parameter :: proc_out         =  -1     ! Crystal not hit
+  integer, parameter :: proc_AM          =   1     ! Amorphous
+  integer, parameter :: proc_VR          =   2     ! Volume reflection
+  integer, parameter :: proc_CH          =   3     ! Channeling
+  integer, parameter :: proc_VC          =   4     ! Volume capture
+  integer, parameter :: proc_absorbed    =   5     ! Absorption
+  integer, parameter :: proc_DC          =   6     ! Dechanneling
+  integer, parameter :: proc_pne         =   7     ! Proton-neutron elastic interaction
+  integer, parameter :: proc_ppe         =   8     ! Proton-proton elastic interaction
+  integer, parameter :: proc_diff        =   9     ! Single diffractive
+  integer, parameter :: proc_ruth        =  10     ! Rutherford scattering
+  integer, parameter :: proc_ch_absorbed =  15     ! Channeling followed by absorption
+  integer, parameter :: proc_ch_pne      =  17     ! Channeling followed by proton-neutron elastic interaction
+  integer, parameter :: proc_ch_ppe      =  18     ! Channeling followed by proton-proton elastic interaction
+  integer, parameter :: proc_ch_diff     =  19     ! Channeling followed by single diffractive
+  integer, parameter :: proc_ch_ruth     =  20     ! Channeling followed by Rutherford scattering
+  integer, parameter :: proc_TRVR        = 100     ! Volume reflection in VR-AM transition region
+  integer, parameter :: proc_TRAM        = 101     ! Amorphous in VR-AM transition region
 
 contains
 
