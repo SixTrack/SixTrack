@@ -224,17 +224,15 @@ subroutine aperture_init
       apefilepos=0
 #endif
 
-      write(losses_unit,"(a)") chr_lpad('turn',9) // chr_lpad('block',9) // chr_lpad('bezid',9) // chr_rpad(' bez',49) //&
-&                              chr_lpad('slos',13) // &
 #ifdef FLUKA
-&        chr_lpad('fluka_uid',10) // chr_lpad('fluka_gen',10) // chr_lpad('fluka_weight',15) //  &
+      write(losses_unit,"(a1,1x,a7,2(1x,a8),1x,a48,1x,a12,2(1x,a9),8(1x,a14),3(1x,a8),1x,a12)")     &
+        "#","turn","block","bezid",chr_rPad("bez",48),"slos","fluka_uid","fluka_gen","fluka_weight",&
+        "x[m]","xp","y[m]","yp","P_tot[GeV/c]","dE[eV]","dT[s]","A","Z","Q","PDGid"
 #else
-&        chr_lpad('partid',9) // &
+      write(losses_unit,"(a1,1x,a7,2(1x,a8),1x,a48,1x,a12,1x,a8,7(1x,a14),3(1x,a8),1x,a12)") &
+        "#","turn","block","bezid",chr_rPad("bez",48),"slos","partid",                       &
+        "x[m]","xp","y[m]","yp","P_tot[GeV/c]","dE[eV]","dT[s]","A","Z","Q","PDGid"
 #endif
-&        chr_lpad('x (m)',15) // chr_lpad('xp',15) // chr_lpad('y (m)',15) // chr_lpad('yp',15) // &
-&        chr_lpad('P tot (GeV/c)',15) // chr_lpad('dE (eV)',15) // chr_lpad('dT (s)',15) // &
-&        chr_lpad('A',9) // chr_lpad('Z',9) // chr_lpad('Q',9) // chr_lpad('PDGid',13)
-      ! Flush file
       flush(losses_unit)
 #ifdef CR
       apefilepos=apefilepos+1
@@ -432,7 +430,7 @@ subroutine aperture_initroffpos( ix, xoff, yoff, tilt )
   implicit none
   integer ix
   real(kind=fPrec) tilt, xoff, yoff
-  ape( 9,ix)=tilt
+  ape( 9,ix)=tilt*rad ! Converts it to radians which is used in the rest of the code. 
   ape(10,ix)=xoff
   ape(11,ix)=yoff
   lapeofftlt(ix)=ape(9,ix).ne.zero.or.ape(10,ix).ne.zero.or.ape(11,ix).ne.zero
@@ -780,7 +778,7 @@ subroutine aperture_reportLoss(turn, i, ix)
   use root_output
 #endif
 
-  use collimation, only : do_coll, part_abs_turn, ipart
+  use collimation, only : do_coll, part_abs_turn
 
   implicit none
 
@@ -1003,8 +1001,7 @@ subroutine aperture_reportLoss(turn, i, ix)
               lparID=.true.
             end if
 #else
-            if ( (     do_coll .and. (  ipart(j) .eq. plost(jj) )) .or. &
-                 (.not.do_coll .and. ( partID(j) .eq. plost(jj) ))       ) then
+            if (partID(j) == plost(jj)) then
               lparID=.true.
             end if
 #endif
@@ -1022,7 +1019,7 @@ subroutine aperture_reportLoss(turn, i, ix)
           plost(jjx) = fluka_uid(j)
 #else
           if (do_coll) then
-            plost(jjx) = ipart(j)
+            plost(jjx) = partID(j)
           else
             plost(jjx) = j
           endif
@@ -1051,14 +1048,8 @@ subroutine aperture_reportLoss(turn, i, ix)
         call h5_writeData(aper_setLostPart, 15, 1, fluka_uid(j))
         call h5_writeData(aper_setLostPart, 16, 1, fluka_gen(j))
         call h5_writeData(aper_setLostPart, 17, 1, fluka_weight(j))
-#endif
-        if (do_coll) then
-          call h5_writeData(aper_setLostPart, 15, 1, ipart(j))
-        endif
-#ifndef FLUKA
-        if (.not. do_coll) then
-          call h5_writeData(aper_setLostPart, 15, 1, partID(j))
-        endif
+#else
+        call h5_writeData(aper_setLostPart, 15, 1, partID(j))
 #endif
         call h5_finaliseWrite(aper_setLostPart)
       else

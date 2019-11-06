@@ -68,16 +68,15 @@ subroutine umlauda
   if(ichromc.eq.1) call danot(3)
   icoonly=0
   if(iqmodc.eq.2.or.iqmodc.eq.4.or.ichromc.eq.2) icoonly=1
-  do j=1,2
-    angnoe(j)=zero
-    do i=1,6
-      angp(j,i)=zero
-    enddo
-  enddo
-  do i=1,100
-    jj(i)=0
-  enddo
-  x2pi=atan_mb(one)*eight
+
+  crabpht      = zero
+  tasData(:,:) = zero
+  angnoe(:)    = zero
+  angp(:,:)    = zero
+  cp(:)        = zero
+  jj(:)        = 0
+
+  x2pi=twopi
   i4(1,1)=1
   i4(1,2)=1
   i4(2,1)=3
@@ -396,20 +395,10 @@ subroutine umlauda
 !-----------------------------------------------------------------------
 !  EXACT DRIFT
 !-----------------------------------------------------------------------
-!FOX  X(1)=X(1)*C1M3 ;
-!FOX  X(2)=X(2)*C1M3 ;
-!FOX  Y(1)=Y(1)*C1M3 ;
-!FOX  Y(2)=Y(2)*C1M3 ;
-!FOX  SIGMDA=SIGMDA*C1M3 ;
-!FOX  PZ=SQRT(ONE-Y(1)*Y(1)-Y(2)*Y(2)) ;
+!FOX  PZ=SQRT(C1E6-(Y(1)*Y(1)+Y(2)*Y(2)))*C1M3 ;
 !FOX  X(1)=X(1)+EL(JX)*(Y(1)/PZ) ;
 !FOX  X(2)=X(2)+EL(JX)*(Y(2)/PZ) ;
-!FOX  SIGMDA=SIGMDA+(ONE-(RV/PZ))*EL(JX) ;
-!FOX  X(1)=X(1)*C1E3 ;
-!FOX  X(2)=X(2)*C1E3 ;
-!FOX  Y(1)=Y(1)*C1E3 ;
-!FOX  Y(2)=Y(2)*C1E3 ;
-!FOX  SIGMDA=SIGMDA*C1E3 ;
+!FOX  SIGMDA=SIGMDA+EL(JX)*((ONE-RV/PZ)*C1E3) ;
 !-----------------------------------------------------------------------
           else
 ! Regular drift
@@ -793,6 +782,9 @@ subroutine umlauda
             call errf(xbb,zbb,cbxb,cbzb)
             beamoff4=(rkb*(crzb-exp_mb(-one*tkb)*cbzb))*sign(one,crk)
             beamoff5=(rkb*(crxb-exp_mb(-one*tkb)*cbxb))*sign(one,cik)
+          else
+            beamoff4=zero ! Were previously uninitialised when ibeco=0
+            beamoff5=zero ! Were previously uninitialised when ibeco=0
           endif
           if(abs(sigman(1,imbb(i))).lt.pieni.or.abs(sigman(2,imbb(i))).lt.pieni) goto 9088
           r2bf=two*(sigman(1,imbb(i))**2-sigman(2,imbb(i))**2)
@@ -921,23 +913,64 @@ subroutine umlauda
       goto 440
     endif
     if(kzz.eq.43) then
-      temp_angle = ed(ix)
-#include "include/xrot_fox.f90"
+      cos_t = cos_mb(ed(ix))
+      sin_t = sin_mb(ed(ix))
+      tan_t = tan_mb(ed(ix))
+!FOX  YP(1)=Y(1)*(ONE+DPDA)/MTCDA ;
+!FOX  YP(2)=Y(2)*(ONE+DPDA)/MTCDA ;
+!FOX  TEMPI(1) = X(1)*C1M3 ;
+!FOX  TEMPI(2) = YP(1)*C1M3 ;
+!FOX  TEMPI(3) = X(2)*C1M3 ;
+!FOX  TEMPI(4) = YP(2)*C1M3 ;
+!FOX  TEMPI(5) = SIGMDA*C1M3 ;
+!FOX  TEMPI(6) = ((EJ1-E0)/E0F) ;
+!FOX  ZTDA = SQRT((ONE + DPDA)*(ONE + DPDA)
+!FOX  - TEMPI(2)*TEMPI(2) - TEMPI(4)*TEMPI(4)) ;
+!FOX  PTTDA = ONE - (TAN_T*TEMPI(4))/ZTDA ;
+!FOX  X(1) = X(1) +
+!FOX  C1E3*(TAN_T*TEMPI(3)*TEMPI(2)/(ZTDA*PTTDA)) ;
+!FOX  X(2) = C1E3*TEMPI(3)/(COS_T*PTTDA) ;
+!FOX  Y(2) = C1E3*(COS_T*TEMPI(4) + SIN_T*ZTDA)/(ONE+DPDA)/MTCDA ;
+!FOX  SIGMDA = SIGMDA - C1E3*((TAN_T*TEMPI(3)*
+!FOX  (ONE/(E0F/E0)+TEMPI(6))/(ZTDA*PTTDA))*(E0F/E0)) ;
       goto 440
     endif
     if(kzz.eq.44) then
-      temp_angle = ed(ix)
-#include "include/yrot_fox.f90"
+      cos_t = cos_mb(ed(ix))
+      sin_t = sin_mb(ed(ix))
+      tan_t = tan_mb(ed(ix))
+!FOX  YP(1)=Y(1)*(ONE+DPDA)/MTCDA ;
+!FOX  YP(2)=Y(2)*(ONE+DPDA)/MTCDA ;
+!FOX  TEMPI(1) = X(1)*C1M3 ;
+!FOX  TEMPI(2) = YP(1)*C1M3 ;
+!FOX  TEMPI(3) = X(2)*C1M3 ;
+!FOX  TEMPI(4) = YP(2)*C1M3 ;
+!FOX  TEMPI(5) = SIGMDA*C1M3 ;
+!FOX  TEMPI(6) = ((EJ1-E0)/E0F) ;
+!FOX  ZTDA = SQRT((ONE + DPDA)*(ONE + DPDA)
+!FOX  - TEMPI(2)*TEMPI(2) - TEMPI(4)*TEMPI(4)) ;
+!FOX  PTTDA = ONE - (TAN_T*TEMPI(2))/ZTDA ;
+!FOX  X(2) = X(2) +
+!FOX  C1E3*(TAN_T*TEMPI(1)*TEMPI(4)/(ZTDA*PTTDA)) ;
+!FOX  X(1) = C1E3*TEMPI(1)/(COS_T*PTTDA) ;
+!FOX  Y(1) = C1E3*(COS_T*TEMPI(2) + SIN_T*ZTDA)/(ONE+DPDA)/MTCDA ;
+!FOX  SIGMDA = SIGMDA - C1E3*((TAN_T*TEMPI(1)*
+!FOX  (ONE/(E0F/E0)+TEMPI(6))/(ZTDA*PTTDA))*(E0F/E0)) ;
       goto 440
     endif
     if(kzz.eq.45) then
-      temp_angle = ed(ix)
-#include "include/srot_fox.f90"
+      cos_t = cos_mb(ed(ix))
+      sin_t = -sin_mb(ed(ix))
+!FOX  TEMPI(1) = X(1) ;
+!FOX  TEMPI(2) = Y(1) ;
+!FOX  TEMPI(3) = X(2) ;
+!FOX  TEMPI(4) = Y(2) ;
+!FOX  X(1) = TEMPI(1)*COS_T - TEMPI(3)*SIN_T ;
+!FOX  Y(1) = TEMPI(2)*COS_T - TEMPI(4)*SIN_T ;
+!FOX  X(2) = TEMPI(1)*SIN_T + TEMPI(3)*COS_T ;
+!FOX  Y(2) = TEMPI(2)*SIN_T + TEMPI(4)*COS_T ;
       goto 440
     endif
-
-
-
 
     if(kzz.eq.23) then
 !FOX  CRABAMP=ED(IX)*QQ0 ;
@@ -1207,7 +1240,48 @@ subroutine umlauda
 !FOX  Y(2)=EJF0/EJF1*Y(2) ;
       endif
     if(kzz.eq.22) then ! Phase Trombone
-#include "include/trombone_fox.f90"
+      irrtr=imtr(ix)
+!FOX  YP(1)=Y(1)*(ONE+DPDA)/MTCDA ;
+!FOX  YP(2)=Y(2)*(ONE+DPDA)/MTCDA ;
+!FOX  PUSIG=((EJ1-E0)/E0F)*C1E3*(E0/E0F) ;
+!FOX  TEMPI(1) = X(1) ;
+!FOX  TEMPI(2) = YP(1) ;
+!FOX  TEMPI(3) = X(2) ;
+!FOX  TEMPI(4) = YP(2) ;
+!FOX  TEMPI(5) = SIGMDA ;
+!FOX  TEMPI(6) = PUSIG ;
+!FOX  X(1)=COTR(IRRTR,1) +
+!FOX  RRTR(IRRTR,1,1)*TEMPI(1)+RRTR(IRRTR,1,2)*TEMPI(2)+
+!FOX  RRTR(IRRTR,1,3)*TEMPI(3)+RRTR(IRRTR,1,4)*TEMPI(4)+
+!FOX  RRTR(IRRTR,1,5)*TEMPI(5)+RRTR(IRRTR,1,6)*TEMPI(6) ;
+!FOX  YP(1)=COTR(IRRTR,2) +
+!FOX  RRTR(IRRTR,2,1)*TEMPI(1)+RRTR(IRRTR,2,2)*TEMPI(2)+
+!FOX  RRTR(IRRTR,2,3)*TEMPI(3)+RRTR(IRRTR,2,4)*TEMPI(4)+
+!FOX  RRTR(IRRTR,2,5)*TEMPI(5)+RRTR(IRRTR,2,6)*TEMPI(6) ;
+!FOX  X(2)=COTR(IRRTR,3) +
+!FOX  RRTR(IRRTR,3,1)*TEMPI(1)+RRTR(IRRTR,3,2)*TEMPI(2)+
+!FOX  RRTR(IRRTR,3,3)*TEMPI(3)+RRTR(IRRTR,3,4)*TEMPI(4)+
+!FOX  RRTR(IRRTR,3,5)*TEMPI(5)+RRTR(IRRTR,3,6)*TEMPI(6) ;
+!FOX  YP(2)=COTR(IRRTR,4) +
+!FOX  RRTR(IRRTR,4,1)*TEMPI(1)+RRTR(IRRTR,4,2)*TEMPI(2)+
+!FOX  RRTR(IRRTR,4,3)*TEMPI(3)+RRTR(IRRTR,4,4)*TEMPI(4)+
+!FOX  RRTR(IRRTR,4,5)*TEMPI(5)+RRTR(IRRTR,4,6)*TEMPI(6) ;
+!FOX  SIGMDA=COTR(IRRTR,5)+
+!FOX  RRTR(IRRTR,5,1)*TEMPI(1)+RRTR(IRRTR,5,2)*TEMPI(2)+
+!FOX  RRTR(IRRTR,5,3)*TEMPI(3)+RRTR(IRRTR,5,4)*TEMPI(4)+
+!FOX  RRTR(IRRTR,5,5)*TEMPI(5)+RRTR(IRRTR,5,6)*TEMPI(6) ;
+!FOX  PUSIG=COTR(IRRTR,6)+
+!FOX  RRTR(IRRTR,6,1)*TEMPI(1)+RRTR(IRRTR,6,2)*TEMPI(2)+
+!FOX  RRTR(IRRTR,6,3)*TEMPI(3)+RRTR(IRRTR,6,4)*TEMPI(4)+
+!FOX  RRTR(IRRTR,6,5)*TEMPI(5)+RRTR(IRRTR,6,6)*TEMPI(6) ;
+!FOX  EJ1 = E0F*PUSIG/(C1E3*(E0/E0F))+E0 ;
+!FOX  EJF1=SQRT(EJ1*EJ1-NUCMDA*NUCMDA) ;
+!FOX  DPDA1 = (EJF1-E0F)/E0F*C1E3 ;
+!FOX  RV=EJ1/E0*E0F/EJF1 ;
+!FOX  DPDA=DPDA1*C1M3 ;
+!FOX  MOIDA=MTCDA/(ONE+DPDA) ;
+!FOX  Y(1)=YP(1)*MTCDA/(ONE+DPDA) ;
+!FOX  Y(2)=YP(2)*MTCDA/(ONE+DPDA) ;
     end if
     if(kzz.eq.0.or.kzz.eq.20.or.kzz.eq.22) goto 440
     if(kzz.eq.15) goto 440

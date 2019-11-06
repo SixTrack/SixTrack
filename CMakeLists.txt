@@ -71,10 +71,8 @@ message(STATUS "Project Binary:   ${PROJECT_BINARY_DIR}")
 ###################################################################################################
 
 # Default ON
-option(TILT "Allow elements to be tilted (by error)" ON)
 option(CRLIBM "Use correctly rounded libmath instead of system libmath" ON)
 option(SIXDA "Build differential algebra version (NOT dynamic aperture!)" ON)
-option(STF "Single Track File: Write all tracks for postprocessing to fort.90 instead of 32 separate files fort.59 to fort.90. Required for >64 particles" ON)
 option(NAFF "Link to external NAFFlib for FMA" ON)
 option(DISTLIB "Link to external DISTlib for the beam distribution" ON)
 option(HASHLIB "Build the md5 hash library" ON)
@@ -121,6 +119,7 @@ option(BUILD_TESTING "Enable the test suite" OFF)
 option(COVERAGE "Enable build flags for testing code coverage with gcov (only works with GNU compilers)" OFF)
 option(GPROF "Enable build flags for code profiling with gprof (only works with GNU compilers)" OFF)
 option(WARN "Enable build flags for additional compiler warnings" OFF)
+option(INITNAN "Enable build flags for initialising reals to signaling NaN" OFF)
 option(DEBUG "Debugging output" OFF)
 option(NOSYMLINK "Don't use symlinks for test inputs and canonicals" OFF)
 option(MEMUSAGE "Writes PID and actual memory usage to sim_meta.dat (GNU/UNIX only)" OFF)
@@ -141,14 +140,6 @@ string(REPLACE ".exe" "" Fortran_COMPILER_NAME ${Fortran_COMPILER_NAME})
 set(SIXTRACK_FEAT_CR "${CMAKE_SYSTEM_NAME}_${Fortran_COMPILER_NAME}")
 set(SIXTRACK_FEAT_DA "${CMAKE_SYSTEM_NAME}_${Fortran_COMPILER_NAME}")
 
-if(NOT TILT)
-  set(SIXTRACK_FEAT_CR "notilt_${SIXTRACK_FEAT_CR}")
-  set(SIXTRACK_FEAT_DA "notilt_${SIXTRACK_FEAT_DA}")
-endif()
-if(NOT STF)
-  set(SIXTRACK_FEAT_CR "nostf_${SIXTRACK_FEAT_CR}")
-  set(SIXTRACK_FEAT_DA "nostf_${SIXTRACK_FEAT_DA}")
-endif()
 if(CRLIBM AND ROUND_NEAR)
   set(SIXTRACK_FEAT_CR "crlibm_rn_${SIXTRACK_FEAT_CR}")
   set(SIXTRACK_FEAT_DA "crlibm_rn_${SIXTRACK_FEAT_DA}")
@@ -192,7 +183,7 @@ if(MERLINSCATTER)
   set(SIXTRACK_FEAT_CR "merlinscatter_${SIXTRACK_FEAT_CR}")
 endif()
 if(G4COLLIMATION)
-  SET(SIXTRACK_FEAT_CR "g4collimation_${SIXTRACK_FEAT_CR}")
+  set(SIXTRACK_FEAT_CR "g4collimation_${SIXTRACK_FEAT_CR}")
 endif(G4COLLIMATION)
 if(FLUKA)
   set(SIXTRACK_FEAT_CR "FLUKA_${SIXTRACK_FEAT_CR}")
@@ -271,7 +262,7 @@ set(SIXTRACK_BINARY_NAME_DA "SixDA_${NUM_VERSION}${GIT_BUILD}_${SIXTRACK_FEAT_DA
 # Setting the c pre-processor definitons
 ###################################################################################################
 
-list(APPEND PREPRO_FLAGS_TOOLS TILT BOINC BEAMGAS STF MERLINSCATTER G4COLLIMATION FLUKA CR PYTHIA NAFF)
+list(APPEND PREPRO_FLAGS_TOOLS BOINC BEAMGAS MERLINSCATTER G4COLLIMATION FLUKA CR PYTHIA NAFF)
 list(APPEND PREPRO_FLAGS_LIB CRLIBM ROUND_NEAR ROUND_UP ROUND_DOWN ROUND_ZERO CERNLIB HDF5 FIO ROOT HASHLIB ZLIB DISTLIB)
 list(APPEND PREPRO_FLAGS_COMPILE GFORTRAN IFORT NAGFOR WIN32 DEBUG MEMUSAGE)
 
@@ -287,9 +278,12 @@ list(APPEND FORT90_LIB
   bouncy_castle
   cheby
   close
+  coll_common
+  coll_crystal
   coll_db
   coll_dist
   coll_jawfit
+  coll_k2
   collimation
   common_modules
   constants
@@ -297,6 +291,7 @@ list(APPEND FORT90_LIB
   dabnew
   dump
   dynk
+  elements
   elens
   end_sixtrack
   fma
@@ -310,17 +305,19 @@ list(APPEND FORT90_LIB
   mod_ffield_aux
   mod_find
   mod_fluc
+  mod_funlux
   mod_geometry
   mod_meta
   mod_particles
+  mod_random
+  mod_ranecu
+  mod_ranlux
   mod_time
   mod_units
   mod_utils
   pdgid
   plato_seq
   postprocessing
-  ranecu
-  ranlux
   read_write
   scatter
   six_fox
@@ -335,7 +332,7 @@ list(APPEND FORT90_LIB
 
 # Files unique to DA or CR version
 list(APPEND FORT90_DA main_da sixda)
-list(APPEND FORT90_CR main_cr sixve track_thin track_thick)
+list(APPEND FORT90_CR main_cr sixve tracking track_thin track_thick)
 
 # List of files that must be treated by DAFOR
 list(APPEND DAFOR_F90 beam6d_fox six_fox sixda)
@@ -365,7 +362,7 @@ if(ROOT)
 endif(ROOT)
 
 if(G4COLLIMATION)
-  LIST(APPEND FORT90_LIB geant4)
+  list(APPEND FORT90_LIB geant4)
 endif(G4COLLIMATION)
 
 if(BOINC)
@@ -406,19 +403,18 @@ endif(ZLIB)
 
 ##Possible check for Root
 if(ROOT)
-  #/usr/share/root/cmake/FindROOT.cmake
-  SET(CMAKE_MODULE_PATH /usr/share/root/cmake/ ${CMAKE_MODULE_PATH})
+  set(CMAKE_MODULE_PATH /usr/share/root/cmake/ ${CMAKE_MODULE_PATH})
   if(STATIC)
     find_package(ROOT REQUIRED static)
   else()
     find_package(ROOT REQUIRED)
   endif(STATIC)
   if(NOT ROOT_FOUND)
-    MESSAGE(FATAL_ERROR "Root enabled build requested but root was not found!")
+    message(FATAL_ERROR "Root enabled build requested but root was not found!")
   endif(NOT ROOT_FOUND)
-  MESSAGE(STATUS "ROOT include folders: ${ROOT_INCLUDE_DIRS}")
-  MESSAGE(STATUS "ROOT definitions:${ROOT_DEFINITIONS}")
-  MESSAGE(STATUS "ROOT CXX flags:  ${ROOT_CXX_FLAGS}")
+  message(STATUS "ROOT include folders: ${ROOT_INCLUDE_DIRS}")
+  message(STATUS "ROOT definitions:${ROOT_DEFINITIONS}")
+  message(STATUS "ROOT CXX flags:  ${ROOT_CXX_FLAGS}")
   add_subdirectory(${CMAKE_SOURCE_DIR}/source/root_output)
 endif(ROOT)
 
@@ -615,10 +611,18 @@ if(Fortran_COMPILER_NAME MATCHES "gfortran.*")
   endif()
 
   set(CMAKE_Fortran_FLAGS_RELEASE "-O3")
-  set(CMAKE_Fortran_FLAGS_DEBUG   "-O0 -g3 -ffpe-trap=invalid,zero,overflow -fcheck=all")
+  set(CMAKE_Fortran_FLAGS_DEBUG   "-O0 -g3 -fcheck=all")
 
   if(WARN)
     set(CMAKE_Fortran_FLAGS_RELEASE "-Wuninitialized ${CMAKE_Fortran_FLAGS_RELEASE}")
+    set(CMAKE_Fortran_FLAGS_DEBUG   "-Wuninitialized -ffpe-trap=invalid,zero,overflow,underflow ${CMAKE_Fortran_FLAGS_DEBUG}")
+  else()
+    set(CMAKE_Fortran_FLAGS_DEBUG   "-ffpe-trap=invalid,zero,overflow ${CMAKE_Fortran_FLAGS_DEBUG}")
+  endif()
+
+  if(INITNAN)
+    set(CMAKE_Fortran_FLAGS_RELEASE "-finit-real=snan -finit-character=0 ${CMAKE_Fortran_FLAGS_RELEASE}")
+    set(CMAKE_Fortran_FLAGS_DEBUG   "-finit-real=snan -finit-character=0 ${CMAKE_Fortran_FLAGS_DEBUG}")
   endif()
 
   if(MEMUSAGE)
@@ -710,6 +714,11 @@ elseif(Fortran_COMPILER_NAME MATCHES "ifort.*")
     set(CMAKE_Fortran_FLAGS "-warn unused -check bounds ${CMAKE_Fortran_FLAGS}")
   endif(WARN)
 
+  if(INITNAN)
+    set(CMAKE_Fortran_FLAGS_RELEASE "-init=snan,arrays ${CMAKE_Fortran_FLAGS_RELEASE}")
+    set(CMAKE_Fortran_FLAGS_DEBUG   "-init=snan,arrays ${CMAKE_Fortran_FLAGS_DEBUG}")
+  endif()
+
   if(32BIT)
     set(CMAKE_Fortran_FLAGS_RELEASE "-m32 ${CMAKE_Fortran_FLAGS_RELEASE}")
     set(CMAKE_Fortran_FLAGS_DEBUG "-m32 ${CMAKE_Fortran_FLAGS_DEBUG}")
@@ -762,6 +771,11 @@ elseif(Fortran_COMPILER_NAME MATCHES "nagfor.*")
   else()
     set(CMAKE_Fortran_FLAGS "-w=all ${CMAKE_Fortran_FLAGS}")
   endif(WARN)
+
+  if(INITNAN)
+    set(CMAKE_Fortran_FLAGS_RELEASE "-nan ${CMAKE_Fortran_FLAGS_RELEASE}")
+    set(CMAKE_Fortran_FLAGS_DEBUG   "-nan ${CMAKE_Fortran_FLAGS_DEBUG}")
+  endif()
 
   if(32BIT)
     set(CMAKE_Fortran_FLAGS_RELEASE "-abi=32 ${CMAKE_Fortran_FLAGS_RELEASE}")
@@ -1525,6 +1539,15 @@ endif(COVERAGE)
 set(BUILDNAME "${SIXTRACK_BINARY_NAME}" CACHE STRING "Name of build on the dashboard")
 mark_as_advanced(BUILDNAME)
 
+#Tools
+set(MOD_SPLITSINGLETRACK_SOURCES
+  ${CMAKE_SOURCE_DIR}/source/splitSingletrack/mod_splitSingletrack.f90
+)
+add_library          (mod_splitSingletrack STATIC ${MOD_SPLITSINGLETRACK_SOURCES})
+add_executable       (splitSingletrack ${CMAKE_SOURCE_DIR}/source/splitSingletrack/splitSingletrack.f90)
+target_link_libraries(splitSingletrack mod_splitSingletrack)
+set_target_properties(splitSingletrack PROPERTIES LINK_FLAGS "${CMAKE_Fortran_LINKER_FLAGS}")
+
 # For testing
 if(BUILD_TESTING)
 
@@ -1592,6 +1615,14 @@ include(CPack)
 install(TARGETS SixTrackCR RUNTIME DESTINATION bin)
 
 if(NOT WIN32)
-  add_custom_command(TARGET SixTrackCR POST_BUILD
-    COMMAND ${CMAKE_COMMAND} -E create_symlink "${SIXTRACK_BINARY_NAME}" "sixtrack")
+  add_custom_command(
+    TARGET SixTrackCR POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E create_symlink "${SIXTRACK_BINARY_NAME}" "sixtrack"
+  )
+  if(SIXDA)
+    add_custom_command(
+      TARGET SixTrackDA POST_BUILD
+      COMMAND ${CMAKE_COMMAND} -E create_symlink "${SIXTRACK_BINARY_NAME_DA}" "sixtrack_da"
+    )
+  endif()
 endif()

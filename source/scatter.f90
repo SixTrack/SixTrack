@@ -1070,7 +1070,6 @@ subroutine scatter_thin(iStru, iElem, nTurn)
 #ifdef HDF5
   use hdf5_output
 #endif
-  use collimation, only : do_coll, scatterhit, part_hit_pos, part_hit_turn
 
   integer, intent(in) :: iStru
   integer, intent(in) :: iElem
@@ -1276,12 +1275,6 @@ subroutine scatter_thin(iStru, iElem, nTurn)
 #ifdef HDF5
     end if
 #endif
-
-    if(do_coll) then
-      scatterhit(j)    = 8
-      part_hit_pos(j)  = iStru
-      part_hit_turn(j) = nTurn
-    endif
 
   end do
 

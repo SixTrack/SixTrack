@@ -11,7 +11,6 @@ HASH--------------------------------------------------------------------
   MD5SUM all_absorptions.dat   text
   MD5SUM all_impacts.dat       text
   MD5SUM amplitude.dat         text
-  MD5SUM amplitude2.dat        text
   MD5SUM Coll_Scatter.dat      text
   MD5SUM FLUKA_impacts.dat     text
   MD5SUM FLUKA_impacts_all.dat text
@@ -83,7 +82,7 @@ COLLIMATION-------------------------------------------------------------
   -1.3899e-6 -9.345e-5 5.05324e-3 -1.6595e-2 2.15955e-2 -9.96261e-3 1.0
   -1.3899e-6 -9.345e-5 5.05324e-3 -1.6595e-2 2.15955e-2 -9.96261e-3 1.0
   2.2 2.2 2.2 2.2
-  .false. .false. 1234 .true. tcp.c6l7.b1 .false. .true. .true. .true.
+  .false. .false. 1234 .true. tcsg.b5l2.b1 .false. .true. .true. .true. .true.
   0 0 0 0
   0 0 0 0 0 0 0 0 0 0 .false.
   .false. 6.003 .0015
@@ -94,3 +93,12 @@ COLLIMATION-------------------------------------------------------------
 NEXT
 ENDE
 
+! Mem Usage - SixTrack 5.4
+! (COLL line 10, option 9 and 10)
+
+!  AMPLITUDE | EFFICENCY | MEMORY (HWM)
+! ======================================
+!   .false.  |  .false.  |   72.871 MB
+!   .true.   |  .false...|   75.402 MB
+!   .false.  |  .true.   |  156.875 MB
+!   .true.   |  .true.   |  159.496 MB

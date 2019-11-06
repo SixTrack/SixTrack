@@ -27,7 +27,6 @@ module parpro
   integer, parameter :: nran  = 2000000   ! Maximum size for scaling nzfz
   integer, parameter :: nrco  = 5         ! Maximum order of compensation (RESO block)
   integer, parameter :: mmul  = 20        ! Maximum order of multipoles
-  integer, parameter :: nbb   = 500       ! Beam-beam lenses
   integer, parameter :: nelb  = 280       ! Maximum elements per BLOC
 
   ! Maximum length of strings
@@ -45,11 +44,13 @@ module parpro
   integer :: nblo  = -1   ! Number of allocated BLOCs
   integer :: nblz  = -1   ! Number of allocated STRUcture elements
   integer :: npart = -1   ! Number of allocated particles
+  integer :: nbb   = -1   ! Beam-beam lenses
 
   integer, parameter :: nele_initial  = 500
   integer, parameter :: nblo_initial  = 100
   integer, parameter :: nblz_initial  = 1000
   integer, parameter :: npart_initial = 2
+  integer, parameter :: nbb_initial   = 100
 
   ! Dividing line for output
   character(len=mDivLen), parameter :: str_divLine = repeat("-",mDivLen)
@@ -143,7 +144,7 @@ module mod_common
   character(len=mFileName), public, save :: fort10  = "fort.10"  ! Name of main postprocessing file (text)
   character(len=mFileName), public, save :: fort110 = "fort.110" ! Name of main postprocessing file (binary)
   character(len=mFileName), public, save :: fort208 = "fort.208" ! Collimation/FLUKA
-  
+
   integer,                  public, save :: unit10  = -1         ! Unit of main postprocessing file (text)
   integer,                  public, save :: unit110 = -1         ! Unit of main postprocessing file (binary)
   integer,                  public, save :: unit208 = -1         ! Collimation/FLUKA
@@ -172,12 +173,13 @@ module mod_common
   integer,          save :: irew       = 0       ! Rewind fort.59-90
   integer,          save :: iclo6      = 0       ! 6D closed orbit flags
   integer,          save :: nde(2)     = 0       ! Number of turns at flat bottom / energy ramping
-  integer,          save :: nwr(4)     = 1       ! Writings to fort.90
+  integer,          save :: nwr(4)     = 1       ! Writings to singletrackfile.dat
   integer,          save :: ntwin      = 1       ! How to calculate the distance in phase space
   integer,          save :: napxo      = 0       ! Original value of napx
   integer,          save :: napxto     = 0       ! Particles times turns
   integer,          save :: nnuml      = 0       ! Turn number for POSTPR
   logical,          save :: curveff    = .false. ! Enable the curvature effect in a combined function magnet
+  logical,          save :: firstrun   = .true.  ! Switched off after the first completed turn (not necessarily turn 1 if C/R)
   logical,          save :: iexact     = .false. ! Exact solution of the equation of motion
   logical,          save :: rdfort13   = .false. ! Wheteher to read distribution from fort.13 or not
 
@@ -554,6 +556,7 @@ module mod_common
   integer,          allocatable, save :: icomb(:,:)     ! Combination of Elements: Index (:,20)
 
   ! Number of Beam-Beam Lenses (nbb)
+  integer,          allocatable, save :: nbeaux(:)      ! (:)
   real(kind=fPrec), allocatable, save :: sigman(:,:)    ! (2,:)
   real(kind=fPrec), allocatable, save :: sigman2(:,:)   ! sigman^2 (2,:)
   real(kind=fPrec), allocatable, save :: sigmanq(:,:)   ! (2,:)
@@ -567,7 +570,7 @@ module mod_common
 
 contains
 
-subroutine mod_common_expand_arrays(nele_new, nblo_new, nblz_new, npart_new)
+subroutine mod_common_expand_arrays(nele_new, nblo_new, nblz_new, npart_new, nbb_new)
 
   use mod_alloc
   use mod_settings
@@ -579,12 +582,14 @@ subroutine mod_common_expand_arrays(nele_new, nblo_new, nblz_new, npart_new)
   integer, intent(in) :: nblo_new
   integer, intent(in) :: nblz_new
   integer, intent(in) :: npart_new
+  integer, intent(in) :: nbb_new
 
   logical :: firstRun   = .true.
   integer :: nele_prev  = -2
   integer :: nblo_prev  = -2
   integer :: nblz_prev  = -2
   integer :: npart_prev = -2
+  integer :: nbb_prev   = -2
 
   if(nele_new /= nele_prev) then
     call alloc(ed,                   nele_new,       zero,   "ed")
@@ -677,6 +682,16 @@ subroutine mod_common_expand_arrays(nele_new, nblo_new, nblz_new, npart_new)
     call alloc(track6d, 6,           npart_new,      zero,   "track6d")
   end if
 
+  if(nbb_new /= nbb_prev) then
+    call alloc(nbeaux,               nbb,            0,      "nbeaux")
+    call alloc(sigman,            2, nbb,            zero,   "sigman")
+    call alloc(sigman2,           2, nbb,            zero,   "sigman2")
+    call alloc(sigmanq,           2, nbb,            zero,   "sigmanq")
+    call alloc(clobeam,           6, nbb,            zero,   "clobeam")
+    call alloc(beamoff,           6, nbb,            zero,   "beamoff")
+    call alloc(bbcu,                 nbb, 12,        zero,   "bbcu")
+  end if
+
   ! The arrays that don't currently have scalable sizes only need to be allocated once
   if(firstRun) then
     call alloc(betam,                nmon1, 2,       zero,   "betam")
@@ -688,13 +703,6 @@ subroutine mod_common_expand_arrays(nele_new, nblo_new, nblz_new, npart_new)
 
     call alloc(ratio,                ncom,  20,      zero,   "ratio")
     call alloc(icomb,                ncom,  20,      0,      "icomb")
-
-    call alloc(sigman,            2, nbb,            zero,   "sigman")
-    call alloc(sigman2,           2, nbb,            zero,   "sigman2")
-    call alloc(sigmanq,           2, nbb,            zero,   "sigmanq")
-    call alloc(clobeam,           6, nbb,            zero,   "clobeam")
-    call alloc(beamoff,           6, nbb,            zero,   "beamoff")
-    call alloc(bbcu,                 nbb, 12,        zero,   "bbcu")
 
     call alloc(field_cos,         2, mmul,           zero,   "field_cos")
     call alloc(fsddida,           2, mmul,           zero,   "fsddida")
@@ -788,6 +796,20 @@ module mod_common_track
   real(kind=fPrec), allocatable, save :: strackz(:) ! (nblz)
   real(kind=fPrec), allocatable, save :: dpsv1(:)   ! (npart)
 
+  ! Linear Optics
+  real(kind=fPrec), allocatable, save :: tbetax(:)  ! (nblz)
+  real(kind=fPrec), allocatable, save :: tbetay(:)  ! (nblz)
+  real(kind=fPrec), allocatable, save :: talphax(:) ! (nblz)
+  real(kind=fPrec), allocatable, save :: talphay(:) ! (nblz)
+  real(kind=fPrec), allocatable, save :: torbx(:)   ! (nblz)
+  real(kind=fPrec), allocatable, save :: torby(:)   ! (nblz)
+  real(kind=fPrec), allocatable, save :: torbxp(:)  ! (nblz)
+  real(kind=fPrec), allocatable, save :: torbyp(:)  ! (nblz)
+  real(kind=fPrec), allocatable, save :: tdispx(:)  ! (nblz)
+  real(kind=fPrec), allocatable, save :: tdispy(:)  ! (nblz)
+  real(kind=fPrec), allocatable, save :: tdispxp(:) ! (nblz)
+  real(kind=fPrec), allocatable, save :: tdispyp(:) ! (nblz)
+
   ! Substitute variables for x,y and is for DA version
   real(kind=fPrec), save :: xxtr(mpa,2)
   real(kind=fPrec), save :: yytr(mpa,2)
@@ -810,6 +832,19 @@ subroutine mod_commont_expand_arrays(nblz_new,npart_new)
   call alloc(stracks, nblz_new,  zero, "stracks")
   call alloc(strackx, nblz_new,  zero, "strackx")
   call alloc(strackz, nblz_new,  zero, "strackz")
+
+  call alloc(tbetax,  nblz_new,  zero, "tbetax")
+  call alloc(tbetay,  nblz_new,  zero, "tbetay")
+  call alloc(talphax, nblz_new,  zero, "talphax")
+  call alloc(talphay, nblz_new,  zero, "talphay")
+  call alloc(torbx,   nblz_new,  zero, "torbx")
+  call alloc(torby,   nblz_new,  zero, "torby")
+  call alloc(torbxp,  nblz_new,  zero, "torbxp")
+  call alloc(torbyp,  nblz_new,  zero, "torbyp")
+  call alloc(tdispx,  nblz_new,  zero, "tdispx")
+  call alloc(tdispy,  nblz_new,  zero, "tdispy")
+  call alloc(tdispxp, nblz_new,  zero, "tdispxp")
+  call alloc(tdispyp, nblz_new,  zero, "tdispyp")
 
   call alloc(dpsv1,   npart_new, zero, "dpsv1")
 

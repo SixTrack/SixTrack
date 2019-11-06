@@ -421,6 +421,7 @@ module platoFMA
 !C
 
       SUBROUTINE FFT_PLATO(CDATA,NN,ISIGN)
+      use numerical_constants
       IMPLICIT NONE
       INTEGER I,J,N,NN,M,MMAX,ISTEP,ISIGN
       REAL(kind=fPrec) WR,WI,WPR,WPI,WTEMP,THETA,TEMPR,TEMPI
@@ -454,7 +455,7 @@ module platoFMA
       MMAX=2
  2    IF(N.GT.MMAX) THEN
         ISTEP=2*MMAX
-        THETA=(EIGHT*ATAN_MB(ONE))/(ISIGN*MMAX)
+        THETA=twopi/(ISIGN*MMAX)
         WPR=-TWO*SIN_MB(HALF*THETA)**2
         WPI=SIN_MB(THETA)
         WR=ONE
@@ -498,6 +499,7 @@ module platoFMA
 !C
 
       SUBROUTINE FFT_PLATO_REAL(DATA,NN,ISIGN)
+      use numerical_constants
       IMPLICIT NONE
       INTEGER I,J,N,NN,M,MMAX,ISTEP,ISIGN
       REAL(kind=fPrec) WR,WI,WPR,WPI,WTEMP,THETA,TEMPR,TEMPI
@@ -525,7 +527,7 @@ module platoFMA
       MMAX=2
  2    IF(N.GT.MMAX) THEN
         ISTEP=2*MMAX
-        THETA=(EIGHT*ATAN_MB(ONE))/(ISIGN*MMAX)
+        THETA=twopi/(ISIGN*MMAX)
         WPR=-TWO*SIN_MB(HALF*THETA)**2
         WPI=SIN_MB(THETA)
         WR=ONE

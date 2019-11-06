@@ -26,7 +26,7 @@ subroutine daliesix
   call time_timerCheck(time0)
 
   ! Initialization
-  x2pi=atan_mb(one)*eight
+  x2pi=twopi
   coe=(-one*two)/x2pi
   no=nordf
   if(nord1.gt.no) nord1=no
@@ -822,23 +822,13 @@ subroutine runda
         elseif((kzz.ge.1.and.kzz.le.10).or.(kzz.le.-1.and.kzz.ge.-10)) then
           write(7,*) '3'
           write(7,*) bez(ix)
-#ifdef TILT
           write(7,*) xsi(i),zsi(i),atan2_mb(tilts(i),tiltc(i))
-#endif
-#ifndef TILT
-          write(7,*) xsi(i),zsi(i),zero
-#endif
           write(7,*) kzz,smi(i)
         elseif(kzz.eq.11) then
           nmz=nmu(ix)
           write(7,*) '4'
           write(7,*) bez(ix)
-#ifdef TILT
           write(7,*) xsi(i),zsi(i),atan2_mb(tilts(i),tiltc(i))
-#endif
-#ifndef TILT
-          write(7,*) xsi(i),zsi(i),zero
-#endif
           if(abs(dki(ix,1)).gt.pieni) then
             if(abs(dki(ix,3)).gt.pieni) then
               write(7,*) nmz,' 1',' 1',' 1'

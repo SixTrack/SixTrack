@@ -179,10 +179,13 @@ contains
 !    fluka_geo_index    = 0
 !    fluka_synch_length = zero
 
-    call f_requestUnit(fort208,            unit208)
+    if(unit208 == -1) then
+      call f_requestUnit(fort208,unit208)
+      call f_open(unit=unit208,file=fort208,formatted=.true.,mode="w")
+    end if
+
     call f_requestUnit("fluka.log",        fluka_log_unit)
     call f_requestUnit("fluka_isotope.log",isotope_log_unit)
-    call f_open(unit=unit208,         file=fort208,            formatted=.true.,mode="w")
     call f_open(unit=fluka_log_unit,  file="fluka.log",        formatted=.true.,mode="w")
     call f_open(unit=isotope_log_unit,file="fluka_isotope.log",formatted=.true.,mode="w")
 
@@ -602,7 +605,7 @@ contains
          if(fluka_nrecv .gt. npart) then
 
             !If we hit the particle limit, we will need to  do a global array expand on npart, lets increase by 50 for now
-            call expand_arrays(nele, npart+50, nblz, nblo)
+            call expand_arrays(nele, npart+50, nblz, nblo, nbb)
 
 !            write(fluka_log_unit, *) &
 !                 '# FlukaIO error: reached maximum number of particles, ', &

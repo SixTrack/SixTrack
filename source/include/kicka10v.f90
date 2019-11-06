@@ -1,36 +1,4 @@
 ! start include/kicka10v.f90
-#ifndef TILT
-  mpe=20
-  cxzr=xl
-  cxzi=zl
-  cxzyr=cxzr**2-cxzi**2
-  cxzyi=cxzr*cxzi+cxzi*cxzr
-  cxzyrr=cxzyr*cxzr-cxzyi*cxzi
-  cxzyi=cxzyr*cxzi+cxzyi*cxzr
-  cxzyr=cxzyrr
-  cxzyrr=cxzyr*cxzr-cxzyi*cxzi
-  cxzyi=cxzyr*cxzi+cxzyi*cxzr
-  cxzyr=cxzyrr
-  cxzyrr=cxzyr*cxzr-cxzyi*cxzi
-  cxzyi=cxzyr*cxzi+cxzyi*cxzr
-  cxzyr=cxzyrr
-  cxzyrr=cxzyr*cxzr-cxzyi*cxzi
-  cxzyi=cxzyr*cxzi+cxzyi*cxzr
-  cxzyr=cxzyrr
-  cxzyrr=cxzyr*cxzr-cxzyi*cxzi
-  cxzyi=cxzyr*cxzi+cxzyi*cxzr
-  cxzyr=cxzyrr
-  cxzyrr=cxzyr*cxzr-cxzyi*cxzi
-  cxzyi=cxzyr*cxzi+cxzyi*cxzr
-  cxzyr=cxzyrr
-  qu=(nine*ekk)*cxzyi
-  qv=(-nine*ekk)*cxzyr
-  cxzyrr=cxzyr*cxzr-cxzyi*cxzi
-  cxzyi=cxzyr*cxzi+cxzyi*cxzr
-  cxzyr=cxzyrr
-  dyy1=ekk*cxzyi
-  dyy2=ekk*cxzyr
-#else
   mpe=20
   cxzr=xl
   cxzi=zl
@@ -63,5 +31,4 @@
   cxzyr=cxzyrr
   dyy1=ekk*(tiltc(k)*cxzyi-tilts(k)*cxzyr)
   dyy2=ekk*(tiltc(k)*cxzyr+tilts(k)*cxzyi)
-#endif
 ! end include/kicka10v.f90

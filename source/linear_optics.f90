@@ -128,9 +128,7 @@ subroutine linopt(dpp)
   real(kind=fPrec) aa,aeg,alfa,bb,benkr,beta,bexi,bezii,bl1eg,bl2eg,ci,cikve,clo0,clop0,cr,crkve, &
     crkveuk,di00,dip00,dphi,dpp,dpp1,dppi,dpr,dyy1,dyy2,ekk,etl,phi,phibf,puf,qu,qv,qw,qwc,r0,&
     r0a,t,xl,xs,zl,zs,quz,qvz
-#ifdef TILT
   real(kind=fPrec) dyy11,qu1,tiltck,tiltsk
-#endif
   character(len=mNameLen) idum
 
   dimension t(6,4)
@@ -739,25 +737,29 @@ subroutine linopt(dpp)
         if(abs(dki(ix,1)) > pieni) then
           if(abs(dki(ix,3)) > pieni) then
 #include "include/multl01.f90"
-#include "include/multl08.f90"
-            do i=2,ium
+          t(6,2)=(t(6,2)-((qu*xl+dppi)/(one+dpp))*tiltc(k))-(dppi/(one+dpp))*(one-tiltc(k))
+          t(6,4)=(t(6,4)-((qu*xl+dppi)/(one+dpp))*tilts(k))-(dppi/(one+dpp))*tilts(k)
+          do i=2,ium
 #include "include/multl02.f90"
             end do
           else
 #include "include/multl03.f90"
-#include "include/multl09.f90"
+            t(6,2)=(t(6,2)-(dppi/(one+dpp))*tiltc(k))-(dppi/(one+dpp))*(one-tiltc(k))
+            t(6,4)=(t(6,4)-(dppi/(one+dpp))*tilts(k))-(dppi/(one+dpp))*tilts(k)
           end if
         end if
         if(abs(dki(ix,2)) > pieni) then
           if(abs(dki(ix,3)) > pieni) then
 #include "include/multl04.f90"
-#include "include/multl10.f90"
+            t(6,2)=(t(6,2)-((qu*zl+dppi)/(one+dpp))*tilts(k))-(dppi/(one+dpp))*tilts(k)
+            t(6,4)=(t(6,4)+((qu*zl+dppi)/(one+dpp))*tiltc(k))+(dppi/(one+dpp))*(one-tiltc(k))
             do i=2,ium
 #include "include/multl05.f90"
             end do
           else
 #include "include/multl06.f90"
-#include "include/multl11.f90"
+            t(6,2)=(t(6,2)-(dppi/(one+dpp))*tilts(k))-(dppi/(one+dpp))*tilts(k)
+            t(6,4)=(t(6,4)+(dppi/(one+dpp))*tiltc(k))+(dppi/(one+dpp))*(one-tiltc(k))
           end if
         end if
         if(abs(r0) <= pieni) then
@@ -795,9 +797,7 @@ subroutine linopt(dpp)
         else
 #include "include/multl07d.f90"
         end if
-#ifdef TILT
 #include "include/multl07e.f90"
-#endif
         izu = izu+2*mmul-2*nmz
 
 !--Skipped elements
@@ -1042,7 +1042,6 @@ subroutine writelin(nr,typ,tl,p1,t,ixwl,isBLOC,ielem)
   use mod_common
   use mod_commons
   use mod_common_track
-  use collimation
   use floatPrecision
   use mathlib_bouncer
   use numerical_constants
@@ -1057,7 +1056,7 @@ subroutine writelin(nr,typ,tl,p1,t,ixwl,isBLOC,ielem)
   use hdf5_linopt
 #endif
 
-  integer i,iwrite,ixwl,l,ll,nr
+  integer i,iwrite,ixwl,l,ll,nr,tiel
   real(kind=fPrec) al1(2),al2(2),b1(2),b2(2),c(2),cp(2),d(2),dp(2),g1(2),g2(2),p1(2),t(6,4),tl
   character(len=mNameLen) typ
   ! isBLOC == TRUE if ixwl currently refers to a BLOC index, FALSE if it is a SINGLE ELEMENT index
@@ -1106,18 +1105,19 @@ subroutine writelin(nr,typ,tl,p1,t,ixwl,isBLOC,ielem)
     end if
 #endif
 
-    if(do_coll) then
-      tbetax(max(ielem,1))  = b1(1)
-      tbetay(max(ielem,1))  = b1(2)
-      talphax(max(ielem,1)) = al1(1)
-      talphay(max(ielem,1)) = al1(2)
-      torbx(max(ielem,1))   = c(1)
-      torbxp(max(ielem,1))  = cp(1)
-      torby(max(ielem,1))   = c(2)
-      torbyp(max(ielem,1))  = cp(2)
-      tdispx(max(ielem,1))  = d(1)
-      tdispy(max(ielem,1))  = d(2)
-    end if
+    tiel = max(ielem,1)
+    tbetax(tiel)  = b1(1)
+    tbetay(tiel)  = b1(2)
+    talphax(tiel) = al1(1)
+    talphay(tiel) = al1(2)
+    torbx(tiel)   = c(1)
+    torby(tiel)   = c(2)
+    torbxp(tiel)  = cp(1)
+    torbyp(tiel)  = cp(2)
+    tdispx(tiel)  = d(1)
+    tdispy(tiel)  = d(2)
+    tdispxp(tiel) = dp(1)
+    tdispyp(tiel) = dp(2)
 
     if(scatter_active .and. .not. isBLOC) then
       call scatter_setLinOpt(ixwl, al1, b1, c, cp, d, dp)
