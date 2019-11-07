@@ -817,8 +817,9 @@ subroutine elens_kick(i,ix,n)
 end subroutine elens_kick
 
 ! ================================================================================================ !
-!  Last modified: 2019-04-11
+!  Last modified: 2019-11-07
 !  compute kick from electron lens
+!  inspired by wireda
 ! ================================================================================================ !
 subroutine elens_kick_fox(i,ix)
 
@@ -903,6 +904,14 @@ subroutine elens_kick_fox(i,ix)
   YA=zero
   
 !FOX    FRR=ZERO ;
+
+  if (st_debug) then
+    write(lout,'(a)')'ELENS> ELENS_KICK_FOX closed orbit BEFORE elens:'
+    call dapri(XX(1),6)
+    call dapri(XX(2),6)
+    call dapri(YY(1),6)
+    call dapri(YY(2),6)
+  end if
   
   ! 1) apply offset of e-lens
   !    xx = x(proton) - elens_offset_x
@@ -995,8 +1004,13 @@ subroutine elens_kick_fox(i,ix)
   if (st_debug) then
     call dapek(FRR,hh,FRRA)
     write(lout,'(2(a,1pe23.16))')'ELENS> ELENS_KICK_FOX computed at RRA=',RRA,' - FRRA=',FRRA
+    write(lout,'(a)')'ELENS> ELENS_KICK_FOX closed orbit AFTER elens:'
+    call dapri(XX(1),6)
+    call dapri(XX(2),6)
+    call dapri(YY(1),6)
+    call dapri(YY(2),6)
   end if
-    
+  
 ! Do not remove or modify the comment below.
 !     DADAL AUTOMATIC INCLUSION
 
