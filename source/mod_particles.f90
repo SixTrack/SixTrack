@@ -327,10 +327,11 @@ subroutine part_writeState(fileName, isText, withIons)
       if(withIons) then
         call chr_fromReal(nucm(j), roundBuf(202:225),17,3,rErr)
         write(fileUnit, "(i8,1x,i8,1x,i8,a1,i1,2(1x,l4),1x,i8,a225,3(1x,i4),1x,i11)") &
-        partID(j),parentID(j),pairID(1,j),".",pairID(2,j),llostp(j),isPrim,numxv(j),roundBuf(1:225),naa(j),nzz(j),nqq(j),pdgid(j)
+          partID(j),parentID(j),pairID(1,j),".",pairID(2,j),llostp(j),isPrim,min(numxv(j),numx),roundBuf(1:225),&
+          naa(j),nzz(j),nqq(j),pdgid(j)
       else
         write(fileUnit, "(i8,1x,i8,1x,i8,a1,i1,2(1x,l4),1x,i8,a200)") &
-          partID(j),parentID(j),pairID(1,j),".",pairID(2,j),llostp(j),isPrim,numxv(j),roundBuf(1:200)
+          partID(j),parentID(j),pairID(1,j),".",pairID(2,j),llostp(j),isPrim,min(numxv(j),numx),roundBuf(1:200)
       end if
     end do
   else
@@ -368,7 +369,7 @@ subroutine part_writeState(fileName, isText, withIons)
         iLost = 0
       end if
       write(fileUnit) partID(j),parentID(j),pairID(1,j),pairID(2,j) ! 4x32 bit
-      write(fileUnit) iLost,iPrim,numxv(j),0_int32                  ! 4x32 bit
+      write(fileUnit) iLost,iPrim,min(numxv(j),numx),0_int32        ! 4x32 bit
       write(fileUnit) xv1(j),xv2(j),yv1(j),yv2(j)                   ! 4x64 bit
       write(fileUnit) sigmv(j),dpsv(j),ejfv(j),ejv(j)               ! 4x64 bit
       if(withIons) then
