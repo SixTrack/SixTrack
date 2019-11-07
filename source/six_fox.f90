@@ -1240,7 +1240,16 @@ subroutine umlauda
 !FOX  Y(2)=EJF0/EJF1*Y(2) ;
       endif
     if(kzz.eq.elens_kz) then ! Elens
-      if (elens_lFox(ielens(ix))) call elens_kick_fox(i,ix)
+      if (elens_lFox(ielens(ix))) then
+        ! inspired by wireda
+!FOX  XX(1)=X(1) ;
+!FOX  XX(2)=X(2) ;
+!FOX  YY(1)=Y(1) ;
+!FOX  YY(2)=Y(2) ;
+        call elens_kick_fox(i,ix)
+!FOX  Y(1)=YY(1) ;
+!FOX  Y(2)=YY(2) ;
+      end if
     end if     
     if(kzz.eq.22) then ! Phase Trombone
       irrtr=imtr(ix)
