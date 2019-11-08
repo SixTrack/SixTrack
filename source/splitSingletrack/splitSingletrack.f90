@@ -26,14 +26,14 @@ program splitSingletrack
     call get_command_argument(cmdarg_i, cmdarg_arg, cmdarg_length, cmdarg_status)
     if (len_trim(cmdarg_arg) == 0) exit
 
-    if (cmdarg_i .eq. 0) then
+    if (cmdarg_i == 0) then
       !Skip first argument (command name);
       ! do nothing
-    elseif (cmdarg_arg .eq. "--oldnames") then
+    elseif (cmdarg_arg == "--oldnames") then
       oldnames = .true.
-    elseif (cmdarg_arg .eq. "--getNumPairs") then
+    elseif (cmdarg_arg == "--getNumPairs") then
       getnumpairs = .true.
-    else if (cmdarg_arg .eq. "-h" .or. cmdarg_arg .eq. "--help") then
+    elseif (cmdarg_arg == "-h" .or. cmdarg_arg == "--help") then
       write(output_unit,'(a)') "Usage of 'splitsingletrack'; possible flags"
       write(output_unit,'(a)') "Note that all flags are mutually exclusive."
       write(output_unit,'(a)') "The input file should always be named '"//ifname//"'."
