@@ -567,8 +567,7 @@ subroutine scatter_parseElem(lnSplit, nSplit, iErr)
       return
     end if
 
-    ! Loop over those GENerators we've filled before
-    ! to check for duplicates
+    ! Loop over those GENerators we've filled before to check for duplicates
     do j=1,i-6
       if(generatorID(i-5) == generatorID(j)) then
         write(lerr,"(a)") "SCATTER> ERROR Parsing ELEM, generator '"//trim(lnSplit(i))//"' used twice"
