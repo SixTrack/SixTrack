@@ -1,5 +1,7 @@
 module mod_splitSingletrack
+
   use iso_fortran_env, only : output_unit
+
   implicit none
 
   ! File units used for I/O;
@@ -25,7 +27,9 @@ module mod_splitSingletrack
   double precision, private  :: ta(6,6)
 
 contains
+
   function numSTFpairs(ifname)
+
     character(len=*), intent(in) :: ifname
     integer numSTFpairs
     integer iostat
@@ -77,13 +81,14 @@ contains
   end function numSTFpairs
 
   subroutine convertSTFpair(pairIdx, ifname, ofname)
+
     integer, intent(in)          :: pairIdx !Which pair to extract
     character(len=*), intent(in) :: ifname  !Name of the singletrackfile to split
     character(len=*), intent(in) :: ofname  !Name of the output file
 
     integer iostat
-
     integer iPair
+    double precision, parameter :: zero = 0.0d0
 
     open(unit=inUnit,  file=ifname, form='UNFORMATTED', status='OLD',     action='READ',  err=410, iostat=iostat)
     open(unit=outUnit, file=ofname, form='UNFORMATTED', status='REPLACE', action='WRITE', err=411, iostat=iostat)
@@ -112,7 +117,13 @@ contains
              ta(3,3),ta(3,4),ta(3,5),ta(3,6), ta(4,1),ta(4,2),ta(4,3),ta(4,4), &
              ta(4,5),ta(4,6), ta(5,1),ta(5,2),ta(5,3),ta(5,4),ta(5,5),ta(5,6), &
              ta(6,1),ta(6,2),ta(6,3),ta(6,4),ta(6,5),ta(6,6), dmmac,dnms,dizu0,&
-             dnumlr,sigcor,dpscor
+             dnumlr,sigcor,dpscor, &
+             zero,zero,zero,zero,zero,zero,zero,zero, &
+             zero,zero,zero,zero,zero,zero,zero,zero, &
+             zero,zero,zero,zero,zero,zero,zero,zero, &
+             zero,zero,zero,zero,zero,zero,zero,zero, &
+             zero,zero,zero,zero,zero,zero,zero,zero, &
+             zero,zero,zero,zero
 
         ntwin = ilapa-ifipa+1
         if (.not. (ntwin == 1 .or. ntwin == 2)) then

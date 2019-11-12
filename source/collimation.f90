@@ -1959,6 +1959,9 @@ subroutine coll_exitCollimation
   use hdf5_output
   use hdf5_tracks2
 #endif
+#ifdef ROOT
+  use root_output
+#endif
 #ifdef G4COLLIMATION
   use geant4
 #endif
