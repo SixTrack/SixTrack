@@ -44,7 +44,7 @@ module elens
   logical, save          :: elens_lAllowUpdate(nelens) = .true.  ! Flag for disabling updating of kick,
                                                                  !  i.e. after DYNK has touched thetaR2,
                                                                  !  the energy update is disabled.
-  logical, save          :: elens_lFox(nelens)         = .false. ! the kick from the elens should be taken into account
+  logical, save          :: elens_lFox(nelens)         = .true.  ! the kick from the elens should be taken into account
                                                                  !  when searching for the closed orbit with DA algebra
   logical, save          :: elens_lFull(nelens)        = .false. ! if .true., elens is full, i.e. not hollow and R1=0.0
   logical, save          :: elens_lZeroThick(nelens)   = .false. ! if .true., elens has no thickness, i.e. R2=R1
@@ -56,7 +56,8 @@ module elens
   integer, save          :: elens_iRadial(nelens)                ! mapping to the radial profile
   real(kind=fPrec), save :: elens_radial_fr1(nelens)             ! value of f(R1) in case of radial profiles from file [0:1]
   real(kind=fPrec), save :: elens_radial_fr2(nelens)             ! value of f(R2) in case of radial profiles from file [0:1]
-  integer, save          :: elens_radial_mpoints(nelens)=2       ! how many points for polynomial interpolation
+  integer, save          :: elens_radial_mpoints(nelens)=2       ! how many points for polynomial interpolation (default: 2,
+                                                                 !    i.e. linear interpolation
   integer, save          :: elens_radial_jguess(nelens)=-1       ! bin for guessed search
   ! - file handling and data storage:
   integer, parameter     :: nelens_radial_profiles=20 ! max number of radial profiles
@@ -935,8 +936,8 @@ subroutine elens_kick_fox(i,ix)
   !    0    if r <= R1
   !    frr  if R1 < r < R2
   !    1    if r >= R2
+  call dapek(RR,hh,RRA)
   if (st_debug) then
-    call dapek(RR,hh,RRA)
     write(lout,'(a,1pe23.16)')   'ELENS> ELENS_KICK_FOX computing at RRA=',RRA
     write(lout,'(2(a,1pe23.16))')'ELENS>                when R1=',elens_r1(iLens),' and R2=',elens_r2(iLens)
   end if
