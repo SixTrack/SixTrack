@@ -983,9 +983,7 @@ subroutine elens_kick_fox(i,ix)
       end select
       ! take into account normalisation factor (geometrical)
 !FOX    FRR=FRR/ELENOR ;
-    elseif (abs(RRA-elens_r2(iLens)).lt.epsilon) then ! rr==R2
-!FOX    FRR=ONE ;
-    else ! rr>R2
+    else ! rr>=R2
 !FOX    FRR=ONE ;
     endif
     ! 'radial kick'
@@ -996,7 +994,13 @@ subroutine elens_kick_fox(i,ix)
       else
 !FOX    FRR=FRR*((RV-ELEBET*BETA0)/(ONE-ELEBET*BETA0)) ;
       end if
-    endif
+    end if
+    if (abs(RRA-elens_r1(iLens)).lt.epsilon.or.abs(RRA-elens_r2(iLens)).lt.epsilon) then ! rr==R1 and rr==R2 
+      ! set all derivatives to 0.0
+      call dapek(FRR,hh,FRRA)
+!FOX    FRR=ZERO ;
+      call dapok(FRR,hh,FRRA)
+    end if
 !FOX  YY(1)=YY(1)-(FRR*XI)/RR ;
 !FOX  YY(2)=YY(2)-(FRR*YI)/RR ;
   endif
