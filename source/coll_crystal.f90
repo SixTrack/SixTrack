@@ -655,9 +655,9 @@ subroutine cry_interact(is,x,xp,y,yp,pc,length)
           call cry_calcIonLoss(is,pc,length,dest)
           pc = pc - dest*length ! energy loss to ionization [GeV]
         else
-          Dxp = L_chan/c_rcurv + (half*ran_gauss(one))*xpcrit ! Change angle[rad]
+          Dxp = L_chan/c_rcurv + (half*ran_gauss(zero))*xpcrit ! Change angle[rad]
           xp  = Dxp
-          x   = x + L_chan*(sin(half*Dxp+c_miscut)) ! Trajectory at channeling exit
+          x   = x + L_chan*(sin_mb(half*Dxp+c_miscut)) ! Trajectory at channeling exit
           y   = y + s_length * yp
 
           call cry_calcIonLoss(is,pc,length,dest)
@@ -697,7 +697,7 @@ subroutine cry_interact(is,x,xp,y,yp,pc,length)
         x     = x + xp*Srefl
         y     = y + yp*Srefl
         Dxp   = Ang_avr
-        xp    = xp + Dxp + Ang_rms*ran_gauss(one)
+        xp    = xp + Dxp + Ang_rms*ran_gauss(zero)
         x     = x  + (half*xp)*(s_length - Srefl)
         y     = y  + (half*yp)*(s_length - Srefl)
 
@@ -719,7 +719,7 @@ subroutine cry_interact(is,x,xp,y,yp,pc,length)
         if(Ldech < Length-Lrefl) then
 
           iProc = proc_DC
-          Dxp   = Ldech/c_rcurv + (half*ran_gauss(one))*xpcrit
+          Dxp   = Ldech/c_rcurv + (half*ran_gauss(zero))*xpcrit
           x     = x + Ldech*(sin_mb(half*Dxp+xp)) ! Trajectory at channeling exit
           y     = y + Sdech*yp
           xp    =  Dxp
@@ -765,7 +765,7 @@ subroutine cry_interact(is,x,xp,y,yp,pc,length)
             Dxp = (Length-Lrefl)/c_rcurv
             x   = x + sin_mb(half*Dxp+xp)*Rlength ! Trajectory at channeling exit
             y   = y + red_S*yp
-            xp  = Length/c_rcurv + (half*ran_gauss(one))*xpcrit ! [mrad]
+            xp  = Length/c_rcurv + (half*ran_gauss(zero))*xpcrit ! [mrad]
 
             call cry_calcIonLoss(is,pc,rlength,dest)
             pc = pc - (half*dest)*Rlength  ! "added" energy loss once captured
@@ -952,8 +952,8 @@ subroutine cry_moveAM(is,nam,dz,dei,dly,dlr,xp,yp,pc)
   pc  = pc - dei*dz ! Energy lost because of ionization process[GeV]
 
   dya   = (13.6_fPrec/pc)*sqrt(dz/dlr) ! RMS of coloumb scattering MCS (mrad)
-  kxmcs = dya*ran_gauss(one)
-  kymcs = dya*ran_gauss(one)
+  kxmcs = dya*ran_gauss(zero)
+  kymcs = dya*ran_gauss(zero)
 
   xp = xp+kxmcs
   yp = yp+kymcs
@@ -1015,8 +1015,8 @@ subroutine cry_moveAM(is,nam,dz,dei,dly,dlr,xp,yp,pc)
       teta = sqrt(t)/pc
     end if
 
-    tx = (teta*ran_gauss(one))*c1e3
-    tz = (teta*ran_gauss(one))*c1e3
+    tx = (teta*ran_gauss(zero))*c1e3
+    tz = (teta*ran_gauss(zero))*c1e3
 
     ! Change p angle
     xp = xp + tx
@@ -1226,8 +1226,8 @@ subroutine cry_moveCH(is,nam,dz,x,xp,yp,pc,r,rc)
       teta = sqrt(t)/pc
     end if
 
-    tx = (teta*ran_gauss(one))*c1e3
-    tz = (teta*ran_gauss(one))*c1e3
+    tx = (teta*ran_gauss(zero))*c1e3
+    tz = (teta*ran_gauss(zero))*c1e3
 
     ! Change p angle
     xp = xp + tx
