@@ -1,7 +1,8 @@
 /*
 *  SixTrack Wrapper for Pythia8
 *  V.K. Berglyd Olsen, BE-ABP-HSS
-*  Last modified: 2018-07-30
+*  Created: 2018-07-30
+*  Updated: 2019-07-17
 */
 
 #include "pythia_wrapper.h"
@@ -52,6 +53,9 @@ void pythiaWrapper_setBeam(int frameType, int idA, int idB, double eA, double eB
   pythia.settings.mode("Beams:idB", idB);
   pythia.settings.parm("Beams:eA", eA);
   pythia.settings.parm("Beams:eB", eB);
+  if(frameType == 3) {
+    pythia.settings.flag("Beams:allowVariableEnergy", true);
+  }
 }
 
 void pythiaWrapper_readFile(char* fileName) {
@@ -64,6 +68,17 @@ void pythiaWrapper_getCrossSection(double& sigTot, double& sigEl) {
   sigTot = pythia.parm("SigmaTotal:sigmaTot");
   sigEl  = pythia.parm("SigmaTotal:sigmaEl");
 }
+
+/**
+ *  SoftQCD Events
+ * ================
+ *  101 : Non-Diffrcative
+ *  102 : Elastic             AB -> AB
+ *  103 : Single Diffractive  AB -> XB
+ *  104 : Single Diffractive  AB -> AX
+ *  105 : Double Diffractive  AB -> XX
+ *  106 : Central Diffractive AB -> AXB
+ */
 
 void pythiaWrapper_getEvent(bool& status, int& code, double& t, double& theta, double& dEE, double& dPP) {
   status = pythia.next();
@@ -106,6 +121,43 @@ void pythiaWrapper_getEvent(bool& status, int& code, double& t, double& theta, d
     dEE   = 0.0;
     dPP   = 0.0;
   }
+}
+
+void pythiaWrapper_getEventPVector(bool& status, int& code, double& t, double& theta, double& dEE, double& dPP, double* vecPin, double* vecPout) {
+
+  status = pythia.next(vecPin[0],vecPin[1],vecPin[2],vecPin[3],vecPin[4],vecPin[5]);
+  code   = pythia.info.code();
+
+  t      = 0.0;
+  theta  = 0.0;
+  dEE    = 0.0;
+  dPP    = 0.0;
+
+  if(code == 102 || code == 104 || code == 106) {
+    theta =  pythia.event[3].theta();
+    dEE   = (pythia.event[3].e()    - pythia.event[1].e())    / pythia.event[1].e();
+    dPP   = (pythia.event[3].pAbs() - pythia.event[1].pAbs()) / pythia.event[1].pAbs();
+  }
+  if(code == 102 || code == 104) {
+    t = pythia.info.tHat();
+  }
+  if(code == 106) {
+    t = (pythia.event[3].p() - pythia.event[1].p()).m2Calc();
+  }
+
+  vecPin[0]  = pythia.event[1].px();
+  vecPin[1]  = pythia.event[1].py();
+  vecPin[2]  = pythia.event[1].pz();
+  vecPin[3]  = pythia.event[2].px();
+  vecPin[4]  = pythia.event[2].py();
+  vecPin[5]  = pythia.event[2].pz();
+  vecPout[0] = pythia.event[3].px();
+  vecPout[1] = pythia.event[3].py();
+  vecPout[2] = pythia.event[3].pz();
+  vecPout[3] = pythia.event[4].px();
+  vecPout[4] = pythia.event[4].py();
+  vecPout[5] = pythia.event[4].pz();
+
 }
 
 }
