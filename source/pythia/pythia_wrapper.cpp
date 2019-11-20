@@ -63,10 +63,14 @@ void pythiaWrapper_readFile(char* fileName) {
   pythia.readFile(std::string(fileName));
 }
 
-void pythiaWrapper_getCrossSection(double& sigTot, double& sigEl) {
+void pythiaWrapper_getInitial(double& sigTot, double& sigEl, double& m0) {
   // sigTot = pythia.info.sigmaGen(0);
   sigTot = pythia.parm("SigmaTotal:sigmaTot");
   sigEl  = pythia.parm("SigmaTotal:sigmaEl");
+
+  // Generate one test event, and extract the particle mass
+  pythia.next();
+  m0 = sqrt(pythia.event[1].p().m2Calc());
 }
 
 /**

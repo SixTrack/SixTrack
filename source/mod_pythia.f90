@@ -104,10 +104,10 @@ module mod_pythia
       character(kind=C_CHAR,len=1), intent(in) :: fileName
     end subroutine pythia_readFile
 
-    subroutine pythia_getCrossSection(sigTot,sigEl) bind(C, name="pythiaWrapper_getCrossSection")
+    subroutine pythia_getInitial(sigTot,sigEl,m0) bind(C, name="pythiaWrapper_getInitial")
       use, intrinsic :: iso_c_binding
-      real(kind=C_DOUBLE), intent(inout) :: sigTot, sigEl
-    end subroutine pythia_getCrossSection
+      real(kind=C_DOUBLE), intent(inout) :: sigTot, sigEl, m0
+    end subroutine pythia_getInitial
 
     subroutine pythia_getEvent(status,code,t,theta,dEE,dPP) bind(C, name="pythiaWrapper_getEvent")
       use, intrinsic :: iso_c_binding
@@ -328,12 +328,13 @@ subroutine pythia_postInput
 
   use parpro
   use crcoall
+  use mod_common, only : nucm0
   use, intrinsic :: iso_c_binding
 
   logical(kind=C_BOOL) pythStat, sEL, sSD, sDD, sCD, sND, sCMB
   integer(kind=C_INT)  rndSeed, frameType, beamSpecies1, beamSpecies2
   real(kind=C_DOUBLE)  beamEnergy1, beamEnergy2, elasticTMin
-  real(kind=C_DOUBLE)  sigmaTot, sigmaEl
+  real(kind=C_DOUBLE)  sigmaTot, sigmaEl, mass0
 
   if(pythia_isActive .eqv. .false.) then
     ! No PYTHIA block, so nothing to do.
@@ -409,10 +410,12 @@ subroutine pythia_postInput
     call prror
   end if
 
-  call pythia_getCrossSection(sigmaTot, sigmaEl)
+  call pythia_getInitial(sigmaTot, sigmaEl, mass0)
   write(lout,"(a)")       "    Cross Sections"
-  write(lout,"(a,f12.6)") "    * Total:   ",sigmaTot
-  write(lout,"(a,f12.6)") "    * Elastic: ",sigmaEl
+  write(lout,"(a,f12.6)") "    * Total:         ",sigmaTot
+  write(lout,"(a,f12.6)") "    * Elastic:       ",sigmaEl
+  write(lout,"(a,f12.6)") "    * Pythia Mass:   ",mass0*c1e3
+  write(lout,"(a,f12.6)") "    * SixTrack Mass: ",nucm0
 
   write(lout,"(a)") ""
   write(lout,"(a)") str_divLine
