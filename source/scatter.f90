@@ -1051,13 +1051,12 @@ end subroutine scatter_setTAS
 ! =================================================================================================
 !  K. Sjobak, V.K. Berglyd Olsen, BE-ABP-HSS
 !  Created: 2017-08
-!  Updated: 2019-07-19
+!  Updated: 2019-11-20
 ! =================================================================================================
 subroutine scatter_thin(iStru, iElem, nTurn)
 
   use crcoall
   use mod_time
-  use mod_alloc
   use mod_units
   use mod_ranecu
   use mod_common
@@ -1067,6 +1066,7 @@ subroutine scatter_thin(iStru, iElem, nTurn)
   use mathlib_bouncer
   use numerical_constants
 #ifdef HDF5
+  use mod_alloc
   use hdf5_output
 #endif
 
@@ -1074,20 +1074,15 @@ subroutine scatter_thin(iStru, iElem, nTurn)
   integer, intent(in) :: iElem
   integer, intent(in) :: nTurn
 
-  integer          idElem, idPro, iGen, nGen, idGen, iError
-  integer          i, j, k
-  integer          tmpSeed1, tmpSeed2, unitDens
-  logical          updateE, autoRatio, isDiff, isExact, densDump, beamDump
-  integer          iLost, procID, fixedID
-  real(kind=fPrec) t, dEE, dPP, theta, phi, pVec(3), pNew, xRot, yRot
-  real(kind=fPrec) elemScale, sigmaTot, ratioTot, crossSection, scatterProb, targetDensity, scRatio, brRatio
+  integer i, j, k, idElem, idPro, iGen, nGen, idGen, iError, tmpSeed1, tmpSeed2, unitDens, iLost,   &
+    procID, fixedID
+  logical updateE, autoRatio, isDiff, isExact, densDump, beamDump, pScattered(napx)
+  real(kind=fPrec) t, dEE, dPP, theta, phi, pVec(3), pNew, xRot, yRot, elemScale, sigmaTot,         &
+    ratioTot, crossSection, scatterProb, targetDensity, scRatio, brRatio, rndVals(napx*3)
 
   real(kind=fPrec), allocatable :: brThreshold(:)
-  real(kind=fPrec), allocatable :: rndVals(:)
-  logical,          allocatable :: pScattered(:)
   logical,          allocatable :: hasProc(:,:)
-  integer,          allocatable :: nLost(:,:)
-  integer,          allocatable :: nScattered(:,:)
+  integer,          allocatable :: nLost(:,:), nScattered(:,:)
 
 #ifdef HDF5
   ! For HDF5 it is best to write in chuncks, so we will make arrays of size napx to cache everything
@@ -1117,11 +1112,14 @@ subroutine scatter_thin(iStru, iElem, nTurn)
   call recuut(tmpSeed1,tmpSeed2)
   call recuin(scatter_seed1,scatter_seed2)
 
-  call alloc(rndVals,   napx*3,             zero,   "rndVals")
-  call alloc(pScattered,napx,               .false.,"pScattered")
-  call alloc(hasProc,   nGen,scatter_nProc, .false.,"hasProc")
-  call alloc(nLost,     nGen,scatter_nProc, 0,      "nLost")
-  call alloc(nScattered,nGen,scatter_nProc, 0,      "nScattered")
+  allocate(hasProc(nGen,scatter_nProc))
+  allocate(nLost(nGen,scatter_nProc))
+  allocate(nScattered(nGen,scatter_nProc))
+
+  hasProc(:,:)    = .false.
+  nLost(:,:)      = 0
+  nScattered(:,:) = 0
+
 #ifdef HDF5
   if(h5_useForSCAT) then
     call alloc(iRecords,         3,napx,    0,      "iRecords")
@@ -1139,6 +1137,8 @@ subroutine scatter_thin(iStru, iElem, nTurn)
   iLost    = 0
   isDiff   = .false.
   updateE  = .false.
+
+  pScattered(:) = .false.
 
   ! Check if we're dumping the density diagnostics data on this element/turn
   densDump = scatter_dumpDensity(1) == iElem .and. scatter_dumpDensity(2) == nTurn
@@ -1361,11 +1361,6 @@ subroutine scatter_thin(iStru, iElem, nTurn)
   call recuut(scatter_seed1,scatter_seed2)
   call recuin(tmpSeed1,tmpSeed2)
 
-  call dealloc(rndVals,   "rndVals")
-  call dealloc(hasProc,   "hasProc")
-  call dealloc(pScattered,"pScattered")
-  call dealloc(nLost,     "nLost")
-  call dealloc(nScattered,"nScattered")
 #ifdef HDF5
   if(h5_useForSCAT) then
     call dealloc(iRecords,           "iRecords")
