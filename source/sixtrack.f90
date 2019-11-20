@@ -785,7 +785,7 @@ subroutine daten
     elseif(closeBlock) then
       continue
     else
-      call scatter_parseInputLine(string(inLine),inErr)
+      call scatter_parseInputLine(inLine,inErr)
       if(inErr) goto 9999
     end if
 
