@@ -120,10 +120,6 @@ module scatter
   integer,                 allocatable, public,  save :: scatter_elemPointer(:) ! (nele)
   real(kind=fPrec),        allocatable, private, save :: scatter_statScale(:)   ! (npart)
 
-  ! Random generator seeds
-  integer, public,  save :: scatter_seed1      = -1
-  integer, public,  save :: scatter_seed2      = -1
-
   ! Variable for file output
   character(len=15), parameter :: scatter_logFile   = "scatter_log.dat"
   character(len=19), parameter :: scatter_sumFile   = "scatter_summary.dat"
@@ -150,9 +146,6 @@ module scatter
   integer, public,  save :: scatter_sumFilePos_CR  =  0
   integer, public,  save :: scatter_pVecFilePos    = -1
   integer, public,  save :: scatter_pVecFilePos_CR =  0
-
-  integer, private, save :: scatter_seed1_CR       = -1
-  integer, private, save :: scatter_seed2_CR       = -1
 
   real(kind=fPrec), allocatable, private, save :: scatter_statScale_CR(:)
 #endif
@@ -313,7 +306,6 @@ subroutine scatter_parseInputLine(inLine, iErr)
 
   use crcoall
   use mod_find
-  use mod_ranecu
   use string_tools
   use numerical_constants
 #ifdef PYTHIA
@@ -361,15 +353,10 @@ subroutine scatter_parseInputLine(inLine, iErr)
     write(lout,"(a)") "SCATTER> Particle momentum vector log will be written"
 
   case("SEED")
-    if(nSplit /= 2) then
-      write(lerr,"(a,i0)") "SCATTER> ERROR SEED expected 1 argument, got ",nSplit-1
-      write(lerr,"(a)")    "SCATTER>       SEED seed"
-      iErr = .true.
-      return
-    end if
-    call chr_cast(lnSplit(2), scatter_seed1, iErr)
-    call recuinit(scatter_seed1)
-    call recuut(scatter_seed1, scatter_seed2)
+    write(lerr,"(a,i0)") "SCATTER> ERROR The SCATTER module no longer takes a dedicated SEED. "//&
+      "Please use the RANDOM NUMBERS blovck instead."
+    iErr = .true.
+    return
 
   case("BEAM2_EMIT")
     if(nSplit /= 3) then
@@ -1058,7 +1045,7 @@ subroutine scatter_thin(iStru, iElem, nTurn)
   use crcoall
   use mod_time
   use mod_units
-  use mod_ranecu
+  use mod_random
   use mod_common
   use string_tools
   use mod_particles
@@ -1074,8 +1061,7 @@ subroutine scatter_thin(iStru, iElem, nTurn)
   integer, intent(in) :: iElem
   integer, intent(in) :: nTurn
 
-  integer i, j, k, idElem, idPro, iGen, nGen, idGen, iError, tmpSeed1, tmpSeed2, unitDens, iLost,   &
-    procID, fixedID
+  integer i, j, k, idElem, idPro, iGen, nGen, idGen, iError, unitDens, iLost, procID, fixedID
   logical updateE, autoRatio, isDiff, isExact, densDump, beamDump, pScattered(napx)
   real(kind=fPrec) t, dEE, dPP, theta, phi, pVec(3), pNew, xRot, yRot, elemScale, sigmaTot,         &
     ratioTot, crossSection, scatterProb, targetDensity, scRatio, brRatio, rndVals(napx*3)
@@ -1107,10 +1093,6 @@ subroutine scatter_thin(iStru, iElem, nTurn)
 
   ! If not, we're doing something, so start the stop watch
   call time_startClock(time_clockSCAT)
-
-  ! Store the seeds in the random number generator, and set ours
-  call recuut(tmpSeed1,tmpSeed2)
-  call recuin(scatter_seed1,scatter_seed2)
 
   allocate(hasProc(nGen,scatter_nProc))
   allocate(nLost(nGen,scatter_nProc))
@@ -1166,7 +1148,7 @@ subroutine scatter_thin(iStru, iElem, nTurn)
   end do
 
   ! Generate random numbers for probability, branching ratio and phi angle
-  call ranecu(rndVals, napx*3, 0)
+  call rnd_uniform(rndser_scatMain, rndVals, napx*3)
 
   ! Loop over particles
   do j=1,napx
@@ -1357,10 +1339,6 @@ subroutine scatter_thin(iStru, iElem, nTurn)
     call part_writeState(scatter_beamFileA, .true., .false.)
   end if
 
-  ! Restore seeds in random generator
-  call recuut(scatter_seed1,scatter_seed2)
-  call recuin(tmpSeed1,tmpSeed2)
-
 #ifdef HDF5
   if(h5_useForSCAT) then
     call dealloc(iRecords,           "iRecords")
@@ -1460,7 +1438,7 @@ end subroutine scatter_getDensity
 subroutine scatter_generateParticle(idPro, iElem, j, pVec)
 
   use crcoall
-  use mod_ranecu
+  use mod_random
   use mod_common, only : e0f
   use mod_common_main, only : xv1, xv2, ejfv, oidpsv
   use numerical_constants
@@ -1471,7 +1449,6 @@ subroutine scatter_generateParticle(idPro, iElem, j, pVec)
   real(kind=fPrec), intent(out) :: pVec(3)
 
   real(kind=fPrec) orbX, orbY, orbXP, orbYP, rndVals(2), betaX, betaY, alphaX, alphaY
-  integer          tmpSeed1, tmpSeed2
 
   pVec(:) = zero
 
@@ -1541,17 +1518,10 @@ subroutine scatter_generateParticle(idPro, iElem, j, pVec)
       orbY   = scatter_proList(idPro)%fParams(9)
     end if
 
-    call recuut(tmpSeed1,tmpSeed2)
-    call recuin(scatter_seed1,scatter_seed2)
-
-    call ranecu(rndVals, 2, 0)
-
+    call rnd_uniform(rndser_scatPart, rndVals, 2)
     pVec(1) = ((rndVals(1)/sqrt(betaX))/c1e3 - (alphaX/betaX)*(xv1(j)-orbX) + orbXP*oidpsv(j)) * ejfv(j)/c1e3
     pVec(2) = ((rndVals(2)/sqrt(betaY))/c1e3 - (alphaY/betaY)*(xv2(j)-orbY) + orbYP*oidpsv(j)) * ejfv(j)/c1e3
     pVec(3) = -sqrt(ejfv(j)**2 - pVec(1)**2 - pVec(2)**2)
-
-    call recuut(scatter_seed1,scatter_seed2)
-    call recuin(tmpSeed1,tmpSeed1)
 
   end select
 
@@ -1769,7 +1739,7 @@ end subroutine scatter_generateEvent
 function scatter_generatePPElastic(a, b1, b2, phi, tmin) result(t)
 
   use crcoall
-  use mod_ranecu
+  use mod_random
   use mathlib_bouncer
   use numerical_constants
 
@@ -1792,7 +1762,7 @@ function scatter_generatePPElastic(a, b1, b2, phi, tmin) result(t)
   maxItt = 1000000
   do
     nItt = nItt + 1
-    call ranecu(rndArr, 3, 0)
+    call rnd_uniform(rndser_scatPart, rndArr, 3)
 
     ! Randomly switch between g1 and g3 according to probability
     if(rndArr(1) > prob3) then
@@ -2131,9 +2101,6 @@ subroutine scatter_initHDF5
 
   deallocate(setFields)
 
-  ! Write Attributes
-  call h5_writeAttr(h5_scatID,"SEED",scatter_seed1)
-
 end subroutine scatter_initHDF5
 #endif
 
@@ -2160,7 +2127,6 @@ subroutine scatter_crcheck_readdata(fileUnit, readErr)
   call alloc(scatter_statScale_CR, npart, zero, "scatter_statScale_CR")
 
   read(fileUnit, err=10, end=10) scatter_logFilePos_CR, scatter_sumFilePos_CR, scatter_pVecFilePos_CR
-  read(fileUnit, err=10, end=10) scatter_seed1_CR, scatter_seed2_CR
   read(fileUnit, err=10, end=10) scatter_statScale_CR
 
   readErr = .false.
@@ -2278,7 +2244,6 @@ subroutine scatter_crpoint(fileUnit, writeErr)
   writeErr = .false.
 
   write(fileunit,err=10) scatter_logFilePos, scatter_sumFilePos, scatter_pVecFilePos
-  write(fileunit,err=10) scatter_seed1, scatter_seed2
   write(fileunit,err=10) scatter_statScale
   flush(fileUnit)
 
@@ -2302,8 +2267,6 @@ subroutine scatter_crstart
 
   use mod_alloc
 
-  scatter_seed1 = scatter_seed1_CR
-  scatter_seed2 = scatter_seed2_CR
   scatter_statScale(:) = scatter_statScale_CR(:)
 
   call dealloc(scatter_statScale_CR,"scatter_statScale_CR")
