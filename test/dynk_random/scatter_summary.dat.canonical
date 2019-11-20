@@ -5,10 +5,14 @@
 #  Read 1 element(s)
 #  Read 1 profile(s)
 #  Read 1 generator(s)
-# 
+#
 #  Generators
 # =============
 #  Generator(1): 'sc_thin'
+#
+#  Profiles
+# ==========
+#  Profile(1): 'ipFLAT'
 #
 #  Cross Sections
 # ================
