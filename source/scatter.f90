@@ -1426,10 +1426,10 @@ subroutine scatter_getDensity(idPro, xPos, yPos, sPos, xProj, yProj, rhoOut)
     sigmaX  = scatter_proList(idPro)%fParams(12)
     sigmaY  = scatter_proList(idPro)%fParams(13)
     normFac = scatter_proList(idPro)%fParams(14)
-    sRot    = scatter_proList(idPro)%fParams(15)
-    cRot    = scatter_proList(idPro)%fParams(16)
-    sOrbXP  = scatter_proList(idPro)%fParams(18)
-    sOrbYP  = scatter_proList(idPro)%fParams(19)
+    ! sRot    = scatter_proList(idPro)%fParams(15)
+    ! cRot    = scatter_proList(idPro)%fParams(16)
+    ! sOrbXP  = scatter_proList(idPro)%fParams(18)
+    ! sOrbYP  = scatter_proList(idPro)%fParams(19)
 
     ! xRot    = (xPos - orbX + sPos*sOrbXP)*cRot - (yPos - orbY + sPos*sOrbXP)*sRot
     ! yRot    = (xPos - orbX + sPos*sOrbYP)*sRot + (yPos - orbY + sPos*sOrbYP)*cRot
@@ -1440,9 +1440,11 @@ subroutine scatter_getDensity(idPro, xPos, yPos, sPos, xProj, yProj, rhoOut)
     rhoOut  = (nBeam*normFac) * exp_mb(-half*(xProj/sigmaX)**2 -half*(yProj/sigmaY)**2)
 
   case default
-    write(lerr,"(a,i0,a)") "SCATTER> ERROR Type ",scatter_proList(idPro)%proType," for profile '"//&
-      trim(scatter_proList(idPro)%proName)//"' not understood"
+
+    write(lerr,"(a,i0,a)") "SCATTER> ERROR Unknown profile type ",scatter_proList(idPro)%proType," for profile '"//&
+      trim(scatter_proList(idPro)%proName)//"'"
     call prror
+
   end select
 
 end subroutine scatter_getDensity
@@ -1450,7 +1452,10 @@ end subroutine scatter_getDensity
 ! =================================================================================================
 !  V.K. Berglyd Olsen, BE-ABP-HSS
 !  Created: 2019-07-22
-!  Updated: 2019-07-22
+!  Updated: 2019-11-20
+!  Generate a particle to collide with.
+!  Only used for Pythia REALBEAM scattering events, so we assume this is called from within the
+!  PYTHIA compiler flag.
 ! =================================================================================================
 subroutine scatter_generateParticle(idPro, iElem, j, pVec)
 
@@ -1503,9 +1508,9 @@ subroutine scatter_generateParticle(idPro, iElem, j, pVec)
       orbXP = scatter_proList(idPro)%fParams(1)
       orbYP = scatter_proList(idPro)%fParams(2)
     end if
-    pVec(1) = (orbXP*e0f)*c1m3
-    pVec(2) = (orbYP*e0f)*c1m3
-    pVec(3) = -sqrt(e0f**2 - pVec(1)**2 - pVec(2)**2)
+    pVec(1) = (orbXP*e0f)/c1e3
+    pVec(2) = (orbYP*e0f)/c1e3
+    pVec(3) = -sqrt((e0f**2 - pVec(1)**2) - pVec(2)**2)
 
   case(scatter_proBeamUnCorr)
 
@@ -1541,8 +1546,8 @@ subroutine scatter_generateParticle(idPro, iElem, j, pVec)
 
     call ranecu(rndVals, 2, 0)
 
-    pVec(1) = ((rndVals(1)/sqrt(betaX))*c1m3 - (alphaX/betaX)*(xv1(j)-orbX) + orbXP*oidpsv(j)) * ejfv(j)*c1m3
-    pVec(2) = ((rndVals(2)/sqrt(betaY))*c1m3 - (alphaY/betaY)*(xv2(j)-orbY) + orbYP*oidpsv(j)) * ejfv(j)*c1m3
+    pVec(1) = ((rndVals(1)/sqrt(betaX))/c1e3 - (alphaX/betaX)*(xv1(j)-orbX) + orbXP*oidpsv(j)) * ejfv(j)/c1e3
+    pVec(2) = ((rndVals(2)/sqrt(betaY))/c1e3 - (alphaY/betaY)*(xv2(j)-orbY) + orbYP*oidpsv(j)) * ejfv(j)/c1e3
     pVec(3) = -sqrt(ejfv(j)**2 - pVec(1)**2 - pVec(2)**2)
 
     call recuut(scatter_seed1,scatter_seed2)
@@ -1623,10 +1628,14 @@ subroutine scatter_generateEvent(idGen, idPro, iElem, j, nTurn, t, theta, dEE, d
 #ifdef PYTHIA
 10  continue
     if(pythia_useRealBeam) then
+      ! We sample the actual SixTrack tracked beam 1, and sample a colliding
+      ! particle from beam 2
 
-      pIn(1) = yv1(j)*ejfv(j)*c1m6
-      pIn(2) = yv2(j)*ejfv(j)*c1m6
-      pIn(3) = sqrt(ejfv(j)**2 - pIn(1)**2 - pIn(2)**2)*c1m3
+      ! Compute the particle three-momenta in GeV, using division rather
+      ! than multiplication for scaling to avoid additional numerical error
+      pIn(1) = yv1(j)*ejfv(j)/c1e6
+      pIn(2) = yv2(j)*ejfv(j)/c1e6
+      pIn(3) = sqrt(ejfv(j)**2 - pIn(1)**2 - pIn(2)**2)/c1e3
 
       call scatter_generateParticle(idPro, iElem, j, pGen)
 
@@ -1663,6 +1672,8 @@ subroutine scatter_generateEvent(idGen, idPro, iElem, j, nTurn, t, theta, dEE, d
       isExact = .true.
 
     else
+      ! We just let Pythia generate an event assuming both colliding particles
+      ! are on-momentum, and collide head on.
 
       call pythia_getEvent(evStat, evType, t, theta, dEE, dPP)
 
@@ -1732,7 +1743,7 @@ subroutine scatter_generateEvent(idGen, idPro, iElem, j, nTurn, t, theta, dEE, d
 #endif
 
   case default
-    write(lerr,"(a,i0,a)") "SCATTER> ERROR Generator type ",scatter_genList(idGen)%genType," not understood"
+    write(lerr,"(a,i0)") "SCATTER> ERROR Unknown generator type ",scatter_genList(idGen)%genType
     call prror
 
   end select
