@@ -4,7 +4,7 @@
 ! ~~~~~~~~~~~~~~~~~~~~~~~~~
 !  V.K. Berglyd Olsen, K.N. Sjobak, H. Burkhardt, BE-ABP-HSS
 !  Created: 2017-08
-!  Updated: 2019-08-26
+!  Updated: 2019-11-20
 !
 !  References
 ! ~~~~~~~~~~~~
@@ -30,19 +30,19 @@ module scatter
   logical, public, save :: scatter_writePLog   = .false.
 
   ! Scatter Parameters
-  integer,          parameter :: scatter_nProc            = 9
-  integer,          parameter :: scatter_idAbsorb         = 1
-  integer,          parameter :: scatter_idNonDiff        = 2
-  integer,          parameter :: scatter_idElastic        = 3
-  integer,          parameter :: scatter_idSingleDiffXB   = 4
-  integer,          parameter :: scatter_idSingleDiffAX   = 5
-  integer,          parameter :: scatter_idDoubleDiff     = 6
-  integer,          parameter :: scatter_idCentralDiff    = 7
-  integer,          parameter :: scatter_idUnknown        = 8
-  integer,          parameter :: scatter_idError          = 9
-  character(len=8), parameter :: scatter_procNames(scatter_nProc) = (/  &
-    "Absorbed","NonDiff ","Elastic ","SingD_XB","SingD_AX",             &
-    "DoubD_XX","CentDiff","Unknown ","Error   "                         &
+  integer,          parameter :: scatter_nProc          = 9
+  integer,          parameter :: scatter_idAbsorb       = 1
+  integer,          parameter :: scatter_idNonDiff      = 2
+  integer,          parameter :: scatter_idElastic      = 3
+  integer,          parameter :: scatter_idSingleDiffXB = 4
+  integer,          parameter :: scatter_idSingleDiffAX = 5
+  integer,          parameter :: scatter_idDoubleDiff   = 6
+  integer,          parameter :: scatter_idCentralDiff  = 7
+  integer,          parameter :: scatter_idUnknown      = 8
+  integer,          parameter :: scatter_idError        = 9
+  character(len=8), parameter :: scatter_procNames(scatter_nProc) = (/ &
+    "Absorbed","NonDiff ","Elastic ","SingD_XB","SingD_AX",            &
+    "DoubD_XX","CentDiff","Unknown ","Error   "                        &
   /)
 
   ! Generator Parameters
@@ -52,11 +52,11 @@ module scatter
   integer, parameter :: scatter_genPythiaFull    = 4
 
   ! Profile Parameters
-  integer, parameter :: scatter_proFlat          = 1
-  integer, parameter :: scatter_proFixed         = 2
-  integer, parameter :: scatter_proGauss1        = 3
-  integer, parameter :: scatter_proBeamRef       = 4
-  integer, parameter :: scatter_proBeamUnCorr    = 5
+  integer, parameter :: scatter_proFlat       = 1
+  integer, parameter :: scatter_proFixed      = 2
+  integer, parameter :: scatter_proGauss1     = 3
+  integer, parameter :: scatter_proBeamRef    = 4
+  integer, parameter :: scatter_proBeamUnCorr = 5
 
   ! Input Variables
   real(kind=fPrec), private, save :: scatter_beam2EmitX     = zero ! Beam 2 horisontal emittance
@@ -174,7 +174,7 @@ end subroutine scatter_expand_arrays
 ! =================================================================================================
 !  K. Sjobak, V.K. Berglyd Olsen, BE-ABP-HSS
 !  Created: 2017-08
-!  Updated: 2018-11-12
+!  Updated: 2019-11-20
 ! =================================================================================================
 subroutine scatter_init
 
@@ -213,7 +213,7 @@ subroutine scatter_init
       if(isMirror) then
         if(ilin /= 1) then
           write(lerr,"(a,i0)") "SCATTER> ERROR In order to mirror the twiss parameters of beam 1, the ilin parameter of the "//&
-            "LINE block must be set to 1, but it is currently set to ",ilin
+            "LINEAR OPTICS block must be set to 1, but it is currently set to ",ilin
           call prror
         end if
 
@@ -239,10 +239,10 @@ subroutine scatter_init
     ! orbY   = scatter_proList(idPro)%fParams(9)
 
       ! Compute the sigmas from beam 2 emittance
-      sigmaX    = sqrt((scatter_beam2EmitX * betaX) / (gamma0 / beta0)) * c1m3
-      sigmaY    = sqrt((scatter_beam2EmitY * betaY) / (gamma0 / beta0)) * c1m3
-      sigmaXeff = sqrt(sigmaX**2 + (scatter_beam2Length * tan_mb(orbXP * c1m3))**2)
-      sigmaYeff = sqrt(sigmaY**2 + (scatter_beam2Length * tan_mb(orbYP * c1m3))**2)
+      sigmaX    = sqrt((scatter_beam2EmitX*betaX)/(gamma0/beta0))*c1m3
+      sigmaY    = sqrt((scatter_beam2EmitY*betaY)/(gamma0/beta0))*c1m3
+      sigmaXeff = sqrt(sigmaX**2 + (scatter_beam2Length*tan_mb(orbXP*c1m3))**2)
+      sigmaYeff = sqrt(sigmaY**2 + (scatter_beam2Length*tan_mb(orbYP*c1m3))**2)
 
       ! Compute approximate effective sigmas from crossing angle, assuming sigma_z >> sigma_x,y
       ! xFac  = sqrt(one + ((scatter_beam2Length / sigmaX) * tan_mb(orbXP * c1m3))**2)
@@ -250,7 +250,7 @@ subroutine scatter_init
 
       ! Rotate beam 2 in x,y plane so the crossing angle is only in x
       ! elRot = -atan2_mb(yFac-one,xFac-one)
-      elRot = -atan2_mb(sigmaYeff-sigmaY,sigmaXeff-sigmaX)
+      elRot = -atan2_mb(sigmaYeff - sigmaY, sigmaXeff - sigmaX)
       sRot  = sin_mb(elRot)
       cRot  = cos_mb(elRot)
 
@@ -258,8 +258,8 @@ subroutine scatter_init
       ! sigmaYeff = abs(sigmaX*cRot - sigmaY*sRot)
 
       ! Compute approximate kinematic factor and the normalisation of the PDF
-      kFac    = 2.0_fPrec * cos_mb(2*sigmaXeff/scatter_beam2Length) * cos_mb(2*sigmaYeff/scatter_beam2Length)
-      normFac = kFac / (twopi * sqrt(sigmaXeff**2 * sigmaYeff**2))
+      kFac    = two*cos_mb(two*(sigmaXeff/scatter_beam2Length))*cos_mb(two*(sigmaYeff/scatter_beam2Length))
+      normFac = kFac/(twopi*sqrt(sigmaXeff**2 * sigmaYeff**2))
 
       scatter_proList(idPro)%fParams(10) = sigmaX
       scatter_proList(idPro)%fParams(11) = sigmaY
@@ -269,8 +269,8 @@ subroutine scatter_init
       scatter_proList(idPro)%fParams(15) = sRot
       scatter_proList(idPro)%fParams(16) = cRot
       scatter_proList(idPro)%fParams(17) = elRot
-      scatter_proList(idPro)%fParams(18) = sin_mb(orbXP * c1m3)
-      scatter_proList(idPro)%fParams(19) = sin_mb(orbYP * c1m3)
+      scatter_proList(idPro)%fParams(18) = sin_mb(orbXP*c1m3)
+      scatter_proList(idPro)%fParams(19) = sin_mb(orbYP*c1m3)
 
     end select
 
@@ -300,7 +300,7 @@ end subroutine scatter_init
 ! =================================================================================================
 !  V.K. Berglyd Olsen, BE-ABP-HSS
 !  Created: 2017-08
-!  Updated: 2019-07-19
+!  Updated: 2019-11-20
 ! =================================================================================================
 subroutine scatter_parseInputLine(inLine, iErr)
 
@@ -1354,7 +1354,7 @@ end subroutine scatter_thin
 ! =================================================================================================
 !  V.K. Berglyd Olsen, K. Sjobak, BE-ABP-HSS
 !  Created: 2017-08
-!  Updated: 2017-11-02
+!  Updated: 2018-11-20
 ! =================================================================================================
 subroutine scatter_getDensity(idPro, xPos, yPos, sPos, xProj, yProj, rhoOut)
 
@@ -1404,18 +1404,14 @@ subroutine scatter_getDensity(idPro, xPos, yPos, sPos, xProj, yProj, rhoOut)
     sigmaX  = scatter_proList(idPro)%fParams(12)
     sigmaY  = scatter_proList(idPro)%fParams(13)
     normFac = scatter_proList(idPro)%fParams(14)
-    ! sRot    = scatter_proList(idPro)%fParams(15)
-    ! cRot    = scatter_proList(idPro)%fParams(16)
-    ! sOrbXP  = scatter_proList(idPro)%fParams(18)
-    ! sOrbYP  = scatter_proList(idPro)%fParams(19)
 
-    ! xRot    = (xPos - orbX + sPos*sOrbXP)*cRot - (yPos - orbY + sPos*sOrbXP)*sRot
-    ! yRot    = (xPos - orbX + sPos*sOrbYP)*sRot + (yPos - orbY + sPos*sOrbYP)*cRot
     xProj   = xPos - orbX
     yProj   = yPos - orbY
-    ! xRot    = xProj*cRot - yProj*sRot
-    ! yRot    = xProj*sRot + yProj*cRot
-    rhoOut  = (nBeam*normFac) * exp_mb(-half*(xProj/sigmaX)**2 -half*(yProj/sigmaY)**2)
+    rhoOut  = (nBeam*normFac) * exp_mb(    &
+      - half*(xProj/sigmaX)**2             &
+      - half*(yProj/sigmaY)**2             &
+      - half*(sPos/scatter_beam2Length)**2 &
+    )
 
   case default
 
