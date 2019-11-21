@@ -1188,6 +1188,10 @@ program maincr
 ! ---------------------------------------------------------------------------- !
 !  START OF TRACKING
 ! ---------------------------------------------------------------------------- !
+  if(st_notrack) then
+    write(lout,"(a)") "MAINCR> Skipping tracking as the user set the --notrack flag"
+    goto 520
+  end if
   write(lout,10200)
 
   if(st_iStateWrite) then

@@ -98,6 +98,7 @@ module mod_settings
   logical, save :: st_print        = .false. ! PRINT flag (fort.3)
   integer, save :: st_quiet        = 0       ! QUIET Level 0=verbose, 1=minimal, 2=quiet
   logical, save :: st_debug        = .false. ! Global DEBUG flag
+  logical, save :: st_notrack      = .false. ! Flag to disable tracking (exit after initialisation)
   logical, save :: st_partsum      = .false. ! Flag to print final particle summary
   logical, save :: st_writefort12  = .false. ! Flag to write fort.12 after tracking
   logical, save :: st_fStateWrite  = .false. ! Dump particle final state file
