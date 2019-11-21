@@ -86,39 +86,52 @@ subroutine sixin_commandLine(stName)
   use crcoall
   use mod_version
   use mod_common, only : fort2, fort3
+  use mod_settings, only : st_notrack
 
   character(len=*), intent(in) :: stName
 
   character(len=mStrLen) cmdArg
-  integer nCmd
+  integer nCmd, iCmd
+  logical setFort2, setFort3
 
   nCmd = command_argument_count()
   if(nCmd < 1) return
 
-  ! First argument is either a command or the file name for the main input file
-  call get_command_argument(1, cmdArg)
-  select case(cmdArg)
-  case("-nv","--numver")
-    write(lout,"(i0)") numvers
-    stop
-  case("-v","--version")
-    write(lout,"(a)") trim(stName)//" "//trim(version)//"-"//trim(git_revision(1:7))
-    stop
-  case("-V","--VERSION")
-    write(lout,"(a)") trim(stName)
-    write(lout,"(a)") "Version:  "//trim(version)
-    write(lout,"(a)") "Released: "//trim(moddate)
-    write(lout,"(a)") "Git Hash: "//trim(git_revision)
-    stop
-  case default
-    fort3 = trim(cmdArg)
-  end select
+  setFort2 = .false.
+  setFort3 = .false.
 
-  if(nCmd < 2) return
+  ! First argument can potentially be a flag, in which case we parse it
+  do iCmd=1,nCmd
+    call get_command_argument(iCmd, cmdArg)
 
-  ! Second argument is the file name for the main geometry file
-  call get_command_argument(2, cmdArg)
-  fort2 = trim(cmdArg)
+    select case(cmdArg)
+    case("--notrack")
+      st_notrack = .true.
+    case("-nv","--numver")
+      write(lout,"(i0)") numvers
+      stop
+    case("-v","--version")
+      write(lout,"(a)") trim(stName)//" "//trim(version)//"-"//trim(git_revision(1:7))
+      stop
+    case("-V","--VERSION")
+      write(lout,"(a)") trim(stName)
+      write(lout,"(a)") "Version:  "//trim(version)
+      write(lout,"(a)") "Released: "//trim(moddate)
+      write(lout,"(a)") "Git Hash: "//trim(git_revision)
+      stop
+    case default
+      if(.not. setFort3) then
+        fort3 = trim(cmdArg)
+        setFort3 = .true.
+      elseif(.not. setFort2) then
+        fort2 = trim(cmdArg)
+        setFort2 = .true.
+      else
+        write(lerr,"(a)") "SIXIN> ERROR Unknown command line argument '"//cmdArg//"'"
+        call prror
+      end if
+    end select
+  end do
 
 end subroutine sixin_commandLine
 

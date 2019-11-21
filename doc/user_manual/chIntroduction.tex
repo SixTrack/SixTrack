@@ -177,13 +177,16 @@ Examples \texttt{1, 1.0, 1.0e3, 1e3, 1.0d3, 1d3, 1.0q3, 1q3}.
 % ================================================================================================================================ %
 \subsection{Command Line Arguments} \label{sec:cmdarg}
 
-SixTrack does not require any command line arguments, but can optionally take the file name for the main input file as well as the geometry file as the first and second argument, respectively.
+SixTrack does not require any command line arguments, but can optionally take the file name for the main input file as well as the geometry file.\index{command line arguments}
+The first file name encountered is taken as the input file, and the second is taken as the geometry file.
 See also Sections~\ref{InFiles} and~\ref{ProVer}.
 
 \bigskip
-\noindent In addition, SixTrack can echo the version number and exit with the following flags:
-\begin{itemize}
-    \item[\texttt{-v}] Echo program name and version as a single line, and exit.
-    \item[\texttt{-V}] Echo program name, version, release date, and git hash on four lines, and exit.
-    \item[\texttt{-nv}] Echo the numerical version as an integer, and exit,
-\end{itemize}
+\noindent In addition, SixTrack can take the following command line arguments:\\
+
+\begin{tabular}{@{}lp{0.7\linewidth}}
+    \texttt{--notrack} & SixTrack will run the initialisation of the job, but skip the entire tracking loop. This can be useful for checking initial simulation parameters without having to run the full job.\index{notrack} \\
+    \texttt{-v, --version} & Echo program name and version as a single line, and exit. \\
+    \texttt{-V, --VERSION} & Echo program name, version, release date, and git hash on four lines, and exit. \\
+    \texttt{-nv, --numvers} & Echo the numerical version as an integer, and exit,
+\end{tabular}
