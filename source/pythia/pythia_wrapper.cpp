@@ -70,7 +70,7 @@ void pythiaWrapper_getInitial(double& sigTot, double& sigEl, double& m0) {
 
   // Generate one test event, and extract the particle mass
   pythia.next();
-  m0 = sqrt(pythia.event[1].p().m2Calc());
+  m0 = pythia.event[1].p().mCalc();
 }
 
 /**
