@@ -1880,12 +1880,13 @@ All flags default to \texttt{false}.
 
 \bigskip
 \begin{tabular}{@{}llp{0.7\linewidth}}
-    \texttt{WRITE\_DIST}   & Writes the beam distribution to file before and after tracking. \\
-    \texttt{WRITE\_IMPACT} & Writes the impact parameters for each collimator. \\
-    \texttt{WRITE\_SECOND} & Writes a secondary halo file based on normalised amplitude. \\
-    \texttt{WRITE\_AMPL}   & Writes checking files for amplitude, closed orbit. \\
-    \texttt{WRITE\_EFFIC}  & Writes the efficiency files. \\
-    \texttt{WRITE\_TRACKS} & Writes secondary/tertiary halo files.
+    \texttt{WRITE\_DIST}     & Writes the beam distribution to file before and after tracking. \\
+    \texttt{WRITE\_IMPACT}   & Writes the impact parameters for each collimator. \\
+    \texttt{WRITE\_SECOND}   & Writes a secondary halo file based on normalised amplitude. \\
+    \texttt{WRITE\_AMPL}     & Writes checking files for amplitude, closed orbit. \\
+    \texttt{WRITE\_EFFIC}    & Writes the efficiency files. \\
+    \texttt{WRITE\_TRACKS}   & Writes secondary/tertiary halo files. \\
+    \texttt{WRITE\_CRYCOORD} & Writes crystal coordinate file(s).
 \end{tabular}
 
 % ================================================================================================================================ %
@@ -2054,6 +2055,10 @@ Crystal collimators require an additional set of parameters described in the fol
 \bigskip
 All the parameters default to zero.
 Additional details on the physics principles of crystal collimation and benchmark against experimental data can be found in~\cite{crystal:1,crystal:2,crystal:3,crystal:4,crystal:5,crystal:6}.
+
+The main output file is the \texttt{cry\_interaction.dat} file.\index{crystal interaction}
+This file is enabled with the \texttt{WRITE\_CRYCOORD} flag in \texttt{fort.3}.
+In addition, if the \texttt{DEBUG} flag is set in the \texttt{SETTINGS} block (see Section~\ref{STSett}), a \texttt{cry\_entrance.dat} and \texttt{cry\_exit.dat} file is written as well.\index{crystal dump}
 
 \bigskip
 \noindent\textit{Example}
