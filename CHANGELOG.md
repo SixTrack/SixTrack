@@ -1,5 +1,23 @@
 # SixTrack Changelog
 
+### Version 5.4.2 [22.11.2019] - Release
+
+**Bugfixes**
+
+* Fixed a missing use statement in collimation under the `ROOT` compiler flag. Root support should now build again. PR #1015 (V.K. Berglyd Olsen, J. Molson)
+* Removed one sigma cuts on all normal random distributions in the crystal module. These were ported over from the old version of the crystal collimation code, but never worked properly there due to a datatype bug. There should not be any such cuts in the physics in the first place, so they have now been removed. PR #1016 (M. D'Andrea, V.K. Berglyd Olsen)
+* Fixed an inconsistency in the splitting tool for `singletrackfile.dat` where the header was not padded with zeroes when files were split up into particle pair files. The padding was always in the post-processing code, but not in the read90 tool which the splitting tool was derived from. Since the test suite relies on the read90 tool, the split files still passed, but user analysis codes failed. The splitting tool is now consistent with SicTrack post-processing. PR #1013 (V.K. Berglyd Olsen)
+
+**User Side Changes**
+
+* The turn number in the particle state files is now the smallest of current turn and number of particle tracked turns. Previously, the default value was always the total number of turns, and only adjusted if a particle was lost before the end of tracking. This was misleading users to think that the `initial_state.dat` file wasn't really written before tracking, as the turn number was non-zero. PR #1013 (V.K. Berglyd Olsen)
+* The main crystal interaction file is now written only if the `WRITE_CRYCOORD` flag is enabled in collimation. The entrance and exit files are, in addition, only written when the global `DEBUG` flag is enabled in the `SETTINGS` block. PR #1019 (V.K. Berglyd Olsen, M. D'Andrea, A. Mereghetti)
+* Added a command line flag `--notrack` that disables tracking in SixTrack. This allows for the checking of input files and simulation initialisation without running the full job. PR #1020 (V.K. Berglyd Olsen)
+
+**Documentation**
+
+* Documentation section for collimation updated to include crystal collimators. PRs #1012 and #1019 (M. D'Andrea, V.K. Berglyd Olsen)
+
 ### Version 5.4.1 [01.11.2019] - Release
 
 **Bugfixes**
