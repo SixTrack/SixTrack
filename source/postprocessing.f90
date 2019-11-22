@@ -191,7 +191,14 @@ subroutine postpr(posi, numl_t)
       end do
 
       sumda(52)=real(numvers,fPrec) ! SixTrack version
-      sumda(60)=-one                ! Dummy CPU time. No longer in use.
+      block
+        ! When we no longer need fort.10 for BOINC, delete this block and use the sumda(60)=-one line instead
+        use mod_time
+        real(kind=fPrec) pretime, trtime, posttime, tottime
+        call time_getSummary(pretime, trtime, posttime, tottime)
+        sumda(60)=trtime
+      end block
+      ! sumda(60)=-one                ! Dummy CPU time. No longer in use.
       b0=zero
       nlost=0
       ntwin=1
