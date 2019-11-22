@@ -6,7 +6,6 @@ SixTrack is a single particle 6D symplectic tracking code optimized for long ter
 It is mainly used for the LHC for dynamic aperture studies, tune optimization, and collimation studies.
 
 ## Authors
-
 F.&nbsp;Schmidt (DESY, CERN),
 J.D.&nbsp;Andersson,
 R.&nbsp;Assman,
@@ -15,6 +14,7 @@ V.K.&nbsp;Berglyd&nbsp;Olsen,
 C.&nbsp;Bracco,
 R.&nbsp;Bruce,
 R.&nbsp;De&nbsp;Maria,
+M.&nbsp;D&apos;Andrea,
 M.&nbsp;Fiascaris,
 M.&nbsp;Fjellstrom,
 H.&nbsp;Grote,
@@ -62,9 +62,16 @@ Copyright 2019 CERN. This software is distributed under the terms of the GNU Les
 
 In applying this licence, CERN does not waive the privileges and immunities granted to it by virtue of its status as an Intergovernmental Organization or submit itself to any jurisdiction.
 
+## Reference
+
+If you use SixTrack 5 in your publication, please cite:
+
+* De Maria, R., et al. ‘SixTrack Version 5: Status and New Developments’. In Proceedings of IPAC 2019, 3200–3203. Melbourne, Australia: JACoW, 2019. DOI:[10.18429/JACoW-IPAC2019-WEPTS043](https://doi.org/10.18429/JACoW-IPAC2019-WEPTS043).
+
 ## Quick Build
 
-To build the standard release version of SixTrack with default options, run the script `defaultBuild.sh`.
+To build the standard release version of SixTrack, run the script `cmake_six` with no additional options.
+This will build the SixTrack 64 bit executable with the singletrackfile, zlib support, as well as the crlibm math library.
 
 ## Resources
 

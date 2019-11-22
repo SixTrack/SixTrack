@@ -67,7 +67,7 @@ for i in range(1,7):
   outData.write("# TAS(%d,1:6)      = %s\n" % (i," ".join(f"{n:23.16e}" for n in tmp[:6])))
 
 outData.write("#\n")
-outData.write("# partID parentID lost prim                       x                       y                      xp                      yp                   sigma                      dp                       p                       e")
+outData.write("# partID parentID     pairID lost prim                       x                       y                      xp                      yp                   sigma                      dp                       p                       e")
 if iions == 1:
   outData.write("                    mass    A    Z    Q       PDGid\n")
 else:
@@ -75,8 +75,8 @@ else:
 
 
 for i in range(npart):
-  partID,parentID,iLost,iPrim = unpack("<iiii", inData.read(16))
-  outData.write("%8d %8d" % (partID,parentID))
+  partID,parentID,pairIDa,pairIDb,iLost,iPrim,nTurn,dum1 = unpack("<iiiiiiii", inData.read(32))
+  outData.write("%8d %8d %8d.%1d" % (partID,parentID,pairIDa,pairIDb))
   if iLost == 1:
     outData.write("    T")
   else:
@@ -85,6 +85,7 @@ for i in range(npart):
     outData.write("    T")
   else:
     outData.write("    F")
+  outData.write(" %8d" % nTurn)
   tmp[:8] = unpack("<dddddddd", inData.read(64))
   outData.write(" %s" % (" ".join(f"{n:23.16e}" for n in tmp[:8])))
   if iions == 1:

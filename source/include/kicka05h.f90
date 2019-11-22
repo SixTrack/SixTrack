@@ -1,28 +1,4 @@
 ! start include/kicka05h.f90
-#ifndef TILT
-  mpe=5
-  mx=3
-  cxzr=xl
-  cxzi=zl
-  cxzyr=cxzr**2-cxzi**2
-  cxzyi=cxzr*cxzi+cxzi*cxzr
-  ab1(3)=(six*ekk)*cxzyr
-  ab2(3)=(-six*ekk)*cxzyi
-  cxzyrr=cxzyr*cxzr-cxzyi*cxzi
-  cxzyi=cxzyr*cxzi+cxzyi*cxzr
-  cxzyr=cxzyrr
-  qu=(four*ekk)*cxzyr
-  qv=(four*ekk)*cxzyi
-  ab2(2)=-one*qv
-  cxzyrr=cxzyr*cxzr-cxzyi*cxzi
-  cxzyi=cxzyr*cxzi+cxzyi*cxzr
-  cxzyr=cxzyrr
-  dyy1=ekk*cxzyr
-  dyy2=(-one*ekk)*cxzyi
-  ab1(4)=(four*ekk)*xl
-  ab2(4)=((-one*four)*ekk)*zl
-  ab1(5)=ekk
-#else
   mpe=5
   mx=3
   cxzr=xl
@@ -58,5 +34,4 @@
   tiltck=tiltckuk
   ab1(5)=ekk*tiltck
   ab2(5)=ekk*tiltsk
-#endif
 ! end include/kicka05h.f90

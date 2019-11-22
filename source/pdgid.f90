@@ -1,53 +1,49 @@
 
 module mod_pdgid
 
-use, intrinsic :: iso_fortran_env
+  implicit none
 
 contains
 
 ! Calculates the  PDG id number given A + Z
 subroutine CalculatePDGid(id, a, z)
 
-implicit none
+  use, intrinsic :: iso_fortran_env
 
-integer(kind=int32), intent(out) :: id
-integer(kind=int16), intent(in) :: a
-integer(kind=int16), intent(in) :: z
+  integer(kind=int32), intent(out) :: id
+  integer(kind=int16), intent(in) :: a
+  integer(kind=int16), intent(in) :: z
 
+  !Nuclear codes are given as 10-digit numbers ±10LZZZAAAI.
 
-!Nuclear codes are given as 10-digit numbers ±10LZZZAAAI.
-
-  if(a .eq. 1 .and. z .eq. 1) then
+  if(a == 1 .and. z == 1) then
     id = 2212
-    goto 10
+    return
   end if
-
-  id = 1000000000 + (a * 10) + (z * 10000)
-
-  10 continue
+  id = 1000000000 + int(a,int32)*10 + int(z,int32)*10000
 
 end subroutine CalculatePDGid
 
 ! Calculates the A + Z given a PDG id number
 subroutine CalculateAZ(id, a, z)
 
-implicit none
+  use, intrinsic :: iso_fortran_env
 
-integer(kind=int32), intent(in) :: id
-integer(kind=int16), intent(out) :: a
-integer(kind=int16), intent(out) :: z
+  integer(kind=int32), intent(in) :: id
+  integer(kind=int16), intent(out) :: a
+  integer(kind=int16), intent(out) :: z
 
-integer(kind=int16) :: z1,z2,z3
-integer(kind=int16) :: a1,a2,a3
-integer(kind=int32) :: tmpid
+  integer(kind=int16) :: z1,z2,z3
+  integer(kind=int16) :: a1,a2,a3
+  integer(kind=int32) :: tmpid
 
-  if(id.eq.2212) then
+  if(id == 2212) then
     a = 1
     z = 1
     return
   end if
 
-  if(id.lt.1000000000) then
+  if(id < 1000000000) then
     a = 0
     z = 0
     return
@@ -82,149 +78,145 @@ end subroutine CalculateAZ
 !Learn to speak "FLUKA"
 subroutine GetFLUKAid_fromPDG(pdgid, fluka_id)
 
+  use, intrinsic :: iso_fortran_env
+
   use crcoall
 
-implicit none
+  integer(kind=int32), intent(in)  :: pdgid
+  integer(kind=int32), intent(out) :: fluka_id
 
-integer(kind=int32), intent(in)  :: pdgid
-integer(kind=int32), intent(out) :: fluka_id
+  integer(kind=int16) :: A
+  integer(kind=int16) :: Z
 
-integer(kind=int16) :: A
-integer(kind=int16) :: Z
+  !Only way is to do an A->B translation using the numbers in the FLUKA manual
+  !FM.pdf "Table 5.1: Fluka particle names and code numbers"
 
-!Only way is to do an A->B translation using the numbers in the FLUKA manual
-!FM.pdf "Table 5.1: Fluka particle names and code numbers"
+  if(pdgid == 2212) then
+    !proton
+    fluka_id = 1
 
-!proton
-if(pdgid .eq. 2212) then
-  fluka_id = 1
+  else if(pdgid == -2212) then
+    !anti proton
+    fluka_id = 2
 
-!anti proton
-else if(pdgid .eq. -2212) then
-  fluka_id = 2
+  else if(pdgid == 11) then
+    !electron
+    fluka_id = 3
 
-!electron
-else if(pdgid .eq. 11) then
-  fluka_id = 3
+  else if(pdgid == -11) then
+    !positron
+    fluka_id = 4
 
-!positron
-else if(pdgid .eq. -11) then
-  fluka_id = 4
+  !5 to 9 are neutrals
 
-!5 to 9 are neutrals
+  else if(pdgid == -13) then
+    !mu+
+    fluka_id = 10
 
-!mu+
-else if(pdgid .eq. -13) then
-  fluka_id = 10
+  else if(pdgid == 13) then
+    !mu-
+    fluka_id = 11
 
-!mu-
-else if(pdgid .eq. 13) then
-  fluka_id = 11
+  else if(pdgid == 211) then
+    !pi+
+    fluka_id = 13
 
-!pi+
-else if(pdgid .eq. 211) then
-  fluka_id = 13
+  else if(pdgid == -211) then
+    !pi-
+    fluka_id = 14
 
-!pi-
-else if(pdgid .eq. -211) then
-  fluka_id = 14
+  else if(pdgid == 321) then
+    !k+
+    fluka_id = 15
 
-!k+
-else if(pdgid .eq. 321) then
-  fluka_id = 15
+  else if(pdgid == -321) then
+    !k-
+    fluka_id = 16
 
-!k-
-else if(pdgid .eq. -321) then
-  fluka_id = 16
+  else if(pdgid == 3122) then
+    !lambda
+    fluka_id = 17
 
-!lambda
-else if(pdgid .eq. 3122) then
-  fluka_id = 17
+  else if(pdgid == -3122) then
+    !anti lambda
+    fluka_id = 18
 
-!anti lambda
-else if(pdgid .eq. -3122) then
-  fluka_id = 18
+  else if(pdgid == 3112) then
+    !sigma-
+    fluka_id = 20
 
-!sigma-
-else if(pdgid .eq. 3112) then
-  fluka_id = 20
+  else if(pdgid == 3222) then
+    !sigma+
+    fluka_id = 21
 
-!sigma+
-else if(pdgid .eq. 3222) then
-  fluka_id = 21
+  else if(pdgid == -3222) then
+    !anti-sigma-
+    fluka_id = 31
 
-!anti-sigma-
-else if(pdgid .eq. -3222) then
-  fluka_id = 31
+  else if(pdgid == -3112) then
+    !anti-sigma+
+    fluka_id = 33
 
-!anti-sigma+
-else if(pdgid .eq. -3112) then
-  fluka_id = 33
+  else if(pdgid == 3312) then
+    !Xi-
+    fluka_id = 36
 
-!Xi-
-else if(pdgid .eq. 3312) then
-  fluka_id = 36
+  else if(pdgid == -3312) then
+    !Xi+
+    fluka_id = 37
 
-!Xi+
-else if(pdgid .eq. -3312) then
-  fluka_id = 37
+  else if(pdgid == 3334) then
+    !Omega-
+    fluka_id = 38
 
-!Omega-
-else if(pdgid .eq. 3334) then
-  fluka_id = 38
+  else if(pdgid == -3334) then
+    !anti omega
+    fluka_id = 39
 
-!anti omega
-else if(pdgid .eq. -3334) then
-  fluka_id = 39
+  else if(pdgid == -15) then
+    !tau+
+    fluka_id = 41
 
+  else if(pdgid == 15) then
+    !tau-
+    fluka_id = 42
 
-!tau+
-else if(pdgid .eq. -15) then
-  fluka_id = 41
+  else if(pdgid > 1000000000) then
+    !ion
+    call CalculateAZ(pdgid, A, Z)
 
-!tau-
-else if(pdgid .eq. 15) then
-  fluka_id = 42
+    if(Z == 1) then
 
-!ion
-else if(pdgid .gt. 1000000000) then
-!get A,Z
-  call CalculateAZ(pdgid, A, Z)
+      if(A == 1) then
+        !Protons, etc
+        fluka_id = 1
+      else if(A == 2) then
+        fluka_id = -3
+      else if(A == 3) then
+        fluka_id = -4
+      else
+        fluka_id = -2
+      end if
 
-  if(Z .eq. 1) then
+    else if(Z == 2) then
+      !Helium, etc
+      if(A == 3) then
+        fluka_id = -5
+      else if(A == 4) then
+        fluka_id = -6
+      else
+        fluka_id = -2
+      end if
 
-!Protons, etc
-    if(A .eq. 1) then
-      fluka_id = 1
-    else if(A .eq. 2) then
-      fluka_id = -3
-    else if(A .eq. 3) then
-      fluka_id = -4
     else
+      !Generic heavy ion
       fluka_id = -2
     end if
-
-!Helium, etc
-  else if(Z .eq. 2) then
-    if(A .eq. 3) then
-      fluka_id = -5
-    else if(A .eq. 4) then
-      fluka_id = -6
-    else
-      fluka_id = -2
-    end if
-
   else
-!Generic heavy ion
-    fluka_id = -2
+    !something else
+    write(lerr,"(a,i0,a)") "PDGID> ERROR Unknown particle ID ",pdgid," in FLUKA conversion"
+    call prror
   end if
-!something else
-else
-  write(lerr,'(a,i0,a)') 'Unknown particle ID in PDG id to FLUKA conversion: ', pdgid, '  - exiting!'
-  call prror
-end if
-
-return
 
 end subroutine GetFLUKAid_fromPDG
 
@@ -232,119 +224,119 @@ end subroutine GetFLUKAid_fromPDG
 !FLUKA -> PDGid conversion
 subroutine GetPDGid_fromFLUKA(fluka_id, pdg_id, A, Z)
 
+  use, intrinsic :: iso_fortran_env
+
   use crcoall
 
-implicit none
+  integer(kind=int32), intent(in)  :: fluka_id
+  integer(kind=int32), intent(out) :: pdg_id
 
-integer(kind=int32), intent(in)  :: fluka_id
-integer(kind=int32), intent(out) :: pdg_id
+  integer(kind=int16), intent(in) :: A
+  integer(kind=int16), intent(in) :: Z
 
-integer(kind=int16), intent(in) :: A
-integer(kind=int16), intent(in) :: Z
+  !Only way is to do an A->B translation using the numbers in the FLUKA manual
+  !FM.pdf "Table 5.1: Fluka particle names and code numbers"
 
-!Only way is to do an A->B translation using the numbers in the FLUKA manual
-!FM.pdf "Table 5.1: Fluka particle names and code numbers"
+  if(fluka_id == 1) then
+    !proton
+    pdg_id = 2212
 
-!proton
-if(fluka_id .eq. 1) then
-  pdg_id = 2212
+  else if(fluka_id == 2) then
+    !anti proton
+    pdg_id = -2212
 
-!anti proton
-else if(fluka_id .eq. 2) then
-  pdg_id = -2212
+  else if(fluka_id == 3) then
+    !electron
+    pdg_id = 11
 
-!electron
-else if(fluka_id .eq. 3) then
-  pdg_id = 11
+  else if(fluka_id == 4) then
+    !positron
+    pdg_id = -11
 
-!positron
-else if(fluka_id .eq. 4) then
-  pdg_id = -11
+  !5 to 9 are neutrals
 
-!5 to 9 are neutrals
+  else if(fluka_id == 10) then
+    !mu+
+    pdg_id = -13
 
-!mu+
-else if(fluka_id .eq. 10) then
-  pdg_id = -13
+  else if(fluka_id == 11) then
+    !mu-
+    pdg_id = 13
 
-!mu-
-else if(fluka_id .eq. 11) then
-  pdg_id = 13
+  else if(fluka_id == 13) then
+    !pi+
+    pdg_id = 211
 
-!pi+
-else if(fluka_id .eq. 13) then
-  pdg_id = 211
+  else if(fluka_id == 14) then
+    !pi-
+    pdg_id = -211
 
-!pi-
-else if(fluka_id .eq. 14) then
-  pdg_id = -211
+  else if(fluka_id == 15) then
+    !k+
+    pdg_id = 321
 
-!k+
-else if(fluka_id .eq. 15) then
-  pdg_id = 321
+  else if(fluka_id == 16) then
+    !k-
+    pdg_id = -321
 
-!k-
-else if(fluka_id .eq. 16) then
-  pdg_id = -321
+  else if(fluka_id == 17) then
+    !lambda
+    pdg_id = 3122
 
-!lambda
-else if(fluka_id .eq. 17) then
-  pdg_id = 3122
+  else if(fluka_id == 18) then
+    !anti lambda
+    pdg_id = -3122
 
-!anti lambda
-else if(fluka_id .eq. 18) then
-  pdg_id = -3122
+  else if(fluka_id == 20) then
+    !sigma-
+    pdg_id = 3112
 
-!sigma-
-else if(fluka_id .eq. 20) then
-  pdg_id = 3112
+  else if(fluka_id == 21) then
+    !sigma+
+    pdg_id = 3222
 
-!sigma+
-else if(fluka_id .eq. 21) then
-  pdg_id = 3222
+  else if(fluka_id == 31) then
+    !anti-sigma-
+    pdg_id = -3222
 
-!anti-sigma-
-else if(fluka_id .eq. 31) then
-  pdg_id = -3222
+  else if(fluka_id == 33) then
+    !anti-sigma+
+    pdg_id = -3112
 
-!anti-sigma+
-else if(fluka_id .eq. 33) then
-  pdg_id = -3112
+  else if(fluka_id == 36) then
+    !Xi-
+    pdg_id = 3312
 
-!Xi-
-else if(fluka_id .eq. 36) then
-  pdg_id = 3312
+  else if(fluka_id == 37) then
+    !Xi+
+    pdg_id = -3312
 
-!Xi+
-else if(fluka_id .eq. 37) then
-  pdg_id = -3312
+  else if(fluka_id == 38) then
+    !Omega-
+    pdg_id = 3334
 
-!Omega-
-else if(fluka_id .eq. 38) then
-  pdg_id = 3334
+  else if(fluka_id == 39) then
+    !anti omega
+    pdg_id = -3334
 
-!anti omega
-else if(fluka_id .eq. 39) then
-  pdg_id = -3334
+  else if(fluka_id == 41) then
+    !tau+
+    pdg_id = -15
 
-!tau+
-else if(fluka_id .eq. 41) then
-  pdg_id = -15
+  else if(fluka_id == 42) then
+    !tau-
+    pdg_id = 15
 
-!tau-
-else if(fluka_id .eq. 42) then
-  pdg_id = 15
+  else if(fluka_id == -2 .or. fluka_id == -3 .or. fluka_id == -4 .or. fluka_id == -5 .or. fluka_id == -6) then
+    !ion
+    call CalculatePDGid(pdg_id, A, Z)
 
-!ion
-else if(fluka_id .eq. -2 .or. fluka_id .eq. -3 .or. fluka_id .eq. -4 .or. fluka_id .eq. -5 .or. fluka_id .eq. -6) then
-  call CalculatePDGid(pdg_id, A, Z)
-!something else
-else
-  write(lerr,'(a,i12,a)') 'Unknown particle ID in FLUKA to PDG id conversion: ', fluka_id, '  - exiting!'
-  call prror
-end if
+  else
+    ! something else
+    write(lerr,"(a,i0,a)") "PDGID> ERROR Unknown particle ID ",fluka_id," in PDG ID conversion"
+    call prror
+  end if
 
-return
 end subroutine GetPDGid_fromFLUKA
 
 end module mod_pdgid

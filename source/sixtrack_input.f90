@@ -86,39 +86,52 @@ subroutine sixin_commandLine(stName)
   use crcoall
   use mod_version
   use mod_common, only : fort2, fort3
+  use mod_settings, only : st_notrack
 
   character(len=*), intent(in) :: stName
 
   character(len=mStrLen) cmdArg
-  integer nCmd
+  integer nCmd, iCmd
+  logical setFort2, setFort3
 
   nCmd = command_argument_count()
   if(nCmd < 1) return
 
-  ! First argument is either a command or the file name for the main input file
-  call get_command_argument(1, cmdArg)
-  select case(cmdArg)
-  case("-nv","--numver")
-    write(lout,"(i0)") numvers
-    stop
-  case("-v","--version")
-    write(lout,"(a)") trim(stName)//" "//trim(version)//"-"//trim(git_revision(1:7))
-    stop
-  case("-V","--VERSION")
-    write(lout,"(a)") trim(stName)
-    write(lout,"(a)") "Version:  "//trim(version)
-    write(lout,"(a)") "Released: "//trim(moddate)
-    write(lout,"(a)") "Git Hash: "//trim(git_revision)
-    stop
-  case default
-    fort3 = trim(cmdArg)
-  end select
+  setFort2 = .false.
+  setFort3 = .false.
 
-  if(nCmd < 2) return
+  ! First argument can potentially be a flag, in which case we parse it
+  do iCmd=1,nCmd
+    call get_command_argument(iCmd, cmdArg)
 
-  ! Second argument is the file name for the main geometry file
-  call get_command_argument(2, cmdArg)
-  fort2 = trim(cmdArg)
+    select case(cmdArg)
+    case("--notrack")
+      st_notrack = .true.
+    case("-nv","--numver")
+      write(lout,"(i0)") numvers
+      stop
+    case("-v","--version")
+      write(lout,"(a)") trim(stName)//" "//trim(version)//"-"//trim(git_revision(1:7))
+      stop
+    case("-V","--VERSION")
+      write(lout,"(a)") trim(stName)
+      write(lout,"(a)") "Version:  "//trim(version)
+      write(lout,"(a)") "Released: "//trim(moddate)
+      write(lout,"(a)") "Git Hash: "//trim(git_revision)
+      stop
+    case default
+      if(.not. setFort3) then
+        fort3 = trim(cmdArg)
+        setFort3 = .true.
+      elseif(.not. setFort2) then
+        fort2 = trim(cmdArg)
+        setFort2 = .true.
+      else
+        write(lerr,"(a)") "SIXIN> ERROR Unknown command line argument '"//cmdArg//"'"
+        call prror
+      end if
+    end select
+  end do
 
 end subroutine sixin_commandLine
 
@@ -500,6 +513,11 @@ subroutine sixin_parseInputLineSETT(inLine, iLine, iErr)
     end if
     write(lout,"(a,i0)") "INPUT> SixTrack Quiet level set to: ",st_quiet
 
+  case default
+    write(lerr,"(a)") "INPUT> ERROR Unknown keyword '"//trim(lnSplit(1))//"' in SETTINGS block"
+    iErr = .true.
+    return
+
   end select
 
 end subroutine sixin_parseInputLineSETT
@@ -563,15 +581,8 @@ subroutine sixin_parseInputLineSIMU(inLine, iLine, iErr)
       return
     end if
     napx = numPart/2
-#ifndef STF
-    if(napx > 32) then
-      write(lerr,"(a)") "SIMU> ERROR To run SixTrack with more than 64 particles, it has to be compiled with the STF flag."
-      iErr = .true.
-      return
-    end if
-#endif
     if(numPart > npart) then
-      call expand_arrays(nele, numPart, nblz, nblo)
+      call expand_arrays(nele, numPart, nblz, nblo, nbb)
     end if
     if(napx > 32 .and. .not. sixin_forcePartSummary) then
       write(lout,"(a)") "SIMU> NOTE More than 64 particles requested, switching off printing of particle summary."
@@ -1327,16 +1338,8 @@ subroutine sixin_parseInputLineTRAC(inLine, iLine, iErr)
     end if
     if(iErr) return
 
-#ifndef STF
-    if(napx > 32) then
-      write(lerr,"(a)") "TRAC> ERROR To run SixTrack with more than 32 particle pairs, it has to be compiled with the STF flag."
-      iErr = .true.
-      return
-    end if
-#endif
-
     if(napx*2 > npart) then
-      call expand_arrays(nele, napx*2, nblz, nblo)
+      call expand_arrays(nele, napx*2, nblz, nblo, nbb)
     end if
 
     if(napx > 32 .and. .not. sixin_forcePartSummary) then
@@ -1831,7 +1834,7 @@ subroutine sixin_parseInputLineSYNC(inLine, iLine, iErr)
   logical,          intent(inout) :: iErr
 
   character(len=:), allocatable   :: lnSplit(:)
-  real(kind=fPrec) cosy,halc,halc2,halc3,qigam,pmat,qbet
+  real(kind=fPrec) cosy,halc,halc2,halc3,qigam,qbet
   integer          nSplit,i,ix
   logical          spErr
 
@@ -1884,11 +1887,6 @@ subroutine sixin_parseInputLineSYNC(inLine, iLine, iErr)
     end if
     if(iErr) return
 
-    if(abs(pma-pmap) <= c1m1) pmat = pmap
-    if(abs(pma-pmae) <= c1m1) pmat = pmae
-    if(pmat /= pmap .and. pmat /= pmae) then
-      write(lout,"(a)") "SYNC> WARNING Particle is neither proton nor electron"
-    endif
     if(pma < pieni) then
       write(lerr,"(a)") "SYNC> ERROR Kinetic energy of the particle is less than or equal to zero"
       iErr = .true.
@@ -3076,13 +3074,11 @@ subroutine sixin_parseInputLinePOST(inLine, iLine, iErr)
     end if
     if(iErr) return
 
-#ifdef STF
     if(imad == 1) then
-      write(lerr,"(a)") "POST> ERROR imad not supported when SixTrack is built with STF enabled."
+      write(lerr,"(a)") "POST> ERROR imad no longer supported in SixTrack"
       iErr = .true.
       return
     end if
-#endif
 
   case(3)
 
@@ -3353,6 +3349,7 @@ subroutine sixin_parseInputLineBEAM(inLine, iLine, iErr)
   use mod_settings
   use parbeam, only : beam_expflag
   use mod_common
+  use mod_utils
 
   character(len=*), intent(in)    :: inLine
   integer,          intent(in)    :: iLine
@@ -3512,6 +3509,7 @@ subroutine sixin_parseInputLineBEAM_EXP(inLine, iLine, iErr)
   use mod_settings
   use parbeam, only : beam_expflag
   use mod_common
+  use mod_utils
 
   character(len=*), intent(in)    :: inLine
   integer,          intent(in)    :: iLine

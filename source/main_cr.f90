@@ -16,6 +16,7 @@ program maincr
   use floatPrecision
   use mod_units
   use mod_linopt
+  use mod_random
   use string_tools
   use sixtrack_input
   use mathlib_bouncer
@@ -31,6 +32,7 @@ program maincr
   use mod_meta
   use mod_time
   use aperture
+  use tracking
   use mod_ranecu
   use mod_particles
   use mod_geometry,   only : geom_calcDcum, geom_reshuffleLattice
@@ -38,7 +40,7 @@ program maincr
   use mod_fluc,       only : fluc_randomReport, fluc_errAlign, fluc_errZFZ
   use postprocessing, only : postpr, writebin_header, writebin
   use read_write,     only : writeFort12, readFort13, readFort33
-  use collimation,    only : do_coll, collimate_init, collimate_exit
+  use collimation,    only : do_coll, coll_init, coll_exitCollimation
   use mod_ffield,     only : ffield_mod_init,ffield_mod_end
 
 #ifdef FLUKA
@@ -79,8 +81,8 @@ program maincr
 
   implicit none
 
-  integer i,itiono,i2,i3,ia,ia2,iation,ib1,id,ie,ii,im,iposc,ix,izu,j,jj,k,kpz,kzz,l,ncorruo,ncrr,  &
-    nd,nd2,ndafi2,nerror,nlino,nlinoo,nmz,nthinerr
+  integer i,itiono,i2,i3,ia,ia2,iation,ib1,id,ie,ii,im,ip,iposc,ix,izu,j,jj,k,kpz,kzz,l,ncorruo,    &
+    ncrr,nd,nd2,ndafi2,nerror,nlino,nlinoo,nmz,nthinerr
   real(kind=fPrec) alf0s1,alf0s2,alf0s3,alf0x2,alf0x3,alf0z2,alf0z3,amp00,bet0s1,bet0s2,bet0s3,     &
     bet0x2,bet0x3,bet0z2,bet0z3,chi,coc,dam1,dchi,dp0,dp00,dp10,dpsic,dps0,dsign,gam0s1,gam0s2,     &
     gam0s3,gam0x1,gam0x2,gam0x3,gam0z1,gam0z2,gam0z3,phag,r0,r0a,rat0,sic,tasia56,tasiar16,tasiar26,&
@@ -98,9 +100,6 @@ program maincr
 
   ! New Variables
   character(len=:), allocatable :: featList, compName
-#ifndef STF
-  character(len=7)  tmpFile
-#endif
   character(len=23) timeStamp
   character(len=8)  tsDate
   character(len=10) tsTime
@@ -135,12 +134,6 @@ program maincr
 
   ! Features
   featList = ""
-#ifdef TILT
-  featList = featList//" TILT"
-#endif
-#ifdef STF
-  featList = featList//" STF"
-#endif
 #ifdef CRLIBM
   featList = featList//" CRLIBM"
   call disable_xp()
@@ -195,16 +188,8 @@ program maincr
   call f_open(unit=26,file="fort.26",formatted=.false.,mode="rw",err=fErr) ! DA file
   call f_open(unit=31,file="fort.31",formatted=.true., mode="w", err=fErr)
 
-#ifdef STF
   ! Open Single Track File
   call f_open(unit=90,file="singletrackfile.dat",formatted=.false.,mode="rw",err=fErr)
-#else
-  ! Open binary files 59 to 90 for particle pair 1 to 32
-  do i=59,90
-    write(tmpFile,"(a5,i0)") "fort.",i
-    call f_open(unit=i,file=tmpFile,formatted=.false.,mode="rw",err=fErr)
-  end do
-#endif
 
   call time_timeStamp(time_afterFileUnits)
 
@@ -264,6 +249,7 @@ program maincr
 #ifdef BOINC
   call boinc_preProgress(3)
 #endif
+  call rnd_initSeries ! Initialise random numbers
 
 #ifdef HDF5
   if(h5_isActive) then
@@ -316,17 +302,7 @@ program maincr
     call f_requestUnit(fort110,unit110)
     call f_open(unit=unit10, file=fort10, formatted=.true., mode="rw",err=fErr,status="replace",recl=8195)
     call f_open(unit=unit110,file=fort110,formatted=.false.,mode="rw",err=fErr,status="replace")
-#ifndef STF
-    do i=1,ndafi !ndafi = number of files to postprocess (set by fort.3)
-#ifndef CR
-      call postpr(91-i)
-#else
-      write(crlog,"(2(a,i0))") "SIXTRACR> Calling POSTPR Unit: ",(91-i),", turns: ",nnuml
-      flush(crlog)
-      call postpr(91-i,nnuml)
-#endif
-    end do
-#else
+
     ! ndafi normally set in fort.3 to be "number of files to postprocess"
     ! Inside the postpr subroutine ndafi is modified as:
     ! ndafi=itopa(total particles) if once particle per header i.e ntwin=1,
@@ -340,7 +316,6 @@ program maincr
       call postpr(i,nnuml)
 #endif
     end do
-#endif
 
     call sumpos
     call f_close(unit10)
@@ -359,7 +334,7 @@ program maincr
   damp  = zero
   if(napx /= 1) damp=((amp00-amp0)/real(napx-1,fPrec))/two
   napx  = 2*napx
-  call expand_arrays(nele, napx, nblz, nblo)
+  call expand_arrays(nele, napx, nblz, nblo, nbb)
 
   ! Log some meta data
   meta_nPartInit = napx
@@ -556,7 +531,7 @@ program maincr
 
       ! Initialize multipoles, combining settings from fort.2 with
       ! coefficients from MULT and random values from FLUC.
-      ! Used in program maincr and from initialize_element.
+      ! Used in program maincr and from initialise_element.
 
       if(abs(ek(ix)).le.pieni) cycle
       nmz=nmu(ix)
@@ -987,13 +962,11 @@ program maincr
 ! ---------------------------------------------------------------------------- !
 
   do i=1,npart
-    pstop(i)  = .false.
-    nnumxv(i) = numl
-    numxv(i)  = numl
+    pstop(i) = .false.
+    numxv(i) = numl
   end do
   rat0 = rat
 
-  call part_setParticleID ! Must be set before reading DIST
   if(dist_enable) then
     ! DIST Block
     call dist_generateDist
@@ -1001,6 +974,7 @@ program maincr
     ! Restart from fort.13
     call readFort13
     call part_updatePartEnergy(1,.false.)
+    call part_setParticleID
   else
     ! Generated from INIT Distribution Block
     do ia=1,napx,2
@@ -1072,6 +1046,7 @@ program maincr
       end if
     end do
     call part_applyClosedOrbit
+    call part_setParticleID
   end if
 
   do ia=1,napx,2
@@ -1131,57 +1106,28 @@ program maincr
         dam(ia+1) = dam1
       end if
 
-      ! Write header of track output file(s) used by postprocessing for case ntwin /= 2
-#ifndef STF
+      ! Write header of singletrackfile.dat used by postprocessing for case ntwin /= 2
 #ifdef CR
       if(.not.cr_restart) then
 #endif
-        call writebin_header(ia,ia,91-ia2,ierro,cDate,cTime,progrm)
-#ifdef CR
-        flush(91-ia2)
-        binrecs(ia2)=1
-      endif
-#endif
-#else
-#ifdef CR
-      if(.not.cr_restart) then
-#endif
-        call writebin_header(ia,ia,90,ierro,cDate,cTime,progrm)
-#ifdef CR
+        call writebin_header(ia,ia,90,cDate,cTime,progrm)
         flush(90)
+#ifdef CR
         binrecs(ia2)=1
       endif
 #endif
-#endif
-    else !ELSE for "if(ntwin.ne.2)"
-      ! Write header of track output file(s) used by postprocessing for case ntwin == 2
-#ifndef STF
+    else ! elseif(ntwin /= 2)
+      ! Write header of singletrackfile.dat used by postprocessing for case ntwin == 2
 #ifdef CR
       if(.not.cr_restart) then
 #endif
-        call writebin_header(ia,ia+1,91-ia2,ierro,cDate,cTime,progrm)
-#ifdef CR
-        flush(91-ia2)
-        binrecs(ia2)=1
-      endif
-#endif
-#else
-#ifdef CR
-      if(.not.cr_restart) then
-#endif
-        call writebin_header(ia,ia+1,90,ierro,cDate,cTime,progrm)
-#ifdef CR
+        call writebin_header(ia,ia+1,90,cDate,cTime,progrm)
         flush(90)
+#ifdef CR
         binrecs(ia2)=1
       endif
 #endif
-#endif
-    endif !ENDIF (ntwin.ne.2)
-    if(ierro /= 0) then
-      write(lerr,"(a,i0)") "MAINCR> ERROR Problems writing to file #",91-ia2
-      write(lerr,"(a,i0)") "MAINCR> ERROR Code: ",ierro
-      goto 520
-    endif
+    end if ! if(ntwin /= 2)
   end do ! napx
 
 #ifdef CR
@@ -1262,7 +1208,7 @@ program maincr
   call dump_initialise
   if(ithick == 0 .and. do_coll) then
     ! Only if thin and collimation enabled
-    call collimate_init
+    call coll_init
   end if
 
 #ifdef BOINC
@@ -1273,6 +1219,10 @@ program maincr
 ! ---------------------------------------------------------------------------- !
 !  START OF TRACKING
 ! ---------------------------------------------------------------------------- !
+  if(st_notrack) then
+    write(lout,"(a)") "MAINCR> Skipping tracking as the user set the --notrack flag"
+    goto 520
+  end if
   write(lout,10200)
 
   if(st_iStateWrite) then
@@ -1283,13 +1233,12 @@ program maincr
     end if
   end if
 
-  part_isTracking = .true.
-  if(ithick == 0) call trauthin(nthinerr)
-  if(ithick == 1) call trauthck(nthinerr)
+  call preTracking
+  call startTracking(nthinerr)
 
-  if(iclo6 > 0 .and. ithick == 0 .and. do_coll) then
+  if(ithick == 0 .and. do_coll) then
     ! Only if thin 6D and collimation enabled
-    call collimate_exit
+    call coll_exitCollimation
   endif
 
   if(nthinerr == 3000) goto 520
@@ -1336,8 +1285,8 @@ program maincr
 
   ! If CR we have to worry about turns printed in fort.6
   ! If lost should be OK, otherwise we need to use nnuml instead
-  ! of the numl in numxv/nnumxv???? Eric.
-  ! where we reset [n]numxv to nnuml UNLESS particle lost
+  ! of the numl in numxv???? Eric.
+  ! where we reset numxv to nnuml UNLESS particle lost
   ! Now we shall try using that fix at start of tracking
   write(lout,"(a)") str_divLine
   write(lout,"(a)") ""
@@ -1368,38 +1317,44 @@ program maincr
   write(lout,"(a)") "    PARTICLE SUMMARY:"
   write(lout,"(a)") ""
 
-  do ia=1,napxo,2
-    ie=ia+1
+  do ip=1,(napxo+1)/2
+    ia = pairMap(1,ip)
+    ie = pairMap(2,ip)
+
+    if(ia == 0 .or. ie == 0) then
+      write(lout,"(a,i0,a)") "MAINCR> WARNING Particle pair ",ip," is missing one or more particles"
+    end if
+
     napxto = napxto+numxv(ia)+numxv(ie)
 
     if(pstop(ia).and.pstop(ie)) then !-- BOTH PARTICLES LOST
-      write(lout,10000) ia,izu0,dpsv(ia),numxv(ia),abs(xv1(ia)),aperv(ia,1),abs(xv2(ia)),aperv(ia,2)
-      write(lout,10000) ie,izu0,dpsv(ia),numxv(ie),abs(xv1(ie)),aperv(ie,1),abs(xv2(ie)),aperv(ie,2)
+      write(lout,10000) partID(ia),izu0,dpsv(ia),numxv(ia),abs(xv1(ia)),aperv(1,ia),abs(xv2(ia)),aperv(2,ia)
+      write(lout,10000) partID(ie),izu0,dpsv(ia),numxv(ie),abs(xv1(ie)),aperv(1,ie),abs(xv2(ie)),aperv(2,ie)
     end if
 
     if(.not.pstop(ia).and.pstop(ie)) then !-- SECOND PARTICLE LOST
       if(st_quiet == 0) then
-        write(lout,10240) ia,izu0,dpsv(ia),numxv(ia)
+        write(lout,10240) partID(ia),izu0,dpsv(ia),numxv(ia)
       else if(st_quiet == 1) then
-        write(lout,10241) ia,izu0,dpsv(ia),numxv(ia)
+        write(lout,10241) partID(ia),izu0,dpsv(ia),numxv(ia)
       end if
-      write(lout,10000) ie,izu0,dpsv(ia),numxv(ie),abs(xv1(ie)),aperv(ie,1),abs(xv2(ie)),aperv(ie,2)
+      write(lout,10000) partID(ie),izu0,dpsv(ia),numxv(ie),abs(xv1(ie)),aperv(1,ie),abs(xv2(ie)),aperv(2,ie)
     end if
 
     if(pstop(ia).and..not.pstop(ie)) then !-- FIRST PARTICLE LOST
-      write(lout,10000) ia,izu0,dpsv(ia),numxv(ia),abs(xv1(ia)),aperv(ia,1),abs(xv2(ia)),aperv(ia,2)
+      write(lout,10000) partID(ia),izu0,dpsv(ia),numxv(ia),abs(xv1(ia)),aperv(1,ia),abs(xv2(ia)),aperv(2,ia)
       if(st_quiet == 0) then
-        write(lout,10240) ie,izu0,dpsv(ia),numxv(ie)
+        write(lout,10240) partID(ie),izu0,dpsv(ia),numxv(ie)
       else if(st_quiet == 1) then
-        write(lout,10241) ie,izu0,dpsv(ia),numxv(ie)
+        write(lout,10241) partID(ie),izu0,dpsv(ia),numxv(ie)
       end if
     end if
 
     if(.not.pstop(ia).and..not.pstop(ie)) then !-- BOTH PARTICLES STABLE
       if(st_quiet == 0) then
-        write(lout,10270) ia,ie,izu0,dpsv(ia),numxv(ia)
+        write(lout,10270) partID(ia),partID(ie),izu0,dpsv(ia),numxv(ia)
       else if(st_quiet == 1) then
-        write(lout,10271) ia,ie,izu0,dpsv(ia),numxv(ia)
+        write(lout,10271) partID(ia),partID(ie),izu0,dpsv(ia),numxv(ia)
       end if
     end if
 
@@ -1471,23 +1426,12 @@ program maincr
     call f_open(unit=unit110,file=fort110,formatted=.false.,mode="rw",err=fErr,status="replace")
     do ia=1,napxo,2
       iposc = iposc+1
-#ifdef STF
 #ifdef CR
       write(crlog,"(3(a,i0))") "SIXTRACR> Calling POSTPR Particles: ",ia,",",(ia+1),", turns: ",nnuml
       flush(crlog)
       call postpr(ia,nnuml)
 #else
       call postpr(ia)
-#endif
-#else
-      ia2 = 91-(ia+1)/2 ! Track file unit number if not STF
-#ifdef CR
-      write(crlog,"(2(a,i0))") "SIXTRACR> Calling POSTPR Unit: ",ia2,", turns: ",nnuml
-      flush(crlog)
-      call postpr(ia2,nnuml)
-#else
-      call postpr(ia2)
-#endif
 #endif
     end do
     if(iposc >= 1) call sumpos
@@ -1505,22 +1449,12 @@ program maincr
     ndafi2 = ndafi
     do ia=1,ndafi2
       if(ia > ndafi) exit
-#ifdef STF
 #ifdef CR
       write(crlog,"(3(a,i0))") "SIXTRACR> Calling POSTPR Particles: ",ia,",",(ia+1),", turns: ",nnuml
       flush(crlog)
       call postpr(ia,nnuml)
 #else
       call postpr(ia)
-#endif
-#else
-#ifdef CR
-      write(crlog,"(2(a,i0))") "SIXTRACR> Calling POSTPR Unit: ",(91-i),", turns: ",nnuml
-      flush(crlog)
-      call postpr(91-ia,nnuml)
-#else
-      call postpr(91-ia)
-#endif
 #endif
     end do
     if(ndafi >= 1) call sumpos
@@ -1561,6 +1495,7 @@ program maincr
 
 #ifdef HASHLIB
   ! HASH library. Must be before ZIPF
+  call hash_doTrunc
   call hash_fileSums
   call time_timeStamp(time_afterHASH)
 #endif

@@ -1,3 +1,4 @@
+! start include/beamcof.f90
 !FOX  CRKVEBF=X(1) ;
 !FOX  CIKVEBF=X(2) ;
 startco=(dare(x(1))-clobeam(1,imbb(i)))+parbe(ix,5)
@@ -9,3 +10,4 @@ if(ibbc.eq.1) then
 !FOX  CRKVEBF=CCCC*BBCU(IMBB(I),11)+CIKVEBF*BBCU(IMBB(I),12) ;
 !FOX  CIKVEBF=-CCCC*BBCU(IMBB(I),12)+CIKVEBF*BBCU(IMBB(I),11) ;
 endif
+! end include/beamcof.f90

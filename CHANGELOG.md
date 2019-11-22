@@ -1,5 +1,106 @@
 # SixTrack Changelog
 
+### Version 5.4.2 [22.11.2019] - Release
+
+**Bugfixes**
+
+* Fixed a missing use statement in collimation under the `ROOT` compiler flag. Root support should now build again. PR #1015 (V.K. Berglyd Olsen, J. Molson)
+* Removed one sigma cuts on all normal random distributions in the crystal module. These were ported over from the old version of the crystal collimation code, but never worked properly there due to a datatype bug. There should not be any such cuts in the physics in the first place, so they have now been removed. PR #1016 (M. D'Andrea, V.K. Berglyd Olsen)
+* Fixed an inconsistency in the splitting tool for `singletrackfile.dat` where the header was not padded with zeroes when files were split up into particle pair files. The padding was always in the post-processing code, but not in the read90 tool which the splitting tool was derived from. Since the test suite relies on the read90 tool, the split files still passed, but user analysis codes failed. The splitting tool is now consistent with SicTrack post-processing. PR #1013 (V.K. Berglyd Olsen)
+
+**User Side Changes**
+
+* The turn number in the particle state files is now the smallest of current turn and number of particle tracked turns. Previously, the default value was always the total number of turns, and only adjusted if a particle was lost before the end of tracking. This was misleading users to think that the `initial_state.dat` file wasn't really written before tracking, as the turn number was non-zero. PR #1013 (V.K. Berglyd Olsen)
+* The main crystal interaction file is now written only if the `WRITE_CRYCOORD` flag is enabled in collimation. The entrance and exit files are, in addition, only written when the global `DEBUG` flag is enabled in the `SETTINGS` block. PR #1019 (V.K. Berglyd Olsen, M. D'Andrea, A. Mereghetti)
+* Added a command line flag `--notrack` that disables tracking in SixTrack. This allows for the checking of input files and simulation initialisation without running the full job. PR #1020 (V.K. Berglyd Olsen)
+
+**Documentation**
+
+* Documentation section for collimation updated to include crystal collimators. PRs #1012 and #1019 (M. D'Andrea, V.K. Berglyd Olsen)
+
+### Version 5.4.1 [01.11.2019] - Release
+
+**Bugfixes**
+
+* Fixed an issue when opening `fort.208` when building with both FLUKA and G4COLLIMATION compiler flags at the same time. PR #1008 (V.K. Berglyd Olsen, J. Molson)
+* Fixed a bug in the efficiency calculation where the vertical sigma was not correctly calculated when filling the histograms due to a missing set of parentheses. PR #987 (V.K. Berglyd Olsen)
+
+**User Side Changes**
+
+* The collimation module now supports crystal collimation. The crystal collimation code that was written based on an older version of SixTrack has now been updated and added to SixTrack 5. Using crystal collimators requires the use of the new collimator database format. PR #1004 (M. D'Andrea, V.K. Berglyd Olsen)
+* The collimation code is no longer hardcoded to assume LHC element naming convention. The collimator names are still processed assuming LHC convention when using the old input block and database format, but the new format does not rely on any naming convention. A collimator is a collimator if it's defined in the collimator database file. PR #970 (V.K. Berglyd Olsen)
+* Since the collimators are no longer dependent on naming convention, the collimator stage (primary, secondary, tertiary, etc) has to be specified in the database if an on-line analysis based on these are intended. This has been added as an optional parameter in the collimator family definition. PR #986 (V.K. Berglyd Olsen)
+* Collimator efficiency studies (histograps on normalised amplitudes) are now disabled by default, and need to be explicitly requested. A flag has been added to both the old and the new input block for this. The feature is by default disabled as it requires substantial amounts of memory relative to the total memory usage of SixTrack. PR #987 (V.K. Berglyd Olsen)
+* Aperture tilt in the input is now specified in degrees, not radians. PR #1003 (T. Persson)
+
+**Code Improvements and Changes**
+
+* This release includes a major clean-up of the collimation code. The old collimation module has been split up into separate modules. The K2 physics routines have been split out into their own module, and connected to the crystal collimation module. The funlux code has also been moved to a new module. A lot of statistics calculations and other sections of code have been extracted and put into separate routines to make the code both more readable and to avoid duplication of code. Many unused or unneeded variables have been removed, and collimator materials have been split out into a separate module; so has a lot of shared collimator variables. A test for the `tracks2.dat` file has been added. PRs #975, #987, #997, #998 and #1002 (V.K. Berglyd Olsen, A. Mereghetti)
+* Exact drifts are now computed without first converting the coordinates to m and rad and then back to mm and mrad for each drift. This adds numerical noise and unnecessary CPU cost. PR #999 (V.K. Berglyd Olsen)
+* Cavities and phase trombone elements now uses the general routine for updating particle energy arrays, ensuring consistency between elements. PR #1001 (V.K. Berglyd Olsen)
+
+### Version 5.4 [10.10.2019] - Release
+
+**Bug Fixes**
+
+* A series of long standing issues caused by uninitialised variables have been resolved. PRs #983 and #988 (V.K. Berglyd Olsen).<br>The following modules and settings were affected:
+  * Beam--beam simulations with the `ibeco` flag set to 0. This caused `NaN` particle coordinates on some systems.
+  * In the differential algebra version of SixTrack, the longitudinal part of the normalisation matrix was uninitialised when running in 4D, but the values still used in some calculations, causing `NaN` values on some systems.
+  * When running SixTrack with the `ntwin` parameter set to 1, post-processing would still compute the amplitude for the second particle from values not being initialised. Now, if `ntwin` is not set to 2, these values are set to zero and the extra calculations skipped.
+  * A number of variables were uninitialised in parts of the initialisation code when running 6D simulations (in subroutine `umlauda`), these have been cleared up, but are not known to have caused any issues.
+* Fixed a bug in collimation where the collimator families were not generated when using the old database file format with the new `COLL` block format. PR #984 (V.K. Berglyd Olsen, M. D'Andrea)
+* Fixed a bug in `aperture_losses.dat` where the header was missing the `#` char so that it can be identified as a comment line for analysis code. PR #995 (A. Mereghetti, V.K. Berglyd Olsen)
+* Fixed an issue with writing the header of `singletrackfile.dat` where SixTrack would skip to after tracking if it failed to write to file. PR #996 (V.K. Berglyd Olsen, A. Mereghetti)
+* Added a check of `iostat` when closing file units in the internal file units handler module. Any error is reported to stderr and to log file. PR #996 (V.K. Berglyd Olsen, E. Mcintosh)
+
+**User Side Changes**
+
+* The STF build flag has been removed. That means SixTrack now always produces a single track file `singletrackfile.dat` instead of the optional pair track files `fort.59` - `fort.90`. A tool for converting the full track file to a pair track file has been added. See the user manual for further details. PRs #967 and 989 (V.K. Berglyd Olsen, K.N. Sjobak)
+* A random numbers module has been added, which introduces the `RAND` block in the input file. The block gives more control over how the internal random number generators are initialised and also provides a better framework for the internal management of the various random number sequences used by different modules of the code. It is also designed to be easier to manage when using checkpoint/restart. Many modules still use their own seed, so this will be implemented gradually. Currently, the new random numbers module is only used by the `DIST` block. PR #978 (V.K Berglyd Olsen)
+* The main debug file `dynksets.dat` in `DYNK` is no longer written by default. Previously, this file could be disabled with the `NOFILE` flag in `fort.3`. Instead, it now has to be explicitly requested with the `DYNKSETS` flag. PRs #992 and #993, solving issue #982 (V.K. Berglyd Olsen)
+* The `TILT` build flag has been removed. The feature is now always enabled. PR #985 (V.K. Berglyd Olsen)
+
+### Version 5.3.4 [01.10.2019] - Release
+
+**Bug Fixes**
+
+* Fixing an error in the integration of the electron lens radial profiles from files. The error was twofold: (1) it had the wrong unit conversion from A/cm2 to A/mm2, and (2) integration was not deploying the rule of the trapezoid on the radius, but the lower square. PR #968 (A. Mereghetti)
+* Minor fix where the collimation exit routine was not called if SixTrack was run in thin 4D mode. This only prevented some final summary files to be written, and had no effect on the simulation itself. PR #976 (V.K. Berglyd Olsen, M. D'Andrea)
+
+**User Side Changes**
+
+* Onesided collimators can now be set in the new collimation database. The LHC hard coded naming convention restrictions have been removed for the new database format, but are still in place for the old format. PRs #958 and #966 (V.K. Berglyd Olsen, A. Mereghetti)
+* The option to slice the collimator jaw and apply a deformation has been added to the new collimator database format. The previous restrictions on LHC naming convention have been removed, and the slicing can now be applied to any collimator, with different fit models as needed. PR #969 (V.K Berglyd Olsen, A. Mereghetti)
+* The number of beam--beam elements now scale dynamically with user input. It was previously restricted to 500 elements. PR #974 (V.K. Berglyd Olsen)
+
+**Test Suite**
+
+* A series of tests of the collimator jaw profiling has been added to ensure the code is stable through development stages. An additional output file for the jaw was added as well. PR #961 (A. Mereghetti)
+
+**Code Improvements and Changes**
+
+* The collimation jaw fit code has been cleaned up, improved for speed, and moved to a separate module. PRs #933 and #966 (V.K. Berglyd Olsen)
+* The separate tracking initialisation routines for thick and thin tracking have now been merged into one routine in a dedicated tracking module. PR #977 (V.K. Berglyd Olsen)
+
+### Version 5.3.3 [09.09.2019] - Release
+
+**Bug Fixes**
+
+* Fixed bug in the `DIST` module with conversion of longitudinal emittance from eVs to µm. The conversion was off by a factor `1e6` due to the energy variable being in `MeV` not `eV`. PR #950 (V.K. Berglyd Olsen)
+* Fixed bug in the `DIST` module where emittance was sent to `DISTLIB` as normalised emittance, while `DISTLIB` expected geometric emittance. PR #952 (V.K. Berglyd Olsen)
+* Fixed a bug in binary particle state files where the internal normalisation matrix was written to file instead of the ones which have all elements scaled to the same unit. PR #952 (V.K. Berglyd Olsen)
+
+**Documentation**
+
+* Minor changes to the documentation (LaTeX manual and markdown files) to correct outdated information. PR #948 (V.K. Berglyd Olsen)
+* Updated the README to add a paper that can be cited by studies using SixTrack 5. PR #949 (V.K. Berglyd Olsen, R. De Maria)
+
+**Code Improvements and Changes**
+
+* The way SixTrack keeps track of particle pairs for DA studies has changed. Earlier, the pairing was preserved by a reverse map from original particle index to the current index. The index of a particle changes when it is lost in an aperture, collimator or interaction point. The reverse map was effectively a record of the particle ID. However, since the new `DIST` module makes it possible to set the particle ID to any value, the reverse map has now been replaced by a map containing a particle pairID as well as whether it is particle 1 or 2 of the pair. This map is not under the user's control, and therefore preserves the pair structure through tracking. Rewriting the code to use this map eliminates a potential memory access violation due to a corner case when particles are lost and initiated with a non-incremental particle ID. The rewrite is otherwise identical to old functionality, and shouldn't alter any results. The main benefit is cleaner code, and the particle ID now being entirely passthrough as far as SixTrack is concerned, making it easier to interface with external codes that inject new particles into SixTrack. PR #938 (V.K. Berglyd Olsen, A. Mereghetti)
+* Added a check in the parsing of multi-column `STRUCT` input blocks that ensures that the element position of a given lattice element has a position larger or equal to the previous element. This prevents the accidental initialisation of negative length elements. PR #955 (V.K. Berglyd Olsen)
+* Moved a number of subroutines related to initialisation of beam--beam elements and elements in general out of the main `sixtrack` source file and to more appropriate files. PRs #957 and #960 (V.K. Berglyd Olsen)
+
 ### Version 5.3.2 [23.08.2019] - Release
 
 **Bug Fixes**

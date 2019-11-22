@@ -4,69 +4,63 @@ SETTINGS
   FINALSTATE text
 NEXT
 TRACKING
-100  0 32 0 0.25 0 1
- 1 1 0 0 2
-0 0 1 1 1 20000 2
+  100  0 32 0 0.25 0 1
+  1 1 0 0 2
+  0 0 1 1 1 20000 2
 NEXT
 INITIAL COORDINATES
- 2 0 0 1
-0.0
-0.0
-0.0
-0.0
-0.0
-0.0
-0.0
-.000001
-0.0
-0.0
-0.0
-0.0
-7000000.0
-7000000.0
-7000000.0
+  2 0 0 1
+  0.0
+  0.0
+  0.0
+  0.0
+  0.0
+  0.0
+  0.0
+  .000001
+  0.0
+  0.0
+  0.0
+  0.0
+  7000000.0
+  7000000.0
+  7000000.0
 NEXT
 ITERATION ACCURACY
-50 0.10E-13 0.10E-14
-10 0.10E-09 0.10E-09
-10 0.10E-04 0.10E-05
- 0.10E-07 0.10E-11 0.10E-09
+  50 0.10E-13 0.10E-14
+  10 0.10E-09 0.10E-09
+  10 0.10E-04 0.10E-05
+  0.10E-07 0.10E-11 0.10E-09
 NEXT
 LINEAR OPTICS
-ELEMENT  0 1 1 2.5 2.5
+  ELEMENT  0 1 1 2.5 2.5
 NEXT
 SYNC
-       35640  0.000346     0.000 0.  26658.883200  938.272046  1
-      1.        1.
+  35640  0.000346     0.000 0.  26658.883200  938.272046  1
+  1.        1.
 NEXT
 BEAM
   2.2000e+11           2.5           2.5  0.0000e+00  1.1410e-04  1  0
 NEXT
-/TUNE
-/QF    62.31019
-/QD    60.32003
-/NEXT
-/CHRO
-/SXF     1.59563
-/SXD     1.70297
-/NEXT
 DYNK
-/ (Correctly initializing crabs when starting tracking in IP1)
-FUN zero CONST 0.0
-FUN ccinit_0 GET ACFCA.AR1.B1 voltage
-SET ACFCA.AR1.B1 voltage zero 1 1 0
-SET ACFCA.AR1.B1 voltage ccinit_0 2 -1 0
-FUN ccinit_1 GET ACFCA.BR1.B1 voltage
-SET ACFCA.BR1.B1 voltage zero 1 1 0
-SET ACFCA.BR1.B1 voltage ccinit_1 2 -1 0
-FUN ccinit_2 GET ACFCA.CR1.B1 voltage
-SET ACFCA.CR1.B1 voltage zero 1 1 0
-SET ACFCA.CR1.B1 voltage ccinit_2 2 -1 0
-FUN ccinit_3 GET ACFCA.DR1.B1 voltage
-SET ACFCA.DR1.B1 voltage zero 1 1 0
-SET ACFCA.DR1.B1 voltage ccinit_3 2 -1 0
+  DYNKSETS
+
+  ! (Correctly initializing crabs when starting tracking in IP1)
+  FUN zero CONST 0.0
+  FUN ccinit_0 GET ACFCA.AR1.B1 voltage
+  SET ACFCA.AR1.B1 voltage zero 1 1 0
+  SET ACFCA.AR1.B1 voltage ccinit_0 2 -1 0
+  FUN ccinit_1 GET ACFCA.BR1.B1 voltage
+  SET ACFCA.BR1.B1 voltage zero 1 1 0
+  SET ACFCA.BR1.B1 voltage ccinit_1 2 -1 0
+  FUN ccinit_2 GET ACFCA.CR1.B1 voltage
+  SET ACFCA.CR1.B1 voltage zero 1 1 0
+  SET ACFCA.CR1.B1 voltage ccinit_2 2 -1 0
+  FUN ccinit_3 GET ACFCA.DR1.B1 voltage
+  SET ACFCA.DR1.B1 voltage zero 1 1 0
+  SET ACFCA.DR1.B1 voltage ccinit_3 2 -1 0
 NEXT
 DUMP
-ip1 1 -1 6 dump.dat
+  ip1 1 -1 6 dump.dat
 NEXT
 ENDE

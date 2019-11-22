@@ -20,9 +20,9 @@ module checkpoint_restart
   logical,           public,  save :: cr_pntRead(cr_nPoint)  = .false.
 
   ! Logging Files
-  character(len=13), public,  save :: cr_errFile  = "cr_stderr.tmp"
-  character(len=13), public,  save :: cr_outFile  = "cr_stdout.tmp"
-  character(len=13), public,  save :: cr_logFile  = "cr_status.log"
+  character(len=13), parameter     :: cr_errFile  = "cr_stderr.tmp"
+  character(len=13), parameter     :: cr_outFile  = "cr_stdout.tmp"
+  character(len=13), parameter     :: cr_logFile  = "cr_status.log"
   integer,           parameter     :: cr_errUnit  = 91
   integer,           parameter     :: cr_outUnit  = 92
   integer,           parameter     :: cr_logUnit  = 93
@@ -77,9 +77,9 @@ module checkpoint_restart
   integer,          allocatable, public,  save :: binrecs(:)    ! ((npart+1)/2)
   integer,          allocatable, public,  save :: crbinrecs(:)  ! (npart+1)/2)
   integer,          allocatable, private, save :: crnumxv(:)    ! (npart)
-  integer,          allocatable, private, save :: crnnumxv(:)   ! (npart)
   integer,          allocatable, private, save :: crpartID(:)   ! (npart)
   integer,          allocatable, private, save :: crparentID(:) ! (npart)
+  integer,          allocatable, private, save :: crpairID(:,:) ! (2,npart)
 
   logical,          allocatable, private, save :: crpstop(:)    ! (npart)
   logical,          allocatable, private, save :: crllostp(:)   ! (npart)
@@ -184,30 +184,30 @@ subroutine cr_expand_arrays(npart_new)
   integer :: npair_new
   npair_new = npart_new/2 + 1
 
-  call alloc(crxv1,      npart_new,    zero,    "crxv1")
-  call alloc(crxv2,      npart_new,    zero,    "crxv2")
-  call alloc(cryv1,      npart_new,    zero,    "cryv1")
-  call alloc(cryv2,      npart_new,    zero,    "cryv2")
-  call alloc(crsigmv,    npart_new,    zero,    "crsigmv")
-  call alloc(crdpsv,     npart_new,    zero,    "crdpsv")
-  call alloc(crdpsv1,    npart_new,    zero,    "crdpsv1")
-  call alloc(crejv,      npart_new,    zero,    "crejv")
-  call alloc(crejfv,     npart_new,    zero,    "crejfv")
-  call alloc(crnucm,     npart_new,    nucm0,   "crnucm")
-  call alloc(crmtc,      npart_new,    one,     "crmtc")
-  call alloc(crnaa,      npart_new,    aa0,     "crnaa")
-  call alloc(crnzz,      npart_new,    zz0,     "crnzz")
-  call alloc(crnqq,      npart_new,    qq0,     "crnqq")
-  call alloc(crpdgid,    npart_new,    pdgid0,  "crpdgid")
-  call alloc(craperv,    npart_new, 2, zero,    "craperv")
-  call alloc(binrecs,    npair_new,    0,       "binrecs")
-  call alloc(crbinrecs,  npair_new,    0,       "crbinrecs")
-  call alloc(crnumxv,    npart_new,    0,       "crnumxv")
-  call alloc(crnnumxv,   npart_new,    0,       "crnnumxv")
-  call alloc(crpartID,   npart_new,    0,       "crpartID")
-  call alloc(crparentID, npart_new,    0,       "crparentID")
-  call alloc(crpstop,    npart_new,    .false., "crpstop")
-  call alloc(crllostp,   npart_new,    .false., "crllostp")
+  call alloc(crxv1,        npart_new, zero,    "crxv1")
+  call alloc(crxv2,        npart_new, zero,    "crxv2")
+  call alloc(cryv1,        npart_new, zero,    "cryv1")
+  call alloc(cryv2,        npart_new, zero,    "cryv2")
+  call alloc(crsigmv,      npart_new, zero,    "crsigmv")
+  call alloc(crdpsv,       npart_new, zero,    "crdpsv")
+  call alloc(crdpsv1,      npart_new, zero,    "crdpsv1")
+  call alloc(crejv,        npart_new, zero,    "crejv")
+  call alloc(crejfv,       npart_new, zero,    "crejfv")
+  call alloc(crnucm,       npart_new, nucm0,   "crnucm")
+  call alloc(crmtc,        npart_new, one,     "crmtc")
+  call alloc(crnaa,        npart_new, aa0,     "crnaa")
+  call alloc(crnzz,        npart_new, zz0,     "crnzz")
+  call alloc(crnqq,        npart_new, qq0,     "crnqq")
+  call alloc(crpdgid,      npart_new, pdgid0,  "crpdgid")
+  call alloc(craperv,   2, npart_new, zero,    "craperv")
+  call alloc(binrecs,      npair_new, 0,       "binrecs")
+  call alloc(crbinrecs,    npair_new, 0,       "crbinrecs")
+  call alloc(crnumxv,      npart_new, 0,       "crnumxv")
+  call alloc(crpartID,     npart_new, 0,       "crpartID")
+  call alloc(crparentID,   npart_new, 0,       "crparentID")
+  call alloc(crpairID,  2, npart_new, 0,       "crpairID")
+  call alloc(crpstop,      npart_new, .false., "crpstop")
+  call alloc(crllostp,     npart_new, .false., "crllostp")
 
   crnpart_old = npart_new
 
@@ -299,7 +299,7 @@ end subroutine cr_killSwitch
 !  Last modified: 2018-12-05
 !
 !  This subroutine checks if the C/R files exist, and if so tries to load them into the cr* variables.
-!  This routine also repositions the output files for fort.90..91-napx/2 and various other modules
+!  This routine also repositions the output files for singletrackfile.dat and various other modules
 ! ================================================================================================ !
 subroutine crcheck
 
@@ -312,13 +312,14 @@ subroutine crcheck
   use mod_common_main
   use mod_version
 
-  use dynk,     only : dynk_enabled, dynk_noDynkSets,dynk_crcheck_readdata,dynk_crcheck_positionFiles
-  use dump,     only : dump_crcheck_readdata,dump_crcheck_positionFiles
-  use aperture, only : limifound, aper_crcheck_readdata, aper_crcheck_positionFiles
-  use scatter,  only : scatter_active, scatter_crcheck_readdata, scatter_crcheck_positionFiles
-  use elens,    only : melens, elens_crcheck
-  use mod_meta, only : meta_crcheck
-  use mod_time, only : time_crcheck
+  use dynk,       only : dynk_enabled,dynk_crcheck_readdata,dynk_crcheck_positionFiles
+  use dump,       only : dump_crcheck_readdata,dump_crcheck_positionFiles
+  use aperture,   only : limifound, aper_crcheck_readdata, aper_crcheck_positionFiles
+  use scatter,    only : scatter_active, scatter_crcheck_readdata, scatter_crcheck_positionFiles
+  use elens,      only : melens, elens_crcheck
+  use mod_meta,   only : meta_crcheck
+  use mod_time,   only : time_crcheck
+  use mod_random, only : rnd_crcheck
 
   integer j,k,l,m
   integer nPoint, ioStat
@@ -397,9 +398,9 @@ subroutine crcheck
     read(cr_pntUnit(nPoint),iostat=ioStat) &
       (crbinrecs(j), j=1,(crnapxo+1)/2),   &
       (crnumxv(j),   j=1,crnapxo),         &
-      (crnnumxv(j),  j=1,crnapxo),         &
       (crpartID(j),  j=1,crnapxo),         &
       (crparentID(j),j=1,crnapxo),         &
+      (crpairID(:,j),j=1,crnapxo),         &
       (crpstop(j),   j=1,crnapxo),         &
       (crxv1(j),     j=1,crnapxo),         &
       (cryv1(j),     j=1,crnapxo),         &
@@ -416,8 +417,7 @@ subroutine crcheck
       (crnzz(j),     j=1,crnapxo),         &
       (crnqq(j),     j=1,crnapxo),         &
       (crpdgid(j),   j=1,crnapxo),         &
-      (craperv(j,1), j=1,crnapxo),         &
-      (craperv(j,2), j=1,crnapxo),         &
+      (craperv(:,j), j=1,crnapxo),         &
       (crllostp(j),  j=1,crnapxo)
     if(ioStat /= 0) cycle
 
@@ -429,6 +429,11 @@ subroutine crcheck
     write(crlog,"(a)") "CR_CHECK>  * TIME variables"
     flush(crlog)
     call time_crcheck(cr_pntUnit(nPoint),rErr)
+    if(rErr) cycle
+
+    write(crlog,"(a)") "CR_CHECK>  * RND variables"
+    flush(crlog)
+    call rnd_crcheck(cr_pntUnit(nPoint),rErr)
     if(rErr) cycle
 
     write(crlog,"(a)") "CR_CHECK>  * DUMP variables"
@@ -483,11 +488,6 @@ subroutine crcheck
   write(crlog,"(2(a,i8))") "CR_CHECK> Particles  C/R: ",crnapxo,  ", Input:  ",napx*2
   write(crlog,"(2(a,i8))") "CR_CHECK> SixRecords C/R: ",crsixrecs,", Buffer: ",sixrecs
   write(crlog,"(1(a,i8))") "CR_CHECK> BinRecords C/R: ",crbinrec
-#ifndef STF
-  do j=1,(crnapxo+1)/2
-    write(crlog,"(2(a,i0))") "CR_CHECK>  * Record ",j,": ",crbinrecs(j)
-  end do
-#endif
   flush(crlog)
 
   !  Position Files
@@ -507,8 +507,8 @@ subroutine crcheck
 
   call cr_positionTrackFiles
 
-  if(dynk_enabled .and. .not.dynk_noDynkSets) then
-    write(crlog,"(a)") "CR_CHECK> Repositioning dynksets.dat"
+  if(dynk_enabled) then
+    write(crlog,"(a)") "CR_CHECK> Repositioning DYNK files"
     flush(crlog)
     call dynk_crcheck_positionFiles
   end if
@@ -568,12 +568,13 @@ subroutine crpoint
   use mod_settings
   use numerical_constants
 
-  use dynk,     only : dynk_enabled,dynk_getvalue,dynk_fSets_cr,dynk_cSets_unique,dynk_nSets_unique,dynk_crpoint
-  use dump,     only : dump_crpoint
-  use aperture, only : aper_crpoint,limifound
-  use scatter,  only : scatter_active, scatter_crpoint
-  use elens,    only : melens, elens_crpoint
-  use mod_meta, only : meta_crpoint
+  use dynk,       only : dynk_enabled,dynk_getvalue,dynk_fSets_cr,dynk_cSets_unique,dynk_nSets_unique,dynk_crpoint
+  use dump,       only : dump_crpoint
+  use aperture,   only : aper_crpoint,limifound
+  use scatter,    only : scatter_active, scatter_crpoint
+  use elens,      only : melens, elens_crpoint
+  use mod_meta,   only : meta_crpoint
+  use mod_random, only : rnd_crpoint
 
   integer j, k, l, m, nPoint
   logical wErr, fErr
@@ -635,9 +636,9 @@ subroutine crpoint
     write(cr_pntUnit(nPoint),err=100) &
       (binrecs(j), j=1,(napxo+1)/2),  &
       (numxv(j),   j=1,napxo),        &
-      (nnumxv(j),  j=1,napxo),        &
       (partID(j),  j=1,napxo),        &
       (parentID(j),j=1,napxo),        &
+      (pairID(:,j),j=1,napxo),        &
       (pstop(j),   j=1,napxo),        &
       (xv1(j),     j=1,napxo),        &
       (yv1(j),     j=1,napxo),        &
@@ -654,8 +655,7 @@ subroutine crpoint
       (nzz(j),     j=1,napxo),        &
       (nqq(j),     j=1,napxo),        &
       (pdgid(j),   j=1,napxo),        &
-      (aperv(j,1), j=1,napxo),        &
-      (aperv(j,2), j=1,napxo),        &
+      (aperv(:,j), j=1,napxo),        &
       (llostp(j),  j=1,napxo)
     flush(cr_pntUnit(nPoint))
 
@@ -671,6 +671,13 @@ subroutine crpoint
       flush(crlog)
     end if
     call time_crpoint(cr_pntUnit(nPoint),wErr)
+    if(wErr) goto 100
+
+    if(st_debug) then
+      write(crlog,"(a)") "CR_POINT>  * RND variables"
+      flush(crlog)
+    end if
+    call rnd_crpoint(cr_pntUnit(nPoint),wErr)
     if(wErr) goto 100
 
     if(st_debug) then
@@ -751,11 +758,12 @@ subroutine crstart
   use mod_common_track
   use numerical_constants
 
-  use dynk,     only : dynk_enabled, dynk_crstart
-  use scatter,  only : scatter_active, scatter_crstart
-  use elens,    only : melens, elens_crstart
-  use mod_meta, only : meta_crstart
-  use mod_time, only : time_crstart
+  use dynk,       only : dynk_enabled, dynk_crstart
+  use scatter,    only : scatter_active, scatter_crstart
+  use elens,      only : melens, elens_crstart
+  use mod_meta,   only : meta_crstart
+  use mod_time,   only : time_crstart
+  use mod_random, only : rnd_crstart
 
   logical fErr
   integer j, k, l, m, nPoint, ioStat
@@ -786,6 +794,7 @@ subroutine crstart
 
   partID(1:napxo)   = crpartID(1:napxo)
   parentID(1:napxo) = crparentID(1:napxo)
+  pairID(:,1:napxo) = crpairID(:,1:napxo)
   pstop(1:napxo)    = crpstop(1:napxo)
   llostp(1:napxo)   = crllostp(1:napxo)
 
@@ -808,11 +817,9 @@ subroutine crstart
   pdgid(1:napxo)    = crpdgid(1:napxo)
 
   numxv(1:napxo)    = crnumxv(1:napxo)
-  nnumxv(1:napxo)   = crnnumxv(1:napxo)
   do j=1,napxo
     if(pstop(j) .eqv. .false.) then
-      numxv(j)  = numl
-      nnumxv(j) = numl
+      numxv(j) = numl
     end if
   end do
 
@@ -825,12 +832,16 @@ subroutine crstart
   ! Recompute the thick arrays
   if(ithick == 1) call synuthck
 
+  ! Recompute the map of particle pairs
+  call updatePairMap
+
   ! Aperture data
-  aperv(1:napxo,1:2) = craperv(1:napxo,1:2)
+  aperv(1:2,1:napxo) = craperv(1:2,1:napxo)
 
   ! Module data
   call meta_crstart
   call time_crstart
+  call rnd_crstart
   if(dynk_enabled) then
     call dynk_crstart
   end if
@@ -864,7 +875,7 @@ end subroutine crstart
 ! ================================================================================================ !
 !  Reposition Track Files
 !  Moved from crcheck
-!  Last modified: 2019-04-30
+!  Last modified: 2019-09-10
 ! ================================================================================================ !
 subroutine cr_positionTrackFiles
 
@@ -880,7 +891,6 @@ subroutine cr_positionTrackFiles
   integer(kind=int32) hbuff(253),tbuff(35)
 
   ! We may be re-running with a DIFFERENT number of turns (numl)
-  ! Eric fix this later by reading numl for fort.90
   if(numl /= crnuml) then
     if(numl < crnumlcr) then
       write(lerr, "(2(a,i0))") "CR_CHECK> ERROR New numl < crnumlcr : ",numl," < ",crnumlcr
@@ -891,61 +901,9 @@ subroutine cr_positionTrackFiles
     write(crlog,"(2(a,i0))") "CR_CHECK> Resetting numl in binary file headers from ",crnuml," to ",numl
     flush(crlog)
 
-    ! Reposition binary files fort.90 etc. / singletrackfile.dat
+    ! Reposition binary file singletrackfile.dat
     call f_requestUnit("cr_trackfile.tmp",tUnit)
     call f_open(unit=tUnit,file="cr_trackfile.tmp",formatted=.false.,mode="rw")
-#ifndef STF
-    do ia=1,crnapxo/2,1
-      ! First, copy crbinrecs(ia) records of data from fort.91-ia to temp file
-      binrecs9x = 0
-      binrecs94 = 0
-      iau       = 91-ia
-
-      ! Copy header into integer array hbuff
-      read(91-ia,err=105,end=105,iostat=ierro) hbuff
-      binrecs9x = binrecs9x + 1
-      hbuff(51) = numl ! Reset the number of turns (not very elegant)
-      write(tUnit,err=105,iostat=ierro) hbuff
-
-      ! Copy particle tracking data
-      do j=2,crbinrecs(ia)
-        if(ntwin /= 2) then
-          read(91-ia,err=105,end=105,iostat=ierro) (tbuff(k),k=1,17)
-          write(tUnit,err=105,iostat=ierro) (tbuff(k),k=1,17)
-        else
-          read(91-ia,err=105,end=105,iostat=ierro) tbuff
-          write(tUnit,err=105,iostat=ierro) tbuff
-        end if
-        binrecs9x = binrecs9x + 1
-      end do
-
-      ! Second, copy crbinrecs(ia) records of data from temp file to fort.91-ia
-      rewind(tUnit)
-      rewind(91-ia)
-
-      ! Copy header
-      read(tUnit,err=105,end=105,iostat=ierro) hbuff
-      binrecs94 = binrecs94 + 1
-      write(91-ia,err=105,iostat=ierro) hbuff
-
-      ! Copy particle tracking data into integer array tbuff
-      do j=2,crbinrecs(ia)
-        if(ntwin /= 2) then
-          read(tUnit,err=105,end=105,iostat=ierro) (tbuff(k),k=1,17)
-          write(91-ia,err=105,iostat=ierro) (tbuff(k),k=1,17)
-        else
-          read(tUnit,err=105,end=105,iostat=ierro) tbuff
-          write(91-ia,err=105,iostat=ierro) tbuff
-        end if
-        binrecs94 = binrecs94 + 1
-      end do
-
-      ! This is not a FLUSH!
-      endfile(91-ia,iostat=ierro)
-      backspace(91-ia,iostat=ierro)
-      rewind(tUnit)
-    end do
-#else
     ! First, copy crbinrecs(ia)*(crnapx/2) records of data from singletrackfile.dat to temp file
     binrecs9x = 0
 
@@ -1000,38 +958,11 @@ subroutine cr_positionTrackFiles
     ! This is not a FLUSH!
     endfile(90,iostat=ierro)
     backspace(90,iostat=ierro)
-#endif
     call f_freeUnit(tUnit)
   else !ELSE for "if(nnuml.ne.crnuml) then" -> here we treat nnuml.eq.crnuml, i.e. the number of turns have not been changed
     ! Now with the new array crbinrecs we can ignore files which are
     ! basically finished because a particle has been lost.......
     ! Just check crbinrecs against crbinrec
-#ifndef STF
-    ! Binary files have been rewritten; now re-position
-    write(crlog,"(a)") "CR_CHECK>  * Repositioning binary files"
-    do ia=1,crnapxo/2,1
-      iau = 91-ia
-      if(crbinrecs(ia) >= crbinrec) then
-        binrecs9x = 0
-        read(91-ia,err=102,end=102,iostat=ierro) hbuff
-        do j=2,crbinrecs(ia)
-          if(ntwin /= 2) then
-            read(91-ia,err=102,end=102,iostat=ierro) (tbuff(k),k=1,17)
-          else
-            read(91-ia,err=102,end=102,iostat=ierro) tbuff
-          end if
-          binrecs9x = binrecs9x + 1
-        end do
-
-        ! This is not a FLUSH!
-        endfile(91-ia,iostat=ierro)
-        backspace(91-ia,iostat=ierro)
-      else ! Number of ecords written to this file < general number of records written
-          ! => Particle has been lost before last checkpoint, no need to reposition.
-        write(crlog,"(2(a,i0))") "CR_CHECK> Ignoring IA ",ia," on unit ",iau
-      end if
-    end do ! END "do ia=1,crnapxo/2,1"
-#else
     binrecs9x = 0
     ! Reposition headers
     do ia=1,crnapxo/2,1
@@ -1050,21 +981,9 @@ subroutine cr_positionTrackFiles
         binrecs9x = binrecs9x + 1
       end do
     end do
-#endif
   end if ! END "if (numl.ne.crnuml) then" and END else
   return
 
-#ifndef STF
-102 continue
-  write(lerr,"(2(a,i0))") "CR_CHECK> ERROR Re-reading fort.",iau," IOSTAT = ",ierro
-  write(lerr,"(3(a,i0))") "CR_CHECK>       Unit ",iau," binrecs9x=",binrecs9x," Expected crbinrecs=",crbinrecs(ia)
-  call prror
-105 continue
-  write(lerr,"(2(a,i0))") "CR_CHECK> ERROR Copying fort.",iau," IOSTAT = ",ierro
-  write(lerr,"(4(a,i0))") "CR_CHECK>       Unit ",iau," binrecs9x=",binrecs9x,&
-    " Expected crbinrecs=",crbinrecs(ia)," binrecs94=",binrecs94
-  call prror
-#else
 102 continue
   write(lerr,"(2(a,i0))") "CR_CHECK> ERROR Re-reading singletrackfile.dat for ia=",ia," IOSTAT=",ierro
   write(lerr,"(2(a,i0))") "CR_CHECK>       binrecs9x=",binrecs9x," Expected crbinrecs=",crbinrecs(ia)
@@ -1073,7 +992,7 @@ subroutine cr_positionTrackFiles
   write(lerr,"(2(a,i0))") "CR_CHECK> ERROR Copying particle pair ",ia," IOSTAT=",ierro," from/to singletrackfile.dat"
   write(lerr,"(3(a,i0))") "CR_CHECK>       binrecs9x=",binrecs9x," Expected crbinrecs=",crbinrecs(ia)," binrecs94=",binrecs94
   call prror
-#endif
+
 end subroutine cr_positionTrackFiles
 
 ! ================================================================================================ !

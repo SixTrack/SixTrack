@@ -24,10 +24,11 @@ subroutine daten
   use mod_alloc
   use mod_units
   use mod_linopt
+  use mod_random
 
   use mod_dist,  only : dist_enable, dist_parseInputLine
   use scatter,   only : scatter_active,scatter_debug,scatter_parseInputLine
-  use dynk,      only : dynk_enabled,dynk_debug,dynk_dumpdata,dynk_inputsanitycheck,dynk_allocate,dynk_parseInputLine
+  use dynk,      only : dynk_enabled,dynk_inputSanityCheck,dynk_allocate,dynk_parseInputLine
   use fma,       only : fma_parseInputLine, fma_allocate
   use dump,      only : dump_parseInputLine,dump_parseInputDone
   use zipf,      only : zipf_parseInputLine
@@ -62,7 +63,7 @@ subroutine daten
 
   implicit none
 
-  character(len=mInputLn) inLine, pLines(5)
+  character(len=mInputLn) inLine, pLines2(5), pLines3(5)
   character(len=mNameLen) ic0(10)
   character(len=60)       iHead
   character(len=8)        cPad
@@ -95,7 +96,8 @@ subroutine daten
   nGeom       = 0
   lineNo2     = 0
   lineNo3     = 0
-  pLines(:)   = " "
+  pLines2(:)  = " "
+  pLines3(:)  = " "
 
 ! ================================================================================================ !
 !  READ FORT.3 HEADER
@@ -113,8 +115,8 @@ subroutine daten
     write(lerr,"(a)") "INPUT> ERROR Could not read from "//trim(fort3)
     call prror
   end if
-  pLines(5) = cCheck//cPad//iHead
-  lineNo3 = lineNo3+1
+  pLines3(5) = cCheck//cPad//iHead
+  lineNo3    = lineNo3+1
   if(cCheck(1:1) == "/") goto 90
   if(cCheck(1:1) == "!") goto 90
 
@@ -182,12 +184,14 @@ subroutine daten
     call prror
   end if
 
-  ! Keep the last few lines for error output, but only fort fort.3
+  ! Keep the last few lines for error output
+  if(nUnit == 2) then
+    pLines2(1:4) = pLines2(2:5)
+    pLines2(5)   = inLine
+  end if
   if(nUnit == 3) then
-    do i=1,4
-      pLines(i) = pLines(i+1)
-    end do
-    pLines(5) = inLine
+    pLines3(1:4) = pLines3(2:5)
+    pLines3(5)   = inLine
   end if
 
   if(len_trim(inLine) == 0) goto 110 ! Empty line, ignore
@@ -474,6 +478,16 @@ subroutine daten
       if(inErr) goto 9999
     end if
 
+  case("RAND") ! Random Numbers
+    if(openBlock) then
+      continue
+    elseif(closeBlock) then
+      continue
+    else
+      call rnd_parseInputLine(inLine,blockLine,inErr)
+      if(inErr) goto 9999
+    end if
+
   case("ITER") ! Iteration Errors
     if(openBlock) then
       continue
@@ -709,7 +723,7 @@ subroutine daten
     elseif(closeBlock) then
       continue
     else
-      call collimate_parseInputLine(inLine,blockLine,inErr)
+      call coll_parseInputLine(inLine,blockLine,inErr)
       if(inErr) goto 9999
     end if
 
@@ -738,9 +752,8 @@ subroutine daten
     if(openBlock) then
       call dynk_allocate
     elseif(closeBlock) then
-      if(dynk_debug) call dynk_dumpdata
       dynk_enabled = .true.
-      call dynk_inputsanitycheck
+      call dynk_inputSanityCheck
     else
       call dynk_parseInputLine(inLine,inErr)
       if(inErr) goto 9999
@@ -930,7 +943,7 @@ subroutine daten
     emity = sixin_emitNY*gammar
 
     if(do_coll) then
-      call collimate_postInput(gammar)
+      call coll_postInput(gammar)
     end if
 
     ! Check for incompatible flags
@@ -1278,8 +1291,17 @@ subroutine daten
 9999 continue
   if(nUnit == 2) then
     write(lerr,"(a)")      ""
-    write(lerr,"(a)")      " ERROR in "//trim(fort2)
-    write(lerr,"(a,i0,a)") " Line ",lineNo2,": '"//trim(adjustl(inLine))//"'"
+    write(lerr,"(a,i0)")   " ERROR in "//trim(fort2)//" on line ",lineNo2
+    write(lerr,"(a)")      "========O"//repeat("=",91)
+    do i=1,5
+      if(lineNo2-5+i <= 0) cycle
+      if(i == 5) then
+        write(lerr,"(a,i5,a)") ">>",lineNo2-5+i," | "//trim(pLines2(i))
+      else
+        write(lerr,"(a,i5,a)") "  ",lineNo2-5+i," | "//trim(pLines2(i))
+      end if
+    end do
+    write(lerr,"(a)")      "========O"//repeat("=",91)
   else
     write(lerr,"(a)")      ""
     write(lerr,"(a,i0)")   " ERROR in "//trim(fort3)//" on line ",lineNo3
@@ -1287,9 +1309,9 @@ subroutine daten
     do i=1,5
       if(lineNo3-5+i <= 0) cycle
       if(i == 5) then
-        write(lerr,"(a,i5,a)") ">>",lineNo3-5+i," | "//trim(pLines(i))
+        write(lerr,"(a,i5,a)") ">>",lineNo3-5+i," | "//trim(pLines3(i))
       else
-        write(lerr,"(a,i5,a)") "  ",lineNo3-5+i," | "//trim(pLines(i))
+        write(lerr,"(a,i5,a)") "  ",lineNo3-5+i," | "//trim(pLines3(i))
       end if
     end do
     write(lerr,"(a)")      "========O"//repeat("=",91)
@@ -1298,951 +1320,6 @@ subroutine daten
   return
 
 end subroutine daten
-
-! ================================================================================================ !
-! purpose:                                                             *
-!   modification of wwerf, real(kind=fPrec) complex error function,    *
-!   written at cern by k. koelbig.                                     *
-!   taken from mad8                                                    *
-! input:                                                               *
-!   xx, yy    (real)    argument to cerf.                              *
-! output:                                                              *
-!   wx, wy    (real)    function result.                               *
-! ================================================================================================ !
-subroutine errf(xx,yy,wx,wy)
-  ! real(kind=fPrec) version.
-  use floatPrecision
-  use numerical_constants
-  use mathlib_bouncer
-  use mod_common, only : cc,xlim,ylim
-  implicit none
-
-  integer n,nc,nu
-  real(kind=fPrec) h,q,rx,ry,saux,sx,sy,tn,tx,ty,wx,wy,x,xh,xl,xx,y,yh,yy
-  dimension rx(33),ry(33)
-  save
-!-----------------------------------------------------------------------
-  x=abs(xx)
-  y=abs(yy)
-  if(y.lt.ylim.and.x.lt.xlim) then
-    q=(one-y/ylim)*sqrt(one-(x/xlim)**2)
-    h=one/(3.2_fPrec*q)
-    nc=7+int(23.0_fPrec*q)
-!       xl=h**(1-nc)
-    xl=exp_mb((1-nc)*log_mb(h))                                      !yil11
-    xh=y+half/h
-    yh=x
-    nu=10+int(21.0_fPrec*q)
-    rx(nu+1)=zero
-    ry(nu+1)=zero
-    do 10 n=nu,1,-1
-      tx=xh+real(n,fPrec)*rx(n+1)
-      ty=yh-real(n,fPrec)*ry(n+1)
-      tn=tx**2+ty**2
-      rx(n)=(half*tx)/tn
-      ry(n)=(half*ty)/tn
-10   continue
-    sx=zero
-    sy=zero
-    do 20 n=nc,1,-1
-      saux=sx+xl
-      sx=rx(n)*saux-ry(n)*sy
-      sy=rx(n)*sy+ry(n)*saux
-      xl=h*xl
-20   continue
-    wx=cc*sx
-    wy=cc*sy
-  else
-    xh=y
-    yh=x
-    rx(1)=zero
-    ry(1)=zero
-    do 30 n=9,1,-1
-      tx=xh+real(n,fPrec)*rx(1)
-      ty=yh-real(n,fPrec)*ry(1)
-      tn=tx**2+ty**2
-      rx(1)=(half*tx)/tn
-      ry(1)=(half*ty)/tn
-30   continue
-    wx=cc*rx(1)
-    wy=cc*ry(1)
-  endif
-!      if(y.eq.0.) wx=exp(-x**2)
-  if(yy.lt.zero) then
-    wx=(two*exp_mb(y**2-x**2))*cos_mb((two*x)*y)-wx
-    wy=((-one*two)*exp_mb(y**2-x**2))*sin_mb((two*x)*y)-wy
-    if(xx.gt.zero) wy=-one*wy
-  else
-    if(xx.lt.zero) wy=-one*wy
-  endif
-end subroutine errf
-
-! ================================================================================================ !
-!  subroutine wzsubv
-!
-!  This subroutine sets u=real(w(z)) and v=imag(w(z)), where z=x+i*y and
-!  where w(z) is the complex error function defined by formula 7.1.3 in
-!  "Handbook of Mathematical functions [eds. M.Abramowitz & I.A.Stegun,
-!  Washington, 1966].  The absolute error of the computed value is less
-!  than 1E-8.
-!
-!  *** Note.  Subroutine WZSET must have been called before this sub-
-!  routine can be used.
-!
-!  For (x,y) inside the rectangle with opposite corners (xcut,0) and
-!  (0,ycut), where xcut and ycut have been set by WZSET, an interpo-
-!  lation formula is used.  For (x,y) outside this rectangle, a two-
-!  term rational approximation is used.
-!
-!  (G.A.Erskine, 29.09.1997)
-!
-!  Vectorised for up to 64 argument values by E.McIntosh, 30.10.1997.
-!  Much impoved using short vector buffers Eric 1st May, 2014.
-!
-!  Third-order divided-difference interpolation over the corners of a
-!  square [e.g. formula (2.5.1) in "Introduction to Numerical Analysis"
-!  (F.B.Hildebrand New York, 1957), but with complex nodes and
-!  function values].
-!
-!  In the interpolation formula the corners of the grid square contain-
-!  ing (x,y) are numbered (0,0)=3, (h,0)=4, (h,h)=1, (0,h)=2.
-!  Identifiers d, dd and ddd denote divided-differences of orders 1, 2
-!  and 3 respectively, and a preceding 't' indicates twice the value.
-!
-!
-!  Two-term rational approximation to w(z) [Footnote to Table 7.9
-!  in "Handbook of Mathematical Functions (eds. M.Abramowitz &
-!  I.A.Stegun, Washington, 1966), but with additional digits in
-!  the constants]:
-!              u+i*v = i*z*( a1/(z**2-b1) + a2/(z**2-b2) ).
-!  Maximum absolute error:
-!        <1.E-6  for  x>=4.9  or  y>=4.4
-!        <1.E-7  for  x>=6.1  or  y>=5.7
-!        <1.E-8  for  x>=7.8  or  y>=7.5
-!
-! ================================================================================================ !
-subroutine wzsubv(n,vx,vy,vu,vv)
-
-  use parpro, only : npart
-  use floatPrecision
-  use numerical_constants
-  implicit none
-
-  dimension vx(*),vy(*),vu(*),vv(*)
-  integer i,j,k,n,vmu,vnu
-  real(kind=fPrec) a1,a2,b1,b2,vd12i,vd12r,vd23i,vd23r,vd34i,vd34r,vp,vq,vqsq,vr,vsimag,vsreal,vt,  &
-    vtdd13i,vtdd13r,vtdd24i,vtdd24r,vtdddi,vtdddr,vti,vtr,vu,vusum,vusum3,vv,vvsum,vvsum3,vw1i,vw1r,&
-    vw2i,vw2r,vw3i,vw3r,vw4i,vw4r,vx,vxh,vxhrel,vy,vyh,vyhrel
-  integer idim,kstep,nx,ny
-  real(kind=fPrec) h,hrecip,wtimag,wtreal,xcut,ycut
-  parameter ( xcut = 7.77_fPrec, ycut = 7.46_fPrec )
-  parameter ( h = one/63.0_fPrec )
-  parameter ( nx = 490, ny = 470 )
-  parameter ( idim = (nx+2)*(ny+2) )
-  common /wzcom1/ hrecip, kstep
-  common /wzcom2/ wtreal(idim), wtimag(idim)
-  parameter ( a1 = 0.5124242248_fPrec, a2 = 0.0517653588_fPrec )
-  parameter ( b1 = 0.2752551286_fPrec, b2 = 2.7247448714_fPrec )
-  real(kind=fPrec) xm,xx,yy
-  parameter (xm=1e16_fPrec)
-!     temporary arrays to facilitate vectorisation
-  integer in,out,ins,outs
-  dimension ins(npart),outs(npart)
-!-----------------------------------------------------------------------
-  save
-  in=0
-  out=0
-  do i=1,n
-    if (vx(i).ge.xcut.or.vy(i).ge.ycut) then
-      out=out+1
-      outs(out)=i
-      if (out.eq.npart) then
-!     everything outside the rectangle so approximate
-!     write (*,*) 'ALL outside'
-!     write (*,*) 'i=',i
-        do j=1,out
-          xx=vx(outs(j))
-          yy=vy(outs(j))
-          if (xx.ge.xm) xx=xm
-          if (yy.ge.xm) yy=xm
-          vp=xx**2-yy**2
-          vq=(two*xx)*yy
-          vqsq=vq**2
-          !  First term.
-          vt=vp-b1
-          vr=a1/(vt**2+vqsq)
-          vsreal=vr*vt
-          vsimag=-vr*vq
-          !  Second term
-          vt=vp-b2
-          vr=a2/(vt**2+vqsq)
-          vsreal=vsreal+vr*vt
-          vsimag=vsimag-vr*vq
-          !  Multiply by i*z.
-          vu(outs(j))=-(yy*vsreal+xx*vsimag)
-          vv(outs(j))=xx*vsreal-yy*vsimag
-        enddo
-        out=0
-      endif
-    else
-      in=in+1
-      ins(in)=i
-      if (in.eq.npart) then
-!     everything inside the square, so interpolate
-!     write (*,*) 'ALL inside'
-        do j=1,in
-          vxh = hrecip*vx(ins(j))
-          vyh = hrecip*vy(ins(j))
-          vmu = int(vxh)
-          vnu = int(vyh)
-!  Compute divided differences.
-          k = 2 + vmu + vnu*kstep
-          vw4r = wtreal(k)
-          vw4i = wtimag(k)
-          k = k - 1
-          vw3r = wtreal(k)
-          vw3i = wtimag(k)
-          vd34r = vw4r - vw3r
-          vd34i = vw4i - vw3i
-          k = k + kstep
-          vw2r = wtreal(k)
-          vw2i = wtimag(k)
-          vd23r = vw2i - vw3i
-          vd23i = vw3r - vw2r
-          vtr = vd23r - vd34r
-          vti = vd23i - vd34i
-          vtdd24r = vti - vtr
-          vtdd24i = -one* ( vtr + vti )
-          k = k + 1
-          vw1r = wtreal(k)
-          vw1i = wtimag(k)
-          vd12r = vw1r - vw2r
-          vd12i = vw1i - vw2i
-          vtr = vd12r - vd23r
-          vti = vd12i - vd23i
-          vtdd13r = vtr + vti
-          vtdd13i = vti - vtr
-          vtdddr = vtdd13i - vtdd24i
-          vtdddi = vtdd24r - vtdd13r
-!  Evaluate polynomial.
-          vxhrel = vxh - real(vmu,fPrec)
-          vyhrel = vyh - real(vnu,fPrec)
-          vusum3=half*(vtdd13r+(vxhrel*vtdddr-vyhrel*vtdddi))
-          vvsum3=half*(vtdd13i+(vxhrel*vtdddi+vyhrel*vtdddr))
-          vyhrel = vyhrel - one
-          vusum=vd12r+(vxhrel*vusum3-vyhrel*vvsum3)
-          vvsum=vd12i+(vxhrel*vvsum3+vyhrel*vusum3)
-          vxhrel = vxhrel - one
-          vu(ins(j))=vw1r+(vxhrel*vusum-vyhrel*vvsum)
-          vv(ins(j))=vw1i+(vxhrel*vvsum+vyhrel*vusum)
-        enddo
-        in=0
-      endif
-    endif
-  enddo
-!     everything outside the rectangle so approximate
-!     write (*,*) 'ALL outside'
-!     write (*,*) 'i=',i
-  do j=1,out
-    xx=vx(outs(j))
-    yy=vy(outs(j))
-    if (xx.ge.xm) xx=xm
-    if (yy.ge.xm) yy=xm
-    vp=xx**2-yy**2
-    vq=(two*xx)*yy
-    vqsq=vq**2
-!  First term.
-    vt=vp-b1
-    vr=a1/(vt**2+vqsq)
-    vsreal=vr*vt
-    vsimag=-vr*vq
-!  Second term
-    vt=vp-b2
-    vr=a2/(vt**2+vqsq)
-    vsreal=vsreal+vr*vt
-    vsimag=vsimag-vr*vq
-!  Multiply by i*z.
-    vu(outs(j))=-(yy*vsreal+xx*vsimag)
-    vv(outs(j))=xx*vsreal-yy*vsimag
-  enddo
-!     everything inside the square, so interpolate
-!     write (*,*) 'ALL inside'
-  do j=1,in
-    vxh = hrecip*vx(ins(j))
-    vyh = hrecip*vy(ins(j))
-    vmu = int(vxh)
-    vnu = int(vyh)
-!  Compute divided differences.
-    k = 2 + vmu + vnu*kstep
-    vw4r = wtreal(k)
-    vw4i = wtimag(k)
-    k = k - 1
-    vw3r = wtreal(k)
-    vw3i = wtimag(k)
-    vd34r = vw4r - vw3r
-    vd34i = vw4i - vw3i
-    k = k + kstep
-    vw2r = wtreal(k)
-    vw2i = wtimag(k)
-    vd23r = vw2i - vw3i
-    vd23i = vw3r - vw2r
-    vtr = vd23r - vd34r
-    vti = vd23i - vd34i
-    vtdd24r = vti - vtr
-    vtdd24i = -one* ( vtr + vti )
-    k = k + 1
-    vw1r = wtreal(k)
-    vw1i = wtimag(k)
-    vd12r = vw1r - vw2r
-    vd12i = vw1i - vw2i
-    vtr = vd12r - vd23r
-    vti = vd12i - vd23i
-    vtdd13r = vtr + vti
-    vtdd13i = vti - vtr
-    vtdddr = vtdd13i - vtdd24i
-    vtdddi = vtdd24r - vtdd13r
-!  Evaluate polynomial.
-    vxhrel = vxh - real(vmu,fPrec)
-    vyhrel = vyh - real(vnu,fPrec)
-    vusum3=half*(vtdd13r+(vxhrel*vtdddr-vyhrel*vtdddi))
-    vvsum3=half*(vtdd13i+(vxhrel*vtdddi+vyhrel*vtdddr))
-    vyhrel = vyhrel - one
-    vusum=vd12r+(vxhrel*vusum3-vyhrel*vvsum3)
-    vvsum=vd12i+(vxhrel*vvsum3+vyhrel*vusum3)
-    vxhrel = vxhrel - one
-    vu(ins(j))=vw1r+(vxhrel*vusum-vyhrel*vvsum)
-    vv(ins(j))=vw1i+(vxhrel*vvsum+vyhrel*vusum)
-  enddo
-  return
-end subroutine wzsubv
-
-! ================================================================================================ !
-!  subroutine wzsub
-!
-!  This subroutine sets u=real(w(z)) and v=imag(w(z)), where z=x+i*y and
-!  where w(z) is the complex error function defined by formula 7.1.3 in
-!  "Handbook of Mathematical functions [eds. M.Abramowitz & I.A.Stegun,
-!  Washington, 1966].  The absolute error of the computed value is less
-!  than 1E-8.
-!
-!  *** Note.  Subroutine WZSET must have been called before this sub-
-!  routine can be used.
-!
-!  For (x,y) inside the rectangle with opposite corners (xcut,0) and
-!  (0,ycut), where xcut and ycut have been set by WZSET, an interpo-
-!  lation formula is used.  For (x,y) outside this rectangle, a two-
-!  term rational approximation is used.
-!
-!  (G.A.Erskine, 29.09.1997)
-!
-!
-!  Third-order divided-difference interpolation over the corners of a
-!  square [e.g. formula (2.5.1) in "Introduction to Numerical Analysis"
-!  (F.B.Hildebrand New York, 1957), but with complex nodes and
-!  function values].
-!
-!  In the interpolation formula the corners of the grid square contain-
-!  ing (x,y) are numbered (0,0)=3, (h,0)=4, (h,h)=1, (0,h)=2.
-!  Identifiers d, dd and ddd denote divided-differences of orders 1, 2
-!  and 3 respectively, and a preceding 't' indicates twice the value.
-!
-! ================================================================================================ !
-subroutine wzsub(x,y,u,v)
-
-  use floatPrecision
-  use numerical_constants
-  use mathlib_bouncer
-  use parpro
-  use parbeam
-  implicit none
-  integer k,mu,nu
-  real(kind=fPrec) a1,a2,b1,b2,d12i,d12r,d23i,d23r,d34i,d34r,p,q,qsq,r,simag,sreal,t,tdd13i,tdd13r, &
-    tdd24i,tdd24r,tdddi,tdddr,ti,tr,u,usum,usum3,v,vsum,vsum3,w1i,w1r,w2i,w2r,w3i,w3r,w4i,w4r,x,xh, &
-    xhrel,y,yh,yhrel
-  parameter ( a1 = 0.5124242248_fPrec, a2 = 0.0517653588_fPrec )
-  parameter ( b1 = 0.2752551286_fPrec, b2 = 2.7247448714_fPrec )
-  save
-!-----------------------------------------------------------------------
-  if ( x.ge.xcut .or. y.ge.ycut ) goto 1000
-  xh = hrecip*x
-  yh = hrecip*y
-  mu = int(xh)
-  nu = int(yh)
-!  Compute divided differences.
-  k = 2 + mu + nu*kstep
-  w4r = wtreal(k)
-  w4i = wtimag(k)
-  k = k - 1
-  w3r = wtreal(k)
-  w3i = wtimag(k)
-  d34r = w4r - w3r
-  d34i = w4i - w3i
-  k = k + kstep
-  w2r = wtreal(k)
-  w2i = wtimag(k)
-  d23r = w2i - w3i
-  d23i = w3r - w2r
-  tr = d23r - d34r
-  ti = d23i - d34i
-  tdd24r = ti - tr
-  tdd24i = -one* ( tr + ti )
-  k = k + 1
-  w1r = wtreal(k)
-  w1i = wtimag(k)
-  d12r = w1r - w2r
-  d12i = w1i - w2i
-  tr = d12r - d23r
-  ti = d12i - d23i
-  tdd13r = tr + ti
-  tdd13i = ti - tr
-  tdddr = tdd13i - tdd24i
-  tdddi = tdd24r - tdd13r
-!  Evaluate polynomial.
-  xhrel = xh - real(mu,fPrec)
-  yhrel = yh - real(nu,fPrec)
-  usum3 = half*( tdd13r + ( xhrel*tdddr - yhrel*tdddi ) )
-  vsum3 = half*( tdd13i + ( xhrel*tdddi + yhrel*tdddr ) )
-  yhrel = yhrel - one
-  usum = d12r + ( xhrel*usum3 - yhrel*vsum3 )
-  vsum = d12i + ( xhrel*vsum3 + yhrel*usum3 )
-  xhrel = xhrel - one
-  u = w1r + ( xhrel*usum - yhrel*vsum )
-  v = w1i + ( xhrel*vsum + yhrel*usum )
-  return
-!
-!  Two-term rational approximation to w(z) [Footnote to Table 7.9
-!  in "Handbook of Mathematical Functions (eds. M.Abramowitz &
-!  I.A.Stegun, Washington, 1966), but with additional digits in
-!  the constants]:
-!              u+i*v = i*z*( a1/(z**2-b1) + a2/(z**2-b2) ).
-!  Maximum absolute error:
-!        <1.E-6  for  x>=4.9  or  y>=4.4
-!        <1.E-7  for  x>=6.1  or  y>=5.7
-!        <1.E-8  for  x>=7.8  or  y>=7.5
-!
-1000 p=x**2-y**2
-  q=(2.d0*x)*y
-  qsq=q**2
-!  First term.
-  t=p-b1
-  r=a1/(t**2+qsq)
-  sreal=r*t
-  simag=(-one*r)*q
-!  Second term
-  t=p-b2
-  r=a2/(t**2+qsq)
-  sreal=sreal+r*t
-  simag=simag-r*q
-!  Multiply by i*z.
-  u=-one*(y*sreal+x*simag)
-  v=x*sreal-y*simag
-  return
-!
-end subroutine wzsub
-
-! ================================================================================================ !
-! K. Sjobak, A. Santamaria, BE-ABP-HSS
-! Created: 2016-12-23
-! Updated: 2019-04-12
-! Initialize a lattice element with index elIdx,
-! such as done when reading fort.2 (GEOM) and in DYNK.
-!
-! Never delete an element from the lattice, even if it is not making a kick.
-! If the element is not recognized, do nothing (for now).
-! If trying to initialize an element (not lfirst) which is disabled, print an error and exit.
-! ================================================================================================ !
-subroutine initialize_element(ix,lfirst)
-
-  use crcoall
-  use floatPrecision
-  use mathlib_bouncer
-  use numerical_constants
-
-  use parpro
-  use parbeam
-  use mod_common
-  use mod_common_main
-  use mod_common_track
-
-  use cheby, only : cheby_kz
-  use dynk,  only : dynk_elemData, dynk_izuIndex
-
-  implicit none
-
-  integer, intent(in) :: ix
-  logical, intent(in) :: lfirst
-
-  integer i,m,k,im,nmz,izu,ibb,ii,j,nbeaux(nbb)
-  real(kind=fPrec) r0,r0a,bkitemp,sfac1,sfac2,sfac2s,sfac3,sfac4,sfac5,crkveb_d,cikveb_d,rho2b_d,   &
-    tkb_d,r2b_d,rb_d,rkb_d,xrb_d,zrb_d,cbxb_d,cbzb_d,crxb_d,crzb_d,xbb_d,zbb_d,napx0
-  real(kind=fPrec) crkveb(npart),cikveb(npart),rho2b(npart),tkb(npart),r2b(npart),rb(npart),        &
-    rkb(npart),xrb(npart),zrb(npart),xbb(npart),zbb(npart),crxb(npart),crzb(npart),cbxb(npart),     &
-    cbzb(npart)
-
-  ! Nonlinear Elements
-  if(abs(kz(ix)) >= 1 .and. abs(kz(ix)) <= 10) then
-    if(.not.lfirst) then
-      do i=1,iu
-        if(ic(i)-nblo == ix) then
-          if(ktrack(i) == 31) goto 100 !ERROR
-          sm(ix)  = ed(ix)          ! Also done in envar() which is called from clorb()
-          smiv(i) = sm(ix)+smizf(i) ! Also done in program maincr
-          smi(i)  = smiv(i)         ! Also done in program maincr
-          select case(abs(kz(ix)))
-          case(1)
-#include "include/stra01.f90"
-          case(2)
-#include "include/stra02.f90"
-          case(3)
-#include "include/stra03.f90"
-          case(4)
-#include "include/stra04.f90"
-          case(5)
-#include "include/stra05.f90"
-          case(6)
-#include "include/stra06.f90"
-          case(7)
-#include "include/stra07.f90"
-          case(8)
-#include "include/stra08.f90"
-          case(9)
-#include "include/stra09.f90"
-          case(10)
-#include "include/stra10.f90"
-          end select
-        end if
-      end do
-    end if
-
-  ! Multipoles
-  elseif(kz(ix) == 11) then
-    if(lfirst) then
-      if(abs(el(ix)+one) <= pieni) then
-        dki(ix,1) = ed(ix)
-        dki(ix,3) = ek(ix)
-        ed(ix) = one
-        ek(ix) = one
-        el(ix) = zero
-      else if(abs(el(ix)+two) <= pieni) then
-        dki(ix,2) = ed(ix)
-        dki(ix,3) = ek(ix)
-        ed(ix) = one
-        ek(ix) = one
-        el(ix) = zero
-      end if
-    else
-      do i=1,iu
-        if(ic(i)-nblo == ix) then
-          nmz = nmu(ix)
-          im  = irm(ix)
-          do k=1,nmz
-            aaiv(k,i) = scalemu(im)*(ak0(im,k)+amultip(k,i)*aka(im,k))
-            bbiv(k,i) = scalemu(im)*(bk0(im,k)+bmultip(k,i)*bka(im,k))
-          end do
-        end if
-      end do
-    end if
-
-  ! Cavities (ktrack = 2 for thin)
-  elseif(abs(kz(ix)) == 12) then
-    dynk_elemData(ix,3) = el(ix)
-    phasc(ix) = el(ix)*rad
-    el(ix) = zero
-    if(lfirst) then
-      if(abs(ed(ix)) > pieni .and. abs(ek(ix)) > pieni) then
-        ncy2   = ncy2 + 1
-        kp(ix) = 6
-      end if
-    else
-      hsyc(ix) = ((twopi)*ek(ix))/tlen                             ! SYNC block
-      hsyc(ix) = (c1m3*hsyc(ix)) * real(sign(1,kz(ix)),kind=fPrec) ! trauthin/trauthck
-    end if
-
-  ! Wire
-  else if(kz(ix) == 15) then
-    ed(ix) = zero
-    ek(ix) = zero
-    el(ix) = zero
-
-  ! BEAM-BEAM
-  elseif(kz(ix) == 20) then
-
-    if(nbeam == 0 .and. .not. lfirst) then
-      write(lerr,"(a)") "BEAMBEAM> ERROR Beam-beam element encountered, but no BEAM block in '"//trim(fort3)//"'"
-      call prror
-    end if
-
-    if(lfirst) then
-      ptnfac(ix)  = el(ix)
-      el(ix)      = zero
-      parbe(ix,5) = ed(ix)
-      ed(ix)      = zero
-      parbe(ix,6) = ek(ix)
-      ek(ix)      = zero
-    end if
-    ! This is to inialize all the beam-beam element before the tracking (or to update it for DYNK).
-    if(.not.lfirst) then
-      do i=1,iu
-        if(ic(i)-nblo == ix) then
-          ibb = imbb(i)
-          if(parbe(ix,2) > zero) then
-            if(beam_expflag == 1) then
-              bbcu(ibb,1)  = parbe(ix,7)
-              bbcu(ibb,4)  = parbe(ix,8)
-              bbcu(ibb,6)  = parbe(ix,9)
-              bbcu(ibb,2)  = parbe(ix,10)
-              bbcu(ibb,9)  = parbe(ix,11)
-              bbcu(ibb,10) = parbe(ix,12)
-              bbcu(ibb,3)  = parbe(ix,13)
-              bbcu(ibb,5)  = parbe(ix,14)
-              bbcu(ibb,7)  = parbe(ix,15)
-              bbcu(ibb,8)  = parbe(ix,16)
-              do ii=1,10
-                bbcu(ibb,ii) = bbcu(ibb,ii)*c1m6
-              end do
-            end if
-            ktrack(i)   = 44
-            parbe(ix,4) = (((-one*crad)*ptnfac(ix))*half)*c1m6
-            if(ibeco == 1) then
-              track6d(1,1) = parbe(ix,5)*c1m3
-              track6d(2,1) = zero
-              track6d(3,1) = parbe(ix,6)*c1m3
-              track6d(4,1) = zero
-              track6d(5,1) = zero
-              track6d(6,1) = zero
-              napx0 = napx
-              napx  = 1
-              call beamint(napx,track6d,parbe,sigz,bbcu,imbb(i),ix,ibtyp,ibbc, mtc)
-              beamoff(1,imbb(i)) = track6d(1,1)*c1e3
-              beamoff(2,imbb(i)) = track6d(3,1)*c1e3
-              beamoff(3,imbb(i)) = track6d(5,1)*c1e3
-              beamoff(4,imbb(i)) = track6d(2,1)*c1e3
-              beamoff(5,imbb(i)) = track6d(4,1)*c1e3
-              beamoff(6,imbb(i)) = track6d(6,1)
-              napx = napx0
-            end if
-
-          else if(parbe(ix,2) == zero) then
-            if(beam_expflag == 1) then
-              bbcu(ibb,1) = parbe(ix,1)
-              bbcu(ibb,2) = parbe(ix,3)
-              bbcu(ibb,3) = parbe(ix,13)
-            end if
-            if(ibbc == 1) then
-              sfac1  = bbcu(ibb,1)+bbcu(ibb,2)
-              sfac2  = bbcu(ibb,1)-bbcu(ibb,2)
-              sfac2s = one
-              if(sfac2 < zero) sfac2s = -one
-              sfac3 = sqrt(sfac2**2+(four*bbcu(ibb,3))*bbcu(ibb,3))
-              if(sfac3 > sfac1) then
-                write(lerr,"(a)") "BEAMBEAM> ERROR 6D beam-beam with tilt not possible."
-                call prror
-              end if
-              sfac4 = (sfac2s*sfac2)/sfac3
-              sfac5 = (((-one*sfac2s)*two)*bbcu(ibb,3))/sfac3
-              sigman(1,ibb) = sqrt(((sfac1+sfac2*sfac4)+(two*bbcu(ibb,3))*sfac5)*half)
-              sigman(2,ibb) = sqrt(((sfac1-sfac2*sfac4)-(two*bbcu(ibb,3))*sfac5)*half)
-              bbcu(ibb,11)  = sqrt(half*(one+sfac4))
-              bbcu(ibb,12)  = (-one*sfac2s)*sqrt(half*(one-sfac4))
-              if(bbcu(ibb,3) < zero) bbcu(ibb,12) = -one*bbcu(ibb,12)
-            else
-              bbcu(ibb,11)  = one
-              sigman(1,ibb) = sqrt(bbcu(ibb,1))
-              sigman(2,ibb) = sqrt(bbcu(ibb,2))
-            end if
-
-            ! Round beam
-            nbeaux(imbb(i)) = 0
-            if(sigman(1,imbb(i)) == sigman(2,imbb(i))) then
-              if(nbeaux(imbb(i)) == 2 .or. nbeaux(imbb(i)) == 3) then
-                write(lerr,"(a)") "BEAMBEAM> ERROR At each interaction point the beam must be either "//&
-                  "round or elliptical for all particles"
-                call prror
-              else
-                nbeaux(imbb(i)) = 1
-                sigman2(1,imbb(i)) = sigman(1,imbb(i))**2
-              end if
-            end if
-
-            ! Elliptic beam x>z
-            if(sigman(1,imbb(i)) > sigman(2,imbb(i))) then
-              if(nbeaux(imbb(i)) == 1 .or. nbeaux(imbb(i)) == 3) then
-                write(lerr,"(a)") "BEAMBEAM> ERROR At each interaction point the beam must be either "//&
-                  "round or elliptical for all particles"
-                call prror
-              else
-                nbeaux(imbb(i)) = 2
-                ktrack(i)       = 42
-                sigman2(1,imbb(i)) = sigman(1,imbb(i))**2
-                sigman2(2,imbb(i)) = sigman(2,imbb(i))**2
-                sigmanq(1,imbb(i)) = sigman(1,imbb(i))/sigman(2,imbb(i))
-                sigmanq(2,imbb(i)) = sigman(2,imbb(i))/sigman(1,imbb(i))
-              end if
-            end if
-
-            ! Elliptic beam z>x
-            if(sigman(1,imbb(i)) < sigman(2,imbb(i))) then
-              if(nbeaux(imbb(i)) == 1 .or. nbeaux(imbb(i)) == 2) then
-                write(lerr,"(a)") "BEAMBEAM> ERROR At each interaction point the beam must be either "//&
-                  "round or elliptical for all particles"
-                call prror
-              else
-                nbeaux(imbb(i)) = 3
-                ktrack(i)       = 43
-                sigman2(1,imbb(i)) = sigman(1,imbb(i))**2
-                sigman2(2,imbb(i)) = sigman(2,imbb(i))**2
-                sigmanq(1,imbb(i)) = sigman(1,imbb(i))/sigman(2,imbb(i))
-                sigmanq(2,imbb(i)) = sigman(2,imbb(i))/sigman(1,imbb(i))
-              end if
-            end if
-
-            strack(i) = crad*ptnfac(ix)
-            if(ibbc.eq.0) then
-              crkveb_d = parbe(ix,5)
-              cikveb_d = parbe(ix,6)
-            else
-              crkveb_d = parbe(ix,5)*bbcu(imbb(i),11)+parbe(ix,6)*bbcu(imbb(i),12)
-              cikveb_d = parbe(ix,6)*bbcu(imbb(i),11)-parbe(ix,5)*bbcu(imbb(i),12)
-            end if
-
-            if(nbeaux(imbb(i)) == 1) then
-              ktrack(i) = 41
-              if(ibeco == 1) then
-                rho2b_d = crkveb_d**2+cikveb_d**2
-                tkb_d   = rho2b_d/(two*sigman2(1,imbb(i)))
-                beamoff(4,imbb(i)) = ((strack(i)*crkveb_d)/rho2b_d)*(one-exp_mb(-one*tkb_d))
-                beamoff(5,imbb(i)) = ((strack(i)*cikveb_d)/rho2b_d)*(one-exp_mb(-one*tkb_d))
-              end if
-            end if
-
-            if(ktrack(i) == 42) then
-              if(ibeco == 1) then
-                r2b_d = two*(sigman2(1,imbb(i))-sigman2(2,imbb(i)))
-                rb_d  = sqrt(r2b_d)
-                rkb_d = (strack(i)*pisqrt)/rb_d
-                xrb_d = abs(crkveb_d)/rb_d
-                zrb_d = abs(cikveb_d)/rb_d
-                if(ibtyp == 0) then
-                  call errf(xrb_d,zrb_d,crxb_d,crzb_d)
-                  tkb_d = (crkveb_d**2/sigman2(1,imbb(i))+cikveb_d**2/sigman2(2,imbb(i)))*half
-                  xbb_d = sigmanq(2,imbb(i))*xrb_d
-                  zbb_d = sigmanq(1,imbb(i))*zrb_d
-                  call errf(xbb_d,zbb_d,cbxb_d,cbzb_d)
-                else if(ibtyp == 1) then
-                  tkb_d = (crkveb_d**2/sigman2(1,imbb(i))+cikveb_d**2/sigman2(2,imbb(i)))*half
-                  xbb_d = sigmanq(2,imbb(i))*xrb_d
-                  zbb_d = sigmanq(1,imbb(i))*zrb_d
-                else
-                  tkb_d = zero ! -Wmaybe-uninitialized
-                end if
-              else
-                rkb_d = zero ! -Wmaybe-uninitialized
-                tkb_d = zero ! -Wmaybe-uninitialized
-              end if
-              beamoff(4,imbb(i))=(rkb_d*(crzb_d-exp_mb(-one*tkb_d)*cbzb_d))*sign(one,crkveb_d)
-              beamoff(5,imbb(i))=(rkb_d*(crxb_d-exp_mb(-one*tkb_d)*cbxb_d))*sign(one,cikveb_d)
-            end if
-
-            if(ktrack(i) == 43) then
-              if(ibeco == 1) then
-                r2b_d = two*(sigman2(2,imbb(i))-sigman2(1,imbb(i)))
-                rb_d  = sqrt(r2b_d)
-                rkb_d = (strack(i)*pisqrt)/rb_d
-                xrb_d = abs(crkveb_d)/rb_d
-                zrb_d = abs(cikveb_d)/rb_d
-                if(ibtyp == 0) then
-                  call errf(zrb_d,xrb_d,crzb_d,crxb_d)
-                  tkb_d = (crkveb_d**2/sigman2(1,imbb(i))+cikveb_d**2/sigman2(2,imbb(i)))*half
-                  xbb_d = sigmanq(2,imbb(i))*xrb_d
-                  zbb_d = sigmanq(1,imbb(i))*zrb_d
-                  call errf(zbb_d,xbb_d,cbzb_d,cbxb_d)
-                else if(ibtyp == 1) then
-                  tkb_d = (crkveb_d**2/sigman2(1,imbb(i))+cikveb_d**2/sigman2(2,imbb(i)))*half
-                  xbb_d = sigmanq(2,imbb(i))*xrb_d
-                  zbb_d = sigmanq(1,imbb(i))*zrb_d
-                else
-                  tkb_d = zero ! -Wmaybe-uninitialized
-                end if
-              else
-                rkb_d = zero ! -Wmaybe-uninitialized
-                tkb_d = zero ! -Wmaybe-uninitialized
-              end if
-              beamoff(4,imbb(i)) = (rkb_d*(crzb_d-exp_mb(-one*tkb_d)*cbzb_d))*sign(one,crkveb_d)
-              beamoff(5,imbb(i)) = (rkb_d*(crxb_d-exp_mb(-one*tkb_d)*cbxb_d))*sign(one,cikveb_d)
-            end if
-          end if
-        end if
-      end do
-    end if
-
-  ! Crab Cavities
-  ! Note: If setting something else than el(),
-  ! DON'T call initialize_element on a crab, it will reset the phase to 0.
-  elseif(abs(kz(ix)) == 23) then
-    crabph(ix) = el(ix)
-    el(ix)     = zero
-
-  ! CC Mult kick order 2
-  elseif(abs(kz(ix)) == 26) then
-    crabph2(ix) = el(ix)
-    el(ix)      = zero
-
-  ! CC Mult kick order 3
-  elseif(abs(kz(ix)) == 27) then
-    crabph3(ix) = el(ix)
-    el(ix)      = zero
-
-  ! CC Mult kick order 4
-  else if(abs(kz(ix)) == 28) then
-    crabph4(ix) = el(ix)
-    el(ix)      = zero
-
-  ! e-lens
-  else if(kz(ix) == 29) then
-    ed(ix) = zero
-    ek(ix) = zero
-    el(ix) = zero
-
-  ! Chebyshev lens
-  else if(kz(ix) == cheby_kz) then
-    ed(ix) = zero
-    ek(ix) = zero
-    el(ix) = zero
-  end if
-
-  return
-
-  ! Error handlers
-100 continue
-  write(lerr,"(a,i0)") "INITELEM> ERROR Tried to set the strength of an element which is disabled. bez = ", bez(ix)
-  call prror
-
-end subroutine initialize_element
-
-subroutine wzset
-!  *********************************************************************
-!
-!  This subroutine must be called before subroutine WZSUB can be used to
-!  compute values of the complex error function w(z).
-!
-!  Parameters xcut and ycut specify the opposite corners (xcut,0) and
-!  (0,ycut) of the rectangle inside which interpolation is to be used
-!  by subroutine WZSUB.
-!
-!  Parameter h is the side of the squares of the interpolation grid.
-!
-!  Parameters nx and ny must be set to the nearest integers to xcut/h
-!  and ycut/h respectively (or to larger values).
-!
-!  Calls MYWWERF new version of (CERN library) WWERF (C335)
-!
-!  (G.A.Erskine, 29.09.1995)
-!
-!  *********************************************************************
-      use floatPrecision
-      use mathlib_bouncer
-      use numerical_constants
-      use parpro
-      use parbeam
-      implicit none
-      integer i,j,k
-      real(kind=fPrec) wi,wr,x,y
-      save
-!-----------------------------------------------------------------------
-      hrecip = one/h
-      kstep = nx+2
-      k = 0
-      do 2 j=0,ny+1
-         do 1 i=0,nx+1
-            k = k+1
-            x=real(i,fPrec)*h
-            y=real(j,fPrec)*h
-            call mywwerf(x,y,wr,wi)
-            wtreal(k)=wr
-            wtimag(k)=wi
- 1       continue
- 2    continue
-end subroutine wzset
-
-subroutine mywwerf(x,y,wr,wi)
-      use floatPrecision
-      use mathlib_bouncer
-      use numerical_constants
-      implicit none
-      integer n
-      real(kind=fPrec) c,c1,c2,c3,c4,hf,p,rr,ri,sr0,sr,si,tr,ti,vi,vr,  &
-     &wi,wr,x,xa,xl,y,ya,zhi,zhr,z1,z10
-      parameter (z1=one,hf=z1/two,z10=c1e1)
-      parameter (c1=74.0_fPrec/z10,c2=83.0_fPrec/z10)
-      parameter (c3=z10/32.0_fPrec,c4=16.0_fPrec/z10)
-!     parameter (c=1.12837916709551257d0,p=(2d0*c4)**33)
-      parameter (c=1.12837916709551257_fPrec)
-      parameter (p=46768052394588893.3825_fPrec)
-      dimension rr(37),ri(37)
-      save
-!-----------------------------------------------------------------------
-      xa=abs(x)
-      ya=abs(y)
-      if(ya.lt.c1.and.xa.lt.c2) then
-!        zh=dcmplx(ya+c4,xa)
-        zhr=ya+c4
-        zhi=xa
-        rr(37)=zero
-        ri(37)=zero
-        do n=36,1,-1
-!          t=zh+n*dconjg(r(n+1))
-          tr=zhr+real(n,fPrec)*rr(n+1)
-          ti=zhi-real(n,fPrec)*ri(n+1)
-!          r(n)=hf*t/(dreal(t)**2+dimag(t)**2)
-          rr(n)=(hf*tr)/(tr**2+ti**2)
-          ri(n)=(hf*ti)/(tr**2+ti**2)
-        enddo
-        xl=p
-        sr=zero
-        si=zero
-        do n=33,1,-1
-          xl=c3*xl
-!          s=r(n)*(s+xl)
-          sr0=rr(n)*(sr+xl)-ri(n)*si
-          si=rr(n)*si+ri(n)*(sr+xl)
-          sr=sr0
-        enddo
-!        v=c*s
-        vr=c*sr
-        vi=c*si
-      else
-        zhr=ya
-        zhi=xa
-        rr(1)=zero
-        ri(1)=zero
-        do n=9,1,-1
-!          t=zh+n*dconjg(r(1))
-          tr=zhr+real(n,fPrec)*rr(1)
-          ti=zhi-real(n,fPrec)*ri(1)
-!          r(1)=hf*t/(dreal(t)**2+dimag(t)**2)
-          rr(1)=(hf*tr)/(tr**2+ti**2)
-          ri(1)=(hf*ti)/(tr**2+ti**2)
-        enddo
-!        v=c*r(1)
-        vr=c*rr(1)
-        vi=c*ri(1)
-      endif
-      if(ya.eq.zero) then
-!        v=dcmplx(exp(-xa**2),dimag(v))
-        vr=exp_mb(-one*xa**2)
-      endif
-      if(y.lt.zero) then
-!        v=2*exp(-dcmplx(xa,ya)**2)-v
-        vr=(two*exp_mb(ya**2-xa**2))*cos_mb((two*xa)*ya)-vr
-        vi=(-two*exp_mb(ya**2-xa**2))*sin_mb((two*xa)*ya)-vi
-        if(x.gt.zero) vi=-one*vi
-      else
-        if(x.lt.zero) vi=-one*vi
-      endif
-      wr=vr
-      wi=vi
-      return
-end subroutine mywwerf
 
 !-----------------------------------------------------------------------
 !  CALCULATION OF : MOMENTUM-DEPENDING ELEMENT-MATRICES AND
@@ -2872,10 +1949,8 @@ subroutine block
       use mod_common_track
       implicit none
       integer i,j,jm,k,l,m,n
-      real(kind=fPrec) g,h
-      dimension h(nblo,2,6),g(nblo,2,6)
-      save
-!-----------------------------------------------------------------------
+      real(kind=fPrec) h(nblo,2,6),g(nblo,2,6)
+
       do k=1,mblo
         jm=mel(k)
         i=mtyp(k,1)
@@ -2918,7 +1993,6 @@ subroutine block
 
       end do
 
-      return
 end subroutine block
 
 subroutine blockdis(aeg,bl1eg,bl2eg)
@@ -2934,11 +2008,8 @@ subroutine blockdis(aeg,bl1eg,bl2eg)
       use mod_common_track
       implicit none
       integer i,j,jm,k,l,m,n
-      real(kind=fPrec) aeg,bl1eg,bl2eg,g,h
-      dimension h(nblo,2,6),g(nblo,2,6)
-      dimension aeg(nele,2,6),bl1eg(nblo,2,6),bl2eg(nblo,2,6)
-      save
-!-----------------------------------------------------------------------
+      real(kind=fPrec) h(nblo,2,6),g(nblo,2,6),aeg(nele,2,6),bl1eg(nblo,2,6),bl2eg(nblo,2,6)
+
       do k=1,mblo
         jm=mel(k)
         i=mtyp(k,1)
@@ -2981,7 +2052,6 @@ subroutine blockdis(aeg,bl1eg,bl2eg)
 
       end do
 
-      return
 end subroutine blockdis
 
 subroutine chroma
@@ -4059,8 +3129,7 @@ subroutine corrorb
   character(len=mNameLen) bezlo(nele)
   dimension clo0(2),clop0(2)
   dimension qwc1(3),nx(ncor1)
-  save
-!-----------------------------------------------------------------------
+
       rzero=zero
       rzero1=zero
       do l=1,2
@@ -5114,9 +4183,7 @@ subroutine phasad(dpp,qwc)
   integer i,ikpv,im,ium,ix,izu,j,jj,jk,jm,k,kpv,kpz,kzz,l,l1,ll,nmz,dj
   real(kind=fPrec) aa,alfa,bb,benkr,beta,ci,cikve,cr,crkve,crkveuk,dphi,dpp,dppi,dpr,dyy1,dyy2,ekk, &
     phi,phibf,pie,puf,qu,qv,qw,qwc,qxsa,qxse,r0,r0a,t,xl,xs,zl,zs,quz,qvz
-#ifdef TILT
   real(kind=fPrec) dyy11,qu1,tiltck,tiltsk
-#endif
   dimension t(5,4)
   dimension beta(2),alfa(2),phi(2),phibf(2)
   dimension qw(2),qwc(3)
@@ -5446,9 +4513,7 @@ subroutine phasad(dpp,qwc)
         else
 #include "include/multl07d.f90"
         end if
-#ifdef TILT
 #include "include/multl07e.f90"
-#endif
         izu=izu+2*mmul-2*nmz
         goto 420
       case (12,13,14,15,16,17,18,19,20,21,22,23)
@@ -6071,9 +5136,7 @@ subroutine umlauf(dpp,ium,ierr)
   implicit none
   integer i,ierr,im,ium,ix,izu,j,k,kpz,kx,kzz,l,ll,l1,nmz
   real(kind=fPrec) aa,bb,benkr,ci,cikve,cr,crkve,crkveuk,dpp,dpr,dyy1,dyy2,ekk,puf,qu,qv,quz,qvz,r0,r0a,xl,xs,zl,zs
-#ifdef TILT
   real(kind=fPrec) dyy11,qu1,tiltck,tiltsk
-#endif
   dimension aa(mmul),bb(mmul),dpr(5)
   dimension cr(mmul),ci(mmul)
   save
@@ -6157,12 +5220,16 @@ subroutine umlauf(dpp,ium,ierr)
     xs=xpl(ix)+zfz(izu)*xrms(ix)
     izu=izu+1
     zs=zpl(ix)+zfz(izu)*zrms(ix)
-#include "include/alignu.f90"
+    xl=(x(1,1)-xs)*tiltc(k)+(x(1,2)-zs)*tilts(k)
+    zl=(x(1,2)-zs)*tiltc(k)-(x(1,1)-xs)*tilts(k)
+    crkve=xl
+    cikve=zl
 
     select case (kzz)
     case (1) ! HORIZONTAL DIPOLE
       ekk=ekk*c1e3
-#include "include/kicku01h.f90"
+      y(1,1)=y(1,1)+ekk*tiltc(k)
+      y(1,2)=y(1,2)+ekk*tilts(k)
       goto 350
     case (2) ! NORMAL QUADRUPOLE
 #include "include/kickuxxh.f90"
@@ -6273,22 +5340,30 @@ subroutine umlauf(dpp,ium,ierr)
       r0=ek(ix)
       if(abs(dki(ix,1)).gt.pieni) then
         if(abs(dki(ix,3)).gt.pieni) then
-#include "include/multu01.f90"
+          qu=(((-one*dki(ix,1))/dki(ix,3))*dki(ix,1))/(one+dpp)
+          y(1,1)=(y(1,1)+(qu*xl-((dpp*c1e3)*dki(ix,1))/(one+dpp))*tiltc(k))+((c1e3*dki(ix,1))/(one+dpp))*(one-tiltc(k))
+          y(1,2)=(y(1,2)+(qu*xl-((dpp*c1e3)*dki(ix,1))/(one+dpp))*tilts(k))+((c1e3*dki(ix,1))/(one+dpp))*tilts(k)
           do j=2,ium
-#include "include/multu02.f90"
+            y(j,1)=y(j,1)+(qu*x(j,1))*tiltc(k)
+            y(j,2)=y(j,2)+(qu*x(j,2))*tilts(k)
           end do
         else
-#include "include/multu03.f90"
+          y(1,1)=(y(1,1)-(((dki(ix,1)*dpp)/(one+dpp))*c1e3)*tiltc(k))+((c1e3*dki(ix,1))/(one+dpp))*(one-tiltc(k))
+          y(1,2)=(y(1,2)-(((dki(ix,1)*dpp)/(one+dpp))*c1e3)*tilts(k))+((c1e3*dki(ix,1))/(one+dpp))*tilts(k)
         end if
       end if
       if(abs(dki(ix,2)).gt.pieni) then
         if(abs(dki(ix,3)).gt.pieni) then
-#include "include/multu04.f90"
+          qu=((dki(ix,2)/dki(ix,3))*dki(ix,2))/(one+dpp)
+          y(1,1)=(y(1,1)+(qu*zl-((dpp*c1e3)*dki(ix,2))/(one+dpp))*tilts(k))+((c1e3*dki(ix,2))/(one+dpp))*tilts(k)
+          y(1,2)=(y(1,2)+(((dpp*c1e3)*dki(ix,2))/(one+dpp)-qu*zl)*tiltc(k))-((c1e3*dki(ix,2))/(one+dpp))*(one-tiltc(k))
           do j=2,ium
-#include "include/multu05.f90"
+            y(j,1)=y(j,1)+(qu*x(j,1))*tilts(k)
+            y(j,2)=y(j,2)-(qu*x(j,2))*tiltc(k)
           end do
         else
-#include "include/multu06.f90"
+          y(1,1)=(y(1,1)-(((dki(ix,2)*dpp)/(one+dpp))*c1e3)*tilts(k))+((dki(ix,2)/(one+dpp))*c1e3)*tilts(k)
+          y(1,2)=(y(1,2)+(((dki(ix,2)*dpp)/(one+dpp))*c1e3)*tiltc(k))-((dki(ix,2)/(one+dpp))*c1e3)*(one-tiltc(k))
         end if
       end if
       if(abs(r0).le.pieni) goto 350
@@ -6311,9 +5386,7 @@ subroutine umlauf(dpp,ium,ierr)
       else
 #include "include/multl07d.f90"
       end if
-#ifdef TILT
 #include "include/multl07e.f90"
-#endif
       izu=izu+2*mmul-2*nmz
       y(1,1)=y(1,1)+dyy1
       y(1,2)=y(1,2)+dyy2
@@ -6322,12 +5395,20 @@ subroutine umlauf(dpp,ium,ierr)
     case (12,13,14,15,16,17,18,19,20,21,22,23)
       goto 350
     case (24) ! DIPEDGE ELEMENT
-#include "include/kickudpe.f90"
+      dyy1=(ed(IX)*crkve)/(one+dpp)
+      dyy2=(ek(IX)*cikve)/(one+dpp)
+      y(1,1)=(y(1,1)+tiltc(k)*dyy1)-tilts(k)*dyy2
+      y(1,2)=(y(1,2)+tiltc(k)*dyy2)+tilts(k)*dyy1
       if(ium.eq.1) goto 350
 #include "include/kickqdpe.f90"
       goto 330
     case (25) ! Solenoid
-#include "include/kickuso1.f90"
+      crkve=y(1,1)-((x(1,1)*ed(IX))*ek(IX))/(one+dpp)
+      cikve=y(1,2)-((x(1,2)*ed(IX))*ek(IX))/(one+dpp)
+      dyy1=(crkve*cos_mb(ek(IX)/(one+dpp))+cikve*sin_mb(ek(IX)/(one+dpp)))-y(1,1)
+      dyy2=(cikve*cos_mb(ek(IX)/(one+dpp))-crkve*sin_mb(ek(IX)/(one+dpp)))-y(1,2)
+      y(1,1)=y(1,1)+dyy1
+      y(1,2)=y(1,2)+dyy2
       if(ium.eq.1) goto 350
 #include "include/kickqso1.f90"
       goto 330
@@ -6339,7 +5420,8 @@ subroutine umlauf(dpp,ium,ierr)
     !------------------
     case (-1) ! VERTICAL DIPOLE
       ekk=ekk*c1e3
-#include "include/kicku01v.f90"
+      y(1,1)=y(1,1)-ekk*tilts(k)
+      y(1,2)=y(1,2)+ekk*tiltc(k)
       goto 350
     case (-2) ! SKEW QUADRUPOLE
 #include "include/kickuxxv.f90"
@@ -6496,10 +5578,8 @@ subroutine resex(dpp)
           cxzyi,cxzyr,cxzyrr,del,dphi,dpp,dppi,dpr,dt,dyy1,dyy2,e,ea,eb,ekk,ep,etl,gerad,phi,phibf,&
           phy,pie,puf,qu,qv,qw,r0,r0a,radi,re,re1,res,rn2,sb1,sb2,sea,seb,shy,t,vdt1,vdt2,vdt3,xl,&
           xs,zl,zs,quz,qvz
-#ifdef TILT
   real(kind=fPrec) dyy11,qu1,tiltck,tiltck1,tiltck2,tiltck3,tiltck4,tiltck5,tiltckuk,tiltsk,&
           tiltsk1,tiltsk2,tiltsk3,tiltsk4,tiltsk5
-#endif
   dimension t(5,4)
   dimension beta(2),alfa(2),phi(2),phibf(2)
   dimension qw(2)
@@ -6821,9 +5901,7 @@ subroutine resex(dpp)
           do l=1,nmz
 #include "include/multl13.f90"
           end do
-#ifdef TILT
 #include "include/multl07e.f90"
-#endif
           izu = izu+2*mmul-2*nmz
           goto 480
         case (12,13,14,15,16,17,18,19,20,21,22,23)
@@ -7669,10 +6747,8 @@ subroutine subre(dpp)
           cxzi,cxzr,cxzyi,cxzyr,cxzyrr,del,dfac,dphi,dpp,dpp1,dppi,dpr,dt,dtu,dtup,dyy1,dyy2,e,ea,eb,&
           ekk,ekko,ep,etl,gerad,gtu1,gtu2,phi,phibf,phy,pie,puf,qu,qv,qw,qwc,r0,r0a,radi,rc,re,re1,res,&
           rn2,rs,sb1,sb2,sdel,sdel2,sea,seb,shy,ss,t,vdt1,vdt2,vdt3,vdt4,xl,xs,zl,zs,quz,qvz
-#ifdef TILT
   real(kind=fPrec) dyy11,qu1,tiltck,tiltck1,tiltck2,tiltck3,tiltck4,tiltck5,tiltck6,tiltck8,tiltck10,&
           tiltckuk,tiltsk,tiltsk1,tiltsk2,tiltsk3,tiltsk4,tiltsk5,tiltsk6,tiltsk8,tiltsk10
-#endif
       dimension t(6,4)
       dimension beta(2),alfa(2),phi(2),phibf(2)
       dimension clo0(2),clop0(2)
@@ -8092,9 +7168,7 @@ subroutine subre(dpp)
           do l=1,nmz
 #include "include/multl13.f90"
           end do
-#ifdef TILT
 #include "include/multl07e.f90"
-#endif
           izu=izu+2*mmul-2*nmz
           do iv=2,5
 #include "include/multl12.f90"
@@ -8704,9 +7778,7 @@ subroutine subsea(dpp)
   real(kind=fPrec) aa,ab1,ab2,alfa,b,b1,b2,bb,benkr,beta,btc,bts,chy,ci,cikve,cr,crkve,cxzi,cxzr,&
           cxzyi,cxzyr,cxzyrr,del,dphi,dpp,dppi,dpr,dt,dyy1,dyy2,e,ea,eb,ekk,ep,etl,gerad,phi,phibf,&
           phy,pie,puf,qu,qv,qw,r0,r0a,radi,re,re1,res,rn2,sb1,sb2,sea,seb,shy,t,vdt1,vdt2,vdt3,xl,xs,zl,zs,quz,qvz
-#ifdef TILT
   real(kind=fPrec) dyy11,qu1,tiltck,tiltck1,tiltck2,tiltck3,tiltck4,tiltck5,tiltckuk,tiltsk,tiltsk1,tiltsk2,tiltsk3,tiltsk4,tiltsk5
-#endif
       dimension t(5,4)
       dimension beta(2),alfa(2),phi(2),phibf(2)
       dimension aa(mmul),bb(mmul)
@@ -9030,9 +8102,7 @@ subroutine subsea(dpp)
         do l=1,nmz
 #include "include/multl13.f90"
         end do
-#ifdef TILT
 #include "include/multl07e.f90"
-#endif
         izu=(izu+2*mmul)-2*nmz
       case (12,13,14,15,16,17,18,19,20,21,22,23)
         goto 740
