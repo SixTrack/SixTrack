@@ -87,10 +87,9 @@ program maincr
     bet0x2,bet0x3,bet0z2,bet0z3,chi,coc,dam1,dchi,dp0,dp00,dp10,dpsic,dps0,dsign,gam0s1,gam0s2,     &
     gam0s3,gam0x1,gam0x2,gam0x3,gam0z1,gam0z2,gam0z3,phag,r0,r0a,rat0,sic,tasia56,tasiar16,tasiar26,&
     tasiar36,tasiar46,tasiar56,tasiar61,tasiar62,tasiar63,tasiar64,tasiar65,taus,x11,x13,damp,      &
-    eps(2),epsa(2)
+    eps(2),epsa(2),pretime,trtime,posttime,tottime
   integer idummy(6)
   character(len=4) cpto
-  character(len=1024) arecord
 
   ! Keep in sync with writebin_header and more. If the len changes, CRCHECK will break.
   character(len=8) cDate,cTime,progrm
@@ -121,10 +120,10 @@ program maincr
   lout  = output_unit
 #endif
 
+  call f_initUnits
 #ifdef BOINC
   call boinc_initialise
 #endif
-  call f_initUnits
   call meta_initialise ! The meta data file.
   call time_initialise ! The time data file. Need to be as early as possible as it sets cpu time 0.
   call alloc_init      ! Initialise mod_alloc
@@ -177,6 +176,9 @@ program maincr
   ! Initialise Checkpoint/Restart
   call cr_fileInit
 #endif
+#ifdef BOINC
+  call boinc_preProgress(1)
+#endif
 
   ! Open Regular File Units
   call f_open(unit=18,file="fort.18",formatted=.true., mode="rw",err=fErr) ! DA file
@@ -227,8 +229,6 @@ program maincr
   flush(crlog)
 #endif
 
-  call time_timerStart
-  call time_timerCheck(time0)
   progrm = "SIXTRACK"
 
 #ifdef ROOT
@@ -241,8 +241,14 @@ program maincr
 
   call ffield_mod_init
 
+#ifdef BOINC
+  call boinc_preProgress(2)
+#endif
   call daten
   call time_timeStamp(time_afterDaten)
+#ifdef BOINC
+  call boinc_preProgress(3)
+#endif
   call rnd_initSeries ! Initialise random numbers
 
 #ifdef HDF5
@@ -385,11 +391,14 @@ program maincr
 #endif
   end if
   ! dump x-sections at specific locations
-  if (mxsec.gt.0) call dump_aperture_xsecs
+  if(mxsec > 0) call dump_aperture_xsecs
   ! map errors, now that the sequence is no longer going to change
   call ord
   if(allocated(zfz)) call fluc_randomReport
 
+#ifdef BOINC
+  call boinc_preProgress(4)
+#endif
   call clorb(ded)
 
 #ifdef ROOT
@@ -447,11 +456,19 @@ program maincr
   end do
   call corrorb
 
-  if(irmod2.eq.1) call rmod(dp1)
-  if(iqmod.ne.0) call qmod0
-  if(ichrom == 1 .or. ichrom == 3) call chroma
-  if(iskew.ne.0) call decoup
-  if(ilin.eq.1.or.ilin.eq.3) then
+  if(irmod2 == 1) then
+    call rmod(dp1)
+  end if
+  if(iqmod /= 0) then
+    call qmod0
+  end if
+  if(ichrom == 1 .or. ichrom == 3) then
+    call chroma
+  end if
+  if(iskew /= 0) then
+    call decoup
+  end if
+  if(ilin == 1 .or. ilin == 3) then
     call linopt(dp1)
   end if
 
@@ -557,6 +574,10 @@ program maincr
   endif
   dp1  = dp00
   dp0  = dp00
+
+#ifdef BOINC
+  call boinc_preProgress(5)
+#endif
 
   ! ========================================================================== !
   !  Closed Orbit
@@ -932,6 +953,10 @@ program maincr
     call meta_write("6D_ClosedOrbitCorr_dp",    clop6(3))
   end if
 
+#ifdef BOINC
+  call boinc_preProgress(6)
+#endif
+
 ! ---------------------------------------------------------------------------- !
 !  GENERATE THE INITIAL DISTRIBUTION
 ! ---------------------------------------------------------------------------- !
@@ -1110,6 +1135,9 @@ program maincr
   ! binrec:  The maximum number of reccords writen for all tracking data files. Thus crbinrecs(:) <= binrec
 #endif
 
+#ifdef BOINC
+  call boinc_preProgress(7)
+#endif
   call time_timeStamp(time_afterBeamDist)
 
 ! ---------------------------------------------------------------------------- !
@@ -1183,6 +1211,9 @@ program maincr
     call coll_init
   end if
 
+#ifdef BOINC
+  call boinc_preProgress(8)
+#endif
   call time_timeStamp(time_afterInitialisation)
 
 ! ---------------------------------------------------------------------------- !
@@ -1202,29 +1233,14 @@ program maincr
     end if
   end if
 
-  time1=0.
-  call time_timerCheck(time1)
-
-  ! time1 is now pre-processing CPU
-  ! Note that this will be reset every restart as we redo pre-processing
-  pretime = time1-time0
   call preTracking
   call startTracking(nthinerr)
-
-  time2 = 0.0
-  call time_timerCheck(time2)
 
   if(ithick == 0 .and. do_coll) then
     ! Only if thin 6D and collimation enabled
     call coll_exitCollimation
   endif
 
-  ! trtime is now the tracking time, BUT we must add other time for C/R
-  trtime=time2-time1
-#ifdef CR
-  ! because now crpoint will write tracking time using time3 as a temp and crcheck/crstart will reset cr_time
-  trtime=trtime+cr_time
-#endif
   if(nthinerr == 3000) goto 520
   if(nthinerr == 3001) goto 460
 
@@ -1283,6 +1299,9 @@ program maincr
   write(lout,"(a)") str_divLine
   write(lout,"(a)") ""
   call time_timeStamp(time_afterTracking)
+#ifdef BOINC
+  call boinc_postProgress(0)
+#endif
 
   if(st_writefort12) then
     call writeFort12
@@ -1382,6 +1401,9 @@ program maincr
       call part_writeState("final_state.bin",.false.,st_fStateIons)
     end if
   end if
+#ifdef BOINC
+  call boinc_postProgress(1)
+#endif
 
 #ifdef FLUKA
 
@@ -1446,6 +1468,9 @@ program maincr
 
 520 continue
   call time_timeStamp(time_afterPostProcessing)
+#ifdef BOINC
+  call boinc_postProgress(2)
+#endif
   if(fma_flag) then
     write(lout,"(a)") "MAINCR> Calling FMA_POSTPR"
     call fma_postpr
@@ -1458,12 +1483,12 @@ program maincr
   endif
 #endif
 
-  call ffield_mod_end()
+  call time_timeStamp(time_afterAllPostPR)
+#ifdef BOINC
+  call boinc_postProgress(3)
+#endif
 
-  time3=0.
-  call time_timerCheck(time3)
-  ! Note that crpoint no longer destroys time2
-  posttime=time3-time2
+  call ffield_mod_end
 
   ! Make sure all files are flushed before we do stuff with them
   call f_flush
@@ -1477,6 +1502,7 @@ program maincr
 
 #ifdef BOINC
   ! Do the final things in BOINC before ZIPF, but after HASH
+  call boinc_postProgress(4)
   call boinc_done
 #endif
 
@@ -1486,7 +1512,7 @@ program maincr
   endif
 
   ! Get grand total including post-processing
-  tottime = (pretime+trtime)+posttime
+  call time_getSummary(pretime, trtime, posttime, tottime)
   write(lout,"(a)")         ""
   write(lout,"(a)")         str_divLine
   write(lout,"(a)")         ""
