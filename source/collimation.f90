@@ -1845,6 +1845,7 @@ subroutine coll_doCollimator(stracki)
 
   call part_updatePartEnergy(1,.true.)
 
+  ! This do loop should be removed, or at least skipped if we're using aperture checks
   do j=1,napx
     if(part_hit_pos(j) == ie .and. part_hit_turn(j) == iturn) then
       ! For absorbed particles set all coordinates to zero. Also include very
