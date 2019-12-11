@@ -1845,7 +1845,7 @@ subroutine coll_doCollimator(stracki)
 
   call part_updatePartEnergy(1,.true.)
 
-  ! This do loop should be removed, or at least skipped if we're using aperture checks
+  ! The aperture check in this do loop should be reviewed and possibly removed
   do j=1,napx
     if(part_hit_pos(j) == ie .and. part_hit_turn(j) == iturn) then
       ! For absorbed particles set all coordinates to zero. Also include very
@@ -2166,9 +2166,9 @@ subroutine coll_exitCollimation
 #endif
 
 #ifdef ROOT
-  if(root_flag .and. root_Collimation.eq.1) then
+  if(root_flag .and. root_Collimation == 1) then
     do icoll = 1, cdb_nColl
-      if(cdb_cLength(icoll).gt.zero) then
+      if(cdb_cLength(icoll) > zero) then
         call CollimatorLossRootWrite(icoll, cdb_cName(icoll), len(cdb_cName(icoll)), cn_impact(icoll), cn_absorbed(icoll), &
           caverage(icoll), csigma(icoll), cdb_cLength(icoll))
       end if
@@ -2396,7 +2396,7 @@ subroutine coll_endTurn
   ! For LAST ELEMENT in the ring compact the arrays by moving all
   ! lost particles to the end of the array.
   if(ie == iu) then
-    do j=1, napx
+    do j=1,napx
       if(xv1(j) < 99.0_fPrec .and. xv2(j) < 99.0_fPrec) then
         llostp(j) = .false.
       else
