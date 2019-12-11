@@ -1798,43 +1798,32 @@ subroutine coll_doCollimator(stracki)
 #ifdef G4COLLIMATION
   do j=1,napx
     if(stracki == zero) then
-      if(iexact .eqv. .false.) then
-        rcx(j) = rcx(j) - (half*c_length)*rcxp(j)
-        rcy(j) = rcy(j) - (half*c_length)*rcyp(j)
-      else
+      if(iexact) then
         zpj    = sqrt(one-rcxp(j)**2-rcyp(j)**2)
         rcx(j) = rcx(j) - (half*c_length)*(rcxp(j)/zpj)
         rcy(j) = rcy(j) - (half*c_length)*(rcyp(j)/zpj)
+      else
+        rcx(j) = rcx(j) - (half*c_length)*rcxp(j)
+        rcy(j) = rcy(j) - (half*c_length)*rcyp(j)
       end if
     end if
 
-    ! Now copy data back to original verctor
+    ! Copy data back to the original vector
     xv1(j) =  rcx(j)*c1e3 + torbx(ie)
     yv1(j) = rcxp(j)*c1e3 + torbxp(ie)
     xv2(j) =  rcy(j)*c1e3 + torby(ie)
     yv2(j) = rcyp(j)*c1e3 + torbyp(ie)
     ejv(j) =  rcp(j)*c1e3
-
-    ! Update mtc and other arrays.
-    ejfv    (j) = sqrt(ejv(j)**2-nucm(j)**2)
-    rvv     (j) = (ejv(j)*e0f)/(e0*ejfv(j))
-    dpsv    (j) = (ejfv(j)*(nucm0/nucm(j))-e0f)/e0f
-    oidpsv  (j) = one/(one+dpsv(j))
-    dpsv1   (j) = (dpsv(j)*c1e3)*oidpsv(j)
-    mtc     (j) = (nqq(j)*nucm0)/(qq0*nucm(j))
-    moidpsv (j) = mtc(j)*oidpsv(j)
-    omoidpsv(j) = c1e3*((one-mtc(j))*oidpsv(j))
-    yv1     (j) = ejf0v(j)/ejfv(j)*yv1(j)
-    yv2     (j) = ejf0v(j)/ejfv(j)*yv2(j)
   end do
+  call part_updatePartEnergy(1,.true.)
 #else
   ! Copy particle data back and do path length stuff; check for absorption
-  ! Add orbit offset back.
+  ! Add orbit offset back
   do j=1,napx
-    ! In order to get rid of numerical errors, just do the treatment for impacting particles
     if(part_hit_pos(j) == ie .and. part_hit_turn(j) == iturn) then
-      ! For zero length element track back half collimator length
+      ! In order to get rid of numerical errors, just do the treatment for impacting particles
       if(stracki == zero) then
+        ! For zero length element track back half collimator length
         if(iexact) then
           zpj    = sqrt(one-rcxp(j)**2-rcyp(j)**2)
           rcx(j) = rcx(j) - (half*c_length)*(rcxp(j)/zpj)
@@ -1845,25 +1834,19 @@ subroutine coll_doCollimator(stracki)
         end if
       end if
 
-      ! Now copy data back to original verctor
+      ! Copy data back to the original vector
       xv1(j) =  rcx(j)*c1e3 + torbx(ie)
       yv1(j) = rcxp(j)*c1e3 + torbxp(ie)
       xv2(j) =  rcy(j)*c1e3 + torby(ie)
       yv2(j) = rcyp(j)*c1e3 + torbyp(ie)
       ejv(j) =  rcp(j)*c1e3
+    end if
+  end do
 
-      ! call part_updatePartEnergy(1,.false.)
-      ejfv(j)     = sqrt(ejv(j)**2-nucm(j)**2)
-      rvv(j)      = (ejv(j)*e0f)/(e0*ejfv(j))
-      dpsv(j)     = (ejfv(j)*(nucm0/nucm(j))-e0f)/e0f
-      oidpsv(j)   = one/(one+dpsv(j))
-      mtc(j)      = (nqq(j)*nucm0)/(qq0*nucm(j))
-      moidpsv(j)  = mtc(j)/(one+dpsv(j))
-      omoidpsv(j) = c1e3*((one-mtc(j))*oidpsv(j))
-      dpsv1(j)    = (dpsv(j)*c1e3)*oidpsv(j)
-      yv1(j)      = (ejf0v(j)/ejfv(j))*yv1(j)
-      yv2(j)      = (ejf0v(j)/ejfv(j))*yv2(j)
+  call part_updatePartEnergy(1,.true.)
 
+  do j=1,napx
+    if(part_hit_pos(j) == ie .and. part_hit_turn(j) == iturn) then
       ! For absorbed particles set all coordinates to zero. Also include very
       ! large offsets, let's say above 100mm or 100mrad.
       if((part_abs_pos(j) /= 0 .and. part_abs_turn(j) /= 0) .or. &
