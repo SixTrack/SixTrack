@@ -1203,6 +1203,7 @@ subroutine scatter_thin(iStru, iElem, nTurn)
       ! If lost, flag it, count it, but no need to update energy and angle
       nLost(iGen,procID) = nLost(iGen,procID) + 1
       llostp(j) = .true.
+      numxv(j)  = numx
       phi       = zero
     else
       ! Update particle trajectory
