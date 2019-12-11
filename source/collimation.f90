@@ -1277,6 +1277,7 @@ subroutine coll_openFiles
   use mod_units
   use string_tools
   use mod_common, only : numl
+  use mod_settings
   use coll_common
 #ifdef HDF5
   use hdf5_output
@@ -1323,8 +1324,8 @@ subroutine coll_openFiles
   end if
 
   ! Crystal Files
-  if(coll_hasCrystal) then
-    if(dowrite_crycoord) then
+  if(coll_hasCrystal .and. dowrite_crycoord) then
+    if(st_debug) then
       call f_requestUnit(coll_cryEntFile,coll_cryEntUnit)
       call f_open(unit=coll_cryEntUnit,file=coll_cryEntFile,formatted=.true.,mode="w",status="replace")
       write(coll_cryEntUnit,"(a1,1x,a6,1x,a8,1x,a20,1x,a4,2(1x,a3),5(1x,a15))") &
@@ -1505,6 +1506,7 @@ subroutine coll_doCollimator(stracki)
   use mod_time
   use mod_common
   use coll_common
+  use mod_settings
   use mod_common_main
   use mod_common_track
   use coll_db
@@ -1747,8 +1749,8 @@ subroutine coll_doCollimator(stracki)
       part_abs_pos, part_abs_turn, part_impact, part_indiv, part_linteract,             &
       onesided, nhit_stage, 1, nabs_type, linside)
 
-    if(cdb_isCrystal(icoll)) then
-      if(dowrite_crycoord) then
+    if(cdb_isCrystal(icoll) .and. dowrite_crycoord) then
+      if(st_debug) then
         do j=1,napx
           isHit = part_hit_pos(j) == ie .and. part_hit_turn(j) == iturn
           isAbs = part_abs_pos(j) == ie .and. part_abs_turn(j) == iturn

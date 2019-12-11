@@ -33,7 +33,6 @@ module checkpoint_restart
   logical,           public,  save :: cr_restart  = .false.
 
   character(len=21), public,  save :: cr_startMsg = " "
-  real,              public,  save :: cr_time     = 0.0
   integer,           public,  save :: cr_numl     = 1
   integer,           public,  save :: binrec      = 0       ! The maximum number of records writen for all tracking data files
   integer,           public,  save :: sixrecs     = 0
@@ -390,7 +389,7 @@ subroutine crcheck
 
     write(crlog,"(a)") "CR_CHECK>  * Tracking variables"
     flush(crlog)
-    read(cr_pntUnit(nPoint),iostat=ioStat) crnumlcr,crnuml,crsixrecs,crbinrec,cril,cr_time,crnapxo,&
+    read(cr_pntUnit(nPoint),iostat=ioStat) crnumlcr,crnuml,crsixrecs,crbinrec,cril,crnapxo, &
       crnapx,cre0,crbeta0,crbrho,crnucmda
     if(ioStat /= 0) cycle
 
@@ -597,11 +596,6 @@ subroutine crpoint
   ! Copy lout to output_unit
   call cr_copyOut
 
-  ! Hope this is correct
-  ! Maybe not!!!! this should be accumulative over multiple C/Rs
-  call time_timerCheck(time3)
-  time3 = (time3-time1)+cr_time
-
   crnumlcr = numx+1
 
   if(dynk_enabled) then ! Store current settings of elements affected by DYNK
@@ -633,7 +627,7 @@ subroutine crpoint
       write(crlog,"(a)") "CR_POINT>  * Tracking variables"
       flush(crlog)
     end if
-    write(cr_pntUnit(nPoint),err=100) crnumlcr,numl,sixrecs,binrec,il,time3,napxo,napx,e0,beta0,brho,nucmda
+    write(cr_pntUnit(nPoint),err=100) crnumlcr,numl,sixrecs,binrec,il,napxo,napx,e0,beta0,brho,nucmda
 
     if(st_debug) then
       write(crlog,"(a)") "CR_POINT>  * Particle arrays"
@@ -776,13 +770,12 @@ subroutine crstart
 
   write(crlog,"(a,i0)") "CR_START> Starting from checkpoint data from turn ",crnumlcr
   flush(crlog)
-  cr_numl = crnumlcr
 
   ! We do NOT reset numl so that a run can be extended
   ! for more turns from the last checkpoint
-  binrec   = crbinrec
+  cr_numl = crnumlcr
 
-  ! the cr_time is required (crtime0/1 removed)
+  binrec = crbinrec
   napxo  = crnapxo
   napx   = crnapx
   e0     = cre0
