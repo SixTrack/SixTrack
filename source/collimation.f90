@@ -1507,6 +1507,7 @@ subroutine coll_doCollimator(stracki)
   use mod_common
   use coll_common
   use mod_settings
+  use mod_particles
   use mod_common_main
   use mod_common_track
   use coll_db
@@ -1851,7 +1852,7 @@ subroutine coll_doCollimator(stracki)
       yv2(j) = rcyp(j)*c1e3 + torbyp(ie)
       ejv(j) =  rcp(j)*c1e3
 
-      !  Energy update, as recommended by Frank
+      ! call part_updatePartEnergy(1,.false.)
       ejfv(j)     = sqrt(ejv(j)**2-nucm(j)**2)
       rvv(j)      = (ejv(j)*e0f)/(e0*ejfv(j))
       dpsv(j)     = (ejfv(j)*(nucm0/nucm(j))-e0f)/e0f
@@ -1875,16 +1876,10 @@ subroutine coll_doCollimator(stracki)
         sigmv(j)         = zero
         part_abs_pos(j)  = ie
         part_abs_turn(j) = iturn
+        numxv(j)         = numx
         nabs_type(j)     = 0
         nhit_stage(j)    = 0
       end if
-    else
-      ! Otherwise just get back former coordinates
-      xv1(j) =  rcx0(j)*c1e3 + torbx(ie)
-      yv1(j) = rcxp0(j)*c1e3 + torbxp(ie)
-      xv2(j) =  rcy0(j)*c1e3 + torby(ie)
-      yv2(j) = rcyp0(j)*c1e3 + torbyp(ie)
-      ejv(j) =  rcp0(j)*c1e3
     end if
   end do
 
