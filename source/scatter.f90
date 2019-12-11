@@ -24,10 +24,11 @@ module scatter
   implicit none
 
   ! Common variables for the SCATTER routines
-  logical, public, save :: scatter_active      = .false.
-  logical, public, save :: scatter_debug       = .false.
-  logical, public, save :: scatter_allowLosses = .false.
-  logical, public, save :: scatter_writePLog   = .false.
+  logical, public,  save :: scatter_active      = .false.
+  logical, public,  save :: scatter_debug       = .false.
+  logical, public,  save :: scatter_allowLosses = .false.
+  logical, public,  save :: scatter_writePLog   = .false.
+  logical, private, save :: scatter_usingPythia = .false.
 
   ! Scatter Parameters
   integer,          parameter :: scatter_nProc          = 9
@@ -894,6 +895,7 @@ subroutine scatter_parseGenerator(lnSplit, nSplit, iErr)
     end if
 
     genType = scatter_genPythiaSimple
+    scatter_usingPythia = .true.
 
     call chr_cast(lnSplit(4),fParams(1),iErr) ! crossSection
     crossSection = fParams(1) * c1m27         ! Set crossSection explicitly in mb
@@ -1210,12 +1212,12 @@ subroutine scatter_thin(iStru, iElem, nTurn)
       if(isExact) then
         ! Compute from new p-vector
         pNew   = sqrt((pVec(1)**2 + pVec(2)**2) + pVec(3)**2)
-        yv1(j) = (pVec(1)/pNew) * c1e3
-        yv2(j) = (pVec(2)/pNew) * c1e3
+        yv1(j) = (pVec(1)/pNew)*c1e3
+        yv2(j) = (pVec(2)/pNew)*c1e3
       else
         ! Compute from scattering angle and sampled rotation
         ! Since the angles are sometimes large, we cannot use small angle approximations
-        pNew   = ((one+dPP)*ejfv(j))
+        pNew   = ((one + dPP)*ejfv(j))
         yv1(j) = sin_mb(asin_mb(yv1(j)*c1m3) + theta*cos_mb(phi))*c1e3
         yv2(j) = sin_mb(asin_mb(yv2(j)*c1m3) + theta*sin_mb(phi))*c1e3
       end if
@@ -1885,8 +1887,12 @@ subroutine scatter_initSummaryFile
 
   use crcoall
   use mod_units
+  use mod_common
   use string_tools
   use numerical_constants
+#ifdef PYTHIA
+  use mod_pythia
+#endif
 
   integer i, iElem, iGen, iPro, nLine
   logical fErr
@@ -1906,10 +1912,17 @@ subroutine scatter_initSummaryFile
   call f_open(unit=scatter_sumUnit,file=scatter_sumFile,formatted=.true.,mode="w",err=fErr,status="replace")
 
   ! Calculate branching ratios and write summary
-  write(scatter_sumUnit,"(a)")      "#"
-  write(scatter_sumUnit,"(a)")      "#  SCATTER SUMMARY"
-  write(scatter_sumUnit,"(a)")      "# ================="
-  write(scatter_sumUnit,"(a)")      "#"
+  write(scatter_sumUnit,"(a)") "#"
+  write(scatter_sumUnit,"(a)") "#  SCATTER SUMMARY"
+  write(scatter_sumUnit,"(a)") "# ================="
+  write(scatter_sumUnit,"(a)") "#"
+#ifdef PYTHIA
+  if(scatter_usingPythia) then
+    write(scatter_sumUnit,"(a,f12.6,a)") "#  SixTrack Reference Mass: ",nucm0," MeV"
+    write(scatter_sumUnit,"(a,f12.6,a)") "#  Pythia Reference Mass:   ",pythia_partMass(1)," MeV"
+    write(scatter_sumUnit,"(a)")         "#"
+  end if
+#endif
   write(scatter_sumUnit,"(a,i0,a)") "#  Read ",scatter_nElem," element(s)"
   write(scatter_sumUnit,"(a,i0,a)") "#  Read ",scatter_nPro," profile(s)"
   write(scatter_sumUnit,"(a,i0,a)") "#  Read ",scatter_nGen," generator(s)"
@@ -2131,8 +2144,8 @@ subroutine scatter_crcheck_readdata(fileUnit, readErr)
 
 10 continue
   readErr = .true.
-  write(lout,"(a,i0,a)") "SIXTRACR> ERROR Reading C/R file fort.",fileUnit," in SCATTER"
-  write(crlog,  "(a,i0,a)") "SIXTRACR> ERROR Reading C/R file fort.",fileUnit," in SCATTER"
+  write(lout, "(a,i0,a)") "SIXTRACR> ERROR Reading C/R file fort.",fileUnit," in SCATTER"
+  write(crlog,"(a,i0,a)") "SIXTRACR> ERROR Reading C/R file fort.",fileUnit," in SCATTER"
   flush(crlog)
 
 end subroutine scatter_crcheck_readdata

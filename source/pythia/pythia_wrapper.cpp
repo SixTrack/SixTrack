@@ -36,6 +36,22 @@ void pythiaWrapper_setProcess(bool sEL, bool sSD, bool sDD, bool sCD, bool sND) 
   pythia.settings.flag("SoftQCD:nonDiffractive", sND);
 }
 
+void pythiaWrapper_setModes(int sigTotMode, int sigDiffMode) {
+  std::cout << "PYTHIA> Setting cross section modes" << std::endl;
+  pythia.settings.mode("SigmaTotal:mode",       sigTotMode);
+  pythia.settings.mode("SigmaDiffractive:mode", sigDiffMode);
+}
+
+void pythiaWrapper_setCrossSection(double csTot, double csEL, double csSD, double csDD, double csCD) {
+  std::cout << "PYTHIA> Setting cross sections" << std::endl;
+  if(csTot > 0.0) pythia.settings.parm("SigmaTotal:sigmaTot", csTot);
+  if(csEL  > 0.0) pythia.settings.parm("SigmaTotal:sigmaEl",  csEL);
+  if(csSD  > 0.0) pythia.settings.parm("SigmaTotal:sigmaXB",  csSD);
+  if(csSD  > 0.0) pythia.settings.parm("SigmaTotal:sigmaAX",  csSD);
+  if(csDD  > 0.0) pythia.settings.parm("SigmaTotal:sigmaXX",  csDD);
+  if(csCD  > 0.0) pythia.settings.parm("SigmaTotal:sigmaAXB", csCD);
+}
+
 void pythiaWrapper_setCoulomb(bool sCMB, double tAbsMin) {
   pythia.settings.flag("SigmaElastic:Coulomb", sCMB);
   pythia.settings.parm("SigmaElastic:tAbsMin", tAbsMin);
@@ -63,14 +79,15 @@ void pythiaWrapper_readFile(char* fileName) {
   pythia.readFile(std::string(fileName));
 }
 
-void pythiaWrapper_getInitial(double& sigTot, double& sigEl, double& m0) {
+void pythiaWrapper_getInitial(double& sigTot, double& sigEl, double& m0_1, double& m0_2) {
   // sigTot = pythia.info.sigmaGen(0);
   sigTot = pythia.parm("SigmaTotal:sigmaTot");
   sigEl  = pythia.parm("SigmaTotal:sigmaEl");
 
   // Generate one test event, and extract the particle mass
   pythia.next();
-  m0 = pythia.event[1].p().mCalc();
+  m0_1 = pythia.event[1].p().mCalc();
+  m0_2 = pythia.event[2].p().mCalc();
 }
 
 /**

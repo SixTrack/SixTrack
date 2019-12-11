@@ -38,6 +38,21 @@ module mod_pythia
   integer, parameter :: pythia_idDoubleDiff    = 105
   integer, parameter :: pythia_idCentralDiff   = 106
 
+  ! Sigma Total Mode
+  ! See http://home.thep.lu.se/~torbjorn/pythia82html/TotalCrossSections.html
+  integer, parameter :: pythia_idSigTotModeManual  = 0
+  integer, parameter :: pythia_idSigTotModeDL      = 1
+  integer, parameter :: pythia_idSigTotModeMBR     = 2
+  integer, parameter :: pythia_idSigTotModeABMST   = 3
+  integer, parameter :: pythia_idSigTotModeRPP2016 = 4
+
+  ! Sigma Diffractive Mode
+  ! See http://home.thep.lu.se/~torbjorn/pythia82html/TotalCrossSections.html
+  integer, parameter :: pythia_idSigDiffModeManual = 0
+  integer, parameter :: pythia_idSigDiffModeSaS    = 1
+  integer, parameter :: pythia_idSigDiffModeMBR    = 2
+  integer, parameter :: pythia_idSigDiffModeABMST  = 3
+
   ! Flags
   logical,            public,  save :: pythia_isActive        = .false.
   logical,            private, save :: pythia_useElastic      = .false.
@@ -58,12 +73,15 @@ module mod_pythia
   integer,            private, save :: pythia_frameType       = 0
   integer,            private, save :: pythia_beamSpecies(2)  = pythia_partProton
   real(kind=fPrec),   private, save :: pythia_beamEnergy(2)   = zero
+  real(kind=fPrec),   public,  save :: pythia_partMass(2)     = zero
   logical,            public,  save :: pythia_useRealBeam     = .false.
 
   ! Other Settings
   character(len=256), private, save :: pythia_settingsFile    = " "
   logical,            private, save :: pythia_useSettingsFile = .false.
   integer,            private, save :: pythia_rndSeed         = -1
+  integer,            private, save :: pythia_sigTotalMode    = pythia_idSigTotModeABMST
+  integer,            private, save :: pythia_sigDiffMode     = pythia_idSigDiffModeABMST
 
   ! C Interface
   interface
@@ -81,6 +99,21 @@ module mod_pythia
       logical(kind=C_BOOL), value, intent(in) :: sEL, sSD, sDD, sCD, sND
     end subroutine pythia_setProcess
 
+    subroutine pythia_setModes(sigTotMode,sigDiffMode) bind(C, name="pythiaWrapper_setModes")
+      use, intrinsic :: iso_c_binding
+      integer(kind=C_INT), value, intent(in) :: sigTotMode
+      integer(kind=C_INT), value, intent(in) :: sigDiffMode
+    end subroutine pythia_setModes
+
+    subroutine pythia_setCrossSection(csTot,csEL,csSD,csDD,csCD) bind(C, name="pythiaWrapper_setCrossSection")
+      use, intrinsic :: iso_c_binding
+      real(kind=C_DOUBLE),  value, intent(in) :: csTot
+      real(kind=C_DOUBLE),  value, intent(in) :: csEL
+      real(kind=C_DOUBLE),  value, intent(in) :: csSD
+      real(kind=C_DOUBLE),  value, intent(in) :: csDD
+      real(kind=C_DOUBLE),  value, intent(in) :: csCD
+    end subroutine pythia_setCrossSection
+  
     subroutine pythia_setCoulomb(sCMB,tAbsMin) bind(C, name="pythiaWrapper_setCoulomb")
       use, intrinsic :: iso_c_binding
       logical(kind=C_BOOL), value, intent(in) :: sCMB
@@ -104,9 +137,9 @@ module mod_pythia
       character(kind=C_CHAR,len=1), intent(in) :: fileName
     end subroutine pythia_readFile
 
-    subroutine pythia_getInitial(sigTot,sigEl,m0) bind(C, name="pythiaWrapper_getInitial")
+    subroutine pythia_getInitial(sigTot,sigEl,m0_1,m0_2) bind(C, name="pythiaWrapper_getInitial")
       use, intrinsic :: iso_c_binding
-      real(kind=C_DOUBLE), intent(inout) :: sigTot, sigEl, m0
+      real(kind=C_DOUBLE), intent(inout) :: sigTot, sigEl, m0_1, m0_2
     end subroutine pythia_getInitial
 
     subroutine pythia_getEvent(status,code,t,theta,dEE,dPP) bind(C, name="pythiaWrapper_getEvent")
@@ -302,6 +335,50 @@ subroutine pythia_parseInputLine(inLine, iLine, iErr)
     end if
     call chr_cast(lnSplit(2),pythia_useRealBeam,iErr)
 
+  case("SIGTOTALMODE")
+    if(nSplit /= 2) then
+      write(lerr,"(a,i0)") "PYTHIA> ERROR Keyword SIGTOTALMODE expected 1 argument, got ",nSplit-1
+      write(lerr,"(a)")    "PYTHIA>       SIGTOTALMODE MANUAL|DL|MBR|ABMST|RPP2016|0-4"
+      write(lerr,"(a)")    "PYTHIA>       See http://home.thep.lu.se/~torbjorn/pythia82html/TotalCrossSections.html"
+      iErr = .true.
+      return
+    end if
+    select case(chr_toUpper(lnSplit(2)))
+    case("MANUAL")
+      pythia_sigTotalMode = pythia_idSigTotModeManual
+    case("DL")
+      pythia_sigTotalMode = pythia_idSigTotModeDL
+    case("MBR")
+      pythia_sigTotalMode = pythia_idSigTotModeMBR
+    case("ABMST")
+      pythia_sigTotalMode = pythia_idSigTotModeABMST
+    case("RPP2016")
+      pythia_sigTotalMode = pythia_idSigTotModeRPP2016
+    case default
+      call chr_cast(lnSplit(2),pythia_sigTotalMode,iErr)
+    end select
+
+  case("SIGDIFFMODE")
+    if(nSplit /= 2) then
+      write(lerr,"(a,i0)") "PYTHIA> ERROR Keyword SIGDIFFMODE expected 1 argument, got ",nSplit-1
+      write(lerr,"(a)")    "PYTHIA>       SIGDIFFMODE MANUAL|SaS|MBR|ABMST|0-3"
+      write(lerr,"(a)")    "PYTHIA>       See http://home.thep.lu.se/~torbjorn/pythia82html/TotalCrossSections.html"
+      iErr = .true.
+      return
+    end if
+    select case(chr_toUpper(lnSplit(2)))
+    case("MANUAL")
+      pythia_sigDiffMode = pythia_idSigDiffModeManual
+    case("SAS")
+      pythia_sigDiffMode = pythia_idSigDiffModeSaS
+    case("MBR")
+      pythia_sigDiffMode = pythia_idSigDiffModeMBR
+    case("ABMST")
+      pythia_sigDiffMode = pythia_idSigDiffModeABMST
+    case default
+      call chr_cast(lnSplit(2),pythia_sigDiffMode,iErr)
+    end select
+
   case("SEED")
     if(nSplit /= 2) then
       write(lerr,"(a,i0)") "PYTHIA> ERROR Keyword SEED expected 1 argument, got ",(nSplit-1)
@@ -334,7 +411,7 @@ subroutine pythia_postInput
   logical(kind=C_BOOL) pythStat, sEL, sSD, sDD, sCD, sND, sCMB
   integer(kind=C_INT)  rndSeed, frameType, beamSpecies1, beamSpecies2
   real(kind=C_DOUBLE)  beamEnergy1, beamEnergy2, elasticTMin
-  real(kind=C_DOUBLE)  sigmaTot, sigmaEl, mass0
+  real(kind=C_DOUBLE)  sigmaTot, sigmaEl, mass0_1, mass0_2
 
   if(pythia_isActive .eqv. .false.) then
     ! No PYTHIA block, so nothing to do.
@@ -379,21 +456,21 @@ subroutine pythia_postInput
     end if
   end if
 
-  rndSeed      = int(pythia_rndSeed,         kind=C_INT)
-  frameType    = int(pythia_frameType,       kind=C_INT)
-  beamSpecies1 = int(pythia_beamSpecies(1),  kind=C_INT)
-  beamSpecies2 = int(pythia_beamSpecies(2),  kind=C_INT)
+  rndSeed      = int(pythia_rndSeed,        kind=C_INT)
+  frameType    = int(pythia_frameType,      kind=C_INT)
+  beamSpecies1 = int(pythia_beamSpecies(1), kind=C_INT)
+  beamSpecies2 = int(pythia_beamSpecies(2), kind=C_INT)
 
-  beamEnergy1  = real(pythia_beamEnergy(1),      kind=C_DOUBLE)
-  beamEnergy2  = real(pythia_beamEnergy(2),      kind=C_DOUBLE)
-  elasticTMin  = real(pythia_elasticTMin,        kind=C_DOUBLE)
+  beamEnergy1  = real(pythia_beamEnergy(1), kind=C_DOUBLE)
+  beamEnergy2  = real(pythia_beamEnergy(2), kind=C_DOUBLE)
+  elasticTMin  = real(pythia_elasticTMin,   kind=C_DOUBLE)
 
-  sCMB         = logical(pythia_useCoulomb,      kind=C_BOOL)
-  sEL          = logical(pythia_useElastic,      kind=C_BOOL)
-  sSD          = logical(pythia_useSDiffractive, kind=C_BOOL)
-  sDD          = logical(pythia_useDDiffractive, kind=C_BOOL)
-  sCD          = logical(pythia_useCDiffractive, kind=C_BOOL)
-  sND          = logical(pythia_useNDiffractive, kind=C_BOOL)
+  sCMB = logical(pythia_useCoulomb,      kind=C_BOOL)
+  sEL  = logical(pythia_useElastic,      kind=C_BOOL)
+  sSD  = logical(pythia_useSDiffractive, kind=C_BOOL)
+  sDD  = logical(pythia_useDDiffractive, kind=C_BOOL)
+  sCD  = logical(pythia_useCDiffractive, kind=C_BOOL)
+  sND  = logical(pythia_useNDiffractive, kind=C_BOOL)
 
   if(pythia_useSettingsFile) then
     call pythia_readFile(pythia_settingsFile//char(0))
@@ -402,6 +479,7 @@ subroutine pythia_postInput
     call pythia_setBeam(frameType,beamSpecies1,beamSpecies2,beamEnergy1,beamEnergy2)
     call pythia_setProcess(sEL,sSD,sDD,sCD,sND)
     call pythia_setCoulomb(sCMB,elasticTMin)
+    call pythia_setModes(pythia_sigTotalMode,pythia_sigDiffMode)
   end if
 
   pythStat = pythia_init()
@@ -410,11 +488,13 @@ subroutine pythia_postInput
     call prror
   end if
 
-  call pythia_getInitial(sigmaTot, sigmaEl, mass0)
+  call pythia_getInitial(sigmaTot, sigmaEl, mass0_1, mass0_2)
+  pythia_partMass(1) = mass0_1*c1e3
+  pythia_partMass(2) = mass0_2*c1e3
   write(lout,"(a)")       "    Cross Sections"
   write(lout,"(a,f12.6)") "    * Total:         ",sigmaTot
   write(lout,"(a,f12.6)") "    * Elastic:       ",sigmaEl
-  write(lout,"(a,f12.6)") "    * Pythia Mass:   ",mass0*c1e3
+  write(lout,"(a,f12.6)") "    * Pythia Mass:   ",pythia_partMass(1)
   write(lout,"(a,f12.6)") "    * SixTrack Mass: ",nucm0
 
   write(lout,"(a)") ""
