@@ -1801,7 +1801,7 @@ subroutine dist_postprParticles
   case(dist_fmtNONE)
     sigmv(1:napx) = zero
   case(dist_fmtZETA)
-    sigmv(1:napx) = dist_partCol5(1:napx)/rvv(1:napx)
+    sigmv(1:napx) = dist_partCol5(1:napx)*rvv(1:napx)
   case(dist_fmtSIGMA)
     sigmv(1:napx) = dist_partCol5(1:napx)
   case(dist_fmtDT)
