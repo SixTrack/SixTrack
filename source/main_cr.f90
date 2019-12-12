@@ -279,14 +279,25 @@ program maincr
 #ifndef FLUKA
   ! SETTING UP THE PLOTTING
   if(ipos == 1 .and. (idis /= 0 .or. icow /= 0 .or. istw /= 0 .or. iffw /= 0)) then
+!Set max memory size for zebra number of words to "allocate" in the zebra common block PAWC
     call hlimit(nplo)
+
+!init + sets terminal type - 0 is batch mode
     call hplint(kwtype)
+
+!unit number, <0 ->write to file only, "workstation type": -111 = "HIGZ/X11"
     call igmeta(-20,-111)
+
+!PTO (please turn over) - insert a carriage return between plots
     cpto='NPTO'
     if(icr.eq.1) cpto='PTO '
     call hplopt(cpto,1)
+
+!not in the manual but probably adds a datestamp
     call hplopt('DATE',1)
     call hplset('DATE',1.)
+
+!sets the comment size (in cm) - default is 0.28
     call hplset('CSIZ',.15)
   endif
 
@@ -1477,6 +1488,7 @@ program maincr
     call time_timeStamp(time_afterFMA)
   endif
   ! HPLOTTING END
+  ! HBOOK
   if(ipos == 1 .and. (idis /= 0 .or. icow /= 0 .or. istw /= 0 .or. iffw /= 0)) then
     call igmeta(999,0)
     call hplend
