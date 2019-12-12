@@ -2,7 +2,7 @@
 #define RunTime_root_h
 
 extern "C" void RunTimeRootInit();
-extern "C" void RunTimeRootWrite(Float_t pretime_in, Float_t trtime_in, Float_t posttime_in);
+extern "C" void RunTimeRootWrite(double pretime_in, double trtime_in, double posttime_in);
 
 #endif
 
