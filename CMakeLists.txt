@@ -514,12 +514,6 @@ if(BEAMGAS)
   endif()
 endif()
 
-#frs if(64BIT)
-#frs  if(CERNLIB)
-#frs    message(FATAL_ERROR "Cannot build CERNLIB with 64BIT enabled.")
-#frs  endif()
-#frs endif()
-
 if(32BITM)
   if(64BITM)
     message(FATAL_ERROR "Cannot use both single and double precision math.")
