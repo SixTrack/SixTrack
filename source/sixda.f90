@@ -12,18 +12,12 @@ subroutine daliesix
   implicit none
 
   integer i,mf1,mf2,mf3,mf4,mf5,mfile,nd2,ndim,ndpt,nis,no,nv,damap,a1,a1i,a2,a2i,f,fc,fs,rot,xy,h,hc,hs,h4,df,bb1,bb2,haux
-  real tlim,time0,time1,time
   real(kind=fPrec) angle,coe,radn,x2pi
   dimension damap(6),a1(6),a1i(6),a2(6),a2i(6)
   dimension rot(6),xy(6),df(6)
   dimension angle(3),radn(3)
 
   save
-
-  tlim=1e7
-  call time_timerStart
-  time0=0.
-  call time_timerCheck(time0)
 
   ! Initialization
   x2pi=twopi
@@ -140,10 +134,6 @@ subroutine daliesix
   call dadal(bb1,1)
   call dadal(bb2,1)
   call dadal(haux,1)
-  time1=0.
-  call time_timerCheck(time1)
-  time = time1-time0
-  write(lout,10000) no,time
 
   return
 
@@ -325,11 +315,6 @@ subroutine runcav
 !-----------------------------------------------------------------------
 ! Do not remove or modify the comment below.
 !     DADAL AUTOMATIC INCLUSION
-  time2=0.
-  call time_timerCheck(time2)
-!     time=time2-time1
-  write(lout,10020) time1-time0
-  write(lout,10030) nord,time2-time1
   call comt_daEnd
   return
 10000 format(/t10,'TRACKING ENDED ABNORMALLY'&
@@ -338,8 +323,6 @@ subroutine runcav
              /t10,'VERT:   AMPLITUDE = ',ES23.16,'   APERTURE = ',f15.3&
              /t10,'ELEMENT - LIST NUMBER ',i4,' TYP NUMBER ',i4,' NAME ',a16/)
 10010 format(//t10,30('*')/t10,'**** ONE TURN COMPLETED ****'/ t10,30('*')/)
-10020 format(/10x,'The Preparating Calculations took',f12.3,' second(s) of Computing Time')
-10030 format(/10x,'DA-Calculation of Order : ',i7,' took ', f12.3,' second(s) of CPU Time'//131('-')//)
 end subroutine runcav
 
 !-----------------------------------------------------------------------
@@ -483,8 +466,6 @@ subroutine runda
     fake(1,i)=zero
     fake(2,i)=zero
   end do
-  time1=0.
-  call time_timerCheck(time1)
   if(niu(1).gt.1) then
     do i=1,2
       ii=2*i
@@ -1661,13 +1642,7 @@ subroutine runda
 520 continue
 ! Do not remove or modify the comment below.
 !     DADAL AUTOMATIC INCLUSION
-  time2=0.
-  call time_timerCheck(time2)
-!     time=time2-time1
-  write(lout,10020) time1-time0
-  write(lout,10030) nord,time2-time1
-!-----------------------------------------------------------------------
-call comt_daEnd
+  call comt_daEnd
   return
 
 9088 continue
@@ -1680,12 +1655,7 @@ call comt_daEnd
   &'HORIZ:  AMPLITUDE = ',ES23.16,'   APERTURE = ',f15.3/ t10,       &
   &'VERT:   AMPLITUDE = ',ES23.16,'   APERTURE = ',f15.3/ t10,       &
   &'ELEMENT - LIST NUMBER ',i4,' TYP NUMBER ',i4,' NAME ',a16/)
-10010 format(//t10,30('*')/t10,'**** ONE TURN COMPLETED ****'/ t10,30(  &
-  &'*')/)
-10020 format(/10x,'The Preparating Calculations took',f12.3,' second(s)'&
-  &,' of Computing Time')
-10030 format(/10x,'DA-Calculation of Order : ',i7,' took ', f12.3,      &
-  &' second(s) of CPU Time'//131('-')//)
+10010 format(//t10,30('*')/t10,'**** ONE TURN COMPLETED ****'/ t10,30('*')/)
 end subroutine runda
 
 !-----------------------------------------------------------------------

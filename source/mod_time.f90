@@ -45,6 +45,7 @@ module mod_time
   integer, parameter :: time_afterZIPF           = 14
   integer, parameter :: time_beforeExit          = 15
 
+  ! Constants for accumulated time
   real(kind=fPrec), public,  save :: time_lastTick = 0.0              ! Latest known cpu-time value. Updated by calling time_ticToc.
   real(kind=fPrec), private, save :: time_timeZero = 0.0              ! Reference time for start of simulation. Usually 0.
   real(kind=fPrec), private, save :: time_timeRecord(time_beforeExit) ! Array of time stamps
@@ -64,9 +65,6 @@ module mod_time
   real(kind=fPrec), private, save :: time_clockTotal(time_nClocks) ! Total time of stop watch intervals
   integer,          private, save :: time_clockCount(time_nClocks) ! Number of calls to start watch
   integer,          private, save :: time_clockStops(time_nClocks) ! Number of calls to stop watch
-
-  real,             private, save :: time_timerRef     = 0.0       ! Used for the old timing routines
-  logical,          private, save :: time_timerStarted = .false.   ! Used for the old timing routines
 
 #ifdef CR
   ! Additional variables for checkpoint/restart
@@ -374,23 +372,5 @@ subroutine time_crstart
   call time_ticToc
 end subroutine time_crstart
 #endif
-
-! ================================================================================================ !
-!  Old timing routines from sixtrack.f90, moved and leaned up.
-!  Last modified: 2018-11-15
-! ================================================================================================ !
-subroutine time_timerStart
-  if(time_timerStarted) return
-  time_timerStarted = .true.
-  call cpu_time(time_timerRef)
-end subroutine time_timerStart
-
-subroutine time_timerCheck(timeValue)
-  real, intent(inout) :: timeValue
-  real currTime
-  call time_timerStart
-  call cpu_time(currTime)
-  timeValue = currTime - time_timerRef
-end subroutine time_timerCheck
 
 end module mod_time

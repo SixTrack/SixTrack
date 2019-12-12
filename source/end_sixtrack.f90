@@ -43,14 +43,8 @@ subroutine abend(endMsg)
   use, intrinsic :: iso_fortran_env, only : error_unit, output_unit
 
   use crcoall
-  use parpro
-  use mod_common
   use checkpoint_restart
-  use numerical_constants
-  use string_tools
   use mod_units
-  use mod_version
-  use mod_time
 #ifdef BOINC
   use mod_boinc
 #endif
@@ -59,78 +53,23 @@ subroutine abend(endMsg)
 
   character(len=*), intent(in) :: endMsg
 
-  real(kind=fPrec) sumda(60)
-  integer i, j, k
-  logical fOpen, rErr, fErr, fExists
-  character(len=25) chBuf
-  character(len=mInputLn) inLine, outLine
-
   write(crlog,"(a)") "ABEND_CR> Called"
   write(crlog,"(a)") "ABEND_CR> Closing files"
   flush(crlog)
 
-  ! Calling close to be very safe
-  call closeUnits
-
 #ifdef BOINC
-  ! If fort.10 is non-existent (physics error or some other problem)
-  ! we try and write a 0d0 file with a turn number and CPU time
-  write(crlog,"(a)") "ABEND_CR> Checking fort.10"
-  flush(crlog)
-
-  ! The safest way to check if a file exists is to try to open it and catch the fail
-  call f_requestUnit(fort10,unit10) ! Make sure this is actually set
-  call f_open(unit=unit10,file=fort10,formatted=.true.,mode="r",err=fErr,status="old",recl=8195)
-  if(fErr) goto 11
-
-  ! Now we try and read fort.10 i.e. is it empty?
-  read(unit10,"(a1024)",end=11,err=11,iostat=ierro) inLine
-  ! Seems to be OK
-  goto 12
-
-11 continue
-  ! Now we try and write a fort.10
-  write(crlog,"(a)") "ABEND_CR> Writing dummy fort.10"
-  flush(crlog)
-
-  ! Make sure it is closed properly before we re-open for dummy write
-  call f_close(unit10)
-  call f_open(unit=unit10,file=fort10,formatted=.true.,mode="w",err=fErr,status="unknown",recl=8195)
-
-  sumda(:) = zero
-  call time_timerCheck(time1)
-  trtime = time1 - time0
-  trtime = trtime + cr_time
-  sumda(60) = real(trtime,fPrec)  ! Track time
-  sumda(52) = real(numvers,fPrec) ! SixTrack version
-  outLine = " "
-  k = 1
-  do i=1,60
-    call chr_fromReal(sumda(i),chBuf,19,2,rErr)
-    outLine(k:k+25)=" "//chBuf(1:25)
-    k = k+26
-  end do
-
-  ! Note it COULD happen that napxo is 0 for a very very early error and even napx!!!
-  if(napxo == 0 .and. napx == 0) napxo = 1
-  if(napxo == 0) napxo = napx
-  write(crlog,"(2(a,i0))") "ABEND_CR> Writing fort.10, lines ",napxo,"/",napx
-  flush(crlog)
-  do j=1,napxo,2 ! Must the dummy file really be napxo times the same dummy line?
-    write(unit10,"(a)",iostat=ierro) outLine(1:60*26)
-  end do
-  if(ierro /= 0) then
-    write(lerr,"(a,i0)") "ABEND> ERROR Problems writing to fort.10. ierro = ",ierro
+  if(endMsg == "ERROR") then
+    ! Write the BOINC summary file with exit code 1
+    call boinc_summary(1)
   end if
 #endif
 
-12 continue
+  call closeUnits
   call cr_copyOut
 
-15 continue
-  write(output_unit,"(a)",iostat=ierro) "SIXTRACR> Stop: "//trim(endMsg)
+  write(output_unit,"(a)") "SIXTRACR> Stop: "//trim(endMsg)
   rewind(cr_outUnit)
-  endfile(cr_outUnit,iostat=ierro)
+  endfile(cr_outUnit)
 
   call copyToStdErr(cr_errUnit,cr_errFile,20)
   call f_close(cr_outUnit)
