@@ -73,6 +73,11 @@ subroutine postpr(posi, numl_t)
   real(kind=real64) b_tmp,c_tmp,d_tmp,e_tmp,f_tmp,g_tmp,h_tmp,p_tmp
   real(kind=real64) c1_tmp,d1_tmp,e1_tmp,f1_tmp,g1_tmp,h1_tmp,p1_tmp
 
+#ifdef CERNLIB
+  !for passing infomation to the CERNLIB routines via a common block!
+  real hmal
+#endif
+
   character(len=80) title(20),chxtit(20),chytit(20)
   character(len=8)  cdate,ctime,progrm ! Note: Keep in sync with maincr
   character(len=80) sixtit,commen      ! Note: Keep in sync with mod_common. DANGER: If the len changes, CRCHECK will break.
@@ -96,6 +101,10 @@ subroutine postpr(posi, numl_t)
   dimension ta(6,6),txyz(6),txyz2(6),xyzv(6),xyzv2(6),rbeta(6)
   integer itot,ttot
   save
+
+#ifdef CERNLIB
+  COMMON/PAWC/hmal(NPLO)
+#endif
 
   if(present(numl_t)) then
     nnuml = numl_t
@@ -518,14 +527,23 @@ subroutine postpr(posi, numl_t)
       chytit(11)='Normalized FFT Signal'
       chxtit(12)='Vertical Tune Qy'
       chytit(12)='Normalized FFT Signal'
+
       if(idis.ne.0.or.icow.ne.0.or.istw.ne.0.or.iffw.ne.0) then
+!HBOOK HPLOT
+!Set image size (in cm), x,y,query :either ' ' to set, or 'R' to read
         call hplsiz(15.,15.,' ')
+!Axis values size (in cm) default 0.28
         call hplset('VSIZ',.24)
+!Axis label size (in cm) default 0.28
         call hplset('ASIZ',.19)
+!Distance to x axis labels (in cm) default 1.4
         call hplset('XLAB',1.5)
+!Distance to y axis labels (in cm) default 0.8
         call hplset('YLAB',1.0)
+!Global title size (in cm) default 0.28
         call hplset('GSIZ',.19)
       endif
+
       if(iav.lt.1) iav=1
       if(nprint.eq.1) then
         write(lout,10040) sixtit,commen
@@ -1886,14 +1904,21 @@ subroutine postpr(posi, numl_t)
 !using http://cds.cern.ch/record/118642
 ! defines "general title"
           call htitle(title(i))
-! hbook 2 (2d hist) id, title, nx, xmin, xmax, ny, ymin, ymax, data_min - "bit precision" ?
+! hbook 2 (2d hist) id, title, nx, xmin, xmax, ny, ymin, ymax, data_max - "bit precision" ?
           call hbook2(i,' ',2,real(pmin(i1)),real(pmax(i1)), 2,real(pmin(i2)),real(pmax(i2)),0.)
+
+!ID, optios, projection options, slice election
           call hplot(i,' ',' ',0)
+!x,y axis titles
           call hplax(chxtit(i),chytit(i))
+
+!draw chars: x,y,text,size, angle, dummy, option (-1:left adjust, 0: center, 1:right adjust)
           call hplsof(4.,14.75,toptit(1),.15,0.,99.,-1)
           call hplsof(4.,14.50,toptit(2),.15,0.,99.,-1)
           call hplsof(4.,14.25,toptit(3),.15,0.,99.,-1)
           call hplsof(4.,14.00,toptit(4),.15,0.,99.,-1)
+
+!Selects normalization transformation when world coordinates are mapped to device coordinates (0 is default)
           call iselnt(10)
 
           rewind nfile
@@ -2049,6 +2074,8 @@ subroutine postpr(posi, numl_t)
 !--HBOOK FRAME
           call htitle(title(i))
           call hbook2(i,' ',2,real(pmin(i1)),real(pmax(i1)), 2,real(pmin(i2)),real(pmax(i2)),0.)
+
+!Set log y
           if(iffw.eq.2) call hplopt('LOGY',1)
           call hplot(i,' ',' ',0)
           call hplax(chxtit(i),chytit(i))
@@ -2056,7 +2083,10 @@ subroutine postpr(posi, numl_t)
           call hplsof(4.,14.50,toptit(2),.15,0.,99.,-1)
           call hplsof(4.,14.25,toptit(3),.15,0.,99.,-1)
           call hplsof(4.,14.00,toptit(4),.15,0.,99.,-1)
+
+!Selects normalization transformation when world coordinates are mapped to device coordinates (0 is default)
           call iselnt(10)
+
           if(i.eq.11) then
             do 480 k=if1,if2
               k1=k-if1+1
@@ -2402,8 +2432,7 @@ subroutine fft(ar,ai,m,n)
         j=j-k
         k=k/2
         goto 20
-        j=j+k
-   30   continue
+   30   j=j+k
       end do
 
       do l=1,m
@@ -3199,6 +3228,7 @@ end subroutine lfitd
 
 end module postprocessing
 
+#ifndef CERNLIB
 subroutine hbook2(i1,c1,i2,r1,r2,i3,r3,r4,r5)
   implicit none
   integer i1,i2,i3
@@ -3297,6 +3327,7 @@ subroutine htitle(c1)
   return
 end subroutine htitle
 
+!draw polyline (n,x,y)
 subroutine ipl(i1,r1,r2)
   implicit none
   integer i1
@@ -3305,6 +3336,7 @@ subroutine ipl(i1,r1,r2)
   return
 end subroutine ipl
 
+!Draw polymarker (n,x,y)
 subroutine ipm(i1,r1,r2)
   implicit none
   integer i1
@@ -3326,3 +3358,5 @@ subroutine igmeta(i1,i2)
   save
   return
 end subroutine igmeta
+#endif
+
