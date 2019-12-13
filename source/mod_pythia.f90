@@ -63,11 +63,12 @@ module mod_pythia
   logical,            public,  save :: pythia_allowLosses     = .false.
   logical,            private, save :: pythia_useCoulomb      = .false.
   real(kind=fPrec),   private, save :: pythia_elasticTMin     =  5.0e-5_fPrec ! Pythia default value
-  real(kind=fPrec),   private, save :: pythia_csElastic       = -1.0_fPrec
-  real(kind=fPrec),   private, save :: pythia_csSDiffractive  = -1.0_fPrec
-  real(kind=fPrec),   private, save :: pythia_csDDiffractive  = -1.0_fPrec
-  real(kind=fPrec),   private, save :: pythia_csCDiffractive  = -1.0_fPrec
-  real(kind=fPrec),   private, save :: pythia_csNDiffractive  = -1.0_fPrec
+  real(kind=fPrec),   private, save :: pythia_csTotal         = 100.0_fPrec
+  real(kind=fPrec),   private, save :: pythia_csElastic       =  25.0_fPrec
+  real(kind=fPrec),   private, save :: pythia_csSDiffractive  =   8.0_fPrec
+  real(kind=fPrec),   private, save :: pythia_csDDiffractive  =   4.0_fPrec
+  real(kind=fPrec),   private, save :: pythia_csCDiffractive  =   1.0_fPrec
+  real(kind=fPrec),   private, save :: pythia_csNDiffractive  =   0.0_fPrec
 
   ! Beam Configuration
   integer,            private, save :: pythia_frameType       = 0
@@ -113,7 +114,7 @@ module mod_pythia
       real(kind=C_DOUBLE),  value, intent(in) :: csDD
       real(kind=C_DOUBLE),  value, intent(in) :: csCD
     end subroutine pythia_setCrossSection
-  
+
     subroutine pythia_setCoulomb(sCMB,tAbsMin) bind(C, name="pythiaWrapper_setCoulomb")
       use, intrinsic :: iso_c_binding
       logical(kind=C_BOOL), value, intent(in) :: sCMB
@@ -214,28 +215,28 @@ subroutine pythia_parseInputLine(inLine, iLine, iErr)
         call chr_cast(lnSplit(3),pythia_csElastic,iErr)
         write(lout,"(a,f13.8,a)") "PYTHIA> Elastic cross section set to ",pythia_csElastic," mb"
       end if
-    case("SD","SINGLEDIFFRACTIVE")
+    case("SD","SINGLEDIFF","SINGLEDIFFRACTIVE")
       pythia_useSDiffractive = .true.
       write(lout,"(a)") "PYTHIA> Single diffractive scattering enabled"
       if(nSplit > 2) then
         call chr_cast(lnSplit(3),pythia_csSDiffractive,iErr)
         write(lout,"(a,f13.8,a)") "PYTHIA> Single diffractive cross section set to ",pythia_csSDiffractive," mb"
       end if
-    case("DD","DOUBLEDIFFRACTIVE")
+    case("DD","DOUBLEDIFF","DOUBLEDIFFRACTIVE")
       pythia_useDDiffractive = .true.
       write(lout,"(a)") "PYTHIA> Double diffractive scattering enabled"
       if(nSplit > 2) then
         call chr_cast(lnSplit(3),pythia_csDDiffractive,iErr)
         write(lout,"(a,f13.8,a)") "PYTHIA> Double diffractive cross section set to ",pythia_csDDiffractive," mb"
       end if
-    case("CD","CENTRALDIFFRACTIVE")
+    case("CD","CENTRALDIFF","CENTRALDIFFRACTIVE")
       pythia_useCDiffractive = .true.
       write(lout,"(a)") "PYTHIA> Central diffractive scattering enabled"
       if(nSplit > 2) then
         call chr_cast(lnSplit(3),pythia_csCDiffractive,iErr)
         write(lout,"(a,f13.8,a)") "PYTHIA> Central diffractive cross section set to ",pythia_csCDiffractive," mb"
       end if
-    case("ND","NONDIFFRACTIVE")
+    case("ND","NONDIFF","NONDIFFRACTIVE")
       pythia_useNDiffractive = .true.
       write(lout,"(a)") "PYTHIA> Non-diffractive scattering enabled"
       if(nSplit > 2) then
@@ -335,6 +336,15 @@ subroutine pythia_parseInputLine(inLine, iLine, iErr)
     end if
     call chr_cast(lnSplit(2),pythia_useRealBeam,iErr)
 
+  case("SIGTOTAL")
+    if(nSplit /= 2) then
+      write(lerr,"(a,i0)") "PYTHIA> ERROR Keyword SIGTOTAL expected 1 argument, got ",nSplit-1
+      write(lerr,"(a)")    "PYTHIA>       SIGTOTAL value[mb]"
+      iErr = .true.
+      return
+    end if
+    call chr_cast(lnSplit(2),pythia_csTotal,iErr)
+
   case("SIGTOTALMODE")
     if(nSplit /= 2) then
       write(lerr,"(a,i0)") "PYTHIA> ERROR Keyword SIGTOTALMODE expected 1 argument, got ",nSplit-1
@@ -410,8 +420,8 @@ subroutine pythia_postInput
 
   logical(kind=C_BOOL) pythStat, sEL, sSD, sDD, sCD, sND, sCMB
   integer(kind=C_INT)  rndSeed, frameType, beamSpecies1, beamSpecies2
-  real(kind=C_DOUBLE)  beamEnergy1, beamEnergy2, elasticTMin
-  real(kind=C_DOUBLE)  sigmaTot, sigmaEl, mass0_1, mass0_2
+  real(kind=C_DOUBLE)  beamEnergy1, beamEnergy2, elasticTMin, sigmaTot, sigmaEl, m0b1, m0b2, &
+    csEL, csSD, csDD, csCD, csND, csTT, csNDCalc
 
   if(pythia_isActive .eqv. .false.) then
     ! No PYTHIA block, so nothing to do.
@@ -472,6 +482,13 @@ subroutine pythia_postInput
   sCD  = logical(pythia_useCDiffractive, kind=C_BOOL)
   sND  = logical(pythia_useNDiffractive, kind=C_BOOL)
 
+  csTT = real(pythia_csTotal,        kind=C_DOUBLE)
+  csEL = real(pythia_csElastic,      kind=C_DOUBLE)
+  csSD = real(pythia_csSDiffractive, kind=C_DOUBLE)
+  csDD = real(pythia_csDDiffractive, kind=C_DOUBLE)
+  csCD = real(pythia_csCDiffractive, kind=C_DOUBLE)
+  csND = real(pythia_csNDiffractive, kind=C_DOUBLE)
+
   if(pythia_useSettingsFile) then
     call pythia_readFile(pythia_settingsFile//char(0))
   else
@@ -480,6 +497,22 @@ subroutine pythia_postInput
     call pythia_setProcess(sEL,sSD,sDD,sCD,sND)
     call pythia_setCoulomb(sCMB,elasticTMin)
     call pythia_setModes(pythia_sigTotalMode,pythia_sigDiffMode)
+    if(pythia_sigTotalMode == pythia_idSigTotModeManual) then
+      csNDCalc = csTT - csEL - 2*csSD - csDD - csCD
+      if(abs(csNDCalc - csND) > c1m3) then
+        write(lout,"(a)") "PYTHIA> WARNING Total cross section is different than the sum of cross sections."
+        write(lout,"(a)") "PYTHIA>         Changing the non-diffractive cross section to compensate."
+        csND = csNDCalc
+      end if
+      write(lout,"(a)")       "PYTHIA> Manual Cross Sections"
+      write(lout,"(a,f12.6)") "PYTHIA>  * Elastic:             ",csEL
+      write(lout,"(a,f12.6)") "PYTHIA>  * Single Diffractive:  ",csSD
+      write(lout,"(a,f12.6)") "PYTHIA>  * Double Diffractive:  ",csDD
+      write(lout,"(a,f12.6)") "PYTHIA>  * Central Diffractive: ",csCD
+      write(lout,"(a,f12.6)") "PYTHIA>  * Non-Diffractive:     ",csND
+      write(lout,"(a,f12.6)") "PYTHIA>  * Total:               ",csTT
+      call pythia_setCrossSection(csTT,csEL,csSD,csDD,csCD)
+    end if
   end if
 
   pythStat = pythia_init()
@@ -488,14 +521,12 @@ subroutine pythia_postInput
     call prror
   end if
 
-  call pythia_getInitial(sigmaTot, sigmaEl, mass0_1, mass0_2)
-  pythia_partMass(1) = mass0_1*c1e3
-  pythia_partMass(2) = mass0_2*c1e3
-  write(lout,"(a)")       "    Cross Sections"
-  write(lout,"(a,f12.6)") "    * Total:         ",sigmaTot
-  write(lout,"(a,f12.6)") "    * Elastic:       ",sigmaEl
-  write(lout,"(a,f12.6)") "    * Pythia Mass:   ",pythia_partMass(1)
-  write(lout,"(a,f12.6)") "    * SixTrack Mass: ",nucm0
+  call pythia_getInitial(sigmaTot, sigmaEl, m0b1, m0b2)
+  pythia_partMass(1) = real(m0b1, kind=fPrec)*c1e3
+  pythia_partMass(2) = real(m0b2, kind=fPrec)*c1e3
+  write(lout,"(a)")       "PYTHIA> Other Settings"
+  write(lout,"(a,f12.6)") "PYTHIA>  * Pythia Mass:   ",pythia_partMass(1)
+  write(lout,"(a,f12.6)") "PYTHIA>  * SixTrack Mass: ",nucm0
 
   write(lout,"(a)") ""
   write(lout,"(a)") str_divLine

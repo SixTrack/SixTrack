@@ -229,6 +229,17 @@ subroutine scatter_init
         scatter_proList(idPro)%fParams(9) = scatter_elemList(idElem)%linOpt%orbit(2)
       end if
 
+      if(scatter_beam2EmitX <= zero .or. scatter_beam2EmitY <= zero) then
+        write(lerr,"(a,i0)") "SCATTER> ERROR Emittance of beam 2 must be set to a value larger than zero "//&
+          "when using UNCORRBEAM profile type"
+        call prror
+      end if
+      if(scatter_beam2Length <= zero) then
+        write(lerr,"(a,i0)") "SCATTER> ERROR Length of beam 2 must be set to a value larger than zero "//&
+          "when using UNCORRBEAM profile type"
+        call prror
+      end if
+
     ! nBeam  = scatter_proList(idPro)%fParams(2)
       betaX  = scatter_proList(idPro)%fParams(2)
       betaY  = scatter_proList(idPro)%fParams(3)

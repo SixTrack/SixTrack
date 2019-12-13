@@ -1,0 +1,106 @@
+GEOM
+
+SETTINGS----------------------------------------------------------------
+  DEBUG
+  QUIET 2
+  INITIALSTATE text
+  FINALSTATE text
+NEXT
+
+HASH--------------------------------------------------------------------
+  MD5SUM initial_state.dat   text
+  MD5SUM final_state.dat     text
+  MD5SUM scatter_log.dat     text
+  MD5SUM scatter_summary.dat text
+  MD5SUM ip1.dat             text
+  MD5SUM ip5.dat             text
+NEXT
+
+SIMULATION--------------------------------------------------------------
+  PARTICLES    10000
+  TURNS        5
+  REF_ENERGY   7.0e6
+  REF_PARTICLE 938.272046
+  LATTICE      Thin 6D
+  6D_CLORB     on
+  WRITE_TRACKS 20000 on
+NEXT
+
+RANDOM NUMBERS----------------------------------------------------------
+  SEED 42
+NEXT
+
+DIST--------------------------------------------------------------------
+  EMITTANCE 2.5 2.5
+  FILL XN   GAUSS  1.0 0.0 5.0
+  FILL PXN  GAUSS  1.0 0.0 5.0
+  FILL YN   GAUSS  1.0 0.0 5.0
+  FILL PYN  GAUSS  1.0 0.0 5.0
+  FILL ZN   FLOAT  0.0
+  FILL PZN  FLOAT  0.0
+  FILL MASS FLOAT  938.269998
+NEXT
+
+ITERATION-ACCURACY------------------------------------------------------
+  50 1d-12 1d-15
+  10 1d-10 1d-10
+  10 1d-6  1d-6
+     1d-6  1d-9  1d-9
+NEXT
+
+FLUCTUATION-------------------------------------------------------------
+  100000  1  7  3
+NEXT
+
+SYNC--------------------------------------------------------------------
+  35640  0.000344  0.0  0.0  26658.8832  938.272081  1
+  1.0  1.0
+NEXT
+
+BEAM--------------------------------------------------------------------
+  2.2000e+11  2.5  2.5  1.0  1.0e-3  1  0
+NEXT
+
+DYNK--------------------------------------------------------------------
+  FUN zero CONST  0.0
+  FUN ten  CONST 10.0
+  FUN one  CONST  1.0
+  SET ip1_scatter scaling zero  1   2  0
+  SET ip1_scatter scaling one   3  -1  0
+  SET ip5_scatter scaling zero  1   2  0
+  SET ip5_scatter scaling one   3  -1  0
+NEXT
+
+PYTHIA------------------------------------------------------------------
+  SPECIES PROTON PROTON
+  ENERGY 7000000 7000000
+  SEED 41
+  REALBEAM on
+  SIGTOTAL 120.0
+  SIGTOTALMODE MANUAL
+  SIGDIFFMODE  MANUAL
+  PROCESS ELASTIC    29.0
+  PROCESS SINGLEDIFF  6.0
+NEXT
+
+SCATTER-----------------------------------------------------------------
+  BEAM2_EMIT 2.5 2.5
+  BEAM2_LEN  75.0
+  GEN  sc_pythia   PYTHIA  35.0
+  PRO  proFLAT     FLAT   3e25  938.0  7000000
+  PRO  proGAUSS    GAUSS1 2.2e11 8.66e-3 8.66e-3 0.75e-3 -0.75e-3
+  PRO  proBeam2    UNCORRBEAM 2.2e11 MIRROR
+  ELEM ip1_scatter proBeam2 auto 1.0 sc_pythia
+  ELEM ip5_scatter proBeam2 auto 1.0 sc_pythia
+NEXT
+
+DUMP--------------------------------------------------------------------
+  ip1 1 -1 2 ip1.dat 1 -1
+  ip5 1 -1 2 ip5.dat 1 -1
+NEXT
+
+LINEAR OPTICS-----------------------------------------------------------
+  ELEMENT  0  1  1  2.5  2.5
+NEXT
+
+ENDE
