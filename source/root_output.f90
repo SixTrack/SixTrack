@@ -217,9 +217,9 @@ end subroutine
 subroutine  RunTimeRootWrite(pretime_in, trtime_in, posttime_in) bind(C,name="RunTimeRootWrite")
   use, intrinsic :: iso_c_binding
   implicit none
-  real(kind=C_FLOAT), intent(in), value :: pretime_in
-  real(kind=C_FLOAT), intent(in), value :: trtime_in
-  real(kind=C_FLOAT), intent(in), value :: posttime_in
+  real(kind=C_DOUBLE), intent(in), value :: pretime_in
+  real(kind=C_DOUBLE), intent(in), value :: trtime_in
+  real(kind=C_DOUBLE), intent(in), value :: posttime_in
 end subroutine
 
 subroutine SixTrackRootWrite() bind(C,name="SixTrackRootWrite")

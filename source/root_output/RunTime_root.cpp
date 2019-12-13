@@ -2,10 +2,10 @@
 #include "TROOT.h"
 #include "RunTime_root.h"
 
-Float_t pretime;
-Float_t trtime;
-Float_t posttime;
-Float_t totaltime;
+double pretime;
+double trtime;
+double posttime;
+double totaltime;
 
 TTree *RunTimeTree;
 
@@ -14,13 +14,13 @@ extern "C" void RunTimeRootInit()
 {
     //Tree stuff
     RunTimeTree = new TTree("RunTime","RunTimeTree");
-    RunTimeTree->Branch("pretime",&pretime,"pretime/F");
-    RunTimeTree->Branch("trtime",&trtime,"trtime/F");
-    RunTimeTree->Branch("posttime",&posttime,"posttime/F");
-    RunTimeTree->Branch("totaltime",&totaltime,"totaltime/F");
+    RunTimeTree->Branch("pretime",&pretime,"pretime/D");
+    RunTimeTree->Branch("trtime",&trtime,"trtime/D");
+    RunTimeTree->Branch("posttime",&posttime,"posttime/D");
+    RunTimeTree->Branch("totaltime",&totaltime,"totaltime/D");
 }
 
-extern "C" void RunTimeRootWrite(Float_t pretime_in, Float_t trtime_in, Float_t posttime_in)
+extern "C" void RunTimeRootWrite(double pretime_in, double trtime_in, double posttime_in)
 {
     pretime = pretime_in;
     trtime = trtime_in;
