@@ -437,6 +437,8 @@ subroutine pythia_postInput
   write(lout,"(a)") "    OOOOOOOOOOOOOOOOOO"
   write(lout,"(a)") ""
 
+  write(lout,"(a)") "PYTHIA> Initialising libpythia8"
+
   pythStat = pythia_defaults()
   if(pythStat .eqv. .false.) then
     write(lerr,"(a)") "PYTHIA> ERROR Failed to set default values in libpythia8"
@@ -528,6 +530,7 @@ subroutine pythia_postInput
   write(lout,"(a,f12.6)") "PYTHIA>  * Pythia Mass:   ",pythia_partMass(1)
   write(lout,"(a,f12.6)") "PYTHIA>  * SixTrack Mass: ",nucm0
 
+  write(lout,"(a)") "PYTHIA> Initialisation of libpythia8 complete"
   write(lout,"(a)") ""
   write(lout,"(a)") str_divLine
 

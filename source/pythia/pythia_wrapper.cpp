@@ -1,9 +1,9 @@
 /*
-*  SixTrack Wrapper for Pythia8
-*  V.K. Berglyd Olsen, BE-ABP-HSS
-*  Created: 2018-07-30
-*  Updated: 2019-07-17
-*/
+ *  SixTrack Wrapper for Pythia8
+ *  V.K. Berglyd Olsen, BE-ABP-HSS
+ *  Created: 2018-07-30
+ *  Updated: 2019-12-16
+ */
 
 #include "pythia_wrapper.h"
 
@@ -14,12 +14,10 @@ extern "C" {
 bool pythiaWrapper_init() {
   if(!pythia.init()) return false;
   pythia.settings.writeFile("pythia_settings.dat", true);
-  std::cout << "PYTHIA> Done" << std::endl;
   return true;
 }
 
 bool pythiaWrapper_defaults() {
-  std::cout << "PYTHIA> Setting defaults" << std::endl;
   pythia.settings.flag("Init:showChangedSettings", true);
   pythia.settings.flag("Init:showChangedParticleData", false);
   pythia.settings.flag("SigmaTotal:mode", 3);
@@ -28,7 +26,6 @@ bool pythiaWrapper_defaults() {
 }
 
 void pythiaWrapper_setProcess(bool sEL, bool sSD, bool sDD, bool sCD, bool sND) {
-  std::cout << "PYTHIA> Setting processes" << std::endl;
   pythia.settings.flag("SoftQCD:elastic", sEL);
   pythia.settings.flag("SoftQCD:singleDiffractive", sSD);
   pythia.settings.flag("SoftQCD:doubleDiffractive", sDD);
@@ -37,13 +34,11 @@ void pythiaWrapper_setProcess(bool sEL, bool sSD, bool sDD, bool sCD, bool sND) 
 }
 
 void pythiaWrapper_setModes(int sigTotMode, int sigDiffMode) {
-  std::cout << "PYTHIA> Setting cross section modes" << std::endl;
   pythia.settings.mode("SigmaTotal:mode",       sigTotMode);
   pythia.settings.mode("SigmaDiffractive:mode", sigDiffMode);
 }
 
 void pythiaWrapper_setCrossSection(double csTot, double csEL, double csSD, double csDD, double csCD) {
-  std::cout << "PYTHIA> Setting cross sections" << std::endl;
   if(csTot > 0.0) pythia.settings.parm("SigmaTotal:sigmaTot", csTot);
   if(csEL  > 0.0) pythia.settings.parm("SigmaTotal:sigmaEl",  csEL);
   if(csSD  > 0.0) pythia.settings.parm("SigmaTotal:sigmaXB",  csSD);
@@ -58,12 +53,10 @@ void pythiaWrapper_setCoulomb(bool sCMB, double tAbsMin) {
 }
 
 void pythiaWrapper_setSeed(int rndSeed) {
-  std::cout << "PYTHIA> Setting random seed" << std::endl;
   pythia.settings.mode("Random:seed", rndSeed);
 }
 
 void pythiaWrapper_setBeam(int frameType, int idA, int idB, double eA, double eB) {
-  std::cout << "PYTHIA> Setting beam parameters" << std::endl;
   pythia.settings.mode("Beams:frameType", frameType);
   pythia.settings.mode("Beams:idA", idA);
   pythia.settings.mode("Beams:idB", idB);
@@ -100,7 +93,6 @@ void pythiaWrapper_getInitial(double& sigTot, double& sigEl, double& m0_1, doubl
  *  105 : Double Diffractive  AB -> XX
  *  106 : Central Diffractive AB -> AXB
  */
-
 void pythiaWrapper_getEvent(bool& status, int& code, double& t, double& theta, double& dEE, double& dPP) {
   status = pythia.next();
   code   = pythia.info.code();
