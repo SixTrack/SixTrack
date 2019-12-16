@@ -1074,10 +1074,10 @@ subroutine scatter_thin(iStru, iElem, nTurn)
   integer, intent(in) :: iElem
   integer, intent(in) :: nTurn
 
-  integer i, j, k, idElem, idPro, iGen, nGen, idGen, iError, unitDens, iLost, procID, fixedID
+  integer i, j, k, idElem, idPro, iGen, nGen, idGen, iError, unitDens, iLost, procID, fixedID, nAbove
   logical updateE, autoRatio, isDiff, isExact, densDump, beamDump, pScattered(napx)
   real(kind=fPrec) t, dEE, dPP, theta, phi, pVec(3), pNew, xRot, yRot, elemScale, sigmaTot,         &
-    ratioTot, crossSection, scatterProb, targetDensity, scRatio, brRatio, rndVals(napx*3)
+    ratioTot, crossSection, scatterProb, targetDensity, scRatio, brRatio, rndVals(napx*3), sumProb
 
   real(kind=fPrec), allocatable :: brThreshold(:)
   logical,          allocatable :: hasProc(:,:)
@@ -1132,6 +1132,8 @@ subroutine scatter_thin(iStru, iElem, nTurn)
   iLost    = 0
   isDiff   = .false.
   updateE  = .false.
+  sumProb  = zero
+  nAbove   = 0
 
   pScattered(:) = .false.
 
@@ -1179,6 +1181,11 @@ subroutine scatter_thin(iStru, iElem, nTurn)
     else
       scatterProb = ratioTot*elemScale
     end if
+
+    ! Some accounting of probabilities
+    sumProb = sumProb + scatterProb
+    if(scatterProb > one) nAbove = nAbove + 1
+
     if(rndVals(k) > scatterProb) then
       cycle
     else
@@ -1339,6 +1346,11 @@ subroutine scatter_thin(iStru, iElem, nTurn)
     end do
   end do
   flush(scatter_sumUnit)
+
+  write(lout,"(a,e16.9)") "SCATTER> Average scatter probability was ",sumProb/real(napx,fPrec)
+  if(nAbove > 0) then
+    write(lout,"(a,i0,a)") "SCATTER> WARNING ",nAbove," particles had a probability > 1.0"
+  end if
 
   if(scatter_allowLosses) then
     call shuffleLostParticles
