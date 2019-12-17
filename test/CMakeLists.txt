@@ -241,7 +241,7 @@ if(SIXDA)
   list(APPEND SIXTRACK_DA_TESTS
     frs_da
     fs_chrom_da
-  # fs_sps_da
+    fs_sps_da
     thick4_da
   )
 endif()
