@@ -6,12 +6,18 @@ This chapter describes how to use these tools with SixTrack.
 
 \section{Pythia Integration} \label{ExtPythia}
 
+\textcolor{notered}{\textbf{Note:} This module should be considered experimental. It is not yet fully tested for correct physics.}
+
 Pythia8 is ``a standard tool for the generation of high-energy collisions, comprising a coherent set of physics models for the evolution from a few-body hard process to a complex multihadronic final state''~\cite{pythia8}\index{Pythia}.
 Version 8 is rewritten in c++ as a library, which makes it suitable for direct integration into SixTrack 5 via the update and extended c-interface available in Fortran2008.
 The integration was made specifically for the Scatter module\index{scatter} to function as an event generator for single diffractive scattering.
 
 The Pythia8 library is built using the \texttt{buildLibraries.sh} script, and linking with SixTrack is provided with the \texttt{PYTHIA} compiler flag\index{build}.
 When the \texttt{PYTHIA} block is present in \texttt{fort.3}, a new generator becomes available to the Scatter module.
+
+Note that the proton mass used by PYTHIA may not be the same as the proton mass in SixTrack.
+This may cause differences in the energy to momentum conversion.
+The mass from PYTHIA is printed to stdout during execution, and can also be found in the \texttt{scatter\_summary.dat} file.
 
 \paragraph{Particle Species}~ \texttt{SPECIES beam1 beam2}\\
 
@@ -23,7 +29,7 @@ Supported particle species are: \texttt{PROTON}, \texttt{ANTIPROTON}, \texttt{NE
 \paragraph{Beam Energy}~ \texttt{ENERGY beam1 [beam2]}\\
 
 The energy of the beams in MeV.
-If only beam 1 is specified, the value is taken as centre of mass energy by PYTHIA.
+If only beam 1 is specified, the value is taken as the centre of mass energy by PYTHIA.
 
 \paragraph{Use Tracked Particles}~ \texttt{REALBEAM on|off}\\
 
