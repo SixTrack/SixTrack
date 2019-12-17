@@ -299,12 +299,12 @@ contains
     real(kind=fPrec)            :: flsx, flsy, flsz
 
     write(lout,'(A)') 'FLUKA> call to fluka_end'
-    write(fluka_log_unit,*) "# FlukaIO: sending End of Computation signal"
+    write(fluka_log_unit,'(A)') "# FlukaIO: sending End of Computation signal"
 
     ! Send end of computation
     n = ntsendeoc(fluka_cid)
     if(n.lt.0) then
-      write(fluka_log_unit,*) "# FlukaIO error: ", n, " - Error sending End of Computation"
+      write(fluka_log_unit,'(A,i0,A)') "# FlukaIO error: ", n, " - Error sending End of Computation"
       flush(fluka_log_unit)
       return
     end if
@@ -314,7 +314,7 @@ contains
           flid, flgen, flwgt, flx, fly, flz, flxp, flyp, &
           flm, flpc, flt, flpdgid, flq, flsx, flsy, flsz)
     if(n.lt.0) then
-      write(fluka_log_unit,*) "# FlukaIO error: ", n, " - Server timed out while waiting End of Computation"
+      write(fluka_log_unit,'(A,i0,A)') "# FlukaIO error: ", n, " - Server timed out while waiting End of Computation"
       flush(fluka_log_unit)
       return
     end if
@@ -412,7 +412,7 @@ contains
 
     n = ntsendipt(fluka_cid, turn, ipt)
     if(n.lt.0) then
-      write(fluka_log_unit,*) "# FlukaIO error: ", n, " - Error sending Insertion Point"
+      write(fluka_log_unit,'(A,i0,A)') "# FlukaIO error: ", n, " - Error sending Insertion Point"
       fluka_cid = -1
       fluka_send = -1
       return
@@ -482,7 +482,7 @@ contains
             flpdgid, flq, flsx, flsy, flsz)
 
       if(n.lt.0) then
-        write(fluka_log_unit,*) "# FlukaIO error: ", n, " - Error sending Particle"
+        write(fluka_log_unit,'(A,i0,A)') "# FlukaIO error: ", n, " - Error sending Particle"
         fluka_cid = -1
         fluka_send = -1
         return
@@ -497,7 +497,7 @@ contains
     n = ntsendeob(fluka_cid)
 
     if(n.lt.0) then
-      write(fluka_log_unit,*) "# FlukaIO error: ", n, " - Error sending End of Batch"
+      write(fluka_log_unit,'(A,i0,A)') "# FlukaIO error: ", n, " - Error sending End of Batch"
       fluka_cid = -1
       fluka_send = -1
       return
@@ -591,7 +591,7 @@ contains
               flpdgid, flq, flsx, flsy, flsz)
 
       if(n.lt.0) then
-        write(fluka_log_unit,*) "# FlukaIO error: ", n ," - Server timed out while waiting for message"
+        write(fluka_log_unit,'(A,i0,A)') "# FlukaIO error: ", n ," - Server timed out while waiting for message"
         fluka_cid = -1
         fluka_receive = -1
         return
@@ -1100,8 +1100,8 @@ subroutine kernel_fluka_element( nturn, i, ix )
            spin_x, spin_y, spin_z )
 
       if (ret.lt.0) then
-         write(lerr,'(A,i4,A)')'FLUKA> ERROR ', ret, ' in Fluka communication returned by fluka_send_receive...'
-         write(fluka_log_unit,'(A,i4,A)')'# Error ', ret, ' in Fluka communication returned by fluka_send_receive...'
+         write(lerr,'(A,i0,A)')'FLUKA> ERROR ', ret, ' in Fluka communication returned by fluka_send_receive...'
+         write(fluka_log_unit,'(A,i0,A)')'# Error ', ret, ' in Fluka communication returned by fluka_send_receive...'
          call prror
       end if
 
@@ -1263,8 +1263,8 @@ subroutine kernel_fluka_entrance( nturn, i, ix )
            spin_x, spin_y, spin_z )
 
       if (ret.lt.0) then
-         write(lerr,'(A,i4,A)')'FLUKA> ERROR ', ret,' in Fluka communication returned by fluka_send...'
-         write(fluka_log_unit,'(A,i4,A)')'# Error ', ret, ' in Fluka communication returned by fluka_send...'
+         write(lerr,'(A,i0,A)')'FLUKA> ERROR ', ret,' in Fluka communication returned by fluka_send...'
+         write(fluka_log_unit,'(A,i0,A)')'# Error ', ret, ' in Fluka communication returned by fluka_send...'
          call prror
       end if
 
@@ -1318,8 +1318,8 @@ subroutine kernel_fluka_exit
            spin_x, spin_y, spin_z )
 
       if (ret.lt.0) then
-         write(lerr,'(A,i4,A)')'FLUKA> ERROR ', ret, ' in Fluka communication returned by fluka_receive...'
-         write(fluka_log_unit,'(A,i4,A)')'# Error ',ret, ' in Fluka communication returned by fluka_receive...'
+         write(lerr,'(A,i0,A)')'FLUKA> ERROR ', ret, ' in Fluka communication returned by fluka_receive...'
+         write(fluka_log_unit,'(A,i0,A)')'# Error ',ret, ' in Fluka communication returned by fluka_receive...'
          call prror
       end if
 
