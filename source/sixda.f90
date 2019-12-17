@@ -322,7 +322,7 @@ subroutine runcav
              /t10,'HORIZ:  AMPLITUDE = ',ES23.16,'   APERTURE = ',f15.3&
              /t10,'VERT:   AMPLITUDE = ',ES23.16,'   APERTURE = ',f15.3&
              /t10,'ELEMENT - LIST NUMBER ',i4,' TYP NUMBER ',i4,' NAME ',a16/)
-10010 format(//t10,30('*')/t10,'**** ONE TURN COMPLETED ****'/ t10,30('*')/)
+10010 format(//t10,30('*')/t10,'****  ONE TURN COMPLETED  ****'/ t10,30('*')/)
 end subroutine runcav
 
 !-----------------------------------------------------------------------
@@ -1730,7 +1730,7 @@ subroutine runda
   &'HORIZ:  AMPLITUDE = ',ES23.16,'   APERTURE = ',f15.3/ t10,       &
   &'VERT:   AMPLITUDE = ',ES23.16,'   APERTURE = ',f15.3/ t10,       &
   &'ELEMENT - LIST NUMBER ',i4,' TYP NUMBER ',i4,' NAME ',a16/)
-10010 format(//t10,30('*')/t10,'**** ONE TURN COMPLETED ****'/ t10,30('*')/)
+10010 format(//t10,30('*')/t10,'****  ONE TURN COMPLETED  ****'/ t10,30('*')/)
 end subroutine runda
 
 !-----------------------------------------------------------------------
