@@ -720,6 +720,7 @@ subroutine runda
 #include "include/dalin3.f90"
 #include "include/dalin4.f90"
 #include "include/dalin5.f90"
+          else
 #include "include/dalin6.f90"
 !FOX  SIGMDA=SIGMDA+
 #include "include/sqrtfox.f90"
