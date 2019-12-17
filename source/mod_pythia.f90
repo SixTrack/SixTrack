@@ -270,7 +270,7 @@ subroutine pythia_parseInputLine(inLine, iLine, iErr)
   case("SPECIES")
     if(nSplit /= 3) then
       write(lerr,"(a,i0)") "PYTHIA> ERROR Keyword SPECIES expected 2 arguments, got ",nSplit-1
-      write(lerr,"(a)")    "PYTHIA>       SPECIES beam1 [beam2]"
+      write(lerr,"(a)")    "PYTHIA>       SPECIES beam1 beam2"
       iErr = .true.
       return
     end if
@@ -319,6 +319,8 @@ subroutine pythia_parseInputLine(inLine, iLine, iErr)
       iErr = .true.
       return
     end if
+    if(nSplit > 1) call chr_cast(lnSplit(2),pythia_beamEnergy(1),iErr)
+    if(nSplit > 2) call chr_cast(lnSplit(3),pythia_beamEnergy(2),iErr)
 
     if(st_debug) then
       call sixin_echoVal("E(1)", pythia_beamEnergy(1),"PYTHIA",iLine)

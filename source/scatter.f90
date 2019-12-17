@@ -210,6 +210,20 @@ subroutine scatter_init
     end if
 
     select case(proType)
+
+    case(scatter_proBeamRef)
+      if(isMirror) then
+        if(ilin /= 1) then
+          write(lerr,"(a,i0)") "SCATTER> ERROR In order to mirror the twiss parameters of beam 1, the ilin parameter of the "//&
+            "LINEAR OPTICS block must be set to 1, but it is currently set to ",ilin
+          call prror
+        end if
+
+        ! If we're mirroring beam 1, set the parameters from the data collected from writelin
+        scatter_proList(idPro)%fParams(2) = scatter_elemList(idElem)%linOpt%orbit(3)
+        scatter_proList(idPro)%fParams(3) = scatter_elemList(idElem)%linOpt%orbit(4)
+      end if
+
     case(scatter_proBeamUnCorr)
       if(isMirror) then
         if(ilin /= 1) then
@@ -714,9 +728,9 @@ subroutine scatter_parseProfile(lnSplit, nSplit, iErr)
     proType = scatter_proBeamRef
     if(nSplit < 4 .or. nSplit > 6) then
       write(lerr,"(a,i0)") "SCATTER> ERROR PROfile type REFBEAM expected 1, 2 or 3 arguments, got ",nSplit-3
-      write(lerr,"(a)")    "SCATTER        PRO name REFBEAM nbeam"
-      write(lerr,"(a)")    "SCATTER        PRO name REFBEAM nbeam MIRROR"
-      write(lerr,"(a)")    "SCATTER        PRO name REFBEAM nbeam crossX crossY"
+      write(lerr,"(a)")    "SCATTER        PRO name REFBEAM density"
+      write(lerr,"(a)")    "SCATTER        PRO name REFBEAM density MIRROR"
+      write(lerr,"(a)")    "SCATTER        PRO name REFBEAM density crossX crossY"
       iErr = .true.
       return
     end if
@@ -1504,8 +1518,8 @@ subroutine scatter_generateParticle(idPro, iElem, j, pVec)
       end if
     else
       ! Else, given by input
-      orbXP = scatter_proList(idPro)%fParams(1)
-      orbYP = scatter_proList(idPro)%fParams(2)
+      orbXP = scatter_proList(idPro)%fParams(2)
+      orbYP = scatter_proList(idPro)%fParams(3)
     end if
     pVec(1) = (orbXP*e0f)/c1e3
     pVec(2) = (orbYP*e0f)/c1e3
