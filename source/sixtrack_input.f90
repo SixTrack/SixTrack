@@ -1567,7 +1567,7 @@ subroutine sixin_parseInputLineDIFF(inLine, iLine, iErr)
               return
             end if
             ipar(j1) = j2
-            exit OUTER
+            cycle OUTER
           end if
         end do INNER
       end do OUTER

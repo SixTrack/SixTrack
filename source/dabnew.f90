@@ -4484,7 +4484,7 @@ subroutine dapri(ina,iunit)
       call enable_xp()
 #endif
          do i = ipoa,ipoa+illa-1
-           write(iunit,'(I6,2X,G21.14)') i-ipoa, cc(i)
+           write(iunit,'(I6,2X,G20.13)') i-ipoa, cc(i)
            !Eric
            write(26) cc(i)
          end do
@@ -4506,9 +4506,9 @@ subroutine dapri(ina,iunit)
              j(i-1)=1
              ioa=1
            endif
-         write(iunit,'(I6,2X,G21.14,I5,4X,18(2I2,1X))') iout,cc(ipoa+i-1),ioa,(j(iii),iii=1,nvmax)
+         write(iunit,'(I6,2X,G20.13,I5,4X,18(2I2,1X))') iout,cc(ipoa+i-1),ioa,(j(iii),iii=1,nvmax)
          write(26) cc(ipoa+i-1)
-         write(iunit,'(G21.14)') cc(ipoa+i-1)
+         write(iunit,'(G20.13)') cc(ipoa+i-1)
          write(26) cc(ipoa+i-1)
  90     continue
 #ifdef CRLIBM
@@ -4528,11 +4528,11 @@ subroutine dapri(ina,iunit)
 #ifdef CRLIBM
       call enable_xp()
 #endif
-          write(iunit,'(I6,2X,G21.14,I5,4X,18(2I2,1X))') iout,cc(ii),ioa,(j(iii),iii=1,nvmax)
+          write(iunit,'(I6,2X,G20.13,I5,4X,18(2I2,1X))') iout,cc(ii),ioa,(j(iii),iii=1,nvmax)
 !Eric
           write(26) cc(ii)
 !ETIENNE
-          write(iunit,'(G21.14)') cc(ii)
+          write(iunit,'(G20.13)') cc(ii)
           write(26) cc(ii)
           endif
 !ETIENNE
@@ -4827,7 +4827,7 @@ subroutine darea(ina,iunit)
 #ifdef CRLIBM
       call enable_xp()
 #endif
-      read(iunit,'(I6,2X,G21.14,I5,4X,18(2I2,1X))') ii,c,io,(j(i),i=1,inva)
+      read(iunit,'(I6,2X,G20.13,I5,4X,18(2I2,1X))') ii,c,io,(j(i),i=1,inva)
 #ifdef CRLIBM
       call disable_xp()
 #endif
@@ -4840,7 +4840,7 @@ subroutine darea(ina,iunit)
       call enable_xp()
 #endif
 !Eric
-      read(iunit,'(G21.14)') c
+      read(iunit,'(G20.13)') c
 !Eric
       read(26) c
 #ifdef CRLIBM
@@ -6034,7 +6034,7 @@ subroutine daprimax(ina,iunit)
       call enable_xp()
 #endif
          do i = ipoa,ipoa+illa-1
-           write(iunit,'(I6,2X,G21.14)') i-ipoa, cc(i)
+           write(iunit,'(I6,2X,G20.13)') i-ipoa, cc(i)
          end do
 #ifdef CRLIBM
       call disable_xp()
@@ -6049,7 +6049,7 @@ subroutine daprimax(ina,iunit)
 #ifdef CRLIBM
       call enable_xp()
 #endif
-         write(iunit,'(I6,2X,G21.14,I5,4X,18(2I2,1X))')                 &
+         write(iunit,'(I6,2X,G20.13,I5,4X,18(2I2,1X))')                 &
      &iout,cc(ipoa+i-1),ioa,(j(iii),iii=1,nvmax)
          write(iunit,*) cc(ipoa+i-1)
 #ifdef CRLIBM
@@ -6069,7 +6069,7 @@ subroutine daprimax(ina,iunit)
 #ifdef CRLIBM
       call enable_xp()
 #endif
-          write(iunit,'(I6,2X,G21.14,I5,4X,18(2I2,1X))')                &
+          write(iunit,'(I6,2X,G20.13,I5,4X,18(2I2,1X))')                &
      &iout,cc(ii),ioa,(j(iii),iii=1,nvmax)
 !ETIENNE
           write(iunit,*) cc(ii)
@@ -6266,7 +6266,7 @@ subroutine daorder(ina,iunit,jx,invo,nchop)
                                                   call enable_xp()
 #endif
 #endif
-      read(iunit,'(I6,2X,G21.14,I5,4X,18(2I2,1X))') ii,c,io,(jt(i),i=1,invo)
+      read(iunit,'(I6,2X,G20.13,I5,4X,18(2I2,1X))') ii,c,io,(jt(i),i=1,invo)
 #ifdef CRLIBM
 #ifndef LF95
                                                   call disable_xp()
@@ -6283,7 +6283,7 @@ subroutine daorder(ina,iunit,jx,invo,nchop)
                                                   call enable_xp()
 #endif
 #endif
-      read(iunit,'(G21.14)') c
+      read(iunit,'(G20.13)') c
 #ifdef CRLIBM
 #ifndef LF95
                                                   call disable_xp()

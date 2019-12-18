@@ -241,6 +241,8 @@ endif()
 if(SIXDA)
   list(APPEND SIXTRACK_DA_TESTS
     frs_da
+    fs_chrom_da
+    fs_sps_da
     thick4_da
   )
 endif()
@@ -675,6 +677,8 @@ set(FAST_TESTS
   exact
   fcc
   frs_da
+  fs_chrom_da
+  fs_sps_da
   generalized-rf-multipoles
   generalized-rf-multipoles-missalignments
   geometry
