@@ -1509,7 +1509,7 @@ See Section~\ref{Input:RAND}.
 \subsection{Module Flags}
 
 These are the main settings and flags to control the general flow of the Scatter Module, and allows for additional debugging options to ensure the simulation is set up correctly.
-Especially when scattering against a realistic beam 2, it can be tricky to ensure that the beams actually interact.
+Especially when scattering against a realistic Beam 2, it can be tricky to ensure that the beams actually interact.
 The additional output files below are intended to help verifying that they do.
 
 \paragraph{Module Debugging}~ \texttt{DEBUG}\\
@@ -1528,13 +1528,13 @@ Particle losses are off by default.
 
 \paragraph{Beam 2 Sample Log}~ \texttt{WRITE\_PLOG}\\
 
-If the \texttt{PYTHOIA} block has the \texttt{REALBEAM} flag enabled (see Section~\ref{ExtPythia}), the Scatter Module will generate a random three-momentum vector of beam 2 particles that is then fed to the PYTHIA event generator.
+If the \texttt{PYTHOIA} block has the \texttt{REALBEAM} flag enabled (see Section~\ref{ExtPythia}), the Scatter Module will generate a random three-momentum vector of Beam 2 particles that is then fed to the PYTHIA event generator.
 This flag enables the logging of these generated events to the \texttt{scatter\_momentum.dat} file.
 
 \paragraph{Density Dump}~ \texttt{DENSITY\_DUMP element\_name turn}\\
 
 This setting allows for a dump of the target PDF in a 500 by 500 matrix to the file \texttt{scatter\_pdf.dat}, and a dump of the target density seen by each particle to the file \texttt{scatter\_density.dat}.
-This is intended as a debug tool to check that beam 1 and beam 2 is actually interacting.
+This is intended as a debug tool to check that Beam 1 and Beam 2 is actually interacting.
 The dump can only be used once, on a given element, on a given turn.
 
 \paragraph{Beam Dump}~ \texttt{BEAM\_DUMP element\_name turn}\\
@@ -1565,12 +1565,12 @@ In the \texttt{scatter\_log.dat} file, there is a column keeping track of the st
 
 \paragraph{Beam 2 Emittance}~ \texttt{BEAM2\_EMIT emitX emitY}\\
 
-If the target profile is a model of beam 2, defined by Twiss parameters, this keyword is required to set the x and y emittance.
+If the target profile is a model of Beam 2, defined by Twiss parameters, this keyword is required to set the x and y emittance.
 The emittance is in units of $\mu$m.
 
 \paragraph{Beam 2 Length}~ \texttt{BEAM2\_LEN sigmaZ}\\
 
-If the target profile is a model of beam 2, defined by Twiss parameters, this keyword is required to set the beam length.
+If the target profile is a model of Beam 2, defined by Twiss parameters, this keyword is required to set the beam length.
 The length is in units of mm.
 
 \paragraph{Density Profiles}~ \texttt{PRO name type (arguments)} \\
@@ -1601,18 +1601,18 @@ The \texttt{GAUSS1} profile parameters are given by
 
 Each particle is collided against the reference particle.
 The \texttt{density} determins the scattering probability, and is a fixed number.
-Optionally, the x and y crossing angles can be added, or the \texttt{MIRROR} flag used to take the same crossing angles as for beam 1.
+Optionally, the x and y crossing angles can be added, or the \texttt{MIRROR} flag used to take the same crossing angles as for Beam 1.
 If neither is specified, the crossing angle is taken to be 0.
 The crossing angle is only relevant when the \texttt{PYTHIA} option \texttt{REALBEAM} is enabled.
 
 \bigskip
 \noindent\texttt{UNCORRBEAM nbeam betaX betaY alphaX alphaY crossX crossY [offsetX offsetY] | MIRROR}\\
 
-The target is a beam 2 described by a set of uncorrelated Twiss parameters, and a total beam particle count.
+The target is a Beam 2 described by a set of uncorrelated Twiss parameters, and a total beam particle count.
 The target beam is effectively a ``thin'' beam, in that it appears as an infinitely thin foil at the centre of the interaction point.
 The crossing angle is taken into account using an effective sigma, as is commonly done for luminosity calculations.
 The probability is then corrected using the particle time offset and assuming a longitudinal Gaussian distribution.
-If the keyword \texttt{MIRROR} is specified, the Twiss, offset and crossing angle is taken from beam 1.
+If the keyword \texttt{MIRROR} is specified, the Twiss, offset and crossing angle is taken from Beam 1.
 
 \paragraph{Event Generator}~ \texttt{GEN name type [arguments]} \\
 
