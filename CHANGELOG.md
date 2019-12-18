@@ -9,7 +9,7 @@
 * Fixed the conversion of zeta to sigma. It was previously assuming the inverse definition of `rvv` used by SixTrackLib. PR #1027 (R. De Maria, V.K. Berglyd Olsen)
 * Fixed a type definition inconsistency introduced by #878 that affected the ROOT interface. PR #1026 (J. Molson)
 * Fix the `CERNLIB` build system to support 64-bit. PR #1025 (F. Schmidt, J. Molson)
-* Fix a faulty loop in the FFT routine in postprocessing. PR #1025 (J. Molson, F. Schmidt)
+* Fix a faulty loop in the FFT routine in post-processing. PR #1025 (J. Molson, F. Schmidt)
 * Fixed a difference in sign in the thin combined function code. PR 1005 (T. Persson)
 
 **User Side Changes**
