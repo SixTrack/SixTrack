@@ -8,7 +8,6 @@ subroutine umlauda
   use numerical_constants
   use mathlib_bouncer
   use dump, only : ldump, dump_setTasMatrix
-  use scatter, only : scatter_active, scatter_setTAS
   use crcoall
   use string_tools
   use mod_units

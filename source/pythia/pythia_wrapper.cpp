@@ -113,8 +113,8 @@ void pythiaWrapper_getEvent(bool& status, int& code, double& t, double& theta, d
   else if(code == 102) { // Elastic
     t     =  pythia.info.tHat();
     theta =  pythia.event[3].theta();
-    dEE   = (pythia.event[3].e()    - pythia.event[1].e())    / pythia.event[1].e();
-    dPP   = (pythia.event[3].pAbs() - pythia.event[1].pAbs()) / pythia.event[1].pAbs();
+    dEE   = 0.0;
+    dPP   = 0.0;
   }
   else if(code == 104) { // Single Diffractive AB->AX
     t     =  pythia.info.tHat();
@@ -148,8 +148,10 @@ void pythiaWrapper_getEventPVector(bool& status, int& code, double& t, double& t
 
   if(code == 102 || code == 104 || code == 106) {
     theta =  pythia.event[3].theta();
-    dEE   = (pythia.event[3].e()    - pythia.event[1].e())    / pythia.event[1].e();
-    dPP   = (pythia.event[3].pAbs() - pythia.event[1].pAbs()) / pythia.event[1].pAbs();
+  }
+  if(code == 104 || code == 106) {
+    dEE = (pythia.event[3].e()    - pythia.event[1].e())    / pythia.event[1].e();
+    dPP = (pythia.event[3].pAbs() - pythia.event[1].pAbs()) / pythia.event[1].pAbs();
   }
   if(code == 102 || code == 104) {
     t = pythia.info.tHat();

@@ -1528,18 +1528,18 @@ Particle losses are off by default.
 
 \paragraph{Beam 2 Sample Log}~ \texttt{WRITE\_PLOG}\\
 
-If the \texttt{PYTHOIA} block has the \texttt{REALBEAM} flag enabled (see Section~\ref{ExtPythia}), the Scatter Module will generate a random three-momentum vector of Beam 2 particles that is then fed to the PYTHIA event generator.
+If the \texttt{PYTHIA} block has the \texttt{REALBEAM} flag enabled (see Section~\ref{ExtPythia}), the Scatter Module will generate a random three-momentum vector of Beam 2 particles that is then fed to the PYTHIA event generator.
 This flag enables the logging of these generated events to the \texttt{scatter\_momentum.dat} file.
 
 \paragraph{Density Dump}~ \texttt{DENSITY\_DUMP element\_name turn}\\
 
 This setting allows for a dump of the target PDF in a 500 by 500 matrix to the file \texttt{scatter\_pdf.dat}, and a dump of the target density seen by each particle to the file \texttt{scatter\_density.dat}.
-This is intended as a debug tool to check that Beam 1 and Beam 2 is actually interacting.
+This is intended as a debug tool to check that Beam 1 and Beam 2 are actually interacting.
 The dump can only be used once, on a given element, on a given turn.
 
 \paragraph{Beam Dump}~ \texttt{BEAM\_DUMP element\_name turn}\\
 
-This setting dumps a particle state file (see Section~\ref{STSett}) immediately befor and after the scatter point.
+This setting dumps a particle state file (see Section~\ref{STSett}) immediately before and after the scatter point.
 This information is written to the files \texttt{scatter\_beam\_before.dat} and \texttt{scatter\_beam\_after.dat}.
 This is intended as a debug tool to check the effect of the scatter element on the beam.
 The dump can only be used once, on a given element, on a given turn.
@@ -1557,7 +1557,7 @@ This ensures that the input block is reasonably human readable, and avoids redun
 
 If using very low scattering probabilities, ensure that the probability is within the scope of the resolution of the random number generator.
 To select whether a scattering event has occured, the probability is evaluated against a uniformly distributed random number between 0 and 1.
-However, the default random number generator has a resolution of just below $2^{31}$, meaning the smalles number that can be sampled is $4.66\times 10^{-10}$.
+However, the default random number generator has a resolution of just below $2^{31}$, meaning the smallest number that can be sampled is $4.66\times 10^{-10}$.
 Scattering probabilities below $\approx{10^{-8}}$ should be avoided.
 
 The Scatter Module allows for statistical scaling of scattering probabilities.
@@ -1565,12 +1565,12 @@ In the \texttt{scatter\_log.dat} file, there is a column keeping track of the st
 
 \paragraph{Beam 2 Emittance}~ \texttt{BEAM2\_EMIT emitX emitY}\\
 
-If the target profile is a model of Beam 2, defined by Twiss parameters, this keyword is required to set the x and y emittance.
+If the target profile is a model of Beam 2, defined by Twiss parameters, this keyword is required to set the x and y normalised emittance.
 The emittance is in units of $\mu$m.
 
 \paragraph{Beam 2 Length}~ \texttt{BEAM2\_LEN sigmaZ}\\
 
-If the target profile is a model of Beam 2, defined by Twiss parameters, this keyword is required to set the beam length.
+If the target profile is a model of Beam 2, defined by Twiss parameters, this keyword is required to set the beam length, assuming a Gaussian longitudinal profile.
 The length is in units of mm.
 
 \paragraph{Density Profiles}~ \texttt{PRO name type (arguments)} \\

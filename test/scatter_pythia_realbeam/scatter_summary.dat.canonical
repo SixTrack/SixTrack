@@ -2,8 +2,8 @@
 #  SCATTER SUMMARY
 # =================
 #
-#  SixTrack Reference Mass:   938.272046 MeV
-#  Pythia Reference Mass:     938.269998 MeV
+#  SixTrack Reference Mass:    938.270000000 MeV
+#  Pythia Reference Mass:      938.269998323 MeV
 #
 #  Read 2 element(s)
 #  Read 2 profile(s)
@@ -20,15 +20,15 @@
 #   * alphaX,    alphaY    [1]    =      0.000604     -0.000442
 #   * orbitX,    orbitY    [mm]   =     -0.749947      0.000457
 #   * orbitXP,   orbitYP   [mrad] =     -0.000003      0.294999
-#   * sigmaX,    sigmaY    [mm]   =      0.100276      0.100229
-#   * sigmaXeff, sigmaYeff [mm]   =      0.100276      0.102642
+#   * sigmaX,    sigmaY    [mm]   =      0.100275      0.100229
+#   * sigmaXeff, sigmaYeff [mm]   =      0.100275      0.102642
 #   * beam2 rotation x,y   [deg]  =    -90.000000
 #  Profile(2): 'ip5Beam2'
 #   * betaX,     betaY     [m]    =     29.998987     29.987486
 #   * alphaX,    alphaY    [1]    =      0.000280      0.000022
 #   * orbitX,    orbitY    [mm]   =     -0.749870      0.749811
 #   * orbitXP,   orbitYP   [mrad] =      0.295000      0.295026
-#   * sigmaX,    sigmaY    [mm]   =      0.100263      0.100243
+#   * sigmaX,    sigmaY    [mm]   =      0.100262      0.100243
 #   * sigmaXeff, sigmaYeff [mm]   =      0.102675      0.102656
 #   * beam2 rotation x,y   [deg]  =    -45.010344
 #
@@ -44,72 +44,72 @@
 #  Summary Log
 # =============
 #    turn     napx bez                  generator            process     nScat    nLost   scatRat  crossSec[mb]       scaling
-        3     8000 ip5_scatter          sc_pythia            NonDiff      2318     2318  0.289750     10.141250  4.000000E+12
-        3     8000 ip5_scatter          sc_pythia            Elastic       893        0  0.111625      3.906875  4.000000E+12
-        3     8000 ip5_scatter          sc_pythia            SingD_XB      184      184  0.023000      0.805000  4.000000E+12
-        3     8000 ip5_scatter          sc_pythia            SingD_AX      192        0  0.024000      0.840000  4.000000E+12
-        3     8000 ip5_scatter          sc_pythia            DoubD_XX      132      132  0.016500      0.577500  4.000000E+12
-        3     8000 ip5_scatter          sc_pythia            CentDiff       18        0  0.002250      0.078750  4.000000E+12
-        3     5312 ip1_scatter          sc_pythia            NonDiff      1244     1244  0.234187      8.196536  4.000000E+12
-        3     5312 ip1_scatter          sc_pythia            Elastic       448        0  0.084337      2.951807  4.000000E+12
-        3     5312 ip1_scatter          sc_pythia            SingD_XB      111      111  0.020896      0.731363  4.000000E+12
-        3     5312 ip1_scatter          sc_pythia            SingD_AX       98        0  0.018449      0.645708  4.000000E+12
-        3     5312 ip1_scatter          sc_pythia            DoubD_XX       52       52  0.009789      0.342620  4.000000E+12
-        3     5312 ip1_scatter          sc_pythia            CentDiff       13        0  0.002447      0.085655  4.000000E+12
-        4     3865 ip5_scatter          sc_pythia            NonDiff       571      571  0.147736      5.170763  4.000000E+12
-        4     3865 ip5_scatter          sc_pythia            Elastic       230        0  0.059508      2.082794  4.000000E+12
-        4     3865 ip5_scatter          sc_pythia            SingD_XB       44       44  0.011384      0.398448  4.000000E+12
-        4     3865 ip5_scatter          sc_pythia            SingD_AX       49        0  0.012678      0.443726  4.000000E+12
-        4     3865 ip5_scatter          sc_pythia            DoubD_XX       15       15  0.003881      0.135834  4.000000E+12
-        4     3865 ip5_scatter          sc_pythia            CentDiff       12        0  0.003105      0.108668  4.000000E+12
-        4     3196 ip1_scatter          sc_pythia            NonDiff       411      411  0.128598      4.500939  4.000000E+12
-        4     3196 ip1_scatter          sc_pythia            Elastic       163        0  0.051001      1.785044  4.000000E+12
-        4     3196 ip1_scatter          sc_pythia            SingD_XB       31       31  0.009700      0.339487  4.000000E+12
-        4     3196 ip1_scatter          sc_pythia            SingD_AX       37        0  0.011577      0.405194  4.000000E+12
-        4     3196 ip1_scatter          sc_pythia            DoubD_XX       28       28  0.008761      0.306633  4.000000E+12
-        4     3196 ip1_scatter          sc_pythia            CentDiff        7        0  0.002190      0.076658  4.000000E+12
-        5     2706 ip5_scatter          sc_pythia            NonDiff       197      197  0.072801      2.548041  4.000000E+12
-        5     2706 ip5_scatter          sc_pythia            Elastic        73        0  0.026977      0.944198  4.000000E+12
-        5     2706 ip5_scatter          sc_pythia            SingD_XB       13       13  0.004804      0.168145  4.000000E+12
-        5     2706 ip5_scatter          sc_pythia            SingD_AX       13        0  0.004804      0.168145  4.000000E+12
-        5     2706 ip5_scatter          sc_pythia            DoubD_XX       15       15  0.005543      0.194013  4.000000E+12
-        5     2706 ip5_scatter          sc_pythia            CentDiff        3        0  0.001109      0.038803  4.000000E+12
-        5     2471 ip1_scatter          sc_pythia            NonDiff       209      209  0.084581      2.960340  4.000000E+12
-        5     2471 ip1_scatter          sc_pythia            Elastic        81        0  0.032780      1.147309  4.000000E+12
-        5     2471 ip1_scatter          sc_pythia            SingD_XB       13       13  0.005261      0.184136  4.000000E+12
-        5     2471 ip1_scatter          sc_pythia            SingD_AX       21        0  0.008499      0.297450  4.000000E+12
-        5     2471 ip1_scatter          sc_pythia            DoubD_XX       10       10  0.004047      0.141643  4.000000E+12
-        5     2471 ip1_scatter          sc_pythia            CentDiff        2        0  0.000809      0.028329  4.000000E+12
-        6     2225 ip5_scatter          sc_pythia            NonDiff       107      107  0.048090      1.683146  4.000000E+12
-        6     2225 ip5_scatter          sc_pythia            Elastic        32        0  0.014382      0.503371  4.000000E+12
-        6     2225 ip5_scatter          sc_pythia            SingD_XB        2        2  0.000899      0.031461  4.000000E+12
-        6     2225 ip5_scatter          sc_pythia            SingD_AX        8        0  0.003596      0.125843  4.000000E+12
-        6     2225 ip5_scatter          sc_pythia            DoubD_XX        5        5  0.002247      0.078652  4.000000E+12
-        6     2106 ip1_scatter          sc_pythia            NonDiff        77       77  0.036562      1.279677  4.000000E+12
-        6     2106 ip1_scatter          sc_pythia            Elastic        39        0  0.018519      0.648148  4.000000E+12
-        6     2106 ip1_scatter          sc_pythia            SingD_XB        8        8  0.003799      0.132953  4.000000E+12
-        6     2106 ip1_scatter          sc_pythia            SingD_AX        8        0  0.003799      0.132953  4.000000E+12
-        6     2106 ip1_scatter          sc_pythia            DoubD_XX        2        2  0.000950      0.033238  4.000000E+12
-        6     2106 ip1_scatter          sc_pythia            CentDiff        1        0  0.000475      0.016619  4.000000E+12
-        7     2010 ip5_scatter          sc_pythia            NonDiff        63       63  0.031343      1.097015  4.000000E+12
-        7     2010 ip5_scatter          sc_pythia            Elastic        30        0  0.014925      0.522388  4.000000E+12
-        7     2010 ip5_scatter          sc_pythia            SingD_XB        4        4  0.001990      0.069652  4.000000E+12
-        7     2010 ip5_scatter          sc_pythia            SingD_AX        4        0  0.001990      0.069652  4.000000E+12
-        7     2010 ip5_scatter          sc_pythia            DoubD_XX        5        5  0.002488      0.087065  4.000000E+12
-        7     2010 ip5_scatter          sc_pythia            CentDiff        1        0  0.000498      0.017413  4.000000E+12
-        7     1936 ip1_scatter          sc_pythia            NonDiff        46       46  0.023760      0.831612  4.000000E+12
-        7     1936 ip1_scatter          sc_pythia            Elastic        14        0  0.007231      0.253099  4.000000E+12
-        7     1936 ip1_scatter          sc_pythia            SingD_XB        6        6  0.003099      0.108471  4.000000E+12
-        7     1936 ip1_scatter          sc_pythia            SingD_AX        4        0  0.002066      0.072314  4.000000E+12
-        7     1936 ip1_scatter          sc_pythia            DoubD_XX        3        3  0.001550      0.054236  4.000000E+12
-        8     1874 ip5_scatter          sc_pythia            NonDiff        63       63  0.033618      1.176628  4.000000E+12
-        8     1874 ip5_scatter          sc_pythia            Elastic        20        0  0.010672      0.373533  4.000000E+12
-        8     1874 ip5_scatter          sc_pythia            SingD_XB        5        5  0.002668      0.093383  4.000000E+12
-        8     1874 ip5_scatter          sc_pythia            SingD_AX        4        0  0.002134      0.074707  4.000000E+12
-        8     1874 ip5_scatter          sc_pythia            DoubD_XX        5        5  0.002668      0.093383  4.000000E+12
-        8     1874 ip5_scatter          sc_pythia            CentDiff        1        0  0.000534      0.018677  4.000000E+12
-        8     1797 ip1_scatter          sc_pythia            NonDiff        38       38  0.021146      0.740122  4.000000E+12
-        8     1797 ip1_scatter          sc_pythia            Elastic        17        0  0.009460      0.331107  4.000000E+12
-        8     1797 ip1_scatter          sc_pythia            SingD_XB        4        4  0.002226      0.077908  4.000000E+12
-        8     1797 ip1_scatter          sc_pythia            SingD_AX        6        0  0.003339      0.116861  4.000000E+12
-        8     1797 ip1_scatter          sc_pythia            DoubD_XX        3        3  0.001669      0.058431  4.000000E+12
+        3     8000 ip5_scatter          sc_pythia            NonDiff      1959     1959  0.244875      8.570625  4.000000E+12
+        3     8000 ip5_scatter          sc_pythia            Elastic      1102        0  0.137750      4.821250  4.000000E+12
+        3     8000 ip5_scatter          sc_pythia            SingD_XB      229      229  0.028625      1.001875  4.000000E+12
+        3     8000 ip5_scatter          sc_pythia            SingD_AX      239        0  0.029875      1.045625  4.000000E+12
+        3     8000 ip5_scatter          sc_pythia            DoubD_XX      161      161  0.020125      0.704375  4.000000E+12
+        3     8000 ip5_scatter          sc_pythia            CentDiff       48        0  0.006000      0.210000  4.000000E+12
+        3     5601 ip1_scatter          sc_pythia            NonDiff      1080     1080  0.192823      6.748795  4.000000E+12
+        3     5601 ip1_scatter          sc_pythia            Elastic       545        0  0.097304      3.405642  4.000000E+12
+        3     5601 ip1_scatter          sc_pythia            SingD_XB      116      116  0.020711      0.724871  4.000000E+12
+        3     5601 ip1_scatter          sc_pythia            SingD_AX      110        0  0.019639      0.687377  4.000000E+12
+        3     5601 ip1_scatter          sc_pythia            DoubD_XX       66       66  0.011784      0.412426  4.000000E+12
+        3     5601 ip1_scatter          sc_pythia            CentDiff       16        0  0.002857      0.099982  4.000000E+12
+        4     4294 ip5_scatter          sc_pythia            NonDiff       485      485  0.112948      3.953190  4.000000E+12
+        4     4294 ip5_scatter          sc_pythia            Elastic       292        0  0.068002      2.380065  4.000000E+12
+        4     4294 ip5_scatter          sc_pythia            SingD_XB       70       70  0.016302      0.570564  4.000000E+12
+        4     4294 ip5_scatter          sc_pythia            SingD_AX       57        0  0.013274      0.464602  4.000000E+12
+        4     4294 ip5_scatter          sc_pythia            DoubD_XX       40       40  0.009315      0.326036  4.000000E+12
+        4     4294 ip5_scatter          sc_pythia            CentDiff        8        0  0.001863      0.065207  4.000000E+12
+        4     3667 ip1_scatter          sc_pythia            NonDiff       386      386  0.105263      3.684211  4.000000E+12
+        4     3667 ip1_scatter          sc_pythia            Elastic       203        0  0.055359      1.937551  4.000000E+12
+        4     3667 ip1_scatter          sc_pythia            SingD_XB       38       38  0.010363      0.362694  4.000000E+12
+        4     3667 ip1_scatter          sc_pythia            SingD_AX       35        0  0.009545      0.334061  4.000000E+12
+        4     3667 ip1_scatter          sc_pythia            DoubD_XX       25       25  0.006818      0.238615  4.000000E+12
+        4     3667 ip1_scatter          sc_pythia            CentDiff        7        0  0.001909      0.066812  4.000000E+12
+        5     3198 ip5_scatter          sc_pythia            NonDiff       182      182  0.056911      1.991870  4.000000E+12
+        5     3198 ip5_scatter          sc_pythia            Elastic        92        0  0.028768      1.006879  4.000000E+12
+        5     3198 ip5_scatter          sc_pythia            SingD_XB       22       22  0.006879      0.240775  4.000000E+12
+        5     3198 ip5_scatter          sc_pythia            SingD_AX       28        0  0.008755      0.306442  4.000000E+12
+        5     3198 ip5_scatter          sc_pythia            DoubD_XX       17       17  0.005316      0.186054  4.000000E+12
+        5     3198 ip5_scatter          sc_pythia            CentDiff        4        0  0.001251      0.043777  4.000000E+12
+        5     2965 ip1_scatter          sc_pythia            NonDiff       183      183  0.061720      2.160202  4.000000E+12
+        5     2965 ip1_scatter          sc_pythia            Elastic       116        0  0.039123      1.369309  4.000000E+12
+        5     2965 ip1_scatter          sc_pythia            SingD_XB       22       22  0.007420      0.259696  4.000000E+12
+        5     2965 ip1_scatter          sc_pythia            SingD_AX       18        0  0.006071      0.212479  4.000000E+12
+        5     2965 ip1_scatter          sc_pythia            DoubD_XX       19       19  0.006408      0.224283  4.000000E+12
+        5     2965 ip1_scatter          sc_pythia            CentDiff        4        0  0.001349      0.047218  4.000000E+12
+        6     2725 ip5_scatter          sc_pythia            NonDiff       105      105  0.038532      1.348624  4.000000E+12
+        6     2725 ip5_scatter          sc_pythia            Elastic        50        0  0.018349      0.642202  4.000000E+12
+        6     2725 ip5_scatter          sc_pythia            SingD_XB       14       14  0.005138      0.179817  4.000000E+12
+        6     2725 ip5_scatter          sc_pythia            SingD_AX        7        0  0.002569      0.089908  4.000000E+12
+        6     2725 ip5_scatter          sc_pythia            DoubD_XX        8        8  0.002936      0.102752  4.000000E+12
+        6     2591 ip1_scatter          sc_pythia            NonDiff        79       79  0.030490      1.067156  4.000000E+12
+        6     2591 ip1_scatter          sc_pythia            Elastic        48        0  0.018526      0.648398  4.000000E+12
+        6     2591 ip1_scatter          sc_pythia            SingD_XB        9        9  0.003474      0.121575  4.000000E+12
+        6     2591 ip1_scatter          sc_pythia            SingD_AX        6        0  0.002316      0.081050  4.000000E+12
+        6     2591 ip1_scatter          sc_pythia            DoubD_XX        4        4  0.001544      0.054033  4.000000E+12
+        6     2591 ip1_scatter          sc_pythia            CentDiff        2        0  0.000772      0.027017  4.000000E+12
+        7     2487 ip5_scatter          sc_pythia            NonDiff        71       71  0.028548      0.999196  4.000000E+12
+        7     2487 ip5_scatter          sc_pythia            Elastic        32        0  0.012867      0.450342  4.000000E+12
+        7     2487 ip5_scatter          sc_pythia            SingD_XB        8        8  0.003217      0.112585  4.000000E+12
+        7     2487 ip5_scatter          sc_pythia            SingD_AX        9        0  0.003619      0.126659  4.000000E+12
+        7     2487 ip5_scatter          sc_pythia            DoubD_XX        6        6  0.002413      0.084439  4.000000E+12
+        7     2397 ip1_scatter          sc_pythia            NonDiff        50       50  0.020859      0.730079  4.000000E+12
+        7     2397 ip1_scatter          sc_pythia            Elastic        18        0  0.007509      0.262829  4.000000E+12
+        7     2397 ip1_scatter          sc_pythia            SingD_XB        5        5  0.002086      0.073008  4.000000E+12
+        7     2397 ip1_scatter          sc_pythia            SingD_AX        4        0  0.001669      0.058406  4.000000E+12
+        7     2397 ip1_scatter          sc_pythia            DoubD_XX        2        2  0.000834      0.029203  4.000000E+12
+        7     2397 ip1_scatter          sc_pythia            CentDiff        2        0  0.000834      0.029203  4.000000E+12
+        8     2332 ip5_scatter          sc_pythia            NonDiff        55       55  0.023585      0.825472  4.000000E+12
+        8     2332 ip5_scatter          sc_pythia            Elastic        33        0  0.014151      0.495283  4.000000E+12
+        8     2332 ip5_scatter          sc_pythia            SingD_XB        8        8  0.003431      0.120069  4.000000E+12
+        8     2332 ip5_scatter          sc_pythia            SingD_AX       12        0  0.005146      0.180103  4.000000E+12
+        8     2332 ip5_scatter          sc_pythia            DoubD_XX        7        7  0.003002      0.105060  4.000000E+12
+        8     2332 ip5_scatter          sc_pythia            CentDiff        1        0  0.000429      0.015009  4.000000E+12
+        8     2259 ip1_scatter          sc_pythia            NonDiff        40       40  0.017707      0.619743  4.000000E+12
+        8     2259 ip1_scatter          sc_pythia            Elastic        21        0  0.009296      0.325365  4.000000E+12
+        8     2259 ip1_scatter          sc_pythia            SingD_XB        7        7  0.003099      0.108455  4.000000E+12
+        8     2259 ip1_scatter          sc_pythia            SingD_AX        5        0  0.002213      0.077468  4.000000E+12
+        8     2259 ip1_scatter          sc_pythia            DoubD_XX        3        3  0.001328      0.046481  4.000000E+12

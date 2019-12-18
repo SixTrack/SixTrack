@@ -380,7 +380,7 @@ subroutine scatter_parseInputLine(inLine, iErr)
 
   case("SEED")
     write(lerr,"(a,i0)") "SCATTER> ERROR The SCATTER module no longer takes a dedicated SEED. "//&
-      "Please use the RANDOM NUMBERS blovck instead."
+      "Please use the RANDOM NUMBERS block instead."
     iErr = .true.
     return
 
@@ -1529,15 +1529,15 @@ subroutine scatter_generateParticle(idPro, iElem, j, pVec)
 
     if(scatter_proList(idPro)%isMirror) then
       if(scatter_elemList(scatter_elemPointer(iElem))%linOpt%isSet) then
-        ! Use the crossing angle of beam 1
-        betaX  = scatter_elemList(scatter_elemPointer(iElem))%linOpt%beta(1)
-        betaY  = scatter_elemList(scatter_elemPointer(iElem))%linOpt%beta(2)
-        alphaX = scatter_elemList(scatter_elemPointer(iElem))%linOpt%alpha(1)
-        alphaY = scatter_elemList(scatter_elemPointer(iElem))%linOpt%alpha(2)
-        orbX   = scatter_elemList(scatter_elemPointer(iElem))%linOpt%orbit(1)
-        orbY   = scatter_elemList(scatter_elemPointer(iElem))%linOpt%orbit(2)
-        orbXP  = scatter_elemList(scatter_elemPointer(iElem))%linOpt%orbit(3)
-        orbYP  = scatter_elemList(scatter_elemPointer(iElem))%linOpt%orbit(4)
+        ! Use the Twiss of beam 1
+        betaX  =  scatter_elemList(scatter_elemPointer(iElem))%linOpt%beta(1)
+        betaY  =  scatter_elemList(scatter_elemPointer(iElem))%linOpt%beta(2)
+        alphaX = -scatter_elemList(scatter_elemPointer(iElem))%linOpt%alpha(1) ! Note: Sign-flip
+        alphaY = -scatter_elemList(scatter_elemPointer(iElem))%linOpt%alpha(2) ! Note: Sign-flip
+        orbX   =  scatter_elemList(scatter_elemPointer(iElem))%linOpt%orbit(1)
+        orbY   =  scatter_elemList(scatter_elemPointer(iElem))%linOpt%orbit(2)
+        orbXP  =  scatter_elemList(scatter_elemPointer(iElem))%linOpt%orbit(3)
+        orbYP  =  scatter_elemList(scatter_elemPointer(iElem))%linOpt%orbit(4)
       else
         write(lerr,"(a)") "SCATTER> ERROR Requested beam 2 to mirror beam 1, but optics values have not been generated"
         call prror
@@ -1554,9 +1554,10 @@ subroutine scatter_generateParticle(idPro, iElem, j, pVec)
       orbY   = scatter_proList(idPro)%fParams(9)
     end if
 
-    call rnd_uniform(rndser_scatPart, rndVals, 2)
-    pVec(1) = ((rndVals(1)/sqrt(betaX))/c1e3 - (alphaX/betaX)*(xv1(j)-orbX) + orbXP*oidpsv(j)) * ejfv(j)/c1e3
-    pVec(2) = ((rndVals(2)/sqrt(betaY))/c1e3 - (alphaY/betaY)*(xv2(j)-orbY) + orbYP*oidpsv(j)) * ejfv(j)/c1e3
+    ! Sample two "angles" in normalised phase space, and transform to physical phase space
+    call rnd_normal(rndser_scatPart, rndVals, 2)
+    pVec(1) = ((rndVals(1)/sqrt(betaX))/c1e3 - (alphaX/betaX)*(xv1(j)-orbX) + orbXP*oidpsv(j))*ejfv(j)/c1e3
+    pVec(2) = ((rndVals(2)/sqrt(betaY))/c1e3 - (alphaY/betaY)*(xv2(j)-orbY) + orbYP*oidpsv(j))*ejfv(j)/c1e3
     pVec(3) = -sqrt(ejfv(j)**2 - pVec(1)**2 - pVec(2)**2)
 
   end select
@@ -1683,6 +1684,11 @@ subroutine scatter_generateEvent(idGen, idPro, iElem, j, nTurn, t, theta, dEE, d
 
       call pythia_getEvent(evStat, evType, t, theta, dEE, dPP)
 
+    end if
+
+    if(dEE > zero) then
+      write(lout,"(a,2(i0,a),1pe16.9)") "SCATTER> WARNING Particle ",partID(j)," gained energy: "//&
+        "Process = ",evType,", dE/E = ",dEE
     end if
 
     nRetry = nRetry + 1
@@ -1955,8 +1961,8 @@ subroutine scatter_initSummaryFile
   write(scatter_sumUnit,"(a)") "#"
 #ifdef PYTHIA
   if(scatter_usingPythia) then
-    write(scatter_sumUnit,"(a,f12.6,a)") "#  SixTrack Reference Mass: ",nucm0," MeV"
-    write(scatter_sumUnit,"(a,f12.6,a)") "#  Pythia Reference Mass:   ",pythia_partMass(1)," MeV"
+    write(scatter_sumUnit,"(a,f16.9,a)") "#  SixTrack Reference Mass: ",nucm0," MeV"
+    write(scatter_sumUnit,"(a,f16.9,a)") "#  Pythia Reference Mass:   ",pythia_partMass(1)," MeV"
     write(scatter_sumUnit,"(a)")         "#"
   end if
 #endif
