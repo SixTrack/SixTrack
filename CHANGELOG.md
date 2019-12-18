@@ -16,7 +16,7 @@
 
 * Minor changes to the formatting of `fort.18` to ensure correct column width. PR #1029 (J. Molson)
 * Added better error reporting for the FLUKA interface. PR #1028 (J. Molson)
-* Particles that passes through a collimator, but don't interact with it, no longer have their coordinates changed. Previously, these particles were shifted to the closed orbit, and had their units changed, for then to be changed back after the collimator. This added unnecessary numerical noise. PR #1023 (V.K. Berglyd Olsen)
+* Particles that pass through a collimator, but don't interact with it, no longer have their coordinates changed. Previously, these particles were shifted to the closed orbit, and had their units changed, for then to be changed back after the collimator. This added unnecessary numerical noise. PR #1023 (V.K. Berglyd Olsen)
 
 **Test Suite**
 
