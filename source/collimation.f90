@@ -170,7 +170,7 @@ subroutine collimation_expand_arrays(npart_new, nblz_new)
   ! Arrays below are only needed if collimation is enabled
 
   ! Allocate Common Variables
-  call coll_expandArrays(npart_new, nblz_new)
+  call coll_expandArrays(npart_new)
 
   call alloc(rcx0,           npart_new,  zero, "rcx0")
   call alloc(rcxp0,          npart_new,  zero, "rcxp0")
@@ -562,7 +562,6 @@ subroutine coll_parseInputLine(inLine, iLine, iErr)
   use coll_dist
   use string_tools
   use coll_common
-  use mod_common, only : napx
 
   character(len=*), intent(in)    :: inLine
   integer,          intent(inout) :: iLine
@@ -1247,12 +1246,10 @@ end subroutine coll_parseInputLine
 ! ================================================================================================ !
 !  Post-input checks for the sanity of parameters
 ! ================================================================================================ !
-subroutine coll_postInput(gammar)
+subroutine coll_postInput()
 
   use crcoall
   use coll_db
-
-  real(kind=fPrec), intent(in) :: gammar
 
   ! Call one extra time as some arrays depend on input values
   call collimation_expand_arrays(npart,nblz)
@@ -1528,7 +1525,7 @@ subroutine coll_doCollimator(stracki)
   logical onesided, linside(napx), isAbs, isHit
   real(kind=fPrec) nsig,c_length,jawLength,jawAperture,jawOffset,jawTilt(2),x_Dump,xpDump,y_Dump,   &
     ypDump,s_Dump,xmax,ymax,calc_aperture,zpj,xmax_pencil,ymax_pencil,xmax_nom,ymax_nom,            &
-    nom_aperture,scale_bx,scale_by,c_tilt(2),c_offset,c_aperture,c_rotation,cry_bendangle,cry_tilt, &
+    nom_aperture,scale_bx,scale_by,c_tilt(2),c_offset,c_aperture,c_rotation,cry_tilt, &
     cRot,sRot
 
   call time_startClock(time_clockCOLL)

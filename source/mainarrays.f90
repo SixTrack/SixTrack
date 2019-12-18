@@ -147,7 +147,7 @@ subroutine allocate_thickarrays
   use mod_common_main, only : mod_commonmn_expand_thickarrays
   use mod_commons,     only : mod_commons_expand_thickarrays
   implicit none
-  call mod_commonmn_expand_thickarrays(nele, npart, nblo)
+  call mod_commonmn_expand_thickarrays(npart, nblo)
   call mod_commons_expand_thickarrays(nele, npart)
 end subroutine allocate_thickarrays
 
@@ -168,7 +168,7 @@ subroutine expand_thickarrays(nele_request, npart_request, nblz_request, nblo_re
   nblz_new  = nblz_request
   nblo_new  = nblo_request
 
-  call mod_commonmn_expand_thickarrays(nele_new, npart_new, nblo_new)
+  call mod_commonmn_expand_thickarrays(npart_new, nblo_new)
   call mod_commons_expand_thickarrays(nele_new, npart_new)
 
   !Update nele etc.

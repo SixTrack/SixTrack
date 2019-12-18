@@ -118,7 +118,7 @@ subroutine time_finalise
 
   use mod_meta
   use mod_units
-  use mod_common, only : numl, mbloz, napx
+  use mod_common, only : numl, mbloz
   use numerical_constants, only : zero
 
   real(kind=fPrec) trackTime, nP, nT, nE, nPT, nPTE

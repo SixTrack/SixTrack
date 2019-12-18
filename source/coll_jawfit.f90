@@ -103,7 +103,7 @@ subroutine jaw_computeFit(collName, fitID, nSlices, fitScale, reCentre, cLength,
   type(type_sliceParams), allocatable :: collTmp(:)
   real(kind=fPrec) sX(nSlices+1), sX1(nSlices+1), sX2(nSlices+1), sY1(nSlices+1), sY2(nSlices+1)
   real(kind=fPrec) angle1(nSlices), angle2(nSlices)
-  real(kind=fPrec) fac1(6), fac2(6), scale1, scale2, maxY
+  real(kind=fPrec) fac1(6), fac2(6), scale1, scale2
   real(kind=fPrec) fitData(2,nSlices+1), fitTilt(2,nSlices)
   integer i
 

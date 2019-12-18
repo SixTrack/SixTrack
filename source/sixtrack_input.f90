@@ -372,7 +372,7 @@ subroutine sixin_parseInputLineSETT(inLine, iLine, iErr)
   logical,          intent(inout) :: iErr
 
   character(len=:), allocatable   :: lnSplit(:)
-  integer nSplit, i
+  integer nSplit
   logical spErr
 
   call chr_split(inLine, lnSplit, nSplit, spErr)
@@ -544,7 +544,7 @@ subroutine sixin_parseInputLineSIMU(inLine, iLine, iErr)
   logical,          intent(inout) :: iErr
 
   character(len=:), allocatable   :: lnSplit(:)
-  integer i, nSplit, numPart, tmpInt
+  integer nSplit, numPart
   logical spErr, tmpLog
 
   call chr_split(inLine, lnSplit, nSplit, spErr)
@@ -1078,8 +1078,6 @@ subroutine sixin_parseInputLineINIT(inLine, iLine, iErr)
   integer nSplit
   logical spErr
 
-  integer i
-
   call chr_split(inLine, lnSplit, nSplit, spErr)
   if(spErr) then
     write(lerr,"(a)") "INIT> ERROR Failed to parse input line."
@@ -1600,7 +1598,7 @@ subroutine sixin_parseInputLineCHRO(inLine, iLine, iErr)
   logical,          intent(inout) :: iErr
 
   character(len=:), allocatable   :: lnSplit(:)
-  integer nSplit,i
+  integer nSplit
   logical spErr
 
   call chr_split(inLine, lnSplit, nSplit, spErr)
@@ -3519,7 +3517,7 @@ subroutine sixin_parseInputLineBEAM_EXP(inLine, iLine, iErr)
   character(len=mNameLen) elemName
   real(kind=fPrec) sxx,syy,sxy,separx,separy,mm(11)
   integer nSplit, n6D, ibsix, j
-  logical spErr, beamXStr
+  logical spErr
 
   save :: n6D,elemName,ibsix,sxx,syy,sxy,separx,separy,mm
 

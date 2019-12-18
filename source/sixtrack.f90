@@ -943,7 +943,7 @@ subroutine daten
     emity = sixin_emitNY*gammar
 
     if(do_coll) then
-      call coll_postInput(gammar)
+      call coll_postInput()
     end if
 
     ! Check for incompatible flags
