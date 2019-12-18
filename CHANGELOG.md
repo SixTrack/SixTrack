@@ -4,17 +4,17 @@
 
 **Bugfixes**
 
-* Fixed parsing of the `DIFF` block, where only the first element name was parsed, and the remaining ignored. PR #1031 (F. Schmidt, V.K. Berglyd Olsen, J. Molson)
+* Fixed parsing of the `DIFF` block where only the first element name was parsed. The remaining elements were ignored. PR #1031 (F. Schmidt, V.K. Berglyd Olsen, J. Molson)
 * Added a missing else statement in the DA code that was unintentionally removed when the exact drift code was added in 2014. PR #1028 (J. Molson, V.K. Berglyd Olsen)
-* Fixed the conversion of zeta to sigma. It was previously assuming the inverse definition of `rvv` used by SixTrackLib. PR #1027 (R. De Maria, V.K. Berglyd Olsen)
+* Fixed the conversion of zeta to sigma in `DIST` and the user manual. It was previously assuming the inverse definition of `rvv` used by SixTrackLib. PR #1027 (R. De Maria, V.K. Berglyd Olsen)
 * Fixed a type definition inconsistency introduced by #878 that affected the ROOT interface. PR #1026 (J. Molson)
-* Fix the `CERNLIB` build system to support 64-bit. PR #1025 (F. Schmidt, J. Molson)
-* Fix a faulty loop in the FFT routine in post-processing. PR #1025 (J. Molson, F. Schmidt)
+* Fixed the `CERNLIB` build system to support 64-bit. PR #1025 (F. Schmidt, J. Molson)
+* Fixed a faulty loop in the FFT routine in post-processing. PR #1025 (J. Molson, F. Schmidt)
 * Fixed a difference in sign in the thin combined function code. PR 1005 (T. Persson)
 
 **User Side Changes**
 
-* Minor changes to the formatting of `fort.18` to ensure correct column width. PR #1029 (J. Molson)
+* Minor changes to the formatting of `fort.18` to ensure correct column width. PR #1029 (J. Molson, F. Schmidt)
 * Added better error reporting for the FLUKA interface. PR #1028 (J. Molson)
 * Particles that pass through a collimator, but don't interact with it, no longer have their coordinates changed. Previously, these particles were shifted to the closed orbit, and had their units changed, for then to be changed back after the collimator. This added unnecessary numerical noise. PR #1023 (V.K. Berglyd Olsen)
 
@@ -24,7 +24,7 @@
 
 **BOINC Interface**
 
-* Extended the BOINC interface code to produce a new validation file for BOINC jobs that supports a wider range of job types, especially jobs that do not produce a `fort.10` file. PR #878 (V.K. Berglyd Olsen, A. Mereghetti)
+* Extended the BOINC interface code to produce a new validation file for BOINC jobs. The new file supports a wider range of job types, especially jobs that do not produce a `fort.10` file. PR #878 (V.K. Berglyd Olsen, A. Mereghetti)
 
 ### Version 5.4.2 [22.11.2019] - Release
 
