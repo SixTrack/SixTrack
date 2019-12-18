@@ -1558,8 +1558,8 @@ subroutine sixin_parseInputLineDIFF(inLine, iLine, iErr)
       return
     end if
     if(ncor > 0) then
-      OUTER: do j1=1,ncor
-        INNER: do j2=1,il
+      do j1=1,ncor
+        do j2=1,il
           if(ilm0(j1) == bez(j2)) then
             if(el(j2) /= zero .or. kz(j2) > 10) then
               write(lerr,"(a)") "DIFF> ERROR Only single kick elements allowed for map calculation"
@@ -1567,13 +1567,13 @@ subroutine sixin_parseInputLineDIFF(inLine, iLine, iErr)
               return
             end if
             ipar(j1) = j2
-            cycle OUTER
+            exit
           end if
-        end do INNER
-      end do OUTER
+        end do
+      end do
     else
       ncor = 0
-      write(lout,"(a)") "DIFF> INFOR No extra parameters for the map specified"
+      write(lout,"(a)") "DIFF> WARNING No extra parameters for the map specified"
     end if
     nvar = nvar2+ncor
   end if
