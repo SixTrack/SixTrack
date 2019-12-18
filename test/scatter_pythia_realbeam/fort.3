@@ -1,0 +1,112 @@
+GEOM
+
+SETTINGS----------------------------------------------------------------
+! DEBUG
+  QUIET 1
+  INITIALSTATE text
+  FINALSTATE text
+NEXT
+
+HASH--------------------------------------------------------------------
+  MD5SUM initial_state.dat    text
+  MD5SUM final_state.dat      text
+  MD5SUM scatter_log.dat      text
+  MD5SUM scatter_summary.dat  text
+  MD5SUM scatter_momentum.dat text
+  MD5SUM ip1.dat              text
+  MD5SUM ip5.dat              text
+NEXT
+
+SIMULATION--------------------------------------------------------------
+  PARTICLES    8000
+  TURNS        8
+  REF_ENERGY   7.0e6
+  REF_PARTICLE 938.27
+  LATTICE      Thin 6D
+  6D_CLORB     on
+  WRITE_TRACKS 20000 on
+NEXT
+
+RANDOM NUMBERS----------------------------------------------------------
+  SEED 42
+NEXT
+
+DIST--------------------------------------------------------------------
+  EMITTANCE 2.5 2.5
+  FILL XN   GAUSS  1.0 0.0 5.0
+  FILL PXN  GAUSS  1.0 0.0 5.0
+  FILL YN   GAUSS  1.0 0.0 5.0
+  FILL PYN  GAUSS  1.0 0.0 5.0
+  FILL ZN   FLOAT  0.0
+  FILL PZN  FLOAT  0.0
+  FILL MASS FLOAT  938.27
+NEXT
+
+ITERATION-ACCURACY------------------------------------------------------
+  50 1d-12 1d-15
+  10 1d-10 1d-10
+  10 1d-6  1d-6
+     1d-6  1d-9  1d-9
+NEXT
+
+FLUCTUATION-------------------------------------------------------------
+  100000  1  7  3
+NEXT
+
+SYNC--------------------------------------------------------------------
+  35640  0.000344  0.0  0.0  26658.8832  938.272081  1
+  1.0  1.0
+NEXT
+
+BEAM--------------------------------------------------------------------
+  2.2000e+11  2.5  2.5  1.0  1.0e-3  1  0
+NEXT
+
+DYNK--------------------------------------------------------------------
+  FUN off CONST 0.0
+  FUN on  CONST 4.0e12
+  SET ip1_scatter scaling off  1   2  0
+  SET ip1_scatter scaling on   3  -1  0
+  SET ip5_scatter scaling off  1   2  0
+  SET ip5_scatter scaling on   3  -1  0
+NEXT
+
+PYTHIA------------------------------------------------------------------
+  SPECIES PROTON PROTON
+  ENERGY 7000000 7000000
+  SEED 41
+  REALBEAM on
+  SIGTOTAL 100.0
+  SIGTOTALMODE MANUAL
+  SIGDIFFMODE  MANUAL
+  PROCESS ELASTIC     29.0
+  PROCESS SINGLEDIFF   6.0
+  PROCESS DOUBLEDIFF   4.0
+  PROCESS CENTRALDIFF  1.0
+  PROCESS NONDIFF          ! Will be assigned the remaining cross section
+NEXT
+
+SCATTER-----------------------------------------------------------------
+  BEAM2_EMIT 2.5 2.5
+  BEAM2_LEN  75.0
+  LOSSES
+  WRITE_PLOG
+  GEN  sc_pythia   PYTHIA  35.0
+  PRO  ip1Beam2    UNCORRBEAM 2.2e11 MIRROR
+  PRO  ip5Beam2    UNCORRBEAM 2.2e11 MIRROR
+  ELEM ip1_scatter ip1Beam2 auto 1.0 sc_pythia
+  ELEM ip5_scatter ip5Beam2 auto 1.0 sc_pythia
+  DENSITY_DUMP ip1_scatter 3
+  BEAM_DUMP    ip1_scatter 3
+NEXT
+
+DUMP--------------------------------------------------------------------
+  ip1 1 -1 2 ip1.dat 1 -1
+  ip5 1 -1 2 ip5.dat 1 -1
+NEXT
+
+LINEAR OPTICS-----------------------------------------------------------
+  ELEMENT  0  1  1  2.5  2.5
+NEXT
+
+ENDE====================================================================

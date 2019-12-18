@@ -5,10 +5,14 @@
 #  Read 1 element(s)
 #  Read 1 profile(s)
 #  Read 1 generator(s)
-# 
+#
 #  Generators
 # =============
 #  Generator(1): 'sc_thin'
+#
+#  Profiles
+# ==========
+#  Profile(1): 'ipFLAT'
 #
 #  Cross Sections
 # ================
@@ -19,49 +23,49 @@
 #  Summary Log
 # =============
 #    turn     napx bez                  generator            process     nScat    nLost   scatRat  crossSec[mb]       scaling
-        1      400 ip5_scatter          sc_thin              Elastic        83        0  0.207500      6.225000  2.000000E+00
-        2      400 ip5_scatter          sc_thin              Elastic       140        0  0.350000     10.500000  4.000000E+00
-        3      400 ip5_scatter          sc_thin              Elastic       226        0  0.565000     16.950000  6.500000E+00
-        4      400 ip5_scatter          sc_thin              Elastic       297        0  0.742500     22.275000  8.500000E+00
-        5      400 ip5_scatter          sc_thin              Elastic       383        0  0.957500     28.725000  1.050000E+01
+        1      400 ip5_scatter          sc_thin              Elastic        73        0  0.182500      5.475000  2.000000E+00
+        2      400 ip5_scatter          sc_thin              Elastic       131        0  0.327500      9.825000  4.000000E+00
+        3      400 ip5_scatter          sc_thin              Elastic       234        0  0.585000     17.550000  6.500000E+00
+        4      400 ip5_scatter          sc_thin              Elastic       314        0  0.785000     23.550000  8.500000E+00
+        5      400 ip5_scatter          sc_thin              Elastic       379        0  0.947500     28.425000  1.050000E+01
         6      400 ip5_scatter          sc_thin              Elastic       400        0  1.000000     30.000000  1.250000E+01
-        7      400 ip5_scatter          sc_thin              Elastic        54        0  0.135000      4.050000  1.348837E+00
-        8      400 ip5_scatter          sc_thin              Elastic        69        0  0.172500      5.175000  2.046512E+00
-        9      400 ip5_scatter          sc_thin              Elastic       102        0  0.255000      7.650000  2.744186E+00
-       10      400 ip5_scatter          sc_thin              Elastic       122        0  0.305000      9.150000  3.441860E+00
-       11      400 ip5_scatter          sc_thin              Elastic       195        0  0.487500     14.625000  5.010000E+00
-       12      400 ip5_scatter          sc_thin              Elastic       201        0  0.502500     15.075000  5.540000E+00
-       13      400 ip5_scatter          sc_thin              Elastic       221        0  0.552500     16.575000  6.090000E+00
-       14      400 ip5_scatter          sc_thin              Elastic       233        0  0.582500     17.475000  6.660000E+00
-       15      400 ip5_scatter          sc_thin              Elastic        87        0  0.217500      6.525000  2.017631E+00
-       16      400 ip5_scatter          sc_thin              Elastic       127        0  0.317500      9.525000  3.258680E+00
-       17      400 ip5_scatter          sc_thin              Elastic       120        0  0.300000      9.000000  3.440779E+00
-       18      400 ip5_scatter          sc_thin              Elastic        85        0  0.212500      6.375000  2.563926E+00
-       19      400 ip5_scatter          sc_thin              Elastic        18        0  0.045000      1.350000  6.809856E-01
-       20      400 ip5_scatter          sc_thin              Elastic        36        0  0.090000      2.700000  1.060660E+00
-       21      400 ip5_scatter          sc_thin              Elastic        51        0  0.127500      3.825000  1.336510E+00
-       22      400 ip5_scatter          sc_thin              Elastic        51        0  0.127500      3.825000  1.481532E+00
-       23      400 ip5_scatter          sc_thin              Elastic        48        0  0.120000      3.600000  1.481533E+00
-       24      400 ip5_scatter          sc_thin              Elastic        42        0  0.105000      3.150000  1.336510E+00
-       25      400 ip5_scatter          sc_thin              Elastic        43        0  0.107500      3.225000  1.060660E+00
-       26      400 ip5_scatter          sc_thin              Elastic        17        0  0.042500      1.275000  6.809859E-01
-       27      400 ip5_scatter          sc_thin              Elastic         5        0  0.012500      0.375000  2.346519E-01
-       29      400 ip5_scatter          sc_thin              Elastic        21        0  0.052500      1.575000  6.809855E-01
-       30      400 ip5_scatter          sc_thin              Elastic        34        0  0.085000      2.550000  1.060660E+00
-       31      400 ip5_scatter          sc_thin              Elastic        52        0  0.130000      3.900000  1.336510E+00
-       32      400 ip5_scatter          sc_thin              Elastic        56        0  0.140000      4.200000  1.481532E+00
-       33      400 ip5_scatter          sc_thin              Elastic        50        0  0.125000      3.750000  1.481533E+00
-       34      400 ip5_scatter          sc_thin              Elastic        52        0  0.130000      3.900000  1.336510E+00
+        7      400 ip5_scatter          sc_thin              Elastic        52        0  0.130000      3.900000  1.348837E+00
+        8      400 ip5_scatter          sc_thin              Elastic        70        0  0.175000      5.250000  2.046512E+00
+        9      400 ip5_scatter          sc_thin              Elastic       116        0  0.290000      8.700000  2.744186E+00
+       10      400 ip5_scatter          sc_thin              Elastic        94        0  0.235000      7.050000  3.441860E+00
+       11      400 ip5_scatter          sc_thin              Elastic       196        0  0.490000     14.700000  5.010000E+00
+       12      400 ip5_scatter          sc_thin              Elastic       200        0  0.500000     15.000000  5.540000E+00
+       13      400 ip5_scatter          sc_thin              Elastic       198        0  0.495000     14.850000  6.090000E+00
+       14      400 ip5_scatter          sc_thin              Elastic       244        0  0.610000     18.300000  6.660000E+00
+       15      400 ip5_scatter          sc_thin              Elastic        69        0  0.172500      5.175000  2.017631E+00
+       16      400 ip5_scatter          sc_thin              Elastic        99        0  0.247500      7.425000  3.258680E+00
+       17      400 ip5_scatter          sc_thin              Elastic       128        0  0.320000      9.600000  3.440779E+00
+       18      400 ip5_scatter          sc_thin              Elastic        98        0  0.245000      7.350000  2.563926E+00
+       19      400 ip5_scatter          sc_thin              Elastic        19        0  0.047500      1.425000  6.809856E-01
+       20      400 ip5_scatter          sc_thin              Elastic        40        0  0.100000      3.000000  1.060660E+00
+       21      400 ip5_scatter          sc_thin              Elastic        45        0  0.112500      3.375000  1.336510E+00
+       22      400 ip5_scatter          sc_thin              Elastic        54        0  0.135000      4.050000  1.481532E+00
+       23      400 ip5_scatter          sc_thin              Elastic        56        0  0.140000      4.200000  1.481533E+00
+       24      400 ip5_scatter          sc_thin              Elastic        52        0  0.130000      3.900000  1.336510E+00
+       25      400 ip5_scatter          sc_thin              Elastic        35        0  0.087500      2.625000  1.060660E+00
+       26      400 ip5_scatter          sc_thin              Elastic        25        0  0.062500      1.875000  6.809859E-01
+       27      400 ip5_scatter          sc_thin              Elastic        10        0  0.025000      0.750000  2.346519E-01
+       29      400 ip5_scatter          sc_thin              Elastic        28        0  0.070000      2.100000  6.809855E-01
+       30      400 ip5_scatter          sc_thin              Elastic        31        0  0.077500      2.325000  1.060660E+00
+       31      400 ip5_scatter          sc_thin              Elastic        40        0  0.100000      3.000000  1.336510E+00
+       32      400 ip5_scatter          sc_thin              Elastic        53        0  0.132500      3.975000  1.481532E+00
+       33      400 ip5_scatter          sc_thin              Elastic        66        0  0.165000      4.950000  1.481533E+00
+       34      400 ip5_scatter          sc_thin              Elastic        40        0  0.100000      3.000000  1.336510E+00
        35      400 ip5_scatter          sc_thin              Elastic        39        0  0.097500      2.925000  1.060660E+00
-       36      400 ip5_scatter          sc_thin              Elastic        19        0  0.047500      1.425000  6.809860E-01
-       37      400 ip5_scatter          sc_thin              Elastic        13        0  0.032500      0.975000  2.346520E-01
-       39      400 ip5_scatter          sc_thin              Elastic         9        0  0.022500      0.675000  2.346517E-01
-       40      400 ip5_scatter          sc_thin              Elastic        28        0  0.070000      2.100000  6.809857E-01
-       41      400 ip5_scatter          sc_thin              Elastic        38        0  0.095000      2.850000  1.060660E+00
-       42      400 ip5_scatter          sc_thin              Elastic        41        0  0.102500      3.075000  1.336510E+00
-       43      400 ip5_scatter          sc_thin              Elastic        64        0  0.160000      4.800000  1.481533E+00
+       36      400 ip5_scatter          sc_thin              Elastic        25        0  0.062500      1.875000  6.809860E-01
+       37      400 ip5_scatter          sc_thin              Elastic        11        0  0.027500      0.825000  2.346520E-01
+       39      400 ip5_scatter          sc_thin              Elastic         8        0  0.020000      0.600000  2.346517E-01
+       40      400 ip5_scatter          sc_thin              Elastic        27        0  0.067500      2.025000  6.809857E-01
+       41      400 ip5_scatter          sc_thin              Elastic        43        0  0.107500      3.225000  1.060660E+00
+       42      400 ip5_scatter          sc_thin              Elastic        59        0  0.147500      4.425000  1.336510E+00
+       43      400 ip5_scatter          sc_thin              Elastic        54        0  0.135000      4.050000  1.481533E+00
        44      400 ip5_scatter          sc_thin              Elastic        57        0  0.142500      4.275000  1.481533E+00
-       45      400 ip5_scatter          sc_thin              Elastic        51        0  0.127500      3.825000  1.336510E+00
-       46      400 ip5_scatter          sc_thin              Elastic        35        0  0.087500      2.625000  1.060660E+00
-       47      400 ip5_scatter          sc_thin              Elastic        25        0  0.062500      1.875000  6.809858E-01
-       48      400 ip5_scatter          sc_thin              Elastic         9        0  0.022500      0.675000  2.346517E-01
+       45      400 ip5_scatter          sc_thin              Elastic        55        0  0.137500      4.125000  1.336510E+00
+       46      400 ip5_scatter          sc_thin              Elastic        33        0  0.082500      2.475000  1.060660E+00
+       47      400 ip5_scatter          sc_thin              Elastic        31        0  0.077500      2.325000  6.809858E-01
+       48      400 ip5_scatter          sc_thin              Elastic        13        0  0.032500      0.975000  2.346517E-01

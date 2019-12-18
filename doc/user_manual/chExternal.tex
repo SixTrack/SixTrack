@@ -6,6 +6,8 @@ This chapter describes how to use these tools with SixTrack.
 
 \section{Pythia Integration} \label{ExtPythia}
 
+\textcolor{notered}{\textbf{Note:} This module should be considered experimental. It is not yet fully tested for correct physics.}
+
 Pythia8 is ``a standard tool for the generation of high-energy collisions, comprising a coherent set of physics models for the evolution from a few-body hard process to a complex multihadronic final state''~\cite{pythia8}\index{Pythia}.
 Version 8 is rewritten in c++ as a library, which makes it suitable for direct integration into SixTrack 5 via the update and extended c-interface available in Fortran2008.
 The integration was made specifically for the Scatter module\index{scatter} to function as an event generator for single diffractive scattering.
@@ -13,11 +15,81 @@ The integration was made specifically for the Scatter module\index{scatter} to f
 The Pythia8 library is built using the \texttt{buildLibraries.sh} script, and linking with SixTrack is provided with the \texttt{PYTHIA} compiler flag\index{build}.
 When the \texttt{PYTHIA} block is present in \texttt{fort.3}, a new generator becomes available to the Scatter module.
 
-The module is under development, but an example input block is provided below together with a \texttt{SCATTER} block.
+Note that the proton mass used by PYTHIA may not be the same as the proton mass in SixTrack.
+This may cause differences in the energy to momentum conversion.
+The mass from PYTHIA is printed to stdout during execution, and can also be found in the \texttt{scatter\_summary.dat} file.
 
+\paragraph{Particle Species}~ \texttt{SPECIES beam1 beam2}\\
+
+Set the particle species for Beam 1 and Beam 2 (or the target, if not a beam).
+These are the species used for the PYTHIA event generator, and in principle can be anything that PYTHIA supports, even if SixTrack cannot track it.
+
+Supported particle species are: \texttt{PROTON}, \texttt{ANTIPROTON}, \texttt{NEUTRON}, \texttt{ANTINEUTRON}, \texttt{PION+}, \texttt{PION-}, \texttt{PION0}, \texttt{PHOTON}, \texttt{ELECTRON}, \texttt{POSITRON}, \texttt{MUON-}, and \texttt{MUON+}.
+
+\paragraph{Beam Energy}~ \texttt{ENERGY beam1 [beam2]}\\
+
+The energy of the beams in MeV.
+If only Beam 1 is specified, the value is taken as the centre of mass energy by PYTHIA.
+
+\paragraph{Use Tracked Particles}~ \texttt{REALBEAM on|off}\\
+
+By default, PYTHIA generates events for head on collisions at reference energy.
+The event is then projected back onto the tracked particle in SixTrack.
+If, instead, you want to send the actual tracked particle to SixTrack, together with a sample particle generated from a beam distribution, set the \texttt{REALBEAM} flag to ``on''.
+
+\paragraph{Process Selection}~ \texttt{PROCESS type [crossSection]}\\
+
+The scattering process for the event generator can be set with this keyword.
+One process for each line.
+If the \texttt{MODES} are set to \texttt{MANUAL}, the cross sections can be specified as a second argument.
+
+\bigskip
+\noindent Available process types are:
+\begin{itemize}
+  \item Elastic: \texttt{EL}, \texttt{ELASTIC}
+  \item Single diffractive: \texttt{SD}, \texttt{SINGLEDIFF},\texttt{SINGLEDIFFRACTIVE}
+  \item Double diffractive: \texttt{DD}, \texttt{DOUBLEDIFF},\texttt{DOUBLEDIFFRACTIVE}
+  \item Central diffractive: \texttt{CD}, \texttt{CENTRALDIFF},\texttt{CENTRALDIFFRACTIVE}
+  \item Non-diffractive: \texttt{ND}, \texttt{NONDIFF},\texttt{NONDIFFRACTIVE}
+\end{itemize}
+
+\paragraph{Coulomb}~ \texttt{COULOMB on|off [tmin]}\\
+
+Enable or disable the Coulomb part of the elastic scattering generator.
+A \texttt{tmin} is required, but if it is not provided here, it defaults to $5\times 10^{-5}$.
+
+\paragraph{Total Cross Section}~ \texttt{SIGTOTAL crossSection}\\
+
+The total cross section can be provided in units of millibarn.
+This is only relevant when the \texttt{MODES} are set to \texttt{MANUAL}.
+The total cross section is then sent to PYTHIA with the cross sections provided with the \texttt{PROCESS} settings.
+
+\paragraph{Total Cross Section Mode}~ \texttt{SIGTOTALMODE mode}\\
+
+Set the total cross section mode for PYTHIA.
+The options are: \texttt{MANUAL}, \texttt{DL}, \texttt{MBR}, \texttt{ABMST}, and \texttt{RPP2016}.
+Alternatively, an integer value can be provided.
+For a description of these options, and their integer equivalents, please consult the PYTHIA manual~\cite{pythia8}.
+
+\paragraph{Diffractive Cross Section Mode}~ \texttt{SIGDIFFMODE mode}\\
+
+Set the diffractive cross section mode for PYTHIA.
+The options are: \texttt{MANUAL}, \texttt{SAS}, \texttt{MBR}, and \texttt{ABMST}.
+Alternatively, an integer value can be provided.
+For a description of these options, and their integer equivalents, please consult the PYTHIA manual~\cite{pythia8}.
+
+\paragraph{Random Seed}~ \texttt{SEED value}\\
+
+The random number seed to send to the PYTHIA library.
+This has no relation to the internal SixTrack random seeds.
+
+\paragraph{Settings File}~ \texttt{FILE fileName}\\
+
+If the \texttt{PYTHIA} block does not provide sufficient settings, a PYTHIA settings file can be set instead using this command.
+
+\paragraph{Example}~\\
 \begin{cverbatim}
 PYTHIA------------------------------------------------------------------
-  LOSSES
   SPECIES PROTON PROTON
   ENERGY 7000000 7000000
   SEED 41
@@ -26,9 +98,8 @@ PYTHIA------------------------------------------------------------------
 NEXT
 
 SCATTER-----------------------------------------------------------------
-  SEED 42
   GEN  sc_elastic  PPBEAMELASTIC 0.046  18.52  4.601  2.647  0.2  8.0
-  GEN  sc_pythia   PYTHIASIMPLE  27.0
+  GEN  sc_pythia   PYTHIA  27.0
   PRO  ipFLAT      FLAT   3e25  938.0  7000000
   ELEM ip1_scatter ipFLAT auto 1.0 sc_elastic
   ELEM ip5_scatter ipFLAT auto 1.0 sc_pythia

@@ -273,7 +273,6 @@ program maincr
   call time_timeStamp(time_afterCRCheck)
 #endif
 
-  call scatter_init
   call aperture_init
 
 #ifndef FLUKA
@@ -482,6 +481,8 @@ program maincr
   if(ilin == 1 .or. ilin == 3) then
     call linopt(dp1)
   end if
+
+  call scatter_init ! Must be after linopt
 
   ! beam-beam element
   nlino = nlin

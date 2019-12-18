@@ -56,9 +56,10 @@ DYNK--------------------------------------------------------------------
   SET ip5_scatter scaling one  3  13 0
   SET ip5_scatter scaling zero 14 -1 0
 NEXT
+RANDOM NUMBERS----------------------------------------------------------
+  SEED 42
+NEXT
 SCATTER-----------------------------------------------------------------
-  DEBUG
-  SEED  42
   GEN   sc_thin     PPBEAMELASTIC 0.046 18.52   4.601   2.647 0.0 30
   PRO   ipPRO       FLAT          1e25  938.0   7000000
   ELEM  ip5_scatter ipPRO         auto  1.0 sc_thin
