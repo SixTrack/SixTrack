@@ -110,7 +110,7 @@ subroutine ranecuu(rvec, len)
   integer,          intent(in)  :: len
   real(kind=fPrec), intent(out) :: rvec(len)
 
-  integer i, iz, j, k
+  integer iz, j, k
   do j=1,len
     k = iseed1/53668
     iseed1 = 40014*(iseed1-k*53668) - k*12211

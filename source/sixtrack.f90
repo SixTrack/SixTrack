@@ -27,7 +27,7 @@ subroutine daten
   use mod_random
 
   use mod_dist,  only : dist_enable, dist_parseInputLine
-  use scatter,   only : scatter_active,scatter_debug,scatter_parseInputLine
+  use scatter,   only : scatter_active,scatter_parseInputLine
   use dynk,      only : dynk_enabled,dynk_inputSanityCheck,dynk_allocate,dynk_parseInputLine
   use fma,       only : fma_parseInputLine, fma_allocate
   use dump,      only : dump_parseInputLine,dump_parseInputDone

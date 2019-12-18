@@ -8,7 +8,6 @@ program readDump3
   use, intrinsic :: iso_fortran_env, only : output_unit
   implicit none
 
-  integer :: stat
   logical :: fileExists
   
   INTEGER :: cmdarg_i, cmdarg_length, cmdarg_status

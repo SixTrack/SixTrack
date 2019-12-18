@@ -307,7 +307,7 @@ subroutine updatePairMap
   use parpro, only : npart
   use mod_common_main, only : partID, pairID, pairMap
 
-  integer j, m
+  integer j
 
   pairMap(:,:) = 0
   do j=1,npart

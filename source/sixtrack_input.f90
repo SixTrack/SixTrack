@@ -3505,7 +3505,6 @@ subroutine sixin_parseInputLineBEAM_EXP(inLine, iLine, iErr)
   use crcoall
   use string_tools
   use mod_settings
-  use parbeam, only : beam_expflag
   use mod_common
   use mod_utils
 

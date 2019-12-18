@@ -138,7 +138,7 @@ subroutine fluc_moreRandomness
 
   implicit none
 
-  integer            :: i, tSeed1, tSeed2
+  integer            :: tSeed1, tSeed2
   integer, parameter :: newRnd = 5000
   real(kind=fPrec)   :: tmpRnd(newRnd)
 
@@ -201,16 +201,14 @@ subroutine fluc_readFort8
   use mod_units
   use string_tools
   use numerical_constants, only : zero
-  use mod_common,          only : il,bez,icextal,nblz,nblo,ic
+  use mod_common,          only : bez,icextal,nblz,nblo,ic
 
   implicit none
 
   character(len=1024) :: inLine
   character(len=:), allocatable :: lnSplit(:)
-  real(kind=fPrec) alignx, alignz, tilt
   integer lineNo, ioStat, nSplit, mAlign, nAlign, iStru, iSing
-  logical iErr, isFile, inSing
-  integer i
+  logical iErr, isFile
 
   lineNo = 0
   inLine = " "
@@ -464,16 +462,14 @@ subroutine fluc_readFort30
   use string_tools
   use parpro,              only : mmul
   use numerical_constants, only : zero
-  use mod_common,          only : il,bez,icextal,nblz,nblo,ic,kp,kz
+  use mod_common,          only : bez,icextal,nblz,nblo,ic,kp,kz
 
   implicit none
 
   character(len=1024) :: inLine
   character(len=:), allocatable :: lnSplit(:)
-  real(kind=fPrec) alignx, alignz, tilt
   integer lineNo, ioStat, nSplit, mZFZ, nZFZ, iStru, iSing, iZ
-  logical iErr, isFile, inSing
-  integer i
+  logical iErr, isFile
 
   lineNo = 0
   inLine = " "

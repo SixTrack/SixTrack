@@ -44,17 +44,17 @@ subroutine postpr(posi, numl_t)
   integer,           intent(in) :: posi
   integer, optional, intent(in) :: numl_t
 
-  integer i,i1,i11,i2,i3,ia,ia0,iaa,iab,iap6,iapx,iapz,ich,idnt,ierro,idummy,   &
+  integer i,i1,i11,i2,i3,ia,ia0,iaa,iab,iap6,iapx,iapz,idnt,ierro,idummy,   &
     if1,if2,ife,ife2,ifipa,ifp,ii,ilapa,ilyap,im1,im1s,invx,invz,iq,iskc,itopa, &
     iturn,ivo6,iwar6,iwarx,iwarz,j,jm1,jm1s,jq,k,k1,nerror,nfft,nfile,nivh,     &
     nlost,ntwin,nuex,nuez,nuix,nuiz,numl,posi1, ia_stf,ifipa_stf,ilapa_stf
-  real tim1,tim2,fxs,fzs
+  real fxs,fzs
   real(kind=fPrec) const,dle,slope,tle,varlea,wgh,alf0,alf04,alf0s2,alf0s3,     &
     alf0x2,alf0x3,alf0z2,alf0z3,ampx0,ampz0,angi,angii,angiii,ared,ares,armin,  &
     armin0,b,b0,bet0,bet04,bet0s2,bet0s3,bet0x2,bet0x3,bet0z2,bet0z3,biav,bold, &
     c,c0,c1,c6,clo,cloau,clop,cx,cz,d,d0,d1,dared,dares,di0,di0au,di11,dife,    &
     dip0,dizu0,dle1,dle1c,dmmac,dnms,dnumlr,dp1,dph6,dphx,dphz,dpx,dpxp,dpz,    &
-    dpzp,dummy,e,e0,e1,emag,emat,emax,emaz,emi,emig,emii,emiii,emit,emix,emiz,  &
+    dpzp,e,e0,e1,emag,emat,emax,emaz,emi,emig,emii,emiii,emit,emix,emiz,  &
     emt,emta,emts,emx,emx0,emxa,emxs,emz,emz0,emza,emzs,evt,evt1,evtm,evtma,    &
     evtmi,evx,evx1,evx2,evxm,evxma,evxmi,evz,evz1,evz2,evzm,evzma,evzmi,f,f0,f1,&
     ffx,ffz,finv,g,g0,g1,gam0s1,gam0s2,gam0s3,gam0x1,gam0x2,gam0x3,gam0z1,      &
@@ -85,7 +85,7 @@ subroutine postpr(posi, numl_t)
   character(len=11) hvs
   character(len=8192) ch
   character(len=25) ch1
-  integer errno,l1,l2,nnuml
+  integer l1,nnuml
   logical rErr
   dimension tle(nlya),dle(nlya)
   dimension wgh(nlya),biav(nlya),slope(nlya),varlea(nlya)
@@ -99,7 +99,6 @@ subroutine postpr(posi, numl_t)
   dimension x(2,6),cloau(6),di0au(4)
   dimension qwc(3),clo(3),clop(3),di0(2),dip0(2)
   dimension ta(6,6),txyz(6),txyz2(6),xyzv(6),xyzv2(6),rbeta(6)
-  integer itot,ttot
   save
 
 #ifdef CERNLIB
@@ -2527,7 +2526,7 @@ subroutine join
       implicit none
 
       integer i,j,ia,idummy,ierro,ifipa,ihalf,ilapa,ipa,ipa1,itopa,numl
-      real(kind=fPrec) alf0,bet0,clo,clop,di0,dip0,dps,dummy,e0,qwc,sigm,ta,x,y
+      real(kind=fPrec) alf0,bet0,clo,clop,di0,dip0,dps,e0,qwc,sigm,ta,x,y
       character(len=8) cdate,ctime,progrm ! Note: Keep in sync with maincr
       character(len=80) sixtit,commen     ! Note: Keep in sync with mod_common
                                           ! DANGER: If the len changes, CRCHECK will break.

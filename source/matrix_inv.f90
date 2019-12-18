@@ -122,7 +122,7 @@ subroutine kermtr(ercode,log,mflag,rflag)
 
   implicit none
 
-  integer i,kounte,l,lgfile,limitm,limitr,log,logf
+  integer i,kounte,log,logf
   parameter(kounte = 27)
   character(len=6)    ercode,   code(kounte)
   logical             mflag,    rflag
@@ -352,7 +352,7 @@ subroutine rfact(n,a,idim,ir,ifail,det,jfail)
 
   integer i,idim,ifail,imposs,ir,j,jfail,jm1,jover,jp1,jrange,junder,k,l,n,normal,nxch
 
-  real(kind=fPrec) a,det,g1,g2,p,q,t,tf,x,y
+  real(kind=fPrec) a,det,g1,g2,p,q,t,tf
   real(kind=fPrec) s11,s12
 
   character(len=6) hname
@@ -460,7 +460,7 @@ subroutine dfact(n,a,idim,ir,ifail,det,jfail)
 
   integer i,idim,ifail,imposs,ir,j,jfail,jm1,jover,jp1,jrange,junder,k,l,n,normal,nxch
   real(kind=fPrec) g1,g2,p,q,t
-  real(kind=fPrec) a,det,s11,s12,x,y,tf
+  real(kind=fPrec) a,det,s11,s12,tf
   character(len=6)         hname
   dimension ir(*),a(idim,*)
 
@@ -569,7 +569,7 @@ subroutine rfeqn(n,a,idim,ir,k,b)
   implicit none
 
   integer i,idim,ij,im1,ir,j,k,l,m,n,nm1,nmi,nmjp1,nxch
-  real(kind=fPrec) a,b,te,x,y
+  real(kind=fPrec) a,b,te
   real(kind=fPrec) s21,s22
   character(len=6) hname
   dimension ir(*),a(idim,*),b(idim,*)
@@ -641,7 +641,7 @@ subroutine rfinv(n,a,idim,ir)
   implicit none
 
   integer i,idim,ij,im2,ir,j,k,m,n,nm1,nmi,nxch
-  real(kind=fPrec) a,ti,x,y
+  real(kind=fPrec) a,ti
   real(kind=fPrec) s31,s32,s33,s34
   character(len=6) hname
   dimension ir(*),a(idim,*)
@@ -725,7 +725,7 @@ subroutine dfinv(n,a,idim,ir)
   implicit none
 
   integer i,idim,ij,im2,ir,j,k,m,n,nm1,nmi,nxch
-  real(kind=fPrec) a,s31,s32,s33,s34,ti,x,y
+  real(kind=fPrec) a,s31,s32,s33,s34,ti
   character(len=6) hname
   dimension ir(*),a(idim,*)
   data      hname               /  ' DFINV'  /
@@ -851,7 +851,7 @@ subroutine dfeqn(n,a,idim,ir,k,b)
   implicit none
 
   integer i,idim,ij,im1,ir,j,k,l,m,n,nm1,nmi,nmjp1,nxch
-  real(kind=fPrec) a,b,x,y,te
+  real(kind=fPrec) a,b,te
   real(kind=fPrec) s21,s22
   character(len=6) hname
   dimension ir(*),a(idim,*),b(idim,*)

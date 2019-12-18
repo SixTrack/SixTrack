@@ -1449,7 +1449,7 @@ subroutine dynk_parseSET(inLine, iErr)
   logical,          intent(inout) :: iErr
 
   character(len=:), allocatable :: lnSplit(:)
-  integer nSplit, ii
+  integer nSplit
   logical spErr, cErr
 
   call chr_split(inLine,lnSplit,nSplit,spErr)
@@ -1878,9 +1878,6 @@ subroutine dynk_apply(turn)
   character(len=mStrLen) whichFUN(dynk_nSets_unique) ! Which function was used to set a given elem/attr?
   integer whichSET(dynk_nSets_unique)                ! Which SET was used for a given elem/attr?
 
-  ! Temp variable for padding the strings for output to dynksets.dat
-  character(20) outstring_tmp1,outstring_tmp2,outstring_tmp3
-
   if(dynk_debug) then
     write (lout,"(a,i0)") "DYNK> DEBUG In apply at turn ",turn
   end if
@@ -2292,10 +2289,10 @@ subroutine dynk_setvalue(element_name, att_name, newValue)
   real(kind=fPrec),   intent(in) :: newValue
 
   ! Temp variables
-  integer el_type, ii, j, orderMult, im,k, range
+  integer el_type, ii, orderMult, im,k, range
 
   ! Original energies before energy update
-  real(kind=fPrec) e0fo, e0o, r0a, r0
+  real(kind=fPrec) r0a, r0
 
   ! For sanity check
   logical ldoubleElement, iErr
