@@ -305,7 +305,7 @@ end subroutine shuffleLostParticles
 subroutine updatePairMap
 
   use parpro, only : npart
-  use mod_common_main, only : partID, pairID, pairMap
+  use mod_common_main, only : pairID, pairMap
 
   integer j
 
