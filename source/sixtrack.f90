@@ -512,9 +512,7 @@ subroutine daten
 
   case("COMB") ! Combination of Elements
     if(openBlock) then
-      write(lout,"(a)") "COMB> WARNING This block is inhertited from older versions of SixTrack and is not covered by tests."
-      write(lout,"(a)") "COMB>         It therefore may not produce the results expected."
-      write(lout,"(a)") "COMB>         Please report any bugs to the dev team."
+      continue
     elseif(closeBlock) then
       continue
     else
