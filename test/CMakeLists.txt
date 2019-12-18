@@ -239,9 +239,10 @@ endif()
 
 if(SIXDA)
   list(APPEND SIXTRACK_DA_TESTS
+    chrom_da
     frs_da
-    fs_chrom_da
-    fs_sps_da
+    sps_5d_da
+    sps_6d_da
     thick4_da
   )
 endif()
@@ -620,6 +621,7 @@ set(FAST_TESTS
   chebythin6d_DYNK
   chebythin6d_ions
   chebythin6d_ramp_DYNK
+  chrom_da
   collimation_cry_ge_am_hor_b2
   collimation_cry_ge_vc_ver_b1
   collimation_cry_si_ch_hor_b1
@@ -674,8 +676,6 @@ set(FAST_TESTS
   exact
   fcc
   frs_da
-  fs_chrom_da
-  fs_sps_da
   generalized-rf-multipoles
   generalized-rf-multipoles-missalignments
   geometry
@@ -688,10 +688,10 @@ set(FAST_TESTS
   notilt
   orbit6d-element-combinedFunction
   orbit6d-element-quadrupole
+  orbit6d-element-rotations
   orbit6d-element-solenoid
   orbit6d-element-trombone
   orbit6d-element-trombone-kick
-  orbit6d-element-rotations
   orbit6d-ions
   orbit6d-ions-long
   part_state_binary_ions
@@ -706,6 +706,8 @@ set(FAST_TESTS
   scatter_bbelastic
   scatter_collimation
   scatter_pythia
+  sps_5d_da
+  sps_6d_da
   thick4
   thick4_da
   thick6d_below_transit
