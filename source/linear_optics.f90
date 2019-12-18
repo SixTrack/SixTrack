@@ -1037,6 +1037,7 @@ subroutine writelin(nr,typ,tl,p1,t,ixwl,isBLOC,ielem)
 
   use parpro
   use crcoall
+  use scatter
   use mod_settings
   use mod_common
   use mod_commons
@@ -1117,6 +1118,10 @@ subroutine writelin(nr,typ,tl,p1,t,ixwl,isBLOC,ielem)
     tdispy(tiel)  = d(2)
     tdispxp(tiel) = dp(1)
     tdispyp(tiel) = dp(2)
+
+    if(scatter_active .and. .not. isBLOC) then
+      call scatter_setLinOpt(ixwl, al1, b1, c, cp, d, dp)
+    end if
 
     if(ncorru == 0) then
       if(st_quiet == 0) then
