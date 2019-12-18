@@ -44,7 +44,6 @@ program mainda
     gam0x3,gam0z1,gam0z2,gam0z3,phag,qw,qwc,r0,r0a,rv,tas,tas16,tas26,tas36,tas46,tas56,tas61,tas62,&
     tas63,tas64,tas65
 
-!  character(len=8)  cdate,ctime ! Note: Keep in sync with maincr. If the len changes, CRCHECK will break.
   dimension qw(2),qwc(3),clo0(2),clop0(2)
   dimension eps(2),epsa(2)
   dimension tas(6,6)

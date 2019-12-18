@@ -372,7 +372,7 @@ subroutine sixin_parseInputLineSETT(inLine, iLine, iErr)
   logical,          intent(inout) :: iErr
 
   character(len=:), allocatable   :: lnSplit(:)
-  integer nSplit
+  integer nSplit, i
   logical spErr
 
   call chr_split(inLine, lnSplit, nSplit, spErr)
