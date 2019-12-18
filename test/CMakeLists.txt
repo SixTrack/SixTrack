@@ -239,14 +239,14 @@ endif()
 
 if(SIXDA)
   list(APPEND SIXTRACK_DA_TESTS
-    sps_da
     frs_da
-    sps_diff2_da
-    sps_diff10_da
-    thick4_da
+    ps_5d_da
     ps_6d_da
     psb_5d_da
-    ps_5d_da
+    sps_da
+    sps_diff10_da
+    sps_diff2_da
+    thick4_da
   )
 endif()
 
@@ -677,6 +677,7 @@ set(FAST_TESTS
   elensidealthin6d_ions
   exact
   fcc
+  frs_da
   generalized-rf-multipoles
   generalized-rf-multipoles-missalignments
   geometry
@@ -697,6 +698,9 @@ set(FAST_TESTS
   orbit6d-ions-long
   part_state_binary_ions
   part_state_text_ions
+  ps_5d_da
+  ps_6d_da
+  psb_5d_da
   random_numbers
   rfMultipoles_2nd3rd4th_skew
   rfMultipoles_2ndOrder
@@ -707,7 +711,11 @@ set(FAST_TESTS
   scatter_bbelastic
   scatter_collimation
   scatter_pythia
+  sps_da
+  sps_diff10_da
+  sps_diff2_da
   thick4
+  thick4_da
   thick6d_below_transit
   thick6dblocks
   thick6ddynk
@@ -719,14 +727,6 @@ set(FAST_TESTS
   wire_thin4d
   wire_thin6d
   wire_thin6d_ibeco0
-  sps_da
-  frs_da
-  sps_diff2_da
-  sps_diff10_da
-  thick4_da
-  ps_6d_da
-  psb_5d_da
-  ps_5d_da
 )
 
 # Medium tests take < 30 mins to run
