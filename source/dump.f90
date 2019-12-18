@@ -409,7 +409,6 @@ subroutine dump_parseInputDone(iErr)
 
   ! Temp variables
   integer ii,jj,kk
-  character(len=mStrLen) ch1
 
   ! HEADER
 ! 10460 format(//131('-')//t10,'DATA BLOCK ',a4,' INFOs'/ /t10, 'ELEMENT NAME',8x,'EVERY # TURNs',2x, &

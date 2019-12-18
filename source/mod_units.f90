@@ -191,9 +191,11 @@ subroutine f_open(unit,file,formatted,mode,err,iostat,status,access,recl)
   integer,          optional, intent(in)  :: recl
 
   character(len=:), allocatable :: fFileName, fStatus, fAction, fPosition, fMode, fAccess
+#ifdef BOINC
   character(len=mPathName+1) :: tmpBoinc
-  integer i, fRecl, nUnits, fStat, chkUnit
-  logical fFio, isOpen
+#endif
+  integer fRecl, fStat, chkUnit
+  logical fFio
 
   if(present(recl)) then
     fRecl = recl
@@ -374,7 +376,7 @@ subroutine f_close(unit, cErr)
   integer,           intent(in)  :: unit
   logical, optional, intent(out) :: cErr
 
-  integer i, ioStat
+  integer ioStat
   logical isOpen
 
   if(unit < units_minUnit .or. unit > units_maxUnit) then
@@ -432,7 +434,6 @@ subroutine f_freeUnit(unit)
 
   integer, intent(in) :: unit
 
-  integer i
   logical isOpen
 
   if(unit < units_minUnit .or. unit > units_maxUnit) then

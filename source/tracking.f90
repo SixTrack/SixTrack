@@ -439,7 +439,7 @@ subroutine trackDistance
   use floatPrecision
   use numerical_constants
 
-  integer ia,ib2,ib3,ie,ip
+  integer ia,ie,ip
   real(kind=fPrec) dam1
 
   do ip=1,(napxo+1)/2

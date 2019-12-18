@@ -81,13 +81,13 @@ program maincr
 
   implicit none
 
-  integer i,itiono,i2,i3,ia,ia2,iation,ib1,id,ie,ii,im,ip,iposc,ix,izu,j,jj,k,kpz,kzz,l,ncorruo,    &
+  integer i,itiono,i2,i3,ia,ia2,iation,ib1,id,ie,ii,im,ip,iposc,ix,izu,jj,k,kpz,kzz,l,ncorruo,    &
     ncrr,nd,nd2,ndafi2,nerror,nlino,nlinoo,nmz,nthinerr
   real(kind=fPrec) alf0s1,alf0s2,alf0s3,alf0x2,alf0x3,alf0z2,alf0z3,amp00,bet0s1,bet0s2,bet0s3,     &
     bet0x2,bet0x3,bet0z2,bet0z3,chi,coc,dam1,dchi,dp0,dp00,dp10,dpsic,dps0,dsign,gam0s1,gam0s2,     &
-    gam0s3,gam0x1,gam0x2,gam0x3,gam0z1,gam0z2,gam0z3,phag,r0,r0a,rat0,sic,tasia56,tasiar16,tasiar26,&
+    gam0s3,gam0x1,gam0x2,gam0x3,gam0z1,gam0z2,gam0z3,phag,rat0,sic,tasia56,tasiar16,tasiar26,&
     tasiar36,tasiar46,tasiar56,tasiar61,tasiar62,tasiar63,tasiar64,tasiar65,taus,x11,x13,damp,      &
-    eps(2),epsa(2),pretime,trtime,posttime,tottime
+    epsa(2),pretime,trtime,posttime,tottime
   integer idummy(6)
   character(len=4) cpto
 

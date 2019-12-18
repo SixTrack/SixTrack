@@ -1013,14 +1013,14 @@ subroutine mod_commonmn_expand_arrays(nblz_new,npart_new)
 
 end subroutine mod_commonmn_expand_arrays
 
-subroutine mod_commonmn_expand_thickarrays(nele_new, npart_new, nblo_new)
+subroutine mod_commonmn_expand_thickarrays(npart_new, nblo_new)
 
   use mod_alloc
   use numerical_constants, only : zero
 
   implicit none
 
-  integer,intent(in) :: nele_new, npart_new, nblo_new
+  integer,intent(in) :: npart_new, nblo_new
 
   call alloc(bl1v,6,2,npart_new,nblo_new,zero,"bl1v")
 
