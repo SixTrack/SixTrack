@@ -10,7 +10,7 @@
 * Fixed a type definition inconsistency introduced by #878 that affected the ROOT interface. PR #1026 (J. Molson)
 * Fixed the `CERNLIB` build system to support 64-bit. PR #1025 (F. Schmidt, J. Molson)
 * Fixed a faulty loop in the FFT routine in post-processing. PR #1025 (J. Molson, F. Schmidt)
-* Fixed a difference in sign in the thin combined function code. PR 1005 (T. Persson)
+* Fixed a difference in sign in the thin combined function code. PR #1005 (T. Persson)
 
 **User Side Changes**
 
@@ -26,6 +26,10 @@
 **BOINC Interface**
 
 * Extended the BOINC interface code to produce a new validation file for BOINC jobs. The new file supports a wider range of job types, especially jobs that do not produce a `fort.10` file. PR #878 (V.K. Berglyd Olsen, A. Mereghetti)
+
+**Code Improvements and Changes**
+
+* Cleaned up a number of unused variables throughout the SixTrack source code. PR #1037 (J. Molson)
 
 ### Version 5.4.2 [22.11.2019] - Release
 
@@ -44,10 +48,6 @@
 **Documentation**
 
 * Documentation section for collimation updated to include crystal collimators. PRs #1012 and #1019 (M. D'Andrea, V.K. Berglyd Olsen)
-
-**Code Improvements and Changes**
-
-* Cleaned up a number of unused variables throughout the SixTrack source code. PR #1037 (J. Molson)
 
 ### Version 5.4.1 [01.11.2019] - Release
 
