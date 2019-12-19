@@ -1612,6 +1612,7 @@ subroutine scatter_generateEvent(idGen, idPro, iElem, j, nTurn, t, theta, dEE, d
   nRetry  = 0
   isDiff  = .false.
   isExact = .false.
+  pVec(:) = zero
 
   select case(scatter_genList(idGen)%genType)
   case(scatter_genAbsorber)
@@ -1858,8 +1859,8 @@ subroutine scatter_dumpPDF(idPro, iElem, nTurn)
   orbY   = scatter_proList(idPro)%fParams(9)
   sigmaX = scatter_proList(idPro)%fParams(10)
   sigmaY = scatter_proList(idPro)%fParams(11)
-  dX     = 20.0_fPrec*sigmaX/499_fPrec
-  dY     = 20.0_fPrec*sigmaY/499_fPrec
+  dX     = 20.0_fPrec*sigmaX/499.0_fPrec
+  dY     = 20.0_fPrec*sigmaY/499.0_fPrec
 
   write(unitPDF,"(a)")                     "# Element = "//trim(bez(iElem))
   write(unitPDF,"(a,i0)")                  "# Turn    = ",nTurn
