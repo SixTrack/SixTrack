@@ -523,7 +523,7 @@ subroutine f_positionFile(fileName, fileUnit, filePos, newPos)
   inquire(unit=fileUnit,opened=isOpen)
   if(isOpen) then
 #ifdef CR
-    write(crlog,"(a,i0,a)") "UNITS> ERROR Failed while repsositioning '"//trim(fileName)//"', "//&
+    write(crlog,"(a,i0,a)") "UNITS> ERROR Failed while repositioning '"//trim(fileName)//"', "//&
       "unit ",fileUnit," already in use"
     flush(crlog)
 #endif
@@ -539,9 +539,11 @@ subroutine f_positionFile(fileName, fileUnit, filePos, newPos)
       read(fileUnit,"(a)",end=10,err=10,iostat=iError) aRecord
       filePos = filePos + 1
     end do
+    ! Truncate file at requested position
     endfile(fileUnit,iostat=iError)
     call f_close(fileUnit)
 
+    ! Re-open for appending
     call f_open(unit=fileUnit,file=fileName,formatted=.true.,mode="w+",err=fErr,status="old")
     if(fErr) goto 10
 #ifdef CR
