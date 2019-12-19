@@ -2221,76 +2221,13 @@ subroutine scatter_crcheck_positionFiles
   integer j
   character(len=mInputLn) aRecord
 
-  call scatter_positionFile(scatter_logFile, scatter_logUnit, scatter_logFilePos, scatter_logFilePos_CR)
-  call scatter_positionFile(scatter_sumFile, scatter_sumUnit, scatter_sumFilePos, scatter_sumFilePos_CR)
+  call f_positionFile(scatter_logFile, scatter_logUnit, scatter_logFilePos, scatter_logFilePos_CR)
+  call f_positionFile(scatter_sumFile, scatter_sumUnit, scatter_sumFilePos, scatter_sumFilePos_CR)
   if(scatter_writePLog) then
-    call scatter_positionFile(scatter_pVecFile, scatter_pVecUnit, scatter_pVecFilePos, scatter_pVecFilePos_CR)
+    call f_positionFile(scatter_pVecFile, scatter_pVecUnit, scatter_pVecFilePos, scatter_pVecFilePos_CR)
   end if
 
 end subroutine scatter_crcheck_positionFiles
-
-! =================================================================================================
-!  V.K. Berglyd Olsen, BE-ABP-HSS
-!  Created: 2019-07-24
-!  Updated: 2019-07-24
-! =================================================================================================
-subroutine scatter_positionFile(fileName, fileUnit, filePos, filePos_CR)
-
-  use parpro
-  use crcoall
-  use mod_units
-
-  character(len=*), intent(in)    :: fileName
-  integer,          intent(inout) :: fileUnit
-  integer,          intent(inout) :: filePos
-  integer,          intent(inout) :: filePos_CR
-
-  logical isOpen, fErr
-  integer iError
-  integer j
-  character(len=mInputLn) aRecord
-
-  call f_requestUnit(fileName,fileUnit)
-  inquire(unit=fileUnit, opened=isOpen)
-  if(isOpen) then
-    write(crlog,"(a,i0,a)") "CR_CHECK> ERROR Failed while repsositioning '"//fileName//"', unit ",fileUnit," already in use"
-    flush(crlog)
-    write(lerr,"(a)") "CR_CHECK> ERROR Failed positioning '"//fileName//"'"
-    call prror
-  end if
-
-  if(filePos_CR /= -1) then
-    call f_open(unit=fileUnit,file=fileName,formatted=.true.,mode="rw",err=fErr,status="old")
-    if(fErr) goto 10
-    filePos = 0
-    do j=1, filePos_CR
-      read(fileUnit,"(a)",end=10,err=10,iostat=iError) aRecord
-      filePos = filePos + 1
-    end do
-    endfile(fileUnit,iostat=iError)
-    call f_close(fileUnit)
-
-    call f_open(unit=fileUnit,file=fileName,formatted=.true.,mode="w+",err=fErr,status="old")
-    if(fErr) goto 10
-    write(97,"(2(a,i0))") "CR_CHECK> Sucessfully repositioned '"//fileName//"': "//&
-      "Position: ",filePos,", Position C/R: ",filePos_CR
-    flush(crlog)
-  else
-    write(crlog,"(a,i0)") "CR_CHECK> Did not attempt repositioning '"//fileName//"' at line ",filePos_CR
-    write(crlog,"(a)")    "CR_CHECK> If anything has been written to the file, it will be correctly truncated"
-    flush(crlog)
-  end if
-
-  return
-
-10 continue
-  write(crlog,"(a,i0)")    "CR_CHECK> ERROR While reading '"//fileName//"', iostat = ",iError
-  write(crlog,"(2(a,i0))") "CR_CHECK>       Position: ",filePos,", Position C/R: ",filePos_CR
-  flush(crlog)
-  write(lerr,"(a)")"CR_CHECK> ERROR CRCHECK failure positioning '"//fileName//"'"
-  call prror
-
-end subroutine scatter_positionFile
 
 ! =================================================================================================
 !  K. Sjobak, V.K. Berglyd Olsen, BE-ABP-HSS

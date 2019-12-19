@@ -483,6 +483,100 @@ subroutine f_flush(unit)
 
 end subroutine f_flush
 
+! =================================================================================================
+!  Reposition Text File
+!
+!  V.K. Berglyd Olsen, BE-ABP-HSS
+!  Created: 2019-07-24
+!  Updated: 2019-12-19
+!
+!  The routine was moved from Scatter Module, and was originally intended for Checkpoint/Restart,
+!  but should also work outside of C/R.
+!
+!  Parameters:
+!   * fileName : The file name of the file to be opened. Needed both to ensure not multiple units
+!                is assigned, and to make log messages more readable.
+!   * fileUnit : The file unit variable for the file. The unit can be assigned already, but must
+!                not be open. This routine opens the file, and returns the unit.
+!   * filePos  : The file position variable used to track the latest position in the file. This is
+!                the variable the calling code must keep track on and checkpoint.
+!   * newPos   : The desired position the file should be truncated to. This is the value the
+!                calling code should restore from checkpoint file. It is the checkpointed value of
+!                filePos.
+! =================================================================================================
+subroutine f_positionFile(fileName, fileUnit, filePos, newPos)
+
+  use parpro
+  use crcoall
+
+  character(len=*), intent(in)    :: fileName
+  integer,          intent(inout) :: fileUnit
+  integer,          intent(inout) :: filePos
+  integer,          intent(in)    :: newPos
+
+  logical isOpen, fErr
+  integer iError
+  integer j
+  character(len=mInputLn) aRecord
+
+  call f_requestUnit(fileName,fileUnit)
+  inquire(unit=fileUnit,opened=isOpen)
+  if(isOpen) then
+#ifdef CR
+    write(crlog,"(a,i0,a)") "UNITS> ERROR Failed while repsositioning '"//trim(fileName)//"', "//&
+      "unit ",fileUnit," already in use"
+    flush(crlog)
+#endif
+    write(lerr,"(a)")"UNITS> ERROR Failed to reposition file '"//trim(fileName)//"'"
+    call prror
+  end if
+
+  if(newPos /= -1) then
+    call f_open(unit=fileUnit,file=fileName,formatted=.true.,mode="rw",err=fErr,status="old")
+    if(fErr) goto 10
+    filePos = 0
+    do j=1,newPos
+      read(fileUnit,"(a)",end=10,err=10,iostat=iError) aRecord
+      filePos = filePos + 1
+    end do
+    endfile(fileUnit,iostat=iError)
+    call f_close(fileUnit)
+
+    call f_open(unit=fileUnit,file=fileName,formatted=.true.,mode="w+",err=fErr,status="old")
+    if(fErr) goto 10
+#ifdef CR
+    write(crlog,"(2(a,i0))") "UNITS> Sucessfully repositioned '"//trim(fileName)//"': "//&
+      "Position: ",filePos,", Position C/R: ",newPos
+#endif
+    write(lout, "(2(a,i0))") "UNITS> Sucessfully repositioned '"//trim(fileName)//"': "//&
+      "Position: ",filePos,", Position C/R: ",newPos
+  else
+#ifdef CR
+    write(crlog,"(a,i0)") "UNITS> Did not attempt repositioning '"//trim(fileName)//"' at line ",newPos
+    write(crlog,"(a)")    "UNITS> If anything has been written to the file, it will be correctly truncated"
+#endif
+    write(lout, "(a,i0)") "UNITS> Did not attempt repositioning '"//trim(fileName)//"' at line ",newPos
+    write(lout, "(a)")    "UNITS> If anything has been written to the file, it will be correctly truncated"
+  end if
+
+#ifdef CR
+  flush(crlog)
+#endif
+  flush(lout)
+
+  return
+
+10 continue
+#ifdef CR
+  write(crlog,"(a,i0)")    "UNITS> ERROR While reading '"//trim(fileName)//"', iostat = ",iError
+  write(crlog,"(2(a,i0))") "UNITS>       Position: ",filePos,", Position C/R: ",newPos
+  flush(crlog)
+#endif
+  write(lerr, "(a)")"UNITS> ERROR Failed to reposition file '"//trim(fileName)//"'"
+  call prror
+
+end subroutine f_positionFile
+
 ! ================================================================================================ !
 !  Internal Log File Writer
 !  V.K. Berglyd Olsen, BE-ABP-HSS
