@@ -269,6 +269,7 @@ subroutine f_open(unit,file,formatted,mode,err,iostat,status,access,recl)
     fAction   = "readwrite"
     fPosition = "append"
   case default
+    write(lout,"(a)") "UNITS> WARNING Unknown file mode '"//trim(fMode)//"', defaulting to 'r'"
     fMode     = "r"
     fAction   = "read"
     fPosition = "asis"
@@ -322,11 +323,12 @@ subroutine f_open(unit,file,formatted,mode,err,iostat,status,access,recl)
       action=fAction,access=fAccess,position=fPosition,err=10)
   endif
 
+  if(present(iostat)) then
+    iostat = fStat
+  end if
+
   if(fStat /= 0) then
     call f_writeLog("OPEN",unit,"ERROR",file)
-    if(present(iostat)) then
-      iostat = fStat
-    end if
     if(present(err)) then
       err = .true.
       if(units_beQuiet .eqv. .false.) then
@@ -346,10 +348,14 @@ subroutine f_open(unit,file,formatted,mode,err,iostat,status,access,recl)
   if(present(err)) then
     err = .false.
   end if
+
   return
 
 10 continue
   call f_writeLog("OPEN",unit,"ERROR",file)
+  if(present(iostat)) then
+    iostat = fStat
+  end if
   if(present(err)) then
     err = .true.
     if(units_beQuiet .eqv. .false.) then
@@ -527,12 +533,13 @@ subroutine f_positionFile(fileName, fileUnit, filePos, newPos)
       "unit ",fileUnit," already in use"
     flush(crlog)
 #endif
-    write(lerr,"(a)")"UNITS> ERROR Failed to reposition file '"//trim(fileName)//"'"
+    write(lerr, "(a,i0,a)") "UNITS> ERROR Failed while repositioning '"//trim(fileName)//"', "//&
+      "unit ",fileUnit," already in use"
     call prror
   end if
 
   if(newPos /= -1) then
-    call f_open(unit=fileUnit,file=fileName,formatted=.true.,mode="rw",err=fErr,status="old")
+    call f_open(unit=fileUnit,file=fileName,formatted=.true.,mode="rw",err=fErr,iostat=iError,status="old")
     if(fErr) goto 10
     filePos = 0
     do j=1,newPos
@@ -544,7 +551,7 @@ subroutine f_positionFile(fileName, fileUnit, filePos, newPos)
     call f_close(fileUnit)
 
     ! Re-open for appending
-    call f_open(unit=fileUnit,file=fileName,formatted=.true.,mode="w+",err=fErr,status="old")
+    call f_open(unit=fileUnit,file=fileName,formatted=.true.,mode="w+",err=fErr,iostat=iError,status="old")
     if(fErr) goto 10
 #ifdef CR
     write(crlog,"(2(a,i0))") "UNITS> Sucessfully repositioned '"//trim(fileName)//"': "//&
@@ -571,10 +578,11 @@ subroutine f_positionFile(fileName, fileUnit, filePos, newPos)
 10 continue
 #ifdef CR
   write(crlog,"(a,i0)")    "UNITS> ERROR While reading '"//trim(fileName)//"', iostat = ",iError
-  write(crlog,"(2(a,i0))") "UNITS>       Position: ",filePos,", Position C/R: ",newPos
+  write(lerr, "(2(a,i0))") "UNITS>       Current position: ",filePos,", requested position: ",newPos
   flush(crlog)
 #endif
-  write(lerr, "(a)")"UNITS> ERROR Failed to reposition file '"//trim(fileName)//"'"
+  write(lerr, "(a,i0)")    "UNITS> ERROR While reading '"//trim(fileName)//"', iostat = ",iError
+  write(lerr, "(2(a,i0))") "UNITS>       Current position: ",filePos,", requested position: ",newPos
   call prror
 
 end subroutine f_positionFile
