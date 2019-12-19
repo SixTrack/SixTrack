@@ -1,12 +1,39 @@
 # SixTrack Changelog
 
+### Version 5.4.3 [19.12.2019] - Release
+
+**Bugfixes**
+
+* Fixed parsing of the `DIFF` block where only the first element name was parsed. The remaining elements were ignored. PR #1031 (F. Schmidt, V.K. Berglyd Olsen, J. Molson)
+* Added a missing else statement in the DA code that was unintentionally removed when the exact drift code was added in 2014. PR #1028 (J. Molson, V.K. Berglyd Olsen)
+* Fixed the conversion of zeta to sigma in `DIST` and the user manual. It was previously assuming the inverse definition of `rvv` used by SixTrackLib. PR #1027 (R. De Maria, V.K. Berglyd Olsen)
+* Fixed a type definition inconsistency introduced by #878 that affected the ROOT interface. PR #1026 (J. Molson)
+* Fixed the `CERNLIB` build system to support 64-bit. PR #1025 (F. Schmidt, J. Molson)
+* Fixed a faulty loop in the FFT routine in post-processing. PR #1025 (J. Molson, F. Schmidt)
+* Fixed a difference in sign in the thin combined function code. PR 1005 (T. Persson)
+
+**User Side Changes**
+
+* Minor changes to the formatting of `fort.18` to ensure correct column width. PR #1029 (J. Molson, F. Schmidt)
+* Added better error reporting for the FLUKA interface. PR #1028 (J. Molson)
+* Particles that pass through a collimator, but don't interact with it, no longer have their coordinates changed. Previously, these particles were shifted to the closed orbit, and had their units changed, for then to be changed back after the collimator. This added unnecessary numerical noise. PR #1023 (V.K. Berglyd Olsen)
+* The scatter module has been rewritten, and the PYTHIA integration updated to work with PYTHIA 8.243. This version allows for sending tracked particles, in terms of their momentum vector, as well as a sampled colliding particle, to the event generator, This means we no longer have to project a PYTHIA event onto the SixTrack particle, but can instead send the tracked particles back and forth between the codes. The Scatter and Pythia modules have been extended to allow for this. In addition, more density profile options have been added: collision with a reference particle at a given probability density, or a model of Beam 2 given by a set of Twiss parameters. The latter can also be set up to mirror Beam 1 using the internal optic parameters calculated by SixTrack. PRs #1017 and #1038 (V.K. Berglyd Olsen)
+
+**Test Suite**
+
+* Added a number of SixDA test to increase coverage of the Differential Algebra version of SixTrack. PRs #1030, #1032 (F. Schmidt, V.K. Berglyd Olsen)
+
+**BOINC Interface**
+
+* Extended the BOINC interface code to produce a new validation file for BOINC jobs. The new file supports a wider range of job types, especially jobs that do not produce a `fort.10` file. PR #878 (V.K. Berglyd Olsen, A. Mereghetti)
+
 ### Version 5.4.2 [22.11.2019] - Release
 
 **Bugfixes**
 
 * Fixed a missing use statement in collimation under the `ROOT` compiler flag. Root support should now build again. PR #1015 (V.K. Berglyd Olsen, J. Molson)
 * Removed one sigma cuts on all normal random distributions in the crystal module. These were ported over from the old version of the crystal collimation code, but never worked properly there due to a datatype bug. There should not be any such cuts in the physics in the first place, so they have now been removed. PR #1016 (M. D'Andrea, V.K. Berglyd Olsen)
-* Fixed an inconsistency in the splitting tool for `singletrackfile.dat` where the header was not padded with zeroes when files were split up into particle pair files. The padding was always in the post-processing code, but not in the read90 tool which the splitting tool was derived from. Since the test suite relies on the read90 tool, the split files still passed, but user analysis codes failed. The splitting tool is now consistent with SicTrack post-processing. PR #1013 (V.K. Berglyd Olsen)
+* Fixed an inconsistency in the splitting tool for `singletrackfile.dat` where the header was not padded with zeroes when files were split up into particle pair files. The padding was always in the post-processing code, but not in the read90 tool which the splitting tool was derived from. Since the test suite relies on the read90 tool, the split files still passed, but user analysis codes failed. The splitting tool is now consistent with SixTrack post-processing. PR #1013 (V.K. Berglyd Olsen)
 
 **User Side Changes**
 
@@ -17,6 +44,10 @@
 **Documentation**
 
 * Documentation section for collimation updated to include crystal collimators. PRs #1012 and #1019 (M. D'Andrea, V.K. Berglyd Olsen)
+
+**Code Improvements and Changes**
+
+* Cleaned up a number of unused variables throughout the SixTrack source code. PR #1037 (J. Molson)
 
 ### Version 5.4.1 [01.11.2019] - Release
 
