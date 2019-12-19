@@ -17,6 +17,7 @@
 * Minor changes to the formatting of `fort.18` to ensure correct column width. PR #1029 (J. Molson, F. Schmidt)
 * Added better error reporting for the FLUKA interface. PR #1028 (J. Molson)
 * Particles that pass through a collimator, but don't interact with it, no longer have their coordinates changed. Previously, these particles were shifted to the closed orbit, and had their units changed, for then to be changed back after the collimator. This added unnecessary numerical noise. PR #1023 (V.K. Berglyd Olsen)
+* The scatter module has been rewritten, and the PYTHIA integration updated to work with PYTHIA 8.243. This version allows for sending tracked particles, in terms of their momentum vector, as well as a sampled colliding particle, to the event generator, This means we no longer have to project a PYTHIA event onto the SixTrack particle, but can instead send the tracked particles back and forth between the codes. The Scatter and Pythia modules have been extended to allow for this. In addition, more density profile options have been added: collision with a reference particle at a given probability density, or a model of Beam 2 given by a set of Twiss parameters. The latter can also be set up to mirror Beam 1 using the internal optic parameters calculated by SixTrack. PRs #1017 and #1038 (V.K. Berglyd Olsen)
 
 **Test Suite**
 
@@ -43,6 +44,10 @@
 **Documentation**
 
 * Documentation section for collimation updated to include crystal collimators. PRs #1012 and #1019 (M. D'Andrea, V.K. Berglyd Olsen)
+
+**Code Improvements and Changes**
+
+* Cleaned up a number of unused variables throughout the SixTrack source code. PR #1037 (J. Molson)
 
 ### Version 5.4.1 [01.11.2019] - Release
 
