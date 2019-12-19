@@ -396,7 +396,7 @@ subroutine trackBeginTurn(n, nthinerr)
   integer, intent(inout) :: nthinerr
 
   ! Tracking Progress Report
-  if(mod(n,turnReport) == 0 .and. st_quiet < 2) then
+  if(mod(n,turnReport) == 0 .and. st_quiet < 3) then
     write(lout,trackFmt) "TRACKING> "//trim(trackMode)//": Turn ",n," / ",numl,", Particles: ",napx," / ",napxo
     flush(lout)
   end if

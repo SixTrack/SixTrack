@@ -1612,6 +1612,7 @@ subroutine scatter_generateEvent(idGen, idPro, iElem, j, nTurn, t, theta, dEE, d
   nRetry  = 0
   isDiff  = .false.
   isExact = .false.
+  pVec(:) = zero
 
   select case(scatter_genList(idGen)%genType)
   case(scatter_genAbsorber)
@@ -1858,8 +1859,8 @@ subroutine scatter_dumpPDF(idPro, iElem, nTurn)
   orbY   = scatter_proList(idPro)%fParams(9)
   sigmaX = scatter_proList(idPro)%fParams(10)
   sigmaY = scatter_proList(idPro)%fParams(11)
-  dX     = 20.0_fPrec*sigmaX/499_fPrec
-  dY     = 20.0_fPrec*sigmaY/499_fPrec
+  dX     = 20.0_fPrec*sigmaX/499.0_fPrec
+  dY     = 20.0_fPrec*sigmaY/499.0_fPrec
 
   write(unitPDF,"(a)")                     "# Element = "//trim(bez(iElem))
   write(unitPDF,"(a,i0)")                  "# Turn    = ",nTurn
@@ -1959,38 +1960,45 @@ subroutine scatter_initSummaryFile
   write(scatter_sumUnit,"(a)") "#  SCATTER SUMMARY"
   write(scatter_sumUnit,"(a)") "# ================="
   write(scatter_sumUnit,"(a)") "#"
+  nLine = nLine + 4
 #ifdef PYTHIA
   if(scatter_usingPythia) then
     write(scatter_sumUnit,"(a,f16.9,a)") "#  SixTrack Reference Mass: ",nucm0," MeV"
     write(scatter_sumUnit,"(a,f16.9,a)") "#  Pythia Reference Mass:   ",pythia_partMass(1)," MeV"
     write(scatter_sumUnit,"(a)")         "#"
+    nLine = nLine + 3
   end if
 #endif
   write(scatter_sumUnit,"(a,i0,a)") "#  Read ",scatter_nElem," element(s)"
   write(scatter_sumUnit,"(a,i0,a)") "#  Read ",scatter_nPro," profile(s)"
   write(scatter_sumUnit,"(a,i0,a)") "#  Read ",scatter_nGen," generator(s)"
   write(scatter_sumUnit,"(a)")      "#"
-  nLine = nLine + 8
+  nLine = nLine + 4
 
   write(scatter_sumUnit,"(a)") "#  Generators"
   write(scatter_sumUnit,"(a)") "# ============="
+  nLine = nLine + 2
   do iGen=1,scatter_nGen
     write(scatter_sumUnit,"(a,i0,a)") "#  Generator(",iGen,"): '"//trim(scatter_genList(iGen)%genName)//"'"
     nLine = nLine + 1
   end do
   write(scatter_sumUnit,"(a)") "#"
-  nLine = nLine + 3
+  nLine = nLine + 1
 
   write(scatter_sumUnit,"(a)") "#  Profiles"
   write(scatter_sumUnit,"(a)") "# =========="
+  nLine = nLine + 2
   do iPro=1,scatter_nPro
     write(scatter_sumUnit,"(a,i0,a)") "#  Profile(",iPro,"): '"//trim(scatter_proList(iPro)%proName)//"'"
+    nLine = nLine + 1
     select case(scatter_proList(iPro)%proType)
     case(scatter_proGauss1)
       write(scatter_sumUnit,"(a,2(1x,f13.6))") "#   * orbitX,    orbitY    [mm]   =",scatter_proList(iPro)%fParams(4:5)
       write(scatter_sumUnit,"(a,2(1x,f13.6))") "#   * sigmaX,    sigmaY    [mm]   =",scatter_proList(iPro)%fParams(2:3)
+      nLine = nLine + 2
     case(scatter_proBeamRef)
       write(scatter_sumUnit,"(a,2(1x,f13.6))") "#   * orbitX,    orbitY    [mm]   =",scatter_proList(iPro)%fParams(4:5)
+      nLine = nLine + 1
     case(scatter_proBeamUnCorr)
       write(scatter_sumUnit,"(a,2(1x,f13.6))") "#   * betaX,     betaY     [m]    =",scatter_proList(iPro)%fParams(2:3)
       write(scatter_sumUnit,"(a,2(1x,f13.6))") "#   * alphaX,    alphaY    [1]    =",scatter_proList(iPro)%fParams(4:5)
@@ -1999,22 +2007,25 @@ subroutine scatter_initSummaryFile
       write(scatter_sumUnit,"(a,2(1x,f13.6))") "#   * sigmaX,    sigmaY    [mm]   =",scatter_proList(iPro)%fParams(10:11)
       write(scatter_sumUnit,"(a,2(1x,f13.6))") "#   * sigmaXeff, sigmaYeff [mm]   =",scatter_proList(iPro)%fParams(12:13)
       write(scatter_sumUnit,"(a,1x,f13.6)")    "#   * beam2 rotation x,y   [deg]  =",scatter_proList(iPro)%fParams(17)/rad
+      nLine = nLine + 7
     case(scatter_proFlat)
     end select
-    nLine = nLine + 1
   end do
   write(scatter_sumUnit,"(a)") "#"
-  nLine = nLine + 3
+  nLine = nLine + 1
 
   write(scatter_sumUnit,"(a)") "#  Cross Sections"
   write(scatter_sumUnit,"(a)") "# ================"
+  nLine = nLine + 2
   do iElem=1,scatter_nElem
     if(scatter_elemList(iElem)%autoRatio) then
       write(scatter_sumUnit,"(a,i0,a)") "#  Element(",iElem,"): '"//trim(scatter_elemList(iElem)%bezName)//"' "//&
         "[Probability: Auto]"
+      nLine = nLine + 1
     else
       write(scatter_sumUnit,"(a,i0,a,f8.6,a)") "#  Element(",iElem,"): '"//trim(scatter_elemList(iElem)%bezName)//"' "//&
         "[Probability: ",scatter_elemList(iElem)%ratioTot,"]"
+      nLine = nLine + 1
     end if
     do i=1,size(scatter_elemList(iElem)%generatorID)
       iGen = scatter_elemList(iElem)%generatorID(i)
@@ -2023,10 +2034,10 @@ subroutine scatter_initSummaryFile
       nLine = nLine + 1
     end do
     write(scatter_sumUnit,"(a,f15.6,a,f8.6,a)") "#   = Sigma Total:  ",(scatter_elemList(iElem)%sigmaTot*c1e27)," mb [BR: ",one,"]"
-    nLine = nLine + 2
+    nLine = nLine + 1
   end do
   write(scatter_sumUnit,"(a)") "#"
-  nLine = nLine + 3
+  nLine = nLine + 1
 
   write(scatter_sumUnit,"(a)") "#  Summary Log"
   write(scatter_sumUnit,"(a)") "# ============="
