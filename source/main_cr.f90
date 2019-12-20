@@ -98,6 +98,10 @@ program maincr
   integer fluka_con
 #endif
 
+#ifdef ROOT
+  integer j
+#endif
+
   ! New Variables
   character(len=:), allocatable :: featList, compName
   character(len=23) timeStamp
