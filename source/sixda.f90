@@ -11,7 +11,8 @@ subroutine daliesix
 
   implicit none
 
-  integer i,mf1,mf2,mf3,mf4,mf5,mfile,nd2,ndim,ndpt,nis,no,nv,damap,a1,a1i,a2,a2i,f,fc,fs,rot,xy,h,hc,hs,h4,df,bb1,bb2,haux
+  integer i,mf1,mf2,mf3,mf4,mf5,mfile,nd2,ndim,ndpt,nis,no,nv,damap&
+       &,a1,a1i,a2,a2i,f,fc,fs,rot,xy,h,hc,hs,h4,df,bb1,bb2,haux
   real(kind=fPrec) angle,coe,radn,x2pi
   dimension damap(6),a1(6),a1i(6),a2(6),a2i(6)
   dimension rot(6),xy(6),df(6)
@@ -43,24 +44,24 @@ subroutine daliesix
   call idprset(-102)
   call mld_allocArrays(.true.)
   call lieinit(no,nv,ndim,ndpt,0,nis)
-  call etall(damap,nd2)
-  call etall(xy,nd2)
+  call etall(damap,nv)
+  call etall(xy,nv)
   call etall(bb1,1)
   call etall(bb2,1)
   call etall(haux,1)
-  call etallnom(a1,nd2,'A1        ')
-  call etallnom(a1i,nd2,'A1I       ')
-  call etallnom(a2,nd2,'A2        ')
-  call etallnom(a2i,nd2,'A2I       ')
+  call etallnom(a1,nv,'A1        ')
+  call etallnom(a1i,nv,'A1I       ')
+  call etallnom(a2,nv,'A2        ')
+  call etallnom(a2i,nv,'A2I       ')
   call etallnom(f,1,'F         ')
   call etallnom(fc,1,'FC        ')
   call etallnom(fs,1,'FS        ')
-  call etallnom(rot,nd2,'ROT       ')
+  call etallnom(rot,nv,'ROT       ')
   call etallnom(h,1,'H         ')
   call etallnom(h4,1,'H4        ')
   call etallnom(hc,1,'HC        ')
   call etallnom(hs,1,'HS        ')
-  call etallnom(df,nd2,'DF        ')
+  call etallnom(df,nv,'DF        ')
   rewind mfile
   rewind 26
   rewind mf1
@@ -68,12 +69,15 @@ subroutine daliesix
   rewind mf3
   rewind mf4
   rewind mf5
-  call daread(damap,nd2,mfile,zero)
+  call daread(damap,nv,mfile,zero)
 
   ! Normal Form Analysis
+  !call mapnorm(damap,f,a2,a1,xy,h,nord1)
   call mapnorm(damap,f,a2,a1,xy,h,nord1)
-  call dainv(a1,nv,a1i,nv)
-  call dainv(a2,nv,a2i,nv)
+  call daprid(a1,1,nd2,66)
+  call daprid(a2,1,nd2,66)
+  call etinv(a1,a1i)
+  call etinv(a2,a2i)
   call ctor(f,fc,fs)
   call gettura(angle,radn)
   call taked(xy,1,rot)
@@ -116,21 +120,21 @@ subroutine daliesix
   write(lout,*) (angle(i),i=1,ndim)
 
   ! Clean-Up
-  call dadal(damap,nd2)
-  call dadal(a1,nd2)
-  call dadal(a1i,nd2)
-  call dadal(a2,nd2)
-  call dadal(a2i,nd2)
+  call dadal(damap,nv)
+  call dadal(a1,nv)
+  call dadal(a1i,nv)
+  call dadal(a2,nv)
+  call dadal(a2i,nv)
   call dadal(f,1)
   call dadal(fc,1)
   call dadal(fs,1)
-  call dadal(rot,nd2)
-  call dadal(xy,nd2)
+  call dadal(rot,nv)
+  call dadal(xy,nv)
   call dadal(h,1)
   call dadal(h4,1)
   call dadal(hc,1)
   call dadal(hs,1)
-  call dadal(df,nd2)
+  call dadal(df,nv)
   call dadal(bb1,1)
   call dadal(bb2,1)
   call dadal(haux,1)
