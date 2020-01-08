@@ -44,24 +44,24 @@ subroutine daliesix
   call idprset(-102)
   call mld_allocArrays(.true.)
   call lieinit(no,nv,ndim,ndpt,0,nis)
-  call etall(damap,nv)
-  call etall(xy,nv)
+  call etall(damap,nd2)
+  call etall(xy,nd2)
   call etall(bb1,1)
   call etall(bb2,1)
   call etall(haux,1)
-  call etallnom(a1,nv,'A1        ')
-  call etallnom(a1i,nv,'A1I       ')
-  call etallnom(a2,nv,'A2        ')
-  call etallnom(a2i,nv,'A2I       ')
+  call etallnom(a1,nd2,'A1        ')
+  call etallnom(a1i,nd2,'A1I       ')
+  call etallnom(a2,nd2,'A2        ')
+  call etallnom(a2i,nd2,'A2I       ')
   call etallnom(f,1,'F         ')
   call etallnom(fc,1,'FC        ')
   call etallnom(fs,1,'FS        ')
-  call etallnom(rot,nv,'ROT       ')
+  call etallnom(rot,nd2,'ROT       ')
   call etallnom(h,1,'H         ')
   call etallnom(h4,1,'H4        ')
   call etallnom(hc,1,'HC        ')
   call etallnom(hs,1,'HS        ')
-  call etallnom(df,nv,'DF        ')
+  call etallnom(df,nd2,'DF        ')
   rewind mfile
   rewind 26
   rewind mf1
@@ -69,13 +69,11 @@ subroutine daliesix
   rewind mf3
   rewind mf4
   rewind mf5
-  call daread(damap,nv,mfile,zero)
+  call daread(damap,nd2,mfile,zero)
 
   ! Normal Form Analysis
-  !call mapnorm(damap,f,a2,a1,xy,h,nord1)
+
   call mapnorm(damap,f,a2,a1,xy,h,nord1)
-  call daprid(a1,1,nd2,66)
-  call daprid(a2,1,nd2,66)
   call etinv(a1,a1i)
   call etinv(a2,a2i)
   call ctor(f,fc,fs)

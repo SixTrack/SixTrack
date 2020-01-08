@@ -1175,7 +1175,7 @@ subroutine mld_allocArrays(da_version)
     lda = 10000
     lst = 20050000
     lea = 100000
-    lia = 5000000
+    lia = 10000000
     lno = 120
   else
     lda = 10000
