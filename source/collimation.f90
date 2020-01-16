@@ -1318,10 +1318,6 @@ subroutine coll_openFiles
     call f_requestUnit(coll_pencilFile,coll_pencilUnit)
     call f_open(unit=coll_pencilUnit, file=coll_pencilFile,formatted=.true.,mode="w",status="replace")
     write(coll_pencilUnit,"(a)") "# x xp y yp"
-
-    call f_requestUnit(coll_pencilFileRB,coll_pencilRBUnit)
-    call f_open(unit=coll_pencilRBUnit, file=coll_pencilFileRB,formatted=.true.,mode="w",status="replace")
-    write(coll_pencilRBUnit,"(a)") "# x[mm] xp[mrad] y[mm] yp[mrad] sigmv[mm] Etot[MeV]"
   end if
 
   ! Crystal Files
@@ -1677,9 +1673,13 @@ subroutine coll_doCollimator(stracki)
   ! Addition matched halo sampled directly on the TCP using pencil beam flag
   if(iturn == 1 .and. ipencil == icoll .and. pencil_distr == 3) then
     call coll_matchedHalo(c_tilt,c_offset,c_aperture,c_length)
+    call f_requestUnit(coll_pencilFileRB,coll_pencilRBUnit)
+    call f_open(unit=coll_pencilRBUnit, file=coll_pencilFileRB,formatted=.true.,mode="w",status="replace")
+    write(coll_pencilRBUnit,"(a)") "# x[mm] xp[mrad] y[mm] yp[mrad] sigmv[mm] Etot[MeV]"
     do j=1, napx
       write(coll_pencilRBUnit,"(6(1x,e23.15))") xv1(j), yv1(j), xv2(j), yv2(j), sigmv(j), ejv(j)
     end do
+    call f_close(coll_pencilRBUnit)
   end if
 
   ! Copy particle data to 1-dim array and go back to meters
