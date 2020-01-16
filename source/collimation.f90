@@ -1318,6 +1318,10 @@ subroutine coll_openFiles
     call f_requestUnit(coll_pencilFile,coll_pencilUnit)
     call f_open(unit=coll_pencilUnit, file=coll_pencilFile,formatted=.true.,mode="w",status="replace")
     write(coll_pencilUnit,"(a)") "# x xp y yp"
+
+    call f_requestUnit(coll_pencilFileRB,coll_pencilRBUnit)
+    call f_open(unit=coll_pencilRBUnit, file=coll_pencilFileRB,formatted=.true.,mode="w",status="replace")
+    write(coll_pencilRBUnit,"(a)") "# x[mm] xp[mrad] y[mm] yp[mrad] sigmv[mm] Etot[MeV]"
   end if
 
   ! Crystal Files
@@ -1673,6 +1677,9 @@ subroutine coll_doCollimator(stracki)
   ! Addition matched halo sampled directly on the TCP using pencil beam flag
   if(iturn == 1 .and. ipencil == icoll .and. pencil_distr == 3) then
     call coll_matchedHalo(c_tilt,c_offset,c_aperture,c_length)
+    do j=1, napx
+      write(coll_pencilRBUnit,"(6(1x,e23.15))") xv1(j), yv1(j), xv2(j), yv2(j), sigmv(j), ejv(j)
+    end do
   end if
 
   ! Copy particle data to 1-dim array and go back to meters
@@ -2484,7 +2491,7 @@ subroutine coll_matchedHalo(c_tilt,c_offset,c_aperture,c_length)
   integer j
   real(kind=fPrec) Nap1pos,Nap2pos,Nap1neg,Nap2neg,tiltOffsPos1,tiltOffsPos2,tiltOffsNeg1,     &
     tiltOffsNeg2,beamsize1,beamsize2,minAmpl,ldrift,c_nex2,c_ney2,betax1,betax2,betay1,betay2, &
-    alphax1,alphax2,alphay1,alphay2
+    alphax1,alphax2,alphay1,alphay2,c_alphax,c_alphay,c_betax,c_betay
 
   ! Assign the drift length over which the optics functions are propagated
   ldrift = -c_length/two
@@ -2556,8 +2563,16 @@ subroutine coll_matchedHalo(c_tilt,c_offset,c_aperture,c_length)
   ! Assign optics parameters to use for the generation of the starting halo - at start or end of collimator
   if(minAmpl == Nap1pos .or. minAmpl == Nap1neg) then ! min normalized distance occurs at start of collimator
     ldrift = -c_length/two
+    c_alphax = alphax1
+    c_alphay = alphay1
+    c_betax  = betax1
+    c_betay  = betay1
   else ! Min normalized distance occurs at end of collimator
     ldrift = c_length/two
+    c_alphax = alphax2
+    c_alphay = alphay2
+    c_betax  = betax2
+    c_betay  = betay2
   end if
 
   ! create new pencil beam distribution with spread at start or end of collimator at the minAmpl
@@ -2565,7 +2580,7 @@ subroutine coll_matchedHalo(c_tilt,c_offset,c_aperture,c_length)
   ! but it might be then that only one jaw is hit on the first turn, thus only by half of the particles
   ! the particle generated on the other side will then hit the same jaw several turns later, possibly smearing the impact parameter
   ! This could possibly be improved in the future.
-  call cdist_makeDist_coll(alphax1,alphay1,betax1,betay1,c_nex2,c_ney2)
+  call cdist_makeDist_coll(c_alphax,c_alphay,c_betax,c_betay,c_nex2,c_ney2)
 
   do j=1,napx
     xv1(j) = c1e3*xv1(j) + torbx(ie)

@@ -63,6 +63,7 @@ module coll_common
   character(len=11), parameter :: coll_tracksFile     = "tracks2.dat"
   character(len=17), parameter :: coll_positionsFile  = "CollPositions.dat"
   character(len=20), parameter :: coll_pencilFile     = "pencilbeam_distr.dat"
+  character(len=23), parameter :: coll_pencilFileRB   = "pencilbeam_distr_RB.dat"
   character(len=16), parameter :: coll_ellipseFile    = "coll_ellipse.dat"
   character(len=15), parameter :: coll_allImpactFile  = "all_impacts.dat"
   character(len=19), parameter :: coll_allAbsorbFile  = "all_absorptions.dat"
@@ -91,6 +92,7 @@ module coll_common
   integer, save :: coll_tracksUnit     = -1
   integer, save :: coll_positionsUnit  = -1
   integer, save :: coll_pencilUnit     = -1
+  integer, save :: coll_pencilRBUnit   = -1
   integer, save :: coll_ellipseUnit    = -1
   integer, save :: coll_allImpactUnit  = -1
   integer, save :: coll_allAbsorbUnit  = -1
