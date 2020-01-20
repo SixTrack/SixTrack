@@ -1673,6 +1673,10 @@ subroutine coll_doCollimator(stracki)
   ! Addition matched halo sampled directly on the TCP using pencil beam flag
   if(iturn == 1 .and. ipencil == icoll .and. pencil_distr == 3) then
     call coll_matchedHalo(c_tilt,c_offset,c_aperture,c_length)
+    call part_updatePartEnergy(1,.true.)
+    if(st_debug) then
+      call part_writeState("pencilbeam_distr_type3.dat", .true., .false.)
+    end if
   end if
 
   ! Copy particle data to 1-dim array and go back to meters
@@ -2484,7 +2488,7 @@ subroutine coll_matchedHalo(c_tilt,c_offset,c_aperture,c_length)
   integer j
   real(kind=fPrec) Nap1pos,Nap2pos,Nap1neg,Nap2neg,tiltOffsPos1,tiltOffsPos2,tiltOffsNeg1,     &
     tiltOffsNeg2,beamsize1,beamsize2,minAmpl,ldrift,c_nex2,c_ney2,betax1,betax2,betay1,betay2, &
-    alphax1,alphax2,alphay1,alphay2
+    alphax1,alphax2,alphay1,alphay2,c_alphax,c_alphay,c_betax,c_betay
 
   ! Assign the drift length over which the optics functions are propagated
   ldrift = -c_length/two
@@ -2556,8 +2560,16 @@ subroutine coll_matchedHalo(c_tilt,c_offset,c_aperture,c_length)
   ! Assign optics parameters to use for the generation of the starting halo - at start or end of collimator
   if(minAmpl == Nap1pos .or. minAmpl == Nap1neg) then ! min normalized distance occurs at start of collimator
     ldrift = -c_length/two
+    c_alphax = alphax1
+    c_alphay = alphay1
+    c_betax  = betax1
+    c_betay  = betay1
   else ! Min normalized distance occurs at end of collimator
     ldrift = c_length/two
+    c_alphax = alphax2
+    c_alphay = alphay2
+    c_betax  = betax2
+    c_betay  = betay2
   end if
 
   ! create new pencil beam distribution with spread at start or end of collimator at the minAmpl
@@ -2565,7 +2577,7 @@ subroutine coll_matchedHalo(c_tilt,c_offset,c_aperture,c_length)
   ! but it might be then that only one jaw is hit on the first turn, thus only by half of the particles
   ! the particle generated on the other side will then hit the same jaw several turns later, possibly smearing the impact parameter
   ! This could possibly be improved in the future.
-  call cdist_makeDist_coll(alphax1,alphay1,betax1,betay1,c_nex2,c_ney2)
+  call cdist_makeDist_coll(c_alphax,c_alphay,c_betax,c_betay,c_nex2,c_ney2)
 
   do j=1,napx
     xv1(j) = c1e3*xv1(j) + torbx(ie)
