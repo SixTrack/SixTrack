@@ -203,7 +203,7 @@ if(NOT CR)
     collimation_dist_4
     collimation_dist_5
     collimation_dist_6
-    collimation_dist_pencil_RB
+    collimation_dist_pencil_type3
     collimation_dist_radial
     collimation_jaw_fit
     collimation_jaw_fit_b4
@@ -282,7 +282,7 @@ set(TESTS_NOFORT10
   collimation_dist_4
   collimation_dist_5
   collimation_dist_6
-  collimation_dist_pencil_RB
+  collimation_dist_pencil_type3
   collimation_dist_radial
   collimation_jaw_fit
   collimation_jaw_fit_b4
@@ -364,7 +364,7 @@ set(TESTS_NO_STF
   collimation_dist_4
   collimation_dist_5
   collimation_dist_6
-  collimation_dist_pencil_RB
+  collimation_dist_pencil_type3
   collimation_dist_radial
   collimation_jaw_fit
   collimation_jaw_fit_b4
@@ -643,7 +643,7 @@ set(FAST_TESTS
   collimation_dist_4
   collimation_dist_5
   collimation_dist_6
-  collimation_dist_pencil_RB
+  collimation_dist_pencil_type3
   collimation_dist_radial
   collimation_jaw_fit
   collimation_jaw_fit_b4
