@@ -7,6 +7,8 @@ offsetx=-1.1547
 offsety=-2.3093
 theta_r2=4.920e-03 # max. kick [mrad]
 
+oFile=open('kicks.dat','w')
+
 plt.figure('elens kick',figsize=(13,13))
 for fnin,fnout,offx,offy,R,R2f,peakT in [(1,2,0,0,0.5,7,7),(2,3,offsetx,offsety,1,12,10.8),(3,4,-offsetx,0,1,5,2.91604),(4,5,0,-offsety,1/2.,3,3.48995)]:
   theta_max=theta_r2*R
@@ -26,7 +28,12 @@ for fnin,fnout,offx,offy,R,R2f,peakT in [(1,2,0,0,0.5,7,7),(2,3,offsetx,offsety,
     plt.legend(loc='best',fontsize=10)
     plt.tight_layout()
     plt.grid()
+    oFile.write('# %i %i \n'%(fnin,fnout))
+    for tmpR,tmpF in zip(rrin,fff):
+      oFile.write(' % 22.15E % 22.15E % 22.15E \n'%(tmpR,tmpR/sig,tmpF))
+    oFile.write('\n\n')
   else:
     print 'x or y has been changed in %s / %s - elens should only change xp,yp'%('HEL_DUMP_%s'%fnin,'HEL_DUMP_%s'%fnout)
 
+oFile.close()
 plt.show()
