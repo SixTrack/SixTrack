@@ -250,7 +250,7 @@ subroutine aperture_nul( ix )
   ! initialise aperture marker to null
   !-----------------------------------------------------------------------
   implicit none
-  integer ix, jj
+  integer ix
   kape(ix)=0
   ape(:,ix)=zero
   lapeofftlt(ix)=.false.
@@ -551,7 +551,7 @@ subroutine aperture_checkApeMarker(turn, i, ix, llost)
   integer ix    ! single element type index
   logical llost ! at least a particle loss
 
-  integer j,jj
+  integer j
 
 ! temporary variables
   real(kind=fPrec) apxx, apyy, apxy, radius2
@@ -1367,7 +1367,7 @@ subroutine contour_aperture_markers( itElUp, itElDw, lInsUp )
   integer itElUp, itElDw
   logical lInsUp
 ! run time variables
-  integer iElUp, iElDw, ixApeUp, ixApeDw, jj, iuold
+  integer iElUp, iElDw, ixApeUp, ixApeDw, iuold
   logical lAccrossLatticeExtremes, lsame
 
 ! echo of input parameters
@@ -1470,8 +1470,8 @@ subroutine contour_aperture_marker( iEl, lInsUp )
   integer, intent(inout) ::  iEl
   logical, intent(in)    ::  lInsUp
 ! temporary variables
-  integer i,ix,iSrcUp,iSrcDw,iApeUp,ixApeUp,iApeDw,ixApeDw,jj,itmpape,iNew,ixNew,ixApeNewFrom,ixEl
-  real(kind=fPrec) tmpape(11), ddcum
+  integer ix,iSrcUp,iSrcDw,iApeUp,ixApeUp,iApeDw,ixApeDw,jj,itmpape,iNew,ixNew,ixApeNewFrom,ixEl
+  real(kind=fPrec) tmpape(11)
   logical lconst,lApeUp,lApeDw,lAupDcum,lAdwDcum,lApe,lAss,lfit
 
 ! echo of input parameters
@@ -2265,7 +2265,7 @@ subroutine dump_aperture_xsec( iunit, itmpape, tmpape, nAzim, sLoc )
      do i=1,nAzim
         thetaRay=(i/real(nAzim))*(two*pi) ! radians
         ! call (angle to aperture ref sys)
-        call intersectTR(xRay,yRay,thetaRay-tmpape(9),tmpape(1),tmpape(2),tmpape(3),tmpape(4),tmpape(5),tmpape(6), &
+        call intersectTR(xRay,yRay,thetaRay-tmpape(9),tmpape(1),tmpape(2),tmpape(3),tmpape(4), &
              tmpape(7),tmpape(8),xChk,yChk,nChk)
         ! go back to machine reference system
         if(tmpOffTlt) call roffpos_inv(xChk,yChk,xChk,yChk,tmpape(9),tmpape(10),tmpape(11))
@@ -2639,11 +2639,11 @@ subroutine intersectRT( xRay, yRay, thetaRay, xRe, yRe, aa, bb, xChk, yChk, nChk
   return
 end subroutine intersectRT
 
-subroutine intersectTR( xRay, yRay, thetaRay, xRe, yRe, aa, bb, xOf, yOf, mOct, qOct, xChk, yChk, nChk )
+subroutine intersectTR( xRay, yRay, thetaRay, xRe, yRe, aa, bb, mOct, qOct, xChk, yChk, nChk )
   ! 0.0<=thetaRay<=2pi!!!!!
   implicit none
   ! interface variables
-  real(kind=fPrec) xRay, yRay, thetaRay, xRe, yRe, aa, bb, xOf, yOf, mOct, qOct, xChk, yChk, nChk
+  real(kind=fPrec) xRay, yRay, thetaRay, xRe, yRe, aa, bb, mOct, qOct, xChk, yChk, nChk
   ! temp variables
   real(kind=fPrec) xTmp(2), yTmp(2), nTmp(2)
   call intersectRE( xRay, yRay, thetaRay, xRe, yRe, xTmp(1), yTmp(1), nTmp(1) )
@@ -2748,7 +2748,7 @@ recursive subroutine aper_parseInputLine(inLine, iLine, iErr)
   character(len=64)               :: load_file
   real(kind=fPrec) tmplen,tmpflts(3)
   integer          nSplit, i
-  logical          spErr, lExist, apeFound, err
+  logical          spErr, apeFound
 
   call chr_split(inLine, lnSplit, nSplit, spErr)
   if(spErr) then
@@ -2944,7 +2944,7 @@ subroutine aper_parseElement(inLine, iElem, iErr)
 
   character(len=:), allocatable   :: lnSplit(:)
   real(kind=fPrec) tmpflts(8)
-  integer          nSplit, i
+  integer          nSplit
   logical          spErr
 
   call chr_split(inLine, lnSplit, nSplit, spErr)

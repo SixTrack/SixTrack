@@ -27,7 +27,7 @@ subroutine daten
   use mod_random
 
   use mod_dist,  only : dist_enable, dist_parseInputLine
-  use scatter,   only : scatter_active,scatter_debug,scatter_parseInputLine
+  use scatter,   only : scatter_active,scatter_parseInputLine
   use dynk,      only : dynk_enabled,dynk_inputSanityCheck,dynk_allocate,dynk_parseInputLine
   use fma,       only : fma_parseInputLine, fma_allocate
   use dump,      only : dump_parseInputLine,dump_parseInputDone
@@ -512,9 +512,7 @@ subroutine daten
 
   case("COMB") ! Combination of Elements
     if(openBlock) then
-      write(lout,"(a)") "COMB> WARNING This block is inhertited from older versions of SixTrack and is not covered by tests."
-      write(lout,"(a)") "COMB>         It therefore may not produce the results expected."
-      write(lout,"(a)") "COMB>         Please report any bugs to the dev team."
+      continue
     elseif(closeBlock) then
       continue
     else
@@ -785,7 +783,7 @@ subroutine daten
     elseif(closeBlock) then
       continue
     else
-      call scatter_parseInputLine(string(inLine),inErr)
+      call scatter_parseInputLine(inLine,inErr)
       if(inErr) goto 9999
     end if
 
@@ -943,7 +941,7 @@ subroutine daten
     emity = sixin_emitNY*gammar
 
     if(do_coll) then
-      call coll_postInput(gammar)
+      call coll_postInput()
     end if
 
     ! Check for incompatible flags

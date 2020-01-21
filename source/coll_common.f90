@@ -122,13 +122,12 @@ module coll_common
 
 contains
 
-subroutine coll_expandArrays(npart_new, nblz_new)
+subroutine coll_expandArrays(npart_new)
 
   use mod_alloc
   use numerical_constants
 
   integer, intent(in) :: npart_new
-  integer, intent(in) :: nblz_new
 
   call alloc(rcx,  npart_new, zero, "rcx")
   call alloc(rcxp, npart_new, zero, "rcxp")

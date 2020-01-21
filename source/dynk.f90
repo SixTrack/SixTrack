@@ -841,7 +841,7 @@ subroutine dynk_parseFUN(inLine, iErr)
     end if
 
     do ii=0, dynk_funcs(dynk_nFuncs,4)
-      ! Reading the FIR/IIR file without CRLIBM
+      ! Reading the FIR/IIR file
       read(tmpUnit,"(a)",iostat=ioStat) fLine
       if(ioStat /= 0) then ! EOF
         write(lerr,"(a)") "DYNK> ERROR FUN:FIR/IIR Unexpected EOF when reading file '"//trim(dynk_cData(dynk_ncData))//"'"
@@ -1449,7 +1449,7 @@ subroutine dynk_parseSET(inLine, iErr)
   logical,          intent(inout) :: iErr
 
   character(len=:), allocatable :: lnSplit(:)
-  integer nSplit, ii
+  integer nSplit
   logical spErr, cErr
 
   call chr_split(inLine,lnSplit,nSplit,spErr)
@@ -1878,9 +1878,6 @@ subroutine dynk_apply(turn)
   character(len=mStrLen) whichFUN(dynk_nSets_unique) ! Which function was used to set a given elem/attr?
   integer whichSET(dynk_nSets_unique)                ! Which SET was used for a given elem/attr?
 
-  ! Temp variable for padding the strings for output to dynksets.dat
-  character(20) outstring_tmp1,outstring_tmp2,outstring_tmp3
-
   if(dynk_debug) then
     write (lout,"(a,i0)") "DYNK> DEBUG In apply at turn ",turn
   end if
@@ -2293,10 +2290,10 @@ subroutine dynk_setvalue(element_name, att_name, newValue)
   real(kind=fPrec),   intent(in) :: newValue
 
   ! Temp variables
-  integer el_type, ii, j, orderMult, im,k, range
+  integer el_type, ii, orderMult, im,k, range
 
   ! Original energies before energy update
-  real(kind=fPrec) e0fo, e0o, r0a, r0
+  real(kind=fPrec) r0a, r0
 
   ! For sanity check
   logical ldoubleElement, iErr
@@ -2925,59 +2922,14 @@ end subroutine dynk_crcheck_readdata
 ! ================================================================================================ !
 subroutine dynk_crcheck_positionFiles
 
-  use parpro
-  use crcoall
   use mod_units
-
-  logical isOpen, fErr
-  integer ierro
-  integer j
-  character(len=mInputLn) aRecord
 
   if(dynk_dynkSets .eqv. .false.) then
     ! No file to reposition
     return
   end if
 
-  inquire(unit=dynk_fileUnit, opened=isOpen)
-  if(isOpen) then
-    write(crlog,"(a)")      "CR_CHECK> ERROR Failed while repositioning '"//dynk_fileName//"'"
-    write(crlog,"(a,i0,a)") "CR_CHECK>       Unit ",dynk_fileUnit," already in use!"
-    flush(crlog)
-    write(lerr,"(a)") "CR_CHECK> ERROR Failed positioning '"//dynk_fileName//"'"
-    call prror
-  end if
-
-  if(dynk_filePosCR /= -1) then
-    call f_open(unit=dynk_fileUnit,file=dynk_fileName,formatted=.true.,mode="rw",status="old",err=fErr)
-    if(fErr) goto 110
-    dynk_filePos = 0     ! Start counting lines at 0, not -1
-    do j=1,dynk_filePosCR
-      read(dynk_fileUnit,"(a)",end=110,err=110,iostat=ierro) aRecord
-      dynk_filePos=dynk_filePos+1
-    end do
-
-    endfile(dynk_fileUnit,iostat=ierro)
-    call f_close(dynk_fileUnit)
-    call f_open(unit=dynk_fileUnit,file=dynk_fileName,formatted=.true.,mode="w+",status="old")
-
-    write(crlog,"(2(a,i0))") "CR_CHECK> Sucessfully repositioned '"//dynk_fileName//"', "// &
-      "dynk_filePos = ",dynk_filePos,", dynk_filePosCR = ",dynk_filePosCR
-    flush(crlog)
-  else
-    write(crlog,"(a,i0)") "CR_CHECK> Did not attempt repositioning of '"//dynk_fileName//"', dynk_filePosCR = ",dynk_filePosCR
-    write(crlog,"(a)")    "CR_CHECK> If anything was written to the file, it will be truncated in dynk_apply on the first turn."
-    flush(crlog)
-  end if
-
-  return
-
-110 continue
-  write(crlog,"(2(a,i0))") "CR_CHECK> ERROR While reading '"//dynk_fileName//"', "//&
-    "dynk_filePos = ",dynk_filePos,", dynk_filePosCR = ",dynk_filePosCR
-  flush(crlog)
-  write(lerr,"(a)") "CR_CHECK> ERROR CRCHECK failure positioning '"//dynk_fileName//"'"
-  call prror
+  call f_positionFile(dynk_fileName, dynk_fileUnit, dynk_filePos, dynk_filePosCR)
 
 end subroutine dynk_crcheck_positionFiles
 

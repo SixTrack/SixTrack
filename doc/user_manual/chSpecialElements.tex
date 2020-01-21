@@ -1480,20 +1480,37 @@ An example of radial profile is contained in each test of e-lenses.
 % ================================================================================================================================ %
 \section{Scattering} \label{sec:scatter}
 
-\textcolor{notered}{\textbf{Note:} This module is experimental! Use at your own risk.
-Both the input format and physics implementation may change.}\index{scatter}\index{elastic scattering}\index{SCAT}
+\textcolor{notered}{\textbf{Note:} The PYTHIA implementation in this module should be considered experimental! It is not yet fully tested for correct physics.}
 
-\bigskip
 The \texttt{SCATTER} module is a framework for scattering particles through Monte Carlo processes at various points in the machine.
+\index{scatter}\index{SCAT}
+
+The Scatter Module currently supports interfacing with PYTHIA8 to generate scattering events.
+In order to use PYTHIA as an event generator, SixTrack must be built with the \texttt{PYTHIA} flag.
+If this is enabled, the \texttt{PYTHIA} block becomes available as an input block in \texttt{fort.3}.
+The \texttt{PYTHIA} block provides access to the SoftQCD module of PYTHIA8 through a minimal interface.
+See Section~\ref{ExtPythia} for how to use this block.
+\index{PYTHIA}\index{diffractive scattering}
+
+In addition, the Scatter Module has an internal generator for elastic scattering events that does not rely on any external tools.\index{elastic scattering}
+
+The Scatter Module uses the internal random number generator in SixTrack, both with and without PYTHIA integration.
+It therefore requires the \texttt{RANDOM NUMBERS} block to be present.
+See Section~\ref{Input:RAND}.
 
 \bigskip
 \begin{tabular}{@{}lp{0.8\linewidth}}
-    \textbf{Keyword}    & \texttt{SCAT(TER)}\index{SCAT} \\
+    \textbf{Keyword}    & \texttt{SCAT}\index{SCAT} \\
     \textbf{Data lines} & Variable \\
-    \textbf{Format}     & There are several different main statement classes possible in a \texttt{SCATTER} block, listed below.
+    \textbf{Format}     & Name/value sets, see below.
 \end{tabular}
 
-\bigskip
+% ================================================================================================================================ %
+\subsection{Module Flags}
+
+These are the main settings and flags to control the general flow of the Scatter Module, and allows for additional debugging options to ensure the simulation is set up correctly.
+Especially when scattering against a realistic Beam 2, it can be tricky to ensure that the beams actually interact.
+The additional output files below are intended to help verifying that they do.
 
 \paragraph{Module Debugging}~ \texttt{DEBUG}\\
 
@@ -1509,33 +1526,93 @@ If losses are disabled, the event generator will only accept events where the tr
 
 Particle losses are off by default.
 
-\paragraph{Scatter Elements}~ \texttt{ELEM elemname profile ratio scaling gen1 ... genN}\\
+\paragraph{Beam 2 Sample Log}~ \texttt{WRITE\_PLOG}\\
 
-This statements associates a \texttt{PRO}file and one or more \texttt{GEN}erators with a SINGLE ELEMENT.
-The element must be of type 40, as described in Section~\ref{SCAT}.
-The \texttt{ratio} argument (string/float) can be used to set a fixed scattering probability at the element.
-Alternatively, the field can be set to ``auto'', in which case the scattering probability is calculated from the cross section and density profile.
-The \texttt{scaling} argument (float) is used to scale the probability of an interaction when using cross section to claculate the scattering probability.
-This field can be controlled through DYNK, for example in order to scale only at one specified turn, or to switch off and on scattering at the element by scaling it by 0 and 1 respectively.
-The \texttt{PRO}file, \texttt{GEN}erator(s), and single elements are referenced through their names, and for the \texttt{GEN}erators and \texttt{PRO}file they must be defined above the \texttt{ELEM}ent in the \texttt{SCATTER} block.
+If the \texttt{PYTHIA} block has the \texttt{REALBEAM} flag enabled (see Section~\ref{ExtPythia}), the Scatter Module will generate a random three-momentum vector of Beam 2 particles that is then fed to the PYTHIA event generator.
+This flag enables the logging of these generated events to the \texttt{scatter\_momentum.dat} file.
+
+\paragraph{Density Dump}~ \texttt{DENSITY\_DUMP element\_name turn}\\
+
+This setting allows for a dump of the target PDF in a 500 by 500 matrix to the file \texttt{scatter\_pdf.dat}, and a dump of the target density seen by each particle to the file \texttt{scatter\_density.dat}.
+This is intended as a debug tool to check that Beam 1 and Beam 2 are actually interacting.
+The dump can only be used once, on a given element, on a given turn.
+
+\paragraph{Beam Dump}~ \texttt{BEAM\_DUMP element\_name turn}\\
+
+This setting dumps a particle state file (see Section~\ref{STSett}) immediately before and after the scatter point.
+This information is written to the files \texttt{scatter\_beam\_before.dat} and \texttt{scatter\_beam\_after.dat}.
+This is intended as a debug tool to check the effect of the scatter element on the beam.
+The dump can only be used once, on a given element, on a given turn.
+
+% ================================================================================================================================ %
+\subsection{Element, Target and Process Definitions}
+
+This section describes the keywords needed to set up the actual scattering points.
+The target density profile for scattering, and the scattering event generators, are defined separately.
+The profiles and the generators are then applied to the scattering elements (of type 40) in the lattice.
+This ensures that the input block is reasonably human readable, and avoids redundant configurations.
+
+\bigskip
+\noindent\textbf{Note:}\\
+
+If using very low scattering probabilities, ensure that the probability is within the scope of the resolution of the random number generator.
+To select whether a scattering event has occured, the probability is evaluated against a uniformly distributed random number between 0 and 1.
+However, the default random number generator has a resolution of just below $2^{31}$, meaning the smallest number that can be sampled is $4.66\times 10^{-10}$.
+Scattering probabilities below $\approx{10^{-8}}$ should be avoided.
+
+The Scatter Module allows for statistical scaling of scattering probabilities.
+In the \texttt{scatter\_log.dat} file, there is a column keeping track of the statistical weight through multiple scattering of the same particle.
+
+\paragraph{Beam 2 Emittance}~ \texttt{BEAM2\_EMIT emitX emitY}\\
+
+If the target profile is a model of Beam 2, defined by Twiss parameters, this keyword is required to set the x and y normalised emittance.
+The emittance is in units of $\mu$m.
+
+\paragraph{Beam 2 Length}~ \texttt{BEAM2\_LEN sigmaZ}\\
+
+If the target profile is a model of Beam 2, defined by Twiss parameters, this keyword is required to set the beam length, assuming a Gaussian longitudinal profile.
+The length is in units of mm.
 
 \paragraph{Density Profiles}~ \texttt{PRO name type (arguments)} \\
 
-This statement defines a profile, that is a density profile and general properties of the targets which with the tracked particles are colliding.
+This keyword defines a profile, that is a density profile and its general properties.
+This is the target the tracked particles are colliding with.
+
 Several different types are available:
 
 \bigskip
-\noindent\texttt{PRO name FLAT density[targets/cm$^2$] mass[MeV/c$^2$] momentum[MeV/c]}\\
+\noindent\texttt{PRO name FIXED density[targets/cm$^2$]}\\
+
+A uniform density profile with infinte extent.
 
 \bigskip
 \noindent\texttt{PRO name GAUSS1 beamtot[particles] sigmaX[mm] sigmaY[mm] offsetX[mm] offsetY[mm]} \\
 
-The \texttt{GAUSS1} profile type is given by
+The simple, round, Gaussian target profile with a given number of particles.
+The \texttt{GAUSS1} profile parameters are given by
 \begin{align}
     \rho(x,y) = \frac{N_{\mathrm{tot}}}{2\pi\sigma_x\sigma_y}
                 \exp\left(-\frac{(x-\mu_x)^2}{2\sigma_x^2}\right)
                 \exp\left(-\frac{(y-\mu_y)^2}{2\sigma_y^2}\right).
 \end{align}
+
+\bigskip
+\noindent\texttt{REFBEAM density [crossX crossY]|[MIRROR]}\\
+
+Each particle is collided against the reference particle.
+The \texttt{density} determins the scattering probability, and is a fixed number.
+Optionally, the x and y crossing angles can be added, or the \texttt{MIRROR} flag used to take the same crossing angles as for Beam 1.
+If neither is specified, the crossing angle is taken to be 0.
+The crossing angle is only relevant when the \texttt{PYTHIA} option \texttt{REALBEAM} is enabled.
+
+\bigskip
+\noindent\texttt{UNCORRBEAM nbeam betaX betaY alphaX alphaY crossX crossY [offsetX offsetY] | MIRROR}\\
+
+The target is a Beam 2 described by a set of uncorrelated Twiss parameters, and a total beam particle count.
+The target beam is effectively a ``thin'' beam, in that it appears as an infinitely thin foil at the centre of the interaction point.
+The crossing angle is taken into account using an effective sigma, as is commonly done for luminosity calculations.
+The probability is then corrected using the particle time offset and assuming a longitudinal Gaussian distribution.
+If the keyword \texttt{MIRROR} is specified, the Twiss, offset and crossing angle is taken from Beam 1.
 
 \paragraph{Event Generator}~ \texttt{GEN name type [arguments]} \\
 
@@ -1559,11 +1636,27 @@ Input example with values for a fit to 13 TeV LHC.
 GEN  sc_thin     PPBEAMELASTIC 0.046 18.52 4.601 2.647 0.0 30.0
 \end{cverbatim}
 
-\paragraph{SEED}~ \texttt{SEED seed}\\
+\bigskip
+\noindent\texttt{GEN name PYTHIA crossSection} \\
 
-This sets the seed of the internal random nuber generator used by the \texttt{SCATTER} block~\cite{RANECU}.
-The \texttt{SEED} block is mandatory for the \texttt{SCATTER} block to work.
-Note that when running several simulations, the seed setting must be varied between each run in order to get uncorrelated results.
+If SixTrack is built with PYTHIA support, it is available as a generator, taking only the total cross section as input parameter.
+The generator itself is configured through the \texttt{PYTHIA} block.
+See Section~\ref{ExtPythia}.
+
+\paragraph{Scatter Elements}~ \texttt{ELEM elemname profile ratio scaling gen1 ... genN}\\
+
+This statements associates a \texttt{PRO}file and one or more \texttt{GEN}erators with a SINGLE ELEMENT.
+The element must be of type 40.
+
+The \texttt{ratio} argument (string/float) can be used to set a fixed scattering probability at the element.
+Alternatively, the field can be set to ``auto'', in which case the scattering probability is calculated from the cross section and density profile.
+
+The \texttt{scaling} argument (float) is used to scale the probability of an interaction when using cross section to claculate the scattering probability.
+This field can be controlled through DYNK (see Section~\ref{sec:DYNK}), for example in order to scale only at one specified turn, or to switch off and on scattering at the element by scaling it by 0 and 1 respectively.
+
+The profile, generator(s), and single elements are referenced through their names.
+The generators and profile must be defined above the \texttt{ELEM} defintiion where they are used.
+When using multiple generators, a branching ratio between them is calculated, and sampled by the scatter routine.
 
 % ================================================================================================================================ %
 \section{Collimation} \label{sec:collimat}
@@ -1880,12 +1973,13 @@ All flags default to \texttt{false}.
 
 \bigskip
 \begin{tabular}{@{}llp{0.7\linewidth}}
-    \texttt{WRITE\_DIST}   & Writes the beam distribution to file before and after tracking. \\
-    \texttt{WRITE\_IMPACT} & Writes the impact parameters for each collimator. \\
-    \texttt{WRITE\_SECOND} & Writes a secondary halo file based on normalised amplitude. \\
-    \texttt{WRITE\_AMPL}   & Writes checking files for amplitude, closed orbit. \\
-    \texttt{WRITE\_EFFIC}  & Writes the efficiency files. \\
-    \texttt{WRITE\_TRACKS} & Writes secondary/tertiary halo files.
+    \texttt{WRITE\_DIST}     & Writes the beam distribution to file before and after tracking. \\
+    \texttt{WRITE\_IMPACT}   & Writes the impact parameters for each collimator. \\
+    \texttt{WRITE\_SECOND}   & Writes a secondary halo file based on normalised amplitude. \\
+    \texttt{WRITE\_AMPL}     & Writes checking files for amplitude, closed orbit. \\
+    \texttt{WRITE\_EFFIC}    & Writes the efficiency files. \\
+    \texttt{WRITE\_TRACKS}   & Writes secondary/tertiary halo files. \\
+    \texttt{WRITE\_CRYCOORD} & Writes crystal coordinate file(s).
 \end{tabular}
 
 % ================================================================================================================================ %
@@ -2054,6 +2148,10 @@ Crystal collimators require an additional set of parameters described in the fol
 \bigskip
 All the parameters default to zero.
 Additional details on the physics principles of crystal collimation and benchmark against experimental data can be found in~\cite{crystal:1,crystal:2,crystal:3,crystal:4,crystal:5,crystal:6}.
+
+The main output file is the \texttt{cry\_interaction.dat} file.\index{crystal interaction}
+This file is enabled with the \texttt{WRITE\_CRYCOORD} flag in \texttt{fort.3}.
+In addition, if the \texttt{DEBUG} flag is set in the \texttt{SETTINGS} block (see Section~\ref{STSett}), a \texttt{cry\_entrance.dat} and \texttt{cry\_exit.dat} file is written as well.\index{crystal dump}
 
 \bigskip
 \noindent\textit{Example}

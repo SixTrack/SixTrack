@@ -169,9 +169,7 @@ subroutine cdb_readCollDB
 
   character(len=:), allocatable :: lnSplit(:)
   character(len=mInputLn) inLine
-  character(len=cdb_fNameLen) cFam
-  real(kind=fPrec)  cNSig
-  integer dbUnit, ioStat, nSplit, collID, famID, elemEnd
+  integer dbUnit, nSplit, collID, elemEnd
   integer i, j, ix
   logical dbErr, spErr
 
@@ -295,7 +293,7 @@ subroutine cdb_readDB_newFormat
   character(len=:), allocatable :: lnSplit(:)
   character(len=mInputLn) inLine
   real(kind=fPrec) nSig
-  integer i, dbUnit, ioStat, nSplit, iLine, famID, iColl, matID
+  integer dbUnit, ioStat, nSplit, iLine, famID, iColl, matID
   logical cErr, fErr, fExists
 
   fErr  = .false.

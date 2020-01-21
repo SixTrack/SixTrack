@@ -86,39 +86,52 @@ subroutine sixin_commandLine(stName)
   use crcoall
   use mod_version
   use mod_common, only : fort2, fort3
+  use mod_settings, only : st_notrack
 
   character(len=*), intent(in) :: stName
 
   character(len=mStrLen) cmdArg
-  integer nCmd
+  integer nCmd, iCmd
+  logical setFort2, setFort3
 
   nCmd = command_argument_count()
   if(nCmd < 1) return
 
-  ! First argument is either a command or the file name for the main input file
-  call get_command_argument(1, cmdArg)
-  select case(cmdArg)
-  case("-nv","--numver")
-    write(lout,"(i0)") numvers
-    stop
-  case("-v","--version")
-    write(lout,"(a)") trim(stName)//" "//trim(version)//"-"//trim(git_revision(1:7))
-    stop
-  case("-V","--VERSION")
-    write(lout,"(a)") trim(stName)
-    write(lout,"(a)") "Version:  "//trim(version)
-    write(lout,"(a)") "Released: "//trim(moddate)
-    write(lout,"(a)") "Git Hash: "//trim(git_revision)
-    stop
-  case default
-    fort3 = trim(cmdArg)
-  end select
+  setFort2 = .false.
+  setFort3 = .false.
 
-  if(nCmd < 2) return
+  ! First argument can potentially be a flag, in which case we parse it
+  do iCmd=1,nCmd
+    call get_command_argument(iCmd, cmdArg)
 
-  ! Second argument is the file name for the main geometry file
-  call get_command_argument(2, cmdArg)
-  fort2 = trim(cmdArg)
+    select case(cmdArg)
+    case("--notrack")
+      st_notrack = .true.
+    case("-nv","--numver")
+      write(lout,"(i0)") numvers
+      stop
+    case("-v","--version")
+      write(lout,"(a)") trim(stName)//" "//trim(version)//"-"//trim(git_revision(1:7))
+      stop
+    case("-V","--VERSION")
+      write(lout,"(a)") trim(stName)
+      write(lout,"(a)") "Version:  "//trim(version)
+      write(lout,"(a)") "Released: "//trim(moddate)
+      write(lout,"(a)") "Git Hash: "//trim(git_revision)
+      stop
+    case default
+      if(.not. setFort3) then
+        fort3 = trim(cmdArg)
+        setFort3 = .true.
+      elseif(.not. setFort2) then
+        fort2 = trim(cmdArg)
+        setFort2 = .true.
+      else
+        write(lerr,"(a)") "SIXIN> ERROR Unknown command line argument '"//cmdArg//"'"
+        call prror
+      end if
+    end select
+  end do
 
 end subroutine sixin_commandLine
 
@@ -531,7 +544,7 @@ subroutine sixin_parseInputLineSIMU(inLine, iLine, iErr)
   logical,          intent(inout) :: iErr
 
   character(len=:), allocatable   :: lnSplit(:)
-  integer i, nSplit, numPart, tmpInt
+  integer nSplit, numPart
   logical spErr, tmpLog
 
   call chr_split(inLine, lnSplit, nSplit, spErr)
@@ -1065,8 +1078,6 @@ subroutine sixin_parseInputLineINIT(inLine, iLine, iErr)
   integer nSplit
   logical spErr
 
-  integer i
-
   call chr_split(inLine, lnSplit, nSplit, spErr)
   if(spErr) then
     write(lerr,"(a)") "INIT> ERROR Failed to parse input line."
@@ -1545,8 +1556,8 @@ subroutine sixin_parseInputLineDIFF(inLine, iLine, iErr)
       return
     end if
     if(ncor > 0) then
-      OUTER: do j1=1,ncor
-        INNER: do j2=1,il
+      do j1=1,ncor
+        do j2=1,il
           if(ilm0(j1) == bez(j2)) then
             if(el(j2) /= zero .or. kz(j2) > 10) then
               write(lerr,"(a)") "DIFF> ERROR Only single kick elements allowed for map calculation"
@@ -1554,13 +1565,13 @@ subroutine sixin_parseInputLineDIFF(inLine, iLine, iErr)
               return
             end if
             ipar(j1) = j2
-            exit OUTER
+            exit
           end if
-        end do INNER
-      end do OUTER
+        end do
+      end do
     else
       ncor = 0
-      write(lout,"(a)") "DIFF> INFOR No extra parameters for the map specified"
+      write(lout,"(a)") "DIFF> WARNING No extra parameters for the map specified"
     end if
     nvar = nvar2+ncor
   end if
@@ -1587,7 +1598,7 @@ subroutine sixin_parseInputLineCHRO(inLine, iLine, iErr)
   logical,          intent(inout) :: iErr
 
   character(len=:), allocatable   :: lnSplit(:)
-  integer nSplit,i
+  integer nSplit
   logical spErr
 
   call chr_split(inLine, lnSplit, nSplit, spErr)
@@ -3494,7 +3505,6 @@ subroutine sixin_parseInputLineBEAM_EXP(inLine, iLine, iErr)
   use crcoall
   use string_tools
   use mod_settings
-  use parbeam, only : beam_expflag
   use mod_common
   use mod_utils
 
@@ -3506,7 +3516,7 @@ subroutine sixin_parseInputLineBEAM_EXP(inLine, iLine, iErr)
   character(len=mNameLen) elemName
   real(kind=fPrec) sxx,syy,sxy,separx,separy,mm(11)
   integer nSplit, n6D, ibsix, j
-  logical spErr, beamXStr
+  logical spErr
 
   save :: n6D,elemName,ibsix,sxx,syy,sxy,separx,separy,mm
 

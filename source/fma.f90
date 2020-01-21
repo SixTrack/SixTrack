@@ -2,16 +2,17 @@ module fma
 
   implicit none
 
-  integer, parameter     :: fma_max           = 200                ! Max. number of FMAs
-  integer, parameter     :: fma_nturn_max     = 10000              ! Max. number of turns used for fft
-  integer, private, save :: fma_numfiles      = 0                  ! Number of FMAs
-  logical, public,  save :: fma_flag          = .false.            ! FMA input block exists
-  logical, private, save :: fma_writeNormDUMP = .true.             ! Writing out the normalised DUMP files
-  character(len=:), allocatable, private, save :: fma_fname(:)     ! Name of input file from dump
-  character(len=:), allocatable, private, save :: fma_method(:)    ! Method used to find the tunes
-  integer,          allocatable, private, save :: fma_first(:)     ! First turn used for FMA
-  integer,          allocatable, private, save :: fma_last(:)      ! Last turn used for FMA
-  integer,          allocatable, private, save :: fma_norm_flag(:) ! normalise phase space before FFT
+  integer,           parameter :: fma_max           = 200            ! Max. number of FMAs
+  integer,           parameter :: fma_nturn_max     = 10000          ! Max. number of turns used for fft
+  character(len=12), parameter :: fma_fileName      = "fma_sixtrack" ! The main output file
+  integer,       private, save :: fma_numfiles      = 0              ! Number of FMAs
+  logical,       public,  save :: fma_flag          = .false.        ! FMA input block exists
+  logical,       private, save :: fma_writeNormDUMP = .true.         ! Writing out the normalised DUMP files
+  character(len=:), allocatable, private, save :: fma_fname(:)       ! Name of input file from dump
+  character(len=:), allocatable, private, save :: fma_method(:)      ! Method used to find the tunes
+  integer,          allocatable, private, save :: fma_first(:)       ! First turn used for FMA
+  integer,          allocatable, private, save :: fma_last(:)        ! Last turn used for FMA
+  integer,          allocatable, private, save :: fma_norm_flag(:)   ! normalise phase space before FFT
 
 contains
 
@@ -204,8 +205,8 @@ subroutine fma_postpr
   call alloc(naff_xyzv2,   fma_nturn_max,        zero,   "naff_xyzv2")
 
   ! fma_six = data file for storing the results of the FMA analysis
-  call f_requestUnit("fma_sixtrack",fmaUnit)
-  call f_open(unit=fmaUnit,file="fma_sixtrack",formatted=.true.,mode="w",err=fErr,status="replace")
+  call f_requestUnit(fma_fileName,fmaUnit)
+  call f_open(unit=fmaUnit,file=fma_fileName,formatted=.true.,mode="w",err=fErr,status="replace")
   if(fErr) then
     write(lerr, "(a)") "FMA> ERROR Cannot open file 'fma_sixtrack' for writing."
     call prror
@@ -674,7 +675,7 @@ subroutine fma_postpr
             phi123_0(3)   = zero
           end if
 
-          ! Write the FMA output file "fma_sixtrack"
+          ! Write the FMA output file fma_fileName
           ! TODO losses: fma_first and fma_last may not be the right start/stop variables...
           write(fmaUnit,"(2(1x,a20),1x,i8,18(1x,1pe16.9),3(1x,i8))") &
             trim(fma_fname(i)), trim(fma_method(i)),l,q123(1),q123(2),q123(3), &

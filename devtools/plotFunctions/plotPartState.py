@@ -40,10 +40,6 @@ if not path.isfile(thePath):
   exit(1)
 
 theFile = path.basename(thePath)
-if not theFile[:15] == "final_state.dat" and not theFile[:17] == "initial_state.dat":
-  print("Not a particle state file: %s" % theFile)
-  exit(1)
-
 theCols = []
 theData = {}
 

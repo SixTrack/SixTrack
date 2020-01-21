@@ -38,6 +38,21 @@ module mod_pythia
   integer, parameter :: pythia_idDoubleDiff    = 105
   integer, parameter :: pythia_idCentralDiff   = 106
 
+  ! Sigma Total Mode
+  ! See http://home.thep.lu.se/~torbjorn/pythia82html/TotalCrossSections.html
+  integer, parameter :: pythia_idSigTotModeManual  = 0
+  integer, parameter :: pythia_idSigTotModeDL      = 1
+  integer, parameter :: pythia_idSigTotModeMBR     = 2
+  integer, parameter :: pythia_idSigTotModeABMST   = 3
+  integer, parameter :: pythia_idSigTotModeRPP2016 = 4
+
+  ! Sigma Diffractive Mode
+  ! See http://home.thep.lu.se/~torbjorn/pythia82html/TotalCrossSections.html
+  integer, parameter :: pythia_idSigDiffModeManual = 0
+  integer, parameter :: pythia_idSigDiffModeSaS    = 1
+  integer, parameter :: pythia_idSigDiffModeMBR    = 2
+  integer, parameter :: pythia_idSigDiffModeABMST  = 3
+
   ! Flags
   logical,            public,  save :: pythia_isActive        = .false.
   logical,            private, save :: pythia_useElastic      = .false.
@@ -48,21 +63,26 @@ module mod_pythia
   logical,            public,  save :: pythia_allowLosses     = .false.
   logical,            private, save :: pythia_useCoulomb      = .false.
   real(kind=fPrec),   private, save :: pythia_elasticTMin     =  5.0e-5_fPrec ! Pythia default value
-  real(kind=fPrec),   private, save :: pythia_csElastic       = -1.0_fPrec
-  real(kind=fPrec),   private, save :: pythia_csSDiffractive  = -1.0_fPrec
-  real(kind=fPrec),   private, save :: pythia_csDDiffractive  = -1.0_fPrec
-  real(kind=fPrec),   private, save :: pythia_csCDiffractive  = -1.0_fPrec
-  real(kind=fPrec),   private, save :: pythia_csNDiffractive  = -1.0_fPrec
+  real(kind=fPrec),   private, save :: pythia_csTotal         = 100.0_fPrec
+  real(kind=fPrec),   private, save :: pythia_csElastic       =  25.0_fPrec
+  real(kind=fPrec),   private, save :: pythia_csSDiffractive  =   8.0_fPrec
+  real(kind=fPrec),   private, save :: pythia_csDDiffractive  =   4.0_fPrec
+  real(kind=fPrec),   private, save :: pythia_csCDiffractive  =   1.0_fPrec
+  real(kind=fPrec),   private, save :: pythia_csNDiffractive  =   0.0_fPrec
 
   ! Beam Configuration
-  integer,            private, save :: pythia_frameType       = 2
+  integer,            private, save :: pythia_frameType       = 0
   integer,            private, save :: pythia_beamSpecies(2)  = pythia_partProton
   real(kind=fPrec),   private, save :: pythia_beamEnergy(2)   = zero
+  real(kind=fPrec),   public,  save :: pythia_partMass(2)     = zero
+  logical,            public,  save :: pythia_useRealBeam     = .false.
 
   ! Other Settings
   character(len=256), private, save :: pythia_settingsFile    = " "
   logical,            private, save :: pythia_useSettingsFile = .false.
   integer,            private, save :: pythia_rndSeed         = -1
+  integer,            private, save :: pythia_sigTotalMode    = pythia_idSigTotModeABMST
+  integer,            private, save :: pythia_sigDiffMode     = pythia_idSigDiffModeABMST
 
   ! C Interface
   interface
@@ -79,6 +99,21 @@ module mod_pythia
       use, intrinsic :: iso_c_binding
       logical(kind=C_BOOL), value, intent(in) :: sEL, sSD, sDD, sCD, sND
     end subroutine pythia_setProcess
+
+    subroutine pythia_setModes(sigTotMode,sigDiffMode) bind(C, name="pythiaWrapper_setModes")
+      use, intrinsic :: iso_c_binding
+      integer(kind=C_INT), value, intent(in) :: sigTotMode
+      integer(kind=C_INT), value, intent(in) :: sigDiffMode
+    end subroutine pythia_setModes
+
+    subroutine pythia_setCrossSection(csTot,csEL,csSD,csDD,csCD) bind(C, name="pythiaWrapper_setCrossSection")
+      use, intrinsic :: iso_c_binding
+      real(kind=C_DOUBLE),  value, intent(in) :: csTot
+      real(kind=C_DOUBLE),  value, intent(in) :: csEL
+      real(kind=C_DOUBLE),  value, intent(in) :: csSD
+      real(kind=C_DOUBLE),  value, intent(in) :: csDD
+      real(kind=C_DOUBLE),  value, intent(in) :: csCD
+    end subroutine pythia_setCrossSection
 
     subroutine pythia_setCoulomb(sCMB,tAbsMin) bind(C, name="pythiaWrapper_setCoulomb")
       use, intrinsic :: iso_c_binding
@@ -103,10 +138,10 @@ module mod_pythia
       character(kind=C_CHAR,len=1), intent(in) :: fileName
     end subroutine pythia_readFile
 
-    subroutine pythia_getCrossSection(sigTot,sigEl) bind(C, name="pythiaWrapper_getCrossSection")
+    subroutine pythia_getInitial(sigTot,sigEl,m0_1,m0_2) bind(C, name="pythiaWrapper_getInitial")
       use, intrinsic :: iso_c_binding
-      real(kind=C_DOUBLE), intent(inout) :: sigTot, sigEl
-    end subroutine pythia_getCrossSection
+      real(kind=C_DOUBLE), intent(inout) :: sigTot, sigEl, m0_1, m0_2
+    end subroutine pythia_getInitial
 
     subroutine pythia_getEvent(status,code,t,theta,dEE,dPP) bind(C, name="pythiaWrapper_getEvent")
       use, intrinsic :: iso_c_binding
@@ -114,6 +149,14 @@ module mod_pythia
       integer(kind=C_INT),  intent(inout) :: code
       real(kind=C_DOUBLE),  intent(inout) :: t,theta,dEE,dPP
     end subroutine pythia_getEvent
+
+    subroutine pythia_getEventFull(status,code,t,theta,dEE,dPP,vecPin,vecPout) bind(C, name="pythiaWrapper_getEventPVector")
+      use, intrinsic :: iso_c_binding
+      logical(kind=C_BOOL), intent(inout) :: status
+      integer(kind=C_INT),  intent(inout) :: code
+      real(kind=C_DOUBLE),  intent(inout) :: t,theta,dEE,dPP
+      real(kind=C_DOUBLE),  intent(inout) :: vecPin(6), vecPout(6)
+    end subroutine pythia_getEventFull
 
   end interface
 
@@ -123,10 +166,9 @@ subroutine pythia_parseInputLine(inLine, iLine, iErr)
 
   use crcoall
   use string_tools
+  use mod_common,     only : e0
   use mod_settings,   only : st_debug
   use sixtrack_input, only : sixin_echoVal
-
-  implicit none
 
   character(len=*), intent(in)    :: inLine
   integer,          intent(in)    :: iLine
@@ -149,7 +191,8 @@ subroutine pythia_parseInputLine(inLine, iLine, iErr)
 
   case("FILE")
     if(nSplit /= 2) then
-      write(lerr,"(a,i0)") "PYTHIA> ERROR Keyword FILE expected 1 argument, got ",(nSplit-1)
+      write(lerr,"(a,i0)") "PYTHIA> ERROR Keyword FILE expected 1 argument, got ",nSplit-1
+      write(lerr,"(a)")    "PYTHIA>       FILE filename"
       iErr = .true.
       return
     end if
@@ -159,7 +202,8 @@ subroutine pythia_parseInputLine(inLine, iLine, iErr)
 
   case("PROCESS")
     if(nSplit /= 2 .and. nSplit /= 3) then
-      write(lerr,"(a,i0)") "PYTHIA> ERROR Keyword PROCESS expected 1 or 2 arguments, got ",(nSplit-1)
+      write(lerr,"(a,i0)") "PYTHIA> ERROR Keyword PROCESS expected 1 or 2 arguments, got ",nSplit-1
+      write(lerr,"(a)")    "PYTHIA>       PROCESS type [crossSection]"
       iErr = .true.
       return
     end if
@@ -171,28 +215,28 @@ subroutine pythia_parseInputLine(inLine, iLine, iErr)
         call chr_cast(lnSplit(3),pythia_csElastic,iErr)
         write(lout,"(a,f13.8,a)") "PYTHIA> Elastic cross section set to ",pythia_csElastic," mb"
       end if
-    case("SD","SINGLEDIFFRACTIVE")
+    case("SD","SINGLEDIFF","SINGLEDIFFRACTIVE")
       pythia_useSDiffractive = .true.
       write(lout,"(a)") "PYTHIA> Single diffractive scattering enabled"
       if(nSplit > 2) then
         call chr_cast(lnSplit(3),pythia_csSDiffractive,iErr)
         write(lout,"(a,f13.8,a)") "PYTHIA> Single diffractive cross section set to ",pythia_csSDiffractive," mb"
       end if
-    case("DD","DOUBLEDIFFRACTIVE")
+    case("DD","DOUBLEDIFF","DOUBLEDIFFRACTIVE")
       pythia_useDDiffractive = .true.
       write(lout,"(a)") "PYTHIA> Double diffractive scattering enabled"
       if(nSplit > 2) then
         call chr_cast(lnSplit(3),pythia_csDDiffractive,iErr)
         write(lout,"(a,f13.8,a)") "PYTHIA> Double diffractive cross section set to ",pythia_csDDiffractive," mb"
       end if
-    case("CD","CENTRALDIFFRACTIVE")
+    case("CD","CENTRALDIFF","CENTRALDIFFRACTIVE")
       pythia_useCDiffractive = .true.
       write(lout,"(a)") "PYTHIA> Central diffractive scattering enabled"
       if(nSplit > 2) then
         call chr_cast(lnSplit(3),pythia_csCDiffractive,iErr)
         write(lout,"(a,f13.8,a)") "PYTHIA> Central diffractive cross section set to ",pythia_csCDiffractive," mb"
       end if
-    case("ND","NONDIFFRACTIVE")
+    case("ND","NONDIFF","NONDIFFRACTIVE")
       pythia_useNDiffractive = .true.
       write(lout,"(a)") "PYTHIA> Non-diffractive scattering enabled"
       if(nSplit > 2) then
@@ -207,7 +251,8 @@ subroutine pythia_parseInputLine(inLine, iLine, iErr)
 
   case("COULOMB")
     if(nSplit /= 2 .and. nSplit /= 3) then
-      write(lerr,"(a,i0)") "PYTHIA> ERROR Keyword COULOMB expected 1 or 2 arguments, got ",(nSplit-1)
+      write(lerr,"(a,i0)") "PYTHIA> ERROR Keyword COULOMB expected 1 or 2 arguments, got ",nSplit-1
+      write(lerr,"(a)")    "PYTHIA>       COULOMB on|off [tmin]"
       iErr = .true.
       return
     end if
@@ -224,7 +269,8 @@ subroutine pythia_parseInputLine(inLine, iLine, iErr)
 
   case("SPECIES")
     if(nSplit /= 3) then
-      write(lerr,"(a,i0)") "PYTHIA> ERROR Keyword SPECIES expected 2 arguments, got ",(nSplit-1)
+      write(lerr,"(a,i0)") "PYTHIA> ERROR Keyword SPECIES expected 2 arguments, got ",nSplit-1
+      write(lerr,"(a)")    "PYTHIA>       SPECIES beam1 beam2"
       iErr = .true.
       return
     end if
@@ -246,8 +292,6 @@ subroutine pythia_parseInputLine(inLine, iLine, iErr)
         pythia_beamSpecies(iBeam) = pythia_partPionZero
       case("PHOTON","GAMMA")
         pythia_beamSpecies(iBeam) = pythia_partGamma
-      case("POM","POMERON")
-        pythia_beamSpecies(iBeam) = pythia_partPomeron
       case("E","E-","ELECTRON")
         pythia_beamSpecies(iBeam) = pythia_partElectron
       case("E+","POSITRON")
@@ -269,21 +313,83 @@ subroutine pythia_parseInputLine(inLine, iLine, iErr)
     end if
 
   case("ENERGY")
-    if(nSplit /= 3) then
-      write(lerr,"(a,i0)") "PYTHIA> ERROR Keyword ENERGY expected 2 arguments, got ",(nSplit-1)
+    if(nSplit /= 2 .and. nSplit /= 3) then
+      write(lerr,"(a,i0)") "PYTHIA> ERROR Keyword ENERGY expected 1 or 2 arguments, got ",nSplit-1
+      write(lerr,"(a)")    "PYTHIA>       ENERGY E_beam1 [E_beam2]"
       iErr = .true.
       return
     end if
-
-    call chr_cast(lnSplit(2),pythia_beamEnergy(1),iErr)
-    call chr_cast(lnSplit(3),pythia_beamEnergy(2),iErr)
+    if(nSplit > 1) call chr_cast(lnSplit(2),pythia_beamEnergy(1),iErr)
+    if(nSplit > 2) call chr_cast(lnSplit(3),pythia_beamEnergy(2),iErr)
 
     if(st_debug) then
-      call sixin_echoVal("E(1)",pythia_beamEnergy(1),"PYTHIA",iLine)
-      call sixin_echoVal("E(2)",pythia_beamEnergy(2),"PYTHIA",iLine)
+      call sixin_echoVal("E(1)", pythia_beamEnergy(1),"PYTHIA",iLine)
+      call sixin_echoVal("E(2)", pythia_beamEnergy(2),"PYTHIA",iLine)
     end if
 
     pythia_beamEnergy = pythia_beamEnergy*c1m3 ! Pythia expects GeV
+
+  case("REALBEAM")
+    if(nSplit /= 2) then
+      write(lerr,"(a,i0)") "PYTHIA> ERROR Keyword REALBEAM expected 1 argument, got ",nSplit-1
+      write(lerr,"(a)")    "PYTHIA>       REALBEAM on|off"
+      iErr = .true.
+      return
+    end if
+    call chr_cast(lnSplit(2),pythia_useRealBeam,iErr)
+
+  case("SIGTOTAL")
+    if(nSplit /= 2) then
+      write(lerr,"(a,i0)") "PYTHIA> ERROR Keyword SIGTOTAL expected 1 argument, got ",nSplit-1
+      write(lerr,"(a)")    "PYTHIA>       SIGTOTAL value[mb]"
+      iErr = .true.
+      return
+    end if
+    call chr_cast(lnSplit(2),pythia_csTotal,iErr)
+
+  case("SIGTOTALMODE")
+    if(nSplit /= 2) then
+      write(lerr,"(a,i0)") "PYTHIA> ERROR Keyword SIGTOTALMODE expected 1 argument, got ",nSplit-1
+      write(lerr,"(a)")    "PYTHIA>       SIGTOTALMODE MANUAL|DL|MBR|ABMST|RPP2016|0-4"
+      write(lerr,"(a)")    "PYTHIA>       See http://home.thep.lu.se/~torbjorn/pythia82html/TotalCrossSections.html"
+      iErr = .true.
+      return
+    end if
+    select case(chr_toUpper(lnSplit(2)))
+    case("MANUAL")
+      pythia_sigTotalMode = pythia_idSigTotModeManual
+    case("DL")
+      pythia_sigTotalMode = pythia_idSigTotModeDL
+    case("MBR")
+      pythia_sigTotalMode = pythia_idSigTotModeMBR
+    case("ABMST")
+      pythia_sigTotalMode = pythia_idSigTotModeABMST
+    case("RPP2016")
+      pythia_sigTotalMode = pythia_idSigTotModeRPP2016
+    case default
+      call chr_cast(lnSplit(2),pythia_sigTotalMode,iErr)
+    end select
+
+  case("SIGDIFFMODE")
+    if(nSplit /= 2) then
+      write(lerr,"(a,i0)") "PYTHIA> ERROR Keyword SIGDIFFMODE expected 1 argument, got ",nSplit-1
+      write(lerr,"(a)")    "PYTHIA>       SIGDIFFMODE MANUAL|SaS|MBR|ABMST|0-3"
+      write(lerr,"(a)")    "PYTHIA>       See http://home.thep.lu.se/~torbjorn/pythia82html/TotalCrossSections.html"
+      iErr = .true.
+      return
+    end if
+    select case(chr_toUpper(lnSplit(2)))
+    case("MANUAL")
+      pythia_sigDiffMode = pythia_idSigDiffModeManual
+    case("SAS")
+      pythia_sigDiffMode = pythia_idSigDiffModeSaS
+    case("MBR")
+      pythia_sigDiffMode = pythia_idSigDiffModeMBR
+    case("ABMST")
+      pythia_sigDiffMode = pythia_idSigDiffModeABMST
+    case default
+      call chr_cast(lnSplit(2),pythia_sigDiffMode,iErr)
+    end select
 
   case("SEED")
     if(nSplit /= 2) then
@@ -311,28 +417,13 @@ subroutine pythia_postInput
 
   use parpro
   use crcoall
+  use mod_common, only : nucm0
   use, intrinsic :: iso_c_binding
 
   logical(kind=C_BOOL) pythStat, sEL, sSD, sDD, sCD, sND, sCMB
   integer(kind=C_INT)  rndSeed, frameType, beamSpecies1, beamSpecies2
-  real(kind=C_DOUBLE)  beamEnergy1, beamEnergy2, elasticTMin
-  real(kind=C_DOUBLE)  sigmaTot, sigmaEl
-
-  rndSeed      = int(pythia_rndSeed,         kind=C_INT)
-  frameType    = int(pythia_frameType,       kind=C_INT)
-  beamSpecies1 = int(pythia_beamSpecies(1),  kind=C_INT)
-  beamSpecies2 = int(pythia_beamSpecies(2),  kind=C_INT)
-
-  beamEnergy1  = real(pythia_beamEnergy(1),      kind=C_DOUBLE)
-  beamEnergy2  = real(pythia_beamEnergy(2),      kind=C_DOUBLE)
-  elasticTMin  = real(pythia_elasticTMin,        kind=C_DOUBLE)
-
-  sCMB         = logical(pythia_useCoulomb,      kind=C_BOOL)
-  sEL          = logical(pythia_useElastic,      kind=C_BOOL)
-  sSD          = logical(pythia_useSDiffractive, kind=C_BOOL)
-  sDD          = logical(pythia_useDDiffractive, kind=C_BOOL)
-  sCD          = logical(pythia_useCDiffractive, kind=C_BOOL)
-  sND          = logical(pythia_useNDiffractive, kind=C_BOOL)
+  real(kind=C_DOUBLE)  beamEnergy1, beamEnergy2, elasticTMin, sigmaTot, sigmaEl, m0b1, m0b2, &
+    csEL, csSD, csDD, csCD, csND, csTT, csNDCalc
 
   if(pythia_isActive .eqv. .false.) then
     ! No PYTHIA block, so nothing to do.
@@ -347,6 +438,8 @@ subroutine pythia_postInput
   write(lout,"(a)") "    OO              OO"
   write(lout,"(a)") "    OOOOOOOOOOOOOOOOOO"
   write(lout,"(a)") ""
+
+  write(lout,"(a)") "PYTHIA> Initialising libpythia8"
 
   pythStat = pythia_defaults()
   if(pythStat .eqv. .false.) then
@@ -367,6 +460,39 @@ subroutine pythia_postInput
     call prror
   end if
 
+  if(pythia_useRealBeam) then
+    pythia_frameType = 3
+  else
+    if(pythia_beamEnergy(1) == pythia_beamEnergy(2)) then
+      pythia_frameType = 1
+    else
+      pythia_frameType = 2
+    end if
+  end if
+
+  rndSeed      = int(pythia_rndSeed,        kind=C_INT)
+  frameType    = int(pythia_frameType,      kind=C_INT)
+  beamSpecies1 = int(pythia_beamSpecies(1), kind=C_INT)
+  beamSpecies2 = int(pythia_beamSpecies(2), kind=C_INT)
+
+  beamEnergy1  = real(pythia_beamEnergy(1), kind=C_DOUBLE)
+  beamEnergy2  = real(pythia_beamEnergy(2), kind=C_DOUBLE)
+  elasticTMin  = real(pythia_elasticTMin,   kind=C_DOUBLE)
+
+  sCMB = logical(pythia_useCoulomb,      kind=C_BOOL)
+  sEL  = logical(pythia_useElastic,      kind=C_BOOL)
+  sSD  = logical(pythia_useSDiffractive, kind=C_BOOL)
+  sDD  = logical(pythia_useDDiffractive, kind=C_BOOL)
+  sCD  = logical(pythia_useCDiffractive, kind=C_BOOL)
+  sND  = logical(pythia_useNDiffractive, kind=C_BOOL)
+
+  csTT = real(pythia_csTotal,        kind=C_DOUBLE)
+  csEL = real(pythia_csElastic,      kind=C_DOUBLE)
+  csSD = real(pythia_csSDiffractive, kind=C_DOUBLE)
+  csDD = real(pythia_csDDiffractive, kind=C_DOUBLE)
+  csCD = real(pythia_csCDiffractive, kind=C_DOUBLE)
+  csND = real(pythia_csNDiffractive, kind=C_DOUBLE)
+
   if(pythia_useSettingsFile) then
     call pythia_readFile(pythia_settingsFile//char(0))
   else
@@ -374,6 +500,23 @@ subroutine pythia_postInput
     call pythia_setBeam(frameType,beamSpecies1,beamSpecies2,beamEnergy1,beamEnergy2)
     call pythia_setProcess(sEL,sSD,sDD,sCD,sND)
     call pythia_setCoulomb(sCMB,elasticTMin)
+    call pythia_setModes(pythia_sigTotalMode,pythia_sigDiffMode)
+    if(pythia_sigTotalMode == pythia_idSigTotModeManual) then
+      csNDCalc = csTT - csEL - 2*csSD - csDD - csCD
+      if(abs(csNDCalc - csND) > c1m3) then
+        write(lout,"(a)") "PYTHIA> WARNING Total cross section is different than the sum of cross sections."
+        write(lout,"(a)") "PYTHIA>         Changing the non-diffractive cross section to compensate."
+        csND = csNDCalc
+      end if
+      write(lout,"(a)")       "PYTHIA> Manual Cross Sections"
+      write(lout,"(a,f12.6)") "PYTHIA>  * Elastic:             ",csEL
+      write(lout,"(a,f12.6)") "PYTHIA>  * Single Diffractive:  ",csSD
+      write(lout,"(a,f12.6)") "PYTHIA>  * Double Diffractive:  ",csDD
+      write(lout,"(a,f12.6)") "PYTHIA>  * Central Diffractive: ",csCD
+      write(lout,"(a,f12.6)") "PYTHIA>  * Non-Diffractive:     ",csND
+      write(lout,"(a,f12.6)") "PYTHIA>  * Total:               ",csTT
+      call pythia_setCrossSection(csTT,csEL,csSD,csDD,csCD)
+    end if
   end if
 
   pythStat = pythia_init()
@@ -382,11 +525,14 @@ subroutine pythia_postInput
     call prror
   end if
 
-  call pythia_getCrossSection(sigmaTot, sigmaEl)
-  write(lout,"(a)")       "    Cross Sections"
-  write(lout,"(a,f12.6)") "    * Total:   ",sigmaTot
-  write(lout,"(a,f12.6)") "    * Elastic: ",sigmaEl
+  call pythia_getInitial(sigmaTot, sigmaEl, m0b1, m0b2)
+  pythia_partMass(1) = real(m0b1, kind=fPrec)*c1e3
+  pythia_partMass(2) = real(m0b2, kind=fPrec)*c1e3
+  write(lout,"(a)")       "PYTHIA> Other Settings"
+  write(lout,"(a,f12.6)") "PYTHIA>  * Pythia Mass:   ",pythia_partMass(1)
+  write(lout,"(a,f12.6)") "PYTHIA>  * SixTrack Mass: ",nucm0
 
+  write(lout,"(a)") "PYTHIA> Initialisation of libpythia8 complete"
   write(lout,"(a)") ""
   write(lout,"(a)") str_divLine
 
