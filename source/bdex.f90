@@ -497,7 +497,7 @@ subroutine bdex_track(i,ix,n)
       else
         ! TODO: Handle j < npart
         if (j > npart) then
-          call expand_arrays(nele, j, nblz, nblo)
+          call expand_arrays(nele, j, nblz, nblo, nbb)
           ! TODO: Initialise per-particle optics variables
         endif
         napx=j

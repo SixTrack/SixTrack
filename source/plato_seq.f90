@@ -92,6 +92,7 @@ module platoFMA
 
       REAL(KIND=fPrec) FUNCTION TUNENEWT1(X,XP,MAXN)
       use crcoall
+      use numerical_constants
       IMPLICIT NONE
       INTEGER MAXITER
       PARAMETER(MAXITER=100000)
@@ -111,7 +112,7 @@ module platoFMA
 !C.............................................................
 !C    ESTIMATION OF TUNE WITH FFT
 !C.............................................................
-      DUEPI=ATAN_MB(one)*eight
+      DUEPI=twopi
       MFT=INT(LOG_MB(REAL(MAXN,fPrec))/LOG_MB(two))
       NPOINT=2**MFT
       MAXN2=MAXN/2
@@ -162,6 +163,7 @@ module platoFMA
 
       REAL(KIND=fPrec) FUNCTION TUNEFIT(X,XP,MAX)
       use crcoall
+      use numerical_constants
       IMPLICIT NONE
       INTEGER MAXITER
       PARAMETER(MAXITER=100000)
@@ -175,7 +177,7 @@ module platoFMA
         call prror
       ENDIF
 !C............................................................
-      DUEPI=eight*ATAN_MB(one)
+      DUEPI=twopi
 !C.............................................................
       C=REAL(MAX,fPrec)/TWO-REAL(INT(MAX/TWO),fPrec)
       MAX1=MAX
@@ -423,6 +425,7 @@ module platoFMA
 !C
 
       SUBROUTINE FFT_PLATO(CDATA,NN,ISIGN)
+      use numerical_constants
       IMPLICIT NONE
       INTEGER I,J,N,NN,M,MMAX,ISTEP,ISIGN
       REAL(kind=fPrec) WR,WI,WPR,WPI,WTEMP,THETA,TEMPR,TEMPI
@@ -456,7 +459,7 @@ module platoFMA
       MMAX=2
  2    IF(N.GT.MMAX) THEN
         ISTEP=2*MMAX
-        THETA=(EIGHT*ATAN_MB(ONE))/(ISIGN*MMAX)
+        THETA=twopi/(ISIGN*MMAX)
         WPR=-TWO*SIN_MB(HALF*THETA)**2
         WPI=SIN_MB(THETA)
         WR=ONE
@@ -500,6 +503,7 @@ module platoFMA
 !C
 
       SUBROUTINE FFT_PLATO_REAL(DATA,NN,ISIGN)
+      use numerical_constants
       IMPLICIT NONE
       INTEGER I,J,N,NN,M,MMAX,ISTEP,ISIGN
       REAL(kind=fPrec) WR,WI,WPR,WPI,WTEMP,THETA,TEMPR,TEMPI
@@ -527,7 +531,7 @@ module platoFMA
       MMAX=2
  2    IF(N.GT.MMAX) THEN
         ISTEP=2*MMAX
-        THETA=(EIGHT*ATAN_MB(ONE))/(ISIGN*MMAX)
+        THETA=twopi/(ISIGN*MMAX)
         WPR=-TWO*SIN_MB(HALF*THETA)**2
         WPI=SIN_MB(THETA)
         WR=ONE
@@ -566,6 +570,7 @@ module platoFMA
 
       REAL(KIND=fPrec) FUNCTION TUNENEWT(X,XP,MAXN)
       use crcoall
+      use numerical_constants
       IMPLICIT NONE
       INTEGER MAXITER
       PARAMETER(MAXITER=100000)
@@ -584,7 +589,7 @@ module platoFMA
 !C.............................................................
 !C    ESTIMATION OF TUNE WITH FFT
 !C.............................................................
-      DUEPI=ATAN_MB(ONE)*EIGHT
+      DUEPI=twopi
       MFT=INT(LOG_MB(REAL(MAXN,fPrec))/LOG_MB(TWO))
       NPOINT=2**MFT
       MAXN2=MAXN/2
@@ -630,17 +635,18 @@ module platoFMA
 !C
 
       SUBROUTINE ZFUN(TUNE,Z,MAXN,TUNEA1,DELTAT)
+      use numerical_constants
       IMPLICIT NONE
       INTEGER MAXITER
       PARAMETER(MAXITER=100000)
-      INTEGER ND,MAXN,NUM,NTEST,NCONT,NFT,NC
+      INTEGER ND,MAXN,NUM,NTEST,NCONT,NC
       REAL(KIND=fPrec) DUEPI,ERR,DELTAT,TUNEA1,TUNEA2,DTUNEA1,DTUNEA2, &
      &TUNE1,TUNE2,DTUNE1,DTUNE2,RATIO,TUNE3,DTUNE3,TUNETEST,TUNEVAL,TUNEVMAX,TUNE
       COMPLEX(kind=fPrec) ZU,ZD,ZF,Z,ZTUNE1,ZTUNE2,ZTUNE3,ZFD
       DIMENSION Z(*),ZD(MAXITER),TUNETEST(10),TUNEVAL(10)
 
 !C............................................................
-      DUEPI=ATAN_MB(one)*eight
+      DUEPI=twopi
       ERR=c1m10
       ZU=CMPLX(zero,one,fPrec)
 !C............................................................
@@ -995,7 +1001,7 @@ module platoFMA
       REAL(KIND=fPrec) FUNCTION TUNELASK(X,PX,MAX)
 !C............................................................
       use crcoall
-      use numerical_constants, only : zero
+      use numerical_constants
       IMPLICIT NONE
       INTEGER MAXITER
       PARAMETER(MAXITER=100000)
@@ -1003,9 +1009,9 @@ module platoFMA
       REAL(KIND=fPrec) DUEPI,SUM,FTMAX,TUNEFOU,FSIGMA,OMEMIN,STEP,OMEMAX,FOMEGA,OME,ABSFOM,TMPR,TMPI
       REAL(KIND=fPrec) X(*),PX(*)
       COMPLEX(kind=fPrec) ZSING(MAXITER) ! Temp Z for CFFT, used to be SINGle precission
-      COMPLEX(kind=fPrec) Z(MAXITER),FOME,ZC,SD,SP
+      COMPLEX(kind=fPrec) Z(MAXITER),FOME,ZC
 
-      DUEPI=EIGHT*ATAN_MB(ONE)
+      DUEPI=twopi
       TUNELASK = zero
       JOM = 0
 !C...............................CHECK OF THE ITERATION NUMBER

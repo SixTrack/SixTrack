@@ -21,7 +21,7 @@ subroutine sumpos
   character(len=mInputLn)       :: inLine
   real(kind=fPrec) d(60), dlost
   integer nSplit, ioStat, lineNo, i, j
-  logical spErr, fErr
+  logical spErr
 
   rewind(unit10)
   lineNo = 0

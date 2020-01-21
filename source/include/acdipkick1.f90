@@ -1,4 +1,4 @@
-! start include/acdipkick.f90
+! start include/acdipkick1.f90
 nfree=nturn1(ix)
 if(n.gt.nfree) then
   nac=n-nfree
@@ -13,21 +13,8 @@ if(n.gt.nfree) then
   nplato=nturn3(ix)
   nramp2=nturn4(ix)
   do j=1,napx
-#ifndef TILT
-    if(nramp1.gt.nac) then
-      yv1(j)=yv1(j)+(((acdipamp*sin_mb(((two*pi)*qd)*real(nac,fPrec)+acphase))&
-                *real(nac,fPrec))/real(nramp1,fPrec))/ejfv(j)
-    endif
-    if(nac.ge.nramp1.and.(nramp1+nplato).gt.nac) then
-      yv1(j)=yv1(j)+(acdipamp*sin_mb(((two*pi)*qd)*real(nac,fPrec)+acphase))/ejfv(j)
-    endif
-    if(nac.ge.(nramp1+nplato).and.(nramp2+nramp1+nplato).gt.nac)then
-      yv1(j)=yv1(j)+((acdipamp*sin_mb(((two*pi)*qd)*real(nac,fPrec)+acphase))&
-                *((-one*real(nac-nramp1-nramp2-nplato,fPrec))/real(nramp2,fPrec)))/ejfv(j)
-    endif
-#else
-      acdipamp2=acdipamp*tilts(i)
-      acdipamp1=acdipamp*tiltc(i)
+    acdipamp2=acdipamp*tilts(i)
+    acdipamp1=acdipamp*tiltc(i)
     if(nramp1.gt.nac) then
       yv1(j)=yv1(j)+(((acdipamp1*sin_mb(((two*pi)*qd)*real(nac,fPrec)+acphase))*real(nac,fPrec))/real(nramp1,fPrec))/ejfv(j)
       yv2(j)=yv2(j)+(((acdipamp2*sin_mb(((two*pi)*qd)*real(nac,fPrec)+acphase))*real(nac,fPrec))/real(nramp1,fPrec))/ejfv(j)
@@ -42,7 +29,6 @@ if(n.gt.nfree) then
       yv2(j)=yv2(j)+((acdipamp2*sin_mb(((two*pi)*qd)*real(nac,fPrec)+acphase))&
             *((-one*real(nac-nramp1-nramp2-nplato,fPrec))/real(nramp2,fPrec)))/ejfv(j)
     endif
-#endif
   enddo
 endif
-! end include/acdipkick.f90
+! end include/acdipkick1.f90

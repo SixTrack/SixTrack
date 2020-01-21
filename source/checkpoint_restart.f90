@@ -20,9 +20,9 @@ module checkpoint_restart
   logical,           public,  save :: cr_pntRead(cr_nPoint)  = .false.
 
   ! Logging Files
-  character(len=13), public,  save :: cr_errFile  = "cr_stderr.tmp"
-  character(len=13), public,  save :: cr_outFile  = "cr_stdout.tmp"
-  character(len=13), public,  save :: cr_logFile  = "cr_status.log"
+  character(len=13), parameter     :: cr_errFile  = "cr_stderr.tmp"
+  character(len=13), parameter     :: cr_outFile  = "cr_stdout.tmp"
+  character(len=13), parameter     :: cr_logFile  = "cr_status.log"
   integer,           parameter     :: cr_errUnit  = 91
   integer,           parameter     :: cr_outUnit  = 92
   integer,           parameter     :: cr_logUnit  = 93
@@ -33,7 +33,6 @@ module checkpoint_restart
   logical,           public,  save :: cr_restart  = .false.
 
   character(len=21), public,  save :: cr_startMsg = " "
-  real,              public,  save :: cr_time     = 0.0
   integer,           public,  save :: cr_numl     = 1
   integer,           public,  save :: binrec      = 0       ! The maximum number of records writen for all tracking data files
   integer,           public,  save :: sixrecs     = 0
@@ -300,7 +299,7 @@ end subroutine cr_killSwitch
 !  Last modified: 2018-12-05
 !
 !  This subroutine checks if the C/R files exist, and if so tries to load them into the cr* variables.
-!  This routine also repositions the output files for fort.90..91-napx/2 and various other modules
+!  This routine also repositions the output files for singletrackfile.dat and various other modules
 ! ================================================================================================ !
 subroutine crcheck
 
@@ -313,13 +312,14 @@ subroutine crcheck
   use mod_common_main
   use mod_version
 
-  use dynk,     only : dynk_enabled, dynk_noDynkSets,dynk_crcheck_readdata,dynk_crcheck_positionFiles
-  use dump,     only : dump_crcheck_readdata,dump_crcheck_positionFiles
-  use aperture, only : limifound, aper_crcheck_readdata, aper_crcheck_positionFiles
-  use scatter,  only : scatter_active, scatter_crcheck_readdata, scatter_crcheck_positionFiles
-  use elens,    only : melens, elens_crcheck
-  use mod_meta, only : meta_crcheck
-  use mod_time, only : time_crcheck
+  use dynk,       only : dynk_enabled,dynk_crcheck_readdata,dynk_crcheck_positionFiles
+  use dump,       only : dump_crcheck_readdata,dump_crcheck_positionFiles
+  use aperture,   only : limifound, aper_crcheck_readdata, aper_crcheck_positionFiles
+  use scatter,    only : scatter_active, scatter_crcheck_readdata, scatter_crcheck_positionFiles
+  use elens,      only : melens, elens_crcheck
+  use mod_meta,   only : meta_crcheck
+  use mod_time,   only : time_crcheck
+  use mod_random, only : rnd_crcheck
 
   integer j,k,l,m
   integer nPoint, ioStat
@@ -389,7 +389,7 @@ subroutine crcheck
 
     write(crlog,"(a)") "CR_CHECK>  * Tracking variables"
     flush(crlog)
-    read(cr_pntUnit(nPoint),iostat=ioStat) crnumlcr,crnuml,crsixrecs,crbinrec,cril,cr_time,crnapxo,&
+    read(cr_pntUnit(nPoint),iostat=ioStat) crnumlcr,crnuml,crsixrecs,crbinrec,cril,crnapxo, &
       crnapx,cre0,crbeta0,crbrho,crnucmda
     if(ioStat /= 0) cycle
 
@@ -429,6 +429,11 @@ subroutine crcheck
     write(crlog,"(a)") "CR_CHECK>  * TIME variables"
     flush(crlog)
     call time_crcheck(cr_pntUnit(nPoint),rErr)
+    if(rErr) cycle
+
+    write(crlog,"(a)") "CR_CHECK>  * RND variables"
+    flush(crlog)
+    call rnd_crcheck(cr_pntUnit(nPoint),rErr)
     if(rErr) cycle
 
     write(crlog,"(a)") "CR_CHECK>  * DUMP variables"
@@ -483,11 +488,6 @@ subroutine crcheck
   write(crlog,"(2(a,i8))") "CR_CHECK> Particles  C/R: ",crnapxo,  ", Input:  ",napx*2
   write(crlog,"(2(a,i8))") "CR_CHECK> SixRecords C/R: ",crsixrecs,", Buffer: ",sixrecs
   write(crlog,"(1(a,i8))") "CR_CHECK> BinRecords C/R: ",crbinrec
-#ifndef STF
-  do j=1,(crnapxo+1)/2
-    write(crlog,"(2(a,i0))") "CR_CHECK>  * Record ",j,": ",crbinrecs(j)
-  end do
-#endif
   flush(crlog)
 
   !  Position Files
@@ -507,8 +507,8 @@ subroutine crcheck
 
   call cr_positionTrackFiles
 
-  if(dynk_enabled .and. .not.dynk_noDynkSets) then
-    write(crlog,"(a)") "CR_CHECK> Repositioning dynksets.dat"
+  if(dynk_enabled) then
+    write(crlog,"(a)") "CR_CHECK> Repositioning DYNK files"
     flush(crlog)
     call dynk_crcheck_positionFiles
   end if
@@ -568,12 +568,13 @@ subroutine crpoint
   use mod_settings
   use numerical_constants
 
-  use dynk,     only : dynk_enabled,dynk_getvalue,dynk_fSets_cr,dynk_cSets_unique,dynk_nSets_unique,dynk_crpoint
-  use dump,     only : dump_crpoint
-  use aperture, only : aper_crpoint,limifound
-  use scatter,  only : scatter_active, scatter_crpoint
-  use elens,    only : melens, elens_crpoint
-  use mod_meta, only : meta_crpoint
+  use dynk,       only : dynk_enabled,dynk_getvalue,dynk_fSets_cr,dynk_cSets_unique,dynk_nSets_unique,dynk_crpoint
+  use dump,       only : dump_crpoint
+  use aperture,   only : aper_crpoint,limifound
+  use scatter,    only : scatter_active, scatter_crpoint
+  use elens,      only : melens, elens_crpoint
+  use mod_meta,   only : meta_crpoint
+  use mod_random, only : rnd_crpoint
 
   integer j, k, l, m, nPoint
   logical wErr, fErr
@@ -594,11 +595,6 @@ subroutine crpoint
 
   ! Copy lout to output_unit
   call cr_copyOut
-
-  ! Hope this is correct
-  ! Maybe not!!!! this should be accumulative over multiple C/Rs
-  call time_timerCheck(time3)
-  time3 = (time3-time1)+cr_time
 
   crnumlcr = numx+1
 
@@ -631,7 +627,7 @@ subroutine crpoint
       write(crlog,"(a)") "CR_POINT>  * Tracking variables"
       flush(crlog)
     end if
-    write(cr_pntUnit(nPoint),err=100) crnumlcr,numl,sixrecs,binrec,il,time3,napxo,napx,e0,beta0,brho,nucmda
+    write(cr_pntUnit(nPoint),err=100) crnumlcr,numl,sixrecs,binrec,il,napxo,napx,e0,beta0,brho,nucmda
 
     if(st_debug) then
       write(crlog,"(a)") "CR_POINT>  * Particle arrays"
@@ -675,6 +671,13 @@ subroutine crpoint
       flush(crlog)
     end if
     call time_crpoint(cr_pntUnit(nPoint),wErr)
+    if(wErr) goto 100
+
+    if(st_debug) then
+      write(crlog,"(a)") "CR_POINT>  * RND variables"
+      flush(crlog)
+    end if
+    call rnd_crpoint(cr_pntUnit(nPoint),wErr)
     if(wErr) goto 100
 
     if(st_debug) then
@@ -755,24 +758,24 @@ subroutine crstart
   use mod_common_track
   use numerical_constants
 
-  use dynk,     only : dynk_enabled, dynk_crstart
-  use scatter,  only : scatter_active, scatter_crstart
-  use elens,    only : melens, elens_crstart
-  use mod_meta, only : meta_crstart
-  use mod_time, only : time_crstart
+  use dynk,       only : dynk_enabled, dynk_crstart
+  use scatter,    only : scatter_active, scatter_crstart
+  use elens,      only : melens, elens_crstart
+  use mod_meta,   only : meta_crstart
+  use mod_time,   only : time_crstart
+  use mod_random, only : rnd_crstart
 
   logical fErr
   integer j, k, l, m, nPoint, ioStat
 
   write(crlog,"(a,i0)") "CR_START> Starting from checkpoint data from turn ",crnumlcr
   flush(crlog)
-  cr_numl = crnumlcr
 
   ! We do NOT reset numl so that a run can be extended
   ! for more turns from the last checkpoint
-  binrec   = crbinrec
+  cr_numl = crnumlcr
 
-  ! the cr_time is required (crtime0/1 removed)
+  binrec = crbinrec
   napxo  = crnapxo
   napx   = crnapx
   e0     = cre0
@@ -838,6 +841,7 @@ subroutine crstart
   ! Module data
   call meta_crstart
   call time_crstart
+  call rnd_crstart
   if(dynk_enabled) then
     call dynk_crstart
   end if
@@ -871,7 +875,7 @@ end subroutine crstart
 ! ================================================================================================ !
 !  Reposition Track Files
 !  Moved from crcheck
-!  Last modified: 2019-04-30
+!  Last modified: 2019-09-10
 ! ================================================================================================ !
 subroutine cr_positionTrackFiles
 
@@ -887,7 +891,6 @@ subroutine cr_positionTrackFiles
   integer(kind=int32) hbuff(253),tbuff(35)
 
   ! We may be re-running with a DIFFERENT number of turns (numl)
-  ! Eric fix this later by reading numl for fort.90
   if(numl /= crnuml) then
     if(numl < crnumlcr) then
       write(lerr, "(2(a,i0))") "CR_CHECK> ERROR New numl < crnumlcr : ",numl," < ",crnumlcr
@@ -898,61 +901,9 @@ subroutine cr_positionTrackFiles
     write(crlog,"(2(a,i0))") "CR_CHECK> Resetting numl in binary file headers from ",crnuml," to ",numl
     flush(crlog)
 
-    ! Reposition binary files fort.90 etc. / singletrackfile.dat
+    ! Reposition binary file singletrackfile.dat
     call f_requestUnit("cr_trackfile.tmp",tUnit)
     call f_open(unit=tUnit,file="cr_trackfile.tmp",formatted=.false.,mode="rw")
-#ifndef STF
-    do ia=1,crnapxo/2,1
-      ! First, copy crbinrecs(ia) records of data from fort.91-ia to temp file
-      binrecs9x = 0
-      binrecs94 = 0
-      iau       = 91-ia
-
-      ! Copy header into integer array hbuff
-      read(91-ia,err=105,end=105,iostat=ierro) hbuff
-      binrecs9x = binrecs9x + 1
-      hbuff(51) = numl ! Reset the number of turns (not very elegant)
-      write(tUnit,err=105,iostat=ierro) hbuff
-
-      ! Copy particle tracking data
-      do j=2,crbinrecs(ia)
-        if(ntwin /= 2) then
-          read(91-ia,err=105,end=105,iostat=ierro) (tbuff(k),k=1,17)
-          write(tUnit,err=105,iostat=ierro) (tbuff(k),k=1,17)
-        else
-          read(91-ia,err=105,end=105,iostat=ierro) tbuff
-          write(tUnit,err=105,iostat=ierro) tbuff
-        end if
-        binrecs9x = binrecs9x + 1
-      end do
-
-      ! Second, copy crbinrecs(ia) records of data from temp file to fort.91-ia
-      rewind(tUnit)
-      rewind(91-ia)
-
-      ! Copy header
-      read(tUnit,err=105,end=105,iostat=ierro) hbuff
-      binrecs94 = binrecs94 + 1
-      write(91-ia,err=105,iostat=ierro) hbuff
-
-      ! Copy particle tracking data into integer array tbuff
-      do j=2,crbinrecs(ia)
-        if(ntwin /= 2) then
-          read(tUnit,err=105,end=105,iostat=ierro) (tbuff(k),k=1,17)
-          write(91-ia,err=105,iostat=ierro) (tbuff(k),k=1,17)
-        else
-          read(tUnit,err=105,end=105,iostat=ierro) tbuff
-          write(91-ia,err=105,iostat=ierro) tbuff
-        end if
-        binrecs94 = binrecs94 + 1
-      end do
-
-      ! This is not a FLUSH!
-      endfile(91-ia,iostat=ierro)
-      backspace(91-ia,iostat=ierro)
-      rewind(tUnit)
-    end do
-#else
     ! First, copy crbinrecs(ia)*(crnapx/2) records of data from singletrackfile.dat to temp file
     binrecs9x = 0
 
@@ -1007,38 +958,11 @@ subroutine cr_positionTrackFiles
     ! This is not a FLUSH!
     endfile(90,iostat=ierro)
     backspace(90,iostat=ierro)
-#endif
     call f_freeUnit(tUnit)
   else !ELSE for "if(nnuml.ne.crnuml) then" -> here we treat nnuml.eq.crnuml, i.e. the number of turns have not been changed
     ! Now with the new array crbinrecs we can ignore files which are
     ! basically finished because a particle has been lost.......
     ! Just check crbinrecs against crbinrec
-#ifndef STF
-    ! Binary files have been rewritten; now re-position
-    write(crlog,"(a)") "CR_CHECK>  * Repositioning binary files"
-    do ia=1,crnapxo/2,1
-      iau = 91-ia
-      if(crbinrecs(ia) >= crbinrec) then
-        binrecs9x = 0
-        read(91-ia,err=102,end=102,iostat=ierro) hbuff
-        do j=2,crbinrecs(ia)
-          if(ntwin /= 2) then
-            read(91-ia,err=102,end=102,iostat=ierro) (tbuff(k),k=1,17)
-          else
-            read(91-ia,err=102,end=102,iostat=ierro) tbuff
-          end if
-          binrecs9x = binrecs9x + 1
-        end do
-
-        ! This is not a FLUSH!
-        endfile(91-ia,iostat=ierro)
-        backspace(91-ia,iostat=ierro)
-      else ! Number of ecords written to this file < general number of records written
-          ! => Particle has been lost before last checkpoint, no need to reposition.
-        write(crlog,"(2(a,i0))") "CR_CHECK> Ignoring IA ",ia," on unit ",iau
-      end if
-    end do ! END "do ia=1,crnapxo/2,1"
-#else
     binrecs9x = 0
     ! Reposition headers
     do ia=1,crnapxo/2,1
@@ -1057,21 +981,9 @@ subroutine cr_positionTrackFiles
         binrecs9x = binrecs9x + 1
       end do
     end do
-#endif
   end if ! END "if (numl.ne.crnuml) then" and END else
   return
 
-#ifndef STF
-102 continue
-  write(lerr,"(2(a,i0))") "CR_CHECK> ERROR Re-reading fort.",iau," IOSTAT = ",ierro
-  write(lerr,"(3(a,i0))") "CR_CHECK>       Unit ",iau," binrecs9x=",binrecs9x," Expected crbinrecs=",crbinrecs(ia)
-  call prror
-105 continue
-  write(lerr,"(2(a,i0))") "CR_CHECK> ERROR Copying fort.",iau," IOSTAT = ",ierro
-  write(lerr,"(4(a,i0))") "CR_CHECK>       Unit ",iau," binrecs9x=",binrecs9x,&
-    " Expected crbinrecs=",crbinrecs(ia)," binrecs94=",binrecs94
-  call prror
-#else
 102 continue
   write(lerr,"(2(a,i0))") "CR_CHECK> ERROR Re-reading singletrackfile.dat for ia=",ia," IOSTAT=",ierro
   write(lerr,"(2(a,i0))") "CR_CHECK>       binrecs9x=",binrecs9x," Expected crbinrecs=",crbinrecs(ia)
@@ -1080,7 +992,7 @@ subroutine cr_positionTrackFiles
   write(lerr,"(2(a,i0))") "CR_CHECK> ERROR Copying particle pair ",ia," IOSTAT=",ierro," from/to singletrackfile.dat"
   write(lerr,"(3(a,i0))") "CR_CHECK>       binrecs9x=",binrecs9x," Expected crbinrecs=",crbinrecs(ia)," binrecs94=",binrecs94
   call prror
-#endif
+
 end subroutine cr_positionTrackFiles
 
 ! ================================================================================================ !

@@ -95,7 +95,7 @@ logical function checkArray(xvals,datalen,lprint)
 
   if(datalen <= 0) then
     checkArray=.false.
-    if (llprint) write(lerr,"(a)") "UTILS> ERROR checkArray: datalen was 0!"
+    if (llprint) write(lerr,"(a)") "UTILS> ERROR checkArray: datalen was <=0!"
   end if
   do ii=1, datalen-1
     if(xvals(ii) >= xvals(ii+1)) then
@@ -190,9 +190,9 @@ end function huntBin
 ! ================================================================================================ !
 !  A.Mereghetti, CERN, BE-ABP-HSS
 !  Last modified: 24-04-2019
-!  Given arrays xa and ya, each of length n, and given a value x, this function returns a
+!  Given arrays xa and ya, each of length nn, and given a value x, this function returns a
 !        value y, and an error estimate dy. If P(x) is the polynomial of degree N−1 such that
-!        P(xa_i)=ya_i, i=1,...,n , then the returned value y = P ( x ).
+!        P(xa_i)=ya_i, i=1,...,nn , then the returned value y = P ( x ).
 !  This function implements Neville's method
 !  function from Numerical Recipes in Fortran 77
 ! ================================================================================================ !
@@ -288,7 +288,7 @@ real(kind=fPrec) function polinterp(x,xvals,yvals,datalen,mpoints,jguess)
   jMax=min(jMin+mpoints-1,datalen)
 
   ! actually interpolate
-  polinterp = nevilleMethod(xvals(jMin:jMax),yvals(jMin:jMax),mpoints,x,dy)
+  polinterp = nevilleMethod(xvals(jMin:jMax),yvals(jMin:jMax),jMax-jMin+1,x,dy)
 
 #ifdef DEBUG
   write(lout,'(/a,1pe16.9)')   'UTILS> interpolating arrays for x= ',x
@@ -297,7 +297,7 @@ real(kind=fPrec) function polinterp(x,xvals,yvals,datalen,mpoints,jguess)
   write(lout,'(a,i0)')         'UTILS>    index found at:  jj=',jj
   write(lout,'(2(a,1pe16.9))') 'UTILS>    i.e. between x= ',xvals(jj),' and x= ',xvals(jj+1)
   write(lout,'(3(a,i0))')      'UTILS>    using ',mpoints,' points: jMin= ',jMin,' and jMax= ',jMax
-  write(lout,'(2(a,1pe16.9))') 'UTILS>    i.e. between x= ',xvals(jMin),'and x= ',xvals(jMax)
+  write(lout,'(2(a,1pe16.9))') 'UTILS>    i.e. between x= ',xvals(jMin),' and x= ',xvals(jMax)
   write(lout,'(a,1pe16.9)')    'UTILS> calculated value: ',polinterp
   write(lout,'(a)')            'UTILS> arrays:'
   do ii=1,datalen
@@ -354,7 +354,7 @@ end subroutine polcof
 ! ================================================================================================ !
 !  A.Mereghetti, CERN, BE-ABP-HSS
 !  Last modified: 16-04-2019
-!  Integrate (xvals,yvals) with polynoms through mpoints data, and find the value y at x
+!  Integrate (xvals,yvals) with polynoms through mpoints data
 ! ================================================================================================ !
 real(kind=fPrec) function polintegrate(xvals,yvals,datalen,mpoints,order,cumul,rmin,rmax)
 
@@ -387,7 +387,7 @@ real(kind=fPrec) function polintegrate(xvals,yvals,datalen,mpoints,order,cumul,r
   do jj=jMin+1,jMax ! loop over data points
      kMin=min(max(jj-1-(mpoints-1)/2,1),datalen+1-mpoints)
      kMax=min(kMin+mpoints-1,datalen)
-     call polcof(xvals(kMin:kMax),yvals(kMin:kMax),mpoints,cof)
+     call polcof(xvals(kMin:kMax),yvals(kMin:kMax),kMax-kMin+1,cof)
      xmin=xvals(jj-1)
      if (present(rmin).and.jj==jMin+1) xmin=rmin
      xmax=xvals(jj)
@@ -652,8 +652,8 @@ subroutine wzsubv(n,vx,vy,vu,vv)
   use numerical_constants
 
   integer,          intent(in)  :: n
-  real(kind=fPrec), intent(out) :: vx(*)
-  real(kind=fPrec), intent(out) :: vy(*)
+  real(kind=fPrec), intent(in)  :: vx(*)
+  real(kind=fPrec), intent(in)  :: vy(*)
   real(kind=fPrec), intent(out) :: vu(*)
   real(kind=fPrec), intent(out) :: vv(*)
 
@@ -699,7 +699,7 @@ subroutine wzsubv(n,vx,vy,vu,vv)
           vu(outs(j)) = -(yy*vsreal+xx*vsimag)
           vv(outs(j)) = xx*vsreal-yy*vsimag
         end do
-        out =0
+        out = 0
       end if
     else
       in = in+1
@@ -870,8 +870,8 @@ subroutine wzsub(x,y,u,v)
   use parpro
   use parbeam
 
-  real(kind=fPrec), intent(out) :: x
-  real(kind=fPrec), intent(out) :: y
+  real(kind=fPrec), intent(in)  :: x
+  real(kind=fPrec), intent(in)  :: y
   real(kind=fPrec), intent(out) :: u
   real(kind=fPrec), intent(out) :: v
 

@@ -118,7 +118,10 @@ module numerical_constants
 
   real(kind=fPrec), parameter :: c1e1   = 1.0e1_fPrec
   real(kind=fPrec), parameter :: c1e2   = 1.0e2_fPrec
+  real(kind=fPrec), parameter :: c2e2   = 2.0e2_fPrec
   real(kind=fPrec), parameter :: c1e3   = 1.0e3_fPrec
+  real(kind=fPrec), parameter :: c2e3   = 2.0e3_fPrec
+  real(kind=fPrec), parameter :: c4e3   = 4.0e3_fPrec
   real(kind=fPrec), parameter :: c1e4   = 1.0e4_fPrec
   real(kind=fPrec), parameter :: c1e5   = 1.0e5_fPrec
   real(kind=fPrec), parameter :: c1e6   = 1.0e6_fPrec
@@ -133,20 +136,22 @@ module numerical_constants
   real(kind=fPrec), parameter :: c1e27  = 1.0e27_fPrec
   real(kind=fPrec), parameter :: c1e38  = 1.0e38_fPrec
 
-  real(kind=fPrec), parameter :: c2e3   = 2.0e3_fPrec
-  real(kind=fPrec), parameter :: c4e3   = 4.0e3_fPrec
-  real(kind=fPrec), parameter :: c180e0 = 180.0_fPrec
+  real(kind=fPrec), parameter :: c180e0 = 1.8e2_fPrec
 
   real(kind=fPrec), parameter :: c1m1   = 1.0e-1_fPrec
+  real(kind=fPrec), parameter :: c2m1   = 2.0e-1_fPrec
   real(kind=fPrec), parameter :: c1m2   = 1.0e-2_fPrec
+  real(kind=fPrec), parameter :: c5m2   = 5.0e-2_fPrec
   real(kind=fPrec), parameter :: c1m3   = 1.0e-3_fPrec
   real(kind=fPrec), parameter :: c1m4   = 1.0e-4_fPrec
   real(kind=fPrec), parameter :: c5m4   = 5.0e-4_fPrec
   real(kind=fPrec), parameter :: c1m5   = 1.0e-5_fPrec
   real(kind=fPrec), parameter :: c1m6   = 1.0e-6_fPrec
+  real(kind=fPrec), parameter :: c2m6   = 2.0e-6_fPrec
   real(kind=fPrec), parameter :: c1m7   = 1.0e-7_fPrec
   real(kind=fPrec), parameter :: c1m8   = 1.0e-8_fPrec
   real(kind=fPrec), parameter :: c1m9   = 1.0e-9_fPrec
+  real(kind=fPrec), parameter :: c2m9   = 2.0e-9_fPrec
   real(kind=fPrec), parameter :: c1m10  = 1.0e-10_fPrec
   real(kind=fPrec), parameter :: c1m12  = 1.0e-12_fPrec
   real(kind=fPrec), parameter :: c1m13  = 1.0e-13_fPrec

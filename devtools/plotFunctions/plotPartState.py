@@ -29,7 +29,7 @@ if len(sys.argv) < 3:
 
 # Constants
 
-colMap = {"x":4,"y":5,"xp":6,"yp":7,"sigma":8,"dp":9,"p":10,"e":11}
+colMap = {"x":6,"y":7,"xp":8,"yp":9,"sigma":10,"dp":11,"p":12,"e":13}
 
 # Save the arguments and check that they make sense
 
@@ -40,10 +40,6 @@ if not path.isfile(thePath):
   exit(1)
 
 theFile = path.basename(thePath)
-if not theFile[:15] == "final_state.dat" and not theFile[:17] == "initial_state.dat":
-  print("Not a particle state file: %s" % theFile)
-  exit(1)
-
 theCols = []
 theData = {}
 

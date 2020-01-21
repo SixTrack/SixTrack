@@ -5,158 +5,111 @@ SETTINGS----------------------------------------------------------------
   CRKILLSWITCH 23456 78910
 NEXT
 TRACKING PARAMETERS-----------------------------------------------------
-100000 0 1 5.5 6.5 0 1
-1 1 1 1 1
-0 0 50000 50000 50000 50000 2
+  100000 0 1 5.5 6.5 0 1
+  1 1 1 1 1
+  0 0 50000 50000 50000 50000 2
 NEXT
 INITIAL COORDINATES-----------------------------------------------------
-        2 0. 0. 0.666664 0
-        0.
-        0.
-        0. 
-        0.
-        0.
-        0.0
-        .000001 
-        0.
-        0. 
-        0.
-        0.
-        0.0
-        450000.9781710788
-        450000.9781710788
-        450000.9781710788
+  2 0. 0. 0.666664 0
+  0.
+  0.
+  0.
+  0.
+  0.
+  0.0
+  .000001
+  0.
+  0.
+  0.
+  0.
+  0.0
+  450000.9781710788
+  450000.9781710788
+  450000.9781710788
 NEXT
 SYNCHROTRON OSCILLATIONS--------'PLACE AFTER TRACKING PARAMETERS'-------
-      35640 .000347 8. 0. 26658.883200 938.272013 1
-      1.       1.
+  35640 .000347 8. 0. 26658.883200 938.272013 1
+  1.       1.
 NEXT
 BEAM
-1.1000e+11   3.75  3.75  0.11  4.5e-04  1  0 1 0
+  1.1000e+11   3.75  3.75  0.11  4.5e-04  1  0 1 0
 NEXT
 ITERATION-ACCURACY------------------------------------------------------
-       50 1D-12 1D-15
-       10 1D-10 1D-10
-       10 1D-6  1D-6
-          1D-6  1D-9  1D-9
+  50 1D-12 1D-15
+  10 1D-10 1D-10
+  10 1D-6  1D-6
+    1D-6  1D-9  1D-9
 NEXT
 FLUCTUATION
-100000 1 7 3
+  100000 1 7 3
 NEXT
-/TUNE VARIATION----------------------------------------------------------
-/         mq.7r3.b1  62.28
-/         mq.8r3.b1  60.31
-//          0.
-//          
-/NEXT
-/CHROMATICITY CORRECTION------------------------------------------------
-/         ms.11r3.b1 15.
-/         ms.12r3.b1 15.
-/NEXT
 POSTPROCESSING----------------------------------------------------------
-LHC Dynamic Aperture at Injection Version 5 (1998)
-20 0 0 1 .08 .08 1 0 0 1. 1.
-62. 60. 1 1 10 .005 1 .050
-0 1 0 1 1 1 1 1 30
+  LHC Dynamic Aperture at Injection Version 5 (1998)
+  20 0 0 1 .08 .08 1 0 0 1. 1.
+  62. 60. 1 1 10 .005 1 .050
+  0 1 0 1 1 1 1 1 30
 NEXT
-/DIFFERENTIAL ALGEBRA---------------------------------------------------
-/%NO  %NV 1E-38 %nsix 0
-/NEXT
 CHEB
-cheby1  cheby.dat  -1  1.0
-cheby2  cheby.dat  6.4 0.7    0.0 -2.0  2.0
-cheby3  cheby.dat  6.0 1.5  -90.0  2.0 -2.0
-cheby4  cheby.dat  -1. 0.4  135.0  0.0  0.0 2
-SHOW    cheby1 cheby1_pot.dat
-SHOW    cheby2 cheby2_pot.dat -5  1 100 5 -1 100
-SHOW    cheby3 cheby3_pot.dat
-SHOW    cheby4 cheby4_pot.dat -10 10 100 -7 7 100
+  cheby1  cheby.dat  -1  1.0
+  cheby2  cheby.dat  6.4 0.7    0.0 -2.0  2.0
+  cheby3  cheby.dat  6.0 1.5  -90.0  2.0 -2.0
+  cheby4  cheby.dat  -1. 0.4  135.0  0.0  0.0 2
+  SHOW    cheby1 cheby1_pot.dat
+  SHOW    cheby2 cheby2_pot.dat -5  1 100 5 -1 100
+  SHOW    cheby3 cheby3_pot.dat
+  SHOW    cheby4 cheby4_pot.dat -10 10 100 -7 7 100
 NEXT
 DUMP
-ip4..2 1 -1 2 CHEBY_DUMP_01 1 2000
-ip4..3 1 -1 2 CHEBY_DUMP_02 1 2000
-ip4..4 1 -1 2 CHEBY_DUMP_03 1 2000
-ip4..5 1 -1 2 CHEBY_DUMP_04 1 2000
-ip4..6 1 -1 2 CHEBY_DUMP_05 1 2000
-/
-ip4.12 1 -1 2 CHEBY_DUMP_11 50001 52000
-ip4.13 1 -1 2 CHEBY_DUMP_12 50001 52000
-ip4.14 1 -1 2 CHEBY_DUMP_13 50001 52000
-ip4.15 1 -1 2 CHEBY_DUMP_14 50001 52000
-ip4.16 1 -1 2 CHEBY_DUMP_15 50001 52000
-/
-ip4.22 1 -1 2 CHEBY_DUMP_21 95001 97000
-ip4.23 1 -1 2 CHEBY_DUMP_22 95001 97000
-ip4.24 1 -1 2 CHEBY_DUMP_23 95001 97000
-ip4.25 1 -1 2 CHEBY_DUMP_24 95001 97000
-ip4.26 1 -1 2 CHEBY_DUMP_25 95001 97000
-/
-ip4    1 -1   2 IP4_DUMP_last 100000 100000
+  ip4..2 1 -1 2 CHEBY_DUMP_01 1 2000
+  ip4..3 1 -1 2 CHEBY_DUMP_02 1 2000
+  ip4..4 1 -1 2 CHEBY_DUMP_03 1 2000
+  ip4..5 1 -1 2 CHEBY_DUMP_04 1 2000
+  ip4..6 1 -1 2 CHEBY_DUMP_05 1 2000
+
+  ip4.12 1 -1 2 CHEBY_DUMP_11 50001 52000
+  ip4.13 1 -1 2 CHEBY_DUMP_12 50001 52000
+  ip4.14 1 -1 2 CHEBY_DUMP_13 50001 52000
+  ip4.15 1 -1 2 CHEBY_DUMP_14 50001 52000
+  ip4.16 1 -1 2 CHEBY_DUMP_15 50001 52000
+
+  ip4.22 1 -1 2 CHEBY_DUMP_21 95001 97000
+  ip4.23 1 -1 2 CHEBY_DUMP_22 95001 97000
+  ip4.24 1 -1 2 CHEBY_DUMP_23 95001 97000
+  ip4.25 1 -1 2 CHEBY_DUMP_24 95001 97000
+  ip4.26 1 -1 2 CHEBY_DUMP_25 95001 97000
+
+  ip4    1 -1   2 IP4_DUMP_last 100000 100000
 NEXT
 DYNK
-DEBUG
-/
-/ energy ramp: 0.5Z MeV/turn (LHC: 0.5Z MeV/turn with 16MV), starting from inj energy
-FUN eorig GET GLOBAL-VARS E0
-FUN eramp LIN 5.0 0
-FUN eramp_actual ADD eramp eorig
-SET GLOBAL-VARS E0 eramp_actual 1 -1 0
-/
-/ 4 lenes:
-/ 1. no kicking
-/ 2. compensate for energy ramp
-/ 3.-4. kicking 1k turns every 5k
-/
-FUN cheby2-orig GET cheby2 cheby_I
-FUN cramp_div    DIV eramp_actual eorig
-FUN cramp_actual MUL cramp_div cheby2-orig
-SET cheby2 cheby_I cramp_actual 1 -1 0
-/
-FUN mypulse ONOFF 1000 5000
-/
-FUN cheby3-orig GET cheby3 cheby_I
-FUN theta_randonpulse_c3 MUL mypulse cheby3-orig
-SET cheby3 cheby_I theta_randonpulse_c3 1 -1 0
-/
-FUN cheby4-orig GET cheby4 cheby_I
-FUN theta_randonpulse_c4 MUL mypulse cheby4-orig
-SET cheby4 cheby_I theta_randonpulse_c4 1 -1 0
+  DYNKSETS
+  DEBUG
+
+  ! energy ramp: 0.5Z MeV/turn (LHC: 0.5Z MeV/turn with 16MV), starting from inj energy
+  FUN eorig GET GLOBAL-VARS E0
+  FUN eramp LIN 5.0 0
+  FUN eramp_actual ADD eramp eorig
+  SET GLOBAL-VARS E0 eramp_actual 1 -1 0
+
+  ! 4 lenes:
+  ! 1. no kicking
+  ! 2. compensate for energy ramp
+  ! 3.-4. kicking 1k turns every 5k
+  FUN cheby2-orig GET cheby2 cheby_I
+  FUN cramp_div    DIV eramp_actual eorig
+  FUN cramp_actual MUL cramp_div cheby2-orig
+  SET cheby2 cheby_I cramp_actual 1 -1 0
+
+  FUN mypulse ONOFF 1000 5000
+
+  FUN cheby3-orig GET cheby3 cheby_I
+  FUN theta_randonpulse_c3 MUL mypulse cheby3-orig
+  SET cheby3 cheby_I theta_randonpulse_c3 1 -1 0
+
+  FUN cheby4-orig GET cheby4 cheby_I
+  FUN theta_randonpulse_c4 MUL mypulse cheby4-orig
+  SET cheby4 cheby_I theta_randonpulse_c4 1 -1 0
 NEXT
 LINEAR OPTICS
-ELEMENT  0 2 1 2.5 2.5
+  ELEMENT  0 2 1 2.5 2.5
 NEXT
 ENDE====================================================================
-ORGA--------------------------------------------------------------------
-NEXT
-DIFFERENTIAL ALGEBRA---------------------------------------------------
-4  5 1E-38 1 1
-NEXT
-COMBINATION OF ELEMENTS-------------------------------------------------
-CODSDO 1.  CODSDE
-CODSFO 1.  CODSFE
-NEXT
-SUBRESONANCE CALCULATION------------------------------------------------
-3 3 62.28 60.31 1. 1. 0 26658.883200
-NEXT
-RESONANCE COMPENSATION -------------------------------------------------
-      1         3       0    0    0         0    0    0
-      0                   0 0 0
-      26658.883200 62.28 60.31 1. 1.
-                 MSCBH MSCBV
-      0          MSCBH MSCBV
-      0          QF QD 62.28 60.31
-NEXT
-RIPPLE OF POWER SUPPLIES------------------------------------------------
-         Q413R   -1.54D-4    4340.580
-         Q414R   -3.70D-4    4340.580
-NEXT
-LIMITATION OF APERTURE--------------------------------------------------
-          AP1        EL      10.       10.
-NEXT
-SEARCH FOR THE BEST POSITIONS FOR COMPENSATION-ELEMENTS-----------------
-         62.28 60.31 1. 1. 26658.883200
-         2   3   0   2  -2   0   0   0
-         MSCBH MSCBV 
-NEXT
-ORBIT ADJUSTMENT--------------------------------------------------------
-NEXT

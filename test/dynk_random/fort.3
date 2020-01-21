@@ -1,83 +1,87 @@
 GEOM
 
 SETTINGS
-    DEBUG
-    QUIET 2
-    CRKILLSWITCH 7 13 23
+  DEBUG
+  QUIET 2
+  CRKILLSWITCH 7 13 23
 NEXT
 
 TRACKING PARAMETERS-----------------------------------------------------
-    30 0 200 0 6.89493 0 1
-    1 1 2 1 2
-    0 0 1 1 1 50000 2
+  30 0 200 0 6.89493 0 1
+  1 1 2 1 2
+  0 0 1 1 1 50000 2
 NEXT
 
 INITIAL COORDINATES-----------------------------------------------------
-    2 0.0 0.0 0.333332 0
-    0.0
-    0.0
-    0.0
-    0.0
-    0.0
-    0.0
-    0.000001
-    0.0
-    0.0
-    0.0
-    0.0
-    0.0
-    7000000.0
-    7000000.0
-    7000000.0
+  2 0.0 0.0 0.333332 0
+  0.0
+  0.0
+  0.0
+  0.0
+  0.0
+  0.0
+  0.000001
+  0.0
+  0.0
+  0.0
+  0.0
+  0.0
+  7000000.0
+  7000000.0
+  7000000.0
 NEXT
 
 ITERATION-ACCURACY------------------------------------------------------
-    50 1d-12 1d-15
-    10 1d-10 1d-10
-    10 1d-6  1d-6
-       1d-6  1d-9  1d-9
+  50 1d-12 1d-15
+  10 1d-10 1d-10
+  10 1d-6  1d-6
+      1d-6  1d-9  1d-9
 NEXT
 
 FLUCTUATION-------------------------------------------------------------
-    100000  1  7  3
+  100000  1  7  3
 NEXT
 
 SYNC--------------------------------------------------------------------
-    35640  0.000344  0.0  0.0  26658.8832010191  938.272081  1
-    1.0  1.0
+  35640  0.000344  0.0  0.0  26658.8832010191  938.272081  1
+  1.0  1.0
 NEXT
 
 BEAM--------------------------------------------------------------------
-    2.2000e+11  2.5  2.5  1.0  1.0e-3  1  0
+  2.2000e+11  2.5  2.5  1.0  1.0e-3  1  0
 NEXT
 
 DYNK--------------------------------------------------------------------
-    DEBUG
+  DEBUG
+  DYNKSETS
 
-    FUN zero  CONST  0.0
+  FUN zero  CONST  0.0
 
-    FUN test_randg  RANDG   42  43  1.0  1.5  3
-    FUN test_randu  RANDU   44  45
-    FUN test_randon RANDON  46  47  0.5
+  FUN test_randg  RANDG   42  43  1.0  1.5  3
+  FUN test_randu  RANDU   44  45
+  FUN test_randon RANDON  46  47  0.5
 
-    SET ip5_scatter scaling test_randg    1 10  0
-    SET ip5_scatter scaling test_randu   11 20  0
-    SET ip5_scatter scaling test_randon  21 39  0
+  SET ip5_scatter scaling test_randg    1 10  0
+  SET ip5_scatter scaling test_randu   11 20  0
+  SET ip5_scatter scaling test_randon  21 39  0
+NEXT
+
+RANDOM NUMBERS----------------------------------------------------------
+  SEED 42
 NEXT
 
 SCATTER-----------------------------------------------------------------
-    SEED 42
-    GEN  sc_thin     PPBEAMELASTIC 0.046  18.52  4.601  2.647  0.0  30
-    PRO  ipFLAT      FLAT   1.0  938.0  7000000
-    ELEM ip5_scatter ipFLAT 0.09 1.0 sc_thin
+  GEN  sc_thin     PPBEAMELASTIC 0.046  18.52  4.601  2.647  0.0  30
+  PRO  ipFLAT      FLAT   1.0  938.0  7000000
+  ELEM ip5_scatter ipFLAT 0.09 1.0 sc_thin
 NEXT
 
 DUMP--------------------------------------------------------------------
-    ip5 1 -1 2 ip5 1 -1
+  ip5 1 -1 2 ip5 1 -1
 NEXT
 
 LINEAR OPTICS-----------------------------------------------------------
-    ELEMENT  0  1  1  2.5  2.5
+  ELEMENT  0  1  1  2.5  2.5
 NEXT
 
 ENDE
