@@ -127,6 +127,8 @@ list(APPEND SIXTRACK_TESTS
   elensidealthin4d
   elensidealthin6d
   elensidealthin6d_DYNK
+  elensidealthin6d_FOX
+  elensidealthin6d_FOX_single
   elensidealthin6d_ions
   elensidealthin6d_ramp_DYNK
   eric
@@ -680,6 +682,8 @@ set(FAST_TESTS
   elensidealthin4d
   elensidealthin6d
   elensidealthin6d_DYNK
+  elensidealthin6d_FOX
+  elensidealthin6d_FOX_single
   elensidealthin6d_DYNK_ZIPF
   elensidealthin6d_ions
   exact
