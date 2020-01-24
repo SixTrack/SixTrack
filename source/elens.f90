@@ -8,13 +8,13 @@ module elens
   use crcoall
   use mod_alloc
   use numerical_constants, only : zero
-
   implicit none
 
-  integer, allocatable, save  :: ielens(:) !(nele)    ! index of elens
-  integer, save               :: nelens=0             ! number of elenses lenses actually in memory
-  integer, parameter          :: elens_kz=29          ! kz of electron lenses
-  integer, parameter          :: elens_ktrack=63      ! ktrack of electron lenses
+  integer, allocatable, save  :: ielens(:) !(nele)        ! index of elens
+  integer, save               :: nelens=0                 ! number of elenses lenses actually in memory
+  integer, save               :: nelens_radial_profiles=0 ! number of radial profiles available in memory
+  integer, parameter          :: elens_kz=29              ! kz of electron lenses
+  integer, parameter          :: elens_ktrack=63          ! ktrack of electron lenses
 
   ! variables to save elens parameters for tracking etc.
   integer, allocatable, save          :: elens_type(:)            ! integer for elens type (nelens)
@@ -54,13 +54,10 @@ module elens
                                                                   !    i.e. linear interpolation
   integer, allocatable, save          :: elens_radial_jguess(:)   ! bin for guessed search (nelens)
   ! - file handling and data storage:
-  integer, parameter     :: nelens_radial_profiles=20 ! max number of radial profiles
-  integer, save          :: melens_radial_profiles    ! radial profiles available in memory
-  integer, parameter     :: elens_radial_dim=500      ! max number of points in radial profiles
-  character(len=mFileName), save:: elens_radial_filename(nelens_radial_profiles) ! names
-  real(kind=fPrec), save :: elens_radial_profile_R(0:elens_radial_dim,nelens_radial_profiles) ! [mm]
-  real(kind=fPrec), save :: elens_radial_profile_J(0:elens_radial_dim,nelens_radial_profiles) ! [A]
-  integer, save          :: elens_radial_profile_nPoints(nelens_radial_profiles)=0
+  character(len=:), allocatable, save :: elens_radial_filename(:)        ! names (nelens_radial_profiles)
+  real(kind=fPrec), allocatable, save :: elens_radial_profile_R(:,:)     ! [mm] (0:elens_radial_dim,nelens_radial_profiles)
+  real(kind=fPrec), allocatable, save :: elens_radial_profile_J(:,:)     ! [A]  (0:elens_radial_dim,nelens_radial_profiles)
+  integer, allocatable, save          :: elens_radial_profile_nPoints(:) ! number of points in current radial profile (nelens_radial_profiles)
 
 contains
 
@@ -107,6 +104,17 @@ subroutine elens_expand_arrays_lenses(nelens_new)
   call alloc(elens_radial_jguess  ,           nelens_new,              -1, 'elens_radial_jguess'  )
 end subroutine elens_expand_arrays_lenses
 
+subroutine elens_expand_arrays_rad_profiles(nelens_profiles_new)
+  implicit none
+  integer, intent(in) :: nelens_profiles_new
+  call alloc(elens_radial_filename,  mFileName,     nelens_profiles_new,  " ", 'elens_radial_filename' )
+  call alloc(elens_radial_profile_R,         0,     nelens_profiles_new, zero, 'elens_radial_profile_R', &
+                                             0,     nelens_radial_profiles )
+  call alloc(elens_radial_profile_J,         0,     nelens_profiles_new, zero, 'elens_radial_profile_J', &
+                                             0,     nelens_radial_profiles )
+  call alloc(elens_radial_profile_nPoints,          nelens_profiles_new,    0, 'elens_radial_profile_nPoints' )
+end subroutine elens_expand_arrays_rad_profiles
+
 ! ================================================================================================ !
 !  Parse Elens Line
 !  Rewritten from code from DATEN by VKBO
@@ -128,8 +136,8 @@ subroutine elens_parseInputLine(inLine, iLine, iErr)
   character(len=:), allocatable   :: lnSplit(:)
   character(len=mStrLen) tmpch
   real(kind=fPrec) tmpflt
-  integer nSplit, iElem, j, chIdx, tmpi1, tmpi2, tmpi3
-  logical spErr, tmpl
+  integer nSplit, iElem, j, tmpi1, tmpi2, tmpi3
+  logical spErr, tmpl, lfound
 
   call chr_split(inLine, lnSplit, nSplit, spErr)
   if(spErr) then
@@ -257,25 +265,20 @@ subroutine elens_parseInputLine(inLine, iLine, iErr)
       tmpch = trim(lnSplit(8))
     
       ! Check if profile has already been requested:
-      chIdx = -1
-      do tmpi1=1,melens_radial_profiles
+      lfound = .false.
+      do tmpi1=1,nelens_radial_profiles
         if(tmpch == elens_radial_filename(tmpi1)) then
           elens_iRadial(ielens(iElem)) = tmpi1
-          chIdx = tmpi1
+          lfound = .true.
           exit
         end if
       end do
-      if(chIdx == -1) then
+      if(.not.lfound) then
         ! Unsuccessful search
-        melens_radial_profiles = melens_radial_profiles+1
-        if(melens_radial_profiles > nelens_radial_profiles) then
-          write(lerr,"(2(a,i0))") "ELENS> ERROR Too many radial profiles: ",melens_radial_profiles,&
-            ". Max is ",nelens_radial_profiles
-          iErr = .true.
-          return
-        end if
-        elens_iRadial(ielens(iElem)) = melens_radial_profiles
-        elens_radial_filename(tmpi1) = tmpch
+        nelens_radial_profiles = nelens_radial_profiles+1
+        call elens_expand_arrays_rad_profiles(nelens_radial_profiles)
+        elens_iRadial(ielens(iElem)) = nelens_radial_profiles
+        elens_radial_filename(nelens_radial_profiles) = tmpch
       end if
     end if
 
@@ -446,7 +449,7 @@ subroutine elens_postInput
   end if
 
   ! Parse files with radial profiles
-   do j=1,melens_radial_profiles
+   do j=1,nelens_radial_profiles
     inquire(file=elens_radial_filename(j), exist=exist)
     if(.not. exist) then
       write(lerr,"(a)") "ELENS> ERROR Problems with file with radial profile: "//trim(elens_radial_filename(j))
@@ -620,11 +623,9 @@ subroutine parseRadialProfile(ifile)
   call chr_cast(lnSplit(1),tmpR,spErr)
   call chr_cast(lnSplit(2),tmpJ,spErr)
   ii=ii+1
-  if(ii>elens_radial_dim) then
-    iErr = 2
-    write(lerr,"(a,i0,a,i0)") "ELENS> ERROR too many points in radial profile: ",ii, &
-         ". Max is ",elens_radial_dim
-    goto 30
+  if(ii>=size(elens_radial_profile_R,1)-1) then
+    call alloc(elens_radial_profile_R, ii, ifile, zero, 'elens_radial_profile_R', 0, 1 )
+    call alloc(elens_radial_profile_J, ii, ifile, zero, 'elens_radial_profile_J', 0, 1 )
   end if
   elens_radial_profile_nPoints(ifile) = ii
   elens_radial_profile_R(ii,ifile) = tmpR
@@ -642,7 +643,7 @@ subroutine parseRadialProfile(ifile)
 
   ! set current density at r(0) as at r(1), to properly compute the cumulative curve
   elens_radial_profile_J(0,ifile)=elens_radial_profile_J(1,ifile)
-  
+
   write(lout,"(a,i0,a)") "ELENS> ...acquired ",elens_radial_profile_nPoints(ifile)," points."
   if(st_quiet < 2) then
     ! Echo parsed data (unless told to be quiet!)
