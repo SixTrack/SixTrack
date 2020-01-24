@@ -684,7 +684,6 @@ set(FAST_TESTS
   elensidealthin6d_DYNK
   elensidealthin6d_FOX
   elensidealthin6d_FOX_single
-  elensidealthin6d_DYNK_ZIPF
   elensidealthin6d_ions
   exact
   fcc
