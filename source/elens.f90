@@ -11,54 +11,48 @@ module elens
 
   implicit none
 
-  ! size of table with elens data
-  integer, parameter :: nelens = 125
-  ! last elens read
-  integer, save      :: melens = 0
-
+  integer, allocatable, save  :: ielens(:) !(nele)    ! index of elens
+  integer, save               :: nelens=0             ! number of elenses lenses actually in memory
   integer, parameter          :: elens_kz=29          ! kz of electron lenses
   integer, parameter          :: elens_ktrack=63      ! ktrack of electron lenses
-  
-  ! index of elens:
-  integer,allocatable, save :: ielens(:) !(nele)
 
   ! variables to save elens parameters for tracking etc.
-  integer, save          :: elens_type(nelens)         = 0       ! integer for elens type
-                                                                 ! 0 : Un-initialized.
-                                                                 ! 1 : uniform profile
-                                                                 ! 2 : Gaussian profile
-                                                                 ! 3 : radial profile from file
-  real(kind=fPrec), save :: elens_theta_r2(nelens)     = zero    ! kick strength at R2 [mrad]
-  real(kind=fPrec), save :: elens_r2(nelens)           = zero    ! outer radius R2 [mm]
-  real(kind=fPrec), save :: elens_r1(nelens)           = zero    ! inner radius R1 [mm]
-  real(kind=fPrec), save :: elens_offset_x(nelens)     = zero    ! hor offset of elens [mm]
-  real(kind=fPrec), save :: elens_offset_y(nelens)     = zero    ! vert. offset of elens [mm]
-  real(kind=fPrec), save :: elens_sig(nelens)          = zero    ! sig (Gaussian profile) [mm]
-  real(kind=fPrec), save :: elens_geo_norm(nelens)     = zero    ! normalisation of f(r)
-  real(kind=fPrec), save :: elens_len(nelens)          = zero    ! length of eLens (e-beam region) [m]
-  real(kind=fPrec), save :: elens_I(nelens)            = zero    ! current of e-beam [A]
-                                                                 ! <0: e-beam opposite to beam
-  real(kind=fPrec), save :: elens_Ek(nelens)           = zero    ! kinetic energy of e-beam [keV]
-  real(kind=fPrec), save :: elens_beta_e(nelens)                 ! relativistic beta of electrons
-  logical, save          :: elens_lThetaR2(nelens)     = .false. ! flag for computing theta@R2
-  logical, save          :: elens_lAllowUpdate(nelens) = .true.  ! Flag for disabling updating of kick,
-                                                                 !  i.e. after DYNK has touched thetaR2,
-                                                                 !  the energy update is disabled.
-  logical, save          :: elens_lFox(nelens)         = .true.  ! the kick from the elens should be taken into account
-                                                                 !  when searching for the closed orbit with DA algebra
-  logical, save          :: elens_lFull(nelens)        = .false. ! if .true., elens is full, i.e. not hollow and R1=0.0
-  logical, save          :: elens_lZeroThick(nelens)   = .false. ! if .true., elens has no thickness, i.e. R2=R1
+  integer, allocatable, save          :: elens_type(:)            ! integer for elens type (nelens)
+                                                                  ! 0 : Un-initialized.
+                                                                  ! 1 : uniform profile
+                                                                  ! 2 : Gaussian profile
+                                                                  ! 3 : radial profile from file
+  real(kind=fPrec), allocatable, save :: elens_theta_r2(:)        ! kick strength at R2 [mrad] (nelens)
+  real(kind=fPrec), allocatable, save :: elens_r2(:)              ! outer radius R2 [mm] (nelens)
+  real(kind=fPrec), allocatable, save :: elens_r1(:)              ! inner radius R1 [mm] (nelens)
+  real(kind=fPrec), allocatable, save :: elens_offset_x(:)        ! hor offset of elens [mm] (nelens)
+  real(kind=fPrec), allocatable, save :: elens_offset_y(:)        ! vert. offset of elens [mm] (nelens)
+  real(kind=fPrec), allocatable, save :: elens_sig(:)             ! sig (Gaussian profile) [mm] (nelens)
+  real(kind=fPrec), allocatable, save :: elens_geo_norm(:)        ! normalisation of f(r) (nelens)
+  real(kind=fPrec), allocatable, save :: elens_len(:)             ! length of eLens (e-beam region) [m] (nelens)
+  real(kind=fPrec), allocatable, save :: elens_I(:)               ! current of e-beam [A] (nelens)
+                                                                  ! <0: e-beam opposite to beam
+  real(kind=fPrec), allocatable, save :: elens_Ek(:)              ! kinetic energy of e-beam [keV] (nelens)
+  real(kind=fPrec), allocatable, save :: elens_beta_e(:)          ! relativistic beta of electrons (nelens)
+  logical, allocatable, save          :: elens_lThetaR2(:)        ! flag for computing theta@R2 (nelens)
+  logical, allocatable, save          :: elens_lAllowUpdate(:)    ! Flag for disabling updating of kick, (nelens)
+                                                                  !  i.e. after DYNK has touched thetaR2,
+                                                                  !  the energy update is disabled.
+  logical, allocatable, save          :: elens_lFox(:)            ! the kick from the elens should be taken into account
+                                                                  !  when searching for the closed orbit with DA algebra (nelens)
+  logical, allocatable, save          :: elens_lFull(:)           ! if .true., elens is full, i.e. not hollow and R1=0.0 (nelens)
+  logical, allocatable, save          :: elens_lZeroThick(:)      ! if .true., elens has no thickness, i.e. R2=R1 (nelens)
 #ifdef CR
-  logical, save          :: elens_lAllowUpdate_CR(nelens)
+  logical, allocatable, save          :: elens_lAllowUpdate_CR(:) ! (nelens)
 #endif
   
   ! radial profile
-  integer, save          :: elens_iRadial(nelens)                ! mapping to the radial profile
-  real(kind=fPrec), save :: elens_radial_fr1(nelens)             ! value of f(R1) in case of radial profiles from file [0:1]
-  real(kind=fPrec), save :: elens_radial_fr2(nelens)             ! value of f(R2) in case of radial profiles from file [0:1]
-  integer, save          :: elens_radial_mpoints(nelens)=2       ! how many points for polynomial interpolation (default: 2,
-                                                                 !    i.e. linear interpolation
-  integer, save          :: elens_radial_jguess(nelens)=-1       ! bin for guessed search
+  integer, allocatable, save          :: elens_iRadial(:)         ! mapping to the radial profile (nelens)
+  real(kind=fPrec), allocatable, save :: elens_radial_fr1(:)      ! value of f(R1) in case of radial profiles from file [0:1] (nelens)
+  real(kind=fPrec), allocatable, save :: elens_radial_fr2(:)      ! value of f(R2) in case of radial profiles from file [0:1] (nelens)
+  integer, allocatable, save          :: elens_radial_mpoints(:)  ! how many points for polynomial interpolation (nelens) (default: 2,
+                                                                  !    i.e. linear interpolation
+  integer, allocatable, save          :: elens_radial_jguess(:)   ! bin for guessed search (nelens)
   ! - file handling and data storage:
   integer, parameter     :: nelens_radial_profiles=20 ! max number of radial profiles
   integer, save          :: melens_radial_profiles    ! radial profiles available in memory
@@ -81,6 +75,37 @@ subroutine elens_expand_arrays(nele_new)
   integer, intent(in) :: nele_new
   call alloc(ielens,nele_new,0,'ielens')
 end subroutine elens_expand_arrays
+
+subroutine elens_expand_arrays_lenses(nelens_new)
+  implicit none
+  integer, intent(in) :: nelens_new
+  ! elens charachteristics
+  call alloc(elens_type           ,           nelens_new,               0, 'elens_type'           )
+  call alloc(elens_theta_r2       ,           nelens_new,            zero, 'elens_theta_r2'       )
+  call alloc(elens_r2             ,           nelens_new,            zero, 'elens_r2'             )
+  call alloc(elens_r1             ,           nelens_new,            zero, 'elens_r1'             )
+  call alloc(elens_offset_x       ,           nelens_new,            zero, 'elens_offset_x'       )
+  call alloc(elens_offset_y       ,           nelens_new,            zero, 'elens_offset_y'       )
+  call alloc(elens_sig            ,           nelens_new,            zero, 'elens_sig'            )
+  call alloc(elens_geo_norm       ,           nelens_new,            zero, 'elens_geo_norm'       )
+  call alloc(elens_len            ,           nelens_new,            zero, 'elens_len'            )
+  call alloc(elens_I              ,           nelens_new,            zero, 'elens_I'              )
+  call alloc(elens_Ek             ,           nelens_new,            zero, 'elens_Ek'             )
+  call alloc(elens_beta_e         ,           nelens_new,            zero, 'elens_beta_e'         )
+  call alloc(elens_lThetaR2       ,           nelens_new,         .false., 'elens_lThetaR2'       )
+  call alloc(elens_lAllowUpdate   ,           nelens_new,          .true., 'elens_lAllowUpdate'   )
+  call alloc(elens_lFox           ,           nelens_new,          .true., 'elens_lFox'           )
+  call alloc(elens_lFull          ,           nelens_new,         .false., 'elens_lFull'          )
+  call alloc(elens_lZeroThick     ,           nelens_new,         .false., 'elens_lZeroThick'     )
+#ifdef CR
+  call alloc(elens_lAllowUpdate_CR,           nelens_new,         .false., 'elens_lAllowUpdate_CR')
+#endif
+  call alloc(elens_iRadial        ,           nelens_new,               0, 'elens_iRadial'        )
+  call alloc(elens_radial_fr1     ,           nelens_new,            zero, 'elens_radial_fr1'     )
+  call alloc(elens_radial_fr2     ,           nelens_new,            zero, 'elens_radial_fr2'     )
+  call alloc(elens_radial_mpoints ,           nelens_new,               2, 'elens_radial_mpoints' )
+  call alloc(elens_radial_jguess  ,           nelens_new,              -1, 'elens_radial_jguess'  )
+end subroutine elens_expand_arrays_lenses
 
 ! ================================================================================================ !
 !  Parse Elens Line
@@ -122,9 +147,9 @@ subroutine elens_parseInputLine(inLine, iLine, iErr)
       iErr = .true.
       return
     end if
-    call chr_cast(lnSPlit(2), elens_lFox(melens),iErr)
+    call chr_cast(lnSPlit(2), elens_lFox(nelens),iErr)
     if(st_debug) then
-      call sixin_echoVal("fox",elens_lFox(melens),"ELENS",iLine)
+      call sixin_echoVal("fox",elens_lFox(nelens),"ELENS",iLine)
     end if
      
   case("INTER")
@@ -133,19 +158,19 @@ subroutine elens_parseInputLine(inLine, iLine, iErr)
       iErr = .true.
       return
     end if
-    if ( elens_type(melens).ne.3 ) then
+    if ( elens_type(nelens).ne.3 ) then
       write(lout,"(a,i0)") "ELENS> WARNING INTERpolation setting for an ELENS type without radial profile - ignoring setting..."
       return
     end if
-    call chr_cast(lnSPlit(2), elens_radial_mpoints(melens),iErr)
-    if ( elens_radial_mpoints(melens) <=0 .or. elens_radial_mpoints(melens)>20 ) then
-      write(lerr,"(a,i0)") "ELENS> ERROR Unreasonable number of points for radial interpolation, got ",elens_radial_mpoints(melens)
+    call chr_cast(lnSPlit(2), elens_radial_mpoints(nelens),iErr)
+    if ( elens_radial_mpoints(nelens) <=0 .or. elens_radial_mpoints(nelens)>20 ) then
+      write(lerr,"(a,i0)") "ELENS> ERROR Unreasonable number of points for radial interpolation, got ",elens_radial_mpoints(nelens)
       write(lerr,"(a)")    "ELENS>       Please choose a value beterrn 1 and 20 (included)"
       iErr = .true.
       return
     end if
     if(st_debug) then
-      call sixin_echoVal("interp. points",elens_radial_mpoints(melens),"ELENS",iLine)
+      call sixin_echoVal("interp. points",elens_radial_mpoints(nelens),"ELENS",iLine)
     end if
      
   case default
@@ -183,19 +208,14 @@ subroutine elens_parseInputLine(inLine, iLine, iErr)
       return
     end if
     
-    melens = melens+1
-    if(melens > nelens) then
-      write(lerr,"(2(a,i0))") "ELENS> ERROR Too many elenses: ",melens,". Max is ",nelens
-      iErr = .true.
-      return
-    end if
-    
-    ielens(iElem) = melens
-    if(elens_type(ielens(iElem)) /= 0) then
+    if(ielens(iElem) /= 0) then
       write(lerr,"(a)") "ELENS> ERROR The element '"//trim(bez(iElem))//"' was defined twice."
       iErr = .true.
       return
     end if
+    nelens = nelens+1
+    call elens_expand_arrays_lenses(nelens)
+    ielens(iElem) = nelens
     
     ! Parse the element
     select case (lnSplit(2))
@@ -374,7 +394,7 @@ subroutine elens_parseInputDone(iErr)
   integer jj, kk
 
   ! check Loop over single elements to check that they have been defined in the fort.3 block
-  do jj=1,melens
+  do jj=1,nelens
     if(elens_type(jj)==0) then
       ! find name of elens (for printout purposes)
       do kk=1,nele
@@ -419,8 +439,8 @@ subroutine elens_postInput
       end if
     end if
   end do
-  if ( nlens.ne.melens ) then
-    write(lerr,"(a,i0)") "ELENS> ERROR number of elenses declared in ELEN block in "//trim(fort3)//" ",melens
+  if ( nlens.ne.nelens ) then
+    write(lerr,"(a,i0)") "ELENS> ERROR number of elenses declared in ELEN block in "//trim(fort3)//" ",nelens
     write(lerr,"(a,i0)") "ELENS>       is not the same as the total number of elenses in lattice ",nlens
     call prror
   end if
@@ -438,7 +458,7 @@ subroutine elens_postInput
   end do
 
   ! Proper normalisation
-  do j=1,melens
+  do j=1,nelens
     if(elens_type(j) == 1) then
       ! Uniform distribution
       elens_geo_norm(j) = (elens_r2(j)+elens_r1(j))*(elens_r2(j)-elens_r1(j))

@@ -316,7 +316,7 @@ subroutine crcheck
   use dump,       only : dump_crcheck_readdata,dump_crcheck_positionFiles
   use aperture,   only : limifound, aper_crcheck_readdata, aper_crcheck_positionFiles
   use scatter,    only : scatter_active, scatter_crcheck_readdata, scatter_crcheck_positionFiles
-  use elens,      only : melens, elens_crcheck
+  use elens,      only : nelens, elens_crcheck
   use mod_meta,   only : meta_crcheck
   use mod_time,   only : time_crcheck
   use mod_random, only : rnd_crcheck
@@ -462,7 +462,7 @@ subroutine crcheck
       if(rErr) cycle
     end if
 
-    if(melens > 0) then
+    if(nelens > 0) then
       write(crlog,"(a)") "CR_CHECK>  * ELENS variables"
       flush(crlog)
       call elens_crcheck(cr_pntUnit(nPoint),rErr)
@@ -572,7 +572,7 @@ subroutine crpoint
   use dump,       only : dump_crpoint
   use aperture,   only : aper_crpoint,limifound
   use scatter,    only : scatter_active, scatter_crpoint
-  use elens,      only : melens, elens_crpoint
+  use elens,      only : nelens, elens_crpoint
   use mod_meta,   only : meta_crpoint
   use mod_random, only : rnd_crpoint
 
@@ -714,7 +714,7 @@ subroutine crpoint
       if(wErr) goto 100
     end if
 
-    if(melens > 0) then
+    if(nelens > 0) then
       if(st_debug) then
         write(crlog,"(a)") "CR_POINT>  * ELENS variables"
         flush(crlog)
@@ -760,7 +760,7 @@ subroutine crstart
 
   use dynk,       only : dynk_enabled, dynk_crstart
   use scatter,    only : scatter_active, scatter_crstart
-  use elens,      only : melens, elens_crstart
+  use elens,      only : nelens, elens_crstart
   use mod_meta,   only : meta_crstart
   use mod_time,   only : time_crstart
   use mod_random, only : rnd_crstart
@@ -848,7 +848,7 @@ subroutine crstart
   if(scatter_active) then
     call scatter_crstart
   end if
-  if(melens > 0) then
+  if(nelens > 0) then
     call elens_crstart
   end if
 

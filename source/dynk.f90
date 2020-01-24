@@ -2281,7 +2281,7 @@ subroutine dynk_setvalue(element_name, att_name, newValue)
   use string_tools
 
   use elens, only: elens_theta_r2, elens_lAllowUpdate, elens_I, elens_Ek, eLensTheta, elens_kz, &
-                   melens, ielens
+                   nelens, ielens
   use cheby
   use parbeam, only : beam_expflag
   implicit none
@@ -2313,7 +2313,7 @@ subroutine dynk_setvalue(element_name, att_name, newValue)
       ! Modify the reference particle
       call part_updateRefEnergy(newValue)
       ! Modify energy-dependent element parameters
-      do ii=1,melens
+      do ii=1,nelens
         call eLensTheta(ii)
       end do
     end if
