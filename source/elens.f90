@@ -215,16 +215,6 @@ subroutine elens_parseInputLine(inLine, iLine, iErr)
         iErr = .true.
         return
       end if
-    case("CHEBYSHEV")
-      write(lerr,"(a)") "ELENS> ERROR CHEBYSHEV type not fully supported yet - elens name: '"//trim(bez(iElem))
-      iErr = .true.
-      return
-!       elens_type(ielens(iElem)) = 4
-!       if(nSplit < 8) then
-!         write(lerr,"(a,i0)") "ELENS> ERROR Expected at least 8 input parameters for CHEBYSHEV, got ",nSplit
-!         iErr = .true.
-!         return
-!       end if
     case default
       write(lerr,"(a)") "ELENS> ERROR Elens type '"//trim(lnSplit(2))//"' not recognized. Remember to use all UPPER CASE."
       iErr = .true.
