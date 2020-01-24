@@ -6,6 +6,10 @@
 
 * More robust detection of lxplus at compilation PR #1045 (J. Molson).
 
+**User Side Changes**
+	
+* electron lenses have been inserted into FOX - PR #839 (A. Mereghetti).
+
 ### Version 5.4.3 [19.12.2019] - Release
 
 **Bugfixes**
