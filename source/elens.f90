@@ -515,10 +515,12 @@ subroutine elens_parseInputLine(inLine, iLine, iErr)
       end if
     end if
     if( elens_type(ielens(iElem)) == 2 ) then
-      if ( elens_sig(ielens(iElem)).le.zero ) then
-         write(lerr,"(a)") "ELENS> ERROR sigma of electron beam <=0 in Elens '"//trim(bez(iElem))//"'."
-         iErr = .true.
-         return
+      if(elens_sig(ielens(iElem)) < zero) then
+        lRequestOptics=.true.
+      else if(abs(elens_sig(ielens(iElem))) < pieni) then
+        write(lerr,"(a)") "ELENS> ERROR sigma of electron beam ==0 in Elens '"//trim(bez(iElem))//"'."
+        iErr = .true.
+        return
       end if
     end if
     elens_lFull(ielens(iElem))=elens_r1(ielens(iElem)).eq.zero
@@ -627,7 +629,7 @@ subroutine elens_postInput
 
   ! check that, in case R1/R2 are declared by the user in terms of n-sigma, the provided info is consistent
   do j=1,nelens
-    if (elens_r1(j).lt.zero .or. elens_r2(j).lt.zero ) then
+    if (elens_r1(j).lt.zero .or. elens_r2(j).lt.zero .or. elens_sig(j).lt.zero) then
       ! printout:
       ! - find name of elens
       do jj=1,nele
@@ -639,6 +641,7 @@ subroutine elens_postInput
       end do
       if (elens_r1(j).lt.zero) write(lout,"(a,i0,a)") "ELENS> e-lens #",j, " named "//trim(bez(jj))//": R1<0"
       if (elens_r2(j).lt.zero) write(lout,"(a,i0,a)") "ELENS> e-lens #",j, " named "//trim(bez(jj))//": R2<0"
+      if (elens_sig(j).lt.zero) write(lout,"(a,i0,a)") "ELENS> e-lens #",j, " named "//trim(bez(jj))//": sig_el<0"
       write(lout,"(a)") "ELENS> checking consistency of user input data"
       if (elens_emin(j).gt.zero.and.elens_sigdpp(j).gt.zero) then
         write(lerr,"(a)") "ELENS> ERROR cannot express R1/R2 cuts in terms of both normalised emittance "// &
@@ -701,7 +704,7 @@ subroutine elens_normalise_geo
       end if
     end do
 
-    if (elens_r1(j).lt.zero.or.elens_r2(j).lt.zero) then
+    if (elens_r1(j).lt.zero.or.elens_r2(j).lt.zero.or.elens_sig(j).lt.zero) then
       if (elens_iSet(j).eq.3 ) then
         elens_optVal(j)=elens_optVal(j)/real(elens_nUpdates(j),fPrec)
       elseif (elens_iSet(j).eq.4 ) then
@@ -719,13 +722,6 @@ subroutine elens_normalise_geo
       end if
       ! ...and printout:
       write(lout,"(a,i0,a)") "ELENS> Recomputing R1 of e-lens #",j," named "//trim(bez(jj))//": "
-      if(st_debug) then
-        write(lout,"(a,1pe22.15)") "ELENS> normalised emittance [m rad]=",elens_emin(j)
-        write(lout,"(a,1pe22.15)") "ELENS> geometrical emittance [m rad]=",elens_emin(j)/(e0f/nucm0)
-        write(lout,"(a,1pe22.15)") "ELENS> momentum of reference particle [MeV/c]=",e0f
-        write(lout,"(a,1pe22.15)") "ELENS> mass of reference particle [MeV/c2]=",nucm0
-        write(lout,"(a,1pe22.15)") "ELENS> beta/disp function [m]=",elens_optVal(j)
-      end if
       write(lout,"(a,1pe22.15)") "ELENS> original value [mm]=",oldVal
       write(lout,"(a,1pe22.15)") "ELENS> new value [mm]=",elens_r1(j)
     end if
@@ -739,15 +735,29 @@ subroutine elens_normalise_geo
       end if
       ! ...and printout:
       write(lout,"(a,i0,a)") "ELENS> Recomputing R2 of e-lens #",j," named "//trim(bez(jj))//": "
-      if(st_debug) then
-        write(lout,"(a,1pe22.15)") "ELENS> normalised emittance [m rad]=",elens_emin(j)
-        write(lout,"(a,1pe22.15)") "ELENS> geometrical emittance [m rad]=",elens_emin(j)/(e0f/nucm0)
-        write(lout,"(a,1pe22.15)") "ELENS> momentum of reference particle [MeV/c]=",e0f
-        write(lout,"(a,1pe22.15)") "ELENS> mass of reference particle [MeV/c2]=",nucm0
-        write(lout,"(a,1pe22.15)") "ELENS> beta/disp function [m]=",elens_optVal(j)
-      end if
       write(lout,"(a,1pe22.15)") "ELENS> original value [mm]=",oldVal
       write(lout,"(a,1pe22.15)") "ELENS> new value [mm]=",elens_r2(j)
+    end if
+    ! compute electron sigma out of normalised settings
+    if (elens_sig(j).lt.zero) then
+      oldVal=elens_sig(j)
+      if (elens_emin(j).gt.zero) then ! betatron cut
+        elens_sig(j)=abs(elens_sig(j))*sqrt(elens_optVal(j)*elens_emin(j)/(e0f/nucm0))
+      else ! momentum cut
+        elens_sig(j)=abs(elens_sig(j))*(elens_optVal(j)*elens_sigdpp(j))
+      end if
+      ! ...and printout:
+      write(lout,"(a,i0,a)") "ELENS> Recomputing sigma of e-beam of e-lens #",j," named "//trim(bez(jj))//": "
+      write(lout,"(a,1pe22.15)") "ELENS> original value [mm]=",oldVal
+      write(lout,"(a,1pe22.15)") "ELENS> new value [mm]=",elens_sig(j)
+    end if
+    if(st_debug) then
+      write(lout,"(a)"         ) "ELENS> using optics:"
+      write(lout,"(a,1pe22.15)") "ELENS> normalised emittance [m rad]=",elens_emin(j)
+      write(lout,"(a,1pe22.15)") "ELENS> geometrical emittance [m rad]=",elens_emin(j)/(e0f/nucm0)
+      write(lout,"(a,1pe22.15)") "ELENS> momentum of reference particle [MeV/c]=",e0f
+      write(lout,"(a,1pe22.15)") "ELENS> mass of reference particle [MeV/c2]=",nucm0
+      write(lout,"(a,1pe22.15)") "ELENS> beta/disp function [m]=",elens_optVal(j)
     end if
 
     ! compute geometrical normalisation factor
@@ -799,7 +809,8 @@ subroutine elens_setOptics(iElem, bAlpha, bBeta, bOrbit, bOrbitP, bDisp, bDispP)
   real(kind=fPrec), intent(in) :: bDisp(2)
   real(kind=fPrec), intent(in) :: bDispP(2)
 
-  if(iElem<1 .or. iElem>nele .or. (elens_r1(ielens(iElem)).gt.zero .and. elens_r2(ielens(iElem)).gt.zero)) return
+  if(iElem<1 .or. iElem>nele .or. ( elens_r1(ielens(iElem)).gt.zero .and. &
+       elens_r2(ielens(iElem)).gt.zero .and. elens_sig(ielens(iElem)).gt.zero)) return
 
   elens_nUpdates(ielens(iElem))=elens_nUpdates(ielens(iElem))+1
 
