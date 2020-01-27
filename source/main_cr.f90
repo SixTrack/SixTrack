@@ -42,6 +42,7 @@ program maincr
   use read_write,     only : writeFort12, readFort13, readFort33
   use collimation,    only : do_coll, coll_init, coll_exitCollimation
   use mod_ffield,     only : ffield_mod_init,ffield_mod_end
+  use elens,          only : elens_normalise_geo
 
 #ifdef FLUKA
   use mod_fluka
@@ -486,7 +487,9 @@ program maincr
     call linopt(dp1)
   end if
 
-  call scatter_init ! Must be after linopt
+  ! must be after linot
+  call scatter_init
+  call elens_normalise_geo
 
   ! beam-beam element
   nlino = nlin

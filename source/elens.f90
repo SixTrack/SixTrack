@@ -7,14 +7,19 @@ module elens
   use floatPrecision
   use crcoall
   use mod_alloc
-  use numerical_constants, only : zero
+  use numerical_constants, only : zero, one
   implicit none
 
-  integer, allocatable, save  :: ielens(:) !(nele)        ! index of elens
+  integer, allocatable, save  :: ielens(:)                ! index of elens (nele)
   integer, save               :: nelens=0                 ! number of elenses lenses actually in memory
   integer, save               :: nelens_radial_profiles=0 ! number of radial profiles available in memory
   integer, parameter          :: elens_kz=29              ! kz of electron lenses
   integer, parameter          :: elens_ktrack=63          ! ktrack of electron lenses
+  logical, save               :: lRequestOptics=.false.   ! request optics calculations, since there is at least
+                                                          !    a lens where either R1 or R2 was given in normalised units
+  ! R1/R2 expressed in normalised units (either betatron or dispersion)
+  real(kind=fPrec), save      :: elens_emin_def=-one      ! default normalised emittance [m rad]
+  real(kind=fPrec), save      :: elens_sigdpp_def=-one    ! default rms of distribution in delta_p / p []
 
   ! variables to save elens parameters for tracking etc.
   integer, allocatable, save          :: elens_type(:)            ! integer for elens type (nelens)
@@ -45,7 +50,19 @@ module elens
 #ifdef CR
   logical, allocatable, save          :: elens_lAllowUpdate_CR(:) ! (nelens)
 #endif
-  
+  ! R1/R2 expressed in normalised units (either betatron or dispersion)
+  real(kind=fPrec), allocatable, save :: elens_emin(:)            ! normalised emittance [m rad]
+  real(kind=fPrec), allocatable, save :: elens_sigdpp(:)          ! default rms of distribution in delta_p / p []
+  integer, allocatable, save          :: elens_iSet(:)            ! which value of beta or disp should be taken:
+                                                                  ! 0: none
+                                                                  ! 1: min
+                                                                  ! 2: max
+                                                                  ! 3: average
+                                                                  ! 4: quadratic average
+                                                                  ! 5: geometric average
+  real(kind=fPrec), allocatable, save :: elens_optVal(:)          ! value of optics function for normalised settings
+  integer, allocatable, save          :: elens_nUpdates(:)        ! how many slices are being used
+                                                                  
   ! radial profile
   integer, allocatable, save          :: elens_iRadial(:)         ! mapping to the radial profile (nelens)
   real(kind=fPrec), allocatable, save :: elens_radial_fr1(:)      ! value of f(R1) in case of radial profiles from file [0:1] (nelens)
@@ -77,31 +94,36 @@ subroutine elens_expand_arrays_lenses(nelens_new)
   implicit none
   integer, intent(in) :: nelens_new
   ! elens charachteristics
-  call alloc(elens_type           ,           nelens_new,               0, 'elens_type'           )
-  call alloc(elens_theta_r2       ,           nelens_new,            zero, 'elens_theta_r2'       )
-  call alloc(elens_r2             ,           nelens_new,            zero, 'elens_r2'             )
-  call alloc(elens_r1             ,           nelens_new,            zero, 'elens_r1'             )
-  call alloc(elens_offset_x       ,           nelens_new,            zero, 'elens_offset_x'       )
-  call alloc(elens_offset_y       ,           nelens_new,            zero, 'elens_offset_y'       )
-  call alloc(elens_sig            ,           nelens_new,            zero, 'elens_sig'            )
-  call alloc(elens_geo_norm       ,           nelens_new,            zero, 'elens_geo_norm'       )
-  call alloc(elens_len            ,           nelens_new,            zero, 'elens_len'            )
-  call alloc(elens_I              ,           nelens_new,            zero, 'elens_I'              )
-  call alloc(elens_Ek             ,           nelens_new,            zero, 'elens_Ek'             )
-  call alloc(elens_beta_e         ,           nelens_new,            zero, 'elens_beta_e'         )
-  call alloc(elens_lThetaR2       ,           nelens_new,         .false., 'elens_lThetaR2'       )
-  call alloc(elens_lAllowUpdate   ,           nelens_new,          .true., 'elens_lAllowUpdate'   )
-  call alloc(elens_lFox           ,           nelens_new,          .true., 'elens_lFox'           )
-  call alloc(elens_lFull          ,           nelens_new,         .false., 'elens_lFull'          )
-  call alloc(elens_lZeroThick     ,           nelens_new,         .false., 'elens_lZeroThick'     )
+  call alloc(elens_type           ,           nelens_new,                0, 'elens_type'           )
+  call alloc(elens_theta_r2       ,           nelens_new,             zero, 'elens_theta_r2'       )
+  call alloc(elens_r2             ,           nelens_new,             zero, 'elens_r2'             )
+  call alloc(elens_r1             ,           nelens_new,             zero, 'elens_r1'             )
+  call alloc(elens_offset_x       ,           nelens_new,             zero, 'elens_offset_x'       )
+  call alloc(elens_offset_y       ,           nelens_new,             zero, 'elens_offset_y'       )
+  call alloc(elens_sig            ,           nelens_new,             zero, 'elens_sig'            )
+  call alloc(elens_geo_norm       ,           nelens_new,             zero, 'elens_geo_norm'       )
+  call alloc(elens_len            ,           nelens_new,             zero, 'elens_len'            )
+  call alloc(elens_I              ,           nelens_new,             zero, 'elens_I'              )
+  call alloc(elens_Ek             ,           nelens_new,             zero, 'elens_Ek'             )
+  call alloc(elens_beta_e         ,           nelens_new,             zero, 'elens_beta_e'         )
+  call alloc(elens_lThetaR2       ,           nelens_new,          .false., 'elens_lThetaR2'       )
+  call alloc(elens_lAllowUpdate   ,           nelens_new,           .true., 'elens_lAllowUpdate'   )
+  call alloc(elens_lFox           ,           nelens_new,           .true., 'elens_lFox'           )
+  call alloc(elens_lFull          ,           nelens_new,          .false., 'elens_lFull'          )
+  call alloc(elens_lZeroThick     ,           nelens_new,          .false., 'elens_lZeroThick'     )
 #ifdef CR
-  call alloc(elens_lAllowUpdate_CR,           nelens_new,         .false., 'elens_lAllowUpdate_CR')
+  call alloc(elens_lAllowUpdate_CR,           nelens_new,          .false., 'elens_lAllowUpdate_CR')
 #endif
-  call alloc(elens_iRadial        ,           nelens_new,               0, 'elens_iRadial'        )
-  call alloc(elens_radial_fr1     ,           nelens_new,            zero, 'elens_radial_fr1'     )
-  call alloc(elens_radial_fr2     ,           nelens_new,            zero, 'elens_radial_fr2'     )
-  call alloc(elens_radial_mpoints ,           nelens_new,               2, 'elens_radial_mpoints' )
-  call alloc(elens_radial_jguess  ,           nelens_new,              -1, 'elens_radial_jguess'  )
+  call alloc(elens_emin           ,           nelens_new,   elens_emin_def, 'elens_emin'           )
+  call alloc(elens_sigdpp         ,           nelens_new, elens_sigdpp_def, 'elens_sigdpp'         )
+  call alloc(elens_iSet           ,           nelens_new,                0, 'elens_iSet'           )
+  call alloc(elens_optVal         ,           nelens_new,             zero, 'elens_optVal'         )
+  call alloc(elens_nUpdates       ,           nelens_new,                0, 'elens_nUpdates'       )
+  call alloc(elens_iRadial        ,           nelens_new,                0, 'elens_iRadial'        )
+  call alloc(elens_radial_fr1     ,           nelens_new,             zero, 'elens_radial_fr1'     )
+  call alloc(elens_radial_fr2     ,           nelens_new,             zero, 'elens_radial_fr2'     )
+  call alloc(elens_radial_mpoints ,           nelens_new,                2, 'elens_radial_mpoints' )
+  call alloc(elens_radial_jguess  ,           nelens_new,               -1, 'elens_radial_jguess'  )
 end subroutine elens_expand_arrays_lenses
 
 subroutine elens_expand_arrays_rad_profiles(nelens_profiles_new)
@@ -180,7 +202,155 @@ subroutine elens_parseInputLine(inLine, iLine, iErr)
     if(st_debug) then
       call sixin_echoVal("interp. points",elens_radial_mpoints(nelens),"ELENS",iLine)
     end if
-     
+
+  case("EMIN")
+    if(nSplit.lt.2 .or. nSplit.gt.4 ) then
+      write(lerr,"(a,i0)") "ELENS> ERROR Expected 2, 3 or 4 input parameters for EMIttance (Normalised) line, got ",nSplit-1
+      write(lerr,"(a)")    "ELENS>       example:     EMIN  <emin> [min|max|ave|qve|geo] [ALL|BEFORE|AFTER]"
+      iErr = .true.
+      return
+    end if
+   
+    call chr_cast(lnSPlit(2), elens_emin(nelens),iErr)
+    if ( elens_emin(nelens) < zero ) then
+      write(lerr,"(a,1pe22.15)") "ELENS> ERROR Negative values of normalised emittance are unacceptable, got: ", &
+            elens_emin(nelens)
+      iErr = .true.
+      return
+    end if
+
+    if (nSplit.ge.3) then
+      select case (chr_toLower(trim(lnSplit(3))))
+      case('min')
+        elens_iSet(nelens)=1
+        if(st_debug) write(lout,"(a)") "ELENS> Applying read normalised emittance with min beta"
+      case('max')
+        elens_iSet(nelens)=2
+        if(st_debug) write(lout,"(a)") "ELENS> Applying read normalised emittance with max beta"
+      case('ave')
+        elens_iSet(nelens)=3
+        if(st_debug) write(lout,"(a)") "ELENS> Applying read normalised emittance with average beta"
+      case('qve')
+        elens_iSet(nelens)=4
+        if(st_debug) write(lout,"(a)") "ELENS> Applying read normalised emittance with quad-average beta"
+      case('gve')
+        elens_iSet(nelens)=5
+        if(st_debug) write(lout,"(a)") "ELENS> Applying read normalised emittance with geometric average beta"
+      case default
+        write(lerr,"(a)") "ELENS> ERROR Unidentified third parameter of EMIN line, got: '"//trim(lnSplit(3))//"'"
+        write(lerr,"(a)") "ELENS>       example:     EMIN  <emin> [min|max|ave|qve|geo] [ALL|BEFORE|AFTER]"
+        iErr = .true.
+        return
+      end select ! case (lnSplit(3))
+    else
+      elens_iSet(nelens)=1
+      if(st_debug) write(lout,"(a)") "ELENS> Applying read normalised emittance with min beta (default)"
+    end if
+       
+    if (nSplit.ge.4) then
+      select case (chr_toLower(trim(lnSplit(4))))
+      case('all')
+        elens_emin_def=elens_emin(nelens)
+        do tmpi1=1,nelens-1
+          elens_emin(tmpi1) = elens_emin_def
+        end do
+        if(st_debug) write(lout,"(a)") "ELENS> Applying read normalised emittance to all e-lenses"
+      case('before')
+        do tmpi1=1,nelens-1
+          elens_emin(tmpi1) = elens_emin(nelens)
+        end do
+        if(st_debug) write(lout,"(a)") "ELENS> Applying read normalised emittance to all e-lenses"// &
+             "declared before the current EMIN line"
+      case('after')
+        elens_emin_def=elens_emin(nelens)
+        if(st_debug) write(lout,"(a)") "ELENS> Applying read normalised emittance to all e-lenses"// &
+             "declared after the current EMIN line"
+      case default
+        write(lerr,"(a)") "ELENS> ERROR Unidentified fourth parameter of EMIN line, got: '"//trim(lnSplit(4))//"'"
+        write(lerr,"(a)") "ELENS>       example:     EMIN  <emin> [min|max|ave|qve|geo] [ALL|BEFORE|AFTER]"
+        iErr = .true.
+        return
+      end select ! case (lnSplit(4))
+    end if
+
+    if(st_debug) then
+      call sixin_echoVal("normalised emittance [m rad]",elens_emin(nelens),"ELENS",iLine)
+    end if
+    
+  case("SIGDPP")
+    if(nSplit.lt.2 .or. nSplit.gt.4 ) then
+      write(lerr,"(a,i0)") "ELENS> ERROR Expected 2, 3 or 4 input parameters for SIGma Delta_P over P line, got ",nSplit-1
+      write(lerr,"(a)")    "ELENS>       example:     SIDPP  <sigdpp> [min|max|ave|qve|geo] [ALL|BEFORE|AFTER]"
+      iErr = .true.
+      return
+    end if
+   
+    call chr_cast(lnSPlit(2), elens_sigdpp(nelens),iErr)
+    if ( elens_sigdpp(nelens) < zero ) then
+      write(lerr,"(a,1pe22.15)") "ELENS> ERROR Negative values of rms of delta distribution are unacceptable, got: ", &
+            elens_sigdpp(nelens)
+      iErr = .true.
+      return
+    end if
+
+    if (nSplit.ge.3) then
+      select case (chr_toLower(trim(lnSplit(3))))
+      case('min')
+        elens_iSet(nelens)=1
+        if(st_debug) write(lout,"(a)") "ELENS> Applying read rms of delta distribution with min dispersion"
+      case('max')
+        elens_iSet(nelens)=2
+        if(st_debug) write(lout,"(a)") "ELENS> Applying read rms of delta distribution with max dispersion"
+      case('ave')
+        elens_iSet(nelens)=3
+        if(st_debug) write(lout,"(a)") "ELENS> Applying read rms of delta distribution with average dispersion"
+      case('qve')
+        elens_iSet(nelens)=4
+        if(st_debug) write(lout,"(a)") "ELENS> Applying read rms of delta distribution with quad-average dispersion"
+      case('geo')
+        elens_iSet(nelens)=5
+        if(st_debug) write(lout,"(a)") "ELENS> Applying read rms of delta distribution with geometric average beta"
+      case default
+        write(lerr,"(a)") "ELENS> ERROR Unidentified third parameter of SIGDPP line, got: '"//trim(lnSplit(3))//"'"
+        write(lerr,"(a)") "ELENS>       example:     SIGDPP  <sigdpp> [min|max|ave|qve|geo] [ALL|BEFORE|AFTER]"
+        iErr = .true.
+        return
+      end select ! case (lnSplit(3))
+    else
+      elens_iSet(nelens)=1
+      if(st_debug) write(lout,"(a)") "ELENS> Applying read rms of delta distribution with min dispersion (default)"
+    end if
+       
+    if (nSplit.ge.4) then
+      select case (chr_toLower(trim(lnSplit(4))))
+      case('all')
+        elens_sigdpp_def=elens_sigdpp(nelens)
+        do tmpi1=1,nelens-1
+          elens_sigdpp(tmpi1) = elens_sigdpp_def
+        end do
+        if(st_debug) write(lout,"(a)") "ELENS> Applying read rms of delta distribution to all e-lenses"
+      case('before')
+        do tmpi1=1,nelens-1
+          elens_sigdpp(tmpi1) = elens_sigdpp(nelens)
+        end do
+        if(st_debug) write(lout,"(a)") "ELENS> Applying read rms of delta distribution to all e-lenses"// &
+             "declared before the current SIGDPP line"
+      case('after')
+        elens_sigdpp_def=elens_sigdpp(nelens)
+        if(st_debug) write(lout,"(a)") "ELENS> Applying read rms of delta distribution to all e-lenses"// &
+             "declared after the current SIGDPP line"
+      case default
+        write(lerr,"(a)") "ELENS> ERROR Unidentified fourth parameter of SIGDPP line, got: '"//trim(lnSplit(4))//"'"
+        write(lerr,"(a)") "ELENS>       example:     SIGDPP  <sigdpp> [min|max|ave|qve|geo] [ALL|BEFORE|AFTER]"
+        iErr = .true.
+        return
+      end select ! case (lnSplit(4))
+    end if
+
+    if(st_debug) then
+      call sixin_echoVal("rms of delta distribution []",elens_sigdpp(nelens),"ELENS",iLine)
+    end if
+    
   case default
     if(nSplit < 7) then
       write(lerr,"(a,i0)") "ELENS> ERROR Expected at least 7 input parameters, got ",nSplit
@@ -311,25 +481,21 @@ subroutine elens_parseInputLine(inLine, iLine, iErr)
     end if
     
     ! sanity checks
-    if(elens_r2(ielens(iElem)) < elens_r1(ielens(iElem))) then
+    if(elens_r2(ielens(iElem)) < zero) then
+      lRequestOptics=.true.
+    else if(abs(elens_r2(ielens(iElem))) < pieni) then
+      elens_r2(ielens(iElem))=zero
+    end if
+    if(elens_r1(ielens(iElem)) < zero) then
+      lRequestOptics=.true.
+    else if(abs(elens_r1(ielens(iElem))) < pieni) then
+      elens_r1(ielens(iElem))=zero
+    end if
+    if(abs(elens_r2(ielens(iElem))) < abs(elens_r1(ielens(iElem)))) then
       write(lout,"(a)") "ELENS> WARNING ELEN R2<R1. Inverting."
       tmpflt=elens_r2(ielens(iElem))
       elens_r2(ielens(iElem)) = elens_r1(ielens(iElem))
       elens_r1(ielens(iElem)) = tmpflt
-    end if
-    if(elens_r2(ielens(iElem)) < zero) then
-      write(lerr,"(a)") "ELENS> ERROR R2<0!"
-      iErr = .true.
-      return
-    else if(elens_r2(ielens(iElem)) < pieni) then
-      elens_r2(ielens(iElem))=zero
-    end if
-    if(elens_r1(ielens(iElem)) < zero) then
-      write(lerr,"(a)") "ELENS> ERROR R1<0!"
-      iErr = .true.
-      return
-    else if(elens_r1(ielens(iElem)) < pieni) then
-      elens_r1(ielens(iElem))=zero
     end if
     if(elens_lThetaR2(ielens(iElem))) then
       if(elens_len(ielens(iElem)) <= zero) then
@@ -418,12 +584,10 @@ end subroutine elens_parseInputDone
 
 subroutine elens_postInput
 
-  use mathlib_bouncer
-  use mod_utils, only : polinterp
-  use mod_common, only : bez,kz,fort3
+  use mod_common, only : bez, kz, fort3, ilin
 
-  integer j, jj, nlens, jguess
-  logical exist
+  integer j, jj, nlens
+  logical lexist
 
   ! Check that all elenses in fort.2 have a corresponding declaration in fort.3
   nlens=0
@@ -448,10 +612,61 @@ subroutine elens_postInput
     call prror
   end if
 
+  ! forcing calculation of linear optics, if necessary
+  if ( lRequestOptics ) then
+    write(lout,"(a)") "ELENS> One of the lenses has either R1<0 or R2<0 hence expressed in normalised units"
+    write(lout,"(a)") "ELENS>     (i.e. units of beam sigma). Calculation of linear optics functions is necessary"
+    if ( ilin.ne.0 ) then
+      write(lout,"(a)") "ELENS> Calculation of linear optics functions already requested by user with:"
+    else
+      write(lout,"(a)") "ELENS> Forcing calculation of linear optics functions with:"
+      ilin=1
+    end if
+    write(lout,"(a,i0)") "ELENS>    ilin=",ilin
+  end if
+
+  ! check that, in case R1/R2 are declared by the user in terms of n-sigma, the provided info is consistent
+  do j=1,nelens
+    if (elens_r1(j).lt.zero .or. elens_r2(j).lt.zero ) then
+      ! printout:
+      ! - find name of elens
+      do jj=1,nele
+        if(kz(jj)==elens_kz) then
+          if (ielens(jj).eq.j) then
+            exit
+          end if
+        end if
+      end do
+      if (elens_r1(j).lt.zero) write(lout,"(a,i0,a)") "ELENS> e-lens #",j, " named "//trim(bez(jj))//": R1<0"
+      if (elens_r2(j).lt.zero) write(lout,"(a,i0,a)") "ELENS> e-lens #",j, " named "//trim(bez(jj))//": R2<0"
+      write(lout,"(a)") "ELENS> checking consistency of user input data"
+      if (elens_emin(j).gt.zero.and.elens_sigdpp(j).gt.zero) then
+        write(lerr,"(a)") "ELENS> ERROR cannot express R1/R2 cuts in terms of both normalised emittance "// &
+              "and rms of delta distribution."
+        write(lerr,"(a)") "ELENS>       please choose one of the two, got:"
+        write(lerr,"(a,1pe22.15)") "ELENS>      emin [m rad]=",elens_emin(j)
+        write(lerr,"(a,1pe22.15)") "ELENS>      sigdpp []=",elens_sigdpp(j)
+        call prror
+      elseif (elens_emin(j).lt.zero.and.elens_sigdpp(j).lt.zero) then
+        write(lerr,"(a)") "ELENS> ERROR cannot express R1/R2 cuts in terms of both normalised emittance "// &
+              "or rms of delta distribution without specifying one of the two."
+        write(lerr,"(a)") "ELENS>       please choose one of the two, got:"
+        write(lerr,"(a,1pe22.15)") "ELENS>      emin [m rad]=",elens_emin(j)
+        write(lerr,"(a,1pe22.15)") "ELENS>      sigdpp []=",elens_sigdpp(j)
+        call prror
+      end if
+      if (elens_iSet(j).eq.0) then
+        write(lerr,"(a)") "ELENS> ERROR don't know which value of beta/dispersion to use"
+        write(lerr,"(a)") "ELENS>       please choose one among min|max|ave|qve"
+        call prror
+      end if
+    end if
+  end do
+  
   ! Parse files with radial profiles
    do j=1,nelens_radial_profiles
-    inquire(file=elens_radial_filename(j), exist=exist)
-    if(.not. exist) then
+    inquire(file=elens_radial_filename(j), exist=lexist)
+    if(.not. lexist) then
       write(lerr,"(a)") "ELENS> ERROR Problems with file with radial profile: "//trim(elens_radial_filename(j))
       call prror
     end if
@@ -460,17 +675,89 @@ subroutine elens_postInput
     call normaliseRadialProfile(j)
   end do
 
-  ! Proper normalisation
+end subroutine elens_postInput
+
+! ================================================================================================ !
+!  Compute geometrical normalisation factor
+! ================================================================================================ !
+subroutine elens_normalise_geo
+
+  use mathlib_bouncer
+  use mod_utils, only : polinterp
+  use mod_common, only : bez, kz, e0f, nucm0
+  use mod_settings, only : st_debug
+
+  integer j, jj, jguess
+  real(kind=fPrec) oldVal
+
   do j=1,nelens
-    if(elens_type(j) == 1) then
-      ! Uniform distribution
+     
+    ! find name of elens (for printout purposes)
+    do jj=1,nele
+      if(kz(jj)==elens_kz) then
+        if (ielens(jj).eq.j) then
+          exit
+        end if
+      end if
+    end do
+
+    if (elens_r1(j).lt.zero.or.elens_r2(j).lt.zero) then
+      if (elens_iSet(j).eq.3 ) then
+        elens_optVal(j)=elens_optVal(j)/real(elens_nUpdates(j),fPrec)
+      elseif (elens_iSet(j).eq.4 ) then
+        elens_optVal(j)=elens_optVal(j)/sqrt(real(elens_nUpdates(j),fPrec))
+      end if
+    end if
+   
+    ! compute R1 out of normalised settings
+    if (elens_r1(j).lt.zero) then
+      oldVal=elens_r1(j)
+      if (elens_emin(j).gt.zero) then ! betatron cut
+        elens_r1(j)=abs(elens_r1(j))*sqrt(elens_optVal(j)*elens_emin(j)/(e0f/nucm0))
+      else ! momentum cut
+        elens_r1(j)=abs(elens_r1(j))*(elens_optVal(j)*elens_sigdpp(j))
+      end if
+      ! ...and printout:
+      write(lout,"(a,i0,a)") "ELENS> Recomputing R1 of e-lens #",j," named "//trim(bez(jj))//": "
+      if(st_debug) then
+        write(lout,"(a,1pe22.15)") "ELENS> normalised emittance [m rad]=",elens_emin(j)
+        write(lout,"(a,1pe22.15)") "ELENS> geometrical emittance [m rad]=",elens_emin(j)/(e0f/nucm0)
+        write(lout,"(a,1pe22.15)") "ELENS> momentum of reference particle [MeV/c]=",e0f
+        write(lout,"(a,1pe22.15)") "ELENS> mass of reference particle [MeV/c2]=",nucm0
+        write(lout,"(a,1pe22.15)") "ELENS> beta/disp function [m]=",elens_optVal(j)
+      end if
+      write(lout,"(a,1pe22.15)") "ELENS> original value [mm]=",oldVal
+      write(lout,"(a,1pe22.15)") "ELENS> new value [mm]=",elens_r1(j)
+    end if
+    ! compute R2 out of normalised settings
+    if (elens_r2(j).lt.zero) then
+      oldVal=elens_r2(j)
+      if (elens_emin(j).gt.zero) then ! betatron cut
+        elens_r2(j)=abs(elens_r2(j))*sqrt(elens_optVal(j)*elens_emin(j)/(e0f/nucm0))
+      else ! momentum cut
+        elens_r2(j)=abs(elens_r2(j))*(elens_optVal(j)*elens_sigdpp(j))
+      end if
+      ! ...and printout:
+      write(lout,"(a,i0,a)") "ELENS> Recomputing R2 of e-lens #",j," named "//trim(bez(jj))//": "
+      if(st_debug) then
+        write(lout,"(a,1pe22.15)") "ELENS> normalised emittance [m rad]=",elens_emin(j)
+        write(lout,"(a,1pe22.15)") "ELENS> geometrical emittance [m rad]=",elens_emin(j)/(e0f/nucm0)
+        write(lout,"(a,1pe22.15)") "ELENS> momentum of reference particle [MeV/c]=",e0f
+        write(lout,"(a,1pe22.15)") "ELENS> mass of reference particle [MeV/c2]=",nucm0
+        write(lout,"(a,1pe22.15)") "ELENS> beta/disp function [m]=",elens_optVal(j)
+      end if
+      write(lout,"(a,1pe22.15)") "ELENS> original value [mm]=",oldVal
+      write(lout,"(a,1pe22.15)") "ELENS> new value [mm]=",elens_r2(j)
+    end if
+
+    ! compute geometrical normalisation factor
+    select case (elens_type(j))
+    case(1) ! Uniform distribution
       elens_geo_norm(j) = (elens_r2(j)+elens_r1(j))*(elens_r2(j)-elens_r1(j))
-    else if(elens_type(j) == 2) then
-      ! Gaussian distribution
+    case(2) ! Gaussian distribution
       elens_geo_norm(j) = exp_mb(-0.5*(elens_r1(j)/elens_sig(j))**2)&
                          -exp_mb(-0.5*(elens_r2(j)/elens_sig(j))**2)
-    else if(elens_type(j) == 3) then
-      ! Radial profile
+    case(3) ! Radial profile
       elens_radial_fr1(j) = polinterp( elens_r1(j), &
             elens_radial_profile_R(0:elens_radial_profile_nPoints(elens_iRadial(j)),elens_iRadial(j)), &
             elens_radial_profile_J(0:elens_radial_profile_nPoints(elens_iRadial(j)),elens_iRadial(j)), &
@@ -482,18 +769,8 @@ subroutine elens_postInput
             elens_radial_profile_nPoints(elens_iRadial(j))+1, &
             elens_radial_mpoints(elens_iRadial(j)), jguess  )
       elens_geo_norm(j) = elens_radial_fr2(j) -elens_radial_fr1(j)
-    end if
-
-    ! printout:
-    ! - find name of elens
-    do jj=1,nele
-      if(kz(jj)==elens_kz) then
-        if (ielens(jj).eq.j) then
-          exit
-        end if
-      end if
-    end do
-    ! - report geometrical factor
+    end select ! case (elens_type(j))
+    ! ...and printout:
     write(lout,"(a,i0,a,1pe22.15)") "ELENS> Geom. norm. fact. for elens #",j, &
          " named "//trim(bez(jj))//": ",elens_geo_norm(j)
 
@@ -502,8 +779,80 @@ subroutine elens_postInput
 
   end do
 
-end subroutine elens_postInput
+end subroutine elens_normalise_geo
 
+! ================================================================================================ !
+!  Compute geometrical normalisation factor
+! ================================================================================================ !
+subroutine elens_setOptics(iElem, bAlpha, bBeta, bOrbit, bOrbitP, bDisp, bDispP)
+
+  use parpro,     only : nele
+  use mod_common, only : bez
+  use numerical_constants, only : zero, two
+  use mod_settings, only : st_debug
+
+  integer,          intent(in) :: iElem
+  real(kind=fPrec), intent(in) :: bAlpha(2)
+  real(kind=fPrec), intent(in) :: bBeta(2)
+  real(kind=fPrec), intent(in) :: bOrbit(2)
+  real(kind=fPrec), intent(in) :: bOrbitP(2)
+  real(kind=fPrec), intent(in) :: bDisp(2)
+  real(kind=fPrec), intent(in) :: bDispP(2)
+
+  if(iElem<1 .or. iElem>nele .or. (elens_r1(ielens(iElem)).gt.zero .and. elens_r2(ielens(iElem)).gt.zero)) return
+
+  elens_nUpdates(ielens(iElem))=elens_nUpdates(ielens(iElem))+1
+
+  if (elens_emin(ielens(iElem)).gt.zero) then ! betatron cut
+    select case (elens_iSet(ielens(iElem)))
+    case(1) ! min
+       if (elens_optVal(ielens(iElem)).eq.zero) then ! first time
+         elens_optVal(ielens(iElem))=min(bBeta(1),bBeta(2))
+       else   
+         elens_optVal(ielens(iElem))=min(bBeta(1),bBeta(2),elens_optVal(ielens(iElem)))
+       end if
+    case(2) ! max
+       elens_optVal(ielens(iElem))=max(bBeta(1),bBeta(2),elens_optVal(ielens(iElem)))
+    case(3) ! average
+       elens_optVal(ielens(iElem))=elens_optVal(ielens(iElem))+(bBeta(1)+bBeta(2))/two
+    case(4) ! quadratic average
+       elens_optVal(ielens(iElem))=sqrt((elens_optVal(ielens(iElem))*elens_optVal(ielens(iElem)))+(bBeta(1)**2+bBeta(2)**2)/two)
+    case(5) ! geometric average
+       elens_optVal(ielens(iElem))=sqrt((elens_optVal(ielens(iElem))*elens_optVal(ielens(iElem)))*(bBeta(1)*bBeta(2)))
+    end select ! case (elens_iSet(ielens(iElem)))
+  else ! momentum cut
+    select case (elens_iSet(ielens(iElem)))
+    case(1) ! min
+       if (elens_optVal(ielens(iElem)).eq.zero) then ! first time
+         elens_optVal(ielens(iElem))=min(abs(bDisp(1)),abs(bDisp(2)))
+       else   
+         elens_optVal(ielens(iElem))=min(abs(bDisp(1)),abs(bDisp(2)),elens_optVal(ielens(iElem)))
+       end if
+    case(2) ! max
+       elens_optVal(ielens(iElem))=max(abs(bDisp(1)),abs(bDisp(2)),elens_optVal(ielens(iElem)))
+    case(3) ! average
+       elens_optVal(ielens(iElem))=elens_optVal(ielens(iElem))+(abs(bDisp(1))+abs(bDisp(2)))/two
+    case(4) ! quadratic average
+       elens_optVal(ielens(iElem))=sqrt((elens_optVal(ielens(iElem))*elens_optVal(ielens(iElem)))+(bDisp(1)**2+bDisp(2)**2)/two)
+    case(5) ! geometric average
+       elens_optVal(ielens(iElem))=sqrt((elens_optVal(ielens(iElem))*elens_optVal(ielens(iElem)))*(abs(bDisp(1))*abs(bDisp(2))))
+    end select ! case (elens_iSet(ielens(iElem)))
+  end if
+ 
+  write(lout,"(a)") "ELENS> LinOpt for element: '"//trim(bez(iElem))//"'"
+  write(lout,"(a,1pe22.15)") "ELENS> recorded value:",elens_optVal(iElem)
+  
+  if(st_debug) then
+    write(lout,"(a,2(1x,f16.6))") "ELENS> DEBUG  * Alpha X/Y:        ",bAlpha
+    write(lout,"(a,2(1x,f16.6))") "ELENS> DEBUG  * Beta X/Y:         ",bBeta
+    write(lout,"(a,2(1x,f16.6))") "ELENS> DEBUG  * Dispersion X/Y:   ",bDisp
+    write(lout,"(a,2(1x,f16.6))") "ELENS> DEBUG  * Dispersion XP/YP: ",bDispP
+    write(lout,"(a,2(1x,f16.6))") "ELENS> DEBUG  * Orbit X/Y:        ",bOrbit
+    write(lout,"(a,2(1x,f16.6))") "ELENS> DEBUG  * Orbit XP/YP:      ",bOrbitP
+  end if
+ 
+end subroutine elens_setOptics
+  
 ! ================================================================================================ !
 !  Compute eLens theta at r2
 !  input variables:
