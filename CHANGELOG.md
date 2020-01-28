@@ -5,6 +5,7 @@
 **Bugfixes**
 
 * More robust detection of lxplus at compilation PR #1045 (J. Molson).
+* Fix pencil beam #1046
 
 ### Version 5.4.3 [19.12.2019] - Release
 
