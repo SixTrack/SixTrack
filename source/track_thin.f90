@@ -599,7 +599,7 @@ subroutine thin6d(nthinerr)
     acphase,acdipamp2,acdipamp1,crabamp,crabfreq,crabamp2,crabamp3,crabamp4,kcrab,RTWO,NNORM,l,cur, &
     dx,dy,tx,ty,embl,chi,xi,yi,dxi,dyi,rrelens,frrelens,xelens,yelens, onedp,fppsig,costh_temp,     &
     sinth_temp,tan_t,sin_t,cos_t,pxf,pyf,r_temp,z_temp,sigf,q_temp,pttemp,xlv,zlv,temp_angle
-  logical llost, doFField, is_coll
+  logical llost, doFField_q,doFField_s, is_coll
   real(kind=fPrec) crkveb(npart),cikveb(npart),rho2b(npart),tkb(npart),rb(npart),rkb(npart),        &
     xrb(npart),zrb(npart),xbb(npart),zbb(npart),crxb(npart),crzb(npart),cbxb(npart),cbzb(npart)
   real(kind=fPrec) :: krf, x_t, y_t
@@ -641,9 +641,11 @@ subroutine thin6d(nthinerr)
 
       ! Fringe Fields
       if(ffield_enabled .and. ix > 0) then
-        doFField = FFindex(ix) > 0
+        doFFIELD_q = FFindex(ix) > 0
+        doFFIELD_s = FFindex(ix) < 0
       else
-        doFField = .false.
+        doFField_q = .false.
+        doFFIELD_s = .false.
       end if
 
 #ifdef BEAMGAS
@@ -825,7 +827,7 @@ subroutine thin6d(nthinerr)
         end do
         goto 640
       case (12) ! NORMAL QUADRUPOLE
-        if(doFField) then
+        if(doFFIELD_q) then
           if(ic(i) /= ic(i-2) .and. ic(i) /= ic(i-3)) then
             call ffield_enterQuad(i)  !A optimizer!!!
           end if
@@ -834,7 +836,7 @@ subroutine thin6d(nthinerr)
 #include "include/alignva.f90"
 #include "include/kickvxxh.f90"
         end do
-        if(doFField) then
+        if(doFFIELD_q) then
           if(ic(i) /= ic(i+2) .and. ic(i) /= ic(i+3)) then
             call ffield_exitQuad(i)   !A optimizer!!!
           end if
@@ -1022,13 +1024,13 @@ subroutine thin6d(nthinerr)
       case (31)
         goto 640
       case (32)
-        if(doFField .eqv. .false.) then
+        if(doFFIELD_s .eqv. .false.) then
           goto 410
         else
           goto 640
         end if
       case (33)
-        if(doFField .eqv. .false.) then
+        if(doFFIELD_s .eqv. .false.) then
           do j=1,napx
 #include "include/alignvb.f90"
 #include "include/mul4v01.f90"
@@ -1037,7 +1039,7 @@ subroutine thin6d(nthinerr)
         end if
         goto 640
       case (34)
-        if(doFField .eqv. .false.) then
+        if(doFFIELD_s .eqv. .false.) then
           do j=1,napx
 #include "include/alignvb.f90"
 #include "include/mul4v01.f90"
@@ -1048,7 +1050,7 @@ subroutine thin6d(nthinerr)
           goto 640
         end if
       case (35)
-        if(doFField .eqv. .false.) then
+        if(doFFIELD_s .eqv. .false.) then
           do j=1,napx
 #include "include/alignvb.f90"
 #include "include/mul4v02.f90"
@@ -1057,7 +1059,7 @@ subroutine thin6d(nthinerr)
         end if
         goto 640
       case (36)
-        if(doFField .eqv. .false.) then
+        if(doFFIELD_s .eqv. .false.) then
           do j=1,napx
 #include "include/alignvb.f90"
 #include "include/mul4v02.f90"
@@ -1068,7 +1070,7 @@ subroutine thin6d(nthinerr)
           goto 640
         end if
       case (37)
-        if(doFField .eqv. .false.) then
+        if(doFFIELD_s .eqv. .false.) then
           do j=1,napx
 #include "include/alignvb.f90"
 #include "include/mul4v03.f90"
@@ -1077,7 +1079,7 @@ subroutine thin6d(nthinerr)
         end if
         goto 640
       case (38)
-        if(doFField .eqv. .false.) then
+        if(doFFIELD_s .eqv. .false.) then
           do j=1,napx
 #include "include/alignvb.f90"
 #include "include/mul4v03.f90"
@@ -1088,7 +1090,7 @@ subroutine thin6d(nthinerr)
           goto 640
         end if
       case (39)
-        if(doFField .eqv. .false.) then
+        if(doFFIELD_s .eqv. .false.) then
           do j=1,napx
 #include "include/alignvb.f90"
 #include "include/mul4v04.f90"
@@ -1097,7 +1099,7 @@ subroutine thin6d(nthinerr)
         end if
         goto 640
       case (40)
-        if(doFField .eqv. .false.) then
+        if(doFFIELD_s .eqv. .false.) then
           do j=1,napx
 #include "include/alignvb.f90"
 #include "include/mul4v04.f90"
