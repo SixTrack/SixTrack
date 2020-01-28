@@ -2553,8 +2553,10 @@ subroutine coll_matchedHalo(c_tilt,c_offset,c_aperture,c_length)
   ! Assign amplitudes in x and y for the halo generation function
   if(cdist_ampX > zero .and. cdist_ampY == zero) then ! Horizontal halo
     c_nex2 = minAmpl
+    c_ney2 = zero 
   else if(cdist_ampX == zero .and. cdist_ampY > zero) then ! Vertical halo
     c_ney2 = minAmpl
+    c_nex2 = zero 
   end if ! Other cases taken care of above - in these cases, program has already stopped
 
   ! Assign optics parameters to use for the generation of the starting halo - at start or end of collimator
