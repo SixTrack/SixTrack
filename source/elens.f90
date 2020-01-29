@@ -10,19 +10,20 @@ module elens
   use numerical_constants, only : zero, one
   implicit none
 
-  integer, allocatable, save  :: ielens(:)                ! index of elens (nele)
-  integer, save               :: nelens=0                 ! number of elenses lenses actually in memory
-  integer, save               :: nelens_radial_profiles=0 ! number of radial profiles available in memory
-  integer, parameter          :: elens_kz=29              ! kz of electron lenses
-  integer, parameter          :: elens_ktrack=63          ! ktrack of electron lenses
-  logical, save               :: lRequestOptics=.false.   ! request optics calculations, since there is at least
-                                                          !    a lens where either R1 or R2 was given in normalised units
+  integer, allocatable, save  :: ielens(:)                  ! index of elens (nele)
+  integer, save               :: nelens=0                   ! number of elenses lenses actually in memory
+  integer, save               :: nelens_radial_profiles=0   ! number of radial profiles available in memory
+  integer, parameter          :: elens_kz=29                ! kz of electron lenses
+  integer, parameter          :: elens_ktrack=63            ! ktrack of electron lenses
+  logical, save               :: lRequestOptics=.false.     ! request optics calculations, since there is at least
+                                                            !    a lens where either R1 or R2 was given in normalised units
   ! R1/R2 expressed in normalised units (either betatron or dispersion)
-  real(kind=fPrec), save      :: elens_emin_def=-one      ! default normalised emittance [m rad]
-  real(kind=fPrec), save      :: elens_sigdpp_def=-one    ! default rms of distribution in delta_p / p []
-  integer, save               :: elens_iSet_def=0         ! default iSet
+  real(kind=fPrec), save      :: elens_emin_def=-one        ! default normalised emittance [m rad]
+  real(kind=fPrec), save      :: elens_sigdpp_def=-one      ! default rms of distribution in delta_p / p []
+  integer, save               :: elens_iSet_def=0           ! default iSet
+  logical, save               :: elens_lFox_def=.true.      ! default lFox
+  integer, save               :: elens_radial_mpoints_def=2 ! default number of points for interpolating radial profiles from ASCI files
   
-
   ! variables to save elens parameters for tracking etc.
   integer, allocatable, save          :: elens_type(:)            ! integer for elens type (nelens)
                                                                   ! 0 : Un-initialized.
@@ -96,36 +97,36 @@ subroutine elens_expand_arrays_lenses(nelens_new)
   implicit none
   integer, intent(in) :: nelens_new
   ! elens charachteristics
-  call alloc(elens_type           ,           nelens_new,                0, 'elens_type'           )
-  call alloc(elens_theta_r2       ,           nelens_new,             zero, 'elens_theta_r2'       )
-  call alloc(elens_r2             ,           nelens_new,             zero, 'elens_r2'             )
-  call alloc(elens_r1             ,           nelens_new,             zero, 'elens_r1'             )
-  call alloc(elens_offset_x       ,           nelens_new,             zero, 'elens_offset_x'       )
-  call alloc(elens_offset_y       ,           nelens_new,             zero, 'elens_offset_y'       )
-  call alloc(elens_sig            ,           nelens_new,             zero, 'elens_sig'            )
-  call alloc(elens_geo_norm       ,           nelens_new,             zero, 'elens_geo_norm'       )
-  call alloc(elens_len            ,           nelens_new,             zero, 'elens_len'            )
-  call alloc(elens_I              ,           nelens_new,             zero, 'elens_I'              )
-  call alloc(elens_Ek             ,           nelens_new,             zero, 'elens_Ek'             )
-  call alloc(elens_beta_e         ,           nelens_new,             zero, 'elens_beta_e'         )
-  call alloc(elens_lThetaR2       ,           nelens_new,          .false., 'elens_lThetaR2'       )
-  call alloc(elens_lAllowUpdate   ,           nelens_new,           .true., 'elens_lAllowUpdate'   )
-  call alloc(elens_lFox           ,           nelens_new,           .true., 'elens_lFox'           )
-  call alloc(elens_lFull          ,           nelens_new,          .false., 'elens_lFull'          )
-  call alloc(elens_lZeroThick     ,           nelens_new,          .false., 'elens_lZeroThick'     )
+  call alloc(elens_type           , nelens_new,                        0, 'elens_type'           )
+  call alloc(elens_theta_r2       , nelens_new,                     zero, 'elens_theta_r2'       )
+  call alloc(elens_r2             , nelens_new,                     zero, 'elens_r2'             )
+  call alloc(elens_r1             , nelens_new,                     zero, 'elens_r1'             )
+  call alloc(elens_offset_x       , nelens_new,                     zero, 'elens_offset_x'       )
+  call alloc(elens_offset_y       , nelens_new,                     zero, 'elens_offset_y'       )
+  call alloc(elens_sig            , nelens_new,                     zero, 'elens_sig'            )
+  call alloc(elens_geo_norm       , nelens_new,                     zero, 'elens_geo_norm'       )
+  call alloc(elens_len            , nelens_new,                     zero, 'elens_len'            )
+  call alloc(elens_I              , nelens_new,                     zero, 'elens_I'              )
+  call alloc(elens_Ek             , nelens_new,                     zero, 'elens_Ek'             )
+  call alloc(elens_beta_e         , nelens_new,                     zero, 'elens_beta_e'         )
+  call alloc(elens_lThetaR2       , nelens_new,                  .false., 'elens_lThetaR2'       )
+  call alloc(elens_lAllowUpdate   , nelens_new,                   .true., 'elens_lAllowUpdate'   )
+  call alloc(elens_lFox           , nelens_new,           elens_lFox_def, 'elens_lFox'           )
+  call alloc(elens_lFull          , nelens_new,                  .false., 'elens_lFull'          )
+  call alloc(elens_lZeroThick     , nelens_new,                  .false., 'elens_lZeroThick'     )
 #ifdef CR
-  call alloc(elens_lAllowUpdate_CR,           nelens_new,          .false., 'elens_lAllowUpdate_CR')
-#endif
-  call alloc(elens_emin           ,           nelens_new,   elens_emin_def, 'elens_emin'           )
-  call alloc(elens_sigdpp         ,           nelens_new, elens_sigdpp_def, 'elens_sigdpp'         )
-  call alloc(elens_iSet           ,           nelens_new,   elens_iSet_def, 'elens_iSet'           )
-  call alloc(elens_optVal         ,           nelens_new,             zero, 'elens_optVal'         )
-  call alloc(elens_nUpdates       ,           nelens_new,                0, 'elens_nUpdates'       )
-  call alloc(elens_iRadial        ,           nelens_new,                0, 'elens_iRadial'        )
-  call alloc(elens_radial_fr1     ,           nelens_new,             zero, 'elens_radial_fr1'     )
-  call alloc(elens_radial_fr2     ,           nelens_new,             zero, 'elens_radial_fr2'     )
-  call alloc(elens_radial_mpoints ,           nelens_new,                2, 'elens_radial_mpoints' )
-  call alloc(elens_radial_jguess  ,           nelens_new,               -1, 'elens_radial_jguess'  )
+  call alloc(elens_lAllowUpdate_CR, nelens_new,                  .false., 'elens_lAllowUpdate_CR')
+#endif                                                            
+  call alloc(elens_emin           , nelens_new,           elens_emin_def, 'elens_emin'           )
+  call alloc(elens_sigdpp         , nelens_new,         elens_sigdpp_def, 'elens_sigdpp'         )
+  call alloc(elens_iSet           , nelens_new,           elens_iSet_def, 'elens_iSet'           )
+  call alloc(elens_optVal         , nelens_new,                     zero, 'elens_optVal'         )
+  call alloc(elens_nUpdates       , nelens_new,                        0, 'elens_nUpdates'       )
+  call alloc(elens_iRadial        , nelens_new,                        0, 'elens_iRadial'        )
+  call alloc(elens_radial_fr1     , nelens_new,                     zero, 'elens_radial_fr1'     )
+  call alloc(elens_radial_fr2     , nelens_new,                     zero, 'elens_radial_fr2'     )
+  call alloc(elens_radial_mpoints , nelens_new, elens_radial_mpoints_def, 'elens_radial_mpoints' )
+  call alloc(elens_radial_jguess  , nelens_new,                       -1, 'elens_radial_jguess'  )
 end subroutine elens_expand_arrays_lenses
 
 subroutine elens_expand_arrays_rad_profiles(nelens_profiles_new)
@@ -161,9 +162,9 @@ subroutine elens_parseInputLine(inLine, iLine, iErr)
   character(len=mStrLen) tmpch
   real(kind=fPrec) tmpflt
   integer nSplit, iElem, j, tmpi1, tmpi2, tmpi3
-  logical spErr, tmpl, lfound
+  logical spErr, tmpl, lfound, tmplFox
   real(kind=fPrec), save :: tmpEmin, tmpSigDpp
-  integer, save :: tmpSet
+  integer, save :: tmpSet, tmpMpoints
 
   call chr_split(inLine, lnSplit, nSplit, spErr)
   if(spErr) then
@@ -175,42 +176,10 @@ subroutine elens_parseInputLine(inLine, iLine, iErr)
 
   select case (lnSplit(1))
      
-  case("FOX")
-    if(nSplit .ne. 2) then
-      write(lerr,"(a,i0)") "ELENS> ERROR Expected at least 1 input parameters for FOX line, got ",nSplit-1
-      iErr = .true.
-      return
-    end if
-    call chr_cast(lnSPlit(2), elens_lFox(nelens),iErr)
-    if(st_debug) then
-      call sixin_echoVal("fox",elens_lFox(nelens),"ELENS",iLine)
-    end if
-     
-  case("INTER")
-    if(nSplit .ne. 2) then
-      write(lerr,"(a,i0)") "ELENS> ERROR Expected at least 1 input parameters for INTERpolation line, got ",nSplit-1
-      iErr = .true.
-      return
-    end if
-    if ( elens_type(nelens).ne.3 ) then
-      write(lout,"(a,i0)") "ELENS> WARNING INTERpolation setting for an ELENS type without radial profile - ignoring setting..."
-      return
-    end if
-    call chr_cast(lnSPlit(2), elens_radial_mpoints(nelens),iErr)
-    if ( elens_radial_mpoints(nelens) <=0 .or. elens_radial_mpoints(nelens)>20 ) then
-      write(lerr,"(a,i0)") "ELENS> ERROR Unreasonable number of points for radial interpolation, got ",elens_radial_mpoints(nelens)
-      write(lerr,"(a)")    "ELENS>       Please choose a value beterrn 1 and 20 (included)"
-      iErr = .true.
-      return
-    end if
-    if(st_debug) then
-      call sixin_echoVal("interp. points",elens_radial_mpoints(nelens),"ELENS",iLine)
-    end if
-
   case("EMIN")
     if(nSplit.lt.2 .or. nSplit.gt.4 ) then
       write(lerr,"(a,i0)") "ELENS> ERROR Expected 2, 3 or 4 input parameters for EMIttance (Normalised) line, got ",nSplit-1
-      write(lerr,"(a)")    "ELENS>       example:     EMIN  <emin> [min|max|ave|qve|geo] [ALL|BEF(ORE)|AFT(ER)]"
+      write(lerr,"(a)")    "ELENS>       example:     EMIN  <emin> (min|max|ave|qve|geo) (ALL|BEF(ORE)|AFT(ER))"
       iErr = .true.
       return
     end if
@@ -246,7 +215,7 @@ subroutine elens_parseInputLine(inLine, iLine, iErr)
         if(st_debug) write(lout,"(a)") "ELENS> Applying read normalised emittance with geometric average beta"
       case default
         write(lerr,"(a)") "ELENS> ERROR Unidentified third parameter of EMIN line, got: '"//trim(lnSplit(3))//"'"
-        write(lerr,"(a)") "ELENS>       example:     EMIN  <emin> [min|max|ave|qve|geo] [ALL|BEF(ORE)|AFT(ER)]"
+        write(lerr,"(a)") "ELENS>       example:     EMIN  <emin> (min|max|ave|qve|geo) (ALL|BEF(ORE)|AFT(ER))"
         iErr = .true.
         return
       end select ! case (lnSplit(3))
@@ -284,7 +253,7 @@ subroutine elens_parseInputLine(inLine, iLine, iErr)
              "declared after the current EMIN line"
       case default
         write(lerr,"(a)") "ELENS> ERROR Unidentified fourth parameter of EMIN line, got: '"//trim(lnSplit(4))//"'"
-        write(lerr,"(a)") "ELENS>       example:     EMIN  <emin> [min|max|ave|qve|geo] [ALL|BEF(ORE)|AFT(ER)]"
+        write(lerr,"(a)") "ELENS>       example:     EMIN  <emin> (min|max|ave|qve|geo) (ALL|BEF(ORE)|AFT(ER))"
         iErr = .true.
         return
       end select ! case (lnSplit(4))
@@ -294,10 +263,101 @@ subroutine elens_parseInputLine(inLine, iLine, iErr)
       call sixin_echoVal("normalised emittance [m rad]",tmpEmin,"ELENS",iLine)
     end if
     
+  case("FOX")
+    if(nSplit.lt.2 .or. nSplit.gt.3) then
+      write(lerr,"(a,i0)") "ELENS> ERROR Expected 1 or 2 input parameters for FOX line, got ",nSplit-1
+      write(lerr,"(a)")    "ELENS>       example:     FOX  on|off|true|false (ALL|BEF(ORE)|AFT(ER))"
+      iErr = .true.
+      return
+    end if
+   
+    call chr_cast(lnSPlit(2), tmplFox,iErr)
+    if (nelens.gt.0) elens_lFox(nelens)=tmplFox
+
+    if (nSplit.ge.3) then
+      select case (chr_toLower(trim(lnSplit(3))))
+      case('all')
+        elens_lFox_def=tmplFox
+        do tmpi1=1,nelens-1
+          elens_lFox(tmpi1) = elens_lFox_def
+        end do
+        if(st_debug) write(lout,"(a)") "ELENS> Setting lFox as read to all e-lenses"
+      case('bef','before')
+        do tmpi1=1,nelens-1
+          elens_lFox(tmpi1) = elens_lFox_def
+        end do
+        if(st_debug) write(lout,"(a)") "ELENS> Setting lFox as read to all e-lenses "// &
+             "declared before the current FOX line"
+      case('aft','after')
+        elens_lFox_def=tmplFox
+        if(st_debug) write(lout,"(a)") "ELENS> Setting lFox as read to all e-lenses "// &
+             "declared after the current FOX line"
+      case default
+        write(lerr,"(a)") "ELENS> ERROR Unidentified third parameter of FOX line, got: '"//trim(lnSplit(3))//"'"
+        write(lerr,"(a)") "ELENS>       example:     FOX  on|off|true|false (ALL|BEF(ORE)|AFT(ER))"
+        iErr = .true.
+        return
+      end select ! case (lnSplit(3))
+    end if
+    
+    if(st_debug) then
+      call sixin_echoVal("fox",tmplFox,"ELENS",iLine)
+    end if
+     
+  case("INTER")
+    if(nSplit.lt.2 .or. nSplit.gt.3) then
+      write(lerr,"(a,i0)") "ELENS> ERROR Expected 1 or 2 input parameters for INTERpolation line, got ",nSplit-1
+      write(lerr,"(a)")    "ELENS>       example:     INTER  <elens_radial_mpoints> (ALL|BEF(ORE)|AFT(ER))"
+      iErr = .true.
+      return
+    end if
+    if ( elens_type(nelens).ne.3 ) then
+      write(lout,"(a,i0)") "ELENS> WARNING INTERpolation setting for an ELENS type without radial profile - ignoring setting..."
+      return
+    end if
+    call chr_cast(lnSPlit(2), tmpMpoints,iErr)
+    if ( tmpMpoints <=0 .or. tmpMpoints>20 ) then
+      write(lerr,"(a,i0)") "ELENS> ERROR Unreasonable number of points for radial interpolation, got ",tmpMpoints
+      write(lerr,"(a)")    "ELENS>       Please choose a value beterrn 1 and 20 (included)"
+      iErr = .true.
+      return
+    end if
+    if (nelens.gt.0) elens_radial_mpoints(nelens)=tmpMpoints
+    
+    if (nSplit.ge.3) then
+      select case (chr_toLower(trim(lnSplit(3))))
+      case('all')
+        elens_radial_mpoints_def=tmpMpoints
+        do tmpi1=1,nelens-1
+          elens_radial_mpoints(tmpi1) = elens_radial_mpoints_def
+        end do
+        if(st_debug) write(lout,"(a)") "ELENS> Setting elens_radial_mpoints as read to all e-lenses"
+      case('bef','before')
+        do tmpi1=1,nelens-1
+          elens_radial_mpoints(tmpi1) = elens_radial_mpoints_def
+        end do
+        if(st_debug) write(lout,"(a)") "ELENS> Setting elens_radial_mpoints as read to all e-lenses "// &
+             "declared before the current FOX line"
+      case('aft','after')
+        elens_radial_mpoints_def=tmpMpoints
+        if(st_debug) write(lout,"(a)") "ELENS> Setting elens_radial_mpoints as read to all e-lenses "// &
+             "declared after the current FOX line"
+      case default
+        write(lerr,"(a)") "ELENS> ERROR Unidentified third parameter of INTER line, got: '"//trim(lnSplit(3))//"'"
+        write(lerr,"(a)") "ELENS>       example:     INTER  <elens_radial_mpoints> (ALL|BEF(ORE)|AFT(ER))"
+        iErr = .true.
+        return
+      end select ! case (lnSplit(3))
+    end if
+    
+    if(st_debug) then
+      call sixin_echoVal("interp. points",tmpMpoints,"ELENS",iLine)
+    end if
+
   case("SIGDPP")
     if(nSplit.lt.2 .or. nSplit.gt.4 ) then
       write(lerr,"(a,i0)") "ELENS> ERROR Expected 2, 3 or 4 input parameters for SIGma Delta_P over P line, got ",nSplit-1
-      write(lerr,"(a)")    "ELENS>       example:     SIDPP  <sigdpp> [min|max|ave|qve|geo] [ALL|BEF(ORE)|AFT(ER)]"
+      write(lerr,"(a)")    "ELENS>       example:     SIDPP  <sigdpp> (min|max|ave|qve|geo) (ALL|BEF(ORE)|AFT(ER))"
       iErr = .true.
       return
     end if
@@ -333,7 +393,7 @@ subroutine elens_parseInputLine(inLine, iLine, iErr)
         if(st_debug) write(lout,"(a)") "ELENS> Applying read rms of delta distribution with geometric average beta"
       case default
         write(lerr,"(a)") "ELENS> ERROR Unidentified third parameter of SIGDPP line, got: '"//trim(lnSplit(3))//"'"
-        write(lerr,"(a)") "ELENS>       example:     SIGDPP  <sigdpp> [min|max|ave|qve|geo] [ALL|BEF(ORE)|AFT(ER)]"
+        write(lerr,"(a)") "ELENS>       example:     SIGDPP  <sigdpp> (min|max|ave|qve|geo) (ALL|BEF(ORE)|AFT(ER))"
         iErr = .true.
         return
       end select ! case (lnSplit(3))
@@ -371,7 +431,7 @@ subroutine elens_parseInputLine(inLine, iLine, iErr)
              "declared after the current SIGDPP line"
       case default
         write(lerr,"(a)") "ELENS> ERROR Unidentified fourth parameter of SIGDPP line, got: '"//trim(lnSplit(4))//"'"
-        write(lerr,"(a)") "ELENS>       example:     SIGDPP  <sigdpp> [min|max|ave|qve|geo] [ALL|BEF(ORE)|AFT(ER)]"
+        write(lerr,"(a)") "ELENS>       example:     SIGDPP  <sigdpp> (min|max|ave|qve|geo) (ALL|BEF(ORE)|AFT(ER))"
         iErr = .true.
         return
       end select ! case (lnSplit(4))
