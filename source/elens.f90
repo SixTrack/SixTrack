@@ -210,7 +210,7 @@ subroutine elens_parseInputLine(inLine, iLine, iErr)
   case("EMIN")
     if(nSplit.lt.2 .or. nSplit.gt.4 ) then
       write(lerr,"(a,i0)") "ELENS> ERROR Expected 2, 3 or 4 input parameters for EMIttance (Normalised) line, got ",nSplit-1
-      write(lerr,"(a)")    "ELENS>       example:     EMIN  <emin> [min|max|ave|qve|geo] [ALL|BEFORE|AFTER]"
+      write(lerr,"(a)")    "ELENS>       example:     EMIN  <emin> [min|max|ave|qve|geo] [ALL|BEF(ORE)|AFT(ER)]"
       iErr = .true.
       return
     end if
@@ -246,7 +246,7 @@ subroutine elens_parseInputLine(inLine, iLine, iErr)
         if(st_debug) write(lout,"(a)") "ELENS> Applying read normalised emittance with geometric average beta"
       case default
         write(lerr,"(a)") "ELENS> ERROR Unidentified third parameter of EMIN line, got: '"//trim(lnSplit(3))//"'"
-        write(lerr,"(a)") "ELENS>       example:     EMIN  <emin> [min|max|ave|qve|geo] [ALL|BEFORE|AFTER]"
+        write(lerr,"(a)") "ELENS>       example:     EMIN  <emin> [min|max|ave|qve|geo] [ALL|BEF(ORE)|AFT(ER)]"
         iErr = .true.
         return
       end select ! case (lnSplit(3))
@@ -268,7 +268,7 @@ subroutine elens_parseInputLine(inLine, iLine, iErr)
           elens_sigdpp(tmpi1) = elens_sigdpp_def
         end do
         if(st_debug) write(lout,"(a)") "ELENS> Applying read normalised emittance to all e-lenses"
-      case('before')
+      case('bef','before')
         do tmpi1=1,nelens-1
           elens_emin(tmpi1) = tmpEmin
           elens_iSet(tmpi1) = tmpSet
@@ -276,7 +276,7 @@ subroutine elens_parseInputLine(inLine, iLine, iErr)
         end do
         if(st_debug) write(lout,"(a)") "ELENS> Applying read normalised emittance to all e-lenses "// &
              "declared before the current EMIN line"
-      case('after')
+      case('aft','after')
         elens_emin_def=tmpEmin
         elens_iSet_def=tmpSet
         elens_sigdpp_def=-one
@@ -284,7 +284,7 @@ subroutine elens_parseInputLine(inLine, iLine, iErr)
              "declared after the current EMIN line"
       case default
         write(lerr,"(a)") "ELENS> ERROR Unidentified fourth parameter of EMIN line, got: '"//trim(lnSplit(4))//"'"
-        write(lerr,"(a)") "ELENS>       example:     EMIN  <emin> [min|max|ave|qve|geo] [ALL|BEFORE|AFTER]"
+        write(lerr,"(a)") "ELENS>       example:     EMIN  <emin> [min|max|ave|qve|geo] [ALL|BEF(ORE)|AFT(ER)]"
         iErr = .true.
         return
       end select ! case (lnSplit(4))
@@ -297,7 +297,7 @@ subroutine elens_parseInputLine(inLine, iLine, iErr)
   case("SIGDPP")
     if(nSplit.lt.2 .or. nSplit.gt.4 ) then
       write(lerr,"(a,i0)") "ELENS> ERROR Expected 2, 3 or 4 input parameters for SIGma Delta_P over P line, got ",nSplit-1
-      write(lerr,"(a)")    "ELENS>       example:     SIDPP  <sigdpp> [min|max|ave|qve|geo] [ALL|BEFORE|AFTER]"
+      write(lerr,"(a)")    "ELENS>       example:     SIDPP  <sigdpp> [min|max|ave|qve|geo] [ALL|BEF(ORE)|AFT(ER)]"
       iErr = .true.
       return
     end if
@@ -333,7 +333,7 @@ subroutine elens_parseInputLine(inLine, iLine, iErr)
         if(st_debug) write(lout,"(a)") "ELENS> Applying read rms of delta distribution with geometric average beta"
       case default
         write(lerr,"(a)") "ELENS> ERROR Unidentified third parameter of SIGDPP line, got: '"//trim(lnSplit(3))//"'"
-        write(lerr,"(a)") "ELENS>       example:     SIGDPP  <sigdpp> [min|max|ave|qve|geo] [ALL|BEFORE|AFTER]"
+        write(lerr,"(a)") "ELENS>       example:     SIGDPP  <sigdpp> [min|max|ave|qve|geo] [ALL|BEF(ORE)|AFT(ER)]"
         iErr = .true.
         return
       end select ! case (lnSplit(3))
@@ -371,7 +371,7 @@ subroutine elens_parseInputLine(inLine, iLine, iErr)
              "declared after the current SIGDPP line"
       case default
         write(lerr,"(a)") "ELENS> ERROR Unidentified fourth parameter of SIGDPP line, got: '"//trim(lnSplit(4))//"'"
-        write(lerr,"(a)") "ELENS>       example:     SIGDPP  <sigdpp> [min|max|ave|qve|geo] [ALL|BEFORE|AFTER]"
+        write(lerr,"(a)") "ELENS>       example:     SIGDPP  <sigdpp> [min|max|ave|qve|geo] [ALL|BEF(ORE)|AFT(ER)]"
         iErr = .true.
         return
       end select ! case (lnSplit(4))
