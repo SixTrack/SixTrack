@@ -794,9 +794,11 @@ subroutine elens_postInput
 end subroutine elens_postInput
 
 ! ================================================================================================ !
-!  Compute geometrical normalisation factor
+!  operations after linopt has been called
+!  - compute r1, r2 and sig_el out of optics, if needed;
+!  - compute geometrical normalisation factors;
 ! ================================================================================================ !
-subroutine elens_normalise_geo
+subroutine elens_post_linopt
 
   use mathlib_bouncer
   use mod_utils, only : polinterp
@@ -907,7 +909,7 @@ subroutine elens_normalise_geo
 
   end do
 
-end subroutine elens_normalise_geo
+end subroutine elens_post_linopt
 
 ! ================================================================================================ !
 !  Compute geometrical normalisation factor
