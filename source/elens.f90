@@ -798,11 +798,11 @@ end subroutine elens_postInput
 !  - compute r1, r2 and sig_el out of optics, if needed;
 !  - compute geometrical normalisation factors;
 ! ================================================================================================ !
-subroutine elens_post_linopt
+subroutine elens_postLinopt
 
   use mathlib_bouncer
   use mod_utils, only : polinterp
-  use mod_common, only : bez, kz, e0f, nucm0
+  use mod_common, only : bez, kz, e0f, nucm0, fort3
   use mod_settings, only : st_debug
   use numerical_constants, only : c1e3
 
@@ -880,6 +880,26 @@ subroutine elens_post_linopt
       write(lout,"(a,1pe22.15)") "ELENS> - beta/disp function [m]=",elens_optVal(j)
     end if
 
+    ! check R1 and R2 against map
+    if (elens_type(j).eq.3 ) then
+      if ( elens_r1(j).lt. elens_radial_profile_R(0,elens_iRadial(j)) ) then
+        write(lerr,"(a,i0,a)") "ELENS> ERROR on elens #",j, " named "//trim(bez(jj))//": "
+        write(lerr,"(a)")      "ELENS>       R1 declared in "//trim(fort3)//" falls outside range of map" // &
+             " contained in "//trim(elens_radial_filename(elens_iRadial(j)))
+        write(lerr,"(2(a,1pe22.15),a)") "ELENS>       Rmin=",elens_radial_profile_R(0,elens_iRadial(j)), &
+             " mm, Rmax=",elens_radial_profile_R(elens_radial_profile_nPoints(elens_iRadial(j)),elens_iRadial(j))," mm"
+        call prror
+      end if
+      if ( elens_r2(j).gt. elens_radial_profile_R(elens_radial_profile_nPoints(elens_iRadial(j)),elens_iRadial(j)) ) then
+        write(lerr,"(a,i0,a)") "ELENS> ERROR on elens #",j, " named "//trim(bez(jj))//": "
+        write(lerr,"(a)")      "ELENS>       R2 declared in "//trim(fort3)//" falls outside range of map" // &
+             " contained in "//trim(elens_radial_filename(elens_iRadial(j)))
+        write(lerr,"(2(a,1pe22.15),a)") "ELENS>       Rmin=",elens_radial_profile_R(0,elens_iRadial(j)), &
+             " mm, Rmax=",elens_radial_profile_R(elens_radial_profile_nPoints(elens_iRadial(j)),elens_iRadial(j))," mm"
+        call prror
+      end if
+    end if
+
     ! compute geometrical normalisation factor
     select case (elens_type(j))
     case(1) ! Uniform distribution
@@ -909,7 +929,7 @@ subroutine elens_post_linopt
 
   end do
 
-end subroutine elens_post_linopt
+end subroutine elens_postLinopt
 
 ! ================================================================================================ !
 !  Compute geometrical normalisation factor
