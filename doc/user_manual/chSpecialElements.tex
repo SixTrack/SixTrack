@@ -1450,7 +1450,7 @@ Similarly to done by the \texttt{SIGDPP} statement (see Sec.~\ref{sec:elen:SIGDP
 \begin{longtable}{| p{2.4cm} | p{1.0cm} | p{12.0cm}|}
     %Note: \\* (with the star) used to inhibit page breaks in the middle of groups of the same type
     \caption{Input parameters for the \texttt{EMIN} keyword in the \texttt{ELEN} block.}
-    \label{tab:elen} \\*
+    \label{tab:elen:EMIN} \\*
     \hline
     \rowcolor{blue!30}
     Argument & Unit & Description \\*
@@ -1503,20 +1503,26 @@ Similarly to done by the \texttt{SIGDPP} statement (see Sec.~\ref{sec:elen:SIGDP
 \noindent It should be noted that, in case the same e-lens (SINGLE ELEMENT) appears many times in the lattice structure, the values of the $\beta$ functions at all the instances of the same e-lens are used, following the algorithm selected by the user.
 
 \subsection{FOX statement}\label{sec:elen:FOX}
-The user can modify the default behaviour of SixTrack in considering the kick from electron lenses in the FOX calculation.
+The user can modify the default behaviour of SixTrack in considering the kick from electron lenses in the FOX calculation. By default, the statement applies to the e-lens just declared, but its validity can also be extended to other e-lenses in the \texttt{ELEN} block (e.g.~to avoid repeating the same line for all e-lenses).
 
 \bigskip
 \begin{tabular}{@{}lp{0.8\linewidth}}
-    \textbf{Format}     & \texttt{FOX true|false or on|off} \\
+    \textbf{Format}     & \texttt{FOX true|false|on|off (ALL|BEF(ORE)|AFT(ER))} \\
 \end{tabular}
+
+\bigskip
+\noindent For the last parameter, please see Tab.~\ref{tab:elen:EMIN} in Sec.~\ref{sec:elen:EMIN}, since the same interface is used.
 
 \subsection{INTER statement}\label{sec:elen:INTER}
-The user can choose to interpolate the radial profile from a file (see Sec.~\ref{sec:elen_rad_prof}) not linearly but with a polynomial of higher order, up to 19, chosing the number of points to be used for the interpolation. The default is linear interpolation, i.e.~using 2 points.
+The user can choose to interpolate the radial profile from a file (see Sec.~\ref{sec:elen_rad_prof}) not linearly but with a polynomial of higher order, up to 19, chosing the number of points to be used for the interpolation. The default is linear interpolation, i.e.~using 2 points. By default, the statement applies to the e-lens just declared, but its validity can also be extended to other e-lenses in the \texttt{ELEN} block (e.g.~to avoid repeating the same line for all e-lenses).
 
 \bigskip
 \begin{tabular}{@{}lp{0.8\linewidth}}
-    \textbf{Format}     & \texttt{INTER elens\_radial\_mpoints} \\
+    \textbf{Format}     & \texttt{INTER elens\_radial\_mpoints (ALL|BEF(ORE)|AFT(ER))} \\
 \end{tabular}
+
+\bigskip
+\noindent For the last parameter, please see Tab.~\ref{tab:elen:EMIN} in Sec.~\ref{sec:elen:EMIN}, since the same interface is used.
 
 \subsection{SIGDPP statement}\label{sec:elen:SIGDPP}
 Similarly to what done by the \texttt{EMIN} statement (see Sec.~\ref{sec:elen:EMIN}), The \texttt{SIGDPP} line allows the user to declare the rms of the delta distribution and which dispersion function should be used in conjunction with the declaration of \texttt{r1}, \texttt{r2} and \texttt{sig\_el} (the last one only for the \texttt{GAUSSIAN} e-lens) in terms of normalised amplitude. By default, the statement applies to the e-lens just declared, but its validity can also be extended to other e-lenses in the \texttt{ELEN} block (e.g.~to avoid repeating the same line for all e-lenses).
@@ -1531,7 +1537,7 @@ Similarly to what done by the \texttt{EMIN} statement (see Sec.~\ref{sec:elen:EM
 \begin{longtable}{| p{2.4cm} | p{1.0cm} | p{12.0cm}|}
     %Note: \\* (with the star) used to inhibit page breaks in the middle of groups of the same type
     \caption{Input parameters for the \texttt{SIGDPP} keyword in the \texttt{ELEN} block.}
-    \label{tab:elen} \\*
+    \label{tab:elen:SIGDPP} \\*
     \hline
     \rowcolor{blue!30}
     Argument & Unit & Description \\*
@@ -1567,14 +1573,7 @@ Similarly to what done by the \texttt{EMIN} statement (see Sec.~\ref{sec:elen:EM
     & & \texttt{min} is the default. \\*
     \hline
     
-    & -- & The stated normalised emittance should be applied also to other e-lenses: \\*
-    & & \begin{tabular}{@{}lp{0.8\linewidth}}
-      \texttt{ALL}     & all e-lenses being declared; \\
-      \texttt{BEF}     & all e-lenses declared before the current one; \\
-      \texttt{AFT}     & all e-lenses declared after the current one; \\
-    \end{tabular}
-    \\*
-    & & The default behaviour is that the current \texttt{SIGDPP} line applies only to the e-lens being declared, without touching the others. \\*
+    & -- & For the last parameter, please see Tab.~\ref{tab:elen:EMIN} in Sec.~\ref{sec:elen:EMIN}, since the same interface is used. \\*
     \hline
 
 \end{longtable}
