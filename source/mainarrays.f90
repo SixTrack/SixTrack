@@ -292,7 +292,7 @@ end subroutine shuffleLostParticles
 ! ~~~~~~~~~~~~~~~~~~~~~~~~~
 !  V.K. Berglyd Olsen, BE-ABP-HSS
 !  Created: 2019-08-12
-!  Updated: 2019-08-12
+!  Updated: 2020-01-30, A. Mereghetti (BE-ABP-HSS)
 !
 !      This map allows for reverse lookup from a pairID to the index of its two particles in the
 !  main particle arrays. This is used for the distance calculation and for post-processing.
@@ -301,6 +301,10 @@ end subroutine shuffleLostParticles
 !      If, for some reason, each pair ID is not represented exactly twice in the array, the final
 !  map will contain zeros. Any routine using this map for lookup must therefore check for 0 values
 !  and trigger necessary error handling.
+!      In case of new particles added to the tracking arrays (e.g. secondary particles out of
+!  inelastic interactions), these must not enter the logics of couples, since the original particle
+!  died. Hence, keep the pairMap table of the length of the tracked particles (to keep particle
+!  reshuffling simple), but do not update the map for non-primary particles.
 ! ================================================================================================ !
 subroutine updatePairMap
 
@@ -311,6 +315,8 @@ subroutine updatePairMap
 
   pairMap(:,:) = 0
   do j=1,npart
+    ! do not update the map in case the particle is not a primary one
+    if (pairID(1,j)==0.and.pairID(2,j)==0) cycle
     pairMap(pairID(2,j),pairID(1,j)) = j
   end do
 
