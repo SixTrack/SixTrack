@@ -53,7 +53,7 @@ module mod_ffield
   ! FFIELD table
   ! ------------------------------------------------------------------------------------------------ !
 ! logical,          allocatable, private, save :: ffInQuad(:)   ! Check if particle enter the Quad
-  integer,          allocatable, public,  save :: ffindex(:)    ! Table with the index of the Quad in our study (0 = not studied)
+  integer,          allocatable, public,  save :: ffindex(:)    ! Table with the index of the Quad in our study (0 = not studied, >0 = Do Fringe Field, <0 = Skip element)
   integer,          allocatable, private, save :: ffQ2File(:,:) ! Link Quad/Files
 ! real(kind=fPrec), allocatable, public,  save :: ffParam(:,:)  ! Lin, Corin, Kex, Lex, Corex
   real(kind=fPrec), allocatable, private, save :: ffParam(:,:)  ! Lgth. in Quadrupoles, total lgth. and Physical aperture
@@ -198,9 +198,9 @@ contains
       deallocate(ffTable)
     end if
 
-    if (allocated(ffQNames))  deallocate(ffQNames) !,  'ffQNames')
+    if (allocated(ffQNames))  deallocate(ffQNames)  !,  'ffQNames')
     if (allocated(ffMSNames)) deallocate(ffMSNames) !, 'ffMSNames')
-    if (allocated(ffFNames))  deallocate(ffFNames) !,  'ffFNames')
+    if (allocated(ffFNames))  deallocate(ffFNames)  !,  'ffFNames')
   end subroutine ffield_mod_end
 
 
@@ -254,7 +254,7 @@ contains
     ! ---------------------------------------------------------------------------------------------- !
     select case(lnSplit(1)(1:4))
 
-    case("FFQN")   ! FFQN,    Quad name,     no file start,     no file end
+    case("FFQN")   ! FFQName,    Quad name,     no file start,     no file end
       !     * Name a Quadrupole for the study
       ! -------------------------------------------------------------------------------------------- !
       if(nSplit < 4) then
@@ -287,7 +287,7 @@ contains
       end if
 
 
-    case("FFMS")
+    case("FFMS")   ! FFMSKIP,    Multipole name
       !     * Name a Multipole that will be skip in the study
       ! -------------------------------------------------------------------------------------------- !
       if(nSplit < 2) then
