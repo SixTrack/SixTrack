@@ -181,7 +181,7 @@ contains
     real(kind=fPrec),       intent(in)    :: Length ! Total length of the file [m]
     real(kind=fPrec),       intent(in)    :: r0     ! Physical aperture [m]
 
-    this%r0_2=6.4e-3_fPrec    ! Default value
+    this%r0_2=6.4e-3_fPrec    ! Default value (0.08)**2 m2
 
     this%ffFNames   = TRIM(ADJUSTL(nFile))
     this%Lin        = LQin
