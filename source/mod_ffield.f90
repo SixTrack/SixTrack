@@ -42,20 +42,14 @@ module mod_ffield
   integer, private, save :: ffMSn_max    = 20  ! Max Multipole to skip with ffMSn < ffMSn_max
   integer, private, save :: ffNLFile     = 1   ! Nb. of files with ffNLFile < ffNLFile_max
   integer, private, save :: ffNLFile_max = 20  ! Max files with ffNLFile < ffNLFile_max
-! real(kind=fPrec), public, save :: ffdelta         ! Max ffdelta posible
-
-!  real(kind=fPrec) :: r0_2
-!  parameter (r0_2=6.4e-3_fPrec)                   ! Maximum radius in quad
   ! ------------------------------------------------------------------------------------------------ !
 
 
   ! ------------------------------------------------------------------------------------------------ !
   ! FFIELD table
   ! ------------------------------------------------------------------------------------------------ !
-! logical,          allocatable, private, save :: ffInQuad(:)   ! Check if particle enter the Quad
   integer,          allocatable, public,  save :: ffindex(:)    ! Table with the index of the Quad in our study (0 = not studied, >0 = Do Fringe Field, <0 = Skip element)
   integer,          allocatable, private, save :: ffQ2File(:,:) ! Link Quad/Files
-! real(kind=fPrec), allocatable, public,  save :: ffParam(:,:)  ! Lin, Corin, Kex, Lex, Corex
   real(kind=fPrec), allocatable, private, save :: ffParam(:,:)  ! Lgth. in Quadrupoles, total lgth. and Physical aperture
   character(len=:), allocatable, private, save :: ffQNames(:)   ! Name of Quadrupoles
   character(len=:), allocatable, private, save :: ffMSNames(:)  ! Name of Multipoles skip
@@ -112,7 +106,6 @@ contains
 
     ! resizing of the memory
     ! ---------------------------------------------------------------------------------------------- !
-!   call alloc(ffInQuad, npart_new, .false., 'ffInQuad')
     call alloc(ffindex,  nele_new,  0,       'ffindex')
 
   end subroutine ffield_mod_expand_arrays
@@ -185,7 +178,6 @@ contains
 
     ! free the memory
     ! ---------------------------------------------------------------------------------------------- !
-!    if (allocated(ffInQuad))  call dealloc(ffindex,  'ffInQuad')
     if (allocated(ffindex))   call dealloc(ffindex,  'ffindex')
     if (allocated(ffQ2File))  call dealloc(ffQ2File, 'ffQ2File')
     if (allocated(ffParam))   call dealloc(ffParam,  'ffParam')
@@ -335,9 +327,9 @@ contains
       end do
 
       ffFNames(ffNLFile) = trim(lnSplit(2))
-      call chr_cast(lnSplit(3),ffParam(ffNLFile,1),  iErr) ! Lin
-      call chr_cast(lnSplit(4),ffParam(ffNLFile,2),  iErr) ! Lgth
-      if(nSplit>4) call chr_cast(lnSplit(5),ffParam(ffNLFile,3),  iErr) ! Physical aperture (r0)
+      call chr_cast(lnSplit(3),ffParam(ffNLFile,1),  iErr) ! Lin [m]
+      call chr_cast(lnSplit(4),ffParam(ffNLFile,2),  iErr) ! Lgth [m]
+      if(nSplit>4) call chr_cast(lnSplit(5),ffParam(ffNLFile,3),  iErr) ! Physical aperture (r0) [m]
       if(iErr) return
 
       ffNLFile = ffNLFile+1
@@ -394,9 +386,8 @@ contains
       ffNLn = ffNLn-1
       ffMSn = ffMSn-1
       ffNLFile = ffNLFile-1
-      gamma0r=pmap/e0 !      gamma0=e0/pmap
-      beta0=sqrt(one-gamma0r*gamma0r) ! = sqrt(one-one/(gamma0*gamma0))
-!      p0=beta0*e0*c1e6/clight
+      gamma0r=pmap/e0 
+      beta0=sqrt(one-gamma0r*gamma0r)
       norm=clight/(beta0*e0*c1e6)   ! [c/eV] = 1/p0
 
       ! Generate the array of type(ffTable_n_Track)
@@ -598,7 +589,7 @@ contains
   ! ================================================================================================ !
   !  Lie 2 Tracking if particles enter the Quadupole
   !  B. Dalena, T. Pugnat and A. Simona from CEA
-  !  Last modified: 2019-02-01
+  !  Last modified: 2020-01-31
   ! ================================================================================================ !
   subroutine ffield_enterQuad(ffi)
     ! Mod from SixTrack
@@ -620,13 +611,13 @@ contains
     logical          :: llost
     integer          :: iFile
     integer          :: ffj,  k                    ! iterator
-    integer          :: itDlt                      !
+    integer          :: itDlt                      ! 
     real(kind=fPrec) :: x, px, y, py               ! Transverse canonical parameter in new referencial
     real(kind=fPrec) :: x_tp, px_tp, y_tp, py_tp   ! Temp transverse canonical parameter
 
-    real(kind=fPrec) :: ffdelta!, gam0, betabeta0     !
-    real(kind=fPrec) :: zb!, sigma_s                !
-    real(kind=fPrec) :: LoutQ!, Ldpsv1, Ldpsv2      !
+    real(kind=fPrec) :: ffdelta!, gam0, betabeta0     ! 
+    real(kind=fPrec) :: zb!, sigma_s                ! 
+    real(kind=fPrec) :: LoutQ!, Ldpsv1, Ldpsv2      ! 
 
 
     llost=.false.
@@ -758,7 +749,7 @@ contains
   ! ================================================================================================ !
   !  Lie 2 Tracking if particles left the Quadupole
   !  B. Dalena, T. Pugnat and A. Simona from CEA
-  !  Last modified: 2019-02-01
+  !  Last modified: 2020-01-31
   ! ================================================================================================ !
   subroutine ffield_exitQuad(ffi)
     ! Mod from SixTrack
@@ -779,13 +770,13 @@ contains
     ! ---------------------------------------------------------------------------------------------- !
     integer          :: iFile
     integer          :: ffj,  k                    ! iterator
-    integer          :: itDlt                      !
+    integer          :: itDlt                      ! 
     real(kind=fPrec) :: x, px, y, py               ! Transverse canonical parameter in new referencial
     real(kind=fPrec) :: x_tp, px_tp, y_tp, py_tp   ! Temp transverse canonical parameter
 
-    real(kind=fPrec) :: ffdelta!, gam0, betabeta0     !
-    real(kind=fPrec) :: zb!, sigma_s                !
-    real(kind=fPrec) :: LoutQ!, Ldpsv1, Ldpsv2      !
+    real(kind=fPrec) :: ffdelta!, gam0, betabeta0     ! 
+    real(kind=fPrec) :: zb!, sigma_s                ! 
+    real(kind=fPrec) :: LoutQ!, Ldpsv1, Ldpsv2      ! 
 
 
 !  <<<<<<< OUT

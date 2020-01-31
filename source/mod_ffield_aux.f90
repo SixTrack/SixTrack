@@ -54,8 +54,6 @@ module ffTable_n_Tracks
     ! Matrix for the antiquadripole
     integer :: nbDlt
     real(kind=fPrec), allocatable, public :: Tdpsv(:)      ! (1:nbDlt) dpsv value for AQ-case
-!    real(kind=fPrec), allocatable, public :: AQx(:,:,:)    ! (1:2,1:2,1:npart) AntiQuad matrix
-!    real(kind=fPrec), allocatable, public :: AQy(:,:,:)    ! (1:2,1:2,1:npart) AntiQuad matrix
     real(kind=fPrec), allocatable, public :: TAQx(:,:,:)   ! (1:2,1:2,1:nbDlt) Table of AntiQuad matrix
     real(kind=fPrec), allocatable, public :: TAQy(:,:,:)   ! (1:2,1:2,1:nbDlt) Table of AntiQuad matrix
   contains
@@ -83,33 +81,12 @@ module ffTable_n_Tracks
     procedure, private, nopass      :: ReadVectPotCoeff
 
 
-!    procedure, private, pass(left)  :: assignStrStr
-!    procedure, private, pass(left)  :: assignStrChr
-!    procedure, private, pass(right) :: assignChrStr
 
   end type ffTable_n_Track
 
   interface ffTable_n_Track
     module procedure constructT
   end interface ffTable_n_Track
-
-!  interface assignment(=)
-!    module procedure assignStrStr
-!    module procedure assignStrChr
-!    module procedure assignChrStr
-!  end interface
-
-!  interface operator(==)
-!    module procedure compStrStr
-!    module procedure compStrChr
-!    module procedure compChrStr
-!  end interface
-
-!  interface operator(/=)
-!    module procedure compNStrStr
-!    module procedure compNStrChr
-!    module procedure compNChrStr
-!  end interface
 
   private :: Tset
   private :: Tload
@@ -146,8 +123,6 @@ contains
     constructT%n=0
     constructT%m=0
     constructT%s=0
-    !constructT%max_i=0
-    !constructT%max_j=0
 
     constructT%dz  =zero
     constructT%norm=zero
@@ -322,7 +297,6 @@ contains
     ! ---------------------------------------------------------------------------------------------- !
     call f_open(unit=lun,file=trim(this%ffFNames),formatted=.true.,mode='r',err=iErr,status="old")
     if (iErr) then
-!      write(lerr,"(a)")"FFIELD> ERROR in ReadExpMax(): Error opening file '"//trim(this%ffFNames)//"'"
       return
     end if
 
@@ -447,7 +421,6 @@ contains
     ! ---------------------------------------------------------------------------------------------- !
     call f_open(unit=lun,file=trim(this%ffFNames),formatted=.true.,mode='r',err=iErr,status="old")
     if (iErr) then
-!      write(lerr,"(a)")"FFIELD> ERROR in ReadVectPotCoeff(): Error opening file '"//trim(this%ffFNames)//"'"
       return
     end if
 
@@ -711,20 +684,6 @@ contains
             endif
           enddo
 
-
-          ! Approx
-!          atp= (one+p0sp*C0x*this%dz*this%dz*half)*a1 + ((one+p0sp*C0x*this%dz*this%dz*sixth)*p0sp*this%dz)*c1
-!          btp= (one+p0sp*C0x*this%dz*this%dz*half)*b1 + ((one+p0sp*C0x*this%dz*this%dz*sixth)*p0sp*this%dz)*d1
-!          ctp= (C0x*this%dz*(one+p0sp*C0x*this%dz*this%dz*sixth))*a1 + (one+p0sp*C0x*this%dz*this%dz*half)*c1
-!          dtp= (C0x*this%dz*(one+p0sp*C0x*this%dz*this%dz*sixth))*b1 + (one+p0sp*C0x*this%dz*this%dz*half)*d1
-
-          ! Thin DKD
-!          atp= (one+p0sp*C0x*this%dz*this%dz*half)*a1 + ((one+p0sp*C0x*this%dz*this%dz*0.25_fPrec)*p0sp*this%dz)*c1
-!          btp= (one+p0sp*C0x*this%dz*this%dz*half)*b1 + ((one+p0sp*C0x*this%dz*this%dz*0.25_fPrec)*p0sp*this%dz)*d1
-!          ctp= (C0x*this%dz)*a1 + (one+p0sp*C0x*this%dz*this%dz*half)*c1
-!          dtp= (C0x*this%dz)*b1 + (one+p0sp*C0x*this%dz*this%dz*half)*d1
-!          a1=atp; b1=btp; c1=ctp; d1=dtp;
-
           ! Thin KDK
 !          atp= (one+((p0sp*C0x)*(this%dz*this%dz))*half)*a1 + (p0sp*this%dz)*c1
 !          btp= (one+((p0sp*C0x)*(this%dz*this%dz))*half)*b1 + (p0sp*this%dz)*d1
@@ -739,19 +698,6 @@ contains
           atp= tp1*a1 + tp2*c1; btp= tp1*b1 + tp2*d1; ctp= tp3*a1 + tp1*c1; dtp= tp3*b1 + tp1*d1
           a1=atp; b1=btp; c1=ctp; d1=dtp;
 
-
-          ! Approx
-!          atp= (one+p0sp*C0y*this%dz*this%dz*half)*a2 + ((one+p0sp*C0y*this%dz*this%dz*sixth)*p0sp*this%dz)*c2
-!          btp= (one+p0sp*C0y*this%dz*this%dz*half)*b2 + ((one+p0sp*C0y*this%dz*this%dz*sixth)*p0sp*this%dz)*d2
-!          ctp= (C0y*this%dz*(one+p0sp*C0y*this%dz*this%dz*sixth))*a2 + (one+p0sp*C0y*this%dz*this%dz*half)*c2
-!           dtp= (C0y*this%dz*(one+p0sp*C0y*this%dz*this%dz*sixth))*b2 + (one+p0sp*C0y*this%dz*this%dz*half)*d2
-
-          ! Thin DKD
-!          atp= (one+p0sp*C0y*this%dz*this%dz*half)*a2 + ((one+p0sp*C0y*this%dz*this%dz*0.25_fPrec)*p0sp*this%dz)*c2
-!          btp= (one+p0sp*C0y*this%dz*this%dz*half)*b2 + ((one+p0sp*C0y*this%dz*this%dz*0.25_fPrec)*p0sp*this%dz)*d2
-!          ctp= (C0y*this%dz)*a2 + (one+p0sp*C0y*this%dz*this%dz*half)*c2
-!          dtp= (C0y*this%dz)*b2 + (one+p0sp*C0y*this%dz*this%dz*half)*d2
-!          a2=atp; b2=btp; c2=ctp; d2=dtp;
 
           ! Thin KDK
 !          atp= (one+p0sp*C0y*this%dz*this%dz*half)*a2 + (p0sp*this%dz)*c2
@@ -821,21 +767,6 @@ contains
     ! Initialize the step size in z
     ! ---------------------------------------------------------------------------------------------- !
     dzover2=half*this%dz !loc
-
-    ! Check size vectors xpow and ypow   (Prevent SIGFPE)
-    ! ---------------------------------------------------------------------------------------------- !
-    !log_tmp=log10_mb(abs(x))
-    !if (log_tmp*(this%n)>230) then
-    !  this%max_i=230/log_tmp-1
-    !else
-    !  this%max_i=this%n
-    !endif
-    !log_tmp=log10_mb(abs(y))
-    !if (log_tmp*(this%m)>230) then
-    !  this%max_j=230/log_tmp-1
-    !else
-    !  this%max_j=this%m
-    !endif
 
     ! Initialize the step size in z
     ! ---------------------------------------------------------------------------------------------- !
@@ -932,21 +863,18 @@ contains
     ! Subroutine parameter
     ! ---------------------------------------------------------------------------------------------- !
     integer :: l                                        ! Indice for x and y in loop
-    !integer :: max_i_l,max_j_l                          ! To prevent the SIGFPE
     real(kind=fPrec) :: xpow(0:this%n-1),ypow(0:this%m) ! Power of x and y
     real(kind=fPrec) :: r0                              ! Variable for the vector potential computation
-    real(kind=fPrec) :: log_tmp,di
+    real(kind=fPrec) :: di
 
     ! Initialize vectors xpow and ypow
     ! ---------------------------------------------------------------------------------------------- !
-    !max_i_l=this%max_i-1;  max_j_l=this%max_j
-
     xpow(0)=one
-    do l=1,this%n-1!max_i_l
+    do l=1,this%n-1
       xpow(l)=xpow(l-1)*x
     enddo
     ypow(0)=one
-    do l=1,this%m!max_j_l
+    do l=1,this%m
       ypow(l)=ypow(l-1)*y
     enddo
 
@@ -955,7 +883,6 @@ contains
     r0=zero
     do l=1,this%lz
       di=real(this%ij_TAz(1,l,z), fPrec)
-      !if ((di>zero).and.(this%ij_TAz(1,l,z)-1<=max_i_l).and.(this%ij_TAz(2,l,z)<=max_j_l)) then
       if ((di>zero).and.(this%ij_TAz(1,l,z)<=this%n).and.(this%ij_TAz(2,l,z)<=this%m)) then
         r0 = r0 + di*(xpow(this%ij_TAz(1,l,z)-1)*(ypow(this%ij_TAz(2,l,z))*this%TAz(l,z)))
       endif
@@ -981,21 +908,18 @@ contains
     ! Subroutine parameter
     ! ---------------------------------------------------------------------------------------------- !
     integer :: l                                        ! Indice for x and y in loop
-    !integer :: max_i_l,max_j_l                          ! To prevent the SIGFPE
     real(kind=fPrec) :: xpow(0:this%n),ypow(0:this%m-1) ! Power of x and y
     real(kind=fPrec) :: r0                              ! Variable for the vector potential computation
-    real(kind=fPrec) :: log_tmp,dj
+    real(kind=fPrec) :: dj
 
     ! Initialize vectors xpow and ypow
     ! ---------------------------------------------------------------------------------------------- !
-    !max_i_l=this%max_i;    max_j_l=this%max_j-1
-
     xpow(0)=one
-    do l=1,this%n!max_i_l
+    do l=1,this%n
       xpow(l)=xpow(l-1)*x
     enddo
     ypow(0)=one
-    do l=1,this%m-1!max_j_l
+    do l=1,this%m-1
       ypow(l)=ypow(l-1)*y
     enddo
 
@@ -1004,7 +928,6 @@ contains
     r0=zero
     do l=1,this%lz
       dj=real(this%ij_TAz(2,l,z), fPrec)
-      !if ((dj>zero).and.(this%ij_TAz(1,l,z)<=max_i_l).and.(this%ij_TAz(2,l,z)-1<=max_j_l)) then
       if ((dj>zero).and.(this%ij_TAz(1,l,z)<=this%n).and.(this%ij_TAz(2,l,z)<=this%m)) then
         r0 = r0 + dj*(xpow(this%ij_TAz(1,l,z))*(ypow(this%ij_TAz(2,l,z)-1)*this%TAz(l,z)))
       endif
@@ -1030,21 +953,17 @@ contains
     ! Subroutine parameter
     ! ---------------------------------------------------------------------------------------------- !
     integer :: l                                      ! Indice for x and y in loop
-    !integer :: max_i_l,max_j_l                        ! To prevent the SIGFPE
     real(kind=fPrec) :: xpow(0:this%n),ypow(0:this%m) ! Power of x and y
     real(kind=fPrec) :: r0                            ! Variable for the vector potential computation
-    real(kind=fPrec) :: log_tmp
 
     ! Initialize vectors xpow and ypow
     ! ---------------------------------------------------------------------------------------------- !
-    !max_i_l=this%max_i;    max_j_l=this%max_j
-
     xpow(0)=one
-    do l=1,this%n!max_i_l
+    do l=1,this%n
       xpow(l)=xpow(l-1)*x
     enddo
     ypow(0)=one
-    do l=1,this%m!max_j_l
+    do l=1,this%m
       ypow(l)=ypow(l-1)*y
     enddo
 
@@ -1052,7 +971,6 @@ contains
     ! ---------------------------------------------------------------------------------------------- !
     r0=zero
     do l=1,this%lx
-      !if ((this%ij_TAx(1,l,z)<=max_i_l).and.(this%ij_TAx(2,l,z)<=max_j_l)) then
       if ((this%ij_TAx(1,l,z)<=this%n).and.(this%ij_TAx(2,l,z)<=this%m)) then
         r0 = r0 + xpow(this%ij_TAx(1,l,z))*(ypow(this%ij_TAx(2,l,z))*this%TAx(l,z))
       endif
@@ -1079,21 +997,17 @@ contains
     ! Subroutine parameter
     ! ---------------------------------------------------------------------------------------------- !
     integer :: l                                      ! Indice for x and y in loop
-    !integer :: max_i_l,max_j_l                        ! To prevent the SIGFPE
     real(kind=fPrec) :: xpow(0:this%n),ypow(0:this%m) ! Power of x and y
     real(kind=fPrec) :: r0                            ! Variable for the vector potential computation
-    real(kind=fPrec) :: log_tmp
 
     ! Initialize vectors xpow and ypow
     ! ---------------------------------------------------------------------------------------------- !
-    !max_i_l=this%max_i;    max_j_l=this%max_j
-
     xpow(0)=one
-    do l=1,this%n!max_i_l
+    do l=1,this%n
       xpow(l)=xpow(l-1)*x
     enddo
     ypow(0)=one
-    do l=1,this%m!max_j_l
+    do l=1,this%m
       ypow(l)=ypow(l-1)*y
     enddo
 
@@ -1101,7 +1015,6 @@ contains
     ! ---------------------------------------------------------------------------------------------- !
     r0=zero
     do l=1,this%ly
-      !if ((this%ij_TAy(1,l,z)<=max_i_l).and.(this%ij_TAy(2,l,z)<=max_j_l)) then
       if ((this%ij_TAy(1,l,z)<=this%n).and.(this%ij_TAy(2,l,z)<=this%m)) then
         r0 = r0 + xpow(this%ij_TAy(1,l,z))*(ypow(this%ij_TAy(2,l,z))*this%TAy(l,z))
       endif
@@ -1128,21 +1041,18 @@ contains
     ! Subroutine parameter
     ! ---------------------------------------------------------------------------------------------- !
     integer :: l                                          ! Indice for x and y in loop
-    !integer :: max_i_l,max_j_l                            ! To prevent the SIGFPE
     real(kind=fPrec) :: xpow(0:this%n+1),ypow(0:this%m-1) ! Power of x and y
     real(kind=fPrec) :: r0                                ! Variable for vector potential computation
-    real(kind=fPrec) :: log_tmp,di,dj
+    real(kind=fPrec) :: di,dj
 
     ! Initialize vectors xpow and ypow
     ! ---------------------------------------------------------------------------------------------- !
-    !max_i_l=this%max_i+1;  max_j_l=this%max_j-1
-
     xpow(0)=one
-    do l=1,this%n+1!max_i_l
+    do l=1,this%n+1
       xpow(l)=xpow(l-1)*x
     enddo
     ypow(0)=one
-    do l=1,this%m-1!max_j_l
+    do l=1,this%m-1
       ypow(l)=ypow(l-1)*y
     enddo
 
@@ -1152,7 +1062,6 @@ contains
     do l=1,this%lx
       di=real(this%ij_TAx(1,l,z) + 1, fPrec)
       dj=real(this%ij_TAx(2,l,z)    , fPrec)
-      !if ((dj>0).and.(this%ij_TAx(1,l,z)+1<=max_i_l).and.(this%ij_TAx(2,l,z)-1<=max_j_l)) then
       if ((dj>0).and.(this%ij_TAx(1,l,z)<=this%n).and.(this%ij_TAx(2,l,z)<=this%m)) then
         r0 = r0 + (dj*(xpow(this%ij_TAx(1,l,z) + 1)*(ypow(this%ij_TAx(2,l,z) - 1)*this%TAx(l,z))))/di
       endif
@@ -1178,21 +1087,18 @@ contains
     ! Subroutine parameter
     ! ---------------------------------------------------------------------------------------------- !
     integer :: l                                          ! Indice for x and y in loop
-    !integer :: max_i_l,max_j_l                            ! To prevent the SIGFPE
     real(kind=fPrec) :: xpow(0:this%n-1),ypow(0:this%m+1) ! Power of x and y
     real(kind=fPrec) :: r0                                ! Variable for vector potential computation
-    real(kind=fPrec) :: log_tmp,di,dj
+    real(kind=fPrec) :: di,dj
 
     ! Initialize vectors xpow and ypow
     ! ---------------------------------------------------------------------------------------------- !
-    !max_i_l=this%max_i-1;  max_j_l=this%max_j+1
-
     xpow(0)=one
-    do l=1,this%n-1!max_i_l
+    do l=1,this%n-1
       xpow(l)=xpow(l-1)*x
     enddo
     ypow(0)=one
-    do l=1,this%m-1!max_j_l
+    do l=1,this%m+1
       ypow(l)=ypow(l-1)*y
     enddo
 
@@ -1202,7 +1108,6 @@ contains
     do l=1,this%ly
       di=real(this%ij_TAy(1,l,z)    , fPrec)
       dj=real(this%ij_TAy(2,l,z) + 1, fPrec)
-      !if ((di>0).and.(this%ij_TAy(1,l,z)-1<=max_i_l).and.(this%ij_TAy(2,l,z)+1<=max_j_l)) then
       if ((di>0).and.(this%ij_TAy(1,l,z)<=this%n).and.(this%ij_TAy(2,l,z)<=this%m)) then
         r0 = r0 + (di*(xpow(this%ij_TAy(1,l,z) - 1)*(ypow(this%ij_TAy(2,l,z) + 1)*this%TAy(l,z))))/dj
       endif
