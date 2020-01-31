@@ -169,17 +169,17 @@ contains
   subroutine Tset(this, nFile, LQin, Length, r0)
     ! Mod from SixTrack
     ! ---------------------------------------------------------------------------------------------- !
-    use numerical_constants, only : zero, c1m12
+    use numerical_constants, only : zero,one, c1m12
 
     implicit none
 
     ! interface variables
     ! ---------------------------------------------------------------------------------------------- !
     class(ffTable_n_Track), intent(inout) :: this
-    character(len=*),       intent(in)    :: nFile
-    real(kind=fPrec),       intent(in)    :: LQin
-    real(kind=fPrec),       intent(in)    :: Length
-    real(kind=fPrec),       intent(in)    :: r0     ! Physical aperture
+    character(len=*),       intent(in)    :: nFile  ! File Name
+    real(kind=fPrec),       intent(in)    :: LQin   ! Length inside the magnet [m]
+    real(kind=fPrec),       intent(in)    :: Length ! Total length of the file [m]
+    real(kind=fPrec),       intent(in)    :: r0     ! Physical aperture [m]
 
     this%r0_2=6.4e-3_fPrec    ! Default value
 
@@ -187,6 +187,9 @@ contains
     this%Lin        = LQin
     this%Lgth       = Length
     this%chk_Status = 1
+    if(r0>one)
+      write(lerr,"(a)") "FFIELD> WARNING The physical aperture is really big. Might generate SIGFPE. Check '"//trim(ffQNames(i))//"'."
+    endif
     if(r0>c1m12) this%r0_2= r0*r0
   end subroutine Tset
 
