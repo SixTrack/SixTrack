@@ -170,6 +170,7 @@ contains
     ! Mod from SixTrack
     ! ---------------------------------------------------------------------------------------------- !
     use numerical_constants, only : zero,one, c1m12
+    use crcoall, only : lout
 
     implicit none
 
@@ -187,8 +188,8 @@ contains
     this%Lin        = LQin
     this%Lgth       = Length
     this%chk_Status = 1
-    if(r0>one)
-      write(lerr,"(a)") "FFIELD> WARNING The physical aperture is really big. Might generate SIGFPE. Check '"//trim(ffQNames(i))//"'."
+    if(r0>one) then
+      write(lout,"(a)") "FFIELD> WARNING Physical aperture is really big. Can generate SIGFPE. Check '"//trim(this%ffFNames)//"'."
     endif
     if(r0>c1m12) this%r0_2= r0*r0
   end subroutine Tset
