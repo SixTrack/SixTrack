@@ -762,7 +762,6 @@ contains
     real(kind=fPrec) :: valA    ! Coefficient given by Horner subroutine
     real(kind=fPrec) :: dzover2 ! Dsigma/2
     real(kind=fPrec) :: g2d2inv ! 1/(delta+1)
-    real(kind=fPrec) :: log_tmp
 
     ! Initialize the step size in z
     ! ---------------------------------------------------------------------------------------------- !
