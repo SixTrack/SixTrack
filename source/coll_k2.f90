@@ -301,7 +301,7 @@ subroutine k2coll_collimate(icoll, iturn, ie, c_length, c_rotation, c_aperture, 
 
     if(cdb_isCrystal(icoll)) then ! This is a crystal collimator
 
-      call cry_doCrystal(ie,iturn,j,mat,x,xp,z,zp,s,p,x_in0,xp_in0,zlm,sImp,nhit,nabs,lhit_pos,lhit_turn,&
+      call cry_doCrystal(ie,iturn,j,mat,x,xp,z,zp,s,p,x_in0,xp_in0,zlm,sImp,isImp,nhit,nabs,lhit_pos,lhit_turn,&
         part_abs_pos_local,part_abs_turn_local,impact,indiv,c_length)
 
       if(nabs /= 0) then
@@ -310,7 +310,6 @@ subroutine k2coll_collimate(icoll, iturn, ie, c_length, c_rotation, c_aperture, 
         lint(j)                = zlm
       end if
 
-      isImp = nAbs /= 0 .or. nHit /= 0
       sImp  = (s - c_length) + sImp
       sOut  = s
       xOut  = x
@@ -502,7 +501,7 @@ subroutine k2coll_collimate(icoll, iturn, ie, c_length, c_rotation, c_aperture, 
         call h5_finaliseWrite(coll_hdf5_fstImpacts)
       else
 #endif
-      write(coll_fstImpactUnit,"(i5,1x,i7,1x,i2,1x,i1,2(1x,f5.3),8(1x,e17.9))") &
+      write(coll_fstImpactUnit,"(i8,1x,i7,1x,i2,1x,i1,2(1x,f5.3),8(1x,e17.9))") &
         partID(j),iTurn,iColl,nAbs,sImp,sOut,xIn,xpIn,yIn,ypIn,xOut,xpOut,yOut,ypOut
 #ifdef HDF5
       end if
