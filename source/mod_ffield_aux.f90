@@ -741,7 +741,7 @@ contains
   ! ================================================================ !
   !  Lie2
   ! ================================================================ !
-  subroutine TLie2(this,x,px,y,py,zb,deltap1)
+  subroutine TLie2(this,x,px,y,py,deltap1)!,zb
     ! Mod from SixTrack
     ! ---------------------------------------------------------------------------------------------- !
     use numerical_constants, only : half
@@ -753,7 +753,7 @@ contains
     ! ---------------------------------------------------------------------------------------------- !
     class(ffTable_n_Track), intent(inout) :: this
     real(kind=fPrec),       intent(in)    :: deltap1
-    real(kind=fPrec),       intent(inout) :: zb
+    !real(kind=fPrec),       intent(inout) :: zb
     real(kind=fPrec),       intent(inout) :: x,px,y,py ! Transverse canonical parameter in new referencial
 
     ! Subroutine variables

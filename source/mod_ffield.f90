@@ -365,9 +365,9 @@ contains
   subroutine ffield_mod_link(iErr)
     ! Mod from SixTrack
     ! ---------------------------------------------------------------------------------------------- !
-    use mod_common,          only : e0
-    use physical_constants,  only : clight, pmap
-    use numerical_constants, only : one, c1e6
+    use mod_common,          only : e0f
+    use physical_constants,  only : clight
+    use numerical_constants, only : c1e6
 
     implicit none
 
@@ -380,15 +380,12 @@ contains
     logical :: ffErr
     integer :: i
     real(kind=fPrec) :: norm
-    real(kind=fPrec) :: beta0,gamma0r
 
     if (ff_status==1) then
       ffNLn = ffNLn-1
       ffMSn = ffMSn-1
       ffNLFile = ffNLFile-1
-      gamma0r=pmap/e0 
-      beta0=sqrt(one-gamma0r*gamma0r)
-      norm=clight/(beta0*e0*c1e6)   ! [c/eV] = 1/p0
+      norm=clight/(e0f*c1e6)   ! [c/eV] = 1/p0
 
       ! Generate the array of type(ffTable_n_Track)
       ! -------------------------------------------------------------------------------------------- !
@@ -608,16 +605,15 @@ contains
 
     ! Subroutine variables
     ! ---------------------------------------------------------------------------------------------- !
-    logical          :: llost
-    integer          :: iFile
-    integer          :: ffj,  k                    ! iterator
-    integer          :: itDlt                      ! 
+    logical          :: llost                      ! Check if particle outside of aperture
+    integer          :: iFile                      ! File Index for the Lie2 map
+    integer          :: ffj, k                     ! iterator
+    integer          :: itDlt                      ! iterator for the correct AntiQuad w.r. delta
     real(kind=fPrec) :: x, px, y, py               ! Transverse canonical parameter in new referencial
     real(kind=fPrec) :: x_tp, px_tp, y_tp, py_tp   ! Temp transverse canonical parameter
 
-    real(kind=fPrec) :: ffdelta!, gam0, betabeta0     ! 
-    real(kind=fPrec) :: zb!, sigma_s                ! 
-    real(kind=fPrec) :: LoutQ!, Ldpsv1, Ldpsv2      ! 
+    real(kind=fPrec) :: ffdelta, LoutQ ! momentum deviation, length outside Quad
+    !real(kind=fPrec) ::  Ldpsv1, Ldpsv2, sigma_s, gam0, betabeta0, zb      ! Parameter for 6D
 
 
     llost=.false.
@@ -661,7 +657,7 @@ contains
         !   -
         ffdelta  = dpsv(ffj);
 !        gam0     = gamma0;
-        zb       = 0;
+!        zb       = 0;
 !        sigma_s  = 0;
 !        betabeta0= ejfv(ffj)/ejv(ffj);
 !        betabeta0= betabeta0*betabeta0*rvv(ffj);
@@ -676,8 +672,8 @@ contains
         x=x_tp;   y=y_tp;
 !  <<<<<<< IN
 
-    !   - Compute Fringe Field using asymplectic Map (Lie2)
-        call ffTable(iFile)%Lie2(x,px,y,py,zb,oidpsv(ffj))
+    !   - Compute Fringe Field using a symplectic Map (Lie2)
+        call ffTable(iFile)%Lie2(x,px,y,py,oidpsv(ffj))!,zb
 
 !  <<<<<<< IN
         !   - Check AQ matrix are computed for a ffdelta in [Tdpsv(1),Tdpsv(nbDlt)]
@@ -768,16 +764,14 @@ contains
 
     ! Subroutine variables
     ! ---------------------------------------------------------------------------------------------- !
-    integer          :: iFile
-    integer          :: ffj,  k                    ! iterator
-    integer          :: itDlt                      ! 
+    integer          :: iFile                      ! File Index for the Lie2 map
+    integer          :: ffj, k                     ! iterator
+    integer          :: itDlt                      ! iterator for the correct AntiQuad w.r. delta
     real(kind=fPrec) :: x, px, y, py               ! Transverse canonical parameter in new referencial
     real(kind=fPrec) :: x_tp, px_tp, y_tp, py_tp   ! Temp transverse canonical parameter
 
-    real(kind=fPrec) :: ffdelta!, gam0, betabeta0     ! 
-    real(kind=fPrec) :: zb!, sigma_s                ! 
-    real(kind=fPrec) :: LoutQ!, Ldpsv1, Ldpsv2      ! 
-
+    real(kind=fPrec) :: ffdelta, LoutQ ! momentum deviation, length outside Quad
+    !real(kind=fPrec) ::  Ldpsv1, Ldpsv2, sigma_s, gam0, betabeta0, zb      ! Parameter for 6D
 
 !  <<<<<<< OUT
     iFile=ffQ2File(ffindex(ic(ffi)-nblo),2)
@@ -815,7 +809,7 @@ contains
       !   -
       ffdelta  = dpsv(ffj);
 !      gam0     = gamma0;
-      zb       = 0;
+!      zb       = 0;
 !      sigma_s  = 0;
 !      betabeta0= ejfv(ffj)/ejv(ffj);
 !      betabeta0= betabeta0*betabeta0*rvv(ffj);
@@ -851,7 +845,7 @@ contains
 !  <<<<<<< OUT
 
       !   - Compute Fringe Field using asymplectic Map (Lie2)
-      call ffTable(iFile)%Lie2(x,px,y,py,zb,oidpsv(ffj))
+      call ffTable(iFile)%Lie2(x,px,y,py,oidpsv(ffj))!,zb
 
 !  <<<<<<< OUT
       !   - Initial repositionning (AntiDrift)
