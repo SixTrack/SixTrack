@@ -586,6 +586,16 @@ subroutine cdb_writeDB_newFromOld
     return
   end if
 
+  do j=1,cdb_nColl
+    ! Fixing family setting to that of the first collimator in the family when writing old CollDB in new format
+    ! Allows to properly take into account if settings were defined in fort.3 or old CollDB
+    if(j > 1 .and. cdb_cFamily(j) == cdb_cFamily(j-1)) then
+      continue
+    else
+      cdb_famNSig(cdb_cFamily(j)) = cdb_cNSig(j)
+    end if
+  end do
+
   write(lout,"(a)") "COLLDB> Converting old format DB to new format to file '"//trim(cdb_fileName)//".new'"
 
   call f_requestUnit(trim(cdb_fileName)//".new", dbNew)
@@ -604,7 +614,7 @@ subroutine cdb_writeDB_newFromOld
     "opening/fam","mat.","length[m]","angle[deg]","offset[m]","beta_x[m]","beta_y[m]"
 
   do j=1,cdb_nColl
-    if(cdb_cFamily(j) > 0) then
+    if(cdb_cFamily(j) > 0 .and. cdb_cNSig(j) == cdb_famNSig(cdb_cFamily(j))) then
       famName = cdb_famName(cdb_cFamily(j))
       write(dbNew,"(a48,1x,a16,1x,a4,5(1x,f13.6))") cdb_cName(j),&
       chr_lPad(trim(famName),16),cdb_cMaterial(j),cdb_cLength(j),cdb_cRotation(j)/rad,&
