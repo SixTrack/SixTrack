@@ -8,6 +8,7 @@ module elens
   use crcoall
   use mod_alloc
   use numerical_constants, only : zero, one
+  use physical_constants, only: pmae
   implicit none
 
   integer, allocatable, save  :: ielens(:)                  ! index of elens (nele)
@@ -23,6 +24,10 @@ module elens
   integer, save               :: elens_iSet_def=0           ! default iSet
   logical, save               :: elens_lFox_def=.true.      ! default lFox
   integer, save               :: elens_radial_mpoints_def=2 ! default number of points for interpolating radial profiles from ASCI files
+
+  ! beam of the lens
+  real(kind=fPrec), save      :: elens_beam_mass_def=pmae   ! default mass of lens beam [MeV/c2]
+  real(kind=fPrec), save      :: elens_beam_chrg_def=-one   ! default charge of lens beam [e]
   
   ! variables to save elens parameters for tracking etc.
   integer, allocatable, save          :: elens_type(:)            ! integer for elens type (nelens)
@@ -41,7 +46,7 @@ module elens
   real(kind=fPrec), allocatable, save :: elens_I(:)               ! current of e-beam [A] (nelens)
                                                                   ! <0: e-beam opposite to beam
   real(kind=fPrec), allocatable, save :: elens_Ek(:)              ! kinetic energy of e-beam [keV] (nelens)
-  real(kind=fPrec), allocatable, save :: elens_beta_e(:)          ! relativistic beta of electrons (nelens)
+  real(kind=fPrec), allocatable, save :: elens_beta_lens_beam(:)  ! relativistic beta of lens beam (nelens)
   logical, allocatable, save          :: elens_lThetaR2(:)        ! flag for computing theta@R2 (nelens)
   logical, allocatable, save          :: elens_lAllowUpdate(:)    ! Flag for disabling updating of kick, (nelens)
                                                                   !  i.e. after DYNK has touched thetaR2,
@@ -54,18 +59,22 @@ module elens
   logical, allocatable, save          :: elens_lAllowUpdate_CR(:) ! (nelens)
 #endif
   ! R1/R2 expressed in normalised units (either betatron or dispersion)
-  real(kind=fPrec), allocatable, save :: elens_emin(:)            ! normalised emittance [m rad]
-  real(kind=fPrec), allocatable, save :: elens_sigdpp(:)          ! default rms of distribution in delta_p / p []
-  integer, allocatable, save          :: elens_iSet(:)            ! which value of beta or disp should be taken:
+  real(kind=fPrec), allocatable, save :: elens_emin(:)            ! normalised emittance [m rad] (nelens)
+  real(kind=fPrec), allocatable, save :: elens_sigdpp(:)          ! default rms of distribution in delta_p / p [] (nelens)
+  integer, allocatable, save          :: elens_iSet(:)            ! which value of beta or disp should be taken (nelens):
                                                                   ! 0: none
                                                                   ! 1: min
                                                                   ! 2: max
                                                                   ! 3: average
                                                                   ! 4: quadratic average
                                                                   ! 5: geometric average
-  real(kind=fPrec), allocatable, save :: elens_optVal(:)          ! value of optics function for normalised settings
-  integer, allocatable, save          :: elens_nUpdates(:)        ! how many slices are being used
+  real(kind=fPrec), allocatable, save :: elens_optVal(:)          ! value of optics function for normalised settings (nelens)
+  integer, allocatable, save          :: elens_nUpdates(:)        ! how many slices are being used (nelens)
                                                                   
+  ! beam of the lens
+  real(kind=fPrec), allocatable, save :: elens_beam_mass(:)       ! mass of lens beam [MeV/c2] (nelens)
+  real(kind=fPrec), allocatable, save :: elens_beam_chrg(:)       ! charge of lens beam [e] (nelens)
+  
   ! radial profile
   integer, allocatable, save          :: elens_iRadial(:)         ! mapping to the radial profile (nelens)
   real(kind=fPrec), allocatable, save :: elens_radial_fr1(:)      ! value of f(R1) in case of radial profiles from file [0:1] (nelens)
@@ -108,7 +117,7 @@ subroutine elens_expand_arrays_lenses(nelens_new)
   call alloc(elens_len            , nelens_new,                     zero, 'elens_len'            )
   call alloc(elens_I              , nelens_new,                     zero, 'elens_I'              )
   call alloc(elens_Ek             , nelens_new,                     zero, 'elens_Ek'             )
-  call alloc(elens_beta_e         , nelens_new,                     zero, 'elens_beta_e'         )
+  call alloc(elens_beta_lens_beam , nelens_new,                     zero, 'elens_beta_lens_beam' )
   call alloc(elens_lThetaR2       , nelens_new,                  .false., 'elens_lThetaR2'       )
   call alloc(elens_lAllowUpdate   , nelens_new,                   .true., 'elens_lAllowUpdate'   )
   call alloc(elens_lFox           , nelens_new,           elens_lFox_def, 'elens_lFox'           )
@@ -122,6 +131,8 @@ subroutine elens_expand_arrays_lenses(nelens_new)
   call alloc(elens_iSet           , nelens_new,           elens_iSet_def, 'elens_iSet'           )
   call alloc(elens_optVal         , nelens_new,                     zero, 'elens_optVal'         )
   call alloc(elens_nUpdates       , nelens_new,                        0, 'elens_nUpdates'       )
+  call alloc(elens_beam_mass      , nelens_new,      elens_beam_mass_def, 'elens_beam_mass'      )
+  call alloc(elens_beam_chrg      , nelens_new,      elens_beam_chrg_def, 'elens_beam_chrg'      )
   call alloc(elens_iRadial        , nelens_new,                        0, 'elens_iRadial'        )
   call alloc(elens_radial_fr1     , nelens_new,                     zero, 'elens_radial_fr1'     )
   call alloc(elens_radial_fr2     , nelens_new,                     zero, 'elens_radial_fr2'     )
@@ -1018,30 +1029,28 @@ subroutine eLensTheta(j)
   use floatPrecision
   use mathlib_bouncer
   use numerical_constants, only : zero, one, two, pi, c1e3, c1m3, c1m6
-  use physical_constants, only: clight, pmae, eps0
+  use physical_constants, only: clight, eps0
   use mod_common, only : e0, beta0, brho, bez, kz, zz0
   use mod_settings, only : st_quiet
 
   implicit none
 
   integer j,jj
-  real(kind=fPrec) gamma_e
+  real(kind=fPrec) gamma_lens_beam
 
   if(elens_lThetaR2(j) .and. elens_lAllowUpdate(j)) then
-    ! the update of elens_radial_beta_e is not strictly needed here,
+    ! the update of elens_beta_lens_beam is not strictly needed here,
     !   apart from the case of elens_Ek is DYNK-ed
-    gamma_e  = ((elens_Ek(j)*c1m3)/pmae)+one ! from kinetic energy
-    elens_beta_e(j) = sqrt((one+one/gamma_e)*(one-one/gamma_e))
+    gamma_lens_beam  = ((elens_Ek(j)*c1m3)/elens_beam_mass(j))+one ! from kinetic energy
+    elens_beta_lens_beam(j) = sqrt((one+one/gamma_lens_beam)*(one-one/gamma_lens_beam))
     
     ! r2: from mm to m (c1m3)
     ! theta: from rad to mrad (c1e3)
-    elens_theta_r2(j) = gamma_e*((elens_len(j)*abs(elens_I(j)))/ &
+    elens_theta_r2(j) = gamma_lens_beam*((elens_len(j)*abs(elens_I(j)))/ &
          ((((two*pi)*((eps0*clight)*clight))*brho)*(elens_r2(j)*c1m3)))*c1e3
-    if(elens_I(j) < zero) then
-      elens_theta_r2(j) = elens_theta_r2(j)*(one/(elens_beta_e(j)*beta0)+one)
-    else
-      elens_theta_r2(j) = elens_theta_r2(j)*(one/(elens_beta_e(j)*beta0)-one)
-    end if
+    elens_theta_r2(j) = sign(elens_theta_r2(j),elens_beam_chrg(j))
+    elens_theta_r2(j) = elens_theta_r2(j)*(one/(elens_beta_lens_beam(j)*beta0)- &
+         sign(one,elens_I(j)/elens_beam_chrg(j)))
 
     if ( elens_type(j)>=2 ) elens_theta_r2(j) = elens_theta_r2(j) * elens_geo_norm(j)
 
@@ -1262,7 +1271,7 @@ subroutine elens_kick(i,ix,n)
   integer, intent(in) :: ix
   integer, intent(in) :: n
   
-  real(kind=fPrec) xx, yy, rr, frr, rr_sq, r1_sq, elSig_sq
+  real(kind=fPrec) xx, yy, rr, frr, rr_sq, r1_sq, elSig_sq, tmpBB
   integer          jj
 
   r1_sq=elens_r1(ielens(ix))**2
@@ -1316,14 +1325,11 @@ subroutine elens_kick(i,ix,n)
       ! 'radial kick'
       frr = (elens_theta_r2(ielens(ix))*((elens_r2(ielens(ix))/rr)*frr))*moidpsv(jj)
       if(elens_lThetaR2(ielens(ix))) then
-        if(elens_I(ielens(ix)) < zero) then
-          frr = frr*((rvv(jj)+elens_beta_e(ielens(ix))*beta0)/(one+elens_beta_e(ielens(ix))*beta0))
-        else
-          frr = frr*((rvv(jj)-elens_beta_e(ielens(ix))*beta0)/(one-elens_beta_e(ielens(ix))*beta0))
-        end if
+        tmpBB=sign(elens_beta_lens_beam(ielens(ix))*beta0,elens_I(ielens(ix))/elens_beam_chrg(ielens(ix)))
+        frr = frr*((rvv(jj)-tmpBB)/(one-tmpBB))
       endif
-      yv1(jj)=yv1(jj)-frr*(xx/rr)
-      yv2(jj)=yv2(jj)-frr*(yy/rr)
+      yv1(jj)=yv1(jj)+frr*(xx/rr)
+      yv2(jj)=yv2(jj)+frr*(yy/rr)
     endif
   end do
 end subroutine elens_kick
@@ -1406,7 +1412,7 @@ subroutine elens_kick_fox(i,ix)
   ELETR2=elens_theta_r2(iLens)
   ELENOR=elens_geo_norm(iLens)
   ELESIG=elens_sig(iLens)
-  ELEBET=elens_beta_e(iLens)
+  ELEBET=elens_beta_lens_beam(iLens)
   ER1_SQ=ELE_R1**2
   ESG_SQ=ELESIG**2
   
@@ -1507,7 +1513,7 @@ subroutine elens_kick_fox(i,ix)
     ! 'radial kick'
 !FOX    FRR=(((ELETR2/RR)*ELE_R2)*FRR)*(MTCDA/(ONE+DPDA)) ;
     if(elens_lThetaR2(ielens(ix))) then
-      if(elens_I(ielens(ix)) < zero) then
+      if(elens_I(ielens(ix))/elens_beam_chrg(ielens(ix)) < zero) then
 !FOX    FRR=FRR*((RV+ELEBET*BETA0)/(ONE+ELEBET*BETA0)) ;
       else
 !FOX    FRR=FRR*((RV-ELEBET*BETA0)/(ONE-ELEBET*BETA0)) ;
@@ -1519,8 +1525,8 @@ subroutine elens_kick_fox(i,ix)
 !FOX    FRR=ZERO ;
       call dapok(FRR,hh,FRRA)
     end if
-!FOX  YY(1)=YY(1)-(FRR*XI)/RR ;
-!FOX  YY(2)=YY(2)-(FRR*YI)/RR ;
+!FOX  YY(1)=YY(1)+(FRR*XI)/RR ;
+!FOX  YY(2)=YY(2)+(FRR*YI)/RR ;
   end if
 
   if (st_debug) then
