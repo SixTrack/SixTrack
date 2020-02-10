@@ -11,7 +11,8 @@ subroutine daliesix
 
   implicit none
 
-  integer i,mf1,mf2,mf3,mf4,mf5,mfile,nd2,ndim,ndpt,nis,no,nv,damap,a1,a1i,a2,a2i,f,fc,fs,rot,xy,h,hc,hs,h4,df,bb1,bb2,haux
+  integer i,mf1,mf2,mf3,mf4,mf5,mfile,nd2,ndim,ndpt,nis,no,nv,damap&
+       &,a1,a1i,a2,a2i,f,fc,fs,rot,xy,h,hc,hs,h4,df,bb1,bb2,haux
   real(kind=fPrec) angle,coe,radn,x2pi
   dimension damap(6),a1(6),a1i(6),a2(6),a2i(6)
   dimension rot(6),xy(6),df(6)
@@ -71,9 +72,10 @@ subroutine daliesix
   call daread(damap,nd2,mfile,zero)
 
   ! Normal Form Analysis
+
   call mapnorm(damap,f,a2,a1,xy,h,nord1)
-  call dainv(a1,nv,a1i,nv)
-  call dainv(a2,nv,a2i,nv)
+  call etinv(a1,a1i)
+  call etinv(a2,a2i)
   call ctor(f,fc,fs)
   call gettura(angle,radn)
   call taked(xy,1,rot)
