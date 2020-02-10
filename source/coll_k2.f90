@@ -831,16 +831,18 @@ subroutine k2coll_jaw(s, nabs, icoll, iturn, ipart)
 
     dpop = (p-p0)/p0
 
-    ! write coll_scatter.dat for complete scattering histories
+    if(dowrite_impact) then
+      ! write coll_scatter.dat for complete scattering histories
 #ifdef HDF5
-    if(h5_useForCOLL) then
-      call k2coll_hdf5_writeCollScatter(icoll,iturn,ipart,nabs_tmp,-one,zero,zero)
-    else
+      if(h5_useForCOLL) then
+        call k2coll_hdf5_writeCollScatter(icoll,iturn,ipart,nabs_tmp,-one,zero,zero)
+      else
 #endif
-    write(coll_scatterUnit,'(1x,i2,2x,i4,2x,i5,2x,i1,3(2x,e14.6))') icoll,iturn,ipart,nabs_tmp,-one,zero,zero
+      write(coll_scatterUnit,'(1x,i2,2x,i4,2x,i5,2x,i1,3(2x,e14.6))') icoll,iturn,ipart,nabs_tmp,-one,zero,zero
 #ifdef HDF5
+      end if
+#endif
     end if
-#endif
     return
   end if
 
