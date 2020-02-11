@@ -590,7 +590,7 @@ subroutine cdb_writeDB_newFromOld
     ! Fixing family setting to that of the first collimator in the family when writing old CollDB in new format
     ! Allows to take into account if settings were defined in fort.3 or old CollDB
     if(j > 1 .and. cdb_cFamily(j) == cdb_cFamily(j-1)) then
-      continue
+      cycle
     else
       cdb_famNSig(cdb_cFamily(j)) = cdb_cNSig(j)
     end if
