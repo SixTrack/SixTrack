@@ -9,8 +9,14 @@
 * Fix pencil beam type 3 - the optics function at the entrance of the collimator were always used for beam sampling, even when those at the exit should have been used (e.g. because the beam is divergent on the cleaning plane). PR #1046 (A. Mereghetti).
 
 **User Side Changes**
-	
+
 * electron lenses have been inserted into FOX - PR #839 (A. Mereghetti).
+* increased flexibility of e-lens module - PR #841 (A. Mereghetti):
+  * elens module fully dynamic allocatable;
+  * give possibility to express R_1 and R_2 in sigma;
+  * add any ion species to be defined as possible lens beam;
+  * minor changes;
+  Documentation changed accordingly (user and physics manual). 
 
 ### Version 5.4.3 [19.12.2019] - Release
 
