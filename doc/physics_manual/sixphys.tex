@@ -996,12 +996,12 @@ the derivation of the kicks and the implemented tracking is developed in cylindr
 is the radial coordinate used to compute the kick. Moreover,
 the implementation of the hollow e-lens has no explicit dependence on the
 beam energy, taken into account only in the form of the input parameter
-$\theta_{\rm max}$ provided by the user. Moreover, a change of the particle
+$\theta_{\rm R_2}$ provided by the user. Moreover, a change of the particle
 energy could occur if the particle enters with an initial $x'$ or
 $y'$ and thus sees an accelerating or decelerating field. These effects
 are not taken into account for the time being.
 
-The implementation in SixTrack is very similar to the one in
+The implementation in SixTrack is very similar to that in
 Merlin~\cite{HReLens}. There you can also find a complete derivation of
 the equations laid down in the following.
 
@@ -1016,10 +1016,10 @@ is at $r=R_2$ and $f(r)$ is a shape function which depends on the radial distrib
 electron beam.
 $\theta_{\rm R_2}$ reads like
 \begin{equation}
-\theta_{\rm R_2} = \frac{\gamma_eLI_T(1\pm\beta_e\beta_b)}{2\pi\epsilon_0  \left(B\rho\right)_b\beta_e\beta_b c^2}\cdot\frac{1}{R_2}
+\theta_{\rm R_2} = -\frac{\gamma_eLI_T(1\pm\beta_e\beta_b)}{2\pi\epsilon_0  \left(B\rho\right)_b\beta_e\beta_b c^2}\cdot\frac{1}{R_2}
 \label{elense:eqn:6}
 \end{equation}
-where $L$ is the length of the e-lens, $I_T$ the total electron beam current, $\beta_{e}$ and $\beta_{b}$ the relativistic $\beta$ of electron and tracked beam, $(B\rho)|_b$ the magnetic rigidity of the beam (synchronous particle), $c$ the speed of light and $\epsilon_0$ the vacuum permittivity. The $\pm$-sign represents the two cases of the electron beam travelling in the direction of the tracked beam ($v_e v_b>0$) leading to ``$-$" or in the opposite direction ($v_e v_b<0$) leading to ``$+$". For hollow electron beam collimation, electron and tracked beam travel in opposite directions. It should be noted that $\theta_{\rm R_2}$ depends on the magnetic rigidity $(B\rho)_b$ of the tracked beam and on its relativistic normalised speed $\beta_b$, and thus on the beam momentum and speed; hence, during tracking of non--monochromatic beams, the actual magnetic rigidity of each beam particle, its charge--to--mass ratio and its speed are taken into account when computing the kick to be imparted.
+where $L$ is the length of the e-lens, $I_T$ the total electron beam current (in absolute value), $\beta_{e}$ and $\beta_{b}$ the relativistic $\beta$ of electron and tracked beam, $(B\rho)|_b$ the magnetic rigidity of the beam (synchronous particle), $c$ the speed of light and $\epsilon_0$ the vacuum permittivity. The '$-$' sign is given by the fact that the Laurence force is directed radially inwards, due to the charge of the electrons. The $\pm$-sign represents the two cases of the electron beam travelling in the direction of the tracked beam ($v_e v_b>0$) leading to ``$-$" or in the opposite direction ($v_e v_b<0$) leading to ``$+$". For hollow electron beam collimation, electron and tracked beam travel in opposite directions. It should be noted that $\theta_{\rm R_2}$ depends on the magnetic rigidity $(B\rho)_b$ of the tracked beam and on its relativistic normalised speed $\beta_b$, and thus on the beam momentum and speed; hence, during tracking of non--monochromatic beams, the actual magnetic rigidity of each beam particle, its charge--to--mass ratio and its speed are taken into account when computing the kick to be imparted.
 
 $f(r)$ reads like
 \begin{equation}
@@ -1045,8 +1045,8 @@ distribution to be simulated.
 
 The change in $(x',y')$ due to the e-lens kick can then be expressed as
 \begin{align}
-x'&=x'-\frac{x}{r}\;\frac{f(r)}{r/R_2}\;\theta_{\rm R_2}\frac{\chi}{1+\delta}\frac{\beta_b/\beta\pm\beta_b\beta_e}{1\pm\beta_b\beta_e}\label{elense:eqn:2}\\
-y'&=y'-\frac{y}{r}\;\frac{f(r)}{r/R_2}\;\theta_{\rm R_2}\frac{\chi}{1+\delta}\frac{\beta_b/\beta\pm\beta_b\beta_e}{1\pm\beta_b\beta_e}\label{elense:eqn:3}
+x'&=x'+\frac{x}{r}\;\frac{f(r)}{r/R_2}\;\theta_{\rm R_2}\frac{\chi}{1+\delta}\frac{\beta_b/\beta\pm\beta_b\beta_e}{1\pm\beta_b\beta_e}\label{elense:eqn:2}\\
+y'&=y'+\frac{y}{r}\;\frac{f(r)}{r/R_2}\;\theta_{\rm R_2}\frac{\chi}{1+\delta}\frac{\beta_b/\beta\pm\beta_b\beta_e}{1\pm\beta_b\beta_e}\label{elense:eqn:3}
 \end{align}
 where $\frac{x}{r}=\cos(\phi)$ and $\frac{y}{r}=\sin(\phi)$ allow to get the
 horizontal and vertical kicks from the radial one expressed by
@@ -1106,7 +1106,7 @@ the Gaussian profile as in Eq.~\ref{elense:eqn:1}, is a normalisation factor
 necessary to have $\tilde f(R_2)=1$. Hence, the same factor must be considered
 in the expression of $\theta_{\rm R_2}$ (see Eq.~\ref{elense:eqn:6}), which then becomes
 \begin{equation}
-  \theta_{\rm R_2} = \frac{LI_T(1\pm\beta_e\beta_b)}{2\pi\epsilon_0  \left(B\rho\right)_b\beta_e\beta_b c^2}\cdot\frac{1}{R_2}
+  \theta_{\rm R_2} = -\frac{\gamma_eLI_T(1\pm\beta_e\beta_b)}{2\pi\epsilon_0  \left(B\rho\right)_b\beta_e\beta_b c^2}\cdot\frac{1}{R_2}
   \cdot\left\{\exp\left[-\frac{R_1^2}{2\sigma^2}\right]-\exp\left[-\frac{R_2^2}{2\sigma^2}\right]\right\}
 \end{equation}
 It should be noted that, contrary to the case of the uniform distribution,
@@ -1128,24 +1128,31 @@ $R_1$ and $R_2$ are stated by the user in the \texttt{fort.3} file; hence,
 the domain of the radial profile must contain the one set by $R_1$ and $R_2$.
 
 The radial distribution $\rho(r)$ is numerically integrated and normalised
-according to Eq.~\ref{elense:eqn:1}. The numerical integration actually reads as
+according to Eq.~\ref{elense:eqn:1}.
+The numerical integration is performed with polinomials of the degree chosen by the user.
+In case of linear interpolation, the integration reads as
 \begin{equation}
-  I(R) = 2\pi \sum_{i=1}^{N_R} \frac{(r_i+r_{i-1})}{2} \, \rho_i \, (r_i-r_{i-1}).
+  I(n_R) = 2\pi \sum_{i=1}^{n_R} \frac{(r_i+r_{i-1})}{2} \, \rho_i \, (r_i-r_{i-1}),
 \label{elense:eqn:5}
 \end{equation}
+where $n_R$ is in the range [1:$N_R$], and $N_R$ is the number of points in the file.
 A point $(r=0,\rho=0)$ is automatically taken at $i=0$ for the numerical
-integration. $I(R)$ is then normalised by the total current $I(R_{\textrm{max}})$.
+integration. $I(n_R)$ is then normalised by the total current $I(R_{\rm R_2})$.
 
-The middle term of $f(r)$ (see Eq.~\ref{elense:eqn:1}) reads:
-\begin{equation}
-\tilde f(r)=\frac{I(r)-I(R_1)}{I(R_2)-I(R_1)}.
-\end{equation}
-Similarly to what happes with the Gaussian profile, also in this case
-$\theta_{\rm R_2}$ (see Eq.~\ref{elense:eqn:6}) must be updated as
-\begin{equation}
-  \theta_{\rm R_2} = \frac{LI_T(1\pm\beta_e\beta_b)}{2\pi\epsilon_0  \left(B\rho\right)_b\beta_e\beta_b c^2}\cdot\frac{1}{R_2}
-  \cdot\left[ I(R_2)-I(R_1) \right]
-\end{equation}
+\subsubsection{Caveats}
+It should be noted that the sign of the charge of the beam of the lens is taken into account explicitly in $\theta_{\rm R_2}$, implying that:
+\begin{itemize}
+\item a lens beam \textbf{negatively} charged kicks (positively charged) particles radially \textbf{inwards};
+\item a lens beam \textbf{positively} charged kicks (positively charged) particles radially \textbf{outwards}.
+\end{itemize}
+
+In addition, the current of the lens beam is positive when it flows in the same direction as that of the tracked beam, i.e.
+\begin{itemize}
+\item a lens beam \textbf{negatively} charged is identified by a \textbf{positive} current if charges travel in the \textbf{opposite direction} with respect to that of the main beam;
+\item a lens beam \textbf{positively} charged is identified by a \textbf{negative} current if charges travel in the \textbf{opposite direction} with respect to that of the main beam.
+\end{itemize}
+
+The direction of the lens beam determines which sign in the calculation of $\theta_{\rm R_2}$ should be taken in Eq.~\ref{elense:eqn:6}
 
 \subsection{Misalignment}
 
