@@ -871,6 +871,7 @@ subroutine elens_postLinopt
 
   integer j, jj, jguess
   real(kind=fPrec) oldVal
+  logical lPrint
 
   do j=1,nelens
      
@@ -890,7 +891,8 @@ subroutine elens_postLinopt
         elens_optVal(j)=elens_optVal(j)/sqrt(real(elens_nUpdates(j),fPrec))
       end if
     end if
-   
+
+    lPrint=.false.
     ! compute R1 out of normalised settings
     if (elens_r1(j)<zero) then
       oldVal=elens_r1(j)
@@ -904,6 +906,7 @@ subroutine elens_postLinopt
       write(lout,"(a,i0,a)") "ELENS> Recomputing R1 of e-lens #",j," named "//trim(bez(jj))//": "
       write(lout,"(a,1pe22.15)") "ELENS> - original value [sig]=",oldVal
       write(lout,"(a,1pe22.15)") "ELENS> - new value [mm]=",elens_r1(j)
+      lPrint=.true.
     end if
     ! compute R2 out of normalised settings
     if (elens_r2(j)<zero) then
@@ -918,6 +921,7 @@ subroutine elens_postLinopt
       write(lout,"(a,i0,a)") "ELENS> Recomputing R2 of e-lens #",j," named "//trim(bez(jj))//": "
       write(lout,"(a,1pe22.15)") "ELENS> - original value [sig]=",oldVal
       write(lout,"(a,1pe22.15)") "ELENS> - new value [mm]=",elens_r2(j)
+      lPrint=.true.
     end if
     ! compute electron sigma out of normalised settings
     if (elens_sig(j)<zero) then
@@ -932,8 +936,9 @@ subroutine elens_postLinopt
       write(lout,"(a,i0,a)") "ELENS> Recomputing sigma of e-beam of e-lens #",j," named "//trim(bez(jj))//": "
       write(lout,"(a,1pe22.15)") "ELENS> - original value [sig]=",oldVal
       write(lout,"(a,1pe22.15)") "ELENS> - new value [mm]=",elens_sig(j)
+      lPrint=.true.
     end if
-    if(st_debug) then
+    if(st_debug.and.lPrint) then
       write(lout,"(a)"         ) "ELENS> ...using the following parameters:"
       write(lout,"(a,1pe22.15)") "ELENS> - normalised emittance [m rad]=",elens_emin(j)
       write(lout,"(a,1pe22.15)") "ELENS> - geometrical emittance [m rad]=",elens_emin(j)/(e0f/nucm0)
@@ -1583,7 +1588,7 @@ subroutine elens_kick_fox(i,ix)
 
   if (st_debug) then
     call dapek(FRR,hh,FRRA)
-    write(lout,'(2(a,1pe23.16))')'ELENS> ELENS_KICK_FOX computed at RRA=',RRA,' - FRRA=',FRRA
+    write(lout,'(2(a,1pe23.16))')'ELENS> ELENS_KICK_FOX computed at RRA= ',RRA,' - FRRA= ',FRRA
     write(lout,'(a)')'ELENS> ELENS_KICK_FOX closed orbit AFTER elens:'
     call dapri(XX(1),6)
     call dapri(XX(2),6)
