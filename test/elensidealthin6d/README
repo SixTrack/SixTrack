@@ -3,11 +3,12 @@ Tests:
 - thck4d adds an element 'thicky' with a nonzero length to force the thick 4D tracking to the thin4d/thin6d test.
 - thck6d is based on thick6dblocks as the LHC example could not be used as for 6D thick tracking linear elements can not be grouped in blocks -> LHC example as defined fails.
 - thin6d_DYNK is like thin6d but the four elenses are assigned time-varying kicks - switch off, pulsing, random on/off, random kick amplitude;
-- thin6d_DYNK_ZIPF is identical to thin6d_DYNK, but checks also the ZIPF functionality on the HEL_DUMP_* files (see later);
 - thin6d_ions is like thin6d but the machine is set for Xe-129 and 7*4 ion species are tracked (see initial.dat); moreover, the simulation starts at IP4;
+- thin6d_ions_spec is like thin6d_ions but the four e-lenses give the same kick, even if different species are used;
+- thin6d_FOX is like thin6d and checks that the kicks computed by FOX fit with the kicks from the tracking;
+- thin6d_FOX_single is a one-turn, one-pair calculation, where the user can check that an elens with KL=2E-3 rad/m (ie 20urad at R2=10mm) gives a hor/ver tune shift of ~4E-2/5E-2;
+- thin6d_norm_settings is like thin6d, apart from the settings, which are given in normalised units;
 - thin6d_ramp_DYNK is like thin6d but the energy is ramped (0.5MeV/turn, 100k turns) and two elenses are assigned time-varying kicks (pulsing) whereas the other two are kept on;
-- elensidealthin6d_FOX is like thin6d and checks that the kicks computed by FOX fit with the kicks from the tracking;
-- elensidealthin6d_FOX_single is a one-turn, one-pair calculation, where the user can check that an elens with KL=2E-3 rad/m (ie 20urad at R2=10mm) gives a hor/ver tune shift of ~4E-2/5E-2;
 
 Python script:
 The python script elens_plot_kick.py plots the kick received from the elens. In total 4 elenses are inserted to check 4 different cases:
