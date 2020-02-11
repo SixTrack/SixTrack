@@ -171,7 +171,7 @@ subroutine elens_parseInputLine(inLine, iLine, iErr)
 
   character(len=:), allocatable   :: lnSplit(:)
   character(len=mStrLen) tmpch
-  real(kind=fPrec) tmpflt
+  real(kind=fPrec) tmpflt, tmpflt2
   integer nSplit, iElem, j, tmpi1, tmpi2, tmpi3
   logical spErr, tmpl, lfound
 
@@ -236,14 +236,14 @@ subroutine elens_parseInputLine(inLine, iLine, iErr)
     if (nSplit>=4) then
       select case (chr_toLower(trim(lnSplit(4))))
       case('all')
+        do tmpi1=1,nelens-1
+          elens_emin(tmpi1) = tmpflt
+          elens_iSet(tmpi1) = tmpi2
+          elens_sigdpp(tmpi1) = -one
+        end do
         elens_emin_def=tmpflt
         elens_iSet_def=tmpi2
         elens_sigdpp_def=-one
-        do tmpi1=1,nelens-1
-          elens_emin(tmpi1) = elens_emin_def
-          elens_iSet(tmpi1) = elens_iSet_def
-          elens_sigdpp(tmpi1) = elens_sigdpp_def
-        end do
         if(st_debug) write(lout,"(a)") "ELENS> Applying read normalised emittance to all e-lenses"
       case('bef','before')
         do tmpi1=1,nelens-1
@@ -285,10 +285,10 @@ subroutine elens_parseInputLine(inLine, iLine, iErr)
     if (nSplit>=3) then
       select case (chr_toLower(trim(lnSplit(3))))
       case('all')
-        elens_lFox_def=tmpl
         do tmpi1=1,nelens-1
-          elens_lFox(tmpi1) = elens_lFox_def
+          elens_lFox(tmpi1) = tmpl
         end do
+        elens_lFox_def=tmpl
         if(st_debug) write(lout,"(a)") "ELENS> Setting lFox as read to all e-lenses"
       case('bef','before')
         do tmpi1=1,nelens-1
@@ -335,10 +335,10 @@ subroutine elens_parseInputLine(inLine, iLine, iErr)
     if (nSplit>=3) then
       select case (chr_toLower(trim(lnSplit(3))))
       case('all')
-        elens_radial_mpoints_def=tmpi2
         do tmpi1=1,nelens-1
-          elens_radial_mpoints(tmpi1) = elens_radial_mpoints_def
+          elens_radial_mpoints(tmpi1) = tmpi2
         end do
+        elens_radial_mpoints_def=tmpi2
         if(st_debug) write(lout,"(a)") "ELENS> Setting elens_radial_mpoints as read to all e-lenses"
       case('bef','before')
         do tmpi1=1,nelens-1
@@ -414,14 +414,14 @@ subroutine elens_parseInputLine(inLine, iLine, iErr)
     if (nSplit>=4) then
       select case (chr_toLower(trim(lnSplit(4))))
       case('all')
+        do tmpi1=1,nelens-1
+          elens_emin(tmpi1) = -one
+          elens_iSet(tmpi1) = tmpi2
+          elens_sigdpp(tmpi1) = tmpflt
+        end do
         elens_emin_def=-one
         elens_sigdpp_def=tmpflt
         elens_iSet_def=tmpi2
-        do tmpi1=1,nelens-1
-          elens_emin(tmpi1) = elens_emin_def
-          elens_iSet(tmpi1) = elens_iSet_def
-          elens_sigdpp(tmpi1) = elens_sigdpp_def
-        end do
         if(st_debug) write(lout,"(a)") "ELENS> Applying read rms of delta distribution to all e-lenses"
       case('before')
         do tmpi1=1,nelens-1
@@ -449,46 +449,60 @@ subroutine elens_parseInputLine(inLine, iLine, iErr)
       call sixin_echoVal("rms of delta distribution []",tmpflt,"ELENS",iLine)
     end if
     
-!   case("SPEC")
-!     if(nSplit<3.or.nSplit>4) then
-!       write(lerr,"(a,i0)") "ELENS> ERROR Expected 2 or 3 input parameters for SPEC line, got ",nSplit-1
-!       write(lerr,"(a)")    "ELENS>       example:     SPEC  m  Q (ALL|BEF(ORE)|AFT(ER))"
-!       iErr = .true.
-!       return
-!     end if
-!    
-!     call chr_cast(lnSPlit(2), tmpl,iErr)
-!     if (nelens>0) elens_lFox(nelens)=tmpl
-! 
-!     if (nSplit>=3) then
-!       select case (chr_toLower(trim(lnSplit(3))))
-!       case('all')
-!         elens_lFox_def=tmpl
-!         do tmpi1=1,nelens-1
-!           elens_lFox(tmpi1) = elens_lFox_def
-!         end do
-!         if(st_debug) write(lout,"(a)") "ELENS> Setting lFox as read to all e-lenses"
-!       case('bef','before')
-!         do tmpi1=1,nelens-1
-!           elens_lFox(tmpi1) = elens_lFox_def
-!         end do
-!         if(st_debug) write(lout,"(a)") "ELENS> Setting lFox as read to all e-lenses "// &
-!              "declared before the current FOX line"
-!       case('aft','after')
-!         elens_lFox_def=tmpl
-!         if(st_debug) write(lout,"(a)") "ELENS> Setting lFox as read to all e-lenses "// &
-!              "declared after the current FOX line"
-!       case default
-!         write(lerr,"(a)") "ELENS> ERROR Unidentified third parameter of FOX line, got: '"//trim(lnSplit(3))//"'"
-!         write(lerr,"(a)") "ELENS>       example:     FOX  on|off|true|false (ALL|BEF(ORE)|AFT(ER))"
-!         iErr = .true.
-!         return
-!       end select ! case (lnSplit(3))
-!     end if
-!     
-!     if(st_debug) then
-!       call sixin_echoVal("fox",tmpl,"ELENS",iLine)
-!     end if
+  case("SPEC")
+    if(nSplit<3.or.nSplit>4) then
+      write(lerr,"(a,i0)") "ELENS> ERROR Expected 2 or 3 input parameters for SPEC line, got ",nSplit-1
+      write(lerr,"(a)")    "ELENS>       example:     SPEC  m[MeV/c2]  Q[e] (ALL|BEF(ORE)|AFT(ER))"
+      iErr = .true.
+      return
+    end if
+   
+    call chr_cast(lnSPlit(2),tmpflt,iErr)
+    if (tmpflt<zero) then
+      write(lerr,"(a,1pe22.15)") "ELENS> ERROR negative mass specified in SPEC line, got: ",tmpflt
+      iErr = .true.
+      return
+    end if
+    call chr_cast(lnSPlit(3),tmpflt2,iErr)
+    if (nelens>0) then
+      elens_beam_mass(nelens)=tmpflt
+      elens_beam_chrg(nelens)=tmpflt2
+    end if
+  
+    if (nSplit>=4) then
+      select case (chr_toLower(trim(lnSplit(4))))
+      case('all')
+        do tmpi1=1,nelens-1
+          elens_beam_mass(tmpi1) = tmpflt
+          elens_beam_chrg(tmpi1) = tmpflt2
+        end do
+        elens_beam_mass_def=tmpflt
+        elens_beam_chrg_def=tmpflt2
+        if(st_debug) write(lout,"(a)") "ELENS> Applying read mass and charge to all e-lenses"
+      case('bef','before')
+        do tmpi1=1,nelens-1
+          elens_beam_mass(tmpi1) = tmpflt
+          elens_beam_chrg(tmpi1) = tmpflt2
+        end do
+        if(st_debug) write(lout,"(a)") "ELENS> Applying read mass and charge to all e-lenses "// &
+             "declared before the current SPEC line"
+      case('aft','after')
+        elens_beam_mass_def=tmpflt
+        elens_beam_chrg_def=tmpflt2
+        if(st_debug) write(lout,"(a)") "ELENS> Applying read mass and charge to all e-lenses "// &
+             "declared after the current SPEC line"
+      case default
+        write(lerr,"(a)") "ELENS> ERROR Unidentified fourth parameter of SPEC line, got: '"//trim(lnSplit(4))//"'"
+        write(lerr,"(a)") "ELENS>       example:     SPEC  m[MeV/c2]  Q[e] (ALL|BEF(ORE)|AFT(ER))"
+        iErr = .true.
+        return
+      end select ! case (lnSplit(4))
+    end if
+    
+    if(st_debug) then
+      call sixin_echoVal("mass of beam in lens [MeV/c2]",tmpflt,"ELENS",iLine)
+      call sixin_echoVal("charge of beam in lens [e]",tmpflt2,"ELENS",iLine)
+    end if
      
   case default
     if(nSplit < 7) then
