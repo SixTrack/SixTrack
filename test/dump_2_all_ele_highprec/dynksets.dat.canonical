@@ -1,5 +1,5 @@
-#       turn element              attribute             idx funname                        value
-           1 ACFCA.AR1.B1         voltage                 1 zero                 0.000000000E+00
-           1 ACFCA.BR1.B1         voltage                 3 zero                 0.000000000E+00
-           1 ACFCA.CR1.B1         voltage                 5 zero                 0.000000000E+00
-           1 ACFCA.DR1.B1         voltage                 7 zero                 0.000000000E+00
+#       turn element              attribute             idx funname                         value
+           1 ACFCA.AR1.B1         voltage                 1 zero                  0.000000000E+00
+           1 ACFCA.BR1.B1         voltage                 3 zero                  0.000000000E+00
+           1 ACFCA.CR1.B1         voltage                 5 zero                  0.000000000E+00
+           1 ACFCA.DR1.B1         voltage                 7 zero                  0.000000000E+00
