@@ -173,9 +173,7 @@ subroutine elens_parseInputLine(inLine, iLine, iErr)
   character(len=mStrLen) tmpch
   real(kind=fPrec) tmpflt
   integer nSplit, iElem, j, tmpi1, tmpi2, tmpi3
-  logical spErr, tmpl, lfound, tmplFox
-  real(kind=fPrec), save :: tmpEmin, tmpSigDpp
-  integer, save :: tmpSet, tmpMpoints
+  logical spErr, tmpl, lfound
 
   call chr_split(inLine, lnSplit, nSplit, spErr)
   if(spErr) then
@@ -188,41 +186,40 @@ subroutine elens_parseInputLine(inLine, iLine, iErr)
   select case (lnSplit(1))
      
   case("EMIN")
-    if(nSplit.lt.2 .or. nSplit.gt.4 ) then
+    if(nSplit<2 .or. nSplit>4 ) then
       write(lerr,"(a,i0)") "ELENS> ERROR Expected 2, 3 or 4 input parameters for EMIttance (Normalised) line, got ",nSplit-1
       write(lerr,"(a)")    "ELENS>       example:     EMIN  <emin> (min|max|ave|qve|geo) (ALL|BEF(ORE)|AFT(ER))"
       iErr = .true.
       return
     end if
    
-    call chr_cast(lnSPlit(2), tmpEmin,iErr)
-    if ( tmpEmin < zero ) then
-      write(lerr,"(a,1pe22.15)") "ELENS> ERROR Negative values of normalised emittance are unacceptable, got: ", &
-            tmpEmin
+    call chr_cast(lnSPlit(2),tmpflt,iErr)
+    if ( tmpflt < zero ) then
+      write(lerr,"(a,1pe22.15)") "ELENS> ERROR Negative values of normalised emittance are unacceptable, got: ", tmpflt
       iErr = .true.
       return
     end if
-    if (nelens.gt.0) then
-      elens_emin(nelens)=tmpEmin
+    if (nelens>0) then
+      elens_emin(nelens)=tmpflt
       elens_sigdpp(nelens)=-one
     end if
     
-    if (nSplit.ge.3) then
+    if (nSplit>=3) then
       select case (chr_toLower(trim(lnSplit(3))))
       case('min')
-        tmpSet=1
+        tmpi2=1
         if(st_debug) write(lout,"(a)") "ELENS> Applying read normalised emittance with min beta"
       case('max')
-        tmpSet=2
+        tmpi2=2
         if(st_debug) write(lout,"(a)") "ELENS> Applying read normalised emittance with max beta"
       case('ave')
-        tmpSet=3
+        tmpi2=3
         if(st_debug) write(lout,"(a)") "ELENS> Applying read normalised emittance with average beta"
       case('qve')
-        tmpSet=4
+        tmpi2=4
         if(st_debug) write(lout,"(a)") "ELENS> Applying read normalised emittance with quad-average beta"
       case('gve')
-        tmpSet=5
+        tmpi2=5
         if(st_debug) write(lout,"(a)") "ELENS> Applying read normalised emittance with geometric average beta"
       case default
         write(lerr,"(a)") "ELENS> ERROR Unidentified third parameter of EMIN line, got: '"//trim(lnSplit(3))//"'"
@@ -231,16 +228,16 @@ subroutine elens_parseInputLine(inLine, iLine, iErr)
         return
       end select ! case (lnSplit(3))
     else
-      tmpSet=1
+      tmpi2=1
       if(st_debug) write(lout,"(a)") "ELENS> Applying read normalised emittance with min beta (default)"
     end if
-    if (nelens.gt.0) elens_iSet(nelens)=tmpSet
+    if (nelens>0) elens_iSet(nelens)=tmpi2
        
-    if (nSplit.ge.4) then
+    if (nSplit>=4) then
       select case (chr_toLower(trim(lnSplit(4))))
       case('all')
-        elens_emin_def=tmpEmin
-        elens_iSet_def=tmpSet
+        elens_emin_def=tmpflt
+        elens_iSet_def=tmpi2
         elens_sigdpp_def=-one
         do tmpi1=1,nelens-1
           elens_emin(tmpi1) = elens_emin_def
@@ -250,15 +247,15 @@ subroutine elens_parseInputLine(inLine, iLine, iErr)
         if(st_debug) write(lout,"(a)") "ELENS> Applying read normalised emittance to all e-lenses"
       case('bef','before')
         do tmpi1=1,nelens-1
-          elens_emin(tmpi1) = tmpEmin
-          elens_iSet(tmpi1) = tmpSet
+          elens_emin(tmpi1) = tmpflt
+          elens_iSet(tmpi1) = tmpi2
           elens_sigdpp(tmpi1) = -one
         end do
         if(st_debug) write(lout,"(a)") "ELENS> Applying read normalised emittance to all e-lenses "// &
              "declared before the current EMIN line"
       case('aft','after')
-        elens_emin_def=tmpEmin
-        elens_iSet_def=tmpSet
+        elens_emin_def=tmpflt
+        elens_iSet_def=tmpi2
         elens_sigdpp_def=-one
         if(st_debug) write(lout,"(a)") "ELENS> Applying read normalised emittance to all e-lenses "// &
              "declared after the current EMIN line"
@@ -271,36 +268,36 @@ subroutine elens_parseInputLine(inLine, iLine, iErr)
     end if
 
     if(st_debug) then
-      call sixin_echoVal("normalised emittance [m rad]",tmpEmin,"ELENS",iLine)
+      call sixin_echoVal("normalised emittance [m rad]",tmpflt,"ELENS",iLine)
     end if
     
   case("FOX")
-    if(nSplit.lt.2 .or. nSplit.gt.3) then
+    if(nSplit<2 .or. nSplit>3) then
       write(lerr,"(a,i0)") "ELENS> ERROR Expected 1 or 2 input parameters for FOX line, got ",nSplit-1
       write(lerr,"(a)")    "ELENS>       example:     FOX  on|off|true|false (ALL|BEF(ORE)|AFT(ER))"
       iErr = .true.
       return
     end if
    
-    call chr_cast(lnSPlit(2), tmplFox,iErr)
-    if (nelens.gt.0) elens_lFox(nelens)=tmplFox
+    call chr_cast(lnSPlit(2), tmpl,iErr)
+    if (nelens>0) elens_lFox(nelens)=tmpl
 
-    if (nSplit.ge.3) then
+    if (nSplit>=3) then
       select case (chr_toLower(trim(lnSplit(3))))
       case('all')
-        elens_lFox_def=tmplFox
+        elens_lFox_def=tmpl
         do tmpi1=1,nelens-1
           elens_lFox(tmpi1) = elens_lFox_def
         end do
         if(st_debug) write(lout,"(a)") "ELENS> Setting lFox as read to all e-lenses"
       case('bef','before')
         do tmpi1=1,nelens-1
-          elens_lFox(tmpi1) = elens_lFox_def
+          elens_lFox(tmpi1) = tmpl
         end do
         if(st_debug) write(lout,"(a)") "ELENS> Setting lFox as read to all e-lenses "// &
              "declared before the current FOX line"
       case('aft','after')
-        elens_lFox_def=tmplFox
+        elens_lFox_def=tmpl
         if(st_debug) write(lout,"(a)") "ELENS> Setting lFox as read to all e-lenses "// &
              "declared after the current FOX line"
       case default
@@ -312,11 +309,11 @@ subroutine elens_parseInputLine(inLine, iLine, iErr)
     end if
     
     if(st_debug) then
-      call sixin_echoVal("fox",tmplFox,"ELENS",iLine)
+      call sixin_echoVal("fox",tmpl,"ELENS",iLine)
     end if
      
   case("INTER")
-    if(nSplit.lt.2 .or. nSplit.gt.3) then
+    if(nSplit<2 .or. nSplit>3) then
       write(lerr,"(a,i0)") "ELENS> ERROR Expected 1 or 2 input parameters for INTERpolation line, got ",nSplit-1
       write(lerr,"(a)")    "ELENS>       example:     INTER  <elens_radial_mpoints> (ALL|BEF(ORE)|AFT(ER))"
       iErr = .true.
@@ -326,31 +323,31 @@ subroutine elens_parseInputLine(inLine, iLine, iErr)
       write(lout,"(a,i0)") "ELENS> WARNING INTERpolation setting for an ELENS type without radial profile - ignoring setting..."
       return
     end if
-    call chr_cast(lnSPlit(2), tmpMpoints,iErr)
-    if ( tmpMpoints <=0 .or. tmpMpoints>20 ) then
-      write(lerr,"(a,i0)") "ELENS> ERROR Unreasonable number of points for radial interpolation, got ",tmpMpoints
+    call chr_cast(lnSPlit(2), tmpi2,iErr)
+    if ( tmpi2 <=0 .or. tmpi2>20 ) then
+      write(lerr,"(a,i0)") "ELENS> ERROR Unreasonable number of points for radial interpolation, got ",tmpi2
       write(lerr,"(a)")    "ELENS>       Please choose a value beterrn 1 and 20 (included)"
       iErr = .true.
       return
     end if
-    if (nelens.gt.0) elens_radial_mpoints(nelens)=tmpMpoints
+    if (nelens>0) elens_radial_mpoints(nelens)=tmpi2
     
-    if (nSplit.ge.3) then
+    if (nSplit>=3) then
       select case (chr_toLower(trim(lnSplit(3))))
       case('all')
-        elens_radial_mpoints_def=tmpMpoints
+        elens_radial_mpoints_def=tmpi2
         do tmpi1=1,nelens-1
           elens_radial_mpoints(tmpi1) = elens_radial_mpoints_def
         end do
         if(st_debug) write(lout,"(a)") "ELENS> Setting elens_radial_mpoints as read to all e-lenses"
       case('bef','before')
         do tmpi1=1,nelens-1
-          elens_radial_mpoints(tmpi1) = elens_radial_mpoints_def
+          elens_radial_mpoints(tmpi1) = tmpi2
         end do
         if(st_debug) write(lout,"(a)") "ELENS> Setting elens_radial_mpoints as read to all e-lenses "// &
              "declared before the current FOX line"
       case('aft','after')
-        elens_radial_mpoints_def=tmpMpoints
+        elens_radial_mpoints_def=tmpi2
         if(st_debug) write(lout,"(a)") "ELENS> Setting elens_radial_mpoints as read to all e-lenses "// &
              "declared after the current FOX line"
       case default
@@ -362,45 +359,45 @@ subroutine elens_parseInputLine(inLine, iLine, iErr)
     end if
     
     if(st_debug) then
-      call sixin_echoVal("interp. points",tmpMpoints,"ELENS",iLine)
+      call sixin_echoVal("interp. points",tmpi2,"ELENS",iLine)
     end if
 
   case("SIGDPP")
-    if(nSplit.lt.2 .or. nSplit.gt.4 ) then
+    if(nSplit<2 .or. nSplit>4 ) then
       write(lerr,"(a,i0)") "ELENS> ERROR Expected 2, 3 or 4 input parameters for SIGma Delta_P over P line, got ",nSplit-1
       write(lerr,"(a)")    "ELENS>       example:     SIDPP  <sigdpp> (min|max|ave|qve|geo) (ALL|BEF(ORE)|AFT(ER))"
       iErr = .true.
       return
     end if
    
-    call chr_cast(lnSPlit(2), tmpSigDpp,iErr)
-    if ( tmpSigDpp < zero ) then
+    call chr_cast(lnSPlit(2), tmpflt,iErr)
+    if ( tmpflt < zero ) then
       write(lerr,"(a,1pe22.15)") "ELENS> ERROR Negative values of rms of delta distribution are unacceptable, got: ", &
-            tmpSigDpp
+            tmpflt
       iErr = .true.
       return
     end if
-    if (nelens.gt.0) then
+    if (nelens>0) then
       elens_emin(nelens)=-one
-      elens_sigdpp(nelens)=tmpSigDpp
+      elens_sigdpp(nelens)=tmpflt
     end if
 
-    if (nSplit.ge.3) then
+    if (nSplit>=3) then
       select case (chr_toLower(trim(lnSplit(3))))
       case('min')
-        tmpSet=1
+        tmpi2=1
         if(st_debug) write(lout,"(a)") "ELENS> Applying read rms of delta distribution with min dispersion"
       case('max')
-        tmpSet=2
+        tmpi2=2
         if(st_debug) write(lout,"(a)") "ELENS> Applying read rms of delta distribution with max dispersion"
       case('ave')
-        tmpSet=3
+        tmpi2=3
         if(st_debug) write(lout,"(a)") "ELENS> Applying read rms of delta distribution with average dispersion"
       case('qve')
-        tmpSet=4
+        tmpi2=4
         if(st_debug) write(lout,"(a)") "ELENS> Applying read rms of delta distribution with quad-average dispersion"
       case('geo')
-        tmpSet=5
+        tmpi2=5
         if(st_debug) write(lout,"(a)") "ELENS> Applying read rms of delta distribution with geometric average beta"
       case default
         write(lerr,"(a)") "ELENS> ERROR Unidentified third parameter of SIGDPP line, got: '"//trim(lnSplit(3))//"'"
@@ -409,17 +406,17 @@ subroutine elens_parseInputLine(inLine, iLine, iErr)
         return
       end select ! case (lnSplit(3))
     else
-      tmpSet=1
+      tmpi2=1
       if(st_debug) write(lout,"(a)") "ELENS> Applying read rms of delta distribution with min dispersion (default)"
     end if
-    if (nelens.gt.0) elens_iSet(nelens)=tmpSet
+    if (nelens>0) elens_iSet(nelens)=tmpi2
        
-    if (nSplit.ge.4) then
+    if (nSplit>=4) then
       select case (chr_toLower(trim(lnSplit(4))))
       case('all')
         elens_emin_def=-one
-        elens_sigdpp_def=tmpSigDpp
-        elens_iSet_def=tmpSet
+        elens_sigdpp_def=tmpflt
+        elens_iSet_def=tmpi2
         do tmpi1=1,nelens-1
           elens_emin(tmpi1) = elens_emin_def
           elens_iSet(tmpi1) = elens_iSet_def
@@ -429,15 +426,15 @@ subroutine elens_parseInputLine(inLine, iLine, iErr)
       case('before')
         do tmpi1=1,nelens-1
           elens_emin(tmpi1) = -one
-          elens_iSet(tmpi1) = tmpSet
-          elens_sigdpp(tmpi1) = tmpSigDpp
+          elens_iSet(tmpi1) = tmpi2
+          elens_sigdpp(tmpi1) = tmpflt
         end do
         if(st_debug) write(lout,"(a)") "ELENS> Applying read rms of delta distribution to all e-lenses"// &
              "declared before the current SIGDPP line"
       case('after')
         elens_emin_def=-one
-        elens_iSet_def=tmpSet
-        elens_sigdpp_def=tmpSigDpp
+        elens_iSet_def=tmpi2
+        elens_sigdpp_def=tmpflt
         if(st_debug) write(lout,"(a)") "ELENS> Applying read rms of delta distribution to all e-lenses"// &
              "declared after the current SIGDPP line"
       case default
@@ -449,9 +446,50 @@ subroutine elens_parseInputLine(inLine, iLine, iErr)
     end if
 
     if(st_debug) then
-      call sixin_echoVal("rms of delta distribution []",tmpSigDpp,"ELENS",iLine)
+      call sixin_echoVal("rms of delta distribution []",tmpflt,"ELENS",iLine)
     end if
     
+!   case("SPEC")
+!     if(nSplit<3.or.nSplit>4) then
+!       write(lerr,"(a,i0)") "ELENS> ERROR Expected 2 or 3 input parameters for SPEC line, got ",nSplit-1
+!       write(lerr,"(a)")    "ELENS>       example:     SPEC  m  Q (ALL|BEF(ORE)|AFT(ER))"
+!       iErr = .true.
+!       return
+!     end if
+!    
+!     call chr_cast(lnSPlit(2), tmpl,iErr)
+!     if (nelens>0) elens_lFox(nelens)=tmpl
+! 
+!     if (nSplit>=3) then
+!       select case (chr_toLower(trim(lnSplit(3))))
+!       case('all')
+!         elens_lFox_def=tmpl
+!         do tmpi1=1,nelens-1
+!           elens_lFox(tmpi1) = elens_lFox_def
+!         end do
+!         if(st_debug) write(lout,"(a)") "ELENS> Setting lFox as read to all e-lenses"
+!       case('bef','before')
+!         do tmpi1=1,nelens-1
+!           elens_lFox(tmpi1) = elens_lFox_def
+!         end do
+!         if(st_debug) write(lout,"(a)") "ELENS> Setting lFox as read to all e-lenses "// &
+!              "declared before the current FOX line"
+!       case('aft','after')
+!         elens_lFox_def=tmpl
+!         if(st_debug) write(lout,"(a)") "ELENS> Setting lFox as read to all e-lenses "// &
+!              "declared after the current FOX line"
+!       case default
+!         write(lerr,"(a)") "ELENS> ERROR Unidentified third parameter of FOX line, got: '"//trim(lnSplit(3))//"'"
+!         write(lerr,"(a)") "ELENS>       example:     FOX  on|off|true|false (ALL|BEF(ORE)|AFT(ER))"
+!         iErr = .true.
+!         return
+!       end select ! case (lnSplit(3))
+!     end if
+!     
+!     if(st_debug) then
+!       call sixin_echoVal("fox",tmpl,"ELENS",iLine)
+!     end if
+     
   case default
     if(nSplit < 7) then
       write(lerr,"(a,i0)") "ELENS> ERROR Expected at least 7 input parameters, got ",nSplit
@@ -746,7 +784,7 @@ subroutine elens_postInput
 
   ! check that, in case R1/R2 are declared by the user in terms of n-sigma, the provided info is consistent
   do j=1,nelens
-    if (elens_r1(j).lt.zero .or. elens_r2(j).lt.zero .or. elens_sig(j).lt.zero) then
+    if (elens_r1(j)<zero .or. elens_r2(j)<zero .or. elens_sig(j)<zero) then
       ! printout:
       ! - find name of elens
       do jj=1,nele
@@ -757,17 +795,17 @@ subroutine elens_postInput
         end if
       end do
       write(lout,"(a,i0,a)") "ELENS> checking consistency of user input data for e-lens #",j," named "//trim(bez(jj))//"..."
-      if (elens_r1(j).lt.zero) write(lout,"(a)") "ELENS> ...e-lens has R1<0"
-      if (elens_r2(j).lt.zero) write(lout,"(a)") "ELENS> ...e-lens has R2<0"
-      if (elens_sig(j).lt.zero) write(lout,"(a)") "ELENS> ...e-lens has sig_el<0"
-      if (elens_emin(j).gt.zero.and.elens_sigdpp(j).gt.zero) then
+      if (elens_r1(j)<zero) write(lout,"(a)") "ELENS> ...e-lens has R1<0"
+      if (elens_r2(j)<zero) write(lout,"(a)") "ELENS> ...e-lens has R2<0"
+      if (elens_sig(j)<zero) write(lout,"(a)") "ELENS> ...e-lens has sig_el<0"
+      if (elens_emin(j)>zero.and.elens_sigdpp(j)>zero) then
         write(lerr,"(a)") "ELENS> ERROR cannot express R1/R2 cuts in terms of both normalised emittance "// &
               "and rms of delta distribution."
         write(lerr,"(a)") "ELENS>       please choose one of the two!"
         write(lerr,"(a,1pe22.15)") "ELENS>       got emin [m rad]=",elens_emin(j)
         write(lerr,"(a,1pe22.15)") "ELENS>       got sigdpp []=",elens_sigdpp(j)
         call prror
-      elseif (elens_emin(j).lt.zero.and.elens_sigdpp(j).lt.zero) then
+      elseif (elens_emin(j)<zero.and.elens_sigdpp(j)<zero) then
         write(lerr,"(a)") "ELENS> ERROR cannot express R1/R2 cuts in terms of both normalised emittance "// &
               "or rms of delta distribution without specifying one of the two."
         write(lerr,"(a)") "ELENS>       please choose one of the two!"
@@ -831,7 +869,7 @@ subroutine elens_postLinopt
       end if
     end do
 
-    if (elens_r1(j).lt.zero.or.elens_r2(j).lt.zero.or.elens_sig(j).lt.zero) then
+    if (elens_r1(j)<zero.or.elens_r2(j)<zero.or.elens_sig(j)<zero) then
       if (elens_iSet(j).eq.3 ) then
         elens_optVal(j)=elens_optVal(j)/real(elens_nUpdates(j),fPrec)
       elseif (elens_iSet(j).eq.4 ) then
@@ -840,9 +878,9 @@ subroutine elens_postLinopt
     end if
    
     ! compute R1 out of normalised settings
-    if (elens_r1(j).lt.zero) then
+    if (elens_r1(j)<zero) then
       oldVal=elens_r1(j)
-      if (elens_emin(j).gt.zero) then ! betatron cut
+      if (elens_emin(j)>zero) then ! betatron cut
         elens_r1(j)=abs(elens_r1(j))*sqrt(elens_optVal(j)*elens_emin(j)/(e0f/nucm0))
       else ! momentum cut
         elens_r1(j)=abs(elens_r1(j))*(elens_optVal(j)*elens_sigdpp(j))
@@ -854,9 +892,9 @@ subroutine elens_postLinopt
       write(lout,"(a,1pe22.15)") "ELENS> - new value [mm]=",elens_r1(j)
     end if
     ! compute R2 out of normalised settings
-    if (elens_r2(j).lt.zero) then
+    if (elens_r2(j)<zero) then
       oldVal=elens_r2(j)
-      if (elens_emin(j).gt.zero) then ! betatron cut
+      if (elens_emin(j)>zero) then ! betatron cut
         elens_r2(j)=abs(elens_r2(j))*sqrt(elens_optVal(j)*elens_emin(j)/(e0f/nucm0))
       else ! momentum cut
         elens_r2(j)=abs(elens_r2(j))*(elens_optVal(j)*elens_sigdpp(j))
@@ -868,9 +906,9 @@ subroutine elens_postLinopt
       write(lout,"(a,1pe22.15)") "ELENS> - new value [mm]=",elens_r2(j)
     end if
     ! compute electron sigma out of normalised settings
-    if (elens_sig(j).lt.zero) then
+    if (elens_sig(j)<zero) then
       oldVal=elens_sig(j)
-      if (elens_emin(j).gt.zero) then ! betatron cut
+      if (elens_emin(j)>zero) then ! betatron cut
         elens_sig(j)=abs(elens_sig(j))*sqrt(elens_optVal(j)*elens_emin(j)/(e0f/nucm0))
       else ! momentum cut
         elens_sig(j)=abs(elens_sig(j))*(elens_optVal(j)*elens_sigdpp(j))
@@ -893,7 +931,7 @@ subroutine elens_postLinopt
 
     ! check R1 and R2 against map
     if (elens_type(j).eq.3 ) then
-      if ( elens_r1(j).lt. elens_radial_profile_R(0,elens_iRadial(j)) ) then
+      if ( elens_r1(j)< elens_radial_profile_R(0,elens_iRadial(j)) ) then
         write(lerr,"(a,i0,a)") "ELENS> ERROR on elens #",j, " named "//trim(bez(jj))//": "
         write(lerr,"(a)")      "ELENS>       R1 declared in "//trim(fort3)//" falls outside range of map" // &
              " contained in "//trim(elens_radial_filename(elens_iRadial(j)))
@@ -901,7 +939,7 @@ subroutine elens_postLinopt
              " mm, Rmax=",elens_radial_profile_R(elens_radial_profile_nPoints(elens_iRadial(j)),elens_iRadial(j))," mm"
         call prror
       end if
-      if ( elens_r2(j).gt. elens_radial_profile_R(elens_radial_profile_nPoints(elens_iRadial(j)),elens_iRadial(j)) ) then
+      if ( elens_r2(j)> elens_radial_profile_R(elens_radial_profile_nPoints(elens_iRadial(j)),elens_iRadial(j)) ) then
         write(lerr,"(a,i0,a)") "ELENS> ERROR on elens #",j, " named "//trim(bez(jj))//": "
         write(lerr,"(a)")      "ELENS>       R2 declared in "//trim(fort3)//" falls outside range of map" // &
              " contained in "//trim(elens_radial_filename(elens_iRadial(j)))
@@ -960,12 +998,12 @@ subroutine elens_setOptics(iElem, bAlpha, bBeta, bOrbit, bOrbitP, bDisp, bDispP)
   real(kind=fPrec), intent(in) :: bDisp(2)
   real(kind=fPrec), intent(in) :: bDispP(2)
 
-  if(iElem<1 .or. iElem>nele .or. ( elens_r1(ielens(iElem)).gt.zero .and. &
-       elens_r2(ielens(iElem)).gt.zero .and. elens_sig(ielens(iElem)).gt.zero)) return
+  if(iElem<1 .or. iElem>nele .or. ( elens_r1(ielens(iElem))>zero .and. &
+       elens_r2(ielens(iElem))>zero .and. elens_sig(ielens(iElem))>zero)) return
 
   elens_nUpdates(ielens(iElem))=elens_nUpdates(ielens(iElem))+1
 
-  if (elens_emin(ielens(iElem)).gt.zero) then ! betatron cut
+  if (elens_emin(ielens(iElem))>zero) then ! betatron cut
     select case (elens_iSet(ielens(iElem)))
     case(1) ! min
        if (elens_optVal(ielens(iElem)).eq.zero) then ! first time
@@ -1293,8 +1331,8 @@ subroutine elens_kick(i,ix,n)
     !    0    if r <= R1
     !    frr  if R1 < r < R2
     !    1    if r >= R2
-    if (rr.gt.elens_r1(ielens(ix)).or.(elens_lZeroThick(ielens(ix)).and.rr.eq.elens_r1(ielens(ix)))) then ! rr<=R1 -> no kick from elens
-      if (rr.lt.elens_r2(ielens(ix))) then ! R1<rr<R2
+    if (rr>elens_r1(ielens(ix)).or.(elens_lZeroThick(ielens(ix)).and.rr.eq.elens_r1(ielens(ix)))) then ! rr<=R1 -> no kick from elens
+      if (rr<elens_r2(ielens(ix))) then ! R1<rr<R2
         select case (elens_type(ielens(ix)))
         case (1)
           ! UNIFORM: eLens with uniform profile
@@ -1447,7 +1485,7 @@ subroutine elens_kick_fox(i,ix)
   !    rr = sqrt(xx**2+yy**2)
 !FOX  RR_SQ=(XI+YI)*(XI+YI)-(TWO*XI)*YI ;
   call dapek(RR_SQ,hh,RRA)
-  if ( abs(RRA).gt.epsilon**2 ) then
+  if ( abs(RRA)>epsilon**2 ) then
 !FOX  RR=SQRT(RR_SQ) ;
   else
 !FOX  RR=ZERO ;
@@ -1465,9 +1503,9 @@ subroutine elens_kick_fox(i,ix)
     write(lout,'(2(a,1pe23.16))')'ELENS>                when R1=',elens_r1(iLens),' and R2=',elens_r2(iLens)
   end if
     
-  if ( RRA.gt.elens_r1(iLens)+epsilon .or. &
-       (elens_lZeroThick(iLens).and.abs(RRA-elens_r1(iLens)).lt.epsilon) ) then ! rr<=R1 -> no kick from elens
-    if (RRA.lt.elens_r2(iLens)-epsilon) then ! R1<rr<R2
+  if ( RRA>elens_r1(iLens)+epsilon .or. &
+       (elens_lZeroThick(iLens).and.abs(RRA-elens_r1(iLens))<epsilon) ) then ! rr<=R1 -> no kick from elens
+    if (RRA<elens_r2(iLens)-epsilon) then ! R1<rr<R2
       flush(lout)
       select case (elens_type(iLens))
       case (1)
@@ -1519,7 +1557,7 @@ subroutine elens_kick_fox(i,ix)
 !FOX    FRR=FRR*((RV-ELEBET*BETA0)/(ONE-ELEBET*BETA0)) ;
       end if
     end if
-    if (abs(RRA-elens_r1(iLens)).lt.epsilon.or.abs(RRA-elens_r2(iLens)).lt.epsilon) then ! rr==R1 and rr==R2 
+    if (abs(RRA-elens_r1(iLens))<epsilon.or.abs(RRA-elens_r2(iLens))<epsilon) then ! rr==R1 and rr==R2 
       ! set all derivatives to 0.0
       call dapek(FRR,hh,FRRA)
 !FOX    FRR=ZERO ;
