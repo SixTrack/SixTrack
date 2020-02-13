@@ -365,7 +365,7 @@ contains
   subroutine ffield_mod_link(iErr)
     ! Mod from SixTrack
     ! ---------------------------------------------------------------------------------------------- !
-    use mod_common,          only : e0f
+    use mod_common,          only : e0f, qq0
     use physical_constants,  only : clight
     use numerical_constants, only : c1e6
 
@@ -385,7 +385,7 @@ contains
       ffNLn = ffNLn-1
       ffMSn = ffMSn-1
       ffNLFile = ffNLFile-1
-      norm=clight/(e0f*c1e6)   ! [c/eV] = 1/p0
+      norm=(qq0*clight)/(e0f*c1e6)   ! [c/eV] = Q0/p0
 
       ! Generate the array of type(ffTable_n_Track)
       ! -------------------------------------------------------------------------------------------- !
@@ -594,7 +594,7 @@ contains
     use parpro,              only : nblo
     use mod_common,          only : napx, ic, tiltc, tilts
     use mod_common_track,    only : strack
-    use mod_common_main,     only : xv1, xv2, yv1, yv2, oidpsv, dpsv, zsiv, xsiv, llostp !, rvv, ejv
+    use mod_common_main,     only : xv1, xv2, yv1, yv2, oidpsv, dpsv, zsiv, xsiv, llostp, mtc !, rvv, ejv
     use numerical_constants, only : half, one, c1e3, c1m3, c1m6
 
     implicit none
