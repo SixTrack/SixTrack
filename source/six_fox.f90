@@ -1311,8 +1311,17 @@ subroutine umlauda
 !FOX  Y(1)=EJF0/EJF1*Y(1) ;
 !FOX  Y(2)=EJF0/EJF1*Y(2) ;
       endif
-    if(kzz.eq.cheby_kz) then ! Elens
-      if (cheby_lFox(icheby(ix))) call cheby_kick_fox(i,ix)
+    if(kzz.eq.cheby_kz) then ! Chebyshev map
+      if (cheby_lFox(icheby(ix))) then
+        ! inspired by wireda
+!FOX  XX(1)=X(1) ;
+!FOX  XX(2)=X(2) ;
+!FOX  YY(1)=Y(1) ;
+!FOX  YY(2)=Y(2) ;
+        call cheby_kick_fox(i,ix)
+!FOX  Y(1)=YY(1) ;
+!FOX  Y(2)=YY(2) ;
+      end if
     end if
     if(kzz.eq.22) then ! Phase Trombone
       irrtr=imtr(ix)

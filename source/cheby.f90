@@ -680,6 +680,7 @@ subroutine cheby_kick_fox(i,ix)
   ! apply kick of Chebyshev lenses (FOX)
 
   use mod_common, only : beta0, mtcda, brho
+  use mod_settings, only : st_debug
   use crcoall, only : lout
   use numerical_constants, only : zero, c180e0, pi
   use physical_constants, only: clight
@@ -702,24 +703,47 @@ subroutine cheby_kick_fox(i,ix)
 !-----------------------------------------------------------------------
 !FOX  B D ;
 #include "include/dainicom.f90"
-!FOX  D V DA INT XI  NORD NVAR ; D V DA INT YI    NORD NVAR ;
-!FOX  D V DA INT DXP NORD NVAR ; D V DA INT DYP   NORD NVAR ;
-!FOX  D V DA INT RR  NORD NVAR ; D V DA INT RADIO NORD NVAR ;
-!FOX  D V DA INT UU  NORD NVAR ; D V DA INT VV    NORD NVAR ;
-!FOX  D V DA INT FU  NORD NVAR ; D V DA INT FV    NORD NVAR ;
+!FOX  D V DA INT XI    NORD NVAR ;
+!FOX  D V DA INT YI    NORD NVAR ;
+!FOX  D V DA INT DXP   NORD NVAR ;
+!FOX  D V DA INT DYP   NORD NVAR ;
+!FOX  D V DA INT RR    NORD NVAR ;
+!FOX  D V DA INT RADIO NORD NVAR ;
+!FOX  D V DA INT UU    NORD NVAR ;
+!FOX  D V DA INT VV    NORD NVAR ;
+!FOX  D V DA INT FU    NORD NVAR ;
+!FOX  D V DA INT FV    NORD NVAR ;
 !FOX  D V DA INT THETA NORD NVAR ;
-!FOX  D V DA INT TX  NORD NVAR 20 ; D V DA INT TY  NORD NVAR 20 ;
-!FOX  D V DA INT TPX NORD NVAR 20 ; D V DA INT TPY NORD NVAR 20 ;
-!FOX  D V RE INT XCLO ; D V RE INT YCLO ; D V RE INT CSCAL ;
-!FOX  D V RE INT BETA0 ; D V RE INT BRHO ; D V RE INT CLIGHT ; 
-!FOX  D V RE INT XA   ; D V RE INT YA   ; D V RE INT REFR ;
-!FOX  D V RE INT DXPA ; D V RE INT DYPA ;
-!FOX  D V RE INT RNN ; D V RE INT COEFF ; D V RE INT ANGRAD ;
-!FOX  D V RE INT ONE ; D V RE INT ZERO ;  D V RE INT C1E3 ; D V RE INT C1M3 ; D V RE INT TWO ;
-!FOX  D V RE INT NN ; D V RE INT JJ ; D V RE INT MM ; D V RE INT LL ; D V RE INT OO ;
+!FOX  D V DA INT TX    NORD NVAR 20 ;
+!FOX  D V DA INT TY    NORD NVAR 20 ;
+!FOX  D V DA INT TPX   NORD NVAR 20 ;
+!FOX  D V DA INT TPY   NORD NVAR 20 ;
+!FOX  D V RE INT XCLO ;
+!FOX  D V RE INT YCLO ;
+!FOX  D V RE INT CSCAL ;
+!FOX  D V RE INT BETA0 ;
+!FOX  D V RE INT BRHO ;
+!FOX  D V RE INT CLIGHT ;
+!FOX  D V RE INT XA ;
+!FOX  D V RE INT YA ;
+!FOX  D V RE INT REFR ;
+!FOX  D V RE INT DXPA ;
+!FOX  D V RE INT DYPA ;
+!FOX  D V RE INT RNN ;
+!FOX  D V RE INT COEFF ;
+!FOX  D V RE INT ANGRAD ;
+!FOX  D V RE INT ONE ;
+!FOX  D V RE INT ZERO ;
+!FOX  D V RE INT C1E3 ;
+!FOX  D V RE INT C1M3 ;
+!FOX  D V RE INT TWO ;
+!FOX  D V RE INT NN ;
+!FOX  D V RE INT JJ ;
+!FOX  D V RE INT MM ;
+!FOX  D V RE INT LL ;
+!FOX  D V RE INT OO ;
 !FOX  E D ;
 !FOX  1 if(1.eq.1) then
-  call comt_daStart
 !-----------------------------------------------------------------------
 
   write(lout,'(2(a,i0))')'CHEBY> CHEBY_KICK_FOX for i=',i,' - ix=',ix
@@ -734,20 +758,32 @@ subroutine cheby_kick_fox(i,ix)
   lrotate = cheby_angle(icheby(ix)).ne.zero
   angrad = (cheby_angle(icheby(ix))/c180e0)*pi
 
+  if (st_debug) then
+    write(lout,'(a)')'CHEBY> CHEBY_KICK_FOX closed orbit BEFORE cheby map:'
+    call dapri(XX(1),6)
+    call dapri(XX(2),6)
+    call dapri(YY(1),6)
+    call dapri(YY(2),6)
+  end if
+ 
   ! apply offset
 !FOX  XI=XX(1)-XCLO ;
 !FOX  YI=XX(2)-YCLO ;
-  call dapek(XI,hh,XA)
-  call dapek(YI,hh,YA)
-  write(lout,'(2(a,1pe22.15))')'CHEBY> CHEBY_KICK_FOX computing at XA=',XA,' - YA=',YA
-  
+  if (st_debug) then
+    call dapek(XI,hh,XA)
+    call dapek(YI,hh,YA)
+    write(lout,'(2(a,1pe22.15))')'CHEBY> CHEBY_KICK_FOX computing at XA=',XA,' - YA=',YA
+  end if
+    
   ! check that particle is within the domain of chebyshev polynomials
 !FOX  RR=SQRT(XI*XI+YI*YI) ;
-  call dapek(RR,hh,RRA)
-  write(lout,'(a,1pe22.15)')   'CHEBY> CHEBY_KICK_FOX computing at RRA=',RRA
-  write(lout,'(2(a,1pe22.15))')'CHEBY>                when R1=',cheby_r1(icheby(ix)),&
-                                                      'and R2=',cheby_r2(icheby(ix))
-
+  if (st_debug) then
+    call dapek(RR,hh,RRA)
+    write(lout,'(a,1pe22.15)')   'CHEBY> CHEBY_KICK_FOX computing at RRA=',RRA
+    write(lout,'(2(a,1pe22.15))')'CHEBY>                when R1=',cheby_r1(icheby(ix)),&
+                                                        'and R2=',cheby_r2(icheby(ix))
+  end if
+    
   if (RRA.ge.cheby_r1(icheby(ix)).and.RRA.lt.cheby_r2(icheby(ix))) then ! rr<r1 || rr>=r2 -> no kick from lens
      
     ! in case of non-zero tilt angle, rotate coordinates
@@ -820,12 +856,20 @@ subroutine cheby_kick_fox(i,ix)
       
   end if
    
-  call comt_daEnd
-  
-  call dapek(DXP,hh,DXPA)
-  call dapek(DYP,hh,DYPA)
-  write(lout,'(2(a,1pe22.15))')'CHEBY> CHEBY_KICK_FOX computed at RRA=',RRA,' - DXPA=',DXPA,' - DYPA=',DYPA
+  if (st_debug) then
+    call dapek(DXP,hh,DXPA)
+    call dapek(DYP,hh,DYPA)
+    write(lout,'(2(a,1pe22.15))')'CHEBY> CHEBY_KICK_FOX computed at RRA=',RRA,' - DXPA=',DXPA,' - DYPA=',DYPA
+    write(lout,'(a)')'CHEBY> CHEBY_KICK_FOX closed orbit AFTER elens:'
+    call dapri(XX(1),6)
+    call dapri(XX(2),6)
+    call dapri(YY(1),6)
+    call dapri(YY(2),6)
+  end if
 
+! Do not remove or modify the comment below.
+!     DADAL AUTOMATIC INCLUSION
+  
 end subroutine cheby_kick_fox
 
 
