@@ -224,17 +224,15 @@ subroutine aperture_init
       apefilepos=0
 #endif
 
-      write(losses_unit,"(a)") chr_lpad('turn',9) // chr_lpad('block',9) // chr_lpad('bezid',9) // chr_rpad(' bez',49) //&
-&                              chr_lpad('slos',13) // &
 #ifdef FLUKA
-&        chr_lpad('fluka_uid',10) // chr_lpad('fluka_gen',10) // chr_lpad('fluka_weight',15) //  &
+      write(losses_unit,"(a1,1x,a7,2(1x,a8),1x,a48,1x,a12,2(1x,a9),8(1x,a14),3(1x,a8),1x,a12)")     &
+        "#","turn","block","bezid",chr_rPad("bez",48),"slos","fluka_uid","fluka_gen","fluka_weight",&
+        "x[m]","xp","y[m]","yp","P_tot[GeV/c]","dE[eV]","dT[s]","A","Z","Q","PDGid"
 #else
-&        chr_lpad('partid',9) // &
+      write(losses_unit,"(a1,1x,a7,2(1x,a8),1x,a48,1x,a12,1x,a8,7(1x,a14),3(1x,a8),1x,a12)") &
+        "#","turn","block","bezid",chr_rPad("bez",48),"slos","partid",                       &
+        "x[m]","xp","y[m]","yp","P_tot[GeV/c]","dE[eV]","dT[s]","A","Z","Q","PDGid"
 #endif
-&        chr_lpad('x (m)',15) // chr_lpad('xp',15) // chr_lpad('y (m)',15) // chr_lpad('yp',15) // &
-&        chr_lpad('P tot (GeV/c)',15) // chr_lpad('dE (eV)',15) // chr_lpad('dT (s)',15) // &
-&        chr_lpad('A',9) // chr_lpad('Z',9) // chr_lpad('Q',9) // chr_lpad('PDGid',13)
-      ! Flush file
       flush(losses_unit)
 #ifdef CR
       apefilepos=apefilepos+1
@@ -252,7 +250,7 @@ subroutine aperture_nul( ix )
   ! initialise aperture marker to null
   !-----------------------------------------------------------------------
   implicit none
-  integer ix, jj
+  integer ix
   kape(ix)=0
   ape(:,ix)=zero
   lapeofftlt(ix)=.false.
@@ -432,7 +430,7 @@ subroutine aperture_initroffpos( ix, xoff, yoff, tilt )
   implicit none
   integer ix
   real(kind=fPrec) tilt, xoff, yoff
-  ape( 9,ix)=tilt
+  ape( 9,ix)=tilt*rad ! Converts it to radians which is used in the rest of the code. 
   ape(10,ix)=xoff
   ape(11,ix)=yoff
   lapeofftlt(ix)=ape(9,ix).ne.zero.or.ape(10,ix).ne.zero.or.ape(11,ix).ne.zero
@@ -553,7 +551,7 @@ subroutine aperture_checkApeMarker(turn, i, ix, llost)
   integer ix    ! single element type index
   logical llost ! at least a particle loss
 
-  integer j,jj
+  integer j
 
 ! temporary variables
   real(kind=fPrec) apxx, apyy, apxy, radius2
@@ -780,7 +778,7 @@ subroutine aperture_reportLoss(turn, i, ix)
   use root_output
 #endif
 
-  use collimation, only : do_coll, part_abs_turn, ipart
+  use collimation, only : do_coll, part_abs_turn
 
   implicit none
 
@@ -1003,8 +1001,7 @@ subroutine aperture_reportLoss(turn, i, ix)
               lparID=.true.
             end if
 #else
-            if ( (     do_coll .and. (  ipart(j) .eq. plost(jj) )) .or. &
-                 (.not.do_coll .and. ( partID(j) .eq. plost(jj) ))       ) then
+            if (partID(j) == plost(jj)) then
               lparID=.true.
             end if
 #endif
@@ -1022,7 +1019,7 @@ subroutine aperture_reportLoss(turn, i, ix)
           plost(jjx) = fluka_uid(j)
 #else
           if (do_coll) then
-            plost(jjx) = ipart(j)
+            plost(jjx) = partID(j)
           else
             plost(jjx) = j
           endif
@@ -1051,14 +1048,8 @@ subroutine aperture_reportLoss(turn, i, ix)
         call h5_writeData(aper_setLostPart, 15, 1, fluka_uid(j))
         call h5_writeData(aper_setLostPart, 16, 1, fluka_gen(j))
         call h5_writeData(aper_setLostPart, 17, 1, fluka_weight(j))
-#endif
-        if (do_coll) then
-          call h5_writeData(aper_setLostPart, 15, 1, ipart(j))
-        endif
-#ifndef FLUKA
-        if (.not. do_coll) then
-          call h5_writeData(aper_setLostPart, 15, 1, partID(j))
-        endif
+#else
+        call h5_writeData(aper_setLostPart, 15, 1, partID(j))
 #endif
         call h5_finaliseWrite(aper_setLostPart)
       else
@@ -1376,7 +1367,7 @@ subroutine contour_aperture_markers( itElUp, itElDw, lInsUp )
   integer itElUp, itElDw
   logical lInsUp
 ! run time variables
-  integer iElUp, iElDw, ixApeUp, ixApeDw, jj, iuold
+  integer iElUp, iElDw, ixApeUp, ixApeDw, iuold
   logical lAccrossLatticeExtremes, lsame
 
 ! echo of input parameters
@@ -1479,8 +1470,8 @@ subroutine contour_aperture_marker( iEl, lInsUp )
   integer, intent(inout) ::  iEl
   logical, intent(in)    ::  lInsUp
 ! temporary variables
-  integer i,ix,iSrcUp,iSrcDw,iApeUp,ixApeUp,iApeDw,ixApeDw,jj,itmpape,iNew,ixNew,ixApeNewFrom,ixEl
-  real(kind=fPrec) tmpape(11), ddcum
+  integer ix,iSrcUp,iSrcDw,iApeUp,ixApeUp,iApeDw,ixApeDw,jj,itmpape,iNew,ixNew,ixApeNewFrom,ixEl
+  real(kind=fPrec) tmpape(11)
   logical lconst,lApeUp,lApeDw,lAupDcum,lAdwDcum,lApe,lAss,lfit
 
 ! echo of input parameters
@@ -2274,7 +2265,7 @@ subroutine dump_aperture_xsec( iunit, itmpape, tmpape, nAzim, sLoc )
      do i=1,nAzim
         thetaRay=(i/real(nAzim))*(two*pi) ! radians
         ! call (angle to aperture ref sys)
-        call intersectTR(xRay,yRay,thetaRay-tmpape(9),tmpape(1),tmpape(2),tmpape(3),tmpape(4),tmpape(5),tmpape(6), &
+        call intersectTR(xRay,yRay,thetaRay-tmpape(9),tmpape(1),tmpape(2),tmpape(3),tmpape(4), &
              tmpape(7),tmpape(8),xChk,yChk,nChk)
         ! go back to machine reference system
         if(tmpOffTlt) call roffpos_inv(xChk,yChk,xChk,yChk,tmpape(9),tmpape(10),tmpape(11))
@@ -2648,11 +2639,11 @@ subroutine intersectRT( xRay, yRay, thetaRay, xRe, yRe, aa, bb, xChk, yChk, nChk
   return
 end subroutine intersectRT
 
-subroutine intersectTR( xRay, yRay, thetaRay, xRe, yRe, aa, bb, xOf, yOf, mOct, qOct, xChk, yChk, nChk )
+subroutine intersectTR( xRay, yRay, thetaRay, xRe, yRe, aa, bb, mOct, qOct, xChk, yChk, nChk )
   ! 0.0<=thetaRay<=2pi!!!!!
   implicit none
   ! interface variables
-  real(kind=fPrec) xRay, yRay, thetaRay, xRe, yRe, aa, bb, xOf, yOf, mOct, qOct, xChk, yChk, nChk
+  real(kind=fPrec) xRay, yRay, thetaRay, xRe, yRe, aa, bb, mOct, qOct, xChk, yChk, nChk
   ! temp variables
   real(kind=fPrec) xTmp(2), yTmp(2), nTmp(2)
   call intersectRE( xRay, yRay, thetaRay, xRe, yRe, xTmp(1), yTmp(1), nTmp(1) )
@@ -2757,7 +2748,7 @@ recursive subroutine aper_parseInputLine(inLine, iLine, iErr)
   character(len=64)               :: load_file
   real(kind=fPrec) tmplen,tmpflts(3)
   integer          nSplit, i
-  logical          spErr, lExist, apeFound, err
+  logical          spErr, apeFound
 
   call chr_split(inLine, lnSplit, nSplit, spErr)
   if(spErr) then
@@ -2953,7 +2944,7 @@ subroutine aper_parseElement(inLine, iElem, iErr)
 
   character(len=:), allocatable   :: lnSplit(:)
   real(kind=fPrec) tmpflts(8)
-  integer          nSplit, i
+  integer          nSplit
   logical          spErr
 
   call chr_split(inLine, lnSplit, nSplit, spErr)

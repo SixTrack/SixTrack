@@ -10,7 +10,7 @@ set -e #Stop on error
 #set -v
 #set -x
 
-echo "Welcome to cmake_six, camouflaging cmake and make inside the same interface as make_six !"
+echo "Welcome to cmake_six, a wrapper for cmake and make."
 echo "For help, run 'cmake_six help'"
 echo ""
 
@@ -82,9 +82,9 @@ do
     elif [[ $var == BUILD_TESTING ]]; then
         testing=1
     elif [[ $var == lxplus ]]; then
-        export PATH=/cvmfs/sft.cern.ch/lcg/contrib/CMake/3.11.1/Linux-x86_64/bin:$PATH
-        export CMAKE_ROOT=/cvmfs/sft.cern.ch/lcg/contrib/CMake/3.11.1/Linux-x86_64
-        source /cvmfs/sft.cern.ch/lcg/contrib/gcc/8/x86_64-slc6/setup.sh
+        export PATH=/cvmfs/sft.cern.ch/lcg/contrib/CMake/latest/Linux-x86_64/bin:$PATH
+        export CMAKE_ROOT=/cvmfs/sft.cern.ch/lcg/contrib/CMake/latest/Linux-x86_64
+        source /cvmfs/sft.cern.ch/lcg/contrib/gcc/9/x86_64-centos7-gcc9-opt/setup.sh
     fi
 done
 

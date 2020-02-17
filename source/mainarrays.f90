@@ -29,7 +29,7 @@ subroutine allocate_arrays
 #ifdef FLUKA
   use mod_fluka,          only : fluka_mod_expand_arrays
 #endif
-  use collimation,        only : collimation_allocate_arrays
+  use collimation,        only : collimation_expand_arrays
   use coll_db,            only : cdb_expand_arrays
 
   implicit none
@@ -38,8 +38,9 @@ subroutine allocate_arrays
   nblo  = nblo_initial
   nblz  = nblz_initial
   npart = npart_initial
+  nbb   = nbb_initial
 
-  call mod_common_expand_arrays(nele,nblo,nblz,npart)
+  call mod_common_expand_arrays(nele,nblo,nblz,npart,nbb)
   call mod_commont_expand_arrays(nblz,npart)
   call mod_commonmn_expand_arrays(nblz,npart)
   call mod_commond2_expand_arrays(nele)
@@ -48,6 +49,7 @@ subroutine allocate_arrays
   call wire_expand_arrays(nele,nblz)
   call scatter_expand_arrays(nele,npart)
   call aperture_expand_arrays(nele,npart)
+  call collimation_expand_arrays(npart,nblz)
 
   call elens_allocate_arrays
   call cheby_allocate_arrays
@@ -56,13 +58,12 @@ subroutine allocate_arrays
 #ifdef CR
   call cr_expand_arrays(npart)
 #endif
-  call collimation_allocate_arrays
   call cdb_expand_arrays(nele)
 
 end subroutine allocate_arrays
 
 ! Change the allocation of the arrays scaling with the main memry parameter nele, npart, etc.
-subroutine expand_arrays(nele_new, npart_new, nblz_new, nblo_new)
+subroutine expand_arrays(nele_new, npart_new, nblz_new, nblo_new, nbb_new)
 
 #ifdef DEBUG
   use mod_alloc, only : alloc_log
@@ -99,13 +100,14 @@ subroutine expand_arrays(nele_new, npart_new, nblz_new, nblo_new)
   integer, intent(in) :: npart_new
   integer, intent(in) :: nblz_new
   integer, intent(in) :: nblo_new
+  integer, intent(in) :: nbb_new
 
 #ifdef DEBUG
-  write(alloc_log,"(a,4(1x,i0))") "ALLOC> Expanding (nele,npart,nblz,nblo):",nele_new,npart_new,nblz_new,nblo_new
+  write(alloc_log,"(a,5(1x,i0))") "ALLOC> Expanding (nele,npart,nblz,nblo,nbb):",nele_new,npart_new,nblz_new,nblo_new,nbb_new
 #endif
 
   !Call sub-subroutines to actually expand
-  call mod_common_expand_arrays(nele_new,nblo_new,nblz_new,npart_new)
+  call mod_common_expand_arrays(nele_new,nblo_new,nblz_new,npart_new,nbb_new)
   call mod_commont_expand_arrays(nblz_new,npart_new)
   call mod_commonmn_expand_arrays(nblz_new,npart_new)
   call mod_commond2_expand_arrays(nele_new)
@@ -135,6 +137,7 @@ subroutine expand_arrays(nele_new, npart_new, nblz_new, nblo_new)
   npart = npart_new
   nblz  = nblz_new
   nblo  = nblo_new
+  nbb   = nbb_new
 
 end subroutine expand_arrays
 
@@ -144,7 +147,7 @@ subroutine allocate_thickarrays
   use mod_common_main, only : mod_commonmn_expand_thickarrays
   use mod_commons,     only : mod_commons_expand_thickarrays
   implicit none
-  call mod_commonmn_expand_thickarrays(nele, npart, nblo)
+  call mod_commonmn_expand_thickarrays(npart, nblo)
   call mod_commons_expand_thickarrays(nele, npart)
 end subroutine allocate_thickarrays
 
@@ -165,7 +168,7 @@ subroutine expand_thickarrays(nele_request, npart_request, nblz_request, nblo_re
   nblz_new  = nblz_request
   nblo_new  = nblo_request
 
-  call mod_commonmn_expand_thickarrays(nele_new, npart_new, nblo_new)
+  call mod_commonmn_expand_thickarrays(npart_new, nblo_new)
   call mod_commons_expand_thickarrays(nele_new, npart_new)
 
   !Update nele etc.
@@ -263,35 +266,7 @@ subroutine shuffleLostParticles
 
   ! Collimation
   if(do_coll) then
-    tnapx = napx
-    do j=napx,1,-1
-      if(llostp(j) .eqv. .false.) cycle
-
-      part_hit_pos(j:tnapx)         = cshift(part_hit_pos(j:tnapx),         1)
-      part_hit_turn(j:tnapx)        = cshift(part_hit_turn(j:tnapx),        1)
-      part_abs_pos(j:tnapx)         = cshift(part_abs_pos(j:tnapx),         1)
-      part_abs_turn(j:tnapx)        = cshift(part_abs_turn(j:tnapx),        1)
-      part_select(j:tnapx)          = cshift(part_select(j:tnapx),          1)
-      part_impact(j:tnapx)          = cshift(part_impact(j:tnapx),          1)
-      part_indiv(j:tnapx)           = cshift(part_indiv(j:tnapx),           1)
-      part_linteract(j:tnapx)       = cshift(part_linteract(j:tnapx),       1)
-      part_hit_before_pos(j:tnapx)  = cshift(part_hit_before_pos(j:tnapx),  1)
-      part_hit_before_turn(j:tnapx) = cshift(part_hit_before_turn(j:tnapx), 1)
-
-      secondary(j:tnapx)            = cshift(secondary(j:tnapx),            1)
-      tertiary(j:tnapx)             = cshift(tertiary(j:tnapx),             1)
-      other(j:tnapx)                = cshift(other(j:tnapx),                1)
-      scatterhit(j:tnapx)           = cshift(scatterhit(j:tnapx),           1)
-      nabs_type(j:tnapx)            = cshift(nabs_type(j:tnapx),            1)
-      ipart(j:tnapx)                = cshift(ipart(j:tnapx),                1)
-      flukaname(j:tnapx)            = cshift(flukaname(j:tnapx),            1)
-
-      counted_r(j:tnapx,:)          = cshift(counted_r(j:tnapx,:),          1, 1)
-      counted_x(j:tnapx,:)          = cshift(counted_x(j:tnapx,:),          1, 1)
-      counted_y(j:tnapx,:)          = cshift(counted_y(j:tnapx,:),          1, 1)
-
-      tnapx = tnapx - 1
-    end do
+    call coll_shuffleLostPart
   end if
 
 #ifdef FLUKA
@@ -317,7 +292,7 @@ end subroutine shuffleLostParticles
 ! ~~~~~~~~~~~~~~~~~~~~~~~~~
 !  V.K. Berglyd Olsen, BE-ABP-HSS
 !  Created: 2019-08-12
-!  Updated: 2019-08-12
+!  Updated: 2020-01-30, A. Mereghetti (BE-ABP-HSS)
 !
 !      This map allows for reverse lookup from a pairID to the index of its two particles in the
 !  main particle arrays. This is used for the distance calculation and for post-processing.
@@ -326,16 +301,22 @@ end subroutine shuffleLostParticles
 !      If, for some reason, each pair ID is not represented exactly twice in the array, the final
 !  map will contain zeros. Any routine using this map for lookup must therefore check for 0 values
 !  and trigger necessary error handling.
+!      In case of new particles added to the tracking arrays (e.g. secondary particles out of
+!  inelastic interactions), these must not enter the logics of couples, since the original particle
+!  died. Hence, keep the pairMap table of the length of the tracked particles (to keep particle
+!  reshuffling simple), but do not update the map for non-primary particles.
 ! ================================================================================================ !
 subroutine updatePairMap
 
   use parpro, only : npart
-  use mod_common_main, only : partID, pairID, pairMap
+  use mod_common_main, only : pairID, pairMap
 
-  integer j, m
+  integer j
 
   pairMap(:,:) = 0
   do j=1,npart
+    ! do not update the map in case the particle is not a primary one
+    if (pairID(1,j)==0.and.pairID(2,j)==0) cycle
     pairMap(pairID(2,j),pairID(1,j)) = j
   end do
 

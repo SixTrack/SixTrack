@@ -1,18 +1,4 @@
 ! start include/kicka03h.f90
-#ifndef TILT
-  mpe=3
-  mx=1
-  cxzr=xl
-  cxzi=zl
-  cxzyr=cxzr**2-cxzi**2
-  cxzyi=cxzr*cxzi+cxzi*cxzr
-  dyy1=ekk*cxzyr
-  dyy2=(-one*ekk)*cxzyi
-  qu=(ekk*two)*xl
-  qv=(ekk*two)*zl
-  ab2(2)=-one*qv
-  ab1(3)=ekk
-#else
   mpe=3
   mx=1
   cxzr=xl
@@ -32,5 +18,4 @@
   tiltck=tiltckuk
   ab1(3)=ekk*tiltck
   ab2(3)=ekk*tiltsk
-#endif
 ! end include/kicka03h.f90

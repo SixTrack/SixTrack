@@ -31,7 +31,7 @@ subroutine umlauda
     coefh1,cik,coefh2,coefv1,coefv2,crk,crxb,crzb,cx,dare,det1,dpdav,dps1,dps11,dummy,ed1,ed2,ox,   &
     oxp,oxp1,oz,ozp,ozp1,r0,r2b,r2bf,rb,rbf,rho2b,rkb,rkbf,scikveb,scrkveb,sfac1,sfac2,sfac2s,sfac3,&
     sfac4,sfac5,sigm1,sigmdac,startco,sx,tas,tkb,tl,x2pi,xbb,xrb,xs,zbb,zrb,zs,crabfreq,crabpht,    &
-    crabpht2,crabpht3,crabpht4,temp_angle,tan_t,sin_t,cos_t
+    crabpht2,crabpht3,crabpht4,tan_t,sin_t,cos_t
   integer damap(6),damapi(6),damap1(6),aa2(6),aa2r(6),a1(6),a1r(6),xy(6),df(6),jj(100),i4(10,2)
   real(kind=fPrec) zfeld1(100),zfeld2(100),dpdav2(6),rrad(3),rdd(6,6),dicu(20),angnoe(3),angp(2,6), &
     phi(3),dphi(3),b1(3),b2(3),b3(3),al1(3),al2(3),al3(3),g1(3),g2(3),g3(3),d(3),dp(3),c(3),cp(3),  &
@@ -68,16 +68,15 @@ subroutine umlauda
   if(ichromc.eq.1) call danot(3)
   icoonly=0
   if(iqmodc.eq.2.or.iqmodc.eq.4.or.ichromc.eq.2) icoonly=1
-  do j=1,2
-    angnoe(j)=zero
-    do i=1,6
-      angp(j,i)=zero
-    enddo
-  enddo
-  do i=1,100
-    jj(i)=0
-  enddo
-  x2pi=atan_mb(one)*eight
+
+  crabpht      = zero
+  tasData(:,:) = zero
+  angnoe(:)    = zero
+  angp(:,:)    = zero
+  cp(:)        = zero
+  jj(:)        = 0
+
+  x2pi=twopi
   i4(1,1)=1
   i4(1,2)=1
   i4(2,1)=3
@@ -235,7 +234,7 @@ subroutine umlauda
   ibb=0
   wire_num_aux=0
 !     start loop over single elements
-  do 430 i=1,iu
+  do 430 i=1,iu ! iu = number of structure elements
     if(iqmodc.eq.2.or.iqmodc.eq.4) then
       if(i.eq.niu(1)) then
         do ii=1,2
@@ -331,7 +330,29 @@ subroutine umlauda
       write(lerr,"(a)") "UMLAUDA> ERROR Inverted linear blocks not allowed."
       call prror
     endif
-#include "include/dalin1.f90"
+    jmel=mel(ix)
+    if(idp == 0 .or. ition == 0) then
+      if(ithick == 1) then
+        do jb=1,jmel
+          jx=mtyp(ix,jb)
+          do ip=1,6
+            do ien=1,nord+1
+              zfeld1(ien)=ald6(jx,1,ip,ien)
+            end do
+            if(nvar2 == 4) then
+              call darea6(alda(1,ip),zfeld1,4)
+            else if(nvar2 == 5) then
+              call darea6(alda(1,ip),zfeld1,5)
+            end if
+            do ien=1,nord+1
+              zfeld1(ien)=ald6(jx,2,ip,ien)
+            end do
+            if(nvar2 == 4) then
+              call darea6(alda(2,ip),zfeld1,4)
+            else if(nvar2 == 5) then
+              call darea6(alda(2,ip),zfeld1,5)
+            end if
+          end do
           ipch=0
           if(iqmodc.eq.1.and.kz(jx).eq.2) then
             if(jx.eq.iq(1).or.iratioe(jx).eq.iq(1)) then
@@ -351,9 +372,20 @@ subroutine umlauda
 !FOX  X(2)=ALDAQ(2,1)*PUX+ALDAQ(2,2)*PUZ+ALDAQ(2,5)*IDZ(2) ;
 !FOX  Y(2)=ALDAQ(2,3)*PUX+ALDAQ(2,4)*PUZ+ALDAQ(2,6)*IDZ(2) ;
           else
-#include "include/dalin2.f90"
-          endif
-#include "include/dalin3.f90"
+!FOX  PUX=X(1) ;
+!FOX  PUZ=Y(1) ;
+!FOX  X(1)=ALDA(1,1)*PUX+ALDA(1,2)*PUZ+ALDA(1,5)*IDZ(1) ;
+!FOX  Y(1)=ALDA(1,3)*PUX+ALDA(1,4)*PUZ+ALDA(1,6)*IDZ(1) ;
+!FOX  PUX=X(2) ;
+!FOX  PUZ=Y(2) ;
+!FOX  X(2)=ALDA(2,1)*PUX+ALDA(2,2)*PUZ+ALDA(2,5)*IDZ(2) ;
+!FOX  Y(2)=ALDA(2,3)*PUX+ALDA(2,4)*PUZ+ALDA(2,6)*IDZ(2) ;
+          end if
+        end do
+      else
+!FOX  X(1)=X(1)+BL1(IX,1,2)*Y(1) ;
+!FOX  X(2)=X(2)+BL1(IX,2,2)*Y(2) ;
+      end if
       if(ilinc.eq.1) then
         do jb=1,jmel
           jx=mtyp(ix,jb)
@@ -363,7 +395,34 @@ subroutine umlauda
           if(i.eq.nt) goto 470
         enddo
       endif
-#include "include/dalin4.f90"
+    else
+      do jb=1,jmel
+        jx=mtyp(ix,jb)
+        if(ithick.eq.1) then
+          do ip=1,6
+            do ien=1,nord+1
+              zfeld1(ien)=ald6(jx,1,ip,ien)
+              zfeld2(ien)=asd6(jx,1,ip,ien)
+            end do
+            if(nvar2.eq.5) then
+              call darea6(alda(1,ip),zfeld1,5)
+              call darea6(asda(1,ip),zfeld2,5)
+            else if(nvar2.eq.6) then
+              call darea6(alda(1,ip),zfeld1,6)
+              call darea6(asda(1,ip),zfeld2,6)
+            end if
+            do ien=1,nord+1
+              zfeld1(ien)=ald6(jx,2,ip,ien)
+              zfeld2(ien)=asd6(jx,2,ip,ien)
+            end do
+            if(nvar2.eq.5) then
+              call darea6(alda(2,ip),zfeld1,5)
+              call darea6(asda(2,ip),zfeld2,5)
+            else if(nvar2.eq.6) then
+              call darea6(alda(2,ip),zfeld1,6)
+              call darea6(asda(2,ip),zfeld2,6)
+            end if
+          end do
           ipch=0
           if(iqmodc.eq.1.and.kz(jx).eq.2) then
             if(jx.eq.iq(1).or.iratioe(jx).eq.iq(1)) then
@@ -389,35 +448,39 @@ subroutine umlauda
 !FOX  X(2)=ALDAQ(2,1)*PUX+ALDAQ(2,2)*PUZ+ALDAQ(2,5)*IDZ(2) ;
 !FOX  Y(2)=ALDAQ(2,3)*PUX+ALDAQ(2,4)*PUZ+ALDAQ(2,6)*IDZ(2) ;
           else
-#include "include/dalin5.f90"
-          endif
+!FOX  PUX=X(1) ;
+!FOX  PUZ=Y(1) ;
+!FOX  SIGMDA=SIGMDA+ASDA(1,1)+ASDA(1,2)*PUX+
+!FOX  ASDA(1,3)*PUZ+ASDA(1,4)*PUX*PUZ+ASDA(1,5)*PUX*PUX+
+!FOX  ASDA(1,6)*PUZ*PUZ ;
+!FOX  X(1)=ALDA(1,1)*PUX+ALDA(1,2)*PUZ+ALDA(1,5)*IDZ(1) ;
+!FOX  Y(1)=ALDA(1,3)*PUX+ALDA(1,4)*PUZ+ALDA(1,6)*IDZ(1) ;
+!FOX  PUX=X(2) ;
+!FOX  PUZ=Y(2) ;
+!FOX  SIGMDA=SIGMDA+ASDA(2,1)+ASDA(2,2)*PUX+
+!FOX  ASDA(2,3)*PUZ+ASDA(2,4)*PUX*PUZ+ASDA(2,5)*PUX*PUX+
+!FOX  ASDA(2,6)*PUZ*PUZ ;
+!FOX  X(2)=ALDA(2,1)*PUX+ALDA(2,2)*PUZ+ALDA(2,5)*IDZ(2) ;
+!FOX  Y(2)=ALDA(2,3)*PUX+ALDA(2,4)*PUZ+ALDA(2,6)*IDZ(2) ;
+          end if
         else
           if(iexact) then
 !-----------------------------------------------------------------------
 !  EXACT DRIFT
 !-----------------------------------------------------------------------
-!FOX  X(1)=X(1)*C1M3 ;
-!FOX  X(2)=X(2)*C1M3 ;
-!FOX  Y(1)=Y(1)*C1M3 ;
-!FOX  Y(2)=Y(2)*C1M3 ;
-!FOX  SIGMDA=SIGMDA*C1M3 ;
-!FOX  PZ=SQRT(ONE-Y(1)*Y(1)-Y(2)*Y(2)) ;
+!FOX  PZ=SQRT(C1E6-(Y(1)*Y(1)+Y(2)*Y(2)))*C1M3 ;
 !FOX  X(1)=X(1)+EL(JX)*(Y(1)/PZ) ;
 !FOX  X(2)=X(2)+EL(JX)*(Y(2)/PZ) ;
-!FOX  SIGMDA=SIGMDA+(ONE-(RV/PZ))*EL(JX) ;
-!FOX  X(1)=X(1)*C1E3 ;
-!FOX  X(2)=X(2)*C1E3 ;
-!FOX  Y(1)=Y(1)*C1E3 ;
-!FOX  Y(2)=Y(2)*C1E3 ;
-!FOX  SIGMDA=SIGMDA*C1E3 ;
+!FOX  SIGMDA=SIGMDA+EL(JX)*((ONE-RV/PZ)*C1E3) ;
 !-----------------------------------------------------------------------
           else
 ! Regular drift
-#include "include/dalin6.f90"
+!FOX  X(1)=X(1)+EL(JX)*Y(1) ;
+!FOX  X(2)=X(2)+EL(JX)*Y(2) ;
 !FOX  SIGMDA=SIGMDA+
-#include "include/sqrtfox.f90"
-          endif
-        endif
+!FOX  EL(JX)*(C1E3-RV*(C1E3+(Y(1)*Y(1)+Y(2)*Y(2))*C5M4)) ;
+          end if
+        end if
         if(ilinc.eq.1) then
           typ=bez(jx)
           tl=tl+el(jx)
@@ -652,8 +715,6 @@ subroutine umlauda
         endif
 
         if(parbe(ix,2).eq.0.0) then !4D
-          !Note: One should always use the CRLIBM version when converting,
-          ! in order to guarantee the exact same results from the converted input file.
           call chr_fromReal(bbcu(ibb,1),tmpStr(1),19,2,rErr)
           call chr_fromReal(bbcu(ibb,2),tmpStr(2),19,2,rErr)
           call chr_fromReal(parbe(ix,5),tmpStr(3),19,2,rErr)
@@ -793,6 +854,9 @@ subroutine umlauda
             call errf(xbb,zbb,cbxb,cbzb)
             beamoff4=(rkb*(crzb-exp_mb(-one*tkb)*cbzb))*sign(one,crk)
             beamoff5=(rkb*(crxb-exp_mb(-one*tkb)*cbxb))*sign(one,cik)
+          else
+            beamoff4=zero ! Were previously uninitialised when ibeco=0
+            beamoff5=zero ! Were previously uninitialised when ibeco=0
           endif
           if(abs(sigman(1,imbb(i))).lt.pieni.or.abs(sigman(2,imbb(i))).lt.pieni) goto 9088
           r2bf=two*(sigman(1,imbb(i))**2-sigman(2,imbb(i))**2)
@@ -921,23 +985,64 @@ subroutine umlauda
       goto 440
     endif
     if(kzz.eq.43) then
-      temp_angle = ed(ix)
-#include "include/xrot_fox.f90"
+      cos_t = cos_mb(ed(ix))
+      sin_t = sin_mb(ed(ix))
+      tan_t = tan_mb(ed(ix))
+!FOX  YP(1)=Y(1)*(ONE+DPDA)/MTCDA ;
+!FOX  YP(2)=Y(2)*(ONE+DPDA)/MTCDA ;
+!FOX  TEMPI(1) = X(1)*C1M3 ;
+!FOX  TEMPI(2) = YP(1)*C1M3 ;
+!FOX  TEMPI(3) = X(2)*C1M3 ;
+!FOX  TEMPI(4) = YP(2)*C1M3 ;
+!FOX  TEMPI(5) = SIGMDA*C1M3 ;
+!FOX  TEMPI(6) = ((EJ1-E0)/E0F) ;
+!FOX  ZTDA = SQRT((ONE + DPDA)*(ONE + DPDA)
+!FOX  - TEMPI(2)*TEMPI(2) - TEMPI(4)*TEMPI(4)) ;
+!FOX  PTTDA = ONE - (TAN_T*TEMPI(4))/ZTDA ;
+!FOX  X(1) = X(1) +
+!FOX  C1E3*(TAN_T*TEMPI(3)*TEMPI(2)/(ZTDA*PTTDA)) ;
+!FOX  X(2) = C1E3*TEMPI(3)/(COS_T*PTTDA) ;
+!FOX  Y(2) = C1E3*(COS_T*TEMPI(4) + SIN_T*ZTDA)/(ONE+DPDA)/MTCDA ;
+!FOX  SIGMDA = SIGMDA - C1E3*((TAN_T*TEMPI(3)*
+!FOX  (ONE/(E0F/E0)+TEMPI(6))/(ZTDA*PTTDA))*(E0F/E0)) ;
       goto 440
     endif
     if(kzz.eq.44) then
-      temp_angle = ed(ix)
-#include "include/yrot_fox.f90"
+      cos_t = cos_mb(ed(ix))
+      sin_t = sin_mb(ed(ix))
+      tan_t = tan_mb(ed(ix))
+!FOX  YP(1)=Y(1)*(ONE+DPDA)/MTCDA ;
+!FOX  YP(2)=Y(2)*(ONE+DPDA)/MTCDA ;
+!FOX  TEMPI(1) = X(1)*C1M3 ;
+!FOX  TEMPI(2) = YP(1)*C1M3 ;
+!FOX  TEMPI(3) = X(2)*C1M3 ;
+!FOX  TEMPI(4) = YP(2)*C1M3 ;
+!FOX  TEMPI(5) = SIGMDA*C1M3 ;
+!FOX  TEMPI(6) = ((EJ1-E0)/E0F) ;
+!FOX  ZTDA = SQRT((ONE + DPDA)*(ONE + DPDA)
+!FOX  - TEMPI(2)*TEMPI(2) - TEMPI(4)*TEMPI(4)) ;
+!FOX  PTTDA = ONE - (TAN_T*TEMPI(2))/ZTDA ;
+!FOX  X(2) = X(2) +
+!FOX  C1E3*(TAN_T*TEMPI(1)*TEMPI(4)/(ZTDA*PTTDA)) ;
+!FOX  X(1) = C1E3*TEMPI(1)/(COS_T*PTTDA) ;
+!FOX  Y(1) = C1E3*(COS_T*TEMPI(2) + SIN_T*ZTDA)/(ONE+DPDA)/MTCDA ;
+!FOX  SIGMDA = SIGMDA - C1E3*((TAN_T*TEMPI(1)*
+!FOX  (ONE/(E0F/E0)+TEMPI(6))/(ZTDA*PTTDA))*(E0F/E0)) ;
       goto 440
     endif
     if(kzz.eq.45) then
-      temp_angle = ed(ix)
-#include "include/srot_fox.f90"
+      cos_t = cos_mb(ed(ix))
+      sin_t = -sin_mb(ed(ix))
+!FOX  TEMPI(1) = X(1) ;
+!FOX  TEMPI(2) = Y(1) ;
+!FOX  TEMPI(3) = X(2) ;
+!FOX  TEMPI(4) = Y(2) ;
+!FOX  X(1) = TEMPI(1)*COS_T - TEMPI(3)*SIN_T ;
+!FOX  Y(1) = TEMPI(2)*COS_T - TEMPI(4)*SIN_T ;
+!FOX  X(2) = TEMPI(1)*SIN_T + TEMPI(3)*COS_T ;
+!FOX  Y(2) = TEMPI(2)*SIN_T + TEMPI(4)*COS_T ;
       goto 440
     endif
-
-
-
 
     if(kzz.eq.23) then
 !FOX  CRABAMP=ED(IX)*QQ0 ;
@@ -1210,7 +1315,48 @@ subroutine umlauda
       if (cheby_lFox(icheby(ix))) call cheby_kick_fox(i,ix)
     end if
     if(kzz.eq.22) then ! Phase Trombone
-#include "include/trombone_fox.f90"
+      irrtr=imtr(ix)
+!FOX  YP(1)=Y(1)*(ONE+DPDA)/MTCDA ;
+!FOX  YP(2)=Y(2)*(ONE+DPDA)/MTCDA ;
+!FOX  PUSIG=((EJ1-E0)/E0F)*C1E3*(E0/E0F) ;
+!FOX  TEMPI(1) = X(1) ;
+!FOX  TEMPI(2) = YP(1) ;
+!FOX  TEMPI(3) = X(2) ;
+!FOX  TEMPI(4) = YP(2) ;
+!FOX  TEMPI(5) = SIGMDA ;
+!FOX  TEMPI(6) = PUSIG ;
+!FOX  X(1)=COTR(IRRTR,1) +
+!FOX  RRTR(IRRTR,1,1)*TEMPI(1)+RRTR(IRRTR,1,2)*TEMPI(2)+
+!FOX  RRTR(IRRTR,1,3)*TEMPI(3)+RRTR(IRRTR,1,4)*TEMPI(4)+
+!FOX  RRTR(IRRTR,1,5)*TEMPI(5)+RRTR(IRRTR,1,6)*TEMPI(6) ;
+!FOX  YP(1)=COTR(IRRTR,2) +
+!FOX  RRTR(IRRTR,2,1)*TEMPI(1)+RRTR(IRRTR,2,2)*TEMPI(2)+
+!FOX  RRTR(IRRTR,2,3)*TEMPI(3)+RRTR(IRRTR,2,4)*TEMPI(4)+
+!FOX  RRTR(IRRTR,2,5)*TEMPI(5)+RRTR(IRRTR,2,6)*TEMPI(6) ;
+!FOX  X(2)=COTR(IRRTR,3) +
+!FOX  RRTR(IRRTR,3,1)*TEMPI(1)+RRTR(IRRTR,3,2)*TEMPI(2)+
+!FOX  RRTR(IRRTR,3,3)*TEMPI(3)+RRTR(IRRTR,3,4)*TEMPI(4)+
+!FOX  RRTR(IRRTR,3,5)*TEMPI(5)+RRTR(IRRTR,3,6)*TEMPI(6) ;
+!FOX  YP(2)=COTR(IRRTR,4) +
+!FOX  RRTR(IRRTR,4,1)*TEMPI(1)+RRTR(IRRTR,4,2)*TEMPI(2)+
+!FOX  RRTR(IRRTR,4,3)*TEMPI(3)+RRTR(IRRTR,4,4)*TEMPI(4)+
+!FOX  RRTR(IRRTR,4,5)*TEMPI(5)+RRTR(IRRTR,4,6)*TEMPI(6) ;
+!FOX  SIGMDA=COTR(IRRTR,5)+
+!FOX  RRTR(IRRTR,5,1)*TEMPI(1)+RRTR(IRRTR,5,2)*TEMPI(2)+
+!FOX  RRTR(IRRTR,5,3)*TEMPI(3)+RRTR(IRRTR,5,4)*TEMPI(4)+
+!FOX  RRTR(IRRTR,5,5)*TEMPI(5)+RRTR(IRRTR,5,6)*TEMPI(6) ;
+!FOX  PUSIG=COTR(IRRTR,6)+
+!FOX  RRTR(IRRTR,6,1)*TEMPI(1)+RRTR(IRRTR,6,2)*TEMPI(2)+
+!FOX  RRTR(IRRTR,6,3)*TEMPI(3)+RRTR(IRRTR,6,4)*TEMPI(4)+
+!FOX  RRTR(IRRTR,6,5)*TEMPI(5)+RRTR(IRRTR,6,6)*TEMPI(6) ;
+!FOX  EJ1 = E0F*PUSIG/(C1E3*(E0/E0F))+E0 ;
+!FOX  EJF1=SQRT(EJ1*EJ1-NUCMDA*NUCMDA) ;
+!FOX  DPDA1 = (EJF1-E0F)/E0F*C1E3 ;
+!FOX  RV=EJ1/E0*E0F/EJF1 ;
+!FOX  DPDA=DPDA1*C1M3 ;
+!FOX  MOIDA=MTCDA/(ONE+DPDA) ;
+!FOX  Y(1)=YP(1)*MTCDA/(ONE+DPDA) ;
+!FOX  Y(2)=YP(2)*MTCDA/(ONE+DPDA) ;
     end if
     if(kzz.eq.0.or.kzz.eq.20.or.kzz.eq.22) goto 440
     if(kzz.eq.15) goto 440
@@ -2127,7 +2273,7 @@ subroutine synoda
   use mod_commons
   use mod_common_track
   use mod_common_da
-  use mod_lie_dab, only : idao,iscrri,rscrri,iscrda
+  use mod_lie_dab, only : idao,rscrri,iscrda
   implicit none
   integer ix,idaa,ikz
   common/daele/alda,asda,aldaq,asdaq,smida,xx,yy,dpda,dpda1,sigmda,ej1,ejf1,rv
@@ -2178,7 +2324,7 @@ subroutine errff(xx,yy,wx,wy)
   use parpro
   use mod_common
   use mod_commons
-  use mod_common_track, only : xxtr,yytr,crois,comt_daStart,comt_daEnd
+  use mod_common_track, only : comt_daStart,comt_daEnd
   use mod_common_da
   use mod_lie_dab, only : idao,iscrri,rscrri,iscrda
   implicit none
@@ -2324,7 +2470,7 @@ subroutine wireda(ix,i)
   use parpro
   use mod_common
   use mod_commons
-  use mod_common_track, only : xxtr,yytr,crois,comt_daStart,comt_daEnd
+  use mod_common_track, only : comt_daStart,comt_daEnd
   use mod_common_da
   use wire
   use mod_lie_dab, only : idao,rscrri,iscrda
@@ -2768,67 +2914,3 @@ subroutine clorda(nn,idummy,am)
 10070 format(5x,a6,1p,2(1x,g16.9)/5x,a6,1p,2(1x,g16.9))
 10080 format(5x,' ITERAT.=',i3,' ACCURACY=',d13.6/)
 end subroutine clorda
-
-!-----------------------------------------------------------------------*
-!  FMA                                                                  *
-!  M.Fitterer & R. De Maria & K.Sjobak, BE-ABP/HSS                      *
-!  last modified: 04-01-2016                                            *
-!  purpose: invert the matrix of eigenvecors tas                        *
-!           (code copied from postpr only that ta is here fma_tas)      *
-!           x(normalized)=fma_tas^-1 x=fma_tas_inv x                    *
-!           note: inversion method copied from subroutine postpr        *
-!-----------------------------------------------------------------------*
-subroutine invert_tas(fma_tas_inv,fma_tas)
-
-  use floatPrecision
-  use numerical_constants
-  use matrix_inv
-  use mod_common_track
-  use crcoall
-
-  implicit none
-
-  real(kind=fPrec), intent(inout) :: fma_tas(6,6) !tas = normalisation matrix
-  real(kind=fPrec), intent(out)   :: fma_tas_inv(6,6) !inverse of tas
-
-  real(kind=fPrec) tdummy(6,6)
-  integer ierro,i,j,idummy(6)
-
-!     units: [mm,mrad,mm,mrad,mm,1]
-!     invert matrix
-!     - set values close to 1 equal to 1
-  do i=1,6
-    do j=1,6
-      fma_tas_inv(i,j)=fma_tas(j,i)
-    end do
-  end do
-
-  if(abs(fma_tas_inv(1,1)) <= pieni.and.abs(fma_tas_inv(2,2)) <= pieni) then
-    fma_tas_inv(1,1)=one
-    fma_tas_inv(2,2)=one
-  end if
-  if(abs(fma_tas_inv(3,3)) <= pieni.and.abs(fma_tas_inv(4,4)) <= pieni) then
-    fma_tas_inv(3,3)=one
-    fma_tas_inv(4,4)=one
-  end if
-  if(abs(fma_tas_inv(5,5)) <= pieni.and.abs(fma_tas_inv(6,6)) <= pieni) then
-    fma_tas_inv(5,5)=one
-    fma_tas_inv(6,6)=one
-  end if
-
-!     - invert: dinv returns the transposed matrix
-  call dinv(6,fma_tas_inv,6,idummy,ierro)
-  if(ierro /= 0) then
-    write(lerr,"(a,i0)") "INVERT_TAS> ERROR Matrix inversion failed. Subroutine DINV returned ierro ",ierro
-    call prror
-  end if
-
-!     - transpose fma_tas_inv
-  tdummy=fma_tas_inv
-  do i=1,6
-    do j=1,6
-      fma_tas_inv(i,j)=tdummy(j,i)
-    end do
-  end do
-
-end subroutine invert_tas

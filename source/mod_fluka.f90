@@ -100,10 +100,6 @@ module mod_fluka
   ! hisix: write isotope info
   integer, public :: isotope_log_unit                  ! logical unit for isotope-id output (was 822)
 
-  integer, public :: unit208 ! Holds the actual units of fort.208
-  integer, public :: unit209 ! Holds the actual units of fort.209
-  integer, public :: unit210 ! Holds the actual units of fort.210
-
   ! fluka insertions
   logical, public :: fluka_inside = .false.                        ! Are we in a fluka insertion?
   integer(kind=int32), public, allocatable :: fluka_type(:)        ! type of insertion (one per SINGLE ELEMENT)
@@ -151,6 +147,7 @@ contains
   subroutine fluka_mod_init(npart, nele, clight)
 
     use mod_units
+    use mod_common, only : fort208, unit208
 
     implicit none
 
@@ -182,14 +179,13 @@ contains
 !    fluka_geo_index    = 0
 !    fluka_synch_length = zero
 
-    call f_requestUnit("fort.208",         unit208)
-    call f_requestUnit("fort.209",         unit209)
-    call f_requestUnit("fort.210",         unit210)
+    if(unit208 == -1) then
+      call f_requestUnit(fort208,unit208)
+      call f_open(unit=unit208,file=fort208,formatted=.true.,mode="w")
+    end if
+
     call f_requestUnit("fluka.log",        fluka_log_unit)
     call f_requestUnit("fluka_isotope.log",isotope_log_unit)
-    call f_open(unit=unit208,         file="fort.208",         formatted=.true.,mode="w")
-    call f_open(unit=unit209,         file="fort.209",         formatted=.true.,mode="w")
-    call f_open(unit=unit210,         file="fort.210",         formatted=.true.,mode="w")
     call f_open(unit=fluka_log_unit,  file="fluka.log",        formatted=.true.,mode="w")
     call f_open(unit=isotope_log_unit,file="fluka_isotope.log",formatted=.true.,mode="w")
 
@@ -303,12 +299,12 @@ contains
     real(kind=fPrec)            :: flsx, flsy, flsz
 
     write(lout,'(A)') 'FLUKA> call to fluka_end'
-    write(fluka_log_unit,*) "# FlukaIO: sending End of Computation signal"
+    write(fluka_log_unit,'(A)') "# FlukaIO: sending End of Computation signal"
 
     ! Send end of computation
     n = ntsendeoc(fluka_cid)
     if(n.lt.0) then
-      write(fluka_log_unit,*) "# FlukaIO error: Error sending End of Computation"
+      write(fluka_log_unit,'(A,i0,A)') "# FlukaIO error: ", n, " - Error sending End of Computation"
       flush(fluka_log_unit)
       return
     end if
@@ -317,8 +313,8 @@ contains
     n = ntwait(fluka_cid, mtype, &
           flid, flgen, flwgt, flx, fly, flz, flxp, flyp, &
           flm, flpc, flt, flpdgid, flq, flsx, flsy, flsz)
-    if(n.eq.-1) then
-      write(fluka_log_unit,*) "# FlukaIO error: Server timed out while waiting End of Computation"
+    if(n.lt.0) then
+      write(fluka_log_unit,'(A,i0,A)') "# FlukaIO error: ", n, " - Server timed out while waiting End of Computation"
       flush(fluka_log_unit)
       return
     end if
@@ -363,7 +359,7 @@ contains
 
     fluka_send_receive = fluka_send(turn, ipt, el, npart, xv1, xv2, yv1, yv2, s, etot, aa, zz, mass, qq, pdg_id, &
                          spinx, spiny, spinz)
-    if(fluka_send_receive.eq.-1) return
+    if(fluka_send_receive.lt.0) return
 
     fluka_send_receive = fluka_receive(turn, ipt, el, npart, xv1, xv2, yv1, yv2, s, etot, aa, zz, mass, qq, pdg_id, &
                          spinx, spiny, spinz)
@@ -415,8 +411,8 @@ contains
     fluka_last_rcvd_mess = -1
 
     n = ntsendipt(fluka_cid, turn, ipt)
-    if(n.eq.-1) then
-      write(fluka_log_unit,*) "# FlukaIO error: Error sending Insertion Point"
+    if(n.lt.0) then
+      write(fluka_log_unit,'(A,i0,A)') "# FlukaIO error: ", n, " - Error sending Insertion Point"
       fluka_cid = -1
       fluka_send = -1
       return
@@ -485,8 +481,8 @@ contains
             flm, flet, flt, &
             flpdgid, flq, flsx, flsy, flsz)
 
-      if(n.eq.-1) then
-        write(fluka_log_unit,*) "# FlukaIO error: Error sending Particle"
+      if(n.lt.0) then
+        write(fluka_log_unit,'(A,i0,A)') "# FlukaIO error: ", n, " - Error sending Particle"
         fluka_cid = -1
         fluka_send = -1
         return
@@ -501,7 +497,7 @@ contains
     n = ntsendeob(fluka_cid)
 
     if(n.lt.0) then
-      write(fluka_log_unit,*) "# FlukaIO error: Error sending End of Batch"
+      write(fluka_log_unit,'(A,i0,A)') "# FlukaIO error: ", n, " - Error sending End of Batch"
       fluka_cid = -1
       fluka_send = -1
       return
@@ -594,8 +590,8 @@ contains
               flm, flet, flt, &
               flpdgid, flq, flsx, flsy, flsz)
 
-      if(n.eq.-1) then
-        write(fluka_log_unit,*) "# FlukaIO error: Server timed out while waiting for message"
+      if(n.lt.0) then
+        write(fluka_log_unit,'(A,i0,A)') "# FlukaIO error: ", n ," - Server timed out while waiting for message"
         fluka_cid = -1
         fluka_receive = -1
         return
@@ -609,7 +605,7 @@ contains
          if(fluka_nrecv .gt. npart) then
 
             !If we hit the particle limit, we will need to  do a global array expand on npart, lets increase by 50 for now
-            call expand_arrays(nele, npart+50, nblz, nblo)
+            call expand_arrays(nele, npart+50, nblz, nblo, nbb)
 
 !            write(fluka_log_unit, *) &
 !                 '# FlukaIO error: reached maximum number of particles, ', &
@@ -830,7 +826,7 @@ subroutine fluka_close
          if( .not. fluka_connected ) then
 !              temporarily connect to fluka, to properly terminate the run
            fluka_con = fluka_connect()
-           if(fluka_con.eq.-1) then
+           if(fluka_con.lt.0) then
 !                no hope to properly close the run
              write(lerr,'(A)') 'FLUKA> ERROR Unable to connect to fluka while closing the simulation:'
              write(lerr,'(A)') 'FLUKA>       please, manually kill all its instances'
@@ -1103,9 +1099,9 @@ subroutine kernel_fluka_element( nturn, i, ix )
            napx, xv1, xv2, yv1, yv2, sigmv, ejv, naa, nzz, nucm, nqq, pdgid, &
            spin_x, spin_y, spin_z )
 
-      if (ret.eq.-1) then
-         write(lerr,'(A)')'FLUKA> ERROR -1 in Fluka communication returned by fluka_send_receive...'
-         write(fluka_log_unit,'(A)')'# Error -1 in Fluka communication returned by fluka_send_receive...'
+      if (ret.lt.0) then
+         write(lerr,'(A,i0,A)')'FLUKA> ERROR ', ret, ' in Fluka communication returned by fluka_send_receive...'
+         write(fluka_log_unit,'(A,i0,A)')'# Error ', ret, ' in Fluka communication returned by fluka_send_receive...'
          call prror
       end if
 
@@ -1136,19 +1132,12 @@ subroutine kernel_fluka_element( nturn, i, ix )
 !     hisix: compute the nucleon and energy difference
 !              reduce by factor 1e-3 to get the energy in GeV
       if((ien0-ien1).gt.one) then
-        write(unit208,*) fluka_geo_index(fluka_ix), nnuc0-nnuc1, c1m3*(ien0-ien1)
+        write(unit208,"(2(i5,1x),e24.16)") fluka_geo_index(fluka_ix), nnuc0-nnuc1, c1m3*(ien0-ien1)
 #ifdef ROOT
         if(root_flag .and. root_FLUKA .eq. 1) then
           call root_EnergyDeposition(fluka_geo_index(fluka_ix), nnuc0-nnuc1, c1m3*(ien0-ien1))
         end if
 #endif
-      ! hisix debugging:
-      ! write out the particle distribution after the primary
-        if(fluka_geo_index(fluka_ix).eq.11) then
-          do j=1,napx
-            write(unit210,*) naa(j), nzz(j), nucm(j),ejfv(j),mtc(j),dpsv(j)
-          end do
-        end if
       end if
 
 !     hisix: check which particle ids have not been sent back
@@ -1161,10 +1150,6 @@ subroutine kernel_fluka_element( nturn, i, ix )
             pid_q = one
           end if
         end do
-
-        if(pid_q.eq.zero.and.pids(j).ne.zero) then
-          write(unit209,*) fluka_geo_index(fluka_ix), pids(j)
-        end if
       end do
 
 !     empty places
@@ -1197,7 +1182,6 @@ subroutine kernel_fluka_element( nturn, i, ix )
       fluka_ix = -1
       fluka_nturn = -1
       flush(unit208)
-      flush(unit209)
       return
 end subroutine kernel_fluka_element
 
@@ -1278,9 +1262,9 @@ subroutine kernel_fluka_entrance( nturn, i, ix )
            napx, xv1, xv2, yv1, yv2, sigmv, ejv, naa, nzz, nucm, nqq, pdgid, &
            spin_x, spin_y, spin_z )
 
-      if (ret.eq.-1) then
-         write(lerr,'(A)')'FLUKA> ERROR -1 in Fluka communication returned by fluka_send...'
-         write(fluka_log_unit,'(A)')'# Error -1 in Fluka communication returned by fluka_send...'
+      if (ret.lt.0) then
+         write(lerr,'(A,i0,A)')'FLUKA> ERROR ', ret,' in Fluka communication returned by fluka_send...'
+         write(fluka_log_unit,'(A,i0,A)')'# Error ', ret, ' in Fluka communication returned by fluka_send...'
          call prror
       end if
 
@@ -1333,9 +1317,9 @@ subroutine kernel_fluka_exit
            napx, xv1, xv2, yv1, yv2, sigmv, ejv, naa, nzz, nucm, nqq, pdgid, &
            spin_x, spin_y, spin_z )
 
-      if (ret.eq.-1) then
-         write(lerr,'(A)')'FLUKA> ERROR -1 in Fluka communication returned by fluka_receive...'
-         write(fluka_log_unit,'(A)')'# Error -1 in Fluka communication returned by fluka_receive...'
+      if (ret.lt.0) then
+         write(lerr,'(A,i0,A)')'FLUKA> ERROR ', ret, ' in Fluka communication returned by fluka_receive...'
+         write(fluka_log_unit,'(A,i0,A)')'# Error ',ret, ' in Fluka communication returned by fluka_receive...'
          call prror
       end if
 
@@ -1367,20 +1351,12 @@ subroutine kernel_fluka_exit
 !       hisix: compute the nucleon and energy difference
 !              reduce by factor 1e-3 to get the energy in GeV
         if((ien0-ien1).gt.one) then
-          write(unit208,*) fluka_geo_index(fluka_ix), nnuc0-nnuc1, c1m3*(ien0-ien1)
+          write(unit208,"(2(i5,1x),e24.16)") fluka_geo_index(fluka_ix), nnuc0-nnuc1, c1m3*(ien0-ien1)
 #ifdef ROOT
           if(root_flag .and. root_FLUKA .eq. 1) then
             call root_EnergyDeposition(fluka_geo_index(fluka_ix), nnuc0-nnuc1, c1m3*(ien0-ien1))
           end if
 #endif
-
-          ! hisix debugging:
-          ! write out the particle distribution after the primary
-          if (fluka_geo_index(fluka_ix).eq.11) then
-            do j=1,napx
-              write(unit210,*) naa(j), nzz(j), nucm(j),ejfv(j),mtc(j),dpsv(j)
-            end do
-          end if
         end if
 !
 !     hisix: check which particle ids have not been sent back
@@ -1392,9 +1368,6 @@ subroutine kernel_fluka_exit
             pid_q = one
           end if
         end do
-        if(pid_q.eq.zero.and.pids(j).ne.zero) then
-          write(unit209,*) fluka_geo_index(fluka_ix), pids(j)
-        end if
       end do
 
 !     empty places
@@ -1427,8 +1400,6 @@ subroutine kernel_fluka_exit
       fluka_ix = -1
       fluka_nturn = -1
       flush(unit208)
-      flush(unit209)
-
       return
 end subroutine kernel_fluka_exit
 

@@ -271,7 +271,7 @@ function chr_expandBrackets(theString) result(theResult)
   character(len=:), allocatable :: theResult, theBuffer
 
   integer, allocatable :: bPos(:,:)
-  integer ch, nLB, nRB, nB, tSP, lSP, lLB, iSet, nSet, iPos, iMult
+  integer ch, nLB, nRB, tSP, lSP, lLB, iSet, nSet, iPos, iMult
   logical iErr
 
   ! Count the brackets
@@ -1151,7 +1151,6 @@ subroutine str_toLog(theString, theValue, rErr)
   logical,          intent(inout) :: rErr
 
   character(len=:), allocatable   :: tmpString
-  integer                         :: readErr
 
   tmpString = chr_toLower(trim(theString%chr))
   select case(tmpString)
@@ -1175,7 +1174,6 @@ subroutine chr_toLog(theString, theValue, rErr)
   logical,          intent(inout) :: rErr
 
   character(len=:), allocatable   :: tmpString
-  integer                         :: readErr
 
   tmpString = chr_toLower(trim(theString))
   select case(tmpString)

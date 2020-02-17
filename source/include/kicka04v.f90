@@ -1,23 +1,4 @@
 ! start include/kicka04v.f90
-#ifndef TILT
-  mpe=4
-  mx=2
-  cxzr=xl
-  cxzi=zl
-  cxzyr=cxzr**2-cxzi**2
-  cxzyi=cxzr*cxzi+cxzi*cxzr
-  qu=(three*ekk)*cxzyi
-  qv=((-one*three)*ekk)*cxzyr
-  ab2(2)=-one*qv
-  cxzyrr=cxzyr*cxzr-cxzyi*cxzi
-  cxzyi=cxzyr*cxzi+cxzyi*cxzr
-  cxzyr=cxzyrr
-  dyy1=ekk*cxzyi
-  dyy2=ekk*cxzyr
-  ab1(3)=(three*ekk)*zl
-  ab2(3)=(three*ekk)*xl
-  ab2(4)=ekk
-#else
   mpe=4
   mx=2
   cxzr=xl
@@ -45,5 +26,4 @@
   tiltck=tiltckuk
   ab1(4)=ekk*tiltsk
   ab2(4)=ekk*tiltck
-#endif
 ! end include/kicka04v.f90

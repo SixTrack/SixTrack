@@ -1,4 +1,5 @@
-parbe(ix,4)=(((-one*crad)*ptnfac(ix))*half)*c1m6               !hr08
+! start include/beam6dfi.f90
+parbe(ix,4)=(((-one*crad)*ptnfac(ix))*half)*c1m6
 !--Hirata's 6D beam-beam kick
 dummy=dare(x(1))
 !FOX      TRACKI(1)=(X(1)+PARBE(IX,5)-DUMMY)*C1M3 ;
@@ -19,7 +20,7 @@ dummy=dare(dpda)
 !FOX      TRACKI(5)=TRACKI(5)/RV ;
 
 call beaminf(tracki,parbe,sigz,bbcu,imbb(i),ix,ibbc)
-if(ibeco.eq.1) then
+if(ibeco == 1) then
   beamoff1=dare(tracki(1))*c1e3
   beamoff2=dare(tracki(3))*c1e3
   beamoff3=dare(tracki(5))*c1e3 !Added 14.03.2018
@@ -33,7 +34,7 @@ else
   beamoff4=zero
   beamoff5=zero
   beamoff6=zero
-endif
+end if
 dummy=dare(x(1))
 !FOX      X(1)=TRACKI(1)*C1E3+DUMMY-BEAMOFF1 ;
 dummy=dare(x(2))
@@ -59,3 +60,4 @@ dummy=dare(dpda)
 dummy=dare(sigmda)  !Added 14.03.2018
 !FOX      SIGMDA=TRACKI(5)*C1E3+DUMMY-BEAMOFF3 ;
 if(ithick.eq.1) call envada
+! end include/beam6dfi.f90

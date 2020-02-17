@@ -56,9 +56,10 @@ DYNK--------------------------------------------------------------------
   SET ip5_scatter scaling one  3  13 0
   SET ip5_scatter scaling zero 14 -1 0
 NEXT
+RANDOM NUMBERS----------------------------------------------------------
+  SEED 42
+NEXT
 SCATTER-----------------------------------------------------------------
-  DEBUG
-  SEED  42
   GEN   sc_thin     PPBEAMELASTIC 0.046 18.52   4.601   2.647 0.0 30
   PRO   ipPRO       FLAT          1e25  938.0   7000000
   ELEM  ip5_scatter ipPRO         auto  1.0 sc_thin
@@ -82,11 +83,6 @@ COLLIMATION-------------------------------------------------------------
   EMIT 2.5 2.5 2.5 2.5
 
   COLLDB "CollDB-HLLHC.dat"
-  BEAM_NUM 1
-
-  JAW_SLICE  0  19789.0  20150.0  1  1
-  JAW_FIT1  -1.3899e-6  -9.345e-5  5.05324e-3  -1.6595e-2  2.15955e-2  -9.96261e-3  1.0
-  JAW_FIT2  -1.3899e-6  -9.345e-5  5.05324e-3  -1.6595e-2  2.15955e-2  -9.96261e-3  1.0
 
   BETA_BEAT 0 0 0 0
   ALIGNERR_PRIM 0 0 0 0
@@ -111,7 +107,6 @@ COLLIMATION-------------------------------------------------------------
 
   EMIT_DRIFT   0 0
   SYSTILT_ANTI off
-  CERN         off
 
   DO_NSIG  on
   NSIG_FAM tcp3     12.0

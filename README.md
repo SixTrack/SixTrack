@@ -6,7 +6,6 @@ SixTrack is a single particle 6D symplectic tracking code optimized for long ter
 It is mainly used for the LHC for dynamic aperture studies, tune optimization, and collimation studies.
 
 ## Authors
-
 F.&nbsp;Schmidt (DESY, CERN),
 J.D.&nbsp;Andersson,
 R.&nbsp;Assman,
@@ -15,6 +14,7 @@ V.K.&nbsp;Berglyd&nbsp;Olsen,
 C.&nbsp;Bracco,
 R.&nbsp;Bruce,
 R.&nbsp;De&nbsp;Maria,
+M.&nbsp;D&apos;Andrea,
 M.&nbsp;Fiascaris,
 M.&nbsp;Fjellstrom,
 H.&nbsp;Grote,

@@ -1,28 +1,28 @@
-# Automatically converted collimator DB from old format file 'CollDB-HLLHC.dat'
 # Families
-NSIG_FAM tcp3                 12.000000
-NSIG_FAM tcsg3                15.600000
-NSIG_FAM tcsm3               999.000000
-NSIG_FAM tcla3                17.600000
-NSIG_FAM tcp7                  6.000000
-NSIG_FAM tcsg7                 7.000000
-NSIG_FAM tcsm7               999.000000
-NSIG_FAM tcla7                10.000000
-NSIG_FAM tclp                 10.000000
-NSIG_FAM tcli                999.000000
-NSIG_FAM tcdq                  8.000000
-NSIG_FAM tcstcdq               7.500000
-NSIG_FAM tdi                 999.000000
-NSIG_FAM tcth1                 8.300000
-NSIG_FAM tcth2                30.000000
-NSIG_FAM tcth5                 8.300000
-NSIG_FAM tcth8                30.000000
-NSIG_FAM tctv1                 8.300000
-NSIG_FAM tctv2                30.000000
-NSIG_FAM tctv5                 8.300000
-NSIG_FAM tctv8                30.000000
-NSIG_FAM tcxrp               999.000000
-NSIG_FAM tcryo                10.000000
+NSIG_FAM tcp3                 12.000000 PRIMARY
+NSIG_FAM tcsg3                15.600000 SECONDARY
+NSIG_FAM tcsm3               999.000000 UNKNOWN
+NSIG_FAM tcla3                17.600000 TERTIARY
+NSIG_FAM tcp7                  6.000000 PRIMARY
+NSIG_FAM tcsg7                 7.000000 SECONDARY
+NSIG_FAM tcsm7               999.000000 UNKNOWN
+NSIG_FAM tcla7                10.000000 TERTIARY
+NSIG_FAM tclp                 10.000000 TERTIARY
+NSIG_FAM tcli                999.000000 TERTIARY
+NSIG_FAM tcdq                  8.000000 TERTIARY
+NSIG_FAM tcstcdq               7.500000 SECONDARY
+NSIG_FAM tdi                 999.000000 TERTIARY
+NSIG_FAM tcth1                 8.300000 TERTIARY
+NSIG_FAM tcth2                30.000000 TERTIARY
+NSIG_FAM tcth5                 8.300000 TERTIARY
+NSIG_FAM tcth8                30.000000 TERTIARY
+NSIG_FAM tctv1                 8.300000 TERTIARY
+NSIG_FAM tctv2                30.000000 TERTIARY
+NSIG_FAM tctv5                 8.300000 TERTIARY
+NSIG_FAM tctv8                30.000000 TERTIARY
+NSIG_FAM tcxrp               999.000000 UNKNOWN
+NSIG_FAM tcryo                10.000000 TERTIARY
+
 # Collimators
 # name                                                    opening mat.     length[m]    angle[deg]     offset[m]     beta_x[m]     beta_y[m]
 tclx.4r1.b1                                                  tclp Iner      1.000000      0.000000      0.000000   6812.605863   4597.092632
@@ -79,7 +79,7 @@ tcth.6l1.b1                                                 tcth1 CuCD      1.00
 tctv.6l1.b1                                                 tctv1 CuCD      1.000000     90.000000      0.000000   1322.390717    361.810771
 tctxh.4l1.b1                                                tcth1 CuCD      1.000000      0.000000      0.000000   4673.449650   7076.790797
 tctpv.4l1.b1                                                tctv1 CuCD      1.000000     90.000000      0.000000   4761.459948   7383.238344
-#
+
 # Additional Collimator Settings
 SETTINGS
 ONESIDED tcdqa.a4r6.b1                                    1

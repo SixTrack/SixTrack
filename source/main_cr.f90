@@ -16,6 +16,7 @@ program maincr
   use floatPrecision
   use mod_units
   use mod_linopt
+  use mod_random
   use string_tools
   use sixtrack_input
   use mathlib_bouncer
@@ -31,6 +32,7 @@ program maincr
   use mod_meta
   use mod_time
   use aperture
+  use tracking
   use mod_ranecu
   use mod_particles
   use mod_geometry,   only : geom_calcDcum, geom_reshuffleLattice
@@ -38,7 +40,7 @@ program maincr
   use mod_fluc,       only : fluc_randomReport, fluc_errAlign, fluc_errZFZ
   use postprocessing, only : postpr, writebin_header, writebin
   use read_write,     only : writeFort12, readFort13, readFort33
-  use collimation,    only : do_coll, collimate_init, collimate_exit
+  use collimation,    only : do_coll, coll_init, coll_exitCollimation
   use mod_ffield,     only : ffield_mod_init,ffield_mod_end
 
 #ifdef FLUKA
@@ -79,16 +81,15 @@ program maincr
 
   implicit none
 
-  integer i,itiono,i2,i3,ia,ia2,iation,ib1,id,ie,ii,im,ip,iposc,ix,izu,j,jj,k,kpz,kzz,l,ncorruo,    &
+  integer i,itiono,i2,i3,ia,ia2,iation,ib1,id,ie,ii,im,ip,iposc,ix,izu,jj,k,kpz,kzz,l,ncorruo,    &
     ncrr,nd,nd2,ndafi2,nerror,nlino,nlinoo,nmz,nthinerr
   real(kind=fPrec) alf0s1,alf0s2,alf0s3,alf0x2,alf0x3,alf0z2,alf0z3,amp00,bet0s1,bet0s2,bet0s3,     &
     bet0x2,bet0x3,bet0z2,bet0z3,chi,coc,dam1,dchi,dp0,dp00,dp10,dpsic,dps0,dsign,gam0s1,gam0s2,     &
-    gam0s3,gam0x1,gam0x2,gam0x3,gam0z1,gam0z2,gam0z3,phag,r0,r0a,rat0,sic,tasia56,tasiar16,tasiar26,&
+    gam0s3,gam0x1,gam0x2,gam0x3,gam0z1,gam0z2,gam0z3,phag,rat0,sic,tasia56,tasiar16,tasiar26,&
     tasiar36,tasiar46,tasiar56,tasiar61,tasiar62,tasiar63,tasiar64,tasiar65,taus,x11,x13,damp,      &
-    eps(2),epsa(2)
+    epsa(2),pretime,trtime,posttime,tottime
   integer idummy(6)
   character(len=4) cpto
-  character(len=1024) arecord
 
   ! Keep in sync with writebin_header and more. If the len changes, CRCHECK will break.
   character(len=8) cDate,cTime,progrm
@@ -97,11 +98,12 @@ program maincr
   integer fluka_con
 #endif
 
+#ifdef ROOT
+  integer j
+#endif
+
   ! New Variables
   character(len=:), allocatable :: featList, compName
-#ifndef STF
-  character(len=7)  tmpFile
-#endif
   character(len=23) timeStamp
   character(len=8)  tsDate
   character(len=10) tsTime
@@ -122,10 +124,10 @@ program maincr
   lout  = output_unit
 #endif
 
+  call f_initUnits
 #ifdef BOINC
   call boinc_initialise
 #endif
-  call f_initUnits
   call meta_initialise ! The meta data file.
   call time_initialise ! The time data file. Need to be as early as possible as it sets cpu time 0.
   call alloc_init      ! Initialise mod_alloc
@@ -136,12 +138,6 @@ program maincr
 
   ! Features
   featList = ""
-#ifdef TILT
-  featList = featList//" TILT"
-#endif
-#ifdef STF
-  featList = featList//" STF"
-#endif
 #ifdef CRLIBM
   featList = featList//" CRLIBM"
   call disable_xp()
@@ -184,6 +180,9 @@ program maincr
   ! Initialise Checkpoint/Restart
   call cr_fileInit
 #endif
+#ifdef BOINC
+  call boinc_preProgress(1)
+#endif
 
   ! Open Regular File Units
   call f_open(unit=18,file="fort.18",formatted=.true., mode="rw",err=fErr) ! DA file
@@ -193,16 +192,8 @@ program maincr
   call f_open(unit=26,file="fort.26",formatted=.false.,mode="rw",err=fErr) ! DA file
   call f_open(unit=31,file="fort.31",formatted=.true., mode="w", err=fErr)
 
-#ifdef STF
   ! Open Single Track File
   call f_open(unit=90,file="singletrackfile.dat",formatted=.false.,mode="rw",err=fErr)
-#else
-  ! Open binary files 59 to 90 for particle pair 1 to 32
-  do i=59,90
-    write(tmpFile,"(a5,i0)") "fort.",i
-    call f_open(unit=i,file=tmpFile,formatted=.false.,mode="rw",err=fErr)
-  end do
-#endif
 
   call time_timeStamp(time_afterFileUnits)
 
@@ -242,8 +233,6 @@ program maincr
   flush(crlog)
 #endif
 
-  call time_timerStart
-  call time_timerCheck(time0)
   progrm = "SIXTRACK"
 
 #ifdef ROOT
@@ -256,8 +245,15 @@ program maincr
 
   call ffield_mod_init
 
+#ifdef BOINC
+  call boinc_preProgress(2)
+#endif
   call daten
   call time_timeStamp(time_afterDaten)
+#ifdef BOINC
+  call boinc_preProgress(3)
+#endif
+  call rnd_initSeries ! Initialise random numbers
 
 #ifdef HDF5
   if(h5_isActive) then
@@ -281,20 +277,30 @@ program maincr
   call time_timeStamp(time_afterCRCheck)
 #endif
 
-  call scatter_init
   call aperture_init
 
 #ifndef FLUKA
   ! SETTING UP THE PLOTTING
   if(ipos == 1 .and. (idis /= 0 .or. icow /= 0 .or. istw /= 0 .or. iffw /= 0)) then
+!Set max memory size for zebra number of words to "allocate" in the zebra common block PAWC
     call hlimit(nplo)
+
+!init + sets terminal type - 0 is batch mode
     call hplint(kwtype)
+
+!unit number, <0 ->write to file only, "workstation type": -111 = "HIGZ/X11"
     call igmeta(-20,-111)
+
+!PTO (please turn over) - insert a carriage return between plots
     cpto='NPTO'
     if(icr.eq.1) cpto='PTO '
     call hplopt(cpto,1)
+
+!not in the manual but probably adds a datestamp
     call hplopt('DATE',1)
     call hplset('DATE',1.)
+
+!sets the comment size (in cm) - default is 0.28
     call hplset('CSIZ',.15)
   endif
 
@@ -310,17 +316,7 @@ program maincr
     call f_requestUnit(fort110,unit110)
     call f_open(unit=unit10, file=fort10, formatted=.true., mode="rw",err=fErr,status="replace",recl=8195)
     call f_open(unit=unit110,file=fort110,formatted=.false.,mode="rw",err=fErr,status="replace")
-#ifndef STF
-    do i=1,ndafi !ndafi = number of files to postprocess (set by fort.3)
-#ifndef CR
-      call postpr(91-i)
-#else
-      write(crlog,"(2(a,i0))") "SIXTRACR> Calling POSTPR Unit: ",(91-i),", turns: ",nnuml
-      flush(crlog)
-      call postpr(91-i,nnuml)
-#endif
-    end do
-#else
+
     ! ndafi normally set in fort.3 to be "number of files to postprocess"
     ! Inside the postpr subroutine ndafi is modified as:
     ! ndafi=itopa(total particles) if once particle per header i.e ntwin=1,
@@ -334,7 +330,6 @@ program maincr
       call postpr(i,nnuml)
 #endif
     end do
-#endif
 
     call sumpos
     call f_close(unit10)
@@ -353,7 +348,7 @@ program maincr
   damp  = zero
   if(napx /= 1) damp=((amp00-amp0)/real(napx-1,fPrec))/two
   napx  = 2*napx
-  call expand_arrays(nele, napx, nblz, nblo)
+  call expand_arrays(nele, napx, nblz, nblo, nbb)
 
   ! Log some meta data
   meta_nPartInit = napx
@@ -410,11 +405,14 @@ program maincr
 #endif
   end if
   ! dump x-sections at specific locations
-  if (mxsec.gt.0) call dump_aperture_xsecs
+  if(mxsec > 0) call dump_aperture_xsecs
   ! map errors, now that the sequence is no longer going to change
   call ord
   if(allocated(zfz)) call fluc_randomReport
 
+#ifdef BOINC
+  call boinc_preProgress(4)
+#endif
   call clorb(ded)
 
 #ifdef ROOT
@@ -472,13 +470,23 @@ program maincr
   end do
   call corrorb
 
-  if(irmod2.eq.1) call rmod(dp1)
-  if(iqmod.ne.0) call qmod0
-  if(ichrom == 1 .or. ichrom == 3) call chroma
-  if(iskew.ne.0) call decoup
-  if(ilin.eq.1.or.ilin.eq.3) then
+  if(irmod2 == 1) then
+    call rmod(dp1)
+  end if
+  if(iqmod /= 0) then
+    call qmod0
+  end if
+  if(ichrom == 1 .or. ichrom == 3) then
+    call chroma
+  end if
+  if(iskew /= 0) then
+    call decoup
+  end if
+  if(ilin == 1 .or. ilin == 3) then
     call linopt(dp1)
   end if
+
+  call scatter_init ! Must be after linopt
 
   ! beam-beam element
   nlino = nlin
@@ -582,6 +590,10 @@ program maincr
   endif
   dp1  = dp00
   dp0  = dp00
+
+#ifdef BOINC
+  call boinc_preProgress(5)
+#endif
 
   ! ========================================================================== !
   !  Closed Orbit
@@ -957,6 +969,10 @@ program maincr
     call meta_write("6D_ClosedOrbitCorr_dp",    clop6(3))
   end if
 
+#ifdef BOINC
+  call boinc_preProgress(6)
+#endif
+
 ! ---------------------------------------------------------------------------- !
 !  GENERATE THE INITIAL DISTRIBUTION
 ! ---------------------------------------------------------------------------- !
@@ -1106,57 +1122,28 @@ program maincr
         dam(ia+1) = dam1
       end if
 
-      ! Write header of track output file(s) used by postprocessing for case ntwin /= 2
-#ifndef STF
+      ! Write header of singletrackfile.dat used by postprocessing for case ntwin /= 2
 #ifdef CR
       if(.not.cr_restart) then
 #endif
-        call writebin_header(ia,ia,91-ia2,ierro,cDate,cTime,progrm)
-#ifdef CR
-        flush(91-ia2)
-        binrecs(ia2)=1
-      endif
-#endif
-#else
-#ifdef CR
-      if(.not.cr_restart) then
-#endif
-        call writebin_header(ia,ia,90,ierro,cDate,cTime,progrm)
-#ifdef CR
+        call writebin_header(ia,ia,90,cDate,cTime,progrm)
         flush(90)
+#ifdef CR
         binrecs(ia2)=1
       endif
 #endif
-#endif
-    else !ELSE for "if(ntwin.ne.2)"
-      ! Write header of track output file(s) used by postprocessing for case ntwin == 2
-#ifndef STF
+    else ! elseif(ntwin /= 2)
+      ! Write header of singletrackfile.dat used by postprocessing for case ntwin == 2
 #ifdef CR
       if(.not.cr_restart) then
 #endif
-        call writebin_header(ia,ia+1,91-ia2,ierro,cDate,cTime,progrm)
-#ifdef CR
-        flush(91-ia2)
-        binrecs(ia2)=1
-      endif
-#endif
-#else
-#ifdef CR
-      if(.not.cr_restart) then
-#endif
-        call writebin_header(ia,ia+1,90,ierro,cDate,cTime,progrm)
-#ifdef CR
+        call writebin_header(ia,ia+1,90,cDate,cTime,progrm)
         flush(90)
+#ifdef CR
         binrecs(ia2)=1
       endif
 #endif
-#endif
-    endif !ENDIF (ntwin.ne.2)
-    if(ierro /= 0) then
-      write(lerr,"(a,i0)") "MAINCR> ERROR Problems writing to file #",91-ia2
-      write(lerr,"(a,i0)") "MAINCR> ERROR Code: ",ierro
-      goto 520
-    endif
+    end if ! if(ntwin /= 2)
   end do ! napx
 
 #ifdef CR
@@ -1164,6 +1151,9 @@ program maincr
   ! binrec:  The maximum number of reccords writen for all tracking data files. Thus crbinrecs(:) <= binrec
 #endif
 
+#ifdef BOINC
+  call boinc_preProgress(7)
+#endif
   call time_timeStamp(time_afterBeamDist)
 
 ! ---------------------------------------------------------------------------- !
@@ -1234,14 +1224,21 @@ program maincr
   call dump_initialise
   if(ithick == 0 .and. do_coll) then
     ! Only if thin and collimation enabled
-    call collimate_init
+    call coll_init
   end if
 
+#ifdef BOINC
+  call boinc_preProgress(8)
+#endif
   call time_timeStamp(time_afterInitialisation)
 
 ! ---------------------------------------------------------------------------- !
 !  START OF TRACKING
 ! ---------------------------------------------------------------------------- !
+  if(st_notrack) then
+    write(lout,"(a)") "MAINCR> Skipping tracking as the user set the --notrack flag"
+    goto 520
+  end if
   write(lout,10200)
 
   if(st_iStateWrite) then
@@ -1252,30 +1249,14 @@ program maincr
     end if
   end if
 
-  time1=0.
-  call time_timerCheck(time1)
+  call preTracking
+  call startTracking(nthinerr)
 
-  ! time1 is now pre-processing CPU
-  ! note that this will be reset every restart as we redo pre-processing
-  pretime=time1-time0
-  part_isTracking = .true.
-  if(ithick == 0) call trauthin(nthinerr)
-  if(ithick == 1) call trauthck(nthinerr)
-
-  time2=0.
-  call time_timerCheck(time2)
-
-  if(iclo6 > 0 .and. ithick == 0 .and. do_coll) then
+  if(ithick == 0 .and. do_coll) then
     ! Only if thin 6D and collimation enabled
-    call collimate_exit
+    call coll_exitCollimation
   endif
 
-  ! trtime is now the tracking time, BUT we must add other time for C/R
-  trtime=time2-time1
-#ifdef CR
-  ! because now crpoint will write tracking time using time3 as a temp and crcheck/crstart will reset cr_time
-  trtime=trtime+cr_time
-#endif
   if(nthinerr == 3000) goto 520
   if(nthinerr == 3001) goto 460
 
@@ -1334,6 +1315,9 @@ program maincr
   write(lout,"(a)") str_divLine
   write(lout,"(a)") ""
   call time_timeStamp(time_afterTracking)
+#ifdef BOINC
+  call boinc_postProgress(0)
+#endif
 
   if(st_writefort12) then
     call writeFort12
@@ -1433,6 +1417,9 @@ program maincr
       call part_writeState("final_state.bin",.false.,st_fStateIons)
     end if
   end if
+#ifdef BOINC
+  call boinc_postProgress(1)
+#endif
 
 #ifdef FLUKA
 
@@ -1455,23 +1442,12 @@ program maincr
     call f_open(unit=unit110,file=fort110,formatted=.false.,mode="rw",err=fErr,status="replace")
     do ia=1,napxo,2
       iposc = iposc+1
-#ifdef STF
 #ifdef CR
       write(crlog,"(3(a,i0))") "SIXTRACR> Calling POSTPR Particles: ",ia,",",(ia+1),", turns: ",nnuml
       flush(crlog)
       call postpr(ia,nnuml)
 #else
       call postpr(ia)
-#endif
-#else
-      ia2 = 91-(ia+1)/2 ! Track file unit number if not STF
-#ifdef CR
-      write(crlog,"(2(a,i0))") "SIXTRACR> Calling POSTPR Unit: ",ia2,", turns: ",nnuml
-      flush(crlog)
-      call postpr(ia2,nnuml)
-#else
-      call postpr(ia2)
-#endif
 #endif
     end do
     if(iposc >= 1) call sumpos
@@ -1489,22 +1465,12 @@ program maincr
     ndafi2 = ndafi
     do ia=1,ndafi2
       if(ia > ndafi) exit
-#ifdef STF
 #ifdef CR
       write(crlog,"(3(a,i0))") "SIXTRACR> Calling POSTPR Particles: ",ia,",",(ia+1),", turns: ",nnuml
       flush(crlog)
       call postpr(ia,nnuml)
 #else
       call postpr(ia)
-#endif
-#else
-#ifdef CR
-      write(crlog,"(2(a,i0))") "SIXTRACR> Calling POSTPR Unit: ",(91-i),", turns: ",nnuml
-      flush(crlog)
-      call postpr(91-ia,nnuml)
-#else
-      call postpr(91-ia)
-#endif
 #endif
     end do
     if(ndafi >= 1) call sumpos
@@ -1518,36 +1484,42 @@ program maincr
 
 520 continue
   call time_timeStamp(time_afterPostProcessing)
+#ifdef BOINC
+  call boinc_postProgress(2)
+#endif
   if(fma_flag) then
     write(lout,"(a)") "MAINCR> Calling FMA_POSTPR"
     call fma_postpr
     call time_timeStamp(time_afterFMA)
   endif
   ! HPLOTTING END
+  ! HBOOK
   if(ipos == 1 .and. (idis /= 0 .or. icow /= 0 .or. istw /= 0 .or. iffw /= 0)) then
     call igmeta(999,0)
     call hplend
   endif
 #endif
 
-  call ffield_mod_end()
+  call time_timeStamp(time_afterAllPostPR)
+#ifdef BOINC
+  call boinc_postProgress(3)
+#endif
 
-  time3=0.
-  call time_timerCheck(time3)
-  ! Note that crpoint no longer destroys time2
-  posttime=time3-time2
+  call ffield_mod_end
 
   ! Make sure all files are flushed before we do stuff with them
   call f_flush
 
 #ifdef HASHLIB
   ! HASH library. Must be before ZIPF
+  call hash_doTrunc
   call hash_fileSums
   call time_timeStamp(time_afterHASH)
 #endif
 
 #ifdef BOINC
   ! Do the final things in BOINC before ZIPF, but after HASH
+  call boinc_postProgress(4)
   call boinc_done
 #endif
 
@@ -1557,7 +1529,7 @@ program maincr
   endif
 
   ! Get grand total including post-processing
-  tottime = (pretime+trtime)+posttime
+  call time_getSummary(pretime, trtime, posttime, tottime)
   write(lout,"(a)")         ""
   write(lout,"(a)")         str_divLine
   write(lout,"(a)")         ""

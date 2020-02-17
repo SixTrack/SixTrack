@@ -13,10 +13,10 @@ module dynk
 
   implicit none
 
-  ! General-purpose variables
-  logical, public,  save :: dynk_enabled      = .false. ! DYNK input bloc issued in the fort.3 file
-  logical, public,  save :: dynk_debug        = .false. ! Print debug messages in main output
-  logical, public,  save :: dynk_noDynkSets   = .false. ! Disable writing dynksets.dat?
+  ! General purpose variables
+  logical, public,  save :: dynk_enabled      = .false. ! DYNK input block issued in the fort.3 file
+  logical, private, save :: dynk_debug        = .false. ! Print debug messages in main output
+  logical, private, save :: dynk_dynkSets     = .false. ! Flag for writing dynksets.dat
   integer, private, save :: dynk_fileUnit     = -1      ! The file unit for dynksets.dat
 
   character(len=12), parameter :: dynk_fileName = "dynksets.dat"
@@ -183,8 +183,11 @@ subroutine dynk_parseInputLine(inLine,iErr)
     write(lout,"(a)") "DYNK> Debugging is ENABLED"
 
   case("NOFILE")
-    dynk_noDynkSets = .true.
-    write(lout,"(a)") "DYNK> Disabled writing '"//dynk_fileName//"'"
+    write(lout,"(a)") "DYNK> The NOFILE flag no longer has any effect"
+
+  case("DYNKSETS")
+    dynk_dynkSets = .true.
+    write(lout,"(a)") "DYNK> Enabled writing '"//trim(dynk_fileName)//"'"
 
   case("FUN")
     call dynk_parseFUN(inLine,iErr)
@@ -838,7 +841,7 @@ subroutine dynk_parseFUN(inLine, iErr)
     end if
 
     do ii=0, dynk_funcs(dynk_nFuncs,4)
-      ! Reading the FIR/IIR file without CRLIBM
+      ! Reading the FIR/IIR file
       read(tmpUnit,"(a)",iostat=ioStat) fLine
       if(ioStat /= 0) then ! EOF
         write(lerr,"(a)") "DYNK> ERROR FUN:FIR/IIR Unexpected EOF when reading file '"//trim(dynk_cData(dynk_ncData))//"'"
@@ -1446,7 +1449,7 @@ subroutine dynk_parseSET(inLine, iErr)
   logical,          intent(inout) :: iErr
 
   character(len=:), allocatable :: lnSplit(:)
-  integer nSplit, ii
+  integer nSplit
   logical spErr, cErr
 
   call chr_split(inLine,lnSplit,nSplit,spErr)
@@ -1601,6 +1604,9 @@ subroutine dynk_inputSanityCheck
   integer biggestTurn ! Used as a replacement for ending turn -1 (infinity)
   logical sane
 
+  if(dynk_debug) then
+    call dynk_dumpdata
+  end if
   sane = .true.
 
   ! Check that there are no doubly-defined function names
@@ -1686,9 +1692,9 @@ subroutine dynk_dumpdata
   integer ii
 
   write(lout,"(a)")      "DYNK> DEBUG OPTIONS:"
-  write(lout,"(a,l1)")   "DYNK> DEBUG  * dynk_enabled    = ",dynk_enabled
-  write(lout,"(a,l1)")   "DYNK> DEBUG  * dynk_debug      = ",dynk_debug
-  write(lout,"(a,l1)")   "DYNK> DEBUG  * dynk_noDynkSets = ",dynk_noDynkSets
+  write(lout,"(a,l1)")   "DYNK> DEBUG  * dynk_enabled  = ",dynk_enabled
+  write(lout,"(a,l1)")   "DYNK> DEBUG  * dynk_debug    = ",dynk_debug
+  write(lout,"(a,l1)")   "DYNK> DEBUG  * dynk_dynkSets = ",dynk_dynkSets
 
   write(lout,"(a)")      "DYNK> DEBUG FUN:"
   write(lout,"(a,i0,a)") "DYNK> DEBUG ifuncs(",dynk_nFuncs,"):"
@@ -1872,9 +1878,6 @@ subroutine dynk_apply(turn)
   character(len=mStrLen) whichFUN(dynk_nSets_unique) ! Which function was used to set a given elem/attr?
   integer whichSET(dynk_nSets_unique)                ! Which SET was used for a given elem/attr?
 
-  ! Temp variable for padding the strings for output to dynksets.dat
-  character(20) outstring_tmp1,outstring_tmp2,outstring_tmp3
-
   if(dynk_debug) then
     write (lout,"(a,i0)") "DYNK> DEBUG In apply at turn ",turn
   end if
@@ -1901,11 +1904,11 @@ subroutine dynk_apply(turn)
       end if
       call f_open(unit=dynk_fileUnit,file=dynk_fileName,formatted=.true.,mode="w",status="replace")
 
-      if(dynk_noDynkSets) then
-        write(dynk_fileUnit,"(a)") "### DYNK file output was disabled with flag NOFILE in "//trim(fort3)//" ###"
-      else
+      if(dynk_dynkSets) then
         write(dynk_fileUnit,"(a1,1x,a10,2(1x,a20),1x,a4,1x,a20,a16)") "#",&
-          "turn", chr_rPad("element",20),chr_rPad("attribute",20),"idx",chr_rPad("funname",20),"value"
+        "turn", chr_rPad("element",20),chr_rPad("attribute",20),"idx",chr_rPad("funname",20),"value"
+      else
+        write(dynk_fileUnit,"(a)") "### DYNK file output disabled. Add the flag DYNKSETS to enable it ###"
       end if
 #ifdef CR
       ! Note: To be able to reposition, each line should be shorter than 255 chars
@@ -1953,7 +1956,7 @@ subroutine dynk_apply(turn)
   end do
 
   ! Write output file
-  if(.not.dynk_noDynkSets) then
+  if(dynk_dynkSets) then
     do jj=1,dynk_nSets_unique
       getvaldata = dynk_getvalue(dynk_cSets_unique(jj,1),dynk_cSets_unique(jj,2))
 
@@ -2286,10 +2289,10 @@ subroutine dynk_setvalue(element_name, att_name, newValue)
   real(kind=fPrec),   intent(in) :: newValue
 
   ! Temp variables
-  integer el_type, ii, j, orderMult, im,k, range
+  integer el_type, ii, orderMult, im,k, range
 
   ! Original energies before energy update
-  real(kind=fPrec) e0fo, e0o, r0a, r0
+  real(kind=fPrec) r0a, r0
 
   ! For sanity check
   logical ldoubleElement, iErr
@@ -2918,54 +2921,14 @@ end subroutine dynk_crcheck_readdata
 ! ================================================================================================ !
 subroutine dynk_crcheck_positionFiles
 
-  use parpro
-  use crcoall
   use mod_units
 
-  logical isOpen, fErr
-  integer ierro
-  integer j
-  character(len=mInputLn) aRecord
-
-  inquire(unit=dynk_fileUnit, opened=isOpen)
-  if(isOpen) then
-    write(crlog,"(a)")      "CR_CHECK> ERROR Failed while repositioning '"//dynk_fileName//"'"
-    write(crlog,"(a,i0,a)") "CR_CHECK>       Unit ",dynk_fileUnit," already in use!"
-    flush(crlog)
-    write(lerr,"(a)") "CR_CHECK> ERROR Failed positioning '"//dynk_fileName//"'"
-    call prror
+  if(dynk_dynkSets .eqv. .false.) then
+    ! No file to reposition
+    return
   end if
 
-  if (dynk_filePosCR /= -1) then
-    call f_open(unit=dynk_fileUnit,file=dynk_fileName,formatted=.true.,mode="rw",status="old",err=fErr)
-    if(fErr) goto 110
-    dynk_filePos = 0     ! Start counting lines at 0, not -1
-    do j=1,dynk_filePosCR
-      read(dynk_fileUnit,"(a)",end=110,err=110,iostat=ierro) aRecord
-      dynk_filePos=dynk_filePos+1
-    end do
-
-    endfile(dynk_fileUnit,iostat=ierro)
-    call f_close(dynk_fileUnit)
-    call f_open(unit=dynk_fileUnit,file=dynk_fileName,formatted=.true.,mode="w+",status="old")
-
-    write(crlog,"(2(a,i0))") "CR_CHECK> Sucessfully repositioned '"//dynk_fileName//"', "// &
-      "dynk_filePos = ",dynk_filePos,", dynk_filePosCR = ",dynk_filePosCR
-    flush(crlog)
-  else
-    write(crlog,"(a,i0)") "CR_CHECK> Did not attempt repositioning of '"//dynk_fileName//"', dynk_filePosCR = ",dynk_filePosCR
-    write(crlog,"(a)")    "CR_CHECK> If anything was written to the file, it will be truncated in dynk_apply on the first turn."
-    flush(crlog)
-  end if
-
-  return
-
-110 continue
-  write(crlog,"(2(a,i0))") "CR_CHECK> ERROR While reading '"//dynk_fileName//"', "//&
-    "dynk_filePos = ",dynk_filePos,", dynk_filePosCR = ",dynk_filePosCR
-  flush(crlog)
-  write(lerr,"(a)") "CR_CHECK> ERROR CRCHECK failure positioning '"//dynk_fileName//"'"
-  call prror
+  call f_positionFile(dynk_fileName, dynk_fileUnit, dynk_filePos, dynk_filePosCR)
 
 end subroutine dynk_crcheck_positionFiles
 

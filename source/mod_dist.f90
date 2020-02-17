@@ -25,6 +25,7 @@ module mod_dist
   logical,                  private, save :: dist_libRead     = .false. ! Read file with dist library instead of internal reader
   logical,                  private, save :: dist_distLib     = .false. ! DISTlib is needed to generate the distribution requested
   logical,                  private, save :: dist_distLibNorm = .true.  ! DISTlib is used to convert normalised coordinates
+  logical,                  private, save :: dist_needsRnd    = .false. ! If the DIST block needs random numbers
   character(len=mFileName), private, save :: dist_distFile    = " "     ! File name for reading the distribution
   character(len=mFileName), private, save :: dist_echoFile    = " "     ! File name for echoing the distribution
 
@@ -36,8 +37,6 @@ module mod_dist
   integer,                       private, save :: dist_nParticle = 0  ! Number of PARTICLE keywords in block
 
   integer,                       private, save :: dist_numPart   = 0  ! Number of actual particles generated or read
-  integer,                       private, save :: dist_seedOne   = -1 ! Random seeds
-  integer,                       private, save :: dist_seedTwo   = -1 ! Random seeds
 
   type, private :: dist_fillType
     character(len=:), allocatable :: fillName
@@ -56,9 +55,10 @@ module mod_dist
   integer, parameter :: dist_fillINT        = 1  ! Fixed integer value
   integer, parameter :: dist_fillFLOAT      = 2  ! Fixed float value
   integer, parameter :: dist_fillGAUSS      = 3  ! Gaussian distribution
-  integer, parameter :: dist_fillUNIFORM    = 4  ! Uniform distribution
-  integer, parameter :: dist_fillLINEAR     = 5  ! Linear fill
-  integer, parameter :: dist_fillCOUNT      = 6  ! Integer range
+  integer, parameter :: dist_fillRAYLEIGH   = 4  ! Rayleigh distribution
+  integer, parameter :: dist_fillUNIFORM    = 5  ! Uniform distribution
+  integer, parameter :: dist_fillLINEAR     = 6  ! Linear fill
+  integer, parameter :: dist_fillCOUNT      = 7  ! Integer range
 
   !  Normalisation Methods
   ! =======================
@@ -247,6 +247,7 @@ subroutine dist_generateDist
   use crcoall
   use mod_alloc
   use mod_common
+  use mod_random
   use mod_particles
   use mod_common_main
   use physical_constants
@@ -261,6 +262,11 @@ subroutine dist_generateDist
   call alloc(dist_partCol4, napx, zero, "dist_partCol4")
   call alloc(dist_partCol5, napx, zero, "dist_partCol5")
   call alloc(dist_partCol6, napx, zero, "dist_partCol6")
+
+  if(dist_needsRnd .and. .not. rnd_initOK) then
+    write(lerr,"(a,i0,a)") "DIST> ERROR DIST module requires random numbers, but random numbers generator not initialised"
+    call prror
+  end if
 
   ! If the T matrix hasn't been set from input, we set it here
   if(dist_normMethod == dist_normSIXTRACK) then
@@ -527,16 +533,9 @@ subroutine dist_parseInputLine(inLine, iLine, iErr)
     call dist_parseFill(lnSplit, nSplit, cErr)
 
   case("SEED")
-    if(nSplit /= 2) then
-      write(lerr,"(a,i0)") "DIST> ERROR SEED takes 1 argument, got ",nSplit-1
-      iErr = .true.
-      return
-    end if
-    call chr_cast(lnSplit(2), dist_seedOne, cErr)
-    call recuut(tmpOne, tmpTwo)
-    call recuinit(dist_seedOne)
-    call recuut(dist_seedOne, dist_seedTwo)
-    call recuin(tmpOne, tmpTwo)
+    write(lerr,"(a,i0)") "DIST> ERROR SEED keyword has been removed and replaced by the RAND block"
+    iErr = .true.
+    return
 
   case("TMATRIX")
     if(nSplit /= 7) then
@@ -695,6 +694,34 @@ subroutine dist_parseFill(lnSplit, nSplit, iErr)
     if(nSplit > 6) call chr_cast(lnSplit(7), iParams(1), cErr)
     if(nSplit > 7) call chr_cast(lnSplit(8), iParams(2), cErr)
 
+    dist_needsRnd = .true.
+
+  case("RAYLEIGH")
+    if(nSplit /= 4 .and. nSplit /= 5 .and. nSplit /= 6 .and. nSplit /= 8) then
+      write(lerr,"(a,i0)") "DIST> ERROR FILL format RAYLEIGH expected 1, 2, 3 or 5 arguments, got ",nSplit-3
+      write(lerr,"(a)")    "DIST>       FILL column RAYLEIGH sigma [maxcut] [mincut] [first last]"
+      iErr = .true.
+      return
+    end if
+
+    allocate(fParams(3))
+    allocate(iParams(2))
+
+    fillMethod = dist_fillRAYLEIGH
+    fParams(1) = one
+    fParams(2) = zero
+    fParams(3) = zero
+    iParams(1) =  1
+    iParams(2) = -1
+
+    if(nSplit > 3) call chr_cast(lnSplit(4), fParams(1), cErr)
+    if(nSplit > 4) call chr_cast(lnSplit(5), fParams(2), cErr)
+    if(nSplit > 5) call chr_cast(lnSplit(6), fParams(3), cErr)
+    if(nSplit > 6) call chr_cast(lnSplit(7), iParams(1), cErr)
+    if(nSplit > 7) call chr_cast(lnSplit(8), iParams(2), cErr)
+
+    dist_needsRnd = .true.
+
   case("UNIFORM")
     if(nSplit /= 5 .and. nSplit /= 7) then
       write(lerr,"(a,i0)") "DIST> ERROR FILL format UNIFORM expected 2 or 4 arguments, got ",nSplit-3
@@ -716,6 +743,8 @@ subroutine dist_parseFill(lnSplit, nSplit, iErr)
     if(nSplit > 4) call chr_cast(lnSplit(5), fParams(2), cErr)
     if(nSplit > 5) call chr_cast(lnSplit(6), iParams(1), cErr)
     if(nSplit > 6) call chr_cast(lnSplit(7), iParams(2), cErr)
+
+    dist_needsRnd = .true.
 
   case("LINEAR")
     if(nSplit /= 5 .and. nSplit /= 7) then
@@ -1502,11 +1531,6 @@ subroutine dist_doFills
     fM = dist_fillList(iFill)%fillMethod
     fT = dist_fillList(iFill)%fillTarget
 
-    if((fM == dist_fillGAUSS .or. fM == dist_fillUNIFORM) .and. dist_seedOne < 1) then
-      write(lerr,"(a)") "DIST> ERROR Random number fill requested, but no SEED provided in DIST block"
-      call prror
-    end if
-
     select case(fT)
 
     case(dist_fmtNONE)
@@ -1532,7 +1556,7 @@ subroutine dist_doFills
     !  Horizontal Coordinates
     ! ========================
 
-    case(dist_fmtX, dist_fmtXN, dist_fmtJX)
+    case(dist_fmtX, dist_fmtXN)
       if(fM == dist_fillFLOAT .or. fM == dist_fillGAUSS .or. fM == dist_fillUNIFORM .or. fM == dist_fillLINEAR) then
         call dist_fillThis(dist_partCol1, iA, iB, fM, dist_fillList(iFill)%fParams)
       else
@@ -1540,7 +1564,7 @@ subroutine dist_doFills
         call prror
       end if
 
-    case(dist_fmtPX, dist_fmtXP, dist_fmtPXP0, dist_fmtPXN, dist_fmtPhiX)
+    case(dist_fmtPX, dist_fmtXP, dist_fmtPXP0, dist_fmtPXN)
       if(fM == dist_fillFLOAT .or. fM == dist_fillGAUSS .or. fM == dist_fillUNIFORM .or. fM == dist_fillLINEAR) then
         call dist_fillThis(dist_partCol2, iA, iB, fM, dist_fillList(iFill)%fParams)
       else
@@ -1551,7 +1575,7 @@ subroutine dist_doFills
     !  Vertical Coordinates
     ! ========================
 
-    case(dist_fmtY, dist_fmtYN, dist_fmtJY)
+    case(dist_fmtY, dist_fmtYN)
       if(fM == dist_fillFLOAT .or. fM == dist_fillGAUSS .or. fM == dist_fillUNIFORM .or. fM == dist_fillLINEAR) then
         call dist_fillThis(dist_partCol3, iA, iB, fM, dist_fillList(iFill)%fParams)
       else
@@ -1559,7 +1583,7 @@ subroutine dist_doFills
         call prror
       end if
 
-    case(dist_fmtPY, dist_fmtYP, dist_fmtPYP0, dist_fmtPYN, dist_fmtPhiY)
+    case(dist_fmtPY, dist_fmtYP, dist_fmtPYP0, dist_fmtPYN)
       if(fM == dist_fillFLOAT .or. fM == dist_fillGAUSS .or. fM == dist_fillUNIFORM .or. fM == dist_fillLINEAR) then
         call dist_fillThis(dist_partCol4, iA, iB, fM, dist_fillList(iFill)%fParams)
       else
@@ -1570,7 +1594,7 @@ subroutine dist_doFills
     !  Longitudinal Coordinates
     ! ==========================
 
-    case(dist_fmtSIGMA, dist_fmtZETA, dist_fmtDT, dist_fmtZN, dist_fmtJZ)
+    case(dist_fmtSIGMA, dist_fmtZETA, dist_fmtDT, dist_fmtZN)
       if(fM == dist_fillFLOAT .or. fM == dist_fillGAUSS .or. fM == dist_fillUNIFORM .or. fM == dist_fillLINEAR) then
         call dist_fillThis(dist_partCol5, iA, iB, fM, dist_fillList(iFill)%fParams)
       else
@@ -1578,11 +1602,30 @@ subroutine dist_doFills
         call prror
       end if
 
-    case(dist_fmtE, dist_fmtDEE0, dist_fmtPT, dist_fmtPSIGMA, dist_fmtP, dist_fmtDPP0, dist_fmtPZN, dist_fmtPhiZ)
+    case(dist_fmtE, dist_fmtDEE0, dist_fmtPT, dist_fmtPSIGMA, dist_fmtP, dist_fmtDPP0, dist_fmtPZN)
       if(fM == dist_fillFLOAT .or. fM == dist_fillGAUSS .or. fM == dist_fillUNIFORM .or. fM == dist_fillLINEAR) then
         call dist_fillThis(dist_partCol6, iA, iB, fM, dist_fillList(iFill)%fParams)
       else
         write(lerr,"(a)") "DIST> ERROR FILL "//trim(dist_fillList(iFill)%fillName)//" must be FLOAT, GAUSS, UNIFORM or LINEAR"
+        call prror
+      end if
+
+    !  Action Angle Special Case
+    ! ===========================
+
+    case(dist_fmtJX, dist_fmtJY, dist_fmtJZ)
+      if(fM == dist_fillFLOAT .or. fM == dist_fillRAYLEIGH .or. fM == dist_fillUNIFORM .or. fM == dist_fillLINEAR) then
+        call dist_fillThis(dist_partCol1, iA, iB, fM, dist_fillList(iFill)%fParams)
+      else
+        write(lerr,"(a)") "DIST> ERROR FILL "//trim(dist_fillList(iFill)%fillName)//" must be FLOAT, RAYLEIGH, UNIFORM or LINEAR"
+        call prror
+      end if
+
+    case(dist_fmtPhiX, dist_fmtPhiY, dist_fmtPhiZ)
+      if(fM == dist_fillFLOAT .or. fM == dist_fillUNIFORM .or. fM == dist_fillLINEAR) then
+        call dist_fillThis(dist_partCol1, iA, iB, fM, dist_fillList(iFill)%fParams)
+      else
+        write(lerr,"(a)") "DIST> ERROR FILL "//trim(dist_fillList(iFill)%fillName)//" must be FLOAT, UNIFORM or LINEAR"
         call prror
       end if
 
@@ -1654,14 +1697,14 @@ end subroutine dist_doFills
 ! ================================================================================================ !
 subroutine dist_fillThis(fillArray, iA, iB, fillMethod, fParams)
 
-  use mod_ranecu
+  use mod_random
 
   real(kind=fPrec), intent(inout) :: fillArray(*)
   integer,          intent(in)    :: iA, iB
   integer,          intent(in)    :: fillMethod
   real(kind=fPrec), intent(in)    :: fParams(*)
 
-  integer tmpOne, tmpTwo, nRnd, j
+  integer nRnd, j
   real(kind=fPrec) rndVals(iB-iA+1), dStep
 
   nRnd = iB-iA+1
@@ -1672,24 +1715,28 @@ subroutine dist_fillThis(fillArray, iA, iB, fillMethod, fParams)
     fillArray(iA:iB) = fParams(1)
 
   case(dist_fillGAUSS)
-    call recuut(tmpOne, tmpTwo)
-    call recuin(dist_seedOne, dist_seedTwo)
-
-    call ranecu(rndVals, nRnd, 1, fParams(3))
+    if(fParams(3) > zero) then
+      call rnd_normal(rndser_distGen, rndVals, nRnd, fParams(3))
+    else
+      call rnd_normal(rndser_distGen, rndVals, nRnd)
+    end if
     fillArray(iA:iB) = rndVals*fParams(1) + fParams(2)
 
-    call recuut(dist_seedOne, dist_seedTwo)
-    call recuin(tmpOne, tmpTwo)
+  case(dist_fillRAYLEIGH)
+    if(fParams(2) > zero) then
+      if(fParams(3) > zero) then
+        call rnd_rayleigh(rndser_distGen, rndVals, nRnd, fParams(2), fParams(3))
+      else
+        call rnd_rayleigh(rndser_distGen, rndVals, nRnd, fParams(2))
+      end if
+    else
+      call rnd_rayleigh(rndser_distGen, rndVals, nRnd)
+    end if
+    fillArray(iA:iB) = rndVals*fParams(1)
 
   case(dist_fillUNIFORM)
-    call recuut(tmpOne, tmpTwo)
-    call recuin(dist_seedOne, dist_seedTwo)
-
-    call ranecu(rndVals, nRnd, 0)
+    call rnd_uniform(rndser_distGen, rndVals, nRnd)
     fillArray(iA:iB) = rndVals*(fParams(2)-fParams(1)) + fParams(1)
-
-    call recuut(dist_seedOne, dist_seedTwo)
-    call recuin(tmpOne, tmpTwo)
 
   case(dist_fillLINEAR)
     dStep = (fParams(2)-fParams(1))/real(iB-iA,kind=fPrec)
@@ -1754,7 +1801,7 @@ subroutine dist_postprParticles
   case(dist_fmtNONE)
     sigmv(1:napx) = zero
   case(dist_fmtZETA)
-    sigmv(1:napx) = dist_partCol5(1:napx)/rvv(1:napx)
+    sigmv(1:napx) = dist_partCol5(1:napx)*rvv(1:napx)
   case(dist_fmtSIGMA)
     sigmv(1:napx) = dist_partCol5(1:napx)
   case(dist_fmtDT)

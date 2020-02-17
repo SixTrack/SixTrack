@@ -1,10 +1,14 @@
 ! ================================================================================================ !
 !  HASH MODULE
 !  V.k. Berglyd Olsen, BE-ABP-HSS
-!  Last modified: 2018-11-30
+!  Created: 2018-11-30
+!  Updated: 2019-10-11
 !
 !  This module provides an interface to the MD5 implementation written by Ronald L. Rivest (MIT).
 !  The source code is available under source/md5.
+!
+!  The module is intended for checking file diffs, and not for anything security related.
+!  MD5 is not a secure hashing algorithm.
 ! ================================================================================================ !
 module mod_hash
 
@@ -12,11 +16,18 @@ module mod_hash
 
   implicit none
 
+  ! Hash File List
   character(len=:), allocatable, private, save :: hash_listHashFiles(:)
   logical,          allocatable, private, save :: hash_isAscii(:)
   integer,                       private, save :: hash_nHashFiles  =  0
   logical,                       private, save :: hash_selfTestOK  = .false.
   character(len=8),              parameter     :: hash_sumFileName = "hash.md5"
+
+  ! Trunc File List
+  character(len=:), allocatable, private, save :: hash_truncFiles(:)
+  integer,          allocatable, private, save :: hash_truncFirst(:)
+  integer,          allocatable, private, save :: hash_truncLast(:)
+  integer,                       private, save :: hash_nTruncFiles  =  0
 
   ! C Interface
   interface
@@ -131,7 +142,8 @@ subroutine hash_parseInputLine(inLine, iErr)
   logical,          intent(inout) :: iErr
 
   character(len=:), allocatable :: lnSplit(:)
-  integer nSplit
+  character(len=mFileName) fileName
+  integer nSplit, lnFirst, lnLast
   logical spErr, cErr
   logical tmpIsAscii
 
@@ -175,6 +187,29 @@ subroutine hash_parseInputLine(inLine, iErr)
     call alloc(hash_isAscii,                  hash_nHashFiles, .false., "hash_isAscii")
     hash_listHashFiles(hash_nHashFiles) = trim(lnSplit(2))
     hash_isAscii(hash_nHashFiles)       = tmpIsAscii
+
+  case("TRUNCATE")
+    if(nSplit /= 4) then
+      write(lerr,"(a,i0)") "HASH> ERROR TRUNCATE expected 3 arguments, got ",nSplit-1
+      write(lerr,"(a)")    "HASH>       TRUNCATE file_name first_line last_line"
+      iErr = .true.
+      return
+    end if
+    if(len_trim(lnSplit(2)) > mFileName) then
+      write(lerr,"(a,i0)") "HASH> ERROR TRUNCATE filename is too long. Max is ",mFileName
+      iErr = .true.
+      return
+    end if
+    fileName = trim(lnSplit(2))
+    call chr_cast(lnSplit(3), lnFirst, cErr)
+    call chr_cast(lnSplit(4), lnLast,  cErr)
+    if(lnFirst > lnLast) then
+      write(lerr,"(a)") "HASH> ERROR Last line for TRUNCATE must be larger or equal to first line"
+      iErr = .true.
+      return
+    end if
+    call hash_addTruncFile(fileName, lnFirst, lnLast)
+
   case default
     write(lerr,"(a)") "HASH> ERROR Unknown keyword '"//trim(lnSplit(1))//"'"
     iErr = .true.
@@ -183,6 +218,32 @@ subroutine hash_parseInputLine(inLine, iErr)
   end select
 
 end subroutine hash_parseInputLine
+
+! ================================================================================================ !
+!  V.K. Berglyd Olsen, BE-ABP-HSS
+!  Created: 2019-10-11
+!  Updated: 2019-10-11
+!  Add File to Truncate List
+! ================================================================================================ !
+subroutine hash_addTruncFile(fileName, lnFirst, lnLast)
+
+  use parpro
+  use mod_alloc
+
+  character(len=mFileName), intent(in) :: fileName
+  integer,                  intent(in) :: lnFirst
+  integer,                  intent(in) :: lnLast
+
+  hash_nTruncFiles = hash_nTruncFiles + 1
+  call alloc(hash_truncFiles, mFileName, hash_nTruncFiles, " ", "hash_truncFiles")
+  call alloc(hash_truncFirst,            hash_nTruncFiles, 0,   "hash_truncFirst")
+  call alloc(hash_truncLast,             hash_nTruncFiles, 0,   "hash_truncLast")
+
+  hash_truncFiles(hash_nTruncFiles) = fileName
+  hash_truncFirst(hash_nTruncFiles) = lnFirst
+  hash_truncLast(hash_nTruncFiles)  = lnLast
+
+end subroutine hash_addTruncFile
 
 ! ================================================================================================ !
 !  COMPUTE MD5SUMS
@@ -231,7 +292,6 @@ subroutine hash_fileSums
     write(hash_sumFileUnit_win32,"(a32,2x,a)") md5Digest,trim(hash_listHashFiles(nFile))//".tmp"
     flush(hash_sumFileUnit_win32)
 #endif
-
     write(hash_sumFileUnit,      "(a32,2x,a)") md5Digest,trim(hash_listHashFiles(nFile))
     write(lout,                  "(a36,2x,a)") md5Digest,trim(hash_listHashFiles(nFile))
     flush(hash_sumFileUnit)
@@ -242,6 +302,58 @@ subroutine hash_fileSums
 #endif
 
 end subroutine hash_fileSums
+
+! ================================================================================================ !
+!  V.K. Berglyd Olsen, BE-ABP-HSS
+!  Created: 2019-10-11
+!  Updated: 2019-10-11
+!  Make a truncated version of the files requested
+! ================================================================================================ !
+subroutine hash_doTrunc
+
+  use parpro
+  use crcoall
+  use mod_units
+
+  character(mInputLn) inLine
+  character(mFileName+6) outFile
+  integer i, j, inUnit, outUnit, ioStat
+
+  if(hash_nTruncFiles == 0) then
+    return
+  end if
+
+  write(lout,"(a)") ""
+  write(lout,"(a)") str_divLine
+  write(lout,"(a)") ""
+  write(lout,"(a)") "    Making Truncated Copy of Files"
+  write(lout,"(a)") "  =================================="
+
+  do i=1,hash_nTruncFiles
+    outFile = trim(hash_truncFiles(i))//".trunc"
+
+    call f_requestUnit(hash_truncFiles(i),inUnit)
+    call f_open(unit=inUnit, file=hash_truncFiles(i),formatted=.true.,mode="r",status="old")
+
+    call f_requestUnit(outFile,outUnit)
+    call f_open(unit=outUnit,file=outFile,formatted=.true.,mode="w",status="replace")
+
+    do j=1,hash_truncLast(i)
+      read(inUnit,"(a)",iostat=ioStat) inLine
+      if(ioStat /= 0) exit
+      if(j >= hash_truncFirst(i)) then
+        write(outUnit,"(a)",iostat=ioStat) trim(inLine)
+      end if
+      if(ioStat /= 0) exit
+    end do
+
+    write(lout,"(a)") "    Wrote: '"//trim(outFile)//"'"
+
+    call f_close(inUnit)
+    call f_freeUnit(outUnit)
+  end do
+
+end subroutine hash_doTrunc
 
 ! ================================================================================================ !
 !  Wrapper Subroutines for the Interface
