@@ -10,6 +10,10 @@
 * Do not update the pair mapping for non-primary particles. PR #1050 (A. Mereghetti)
 * Removed updating napxo variable in the context of the Fluka-SixTrack coupling. This allows not to screw-up pair mapping in the context of DA studies. PR # 1052 (A. Mereghetti)
 
+**User Side Changes**
+
+* When specifying `XP` and `YP` in the `FORMAT` statement of the `DIST` block, the units are parsed. Accepted values are [1], [1000], [MRAD], [RAD].
+
 ### Version 5.4.3 [19.12.2019] - Release
 
 **Bugfixes**
