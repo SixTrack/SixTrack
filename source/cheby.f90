@@ -17,6 +17,8 @@ module cheby
   integer, parameter          :: cheby_kz=42          ! kz of chebyshev lenses
   integer, parameter          :: cheby_ktrack=67      ! ktrack of chebyshev lenses
   integer, parameter          :: cheby_maxOrderFox=21 ! max order (required by FOX)
+                                                      ! please keep this synched with TX, TY, TPX and TPY
+                                                      !    in the fox part of this module
 
   ! variables to save parameters for tracking etc.
   integer,          allocatable, save :: cheby_itable(:)      ! index of chebyshev table
@@ -693,7 +695,7 @@ subroutine cheby_kick_fox(i,ix)
   use mod_common, only : beta0, mtcda, brho
   use mod_settings, only : st_debug
   use crcoall, only : lout
-  use numerical_constants, only : zero, c180e0, pi, c1m15, two
+  use numerical_constants, only : zero, one, c180e0, pi, c1m15, two, pieni
   use physical_constants, only: clight
   use mod_lie_dab, only : lnv, idao, rscrri, iscrda
   use mod_common_track, only : comt_daStart, comt_daEnd
@@ -706,7 +708,8 @@ subroutine cheby_kick_fox(i,ix)
 
   integer          :: idaa, jj, morder, nn, mm, ll, oo
   integer          :: hh(lnv)=0
-  real(kind=fPrec) :: rra, xa, ya, ax, ay, xclo, yclo, angrad, cscal, dxpa, dypa, refr, rnn, coeff, epsilon
+  real(kind=fPrec) :: rra, xa, ya, ax, ay, xclo, yclo, angrad, cscal, dxpa, dypa, refr, rnn, coeff
+  real(kind=fPrec) :: epsilon, gteps, lteps
   logical          lrotate
 
   common/daele/alda,asda,aldaq,asdaq,smida,xx,yy,dpda,dpda1,sigmda,ej1,ejf1,rv
@@ -726,10 +729,10 @@ subroutine cheby_kick_fox(i,ix)
 !FOX  D V DA INT FU    NORD NVAR ;
 !FOX  D V DA INT FV    NORD NVAR ;
 !FOX  D V DA INT THETA NORD NVAR ;
-!FOX  D V DA INT TX    NORD NVAR 20 ;
-!FOX  D V DA INT TY    NORD NVAR 20 ;
-!FOX  D V DA INT TPX   NORD NVAR 20 ;
-!FOX  D V DA INT TPY   NORD NVAR 20 ;
+!FOX  D V DA INT TX    NORD NVAR 21 ;
+!FOX  D V DA INT TY    NORD NVAR 21 ;
+!FOX  D V DA INT TPX   NORD NVAR 21 ;
+!FOX  D V DA INT TPY   NORD NVAR 21 ;
 !FOX  D V RE INT XCLO ;
 !FOX  D V RE INT YCLO ;
 !FOX  D V RE INT CSCAL ;
@@ -761,6 +764,8 @@ subroutine cheby_kick_fox(i,ix)
   write(lout,'(2(a,i0))')'CHEBY> CHEBY_KICK_FOX for i=',i,' - ix=',ix
   
   epsilon=c1m15
+  gteps=one+epsilon
+  lteps=one-epsilon
   
   XCLO=cheby_offset_x(icheby(ix))
   YCLO=cheby_offset_y(icheby(ix))
@@ -796,7 +801,7 @@ subroutine cheby_kick_fox(i,ix)
     ! rr = sqrt(xx**2+yy**2)
 !FOX  RR_SQ=(XI+YI)*(XI+YI)-(TWO*XI)*YI ;
     call dapek(RR_SQ,hh,RRA)
-    if ( abs(RRA).gt.epsilon**2 ) then
+    if ( abs(RRA).gt.pieni**2 ) then
 !FOX  RR=SQRT(RR_SQ) ;
     else
 !FOX  RR=ZERO ;
@@ -813,8 +818,8 @@ subroutine cheby_kick_fox(i,ix)
   ax=abs(XA) ;
   ay=abs(YA) ;
   ! (x,y)<r1 or ( (xx>r2) || (yy>r2) ): no kick from lens
-  if (.not. ( (ax.lt.cheby_r1(icheby(ix)).and.ay.lt.cheby_r1(icheby(ix))) .or. &
-              (ax.gt.cheby_r2(icheby(ix)) .or.ay.gt.cheby_r2(icheby(ix))) ) ) then
+  if (.not. ( (ax.lt.cheby_r1(icheby(ix))*lteps.and.ay.lt.cheby_r1(icheby(ix))*lteps) .or. &
+              (ax.gt.cheby_r2(icheby(ix))*gteps .or.ay.gt.cheby_r2(icheby(ix))*gteps) ) ) then
      
     if (st_debug) then
       write(lout,'(2(a,1pe22.15))')'CHEBY> CHEBY_KICK_FOX computing at XA=',XA,' - YA=',YA
