@@ -39,9 +39,17 @@ for lKick,label in zip([True,False],['nrad','kV']):
       chebin=np.loadtxt('CHEBY_DUMP_%s%s'%(iFile,fnin))
       chebout=np.loadtxt('CHEBY_DUMP_%s%s'%(iFile,fnout))
       if (np.max(np.abs(chebin[:,3]-chebout[:,3]))==0) and (np.max(np.abs(chebin[:,5]-chebout[:,5]))==0):
-        rr=np.sqrt((chebin[:,3]-offx[jj])**2+(chebin[:,5]-offy[jj])**2)
-        id_in=np.where(np.logical_and(rr>=R1[jj],rr< R2[jj]))[0]
-        id_out=np.where(np.logical_or(rr< R1[jj],rr>=R2[jj]))[0]
+        # check coordinates against R1 and R2
+        xx=chebin[:,3]-offx[jj]
+        yy=chebin[:,5]-offy[jj]
+        angles=np.arctan2(yy,xx)-np.deg2rad(cAngles[jj])
+        rr=np.sqrt(xx**2+yy**2)
+        xx=rr*np.cos(angles)
+        yy=rr*np.sin(angles)
+        xx=np.absolute(xx)
+        yy=np.absolute(yy)
+        id_out=np.where(                np.logical_or( np.logical_and(xx<R1[jj],yy<R1[jj]), np.logical_or(xx>R2[jj],yy>R2[jj]) )) [0]
+        id_in =np.where(np.logical_not( np.logical_or( np.logical_and(xx<R1[jj],yy<R1[jj]), np.logical_or(xx>R2[jj],yy>R2[jj]) )))[0]
         for ii in range(len(kicks)):
           plt.subplot(nRows,nCols,ii+jj*len(kicks)+1)
           if ( kicks[ii]=='kr' ):
@@ -55,15 +63,19 @@ for lKick,label in zip([True,False],['nrad','kV']):
           else:
             # show kV from mrad
             z=z*1e-3*(betaRel*clight*Brho)*1e-3
+          # particles outside domain (black)
           plt.scatter(chebin[:,3][id_out],chebin[:,5][id_out],c='k'   ,edgecolors='none')#, vmin=-3E-11, vmax=3E11)
+          # non-zero kicks of particles outside domain (magenta)
           idr=np.where(z[id_out]!=0.0)[0]
           if ( len(idr)>0 ):
-            print ' some %s kicks from lens %s outside the domain of chebyshev lens [%g,%g) are non-zero... '%(kicks[ii],chebyNames[jj],R1[jj],R2[jj])
+            print ' some %s kicks from lens %s outside the domain of chebyshev lens [%g,%g] are non-zero... '%(kicks[ii],chebyNames[jj],R1[jj],R2[jj])
             plt.scatter(chebin[:,3][id_out][idr],chebin[:,5][id_out][idr],c='m',edgecolors='none')#, vmin=-3E-11, vmax=3E11)
+          # zero kicks of particles inside domain (white)
           idr=np.where(z[id_in]==0.0)[0]
           if ( len(idr)>0 ):
-            print ' some %s kicks from lens %s inside the domain of chebyshev lens [%g,%g) are zero... '%(kicks[ii],chebyNames[jj],R1[jj],R2[jj])
+            print ' some %s kicks from lens %s inside the domain of chebyshev lens [%g,%g] are zero... '%(kicks[ii],chebyNames[jj],R1[jj],R2[jj])
             plt.scatter(chebin[:,3][id_in][idr],chebin[:,5][id_in][idr],c='w',edgecolors='none')#, vmin=-3E-11, vmax=3E11)
+          # particles inside domain (colored)
           idr=np.where(z[id_in]!=0.0)[0]
           plt.scatter(chebin[:,3][id_in][idr],chebin[:,5][id_in][idr],c=z[id_in][idr],edgecolors='none')#, vmin=-3E-11, vmax=3E11)
           plt.xlabel('x [mm]')

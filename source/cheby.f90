@@ -624,7 +624,7 @@ subroutine cheby_kick(i,ix,n)
   integer, intent(in) :: n
 
   real(kind=fPrec) xx, yy, ax, ay, rr, rr_sq, dxp, dyp
-  real(kind=fPrec) theta, radio, angle_rad
+  real(kind=fPrec) theta, angle_rad
   integer          jj
   logical          lrotate
 
@@ -638,13 +638,6 @@ subroutine cheby_kick(i,ix,n)
     xx=xv1(jj)-cheby_offset_x(icheby(ix))
     yy=xv2(jj)-cheby_offset_y(icheby(ix))
 
-    ! check that particle is within the domain of chebyshev polynomials
-    ax=abs(xx)
-    ay=abs(yy)
-    ! (x,y)<r1 or ( (xx>r2) || (yy>r2) ): no kick from lens
-    if ( (ax.lt.cheby_r1(icheby(ix)).and.ay.lt.cheby_r1(icheby(ix))) .or. &
-         (ax.gt.cheby_r2(icheby(ix)) .or.ay.gt.cheby_r2(icheby(ix))) ) cycle
-
     ! in case of non-zero tilt angle, rotate coordinates
     if (lrotate) then
       ! rr = sqrt(xx**2+yy**2)
@@ -654,15 +647,23 @@ subroutine cheby_kick(i,ix,n)
       xx = rr * cos_mb(theta)
       yy = rr * sin_mb(theta)
     end if
+   
+    ! check that particle is within the domain of chebyshev polynomials
+    ax=abs(xx)
+    ay=abs(yy)
+    ! (x,y)<r1 or ( (xx>r2) || (yy>r2) ): no kick from lens
+    if ( (ax.lt.cheby_r1(icheby(ix)).and.ay.lt.cheby_r1(icheby(ix))) .or. &
+         (ax.gt.cheby_r2(icheby(ix)) .or.ay.gt.cheby_r2(icheby(ix))) ) cycle
+
     ! compute kick from cheby map
     call cheby_getKick( xx, yy, dxp, dyp, cheby_itable(icheby(ix)) )
     ! in case cheby has a non-zero angle, rotate kicks
     if (lrotate) then
       ! NB: cheby_angle(icheby(ix)) is the rotation angle of the cheby
       theta = atan2_mb(dyp, dxp)+angle_rad
-      radio = sqrt(dxp**2 + dyp**2)
-      dxp = radio * cos_mb(theta)
-      dyp = radio * sin_mb(theta)
+      rr = sqrt(dxp**2 + dyp**2)
+      dxp = rr * cos_mb(theta)
+      dyp = rr * sin_mb(theta)
     end if
 
     ! take into account scaling factor, Brho of beam and its relativistic beta,
@@ -782,6 +783,26 @@ subroutine cheby_kick_fox(i,ix)
 !FOX  XI=XX(1)-XCLO ;
 !FOX  YI=XX(2)-YCLO ;
     
+  ! in case of non-zero tilt angle, rotate coordinates
+  if (lrotate) then
+    if (st_debug) then
+      write(lout,'(1(a,1pe22.15))')'CHEBY> CHEBY_KICK_FOX taking into account angle [deg]=',cheby_angle(icheby(ix))
+    end if
+    ! radial position of main beam relative to center of elens beam
+    ! rr = sqrt(xx**2+yy**2)
+!FOX  RR_SQ=(XI+YI)*(XI+YI)-(TWO*XI)*YI ;
+    call dapek(RR_SQ,hh,RRA)
+    if ( abs(RRA).gt.epsilon**2 ) then
+!FOX  RR=SQRT(RR_SQ) ;
+    else
+!FOX  RR=ZERO ;
+    end if
+    RRA=zero
+!FOX  THETA=ATAN(YI/XI)-ANGRAD ;
+!FOX  XI=RR*COS(THETA) ;
+!FOX  YI=RR*SIN(THETA) ;
+  end if
+    
   ! check that particle is within the domain of chebyshev polynomials
   call dapek(XI,hh,XA)
   call dapek(YI,hh,YA)
@@ -797,23 +818,6 @@ subroutine cheby_kick_fox(i,ix)
                                                           'and R2=',cheby_r2(icheby(ix))
     end if
       
-    ! in case of non-zero tilt angle, rotate coordinates
-    if (lrotate) then
-      ! radial position of main beam relative to center of elens beam
-      ! rr = sqrt(xx**2+yy**2)
-!FOX  RR_SQ=(XI+YI)*(XI+YI)-(TWO*XI)*YI ;
-      call dapek(RR_SQ,hh,RRA)
-      if ( abs(RRA).gt.epsilon**2 ) then
-!FOX  RR=SQRT(RR_SQ) ;
-      else
-!FOX  RR=ZERO ;
-      end if
-      RRA=zero
-!FOX  THETA=ATAN(YI/XI)-ANGRAD ;
-!FOX  XI=RR*COS(THETA) ;
-!FOX  YI=RR*SIN(THETA) ;
-    end if
-    
     ! compute kick
     
     ! normalised variables
@@ -911,7 +915,7 @@ subroutine cheby_potentialMap(iLens,ix)
   integer, intent(in) :: iLens
   integer, intent(in) :: ix
 
-  real(kind=fPrec) xx, yy, rr, zz, dx, dy, xxr, yyr, xxn, yyn
+  real(kind=fPrec) xx, yy, rr, zz, dx, dy, xxr, yyr, xxn, yyn, ax, ay
   real(kind=fPrec) theta, radio, angle_rad
   integer          ii, jj, inside, fUnit
   logical          lrotate, err
@@ -951,21 +955,18 @@ subroutine cheby_potentialMap(iLens,ix)
 
   ! get map
   do jj=0,cheby_mapNy(iLens)
-    yy=cheby_mapYmin(iLens)+(real(jj,fPrec)*dy) ! mesh coordinate
+    yy=cheby_mapYmin(iLens)+(real(jj,fPrec)*dy) ! mesh y-coordinate
     if (jj==cheby_mapNy(iLens)) yy=cheby_mapYmax(iLens)
-    yyr=yy-cheby_offset_y(iLens)  ! point in ref sys of Cheby map
+    yyr=yy-cheby_offset_y(iLens)  ! take into account y-offset of Cheby map
 
     do ii=0,cheby_mapNx(iLens)
-      xx=cheby_mapXmin(iLens)+(real(ii,fPrec)*dx) ! mesh coordinate
+      xx=cheby_mapXmin(iLens)+(real(ii,fPrec)*dx) ! mesh x-coordinate
       if (ii==cheby_mapNx(iLens)) xx=cheby_mapXmax(iLens)
-      xxr=xx-cheby_offset_x(iLens)  ! point in ref sys of Cheby map
+      xxr=xx-cheby_offset_x(iLens)  ! take into account x-offset of Cheby map
 
-      ! check that particle is within the domain of chebyshev polynomials
-      rr=sqrt(xxr**2+yyr**2)
-      inside=0
-      if (rr.gt.cheby_r1(iLens).and.rr.lt.cheby_r2(iLens)) inside=1 ! kick only if rr>=r1 && rr<r2
       ! in case of non-zero tilt angle, rotate coordinates
       if (lrotate) then
+        rr=sqrt(xxr**2+yyr**2)
         theta = atan2_mb(yyr, xxr)-angle_rad
         xxn = rr * cos_mb(theta)
         yyn = rr * sin_mb(theta)
@@ -974,6 +975,14 @@ subroutine cheby_potentialMap(iLens,ix)
         xxn=xxr
         yyn=yyr
       end if
+     
+      ! check that particle is within the domain of chebyshev polynomials
+      inside=1
+      ax=abs(xxn)
+      ay=abs(yyn)
+      ! (x,y)<r1 or ( (xx>r2) || (yy>r2) ): no kick from lens
+      if ( (ax.lt.cheby_r1(iLens).and.ay.lt.cheby_r1(iLens)) .or. &
+           (ax.gt.cheby_r2(iLens) .or.ay.gt.cheby_r2(iLens)) ) inside=0
       ! compute kick from cheby map
       call cheby_getPotential( xxn, yyn, zz, cheby_itable(iLens) )
       write(fUnit,'(5(1X,1pe22.15),1X,i0)') xx, yy, xxn, yyn, zz, inside
@@ -991,6 +1000,7 @@ subroutine cheby_getKick( xx, yy, dxp, dyp, iTable )
   ! A. Mereghetti (CERN, BE-ABP-HSS)
   ! last modified: 01-03-2019
   ! compute kicks from Chebyshev polinomials - see FermiLAB-FN-0972-APC
+  ! coordinates and kicks are in the map reference frame!
 
   use numerical_constants, only : zero, one, two, c1m3, c1e3
 
@@ -1050,6 +1060,7 @@ subroutine cheby_getPotential( xx, yy, zz, iTable )
   ! A. Mereghetti (CERN, BE-ABP-HSS)
   ! last modified: 01-03-2019
   ! compute potential from Chebyshev polinomials - see FermiLAB-FN-0972-APC
+  ! coordinates and potential are in the map reference frame!
 
   use numerical_constants, only : zero, one, two
 
@@ -1077,7 +1088,7 @@ subroutine cheby_getPotential( xx, yy, zz, iTable )
     Ty(nn)=two*(vv*Ty(nn-1))-Ty(nn-2)
   end do
 
-  ! get kicks
+  ! get potential
   zz=zero
   do nn=0,cheby_maxOrder(iTable)
     do jj=0,nn
