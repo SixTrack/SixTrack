@@ -267,6 +267,7 @@ subroutine shuffleLostParticles
   ! Collimation
   if(do_coll) then
     call coll_shuffleLostPart
+    call cry_shuffleLostPart
   end if
 
 #ifdef FLUKA
