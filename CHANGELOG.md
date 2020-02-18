@@ -11,13 +11,13 @@
 
 **User Side Changes**
 
-* electron lenses have been inserted into FOX - PR #839 (A. Mereghetti).
-* increased flexibility of e-lens module - PR #841 (A. Mereghetti):
+* Electron lenses have been inserted into FOX - PR #839 (A. Mereghetti).
+* Increased flexibility of e-lens module - PR #841 (A. Mereghetti):
   * elens module fully dynamic allocatable;
   * give possibility to express R_1 and R_2 in sigma;
   * add any ion species to be defined as possible lens beam;
   * minor changes;
-  Documentation changed accordingly (user and physics manual). 
+  Documentation changed accordingly (user and physics manual).
 
 ### Version 5.4.3 [19.12.2019] - Release
 

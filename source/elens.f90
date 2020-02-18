@@ -5,17 +5,25 @@ module elens
 
   use parpro
   use floatPrecision
-  use crcoall
-  use mod_alloc
   use numerical_constants, only : zero, one
   use physical_constants, only: pmae
   implicit none
+  private
+  public :: &
+       elens_allocate_arrays, elens_expand_arrays, &
+#ifdef CR
+       elens_crcheck, elens_crpoint, elens_crstart, &
+#endif
+       elens_kick, elens_kick_fox, eLensTheta, &
+       elens_parseInputDone, elens_parseInputLine, &
+       elens_postInput, elens_postLinopt, &
+       elens_setOptics
 
-  integer, allocatable, save  :: ielens(:)                  ! index of elens (nele)
-  integer, save               :: nelens=0                   ! number of elenses lenses actually in memory
+  integer, allocatable, public, save  :: ielens(:)          ! index of elens (nele)
+  integer, public, save               :: nelens=0           ! number of elenses lenses actually in memory
   integer, save               :: nelens_radial_profiles=0   ! number of radial profiles available in memory
-  integer, parameter          :: elens_kz=29                ! kz of electron lenses
-  integer, parameter          :: elens_ktrack=63            ! ktrack of electron lenses
+  integer, parameter, public  :: elens_kz=29                ! kz of electron lenses
+  integer, parameter, public  :: elens_ktrack=63            ! ktrack of electron lenses
   logical, save               :: lRequestOptics=.false.     ! request optics calculations, since there is at least
                                                             !    a lens where either R1 or R2 was given in normalised units
   ! R1/R2 expressed in normalised units (either betatron or dispersion)
@@ -30,58 +38,58 @@ module elens
   real(kind=fPrec), save      :: elens_beam_chrg_def=-one   ! default charge of lens beam [e]
   
   ! variables to save elens parameters for tracking etc.
-  integer, allocatable, save          :: elens_type(:)            ! integer for elens type (nelens)
-                                                                  ! 0 : Un-initialized.
-                                                                  ! 1 : uniform profile
-                                                                  ! 2 : Gaussian profile
-                                                                  ! 3 : radial profile from file
-  real(kind=fPrec), allocatable, save :: elens_theta_r2(:)        ! kick strength at R2 [mrad] (nelens)
-  real(kind=fPrec), allocatable, save :: elens_r2(:)              ! outer radius R2 [mm] (nelens)
-  real(kind=fPrec), allocatable, save :: elens_r1(:)              ! inner radius R1 [mm] (nelens)
-  real(kind=fPrec), allocatable, save :: elens_offset_x(:)        ! hor offset of elens [mm] (nelens)
-  real(kind=fPrec), allocatable, save :: elens_offset_y(:)        ! vert. offset of elens [mm] (nelens)
-  real(kind=fPrec), allocatable, save :: elens_sig(:)             ! sig (Gaussian profile) [mm] (nelens)
-  real(kind=fPrec), allocatable, save :: elens_geo_norm(:)        ! normalisation of f(r) (nelens)
-  real(kind=fPrec), allocatable, save :: elens_len(:)             ! length of eLens (e-beam region) [m] (nelens)
-  real(kind=fPrec), allocatable, save :: elens_I(:)               ! current of e-beam [A] (nelens)
-                                                                  ! <0: e-beam opposite to beam
-  real(kind=fPrec), allocatable, save :: elens_Ek(:)              ! kinetic energy of e-beam [keV] (nelens)
-  real(kind=fPrec), allocatable, save :: elens_beta_lens_beam(:)  ! relativistic beta of lens beam (nelens)
-  logical, allocatable, save          :: elens_lThetaR2(:)        ! flag for computing theta@R2 (nelens)
-  logical, allocatable, save          :: elens_lAllowUpdate(:)    ! Flag for disabling updating of kick, (nelens)
-                                                                  !  i.e. after DYNK has touched thetaR2,
-                                                                  !  the energy update is disabled.
-  logical, allocatable, save          :: elens_lFox(:)            ! the kick from the elens should be taken into account
-                                                                  !  when searching for the closed orbit with DA algebra (nelens)
-  logical, allocatable, save          :: elens_lFull(:)           ! if .true., elens is full, i.e. not hollow and R1=0.0 (nelens)
-  logical, allocatable, save          :: elens_lZeroThick(:)      ! if .true., elens has no thickness, i.e. R2=R1 (nelens)
+  integer, allocatable, save          :: elens_type(:)             ! integer for elens type (nelens)
+                                                                   ! 0 : Un-initialized.
+                                                                   ! 1 : uniform profile
+                                                                   ! 2 : Gaussian profile
+                                                                   ! 3 : radial profile from file
+  real(kind=fPrec), allocatable, public, save :: elens_theta_r2(:) ! kick strength at R2 [mrad] (nelens)
+  real(kind=fPrec), allocatable, save :: elens_r2(:)               ! outer radius R2 [mm] (nelens)
+  real(kind=fPrec), allocatable, save :: elens_r1(:)               ! inner radius R1 [mm] (nelens)
+  real(kind=fPrec), allocatable, save :: elens_offset_x(:)         ! hor offset of elens [mm] (nelens)
+  real(kind=fPrec), allocatable, save :: elens_offset_y(:)         ! vert. offset of elens [mm] (nelens)
+  real(kind=fPrec), allocatable, save :: elens_sig(:)              ! sig (Gaussian profile) [mm] (nelens)
+  real(kind=fPrec), allocatable, save :: elens_geo_norm(:)         ! normalisation of f(r) (nelens)
+  real(kind=fPrec), allocatable, save :: elens_len(:)              ! length of eLens (e-beam region) [m] (nelens)
+  real(kind=fPrec), allocatable, public, save :: elens_I(:)        ! current of e-beam [A] (nelens)
+                                                                   ! <0: e-beam opposite to beam
+  real(kind=fPrec), allocatable, public, save :: elens_Ek(:)       ! kinetic energy of e-beam [keV] (nelens)
+  real(kind=fPrec), allocatable, save :: elens_beta_lens_beam(:)   ! relativistic beta of lens beam (nelens)
+  logical, allocatable, save          :: elens_lThetaR2(:)         ! flag for computing theta@R2 (nelens)
+  logical, allocatable, public, save  :: elens_lAllowUpdate(:)     ! Flag for disabling updating of kick, (nelens)
+                                                                   !  i.e. after DYNK has touched thetaR2,
+                                                                   !  the energy update is disabled.
+  logical, allocatable, public, save  :: elens_lFox(:)             ! the kick from the elens should be taken into account
+                                                                   !  when searching for the closed orbit with DA algebra (nelens)
+  logical, allocatable, save          :: elens_lFull(:)            ! if .true., elens is full, i.e. not hollow and R1=0.0 (nelens)
+  logical, allocatable, save          :: elens_lZeroThick(:)       ! if .true., elens has no thickness, i.e. R2=R1 (nelens)
 #ifdef CR
-  logical, allocatable, save          :: elens_lAllowUpdate_CR(:) ! (nelens)
+  logical, allocatable, save          :: elens_lAllowUpdate_CR(:)  ! (nelens)
 #endif
   ! R1/R2 expressed in normalised units (either betatron or dispersion)
-  real(kind=fPrec), allocatable, save :: elens_emin(:)            ! normalised emittance [m rad] (nelens)
-  real(kind=fPrec), allocatable, save :: elens_sigdpp(:)          ! default rms of distribution in delta_p / p [] (nelens)
-  integer, allocatable, save          :: elens_iSet(:)            ! which value of beta or disp should be taken (nelens):
-                                                                  ! 0: none
-                                                                  ! 1: min
-                                                                  ! 2: max
-                                                                  ! 3: average
-                                                                  ! 4: quadratic average
-                                                                  ! 5: geometric average
-  real(kind=fPrec), allocatable, save :: elens_optVal(:)          ! value of optics function for normalised settings (nelens)
-  integer, allocatable, save          :: elens_nUpdates(:)        ! how many slices are being used (nelens)
+  real(kind=fPrec), allocatable, save :: elens_emin(:)             ! normalised emittance [m rad] (nelens)
+  real(kind=fPrec), allocatable, save :: elens_sigdpp(:)           ! default rms of distribution in delta_p / p [] (nelens)
+  integer, allocatable, save          :: elens_iSet(:)             ! which value of beta or disp should be taken (nelens):
+                                                                   ! 0: none
+                                                                   ! 1: min
+                                                                   ! 2: max
+                                                                   ! 3: average
+                                                                   ! 4: quadratic average
+                                                                   ! 5: geometric average
+  real(kind=fPrec), allocatable, save :: elens_optVal(:)           ! value of optics function for normalised settings (nelens)
+  integer, allocatable, save          :: elens_nUpdates(:)         ! how many slices are being used (nelens)
                                                                   
   ! beam of the lens
-  real(kind=fPrec), allocatable, save :: elens_beam_mass(:)       ! mass of lens beam [MeV/c2] (nelens)
-  real(kind=fPrec), allocatable, save :: elens_beam_chrg(:)       ! charge of lens beam [e] (nelens)
+  real(kind=fPrec), allocatable, save :: elens_beam_mass(:)        ! mass of lens beam [MeV/c2] (nelens)
+  real(kind=fPrec), allocatable, save :: elens_beam_chrg(:)        ! charge of lens beam [e] (nelens)
   
   ! radial profile
-  integer, allocatable, save          :: elens_iRadial(:)         ! mapping to the radial profile (nelens)
-  real(kind=fPrec), allocatable, save :: elens_radial_fr1(:)      ! value of f(R1) in case of radial profiles from file [0:1] (nelens)
-  real(kind=fPrec), allocatable, save :: elens_radial_fr2(:)      ! value of f(R2) in case of radial profiles from file [0:1] (nelens)
-  integer, allocatable, save          :: elens_radial_mpoints(:)  ! how many points for polynomial interpolation (nelens) (default: 2,
-                                                                  !    i.e. linear interpolation
-  integer, allocatable, save          :: elens_radial_jguess(:)   ! bin for guessed search (nelens)
+  integer, allocatable, save          :: elens_iRadial(:)          ! mapping to the radial profile (nelens)
+  real(kind=fPrec), allocatable, save :: elens_radial_fr1(:)       ! value of f(R1) in case of radial profiles from file [0:1] (nelens)
+  real(kind=fPrec), allocatable, save :: elens_radial_fr2(:)       ! value of f(R2) in case of radial profiles from file [0:1] (nelens)
+  integer, allocatable, save          :: elens_radial_mpoints(:)   ! how many points for polynomial interpolation (nelens) (default: 2,
+                                                                   !    i.e. linear interpolation
+  integer, allocatable, save          :: elens_radial_jguess(:)    ! bin for guessed search (nelens)
   ! - file handling and data storage:
   character(len=:), allocatable, save :: elens_radial_filename(:)        ! names (nelens_radial_profiles)
   real(kind=fPrec), allocatable, save :: elens_radial_profile_R(:,:)     ! [mm] (0:elens_radial_dim,nelens_radial_profiles)
@@ -91,18 +99,21 @@ module elens
 contains
 
 subroutine elens_allocate_arrays
+  use mod_alloc, only : alloc
   implicit none
   integer stat
   call alloc(ielens,nele,0,'ielens')
 end subroutine elens_allocate_arrays
 
 subroutine elens_expand_arrays(nele_new)
+  use mod_alloc, only : alloc
   implicit none
   integer, intent(in) :: nele_new
   call alloc(ielens,nele_new,0,'ielens')
 end subroutine elens_expand_arrays
 
 subroutine elens_expand_arrays_lenses(nelens_new)
+  use mod_alloc, only : alloc
   implicit none
   integer, intent(in) :: nelens_new
   ! elens charachteristics
@@ -141,6 +152,7 @@ subroutine elens_expand_arrays_lenses(nelens_new)
 end subroutine elens_expand_arrays_lenses
 
 subroutine elens_expand_arrays_rad_profiles(nelens_profiles_new)
+  use mod_alloc, only : alloc
   implicit none
   integer, intent(in) :: nelens_profiles_new
   call alloc(elens_radial_filename,  mFileName,     nelens_profiles_new,  " ", 'elens_radial_filename' )
@@ -162,6 +174,7 @@ subroutine elens_parseInputLine(inLine, iLine, iErr)
   use sixtrack_input
   use string_tools
   use mod_common
+  use crcoall, only : lout, lerr
 
   implicit none
 
@@ -187,7 +200,7 @@ subroutine elens_parseInputLine(inLine, iLine, iErr)
      
   case("EMIN")
     if(nSplit<2 .or. nSplit>4 ) then
-      write(lerr,"(a,i0)") "ELENS> ERROR Expected 2, 3 or 4 input parameters for EMIttance (Normalised) line, got ",nSplit-1
+      write(lerr,"(a,i0)") "ELENS> ERROR Expected 1, 2 or 3 input parameters for EMIttance (Normalised) line, got ",nSplit-1
       write(lerr,"(a)")    "ELENS>       example:     EMIN  <emin> (min|max|ave|qve|geo) (ALL|BEF(ORE)|AFT(ER))"
       iErr = .true.
       return
@@ -260,7 +273,7 @@ subroutine elens_parseInputLine(inLine, iLine, iErr)
         if(st_debug) write(lout,"(a)") "ELENS> Applying read normalised emittance to all e-lenses "// &
              "declared after the current EMIN line"
       case default
-        write(lerr,"(a)") "ELENS> ERROR Unidentified fourth parameter of EMIN line, got: '"//trim(lnSplit(4))//"'"
+        write(lerr,"(a)") "ELENS> ERROR Unidentified third parameter of EMIN line, got: '"//trim(lnSplit(4))//"'"
         write(lerr,"(a)") "ELENS>       example:     EMIN  <emin> (min|max|ave|qve|geo) (ALL|BEF(ORE)|AFT(ER))"
         iErr = .true.
         return
@@ -364,7 +377,7 @@ subroutine elens_parseInputLine(inLine, iLine, iErr)
 
   case("SIGDPP")
     if(nSplit<2 .or. nSplit>4 ) then
-      write(lerr,"(a,i0)") "ELENS> ERROR Expected 2, 3 or 4 input parameters for SIGma Delta_P over P line, got ",nSplit-1
+      write(lerr,"(a,i0)") "ELENS> ERROR Expected 1, 2 or 3 input parameters for SIGma Delta_P over P line, got ",nSplit-1
       write(lerr,"(a)")    "ELENS>       example:     SIDPP  <sigdpp> (min|max|ave|qve|geo) (ALL|BEF(ORE)|AFT(ER))"
       iErr = .true.
       return
@@ -438,7 +451,7 @@ subroutine elens_parseInputLine(inLine, iLine, iErr)
         if(st_debug) write(lout,"(a)") "ELENS> Applying read rms of delta distribution to all e-lenses"// &
              "declared after the current SIGDPP line"
       case default
-        write(lerr,"(a)") "ELENS> ERROR Unidentified fourth parameter of SIGDPP line, got: '"//trim(lnSplit(4))//"'"
+        write(lerr,"(a)") "ELENS> ERROR Unidentified third parameter of SIGDPP line, got: '"//trim(lnSplit(4))//"'"
         write(lerr,"(a)") "ELENS>       example:     SIGDPP  <sigdpp> (min|max|ave|qve|geo) (ALL|BEF(ORE)|AFT(ER))"
         iErr = .true.
         return
@@ -555,14 +568,14 @@ subroutine elens_parseInputLine(inLine, iLine, iErr)
     case("GAUSSIAN")
       elens_type(ielens(iElem)) = 2
       if(nSplit < 8) then
-        write(lerr,"(a,i0)") "ELENS> ERROR Expected at least 8 input parameters for GAUSSIAN, got ",nSplit
+        write(lerr,"(a,i0)") "ELENS> ERROR Expected at least 6 input parameters for GAUSSIAN, got ",nSplit
         iErr = .true.
         return
       end if
     case("RADIAL")
       elens_type(ielens(iElem)) = 3
       if(nSplit < 8) then
-        write(lerr,"(a,i0)") "ELENS> ERROR Expected at least 8 input parameters for RADIAL, got ",nSplit
+        write(lerr,"(a,i0)") "ELENS> ERROR Expected at least 6 input parameters for RADIAL, got ",nSplit
         iErr = .true.
         return
       end if
@@ -676,8 +689,8 @@ subroutine elens_parseInputLine(inLine, iLine, iErr)
         return
       end if
     end if
-    elens_lFull(ielens(iElem))=elens_r1(ielens(iElem)).eq.zero
-    elens_lZeroThick(ielens(iElem))=elens_r1(ielens(iElem)).eq.elens_r2(ielens(iElem))
+    elens_lFull(ielens(iElem))=elens_r1(ielens(iElem))==zero
+    elens_lZeroThick(ielens(iElem))=elens_r1(ielens(iElem))==elens_r2(ielens(iElem))
     if ( elens_lFull(ielens(iElem)).and.elens_lZeroThick(ielens(iElem)) ) then
       write(lerr,"(a)") "ELENS> ERROR corner case of elens being a wire: R1=R2=0."
       write(lerr,"(a)") "ELENS>       theta_R2 looses meaning. Try using a wire."
@@ -710,6 +723,7 @@ end subroutine elens_parseInputLine
 subroutine elens_parseInputDone(iErr)
 
   use mod_common, only : bez, kz, fort3
+  use crcoall, only : lerr
 
   implicit none
 
@@ -723,7 +737,7 @@ subroutine elens_parseInputDone(iErr)
       ! find name of elens (for printout purposes)
       do kk=1,nele
         if(kz(kk)==elens_kz) then
-          if (ielens(kk).eq.jj) then
+          if (ielens(kk)==jj) then
             exit
           end if
         end if
@@ -740,6 +754,7 @@ end subroutine elens_parseInputDone
 subroutine elens_postInput
 
   use mod_common, only : bez, kz, fort3, ilin
+  use crcoall, only : lout, lerr
 
   integer j, jj, nlens
   logical lexist, lFoxOne
@@ -748,7 +763,7 @@ subroutine elens_postInput
   nlens=0
   do jj=1,nele
     if(kz(jj)==elens_kz) then
-      if (ielens(jj).eq.0) then
+      if (ielens(jj)==0) then
         write(lerr,"(a,i0,a)") "ELENS> ERROR single element ",jj," named '"//trim(bez(jj))//"'"
         write(lerr,"(a)")      "ELENS>       does not have a corresponding line in ELEN block in "//trim(fort3)
         call prror
@@ -803,7 +818,7 @@ subroutine elens_postInput
       ! - find name of elens
       do jj=1,nele
         if(kz(jj)==elens_kz) then
-          if (ielens(jj).eq.j) then
+          if (ielens(jj)==j) then
             exit
           end if
         end if
@@ -833,7 +848,7 @@ subroutine elens_postInput
         end if
         call prror
       end if
-      if (elens_iSet(j).eq.0) then
+      if (elens_iSet(j)==0) then
         write(lerr,"(a)") "ELENS> ERROR don't know which value of beta/dispersion to use"
         write(lerr,"(a)") "ELENS>       please choose one among min|max|ave|qve"
         call prror
@@ -868,6 +883,7 @@ subroutine elens_postLinopt
   use mod_common, only : bez, kz, e0f, nucm0, fort3
   use mod_settings, only : st_debug
   use numerical_constants, only : c1e3
+  use crcoall, only : lout, lerr
 
   integer j, jj, jguess
   real(kind=fPrec) oldVal
@@ -878,16 +894,16 @@ subroutine elens_postLinopt
     ! find name of elens (for printout purposes)
     do jj=1,nele
       if(kz(jj)==elens_kz) then
-        if (ielens(jj).eq.j) then
+        if (ielens(jj)==j) then
           exit
         end if
       end if
     end do
 
     if (elens_r1(j)<zero.or.elens_r2(j)<zero.or.elens_sig(j)<zero) then
-      if (elens_iSet(j).eq.3 ) then
+      if (elens_iSet(j)==3 ) then
         elens_optVal(j)=elens_optVal(j)/real(elens_nUpdates(j),fPrec)
-      elseif (elens_iSet(j).eq.4 ) then
+      elseif (elens_iSet(j)==4 ) then
         elens_optVal(j)=elens_optVal(j)/sqrt(real(elens_nUpdates(j),fPrec))
       end if
     end if
@@ -949,7 +965,7 @@ subroutine elens_postLinopt
     end if
 
     ! check R1 and R2 against map
-    if (elens_type(j).eq.3 ) then
+    if (elens_type(j)==3 ) then
       if ( elens_r1(j)< elens_radial_profile_R(0,elens_iRadial(j)) ) then
         write(lerr,"(a,i0,a)") "ELENS> ERROR on elens #",j, " named "//trim(bez(jj))//": "
         write(lerr,"(a)")      "ELENS>       R1 declared in "//trim(fort3)//" falls outside range of map" // &
@@ -989,7 +1005,7 @@ subroutine elens_postLinopt
       elens_geo_norm(j) = elens_radial_fr2(j) -elens_radial_fr1(j)
     end select ! case (elens_type(j))
     ! ...and printout:
-    write(lout,"(a,i0,a,1pe22.15)") "ELENS> Geom. norm. fact. for elens #",j, &
+    write(lout,"(a,i0,a,1pe22.15)") "ELENS> Geometrical normalisation factor for elens #",j, &
          " named "//trim(bez(jj))//": ",elens_geo_norm(j)
 
     ! Compute elens theta at R2, if requested by user
@@ -1008,6 +1024,7 @@ subroutine elens_setOptics(iElem, bAlpha, bBeta, bOrbit, bOrbitP, bDisp, bDispP)
   use mod_common, only : bez
   use numerical_constants, only : zero, two
   use mod_settings, only : st_debug
+  use crcoall, only : lout
 
   integer,          intent(in) :: iElem
   real(kind=fPrec), intent(in) :: bAlpha(2)
@@ -1025,7 +1042,7 @@ subroutine elens_setOptics(iElem, bAlpha, bBeta, bOrbit, bOrbitP, bDisp, bDispP)
   if (elens_emin(ielens(iElem))>zero) then ! betatron cut
     select case (elens_iSet(ielens(iElem)))
     case(1) ! min
-       if (elens_optVal(ielens(iElem)).eq.zero) then ! first time
+       if (elens_optVal(ielens(iElem))==zero) then ! first time
          elens_optVal(ielens(iElem))=min(bBeta(1),bBeta(2))
        else   
          elens_optVal(ielens(iElem))=min(bBeta(1),bBeta(2),elens_optVal(ielens(iElem)))
@@ -1042,7 +1059,7 @@ subroutine elens_setOptics(iElem, bAlpha, bBeta, bOrbit, bOrbitP, bDisp, bDispP)
   else ! momentum cut
     select case (elens_iSet(ielens(iElem)))
     case(1) ! min
-       if (elens_optVal(ielens(iElem)).eq.zero) then ! first time
+       if (elens_optVal(ielens(iElem))==zero) then ! first time
          elens_optVal(ielens(iElem))=min(abs(bDisp(1)),abs(bDisp(2)))
        else   
          elens_optVal(ielens(iElem))=min(abs(bDisp(1)),abs(bDisp(2)),elens_optVal(ielens(iElem)))
@@ -1089,6 +1106,7 @@ subroutine eLensTheta(j)
   use physical_constants, only: clight, eps0
   use mod_common, only : e0, beta0, brho, bez, kz, zz0
   use mod_settings, only : st_quiet
+  use crcoall, only : lout
 
   implicit none
 
@@ -1115,7 +1133,7 @@ subroutine eLensTheta(j)
       ! find name of elens
       do jj=1,nele
         if(kz(jj)==elens_kz) then
-          if (ielens(jj).eq.j) then
+          if (ielens(jj)==j) then
             exit
           end if
         end if
@@ -1143,12 +1161,13 @@ subroutine parseRadialProfile(ifile)
   use mathlib_bouncer
   use numerical_constants, only: zero, c1e2
   use physical_constants
-  use crcoall
+  use crcoall, only : lout, lerr
   use mod_common
   use mod_settings
   use string_tools
   use mod_units
   use mod_utils, only: checkArray
+  use mod_alloc, only : alloc
 
   implicit none
 
@@ -1242,7 +1261,7 @@ subroutine integrateRadialProfile(ifile)
   use mathlib_bouncer
   use numerical_constants
   use physical_constants
-  use crcoall
+  use crcoall, only : lout
   use mod_utils, only: polintegrate
   use mod_alloc, only: alloc, dealloc
   use mod_settings, only: st_quiet
@@ -1295,7 +1314,6 @@ subroutine normaliseRadialProfile(ifile)
   use mathlib_bouncer
   use numerical_constants
   use physical_constants
-  use crcoall
 
   implicit none
 
@@ -1321,6 +1339,7 @@ subroutine elens_kick(i,ix,n)
   use mathlib_bouncer
   use numerical_constants, only : zero, one, two
   use mod_utils, only : polinterp
+  use crcoall, only : lerr
 
   implicit none
   
@@ -1350,7 +1369,7 @@ subroutine elens_kick(i,ix,n)
     !    0    if r <= R1
     !    frr  if R1 < r < R2
     !    1    if r >= R2
-    if (rr>elens_r1(ielens(ix)).or.(elens_lZeroThick(ielens(ix)).and.rr.eq.elens_r1(ielens(ix)))) then ! rr<=R1 -> no kick from elens
+    if (rr>elens_r1(ielens(ix)).or.(elens_lZeroThick(ielens(ix)).and.rr==elens_r1(ielens(ix)))) then ! rr<=R1 -> no kick from elens
       if (rr<elens_r2(ielens(ix))) then ! R1<rr<R2
         select case (elens_type(ielens(ix)))
         case (1)
@@ -1400,13 +1419,14 @@ subroutine elens_kick_fox(i,ix)
 
   use mod_common, only : beta0, mtcda
   use mod_settings, only : st_debug
-  use crcoall, only : lout
+  use crcoall, only : lout, lerr
   use mod_common_main
   use numerical_constants, only : zero, one, two, pieni
   use mod_utils, only : huntBin, polcof, polinterp
   use mod_lie_dab, only : lnv, idao, rscrri, iscrda
   use mod_common_track, only : comt_daStart, comt_daEnd
   use mod_common_da
+  use mod_alloc, only: alloc, dealloc
 
   implicit none
   
@@ -1454,7 +1474,7 @@ subroutine elens_kick_fox(i,ix)
 !FOX  D V RE INT XA     ;
 !FOX  D V RE INT YA     ;
 !FOX  E D ;
-!FOX  1 if(1.eq.1) then
+!FOX  1 if(1==1) then
 !-----------------------------------------------------------------------
 
   if (st_debug) write(lout,'(2(a,i0))')'ELENS> ELENS_KICK_FOX for i=',i,' - ix=',ix
