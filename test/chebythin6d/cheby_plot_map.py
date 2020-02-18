@@ -13,9 +13,9 @@ chebyNames=['cheby1','cheby2','cheby3','cheby4']
 coords=['local','map']
 offx=[0,-2, 2,0]
 offy=[0, 2,-2,0]
-R1=[1.0,0.7,1.5,0.4] # [mm]
+R1=[1.0,0.7,0.0,1.5] # [mm]
 R2=[6.4,6.4,6.0,6.4] #[mm]
-cAngles=np.deg2rad([0,0,-90,135])# [deg to rad]
+cAngles=np.deg2rad([0,0,-90,160])# [deg to rad]
 nRows=nCols=round(len(chebyNames)/2.)
 epsilon=1E-15
 gteps=1+epsilon

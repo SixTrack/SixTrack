@@ -12,9 +12,9 @@ import numpy as np
 chebyNames=['cheby1','cheby2','cheby3','cheby4']
 offx=[0,-2, 2,0] # [mm]
 offy=[0, 2,-2,0] # [mm]
-R1=[1.0,0.7,1.5,0.4] # [mm]
+R1=[1.0,0.7,0.0,1.5] # [mm]
 R2=[6.4,6.4,6.0,6.4] # [mm]
-cAngles=[0,0,-90,135] # [deg]
+cAngles=[0,0,-90,160] # [deg]
 kicks=['kx','ky','kr']
 nRows=len(chebyNames)/2
 nCols=len(chebyNames)/2*len(kicks)
