@@ -1390,13 +1390,13 @@ program maincr
   ! print stable particles only
   write(lout,"(a)") ""
   write(lout,"(a)") str_divLine
-  if(napxo > 0) then
+  if(napx > 0) then
     write(lout,"(a)") ""
-    write(lout,10350) napxo
+    write(lout,10350) napx
     write(lout,"(a)") ""
     write(lout,10360) 'ID', 'GEN', 'WEIGHT', 'X [m]', 'XP []', 'Y [m]', 'YP[]', 'PC [GeV]', 'DE [eV]', 'DT [s]'
     write(lout,"(a)") ""
-    do ia=1,napxo
+    do ia=1,napx
       if(.not.pstop(ia)) then
         write(lout,10370) fluka_uid(ia),fluka_gen(ia),fluka_weight(ia), &
           xv1(ia)*c1m3, yv1(ia)*c1m3, xv2(ia)*c1m3, yv2(ia)*c1m3, &
