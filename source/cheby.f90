@@ -614,7 +614,7 @@ subroutine cheby_kick(i,ix,n)
   use mod_common, only : beta0, napx, brho
   use mod_common_main
   use mathlib_bouncer
-  use numerical_constants, only : zero, c180e0, pi, two
+  use numerical_constants, only : zero, c180e0, pi, two, c1m15
   use physical_constants, only: clight
 
   implicit none
@@ -624,10 +624,14 @@ subroutine cheby_kick(i,ix,n)
   integer, intent(in) :: n
 
   real(kind=fPrec) xx, yy, ax, ay, rr, rr_sq, dxp, dyp
-  real(kind=fPrec) theta, angle_rad
+  real(kind=fPrec) theta, angle_rad, epsilon, gteps, lteps
   integer          jj
   logical          lrotate
 
+  epsilon=c1m15
+  gteps=one+epsilon
+  lteps=one-epsilon
+  
   ! rotation angle
   lrotate = cheby_angle(icheby(ix)).ne.zero
   angle_rad = (cheby_angle(icheby(ix))/c180e0)*pi
@@ -652,8 +656,8 @@ subroutine cheby_kick(i,ix,n)
     ax=abs(xx)
     ay=abs(yy)
     ! (x,y)<r1 or ( (xx>r2) || (yy>r2) ): no kick from lens
-    if ( (ax.lt.cheby_r1(icheby(ix)).and.ay.lt.cheby_r1(icheby(ix))) .or. &
-         (ax.gt.cheby_r2(icheby(ix)) .or.ay.gt.cheby_r2(icheby(ix))) ) cycle
+    if ( (ax.lt.cheby_r1(icheby(ix))*lteps.and.ay.lt.cheby_r1(icheby(ix))*lteps) .or. &
+         (ax.gt.cheby_r2(icheby(ix))*gteps .or.ay.gt.cheby_r2(icheby(ix))*gteps) ) cycle
 
     ! compute kick from cheby map
     call cheby_getKick( xx, yy, dxp, dyp, cheby_itable(icheby(ix)) )
@@ -689,7 +693,7 @@ subroutine cheby_kick_fox(i,ix)
   use mod_common, only : beta0, mtcda, brho
   use mod_settings, only : st_debug
   use crcoall, only : lout
-  use numerical_constants, only : zero, c180e0, pi, pieni, two
+  use numerical_constants, only : zero, c180e0, pi, c1m15, two
   use physical_constants, only: clight
   use mod_lie_dab, only : lnv, idao, rscrri, iscrda
   use mod_common_track, only : comt_daStart, comt_daEnd
@@ -756,7 +760,7 @@ subroutine cheby_kick_fox(i,ix)
 
   write(lout,'(2(a,i0))')'CHEBY> CHEBY_KICK_FOX for i=',i,' - ix=',ix
   
-  epsilon=pieni
+  epsilon=c1m15
   
   XCLO=cheby_offset_x(icheby(ix))
   YCLO=cheby_offset_y(icheby(ix))
@@ -909,17 +913,21 @@ subroutine cheby_potentialMap(iLens,ix)
   use mod_common, only : bez
   use mod_common_main
   use mathlib_bouncer
-  use numerical_constants, only : zero, c180e0, pi
+  use numerical_constants, only : zero, c180e0, pi, c1m15
   use mod_units
 
   integer, intent(in) :: iLens
   integer, intent(in) :: ix
 
   real(kind=fPrec) xx, yy, rr, zz, dx, dy, xxr, yyr, xxn, yyn, ax, ay
-  real(kind=fPrec) theta, radio, angle_rad
+  real(kind=fPrec) theta, radio, angle_rad, epsilon, gteps, lteps
   integer          ii, jj, inside, fUnit
   logical          lrotate, err
 
+  epsilon=c1m15
+  gteps=one+epsilon
+  lteps=one-epsilon
+  
   write(lout,"(a)") "CHEBY> Dumping potential map..."
   call f_requestUnit(cheby_mapFileName(iLens),fUnit)
   call f_open(unit=fUnit,file=cheby_mapFileName(iLens),mode='w',err=err,formatted=.true.,status="replace")
@@ -981,8 +989,8 @@ subroutine cheby_potentialMap(iLens,ix)
       ax=abs(xxn)
       ay=abs(yyn)
       ! (x,y)<r1 or ( (xx>r2) || (yy>r2) ): no kick from lens
-      if ( (ax.lt.cheby_r1(iLens).and.ay.lt.cheby_r1(iLens)) .or. &
-           (ax.gt.cheby_r2(iLens) .or.ay.gt.cheby_r2(iLens)) ) inside=0
+      if ( (ax.lt.cheby_r1(icheby(ix))*lteps.and.ay.lt.cheby_r1(icheby(ix))*lteps) .or. &
+           (ax.gt.cheby_r2(icheby(ix))*gteps .or.ay.gt.cheby_r2(icheby(ix))*gteps) ) inside=0
       ! compute kick from cheby map
       call cheby_getPotential( xxn, yyn, zz, cheby_itable(iLens) )
       write(fUnit,'(5(1X,1pe22.15),1X,i0)') xx, yy, xxn, yyn, zz, inside

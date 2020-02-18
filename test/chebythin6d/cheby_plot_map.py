@@ -17,6 +17,9 @@ R1=[1.0,0.7,1.5,0.4] # [mm]
 R2=[6.4,6.4,6.0,6.4] #[mm]
 cAngles=np.deg2rad([0,0,-90,135])# [deg to rad]
 nRows=nCols=round(len(chebyNames)/2.)
+epsilon=1E-15
+gteps=1+epsilon
+lteps=1-epsilon
 
 pc=450E3 # [MeV]
 clight=2.99792458E8   # [m/s]
@@ -37,8 +40,8 @@ for jj in range(len(chebyNames)):
   yy=rr*np.sin(angles)
   xx=np.absolute(xx)
   yy=np.absolute(yy)
-  idc_out=np.where(                np.logical_or( np.logical_and(xx<R1[jj],yy<R1[jj]), np.logical_or(xx>R2[jj],yy>R2[jj]) )) [0]
-  idc_in =np.where(np.logical_not( np.logical_or( np.logical_and(xx<R1[jj],yy<R1[jj]), np.logical_or(xx>R2[jj],yy>R2[jj]) )))[0]
+  idc_out=np.where(                np.logical_or( np.logical_and(xx<R1[jj]*lteps,yy<R1[jj]*lteps), np.logical_or(xx>R2[jj]*gteps,yy>R2[jj]*gteps) )) [0]
+  idc_in =np.where(np.logical_not( np.logical_or( np.logical_and(xx<R1[jj]*lteps,yy<R1[jj]*lteps), np.logical_or(xx>R2[jj]*gteps,yy>R2[jj]*gteps) )))[0]
 
   for ii in range(len(coords)):
     plt.subplot(nRows,nCols*len(coords),ii+jj*len(coords)+1)

@@ -21,6 +21,9 @@ nCols=len(chebyNames)/2*len(kicks)
 names=['turn']+chebyNames[1:]+['GLOBAL-VARS']
 angle=135 # [-180:180] [deg]
 dAngle=10 # [deg]
+epsilon=1E-15
+gteps=1+epsilon
+lteps=1-epsilon
 
 pc=450E3 # [MeV]
 clight=2.99792458E8   # [m/s]
@@ -48,8 +51,8 @@ for lKick,label in zip([True,False],['nrad','kV']):
         yy=rr*np.sin(angles)
         xx=np.absolute(xx)
         yy=np.absolute(yy)
-        id_out=np.where(                np.logical_or( np.logical_and(xx<R1[jj],yy<R1[jj]), np.logical_or(xx>R2[jj],yy>R2[jj]) )) [0]
-        id_in =np.where(np.logical_not( np.logical_or( np.logical_and(xx<R1[jj],yy<R1[jj]), np.logical_or(xx>R2[jj],yy>R2[jj]) )))[0]
+        id_out=np.where(                np.logical_or( np.logical_and(xx<R1[jj]*lteps,yy<R1[jj]*lteps), np.logical_or(xx>R2[jj]*gteps,yy>R2[jj]*gteps) )) [0]
+        id_in =np.where(np.logical_not( np.logical_or( np.logical_and(xx<R1[jj]*lteps,yy<R1[jj]*lteps), np.logical_or(xx>R2[jj]*gteps,yy>R2[jj]*gteps) )))[0]
         for ii in range(len(kicks)):
           plt.subplot(nRows,nCols,ii+jj*len(kicks)+1)
           if ( kicks[ii]=='kr' ):
