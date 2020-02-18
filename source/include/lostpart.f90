@@ -42,10 +42,6 @@
   !-----------------------------------------------------------------------
   ! closing stuff
 
-#ifdef FLUKA
-  napxo = napx
-#endif
-
   if(napx.eq.0) then
     write(lout,"(a)") ""
     write(lout,"(a)") "************************"
