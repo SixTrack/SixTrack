@@ -12,7 +12,7 @@
 
 **User Side Changes**
 
-* When specifying `XP` and `YP` in the `FORMAT` statement of the `DIST` block, the units are parsed. Accepted values are [1], [1000], [MRAD], [RAD].
+* When specifying `XP` and `YP` in the `FORMAT` statement of the `DIST` block, the units are parsed. Accepted values are [1], [1000], [MRAD], [RAD]. PR # 1054 (A. Mereghetti)
 
 ### Version 5.4.3 [19.12.2019] - Release
 
