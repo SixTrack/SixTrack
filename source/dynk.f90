@@ -1905,7 +1905,7 @@ subroutine dynk_apply(turn)
       call f_open(unit=dynk_fileUnit,file=dynk_fileName,formatted=.true.,mode="w",status="replace")
 
       if(dynk_dynkSets) then
-        write(dynk_fileUnit,"(a1,1x,a10,2(1x,a20),1x,a4,1x,a20,a16)") "#",&
+        write(dynk_fileUnit,"(a1,1x,a10,2(1x,a20),1x,a4,1x,a20,1x,a16)") "#",&
         "turn", chr_rPad("element",20),chr_rPad("attribute",20),"idx",chr_rPad("funname",20),"value"
       else
         write(dynk_fileUnit,"(a)") "### DYNK file output disabled. Add the flag DYNKSETS to enable it ###"
@@ -1964,7 +1964,7 @@ subroutine dynk_apply(turn)
         whichFUN(jj) = "N/A"
       end if
 
-      write(dynk_fileUnit,"(i12,2(1x,a20),1x,i4,1x,a20,e16.9)") turn, &
+      write(dynk_fileUnit,"(i12,2(1x,a20),1x,i4,1x,a20,1x,e16.9)") turn, &
         chr_rPad(dynk_cSets_unique(jj,1),20),chr_rPad(dynk_cSets_unique(jj,2),20),&
         whichSET(jj),chr_rPad(whichFUN(jj),20),getvaldata
     end do
@@ -2280,7 +2280,8 @@ subroutine dynk_setvalue(element_name, att_name, newValue)
   use mod_particles
   use string_tools
 
-  use elens
+  use elens, only: elens_theta_r2, elens_lAllowUpdate, elens_I, elens_Ek, eLensTheta, elens_kz, &
+                   nelens, ielens
   use cheby
   use parbeam, only : beam_expflag
   implicit none
@@ -2312,7 +2313,7 @@ subroutine dynk_setvalue(element_name, att_name, newValue)
       ! Modify the reference particle
       call part_updateRefEnergy(newValue)
       ! Modify energy-dependent element parameters
-      do ii=1,melens
+      do ii=1,nelens
         call eLensTheta(ii)
       end do
     end if
@@ -2460,7 +2461,7 @@ subroutine dynk_setvalue(element_name, att_name, newValue)
           goto 100 ! ERROR
         end if
 
-      case(29) ! Electron lens
+      case(elens_kz) ! Electron lens
         if(att_name == "theta_r2") then ! [mrad]
           elens_theta_r2(ielens(ii)) = newValue
           !Energy update is locked down after setting theta_r2 with DYNK
@@ -2560,7 +2561,7 @@ real(kind=fPrec) function dynk_getvalue(element_name, att_name)
   use mod_common
   use mod_common_track
   use mod_common_main
-  use elens
+  use elens, only: elens_theta_r2, elens_I, elens_Ek, elens_kz, ielens
   use cheby
   use parbeam, only : beam_expflag
   use string_tools
@@ -2711,7 +2712,7 @@ real(kind=fPrec) function dynk_getvalue(element_name, att_name)
           goto 100 ! ERROR
         end if
 
-      case(29) ! Electron lens
+      case(elens_kz) ! Electron lens
         if(att_name == "theta_r2") then ! [mrad]
           dynk_getvalue = elens_theta_r2(ielens(ii))
         elseif(att_name == "elens_I") then ! [A]

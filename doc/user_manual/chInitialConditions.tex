@@ -734,6 +734,7 @@ The available formats and how they are converted to internal SixTrack particle c
 Each column can optionally take a unit in square brackets, appended to the column name itself with no space in between.
 The available units are also listed in the table for the column formats that support units.
 If no unit in square brackets is provided, the parser defaults to the internal SixTrack units which are mm, mrad and MeV.
+Please keep in mind that whenever \texttt{[1]} is used as unit, numbers are interpreted in SixTrack units.
 
 For units of energy $c=1$ such that for instance MeV, MeV/c and MeV/c$^2$ are equivalent.
 The parser accepts the following notation: \texttt{MeV}, \texttt{MeV/c}, \texttt{MeV/c\^{}2}, and \texttt{MeV/c**2}.
@@ -745,7 +746,7 @@ For units of length, the parser accepts the character \texttt{u} as an alternati
 
 To avoid the need for specifiying common combinations of columns, a set of multi-column keywords are also available.
 They are translated directly into a group of columns in a pre-defined order.
-using these keywords does not prevent the user from adding more columns to extend the format.
+Using these keywords does not prevent the user from adding more columns to extend the format.
 
 Note, however, that conflicting columns cannot be provided.
 Only one column for each of the 6 particle coordinates is allowed at the same time.
@@ -770,7 +771,8 @@ NEXT
 \setlength\LTleft{0pt}
 \setlength\LTright{0pt}
 \begin{longtable}{@{\extracolsep{\fill}}|p{10cm}|l|}
-    \caption{Available column formats in the DIST block.}
+  \caption{Available column formats in the DIST block.
+    Please keep in mind that whenever \texttt{[1]} is used as unit, numbers are interpreted in SixTrack units.}
     \label{Table:DIST_FORMAT} \\*
     \hline
     \rowcolor{blue!30}
@@ -832,7 +834,7 @@ NEXT
     \hline
 
     \rowcolor{gray!15}
-    \texttt{XP, YP} & [1] \\*
+    \texttt{XP, YP} & [1] or [1000] \\*
     \hline
     \multicolumn{2}{|>{\raggedright}p{\textwidth}|}{%
         The particle transverse momentum ratio relative to its total momentum, $p_x/p \approx x^\prime$, $p_y/p \approx y^\prime$. These are the internal values used for tracking in SixTrack, and are read in as provides.
@@ -1052,7 +1054,7 @@ NEXT
     \texttt{OLD\_DIST} & N/A \\*
     \hline
     \multicolumn{2}{|>{\raggedright}p{\textwidth}|}{%
-        Gives the old file format as described in Table~\ref{tab:distReadFileColumns}. That is, it's equivalent to \texttt{ID PARENT SKIP X[M] Y[M] SKIP XP[RAD] YP[RAD] SKIP ION\_A ION\_Z MASS[GEV] P[GEV] DT}.
+        Gives the old file format as described in Table~\ref{tab:distReadFileColumns}. That is, it's equivalent to \texttt{ID PARENT SKIP X[M] Y[M] SKIP XP[1000] YP[1000] SKIP ION\_A ION\_Z MASS[GEV] P[GEV] DT}.
     } \\*
     \hline
 

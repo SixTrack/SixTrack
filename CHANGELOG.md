@@ -4,10 +4,27 @@
 
 **Bugfixes**
 
-* Fix the root build PR # 1040 (J. Molson)
-* More robust detection of lxplus at compilation PR #1045 (J. Molson).
+* Fix the root build. PR # 1040 (J. Molson)
+* More robust detection of lxplus at compilation. PR #1045 (J. Molson).
 * Fix pencil beam type 3 - the optics function at the entrance of the collimator were always used for beam sampling, even when those at the exit should have been used (e.g. because the beam is divergent on the cleaning plane). PR #1046 (A. Mereghetti).
-* Do not update the pair mapping for non-primary particlesPR #1050 (A. Mereghetti)
+* Do not update the pair mapping for non-primary particles. PR #1050 (A. Mereghetti)
+* Removed updating napxo variable in the context of the Fluka-SixTrack coupling. This allows not to screw-up pair mapping in the context of DA studies. PR # 1052 (A. Mereghetti)
+
+**User Side Changes**
+
+* When specifying `XP` and `YP` in the `FORMAT` statement of the `DIST` block, the units are parsed. Accepted values are [1], [1000], [MRAD], [RAD]. PR # 1054 (A. Mereghetti)
+
+**User Side Changes**
+
+* Electron lenses have been inserted into FOX - PR #839 (A. Mereghetti).
+* Increased flexibility of e-lens module - PR #841 (A. Mereghetti):
+  * elens module fully dynamic allocatable;
+  * give possibility to express R_1 and R_2 in sigma;
+  * add any ion species to be defined as possible lens beam;
+  * other changes, including:
+    * relativistic gamma of lens beam added to calculation of theta_R2;
+    * removed remaining signs of chebyshev polynomials in elens module;
+  Documentation changed accordingly (user and physics manual).
 
 ### Version 5.4.3 [19.12.2019] - Release
 

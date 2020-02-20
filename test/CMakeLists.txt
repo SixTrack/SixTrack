@@ -127,7 +127,11 @@ list(APPEND SIXTRACK_TESTS
   elensidealthin4d
   elensidealthin6d
   elensidealthin6d_DYNK
+  elensidealthin6d_FOX
+  elensidealthin6d_FOX_single
   elensidealthin6d_ions
+  elensidealthin6d_ions_spec
+  elensidealthin6d_norm_settings
   elensidealthin6d_ramp_DYNK
   eric
   exact
@@ -311,6 +315,7 @@ set(TESTS_NOFORT10
   dynk_polynomial
   dynk_random
   elensidealthck6d
+  elensidealthin6d_norm_settings
   exact
   fringe_field
   generalized-rf-multipoles
@@ -394,6 +399,8 @@ set(TESTS_NO_STF
   dynk_polynomial
   dynk_random
   elensidealthin6d_ions
+  elensidealthin6d_ions_spec
+  elensidealthin6d_norm_settings
   fma
   fma_binary
   fma_naff
@@ -680,8 +687,11 @@ set(FAST_TESTS
   elensidealthin4d
   elensidealthin6d
   elensidealthin6d_DYNK
-  elensidealthin6d_DYNK_ZIPF
+  elensidealthin6d_FOX
+  elensidealthin6d_FOX_single
   elensidealthin6d_ions
+  elensidealthin6d_ions_spec
+  elensidealthin6d_norm_settings
   exact
   fcc
   frs_da

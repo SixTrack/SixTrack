@@ -1302,8 +1302,20 @@ Currently, the ideal electron lens is implemented, i.e.
 \begin{tabular}{@{}lp{0.8\linewidth}}
     \textbf{Keyword}    & \texttt{ELEN}\index{ELEN} \\
     \textbf{Data lines} & Variable \\
+    \textbf{Format}     & There are different types of statements possible in a \texttt{ELEN} block, listed in the following subsections. \\
+\end{tabular}
+
+\bigskip
+\noindent All the electron lenses are by default considered for calculation by FOX. Nevertheless, the e-lens kick is actually taken into account in the FOX part only if the closed orbit falls in the region of the electron beam or outside, i.e.~no FOX calculation is performed in the hollow part. The user can specify in the \texttt{fort.3} if each e-lens should be considered or not in the FOX calculation (see Sec.~\ref{sec:elen:FOX}).
+
+\noindent It should be noted that by default electrons are considered as beam of the e-lens.
+The user is also given the possibility to change the species of the beam of the e-lens to anything they want via the \texttt{SPEC} statement (see Sec.~\ref{sec:elen:SPEC}).
+In the following, references are done to electrons, but all the statements hold also for any species requested by the user.
+
+\subsection{Declaration of a lens}\label{sec:elen:declaration}
+\begin{tabular}{@{}lp{0.8\linewidth}}
     \textbf{Format}     & \texttt{name type theta\_r2 r2 r1 offset\_x offset\_y (L I E\_k) } \\
-    & The last three parameters are optional, but if specified, all of them must be present; they allow to re-compute the angle at \texttt{r2} \texttt{theta\_r2}, taking into account also the beam energy.  \\
+    & The last three parameters are optional, but if specified, all of them must be present; they force the re-computation of the angle at \texttt{r2} \texttt{theta\_r2}, taking into account also the beam energy.  \\
     & Additional parameters specific to the electron distributions (see later) must be specified before the optional ones. \\
 \end{tabular}
 
@@ -1318,24 +1330,24 @@ Currently, the ideal electron lens is implemented, i.e.
 \end{tabular}
 
 \begin{center}
-\begin{longtable}{|p{2.0cm} | p{2.4cm} | p{1.0cm} | p{9.0cm}|}
+\begin{longtable}{| p{2.4cm} | p{1.0cm} | p{12.0cm}|}
     %Note: \\* (with the star) used to inhibit page breaks in the middle of groups of the same type
-    \caption{Input parameters for \texttt{ELEN} block.}
+    \caption{Input parameters for the \texttt{ELEN} block.}
     \label{tab:elen} \\*
     \hline
     \rowcolor{blue!30}
-    Type Name & Arguments & Unit & Description \\*
+    Argument & Unit & Description \\*
     \hline
     \endfirsthead
 
     \hline
     \rowcolor{blue!30}
-    Type Name & Arguments & Unit & Description \\*
+    Argument & Unit & Description \\*
     %\hline
     \endhead
 
     \rowcolor{gray!15}
-    \multicolumn{4}{|c|}{(The table continues on the next page)}\\*
+    \multicolumn{3}{|c|}{(The table continues on the next page)}\\*
     \hline
     \endfoot
 
@@ -1344,63 +1356,64 @@ Currently, the ideal electron lens is implemented, i.e.
 
     \hline
     \rowcolor{blue!15}
-    \multicolumn{4}{|l|}{Valid for all types} \\*
+    \multicolumn{3}{|l|}{Valid for all types} \\*
 
-    & \texttt{name} & -- & Name of e-lens. Must be the same as that in the list of single elements\index{single elements}.\\*
+    \texttt{name} & -- & Name of e-lens. Must be the same as that in the list of single elements\index{single elements}.\\*
     \hline
 
-    & \texttt{type} & -- & Type of e-lens - either \texttt{UNIFORM} or  \texttt{GAUSSIAN}. \\*
+    \texttt{type} & -- & Type of e-lens - either \texttt{UNIFORM} or  \texttt{GAUSSIAN}. \\*
     \hline
 
-    & \texttt{theta\_r2} & mrad & Kick\footnote{Total, \emph{not} per charge.} received at $r=r_2$ where $r_2$ is the outer radius of the e-lens.\\*
+    \texttt{theta\_r2} & mrad & Kick\footnote{Total, \emph{not} per charge.} received at $r=r_2$ where $r_2$ is the outer radius of the e-lens.
+    If negative (negative charge of e-lens beam, see Sec.~\ref{sec:elen:SPEC}), the kick is radially inwards; conversely, if positive, the kick is radially outwards. \\*
     \hline
 
-    & \texttt{r2} & mm & Outer radius of the e-lens.\\*
+    \texttt{r2} & mm & Outer radius of the e-lens.\\*
     \hline
 
-    & \texttt{r1} & mm & Inner radius of the e-lens. \\* % Can be 0 but not negative.\\*
+    \texttt{r1} & mm & Inner radius of the e-lens. \\* % Can be 0 but not negative.\\*
     \hline
 
-    & \texttt{offset\_x} & mm & Horizontal offset of the e-lens.\\*
+    \texttt{offset\_x} & mm & Horizontal offset of the e-lens.\\*
     \hline
 
-    & \texttt{offset\_y} & mm & Vertical offset of the e-lens.\\*
-    \hline
-
-    \hline
-    \rowcolor{blue!15}
-    \multicolumn{4}{|l|}{Specific to \texttt{GAUSSIAN} type} \\*
-
-    & \texttt{sig\_el} & mm & $\sigma$ of the electron beam.\\*
-    \hline
-
-    \rowcolor{blue!15}
-    \multicolumn{4}{|l|}{Specific to \texttt{RADIAL} type} \\*
-
-    & \texttt{filename} & & filename of the radial profile. Please see Sec.~\ref{sec:elen_rad_prof} for proper formatting of the file. The profile is read from the file, radially integrated and normalised to the total current. Hence, the kick at \texttt{r2} is given by the value of \texttt{theta\_r2} (or by the optional parameters) and not by integration of the radial profile. The domain of the profile must be larger than the domain identified by $R_1$ and $R_2$. \\*
+    \texttt{offset\_y} & mm & Vertical offset of the e-lens.\\*
     \hline
 
     \hline
     \rowcolor{blue!15}
-    \multicolumn{4}{|l|}{Optional arguments (all types)} \\*
+    \multicolumn{3}{|l|}{Specific to \texttt{GAUSSIAN} type} \\*
 
-    & \texttt{L} & m & Length of the e-lens. Must be positive. \\*
+    \texttt{sig\_el} & mm & $\sigma$ of the electron beam.\\*
     \hline
 
-    & \texttt{I} & A & Electron current of the e-lens. Must be non--zero. If negative, the electron beam is considered travelling in the direction opposite to that of the main beam. \\*
+    \rowcolor{blue!15}
+    \multicolumn{3}{|l|}{Specific to \texttt{RADIAL} type} \\*
+
+    \texttt{filename} & & filename of the radial profile. Please see Sec.~\ref{sec:elen_rad_prof} for proper formatting of the file. The profile is read from the file, radially integrated and normalised to the total current. Hence, the kick at \texttt{r2} is given by the value of \texttt{theta\_r2} (or by the optional parameters) and not by integration of the radial profile. The kick is obtained linearly interpolating the normalised profile (see Sec.~\ref{sec:elen:INTER}). The domain of the profile must be larger than the domain identified by \texttt{r1} and \texttt{r2}. \\*
     \hline
 
-    & \texttt{E\_k} & keV & kinetic energy of electrons in the e-lens. Must be positive.\\*
+    \hline
+    \rowcolor{blue!15}
+    \multicolumn{3}{|l|}{Optional arguments (all types)} \\*
+
+    \texttt{L} & m & Length of the e-lens. Must be positive. \\*
     \hline
 
-%     \rowcolor{blue!15}
-%     \multicolumn{4}{|l|}{Type specific parameters} \\*
-%     \texttt{GAUSSIAN} & \texttt{$\sigma$} & mm & Sigma of the e--beam.\\*
+    \texttt{I} & A & Electron current of the e-lens. Must be non--zero. A positive current corresponds to a positive charge flowing in the same direction as that of the main beam. \\*
+    \hline
+
+    \texttt{E\_k} & keV & kinetic energy of electrons in the e-lens. Must be positive.\\*
+    \hline
+
 \end{longtable}
 \end{center}
 
 \bigskip
-\noindent The spatial charge density of all profiles is defined between \texttt{r1} and \texttt{r2}:
+\paragraph{Remarks}~\\
+
+\begin{enumerate}
+\item The spatial charge density of all profiles is defined between \texttt{r1} and \texttt{r2}:
 \begin{equation}
   \rho(r)=\left\{
     \begin{array}{ll}
@@ -1410,12 +1423,8 @@ Currently, the ideal electron lens is implemented, i.e.
     \end{array}
     \right. \\
 \end{equation}
-%Moreover, if $r_1=0$, then the lens is full; otherwise, it is hollow.
-For the time being, \texttt{r\_1} cannot be \texttt{0}; hence, the electron lens can only be hollow.
+Moreover, if $r_1=0$, then the lens is full; otherwise, it is hollow.
 
-\paragraph{Remarks}~\\
-
-\begin{enumerate}
 \item The user has to check that the e-lens defined in the \texttt{ELEN} block is also defined in the list of single elements and vice versa.
   All parameters in the single element definition except the type (type \texttt{29}) are ignored.
 \item The current implementation (ideal e-lenses) has no explicit energy--dependency, except for the user defined parameter \texttt{theta\_r2} (see \cite{sixphys}), in case the user specifies \texttt{L}, \texttt{E\_k} and \texttt{I}.
@@ -1426,21 +1435,234 @@ For the time being, \texttt{r\_1} cannot be \texttt{0}; hence, the electron lens
 \item In case of energy ramping, if not \texttt{DYNK}-ed, the kick stays constant, as if the e-lens was ramped in beam current in synch with the rest of the machine.
   On the contrary, if the user specifies the three main optional parameters (i.e.~length, kinetic energy of electrons and current), if not \texttt{DYNK}-ed, the kick is recomputed at any update of the reference energy, as if the e-lens was not ramped.
   Hence, it is responsibility of the user to define the way the e-lens is ramped with beam energy.
-\item Note that if the user specifies \texttt{theta\_r2} with DYNK, then, starting with the first turn where it is set via \texttt{DYNK}, \texttt{theta\_R2} is no longer ramped with the energy, as if the elens was specified using only this parameter in \texttt{fort.3}.
+\item Note that if the user specifies \texttt{theta\_r2} with DYNK, then, starting with the first turn where it is set via \texttt{DYNK}, \texttt{theta\_R2} is no longer ramped with the energy, as if the e-lens was specified using only this parameter in \texttt{fort.3}.
   However note that the chromatic behaviour, which requires \texttt{E\_k}, is still handled in a physically correct way.
+\item When dealing with a radial profile from a plain ASCII file (see Sec.~\ref{sec:elen_rad_prof}), the code checks beforehand that the values of \texttt{r1} and \texttt{r2} specified in the \texttt{fort.3} fall inside the range covered by the map, otherwise the code errors and exits. This is done to avoid wrong extrapolations based on noisy maps.
+\item The user can specify \texttt{r1}, \texttt{r2} and \texttt{sig\_el} (the last one only for the \texttt{GAUSSIAN} e-lens) in normalised units, i.e.~in units of betatron $\sigma$ or of momentum cut; the user should specify the normalised emittance in the former case (see Sec.~\ref{sec:elen:EMIN}), or the rms of the delta distribution for the latter (see Sec.~\ref{sec:elen:SIGDPP}). SixTrack will compute the linear optics and then pick up the values at the e-lens to set the three parameters. Please note that, due to the cylindrical symmetry of the implemented e-lens, only one optics function is considered (among the orizontal or vertical plane); moreover, it does not matter how many parameters of an e-lens the user decides to express in normalised units, nevertheless they must all be referred to the same normalised emittance or rms of delta distribution.
+\item Computing the optics based on FOX calculations and considering the e-lens for FOX calculations clashes with the possibility of expressing the parameters in normalised units; the reason is that the e-lens calculation in the FOX framework requires \texttt{r1}, \texttt{r2} and \texttt{sig\_el} (the last one only for the \texttt{GAUSSIAN} e-lens) expressed in mm, whereas FOX is run before calculating the optics. Please use \texttt{ilin} set to 1 (see Sec.~\ref{LinOpt}).
+
 \end{enumerate}
 
-\paragraph{Examples}~\\
+\subsection{EMIN statement}\label{sec:elen:EMIN}
+Similarly to done by the \texttt{SIGDPP} statement (see Sec.~\ref{sec:elen:SIGDPP}), the \texttt{EMIN} line allows the user to declare the normalised emittance and which $\beta$ function should be used in conjunction with the declaration of \texttt{r1}, \texttt{r2} and \texttt{sig\_el} (the last one only for the \texttt{GAUSSIAN} e-lens) in terms of normalised amplitude. By default, the statement applies to the e-lens just declared, but its validity can also be extended to other e-lenses in the \texttt{ELEN} block (e.g.~to avoid repeating the same line for all e-lenses).
+
+\bigskip
+\begin{tabular}{@{}lp{0.8\linewidth}}
+    \textbf{Format}     & \texttt{EMIN emin (min|max|ave|qve|geo) (ALL|BEF(ORE)|AFT(ER))} \\
+    & The last two parameters are optional.  \\
+\end{tabular}
+
+\begin{center}
+\begin{longtable}{| p{2.4cm} | p{1.0cm} | p{12.0cm}|}
+    %Note: \\* (with the star) used to inhibit page breaks in the middle of groups of the same type
+    \caption{Input parameters for the \texttt{EMIN} keyword in the \texttt{ELEN} block.}
+    \label{tab:elen:EMIN} \\*
+    \hline
+    \rowcolor{blue!30}
+    Argument & Unit & Description \\*
+    \hline
+    \endfirsthead
+
+    \hline
+    \rowcolor{blue!30}
+    Argument & Unit & Description \\*
+    %\hline
+    \endhead
+
+    \rowcolor{gray!15}
+    \multicolumn{3}{|c|}{(The table continues on the next page)}\\*
+    \hline
+    \endfoot
+
+    \hline
+    \endlastfoot
+
+    \texttt{emin} & m & normalised emittance.\\*
+    \hline
+
+    \texttt{iSet} & -- & Which $\beta$ function should be used:    \\*
+    & & \begin{tabular}{@{}lp{0.8\linewidth}}
+          \texttt{min}     & minimum among $\beta_x$ and $\beta_y$; \\
+          \texttt{max}     & maximum among $\beta_x$ and $\beta_y$; \\
+          \texttt{ave}     & algebraic average, i.e.~$\beta=\frac{\beta_x+\beta_y}{2}$; \\
+          \texttt{qve}     & quadratic average, i.e.~$\beta=\sqrt{\frac{\beta_x^2+\beta_y^2}{2}}$; \\
+          \texttt{geo}     & geometric average, i.e.~$\beta=\sqrt{\beta_x\beta_y}$; \\
+        \end{tabular}
+    \\*
+    & & \texttt{min} is the default.\\*
+    \hline
+    
+    & -- & The stated normalised emittance should be applied also to other e-lenses: \\*
+    & & \begin{tabular}{@{}lp{0.8\linewidth}}
+      \texttt{ALL}     & all e-lenses being declared; \\
+      \texttt{BEF}     & all e-lenses declared before the current one; \\
+      \texttt{AFT}     & all e-lenses declared after the current one; \\
+    \end{tabular}
+    \\*
+    & & The default behaviour is that the current \texttt{EMIN} line applies only to the e-lens being declared, without touching the others. \\*
+    \hline
+
+\end{longtable}
+\end{center}
+
+\bigskip
+\noindent It should be noted that, in case the same e-lens (SINGLE ELEMENT) appears many times in the lattice structure, the values of the $\beta$ functions at all the instances of the same e-lens are used, following the algorithm selected by the user.
+
+\subsection{FOX statement}\label{sec:elen:FOX}
+The user can modify the default behaviour of SixTrack in considering the kick from electron lenses in the FOX calculation. By default, the statement applies to the e-lens just declared, but its validity can also be extended to other e-lenses in the \texttt{ELEN} block (e.g.~to avoid repeating the same line for all e-lenses).
+
+\bigskip
+\begin{tabular}{@{}lp{0.8\linewidth}}
+    \textbf{Format}     & \texttt{FOX true|false|on|off (ALL|BEF(ORE)|AFT(ER))} \\
+\end{tabular}
+
+\bigskip
+\noindent For the last parameter, please see Tab.~\ref{tab:elen:EMIN} in Sec.~\ref{sec:elen:EMIN}, since the same interface is used.
+
+\subsection{INTER statement}\label{sec:elen:INTER}
+The user can choose to interpolate the radial profile from a file (see Sec.~\ref{sec:elen_rad_prof}) not linearly but with a polynomial of higher order, up to 19, chosing the number of points to be used for the interpolation. The default is linear interpolation, i.e.~using 2 points. By default, the statement applies to the e-lens just declared, but its validity can also be extended to other e-lenses in the \texttt{ELEN} block (e.g.~to avoid repeating the same line for all e-lenses).
+
+\bigskip
+\begin{tabular}{@{}lp{0.8\linewidth}}
+    \textbf{Format}     & \texttt{INTER elens\_radial\_mpoints (ALL|BEF(ORE)|AFT(ER))} \\
+\end{tabular}
+
+\bigskip
+\noindent For the last parameter, please see Tab.~\ref{tab:elen:EMIN} in Sec.~\ref{sec:elen:EMIN}, since the same interface is used.
+
+\subsection{SIGDPP statement}\label{sec:elen:SIGDPP}
+Similarly to what done by the \texttt{EMIN} statement (see Sec.~\ref{sec:elen:EMIN}), the \texttt{SIGDPP} line allows the user to declare the rms of the delta distribution and which dispersion function should be used in conjunction with the declaration of \texttt{r1}, \texttt{r2} and \texttt{sig\_el} (the last one only for the \texttt{GAUSSIAN} e-lens) in terms of normalised amplitude. By default, the statement applies to the e-lens just declared, but its validity can also be extended to other e-lenses in the \texttt{ELEN} block (e.g.~to avoid repeating the same line for all e-lenses).
+
+\bigskip
+\begin{tabular}{@{}lp{0.8\linewidth}}
+    \textbf{Format}     & \texttt{SIGDPP sigdpp (min|max|ave|qve|geo) (ALL|BEF(ORE)|AFT(ER))} \\
+    & The last two parameters are optional.  \\
+\end{tabular}
+
+\begin{center}
+\begin{longtable}{| p{2.4cm} | p{1.0cm} | p{12.0cm}|}
+    %Note: \\* (with the star) used to inhibit page breaks in the middle of groups of the same type
+    \caption{Input parameters for the \texttt{SIGDPP} keyword in the \texttt{ELEN} block.}
+    \label{tab:elen:SIGDPP} \\*
+    \hline
+    \rowcolor{blue!30}
+    Argument & Unit & Description \\*
+    \hline
+    \endfirsthead
+
+    \hline
+    \rowcolor{blue!30}
+    Argument & Unit & Description \\*
+    %\hline
+    \endhead
+
+    \rowcolor{gray!15}
+    \multicolumn{3}{|c|}{(The table continues on the next page)}\\*
+    \hline
+    \endfoot
+
+    \hline
+    \endlastfoot
+
+    \texttt{sigdpp} & -- & rms of the delta distribution of the beam.\\*
+    \hline
+
+    \texttt{iSet} & -- & Which dispersion function should be used:    \\*
+    & & \begin{tabular}{@{}lp{0.8\linewidth}}
+          \texttt{min}     & minimum among $D_x$ and $D_y$; \\
+          \texttt{max}     & maximum among $D_x$ and $D_y$; \\
+          \texttt{ave}     & algebraic average, i.e.~$D=\frac{D_x+D_y}{2}$; \\
+          \texttt{qve}     & quadratic average, i.e.~$D=\sqrt{\frac{D_x^2+D_y^2}{2}}$; \\
+          \texttt{geo}     & geometric average, i.e.~$D=\sqrt{D_xD_y}$; \\
+        \end{tabular}
+    \\*
+    & & \texttt{min} is the default. \\*
+    \hline
+    
+    & -- & For the last parameter, please see Tab.~\ref{tab:elen:EMIN} in Sec.~\ref{sec:elen:EMIN}, since the same interface is used. \\*
+    \hline
+
+\end{longtable}
+\end{center}
+
+\bigskip
+\noindent It should be noted that, in case the same e-lens (SINGLE ELEMENT) appears many times in the lattice structure, the values of the dispersion functions at all the instances of the same e-lens are used, following the algorithm selected by the user.
+
+\subsection{SPEC statement}\label{sec:elen:SPEC}
+The \texttt{SPEC} line allows the user to set the species of the beam in the lens to anything they desire.
+The default is electrons.
+The user can assign only one species to each e-lens, but all e-lenses can have different species.
+By default, the statement applies to the e-lens just declared, but its validity can also be extended to other e-lenses in the \texttt{ELEN} block (e.g.~to avoid repeating the same line for all e-lenses).
+The species is actually taken into account only if the kick of the lens is calculated internally by the code (see Sec.~\ref{sec:elen:declaration}).
+It should be noted that, if the charge is negative, the kick is radially inwards; conversely, if the charge is positive, the kick is radially outwards.
+
+\bigskip
+\begin{tabular}{@{}lp{0.8\linewidth}}
+    \textbf{Format}     & \texttt{SPEC  m[MeV/c2]  Q[e] (ALL|BEF(ORE)|AFT(ER))} \\
+    & The last parameter is optional.  \\
+\end{tabular}
+
+\begin{center}
+\begin{longtable}{| p{2.4cm} | p{1.2cm} | p{11.8cm}|}
+    %Note: \\* (with the star) used to inhibit page breaks in the middle of groups of the same type
+    \caption{Input parameters for the \texttt{SPEC} keyword in the \texttt{ELEN} block.}
+    \label{tab:elen:SPEC} \\*
+    \hline
+    \rowcolor{blue!30}
+    Argument & Unit & Description \\*
+    \hline
+    \endfirsthead
+
+    \hline
+    \rowcolor{blue!30}
+    Argument & Unit & Description \\*
+    %\hline
+    \endhead
+
+    \rowcolor{gray!15}
+    \multicolumn{3}{|c|}{(The table continues on the next page)}\\*
+    \hline
+    \endfoot
+
+    \hline
+    \endlastfoot
+
+    \texttt{m} & MeV/c$^2$ & mass of the species of the beam in the e-lens. \\*
+    \hline
+
+    \texttt{Q} & e & charge of the species of the beam in the e-lens. \\*
+    \hline
+
+    & -- & For the last parameter, please see Tab.~\ref{tab:elen:EMIN} in Sec.~\ref{sec:elen:EMIN}, since the same interface is used. \\*
+    \hline
+
+\end{longtable}
+\end{center}
+
+\subsection{Example} \label{sec:elen:example}
 
 In the following we give an example of e-lens definition.
-The example defines two electron lenses \texttt{hel1} and \texttt{hel2} for cleaning purposes; the former has a uniform electron density whereas the latter has an electron beam with a Gaussian profile with $\sigma$=1.1547~mm.
-While the former has an explicit definition of the kick at \texttt{r2}, the latter triggers the re-computation of the kick, given the length of the electron lens of 4~m, the electron current of 2~A (opposite wrt the main beam) and the electron kinetic energy of 1~keV.
+The example defines four electron lenses, i.e.~\texttt{hel1}, \texttt{hel2}, \texttt{hel3} and \texttt{hel4}; the first and fourth ones have a uniform electron density, whereas the second one has an electron beam with a Gaussian profile with $\sigma$=1.1547~mm and the third one makes use of an ASCII file for the radial distribution.
+While the first, third and fourth e-lenses are hollow, the second one is full.
+For the second and fourth e-lens the user requests the re-computation of the kick, given the length of the lens of 4~m, the electron current of 2~A (opposite wrt the main beam) and the electron kinetic energy of 1~keV, while for all the others kick at \texttt{r2} has been explicitly declares.
+The first e-lens is discarded for FOX calculation.
+When using the radial profile, interpolation is performed with 4 points, i.e.~using a third order polynomial.
+For all e-lenses, in case normalised units are used (which is the case for \texttt{r2} of the second e-lens), a normalised emittance of 3.5~$\mu$m and the minimum among the $\beta$ functions (horizontal and vertical) is used to compute the local beam $\sigma$. The exception is the fourth e-lens, for which \texttt{r1} and \texttt{r2} are given as cut in momentum, using the quadratic average among $D_x$ and $D_y$.
+All e-lenses have beams of electrons but the last one, where positrons are used; hence, all the kicks are inwards (due to the negative charge of the electrons) but the last one (redundant, as the kick is re-computed internally by SixTrack).
+Please note the change of sign in the current, to keep the beam of both lenses always anti-parallel to the main beam.
 The input block in \texttt{fort.3} is then given by:
 
 \begin{cverbatim}
 ELEN
-hel1 UNIFORM  4.920e-03 6.928 4.619 1.1547 2.3093
-hel2 GAUSSIAN 4.920e-03 6.928 4.619 1.1547 2.3093 1.1547 4 -2 1
+EMIN 3.5E-06 min all  
+hel1 UNIFORM  -4.920e-03 6.928 4.619 1.1547 2.3093
+FOX false
+hel2 GAUSSIAN -4.920e-03 -6.0 0.0 1.1547 2.3093 1.1547 4 2 1
+hel3 RADIAL   -4.920e-03 5.7735 13.8564  -4.6188  4.6188  my_radial_profile.txt
+INTER 4
+hel4 UNIFORM   4.920e-03 -5.0 -10.0  -4.6188  4.6188 4 -2 1
+SIGDPP 2.8E-03 qve
+SPEC 0.510998902  1.0 after
 NEXT
 \end{cverbatim}
 The single and structure element definition in \texttt{fort.2} are given by:
@@ -1449,10 +1671,12 @@ SINGLE ELEMENTS---------------------------------------------------------
 ...
 hel1            29  0.000000000e+00  0.000000000e+00  0.000000000e+00  0.000000000e+00  0.000000000e+00  0.000000000e+00
 hel2            29  0.000000000e+00  0.000000000e+00  0.000000000e+00  0.000000000e+00  0.000000000e+00  0.000000000e+00
+hel3            29  0.000000000e+00  0.000000000e+00  0.000000000e+00  0.000000000e+00  0.000000000e+00  0.000000000e+00
+hel4            29  0.000000000e+00  0.000000000e+00  0.000000000e+00  0.000000000e+00  0.000000000e+00  0.000000000e+00
 ...
 STRUCTURE INPUT---------------------------------------------------------
 ...
-BLOC56            hel1              hel2
+BLOC56            hel1              hel2              hel3              hel4
 ...
 \end{ctverbatim}
 
@@ -1469,13 +1693,14 @@ The file format of the radial profile is
     \textbf{Format}     & \texttt{R} (mm) \texttt{J} (A cm$^{-2}$) \\
 \end{tabular}
 
-Formatting rules:
+\bigskip
+\noindent Formatting rules:
 \begin{itemize}
 \item every non-commented line is taken as a point in the profile;
 \item values of the radius must be in \emph{increasing} order. Otherwise, the program stops.
 \end{itemize}
 
-An example of radial profile is contained in each test of e-lenses.
+\noindent Please make sure that the values of \texttt{r1} and \texttt{r2} specified in the \texttt{fort.3} fall inside the range covered by the map (see remarks to Sec.~\ref{sec:elen:declaration}). An example of radial profile is contained in the test suite of e-lenses.
 
 % ================================================================================================================================ %
 \section{Scattering} \label{sec:scatter}
