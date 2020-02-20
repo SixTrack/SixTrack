@@ -1302,6 +1302,14 @@ Currently, the ideal electron lens is implemented, i.e.
 \begin{tabular}{@{}lp{0.8\linewidth}}
     \textbf{Keyword}    & \texttt{ELEN}\index{ELEN} \\
     \textbf{Data lines} & Variable \\
+    \textbf{Format}     & There are different types of statements possible in a \texttt{ELEN} block, listed in the following subsections. \\
+\end{tabular}
+
+\bigskip
+\noindent All the electron lenses are by default considered for calculation by FOX. Nevertheless, the e-lens kick is actually taken into account in the FOX part only if the closed orbit falls in the region of the electron beam or outside, i.e.~no FOX calculation is performed in the hollow part. The user can specify in the \texttt{fort.3} if each e-lens should be considered or not in the FOX calculation.
+
+\subsection{Declaration of a lens}\label{sec:elen:declaration}
+\begin{tabular}{@{}lp{0.8\linewidth}}
     \textbf{Format}     & \texttt{name type theta\_r2 r2 r1 offset\_x offset\_y (L I E\_k) } \\
     & The last three parameters are optional, but if specified, all of them must be present; they allow to re-compute the angle at \texttt{r2} \texttt{theta\_r2}, taking into account also the beam energy.  \\
     & Additional parameters specific to the electron distributions (see later) must be specified before the optional ones. \\
@@ -1377,7 +1385,7 @@ Currently, the ideal electron lens is implemented, i.e.
     \rowcolor{blue!15}
     \multicolumn{4}{|l|}{Specific to \texttt{RADIAL} type} \\*
 
-    & \texttt{filename} & & filename of the radial profile. Please see Sec.~\ref{sec:elen_rad_prof} for proper formatting of the file. The profile is read from the file, radially integrated and normalised to the total current. Hence, the kick at \texttt{r2} is given by the value of \texttt{theta\_r2} (or by the optional parameters) and not by integration of the radial profile. The domain of the profile must be larger than the domain identified by $R_1$ and $R_2$. \\*
+    & \texttt{filename} & & filename of the radial profile. Please see Sec.~\ref{sec:elen_rad_prof} for proper formatting of the file. The profile is read from the file, radially integrated and normalised to the total current. Hence, the kick at \texttt{r2} is given by the value of \texttt{theta\_r2} (or by the optional parameters) and not by integration of the radial profile. The kick is obtained linearly interpolating the normalised profile. The domain of the profile must be larger than the domain identified by $R_1$ and $R_2$. \\*
     \hline
 
     \hline
@@ -1410,8 +1418,7 @@ Currently, the ideal electron lens is implemented, i.e.
     \end{array}
     \right. \\
 \end{equation}
-%Moreover, if $r_1=0$, then the lens is full; otherwise, it is hollow.
-For the time being, \texttt{r\_1} cannot be \texttt{0}; hence, the electron lens can only be hollow.
+Moreover, if $r_1=0$, then the lens is full; otherwise, it is hollow.
 
 \paragraph{Remarks}~\\
 
@@ -1426,21 +1433,43 @@ For the time being, \texttt{r\_1} cannot be \texttt{0}; hence, the electron lens
 \item In case of energy ramping, if not \texttt{DYNK}-ed, the kick stays constant, as if the e-lens was ramped in beam current in synch with the rest of the machine.
   On the contrary, if the user specifies the three main optional parameters (i.e.~length, kinetic energy of electrons and current), if not \texttt{DYNK}-ed, the kick is recomputed at any update of the reference energy, as if the e-lens was not ramped.
   Hence, it is responsibility of the user to define the way the e-lens is ramped with beam energy.
-\item Note that if the user specifies \texttt{theta\_r2} with DYNK, then, starting with the first turn where it is set via \texttt{DYNK}, \texttt{theta\_R2} is no longer ramped with the energy, as if the elens was specified using only this parameter in \texttt{fort.3}.
+\item Note that if the user specifies \texttt{theta\_r2} with DYNK, then, starting with the first turn where it is set via \texttt{DYNK}, \texttt{theta\_R2} is no longer ramped with the energy, as if the e-lens was specified using only this parameter in \texttt{fort.3}.
   However note that the chromatic behaviour, which requires \texttt{E\_k}, is still handled in a physically correct way.
 \end{enumerate}
 
-\paragraph{Examples}~\\
+\subsection{FOX statement}\label{sec:elen:FOX}
+\begin{tabular}{@{}lp{0.8\linewidth}}
+    \textbf{Format}     & \texttt{FOX true|false or on|off} \\
+\end{tabular}
+
+\bigskip
+\noindent The user can modify the default behaviour of SixTrack in considering the kick from electron lenses in the FOX calculation.
+
+\subsection{INTER statement}\label{sec:elen:INTER}
+\begin{tabular}{@{}lp{0.8\linewidth}}
+    \textbf{Format}     & \texttt{INTER elens\_radial\_mpoints} \\
+\end{tabular}
+
+\bigskip
+\noindent The user can chose to interpolate the radial profile from a file not linearly but with a polynomial of higher order, up to 19, chosing the number of points to be used for the interpolation. The default is linear interpolation, i.e.~using 2 points.
+
+\subsection{Example} \label{sec:elen:example}
 
 In the following we give an example of e-lens definition.
-The example defines two electron lenses \texttt{hel1} and \texttt{hel2} for cleaning purposes; the former has a uniform electron density whereas the latter has an electron beam with a Gaussian profile with $\sigma$=1.1547~mm.
-While the former has an explicit definition of the kick at \texttt{r2}, the latter triggers the re-computation of the kick, given the length of the electron lens of 4~m, the electron current of 2~A (opposite wrt the main beam) and the electron kinetic energy of 1~keV.
+The example defines three electron lenses, i.e.~ \texttt{hel1}, \texttt{hel2} and \texttt{hel3}; the first one has a uniform electron density, whereas the second one has an electron beam with a Gaussian profile with $\sigma$=1.1547~mm and the third one makes use of an ASCII file for the radial distribution.
+While the first and third e-lenses are hollow, the second one is full.
+While the first and third e-lenses have an explicit definition of the kick at \texttt{r2}, the second one triggers the re-computation of the kick, given the length of the lens of 4~m, the electron current of 2~A (opposite wrt the main beam) and the electron kinetic energy of 1~keV.
+The first e-lens is discarded for FOX calculation.
+When using the radial profile, interpolation is performed with 4 points, i.e.~using a third order polynomial.
 The input block in \texttt{fort.3} is then given by:
 
 \begin{cverbatim}
 ELEN
 hel1 UNIFORM  4.920e-03 6.928 4.619 1.1547 2.3093
-hel2 GAUSSIAN 4.920e-03 6.928 4.619 1.1547 2.3093 1.1547 4 -2 1
+FOX false
+hel2 GAUSSIAN 4.920e-03 6.928 0.0 1.1547 2.3093 1.1547 4 -2 1
+hel3 RADIAL   4.920e-03 5.7735 13.8564  -4.6188  4.6188  my_radial_profile.txt
+INTER 4
 NEXT
 \end{cverbatim}
 The single and structure element definition in \texttt{fort.2} are given by:
@@ -1449,10 +1478,11 @@ SINGLE ELEMENTS---------------------------------------------------------
 ...
 hel1            29  0.000000000e+00  0.000000000e+00  0.000000000e+00  0.000000000e+00  0.000000000e+00  0.000000000e+00
 hel2            29  0.000000000e+00  0.000000000e+00  0.000000000e+00  0.000000000e+00  0.000000000e+00  0.000000000e+00
+hel3            29  0.000000000e+00  0.000000000e+00  0.000000000e+00  0.000000000e+00  0.000000000e+00  0.000000000e+00
 ...
 STRUCTURE INPUT---------------------------------------------------------
 ...
-BLOC56            hel1              hel2
+BLOC56            hel1              hel2              hel3
 ...
 \end{ctverbatim}
 
@@ -1469,13 +1499,14 @@ The file format of the radial profile is
     \textbf{Format}     & \texttt{R} (mm) \texttt{J} (A cm$^{-2}$) \\
 \end{tabular}
 
-Formatting rules:
+\bigskip
+\noindent Formatting rules:
 \begin{itemize}
 \item every non-commented line is taken as a point in the profile;
 \item values of the radius must be in \emph{increasing} order. Otherwise, the program stops.
 \end{itemize}
 
-An example of radial profile is contained in each test of e-lenses.
+\noindent An example of radial profile is contained in the test suite of e-lenses.
 
 % ================================================================================================================================ %
 \section{Scattering} \label{sec:scatter}

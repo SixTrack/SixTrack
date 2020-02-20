@@ -40,7 +40,7 @@ subroutine thin4d(nthinerr)
   use mod_common_da
   use bdex, only : bdex_enable
   use aperture
-  use elens
+  use elens, only : elens_ktrack, elens_kick
   use cheby, only : cheby_ktrack, cheby_kick
   use mod_utils
   use wire
@@ -460,10 +460,8 @@ subroutine thin4d(nthinerr)
 #include "include/kickvso1.f90"
         end do
         goto 620
-      case (63) ! Elens
-        do j=1,napx
-#include "include/kickelens.f90"
-        end do
+      case (elens_ktrack) ! Elens
+        call elens_kick(i,ix,n)
         goto 620
        case (66) ! Rf-multi
 #include "include/rfmulti.f90"
@@ -581,7 +579,7 @@ subroutine thin6d(nthinerr)
   use mod_common_track
   use mod_common_da
   use aperture
-  use elens
+  use elens, only : elens_ktrack, elens_kick
   use cheby, only : cheby_ktrack, cheby_kick
   use mod_utils
   use wire
@@ -1229,10 +1227,8 @@ subroutine thin6d(nthinerr)
         end do
         call part_updatePartEnergy(1,.true.)
         goto 640
-      case (63) ! Elens
-        do j=1,napx
-#include "include/kickelens.f90"
-        end do
+      case (elens_ktrack) ! Elens
+        call elens_kick(i,ix,n)
         goto 640
       case (66) ! Rf-multi
 #include "include/rfmulti.f90"

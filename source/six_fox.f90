@@ -20,6 +20,7 @@ subroutine umlauda
   use mod_common_da
   use mod_commond2
   use wire
+  use elens, only : elens_lFox, ielens, elens_kz, elens_kick_fox
   use mod_lie_dab, only : idao,iscrri,rscrri,iscrda
 
   implicit none
@@ -1310,6 +1311,18 @@ subroutine umlauda
 !FOX  Y(1)=EJF0/EJF1*Y(1) ;
 !FOX  Y(2)=EJF0/EJF1*Y(2) ;
       endif
+    if(kzz.eq.elens_kz) then ! Elens
+      if (elens_lFox(ielens(ix))) then
+        ! inspired by wireda
+!FOX  XX(1)=X(1) ;
+!FOX  XX(2)=X(2) ;
+!FOX  YY(1)=Y(1) ;
+!FOX  YY(2)=Y(2) ;
+        call elens_kick_fox(i,ix)
+!FOX  Y(1)=YY(1) ;
+!FOX  Y(2)=YY(2) ;
+      end if
+    end if     
     if(kzz.eq.22) then ! Phase Trombone
       irrtr=imtr(ix)
 !FOX  YP(1)=Y(1)*(ONE+DPDA)/MTCDA ;
