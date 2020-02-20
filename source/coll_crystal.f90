@@ -239,12 +239,12 @@ subroutine cry_doCrystal(ie,iturn,j,mat,x,xp,z,zp,s,p,x0,xp0,zlm,s_imp,isImp,nhi
   real(kind=fPrec), intent(inout) :: indiv(npart)
   real(kind=fPrec), intent(in)    :: c_length
 
+  logical,          intent(inout) :: isImp
+
   real(kind=fPrec) s_temp,s_shift,s_rot,s_int
   real(kind=fPrec) x_temp,x_shift,x_rot,x_int
   real(kind=fPrec) xp_temp,xp_shift,xp_rot,xp_int,xp_tangent
   real(kind=fPrec) tilt_int,shift,delta,a_eq,b_eq,c_eq
-
-  logical isImp
 
   s_temp     = zero
   s_shift    = zero

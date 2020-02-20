@@ -266,6 +266,11 @@ subroutine cdb_readCollDB
     end if
   end do
 
+  if(cdb_dbOld .and. .not. cdb_doNSig) then
+    call cdb_reconstructNSigFam
+  end if
+  call cdb_nullEmptyFam
+
   if(st_debug) then ! Dump a copy of the family and collimator databases
     call cdb_writeFam
     call cdb_writeDB
@@ -586,16 +591,6 @@ subroutine cdb_writeDB_newFromOld
     return
   end if
 
-  do j=1,cdb_nColl
-    ! Fixing family setting to that of the first collimator in the family when writing old CollDB in new format
-    ! Allows to take into account if settings were defined in fort.3 or old CollDB
-    if(j > 1 .and. cdb_cFamily(j) == cdb_cFamily(j-1)) then
-      cycle
-    else
-      cdb_famNSig(cdb_cFamily(j)) = cdb_cNSig(j)
-    end if
-  end do
-
   write(lout,"(a)") "COLLDB> Converting old format DB to new format to file '"//trim(cdb_fileName)//".new'"
 
   call f_requestUnit(trim(cdb_fileName)//".new", dbNew)
@@ -641,6 +636,70 @@ subroutine cdb_writeDB_newFromOld
   call f_freeUnit(dbNew)
 
 end subroutine cdb_writeDB_newFromOld
+
+! ================================================================================================ !
+!  M. D'Andrea, BE-ABP-HSS
+!  Created: 2020-02-19
+!  Updated: 2020-02-20
+!  Determine most frequent sigma setting for each collimator family and use that as family setting
+!  Identify empty collimator families and set their aperture to zero for cross-checks
+! ================================================================================================ !
+
+subroutine cdb_reconstructNSigFam
+
+  use mod_alloc
+
+  integer j, k, count_sig, freq, freq_max
+  real(kind=fPrec), allocatable :: NSig_collFam(:)
+
+  do j=1,cdb_nFam
+
+    count_sig = 0
+    do k=1,cdb_nColl
+      if(cdb_cFamily(k) == j) then
+        count_sig = count_sig+1
+        call alloc(NSig_collFam,count_sig,cdb_cNSig(k),"NSig_collFam")
+      end if
+    end do
+
+    freq_max = 0
+    do k=1,count_sig
+      freq = count(NSig_collFam == NSig_collFam(k))
+      if(freq > freq_max) then
+        freq_max = freq
+        cdb_famNSig(j) = NSig_collFam(k)
+      end if
+    end do
+
+    if(count_sig /= 0) then
+      call dealloc(NSig_collFam,"NSig_collFam")
+    else
+      cdb_famNSig(j) = 0
+    end if
+  end do
+
+end subroutine cdb_reconstructNSigFam
+
+subroutine cdb_nullEmptyFam
+
+  integer j, k, count_sig
+
+  do j=1,cdb_nFam
+
+    count_sig = 0
+    do k=1,cdb_nColl
+      if(cdb_cFamily(k) == j) then
+        count_sig = count_sig+1
+      end if
+    end do
+
+    if(count_sig == 0) then
+      cdb_famNSig(j) = 0
+      write(lout,"(a)") "COLLDB> WARNING No collimators defined in family '"//trim(cdb_FamName(j)//"', aperture set to zero"
+    end if
+  end do
+
+end subroutine cdb_nullEmptyFam
 
 ! ================================================================================================ !
 !  V.K. Berglyd Olsen, M. D'Andrea, BE-ABP-HSS
