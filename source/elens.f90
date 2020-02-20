@@ -1374,6 +1374,7 @@ subroutine elens_kick(i,ix,n)
     !    radial position of main beam relative to center of elens beam
     !    rr = sqrt(xx**2+yy**2)
     rr=sqrt((xx+yy)*(xx+yy)-two*(xx*yy))
+    if (abs(rr)<epsilon) rr=zero
     
     ! 3) calculate kick
     !    shape function: spatial charge density depends on type:
@@ -1467,7 +1468,7 @@ subroutine elens_kick_fox(i,ix)
   use mod_settings, only : st_debug
   use crcoall, only : lout, lerr
   use mod_common_main
-  use numerical_constants, only : zero, one, two, pieni
+  use numerical_constants, only : zero, one, two, c1m15, c1m7
   use mod_utils, only : huntBin, polcof, polinterp
   use mod_lie_dab, only : lnv, idao, rscrri, iscrda
   use mod_common_track, only : comt_daStart, comt_daEnd
@@ -1480,8 +1481,8 @@ subroutine elens_kick_fox(i,ix)
   integer, intent(in) :: ix
   
   integer          :: iLens, iRadial, nBin, nPoints, mPoints, kMin, kMax, kk
-  real(kind=fPrec) :: rra, frra, xa, ya, xffset, yffset, ele_r1, er1_sq, ele_r2, elenor, elesig, elebet, tmpcof
-  real(kind=fPrec) :: eleTR2, esg_sq, epsilon
+  real(kind=fPrec) :: rra, frra, xa, ya, xffset, yffset, ele_r1, ele_r2, elenor, elesig, elebet, tmpcof
+  real(kind=fPrec) :: eleTR2, epsilon, gteps, lteps
   real(kind=fPrec), allocatable :: cof(:)
 
 ! for FOX
@@ -1503,11 +1504,9 @@ subroutine elens_kick_fox(i,ix)
 !FOX  D V RE INT BETA0  ;
 !FOX  D V RE INT ELE_R1 ;
 !FOX  D V RE INT ELE_R2 ;
-!FOX  D V RE INT ER1_SQ ;
 !FOX  D V RE INT ELETR2 ;
 !FOX  D V RE INT ELENOR ;
 !FOX  D V RE INT ELESIG ;
-!FOX  D V RE INT ESG_SQ ;
 !FOX  D V RE INT ELEBET ;
 !FOX  D V DA INT TMPRR  NORD NVAR ;
 !FOX  D V RE INT TMPCOF ;
@@ -1523,9 +1522,9 @@ subroutine elens_kick_fox(i,ix)
 !FOX  1 if(1==1) then
 !-----------------------------------------------------------------------
 
-  if (st_debug) write(lout,'(2(a,i0))')'ELENS> ELENS_KICK_FOX for i=',i,' - ix=',ix
-
-  epsilon=pieni
+  epsilon=c1m15
+  gteps=one+epsilon
+  lteps=one-epsilon
 
   iLens=ielens(ix)
   XFFSET=elens_offset_x(iLens)
@@ -1536,8 +1535,6 @@ subroutine elens_kick_fox(i,ix)
   ELENOR=elens_geo_norm(iLens)
   ELESIG=elens_sig(iLens)
   ELEBET=elens_beta_lens_beam(iLens)
-  ER1_SQ=ELE_R1**2
-  ESG_SQ=ELESIG**2
   
   FRRA=zero
   RRA=zero
@@ -1547,6 +1544,7 @@ subroutine elens_kick_fox(i,ix)
 !FOX    FRR=ZERO ;
 
   if (st_debug) then
+    write(lout,'(2(a,i0))')'ELENS> ELENS_KICK_FOX for i=',i,' - ix=',ix
     write(lout,'(a)')'ELENS> ELENS_KICK_FOX closed orbit BEFORE elens:'
     call dapri(XX(1),6)
     call dapri(XX(2),6)
@@ -1559,9 +1557,17 @@ subroutine elens_kick_fox(i,ix)
   !    yy = y(proton) - elens_offset_y
 !FOX  XI=(XX(1)-XFFSET) ;
 !FOX  YI=(XX(2)-YFFSET) ;
+  call dapek(XI,hh,XA)
+  call dapek(YI,hh,YA)
+  if (abs(XA)<epsilon) then
+!FOX  XI=ZERO ;
+    XA=zero
+  end if
+  if (abs(YA)<epsilon) then
+!FOX  YI=ZERO ;
+    YA=zero
+  end if
   if (st_debug) then
-    call dapek(XI,hh,XA)
-    call dapek(YI,hh,YA)
     write(lout,'(2(a,1pe23.16))')'ELENS> ELENS_KICK_FOX computing at XA=',XA,' - YA=',YA
   end if
   
@@ -1573,36 +1579,51 @@ subroutine elens_kick_fox(i,ix)
   if ( abs(RRA)>epsilon**2 ) then
 !FOX  RR=SQRT(RR_SQ) ;
   else
+!FOX  RR_SQ=ZERO ;
 !FOX  RR=ZERO ;
   end if
   RRA=zero
+  call dapek(RR,hh,RRA)
+  if (st_debug) then
+    write(lout,'(a,1pe23.16)')   'ELENS> ELENS_KICK_FOX computing at RRA=',RRA
+    write(lout,'(2(a,1pe23.16))')'ELENS>                when R1=',elens_r1(iLens),' and R2=',elens_r2(iLens)
+    flush(lout)
+  end if
 
   ! 3) calculate kick
   !    shape function: spatial charge density depends on type:
   !    0    if r <= R1
   !    frr  if R1 < r < R2
   !    1    if r >= R2
-  call dapek(RR,hh,RRA)
-  if (st_debug) then
-    write(lout,'(a,1pe23.16)')   'ELENS> ELENS_KICK_FOX computing at RRA=',RRA
-    write(lout,'(2(a,1pe23.16))')'ELENS>                when R1=',elens_r1(iLens),' and R2=',elens_r2(iLens)
-  end if
-    
-  if ( RRA>elens_r1(iLens)+epsilon .or. &
-       (elens_lZeroThick(iLens).and.abs(RRA-elens_r1(iLens))<epsilon) ) then ! rr<=R1 -> no kick from elens
-    if (RRA<elens_r2(iLens)-epsilon) then ! R1<rr<R2
-      flush(lout)
+  if ( RRA > elens_r1(iLens)*lteps ) then ! rr<R1: no kick from elens
+    if ( RRA < elens_r2(ielens(ix))*lteps ) then ! R1<=rr<R2: type-dependent kick
+       
       select case (elens_type(iLens))
-      case (1)
-        ! UNIFORM: eLens with uniform profile
-        ! formula: (r^2-r1^2)/(r2^2-r1^2)
-!FOX    FRR=RR_SQ-ER1_SQ ;
+        
+      case (1) ! UNIFORM: eLens with uniform profile
+        if ( elens_lFull(ielens(ix)) ) then
+          ! formula: r/r2
+!FOX      FRR=RR/ELE_R2 ;
+        else
+          ! formula: (r^2-r1^2)/(r2^2-r1^2)*r2/r
+!FOX      FRR=(((RR+ELE_R1)*(RR-ELE_R1))/ELENOR)*(ELE_R2/RR) ;
+        end if
          
       case (2)
         ! GAUSSIAN: eLens with Gaussian profile
-        ! formula: (exp(-r1^2/2sig^2)-exp(-r^2/2sig^2))/(exp(-r1^2/2sig^2)-exp(-r2^2/2sig^2))
-!FOX    FRR=EXP(-HALF*(ER1_SQ/ESG_SQ))-EXP(-HALF*(RR_SQ/ESG_SQ)) ;
-        
+        if ( elens_lFull(ielens(ix)) ) then
+          if ( RRA <= c1m7 ) then
+            ! formula: r*r2/2sig^2/(exp(-r1^2/2sig^2)-exp(-r2^2/2sig^2))
+!FOX        FRR=(((RR/ELESIG)*(ELE_R2/ELESIG))/TWO)/ELENOR ;
+          else
+            ! formula: (1-exp(-r^2/2sig^2))/(exp(-r1^2/2sig^2)-exp(-r2^2/2sig^2))*r2/r
+!FOX        FRR=((ONE-EXP(-HALF*((RR/ELESIG)*(RR/ELESIG))))/ELENOR)*(ELE_R2/RR) ;
+          end if     
+        else
+          ! formula: (exp(-r1^2/2sig^2)-exp(-r^2/2sig^2))/(exp(-r1^2/2sig^2)-exp(-r2^2/2sig^2))*r2/r
+!FOX      FRR=((EXP(-HALF*((ELE_R1/ELESIG)*(ELE_R1/ELESIG)))-EXP(-HALF*((RR/ELESIG)*(RR/ELESIG))))/ELENOR)*(ELE_R2/RR) ;
+        end if
+         
       case (3)
         ! RADIAL PROFILE: eLens with radial profile as from file
         ! formula: (cumul_J(r)-cumul_J(r1))/(cumul_J(r2)-cumul_J(r1))
@@ -1623,18 +1644,27 @@ subroutine elens_kick_fox(i,ix)
 !FOX      TMPRR=TMPRR*RR ;
         end do
         call dealloc(cof,'cof')
+!FOX    FRR=(FRR/ELENOR)*(ELE_R2/RR) ;
+        
       case default
         write(lerr,"(a,i0,a)") "ELENS> ERROR in elens_kick_fox: elens_type=",elens_type(ielens(ix))," not recognized. "
         write(lerr,"(a)")      "ELENS>       Possible values for type are: 1, 2 and 3"
         call prror
+        
       end select
-      ! take into account normalisation factor (geometrical)
-!FOX    FRR=FRR/ELENOR ;
+
     else ! rr>=R2
+      if ( rr > elens_r2(ielens(ix))*gteps ) then
+        ! rr>R2: formula: r2/r
+!FOX    FRR=ELE_R2/RR ;
+      else
+        ! rr=R2: formula: 1
 !FOX    FRR=ONE ;
+      end if
     endif
+   
     ! 'radial kick'
-!FOX    FRR=(((ELETR2/RR)*ELE_R2)*FRR)*(MTCDA/(ONE+DPDA)) ;
+!FOX    FRR=(ELETR2*FRR)*(MTCDA/(ONE+DPDA)) ;
     if(elens_lThetaR2(ielens(ix))) then
       if(elens_I(ielens(ix))/elens_beam_chrg(ielens(ix)) < zero) then
 !FOX    FRR=FRR*((RV+ELEBET*BETA0)/(ONE+ELEBET*BETA0)) ;
@@ -1642,12 +1672,7 @@ subroutine elens_kick_fox(i,ix)
 !FOX    FRR=FRR*((RV-ELEBET*BETA0)/(ONE-ELEBET*BETA0)) ;
       end if
     end if
-    if (abs(RRA-elens_r1(iLens))<epsilon.or.abs(RRA-elens_r2(iLens))<epsilon) then ! rr==R1 and rr==R2 
-      ! set all derivatives to 0.0
-      call dapek(FRR,hh,FRRA)
-!FOX    FRR=ZERO ;
-      call dapok(FRR,hh,FRRA)
-    end if
+   
 !FOX  YY(1)=YY(1)+(FRR*XI)/RR ;
 !FOX  YY(2)=YY(2)+(FRR*YI)/RR ;
   end if
