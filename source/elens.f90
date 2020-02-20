@@ -882,7 +882,7 @@ subroutine elens_postLinopt
   use mod_utils, only : polinterp
   use mod_common, only : bez, kz, e0f, nucm0, fort3
   use mod_settings, only : st_debug
-  use numerical_constants, only : c1e3
+  use numerical_constants, only : c1e3, two
   use crcoall, only : lout, lerr
 
   integer j, jj, jguess
@@ -989,8 +989,8 @@ subroutine elens_postLinopt
     case(1) ! Uniform distribution
       elens_geo_norm(j) = (elens_r2(j)+elens_r1(j))*(elens_r2(j)-elens_r1(j))
     case(2) ! Gaussian distribution
-      elens_geo_norm(j) = exp_mb(-0.5*(elens_r1(j)/elens_sig(j))**2)&
-                         -exp_mb(-0.5*(elens_r2(j)/elens_sig(j))**2)
+      elens_geo_norm(j) = exp_mb(-(((elens_r1(j)/elens_sig(j))*(elens_r1(j)/elens_sig(j)))/two)) &
+                         -exp_mb(-(((elens_r2(j)/elens_sig(j))*(elens_r2(j)/elens_sig(j)))/two))
     case(3) ! Radial profile
       elens_radial_fr1(j) = polinterp( elens_r1(j), &
             elens_radial_profile_R(0:elens_radial_profile_nPoints(elens_iRadial(j)),elens_iRadial(j)), &
@@ -1337,7 +1337,7 @@ subroutine elens_kick(i,ix,n)
   use mod_common, only : beta0, napx
   use mod_common_main, only : xv1, xv2, yv1, yv2, moidpsv, rvv
   use mathlib_bouncer
-  use numerical_constants, only : zero, one, two
+  use numerical_constants, only : zero, one, two, c1m15, c1m7
   use mod_utils, only : polinterp
   use crcoall, only : lerr
 
@@ -1347,67 +1347,113 @@ subroutine elens_kick(i,ix,n)
   integer, intent(in) :: ix
   integer, intent(in) :: n
   
-  real(kind=fPrec) xx, yy, rr, frr, rr_sq, r1_sq, elSig_sq, tmpBB
+  real(kind=fPrec) xx, yy, rr, frr, tmpBB, epsilon, gteps, lteps, r1oSigSq, rroSigSq
   integer          jj
 
-  r1_sq=elens_r1(ielens(ix))**2
-  elSig_sq=elens_sig(ielens(ix))**2
+  epsilon=c1m15
+  gteps=one+epsilon
+  lteps=one-epsilon
+
+  ! for Gaussian distribution, prepare some useful numbers
+  r1oSigSq=zero
+  if ( elens_type(ielens(ix)) == 2 ) then
+    r1oSigSq=(elens_r1(ielens(ix))/elens_sig(ielens(ix)))*(elens_r1(ielens(ix))/elens_sig(ielens(ix)))
+  end if
   
   do jj=1,napx
+     
     ! 1) apply offset of e-lens
     !    xx = x(proton) - elens_offset_x
     !    yy = y(proton) - elens_offset_y
     xx=xv1(jj)-elens_offset_x(ielens(ix))
     yy=xv2(jj)-elens_offset_y(ielens(ix))
+    if (abs(xx)<epsilon) xx=zero
+    if (abs(yy)<epsilon) yy=zero
+    
     ! 2) calculate radius
     !    radial position of main beam relative to center of elens beam
     !    rr = sqrt(xx**2+yy**2)
-    rr_sq=(xx+yy)*(xx+yy)-two*(xx*yy)
-    rr=sqrt(rr_sq)
+    rr=sqrt((xx+yy)*(xx+yy)-two*(xx*yy))
+    
     ! 3) calculate kick
     !    shape function: spatial charge density depends on type:
-    !    0    if r <= R1
+    !    0    if r < R1
     !    frr  if R1 < r < R2
     !    1    if r >= R2
-    if (rr>elens_r1(ielens(ix)).or.(elens_lZeroThick(ielens(ix)).and.rr==elens_r1(ielens(ix)))) then ! rr<=R1 -> no kick from elens
-      if (rr<elens_r2(ielens(ix))) then ! R1<rr<R2
+    if ( rr > elens_r1(ielens(ix))*lteps ) then ! rr<R1: no kick from elens
+      if ( rr < elens_r2(ielens(ix))*lteps ) then ! R1<=rr<R2: type-dependent kick
+          
         select case (elens_type(ielens(ix)))
-        case (1)
-          ! UNIFORM: eLens with uniform profile
-          ! formula: (r^2-r1^2)/(r2^2-r1^2)
-          frr=rr_sq-r1_sq
+            
+        case (1) ! UNIFORM: eLens with uniform profile
+          if ( elens_lFull(ielens(ix)) ) then
+            ! formula: r/r2
+            frr=rr/elens_r2(ielens(ix))
+          else
+            ! formula: (r^2-r1^2)/(r2^2-r1^2)*r2/r
+            frr=(((rr+elens_r1(ielens(ix)))*(rr-elens_r1(ielens(ix))))/elens_geo_norm(ielens(ix)))*(elens_r2(ielens(ix))/rr)
+          end if
+         
         case (2)
           ! GAUSSIAN: eLens with Gaussian profile
-          ! formula: (exp(-r1^2/2sig^2)-exp(-r^2/2sig^2))/(exp(-r1^2/2sig^2)-exp(-r2^2/2sig^2))
-          frr=exp_mb(-((r1_sq/elSig_sq)/two))-exp_mb(-((rr_sq/elSig_sq)/two))
+          if ( elens_lFull(ielens(ix)) ) then
+            if ( rr <= c1m7 ) then
+              ! formula: r*r2/2sig^2/(exp(-r1^2/2sig^2)-exp(-r2^2/2sig^2))
+              frr=(((rr/elens_sig(ielens(ix)))*(elens_r2(ielens(ix))/elens_sig(ielens(ix))))/two)/elens_geo_norm(ielens(ix))
+            else
+              ! formula: (1-exp(-r^2/2sig^2))/(exp(-r1^2/2sig^2)-exp(-r2^2/2sig^2))*r2/r
+              rroSigSq=(rr/elens_sig(ielens(ix)))*(rr/elens_sig(ielens(ix)))
+              frr=((one-exp_mb(-(rroSigSq/two)))/elens_geo_norm(ielens(ix)))*(elens_r2(ielens(ix))/rr)
+            end if     
+          else
+            ! formula: (exp(-r1^2/2sig^2)-exp(-r^2/2sig^2))/(exp(-r1^2/2sig^2)-exp(-r2^2/2sig^2))*r2/r
+            rroSigSq=(rr/elens_sig(ielens(ix)))*(rr/elens_sig(ielens(ix)))
+            frr=((exp_mb(-(r1oSigSq/two))-exp_mb(-(rroSigSq/two)))/elens_geo_norm(ielens(ix)))*(elens_r2(ielens(ix))/rr)
+          end if
+           
         case (3)
           ! RADIAL PROFILE: eLens with radial profile as from file
-          ! formula: (cumul_J(r)-cumul_J(r1))/(cumul_J(r2)-cumul_J(r1))
+          ! formula: (cumul_J(r)-cumul_J(r1))/(cumul_J(r2)-cumul_J(r1))*r2/r
           frr=polinterp( rr, &
                 elens_radial_profile_R(0:elens_radial_profile_nPoints(elens_iRadial(ielens(ix))),elens_iRadial(ielens(ix))), &
                 elens_radial_profile_J(0:elens_radial_profile_nPoints(elens_iRadial(ielens(ix))),elens_iRadial(ielens(ix))), &
                 elens_radial_profile_nPoints(elens_iRadial(ielens(ix)))+1, &
                 elens_radial_mpoints(ielens(ix)), elens_radial_jguess(ielens(ix)) )-elens_radial_fr1(ielens(ix))
+          frr=(frr/elens_geo_norm(ielens(ix)))*(elens_r2(ielens(ix))/rr)
+          
         case default
           write(lerr,"(a,i0,a)") "ELENS> ERROR elens_kick: elens_type=",elens_type(ielens(ix))," not recognized. "
           write(lerr,"(a)")      "ELENS>       Possible values for type are: 1, 2 and 3"
           call prror
+          
         end select
-        ! take into account normalisation factor (geometrical)
-        frr=frr/elens_geo_norm(ielens(ix))
+       
       else ! rr>=R2
-        frr=one
+        if ( rr > elens_r2(ielens(ix))*gteps ) then
+          ! rr>R2: formula: r2/r
+          frr=elens_r2(ielens(ix))/rr
+        else
+          ! rr=R2: formula: 1
+          frr=one
+        end if
+        
       endif
+     
       ! 'radial kick'
-      frr = (elens_theta_r2(ielens(ix))*((elens_r2(ielens(ix))/rr)*frr))*moidpsv(jj)
+      frr = ( elens_theta_r2(ielens(ix))*frr )*moidpsv(jj)
       if(elens_lThetaR2(ielens(ix))) then
         tmpBB=sign(elens_beta_lens_beam(ielens(ix))*beta0,elens_I(ielens(ix))/elens_beam_chrg(ielens(ix)))
         frr = frr*((rvv(jj)-tmpBB)/(one-tmpBB))
       endif
+     
+      ! apply 'radial kick'
       yv1(jj)=yv1(jj)+frr*(xx/rr)
       yv2(jj)=yv2(jj)+frr*(yy/rr)
-    endif
-  end do
+      
+    endif ! rr<R1: no kick from elens
+   
+  end do ! do jj=1,napx
+
 end subroutine elens_kick
 
 ! ================================================================================================ !
