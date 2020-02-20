@@ -73,7 +73,11 @@ oldVal=0.0
 oldR=0.0
 intRange=np.append(0.0,profIN[:,0])
 for ii in range(len(profIN[:,1])):
-    tot+=((profIN[ii,1]+oldVal)/2)*np.pi*(profIN[ii,0]-oldR)*(profIN[ii,0]+oldR)*mm2cm**2
+    if (ii==0):
+        rMin=0.0
+    else:
+        rMin=profIN[ii-1,0]
+    tot+=profIN[ii,1]*np.pi*(profIN[ii,0]-rMin)*(profIN[ii,0]+rMin)*mm2cm**2
     cumulIN.append(tot)
     oldVal=profIN[ii,1]
     oldR=profIN[ii,0]

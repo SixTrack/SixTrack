@@ -15,8 +15,16 @@
 * When specifying `XP` and `YP` in the `FORMAT` statement of the `DIST` block, the units are parsed. Accepted values are [1], [1000], [MRAD], [RAD]. PR # 1054 (A. Mereghetti)
 
 **User Side Changes**
-	
-* electron lenses have been inserted into FOX - PR #839 (A. Mereghetti).
+
+* Electron lenses have been inserted into FOX - PR #839 (A. Mereghetti).
+* Increased flexibility of e-lens module - PR #841 (A. Mereghetti):
+  * elens module fully dynamic allocatable;
+  * give possibility to express R_1 and R_2 in sigma;
+  * add any ion species to be defined as possible lens beam;
+  * other changes, including:
+    * relativistic gamma of lens beam added to calculation of theta_R2;
+    * removed remaining signs of chebyshev polynomials in elens module;
+  Documentation changed accordingly (user and physics manual).
 
 ### Version 5.4.3 [19.12.2019] - Release
 

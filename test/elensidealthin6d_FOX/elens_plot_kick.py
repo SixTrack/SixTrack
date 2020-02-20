@@ -6,10 +6,12 @@ def parseFort6(iFileName='fort.6'):
   rrs=[]
   with open(iFileName,'r') as iFile:
     for line in iFile.readlines():
-      if (line.startswith('ELENS> ELENS_KICK_FOX computed')):
+      if (line.startswith('ELENS> ELENS_KICK_FOX computed at')):
         data=line.strip().split()
         rrs.append(float(data[5]))
         kicks.append(float(data[8]))
+        if (kicks[-1]!=0.0):
+          kicks[-1]=-kicks[-1]
   return rrs,kicks
 
 r2hel1=6.928 # from fort.3 [mm]
