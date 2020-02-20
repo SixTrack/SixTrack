@@ -9,13 +9,12 @@
 * Fix pencil beam type 3 - the optics function at the entrance of the collimator were always used for beam sampling, even when those at the exit should have been used (e.g. because the beam is divergent on the cleaning plane). PR #1046 (A. Mereghetti).
 * Do not update the pair mapping for non-primary particles. PR #1050 (A. Mereghetti)
 * Removed updating napxo variable in the context of the Fluka-SixTrack coupling. This allows not to screw-up pair mapping in the context of DA studies. PR # 1052 (A. Mereghetti)
+* Increased number of digits for particle ID in FirstImpacts.dat and in collimator length in coll_summary.dat (to properly display crystal collimator which are usually a few mm long). Additionally, first impacts on crystal collimators are now correctly flagged. PR #1053 (M. D'Andrea)
+* When collimator settings are required to match those read from an old format CollDB, a separate subroutine reconstructs the family settings based on the most frequent setting in each family. Additionally, if no collimator are found for a given family, the aperture of that family is set to zero. PR #1053 (M. D'Andrea)
 
 **User Side Changes**
 
 * When specifying `XP` and `YP` in the `FORMAT` statement of the `DIST` block, the units are parsed. Accepted values are [1], [1000], [MRAD], [RAD]. PR # 1054 (A. Mereghetti)
-
-**User Side Changes**
-
 * Electron lenses have been inserted into FOX - PR #839 (A. Mereghetti).
 * Increased flexibility of e-lens module - PR #841 (A. Mereghetti):
   * elens module fully dynamic allocatable;

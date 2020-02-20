@@ -682,6 +682,8 @@ end subroutine cdb_reconstructNSigFam
 
 subroutine cdb_nullEmptyFam
 
+  use crcoall, only: lout
+  
   integer j, k, count_sig
 
   do j=1,cdb_nFam
@@ -695,7 +697,7 @@ subroutine cdb_nullEmptyFam
 
     if(count_sig == 0) then
       cdb_famNSig(j) = 0
-      write(lout,"(a)") "COLLDB> WARNING No collimators defined in family '"//trim(cdb_FamName(j)//"', aperture set to zero"
+      write(lout,"(a)") "COLLDB> WARNING No collimators in family '"//trim(cdb_FamName(j))//"', aperture set to zero"
     end if
   end do
 
