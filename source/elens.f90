@@ -693,20 +693,20 @@ subroutine elens_parseInputLine(inLine, iLine, iErr)
     elens_lZeroThick(ielens(iElem))=elens_r1(ielens(iElem))==elens_r2(ielens(iElem))
     
     if(st_debug) then
-      call sixin_echoVal("name",    bez(iElem),                   "ELENS",iLine)
-      call sixin_echoVal("type",    elens_type(ielens(iElem)),    "ELENS",iLine)
-      call sixin_echoVal("theta_r2",elens_theta_r2(ielens(iElem)),"ELENS",iLine)
-      call sixin_echoVal("r1",      elens_r1(ielens(iElem)),      "ELENS",iLine)
-      call sixin_echoVal("r2",      elens_r2(ielens(iElem)),      "ELENS",iLine)
-      call sixin_echoVal("offset_x",elens_offset_x(ielens(iElem)),"ELENS",iLine)
-      call sixin_echoVal("offset_y",elens_offset_y(ielens(iElem)),"ELENS",iLine)
+      call sixin_echoVal("name",           bez(iElem),                   "ELENS",iLine)
+      call sixin_echoVal("type",           elens_type(ielens(iElem)),    "ELENS",iLine)
+      call sixin_echoVal("theta_r2 [mrad]",elens_theta_r2(ielens(iElem)),"ELENS",iLine)
+      call sixin_echoVal("r1 [mm]",        elens_r1(ielens(iElem)),      "ELENS",iLine)
+      call sixin_echoVal("r2 [mm]",        elens_r2(ielens(iElem)),      "ELENS",iLine)
+      call sixin_echoVal("offset_x [mm]",  elens_offset_x(ielens(iElem)),"ELENS",iLine)
+      call sixin_echoVal("offset_y [mm]",  elens_offset_y(ielens(iElem)),"ELENS",iLine)
       if(elens_type(ielens(iElem)) == 2) then
-        call sixin_echoVal("sig",elens_sig(ielens(iElem)),"ELENS",iLine)
+        call sixin_echoVal("sig [mm]",elens_sig(ielens(iElem)),"ELENS",iLine)
       end if
       if(elens_lThetaR2(ielens(iElem))) then
-        call sixin_echoVal("L", elens_len(ielens(iElem)),"ELENS",iLine)
-        call sixin_echoVal("I", elens_I(ielens(iElem)),  "ELENS",iLine)
-        call sixin_echoVal("Ek",elens_Ek(ielens(iElem)), "ELENS",iLine)
+        call sixin_echoVal("L [m]",   elens_len(ielens(iElem)),"ELENS",iLine)
+        call sixin_echoVal("I [A]",   elens_I(ielens(iElem)),  "ELENS",iLine)
+        call sixin_echoVal("Ek [keV]",elens_Ek(ielens(iElem)), "ELENS",iLine)
       end if
       if ( elens_lFull(ielens(iElem)) ) then
         if ( elens_lZeroThick(ielens(iElem)) ) then
@@ -1134,13 +1134,8 @@ subroutine eLensTheta(j)
        elens_theta_r2(j) = elens_theta_r2(j)/(elens_r2(j)*c1m3) ! r2: from mm to m (c1m3)
     end if
     elens_theta_r2(j) = sign(elens_theta_r2(j),elens_beam_chrg(j))
-    elens_theta_r2(j) = elens_theta_r2(j)*(one/(elens_beta_lens_beam(j)*beta0)- &
-         sign(one,elens_I(j)/elens_beam_chrg(j)))
-
-    ! take into account geometrical normalisation factor only in case lens is not a wire
-    if ( elens_type(j)>=2 .and. (.not.elens_lFull(j) .or. .not.elens_lZeroThick(j)) ) then
-      elens_theta_r2(j) = elens_theta_r2(j) * elens_geo_norm(j)
-    end if
+    elens_theta_r2(j) = elens_theta_r2(j)*(one/(elens_beta_lens_beam(j)*beta0) &
+         -sign(one,elens_I(j)/elens_beam_chrg(j)))
 
     if(st_quiet < 2) then
       ! find name of elens
@@ -1153,10 +1148,6 @@ subroutine eLensTheta(j)
       end do
       write(lout,"(a,i0,a,1pe22.15)") "ELENS> New theta at r2 for elens #",j, &
            " named "//trim(bez(jj))//": ",elens_theta_r2(j)
-      ! take into account geometrical normalisation factor only in case lens is not a wire
-      if ( elens_type(j)>=2 .and. (.not.elens_lFull(j) .or. .not.elens_lZeroThick(j)) ) then
-        write(lout,"(a,1pe22.15)") "ELENS>   ...considering also geom. norm. fact.: ", elens_geo_norm(j)
-      end if
     end if
   end if
 
