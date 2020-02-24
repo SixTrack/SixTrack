@@ -1620,9 +1620,11 @@ subroutine elens_kick_fox(i,ix)
         if ( elens_lFull(iLens) ) then
           ! formula: r/r2
 !FOX      FRR=RR/ELE_R2 ;
+          if (st_debug) write(lout,'(a)') "ELENS> ELENS_KICK_FOX: elens type UNIFORM, formula for full lens"
         else
           ! formula: (r^2-r1^2)/(r2^2-r1^2)*r2/r
 !FOX      FRR=(((RR+ELE_R1)*(RR-ELE_R1))/ELENOR)*(ELE_R2/RR) ;
+          if (st_debug) write(lout,'(a)') "ELENS> ELENS_KICK_FOX: elens type UNIFORM, formula for hollow lens"
         end if
          
       case (2)
@@ -1631,18 +1633,22 @@ subroutine elens_kick_fox(i,ix)
           if ( RRA <= c1m7 ) then
             ! formula: r*r2/2sig^2/(exp(-r1^2/2sig^2)-exp(-r2^2/2sig^2))
 !FOX        FRR=(((RR/ELESIG)*(ELE_R2/ELESIG))/TWO)/ELENOR ;
+            if (st_debug) write(lout,'(a)') "ELENS> ELENS_KICK_FOX: elens type GAUSSIAN, linearised formula"
           else
             ! formula: (1-exp(-r^2/2sig^2))/(exp(-r1^2/2sig^2)-exp(-r2^2/2sig^2))*r2/r
 !FOX        FRR=((ONE-EXP(-HALF*((RR/ELESIG)*(RR/ELESIG))))/ELENOR)*(ELE_R2/RR) ;
+            if (st_debug) write(lout,'(a)') "ELENS> ELENS_KICK_FOX: elens type GAUSSIAN, formula for full lens"
           end if     
         else
           ! formula: (exp(-r1^2/2sig^2)-exp(-r^2/2sig^2))/(exp(-r1^2/2sig^2)-exp(-r2^2/2sig^2))*r2/r
 !FOX      FRR=((EXP(-HALF*((ELE_R1/ELESIG)*(ELE_R1/ELESIG)))-EXP(-HALF*((RR/ELESIG)*(RR/ELESIG))))/ELENOR)*(ELE_R2/RR) ;
+          if (st_debug) write(lout,'(a)') "ELENS> ELENS_KICK_FOX: elens type GAUSSIAN, formula for hollow lens"
         end if
          
       case (3)
         ! RADIAL PROFILE: eLens with radial profile as from file
         ! formula: (cumul_J(r)-cumul_J(r1))/(cumul_J(r2)-cumul_J(r1))
+        if (st_debug) write(lout,'(a)') "ELENS> ELENS_KICK_FOX: elens type RADIAL"
         iRadial=elens_iRadial(iLens)
         nPoints=elens_radial_profile_nPoints(iRadial)
         mPoints=elens_radial_mpoints(iLens)
