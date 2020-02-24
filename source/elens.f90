@@ -372,7 +372,7 @@ subroutine elens_parseInputLine(inLine, iLine, iErr)
     end if
     
     if(st_debug) then
-      call sixin_echoVal("interp. points",tmpi2,"ELENS",iLine)
+      call sixin_echoVal("number of interpolation points",tmpi2,"ELENS",iLine)
     end if
 
   case("SIGDPP")
@@ -1198,7 +1198,8 @@ subroutine parseRadialProfile(ifile)
 
 10 continue
   read(fUnit,"(a)",end=20,err=30) inLine
-  if(inLine(1:1) == "#") goto 10
+  if(inLine(1:1) == "#") goto 10 ! comment line
+  if(len(trim(inLine)) == 0 ) goto 10 ! empty line
 
   call chr_split(inLine, lnSplit, nSplit, spErr)
   if(spErr) then
@@ -1240,8 +1241,9 @@ subroutine parseRadialProfile(ifile)
     ! Echo parsed data (unless told to be quiet!)
     write(lout,"(a,i0,a)") "ELENS> Radial profile as from file "//&
       trim(elens_radial_filename(ifile))//" - #",ifile," - showing: ii, R[mm], J[A/mm2]"
+    write(lout,"(a)") "ELENS> NB: point at ii=0 (i.e. R=0) added automatically by SixTrack"
     do ii=0,elens_radial_profile_nPoints(ifile)
-      write(lout,"((a,i4),2(a,e22.15))") "ELENS> ",ii,",",elens_radial_profile_R(ii,ifile),",",elens_radial_profile_J(ii,ifile)
+      write(lout,"((a,i4),2(a,1pe22.15))") "ELENS> ",ii,",",elens_radial_profile_R(ii,ifile),",",elens_radial_profile_J(ii,ifile)
     end do
   end if
   return
@@ -1300,6 +1302,7 @@ subroutine integrateRadialProfile(ifile)
   if(st_quiet < 2) then
     write(lout,"(a,i0)") "ELENS> Integrated radial profile read from file "//&
       trim(elens_radial_filename(ifile))//" - #",ifile
+    write(lout,"(a)") "ELENS> NB: point at ii=0 (i.e. R=0) added automatically by SixTrack"
     do ii=0,elens_radial_profile_nPoints(ifile)
       write(lout,"((a,i4),2(a,1pe22.15))") "ELENS> ",ii,",",elens_radial_profile_R(ii,ifile),",",elens_radial_profile_J(ii,ifile)
     end do
@@ -1596,7 +1599,6 @@ subroutine elens_kick_fox(i,ix)
 !FOX  RR_SQ=ZERO ;
 !FOX  RR=ZERO ;
   end if
-  RRA=zero
   call dapek(RR,hh,RRA)
   if (st_debug) then
     write(lout,'(a,1pe23.16)')   'ELENS> ELENS_KICK_FOX computing at RRA=',RRA
@@ -1647,8 +1649,21 @@ subroutine elens_kick_fox(i,ix)
         nBin=huntBin(RRA,elens_radial_profile_R(0:nPoints,iRadial),nPoints+1,-1)-1
         kMin=min(max(nBin-(mPoints-1)/2,1),nPoints+2-mPoints)
         kMax=min(kMin+mPoints-1,nPoints+1)
+        if (st_debug) write(lout,'(a,6(1X,i5))') "ELENS> ELENS_KICK_FOX: iRadial, nPoints, mPoints, nBin, kMin, kMax:", &
+             iRadial, nPoints, mPoints, nBin, kMin, kMax
         call alloc(cof,kMax-kMin+1,zero,'cof')
+        if (st_debug) then
+          do kk=kMin,kMax
+            write(lout,'(a,1X,i0,2(1X,1pe22.15))') "ELENS> ELENS_KICK_FOX: kk, R [mm], JJ [A/mm2]:", &
+                kk, elens_radial_profile_R(kk,iRadial), elens_radial_profile_J(kk,iRadial)
+          end do
+        end if 
         call polcof(elens_radial_profile_R(kMin:kMax,iRadial),elens_radial_profile_J(kMin:kMax,iRadial),kMax-kMin+1,cof)
+        if (st_debug) then
+          do kk=1,mPoints
+            write(lout,'(a,1X,i5,1X,1pe22.15)') "ELENS> ELENS_KICK_FOX: order, coefficient:", kk-1, cof(kk)
+          end do
+        end if 
         TMPCOF=COF(1)
 !FOX    FRR=TMPCOF ;
 !FOX    TMPRR=RR;
@@ -1657,8 +1672,16 @@ subroutine elens_kick_fox(i,ix)
 !FOX      FRR=FRR+(TMPRR*TMPCOF) ;
 !FOX      TMPRR=TMPRR*RR ;
         end do
-        call dealloc(cof,'cof')
+        if (st_debug) then
+          call dapek(FRR,hh,FRRA)
+          write(lout,'(a,1pe22.15)') "ELENS> ELENS_KICK_FOX: FRRA 1:", FRRA
+        end if
 !FOX    FRR=(FRR/ELENOR)*(ELE_R2/RR) ;
+        if (st_debug) then
+          call dapek(FRR,hh,FRRA)
+          write(lout,'(a,1pe22.15)') "ELENS> ELENS_KICK_FOX: FRRA 2:", FRRA
+        end if
+        call dealloc(cof,'cof')
         
       case default
         write(lerr,"(a,i0,a)") "ELENS> ERROR in elens_kick_fox: elens_type=",elens_type(iLens)," not recognized. "
@@ -1694,7 +1717,11 @@ subroutine elens_kick_fox(i,ix)
 !FOX    FRR=FRR*((RV-ELEBET*BETA0)/(ONE-ELEBET*BETA0)) ;
       end if
     end if
-   
+    if (st_debug) then
+      call dapek(FRR,hh,FRRA)
+      write(lout,'(a,1pe22.15)') "ELENS> ELENS_KICK_FOX: FRRA 3:", FRRA
+    end if
+    
 !FOX  YY(1)=YY(1)+(FRR*XI)/RR ;
 !FOX  YY(2)=YY(2)+(FRR*YI)/RR ;
   end if
