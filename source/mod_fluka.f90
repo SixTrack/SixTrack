@@ -414,7 +414,7 @@ contains
     if(n.lt.0) then
       write(fluka_log_unit,'(A,i0,A)') "# FlukaIO error: ", n, " - Error sending Insertion Point"
       fluka_cid = -1
-      fluka_send = -1
+      fluka_send = n
       return
     end if
     fluka_last_sent_mess=FLUKA_IPT
@@ -593,7 +593,7 @@ contains
       if(n.lt.0) then
         write(fluka_log_unit,'(A,i0,A)') "# FlukaIO error: ", n ," - Server timed out while waiting for message"
         fluka_cid = -1
-        fluka_receive = -1
+        fluka_receive = n
         return
       end if
 
