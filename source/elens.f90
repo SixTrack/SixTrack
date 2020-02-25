@@ -43,6 +43,7 @@ module elens
                                                                    ! 1 : uniform profile
                                                                    ! 2 : Gaussian profile
                                                                    ! 3 : radial profile from file
+                                                                   ! 4 : degenerate case: wire
   real(kind=fPrec), allocatable, public, save :: elens_theta_r2(:) ! kick strength at R2 [mrad] (nelens)
   real(kind=fPrec), allocatable, save :: elens_r2(:)               ! outer radius R2 [mm] (nelens)
   real(kind=fPrec), allocatable, save :: elens_r1(:)               ! inner radius R1 [mm] (nelens)
@@ -579,6 +580,8 @@ subroutine elens_parseInputLine(inLine, iLine, iErr)
         iErr = .true.
         return
       end if
+    case("WIRE")
+      elens_type(ielens(iElem)) = 4
     case default
       write(lerr,"(a)") "ELENS> ERROR Elens type '"//trim(lnSplit(2))//"' not recognized. Remember to use all UPPER CASE."
       iErr = .true.
@@ -689,8 +692,33 @@ subroutine elens_parseInputLine(inLine, iLine, iErr)
         return
       end if
     end if
-    elens_lFull(ielens(iElem))=elens_r1(ielens(iElem))==zero
-    elens_lZeroThick(ielens(iElem))=elens_r1(ielens(iElem))==elens_r2(ielens(iElem))
+    if( elens_type(ielens(iElem)) == 4 ) then
+      ! the user declares the e-lens as a degenerate one to a WIRE
+      ! R1 must be 0.0, whereas R2 must be != 0.0 
+      elens_lFull(ielens(iElem))=.true.
+      elens_lZeroThick(ielens(iElem))=.true.
+      if( elens_r1(ielens(iElem)) /= zero ) then
+        elens_r1(ielens(iElem))=zero
+        write(lout,"(a)") "ELENS> WARNING: Elens '"//trim(bez(iElem))//"' is a wire."
+        write(lout,"(a)") "ELENS>          Forcing R1 to 0 mm."
+      end if
+      if( elens_r2(ielens(iElem)) == zero ) then
+        write(lerr,"(a)") "ELENS> ERROR R2==0 for a WIRE e-lens!"
+        iErr = .true.
+        return
+      end if
+    else
+      elens_lFull(ielens(iElem))=elens_r1(ielens(iElem))==zero
+      elens_lZeroThick(ielens(iElem))=elens_r1(ielens(iElem))==elens_r2(ielens(iElem))
+      if ( elens_lFull(ielens(iElem)) .and. elens_lZeroThick(ielens(iElem)) ) then
+        ! degenerate e-lens to a wire, where user decided not to set R2
+        ! set it to 1mm
+        elens_r2(ielens(iElem))=one
+        write(lout,"(a)") "ELENS> WARNING: Elens '"//trim(bez(iElem))//"' is actually a wire (i.e. R1=R2=0.0)."
+        write(lout,"(a)") "ELENS>          Forcing R2 to 1 mm, such that theta_R2 keeps a meaning."
+        write(lout,"(a)") "ELENS>          If this is not what you want to do, please use the WIRE type."
+      end if
+    end if
     
     if(st_debug) then
       call sixin_echoVal("name",           bez(iElem),                   "ELENS",iLine)
@@ -710,7 +738,7 @@ subroutine elens_parseInputLine(inLine, iLine, iErr)
       end if
       if ( elens_lFull(ielens(iElem)) ) then
         if ( elens_lZeroThick(ielens(iElem)) ) then
-          write(lout,"(a)") "ELENS> Elens '"//trim(bez(iElem))//"' is actually a wire (i.e. R1=R2=0.0)."
+          write(lout,"(a)") "ELENS> Elens '"//trim(bez(iElem))//"' is actually a wire."
         else
           write(lout,"(a)") "ELENS> Elens '"//trim(bez(iElem))//"' is full (i.e. R1=0.0, R2>0.0)."
         end if
@@ -1128,11 +1156,10 @@ subroutine eLensTheta(j)
     gamma_lens_beam  = ((elens_Ek(j)*c1m3)/elens_beam_mass(j))+one ! from kinetic energy
     elens_beta_lens_beam(j) = sqrt((one+one/gamma_lens_beam)*(one-one/gamma_lens_beam))
     
+    ! r2: from mm to m (c1m3)
+    ! theta: from rad to mrad (c1e3)
     elens_theta_r2(j) = gamma_lens_beam*((elens_len(j)*abs(elens_I(j)))/ &
-         (((two*pi)*((eps0*clight)*clight))*brho))*c1e3 ! theta: from rad to mrad (c1e3)
-    if ( .not.elens_lFull(j) .or. .not.elens_lZeroThick(j) ) then ! r2: only if not a wire
-       elens_theta_r2(j) = elens_theta_r2(j)/(elens_r2(j)*c1m3) ! r2: from mm to m (c1m3)
-    end if
+         ((((two*pi)*((eps0*clight)*clight))*brho)*(elens_r2(j)*c1m3)))*c1e3
     elens_theta_r2(j) = sign(elens_theta_r2(j),elens_beam_chrg(j))
     elens_theta_r2(j) = elens_theta_r2(j)*(one/(elens_beta_lens_beam(j)*beta0) &
          -sign(one,elens_I(j)/elens_beam_chrg(j)))
@@ -1391,7 +1418,7 @@ subroutine elens_kick(i,ix,n)
     !    frr  if R1 < r < R2
     !    1    if r >= R2
     if ( rr > elens_r1(ielens(ix))*lteps .or. elens_lFull(ielens(ix)) ) then ! rr<R1: no kick from elens
-      if ( rr < elens_r2(ielens(ix))*lteps ) then ! R1<=rr<R2: type-dependent kick
+      if ( rr < elens_r2(ielens(ix))*lteps.and..not.elens_lZeroThick(ielens(ix)) ) then ! R1<=rr<R2: type-dependent kick
           
         select case (elens_type(ielens(ix)))
             
@@ -1612,7 +1639,7 @@ subroutine elens_kick_fox(i,ix)
   !    frr  if R1 < r < R2
   !    1    if r >= R2
   if ( RRA > elens_r1(iLens)*lteps .or. elens_lFull(iLens) ) then ! rr<R1: no kick from elens
-    if ( RRA < elens_r2(iLens)*lteps ) then ! R1<=rr<R2: type-dependent kick
+    if ( RRA < elens_r2(iLens)*lteps.and..not.elens_lZeroThick(iLens) ) then ! R1<=rr<R2: type-dependent kick
        
       select case (elens_type(iLens))
         
