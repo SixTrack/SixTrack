@@ -28,6 +28,8 @@ def parseFort6(iFileName='fort.6'):
             elif ( line.startswith('ELENS> Total current in radial') ):
                 readIntegr=False
                 continue
+            elif ( line.startswith('ELENS> NB: point at ii=0') ):
+                continue
             if ( readProf ):
                 data=line.strip().split(',')
                 rrs.append(float(data[1]))
@@ -95,6 +97,7 @@ axarr[1,1].grid()
 axarr[1,1].set_xlabel(r'$r$ [$\sigma$]')
 axarr[1,1].set_ylabel(r'$\theta$ [A/mm]')
 axarr[1,1].xaxis.set_ticks(np.arange(0,20,2))
+# rrs[0]=0.0 but it is normal...
 if (len(rrs)>0):
     axarr[1,1].plot(rrs/sig,integratedProfile/rrs,'rs-',markeredgewidth=0.0,label='6T echo')
 axarr[1,1].plot(intRange/sig,cumulIN/intRange,'b.-',label='file')
