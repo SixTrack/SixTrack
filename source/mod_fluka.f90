@@ -30,7 +30,6 @@ module mod_fluka
   public :: fluka_set_synch_part
   public :: fluka_init_max_uid
   public :: fluka_is_running
-  public :: fluka_init_brhono
 
   public :: fluka_close
 
@@ -758,26 +757,6 @@ contains
     end if
 
   end function fluka_init_max_uid
-
-
-  !----------------------------------------------------------------------------
-  ! set Brho nominal
-  integer function fluka_init_brhono( brhono )
-    implicit none
-
-    ! interface variables
-    real(kind=real64) :: brhono
-
-    ! Auxiliary variables
-    integer :: n
-
-    n = ntsendbrhono(fluka_cid, brhono)
-    if (n .lt. 0) then
-      fluka_init_brhono = -1
-      return
-    end if
-
-  end function fluka_init_brhono
 
 
   !----------------------------------------------------------------------------
