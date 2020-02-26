@@ -82,7 +82,8 @@ void CollimationParticleGun::SetParticleDetails(double x, double y, double px, d
 		ParticleGun->SetParticleCharge(q*CLHEP::eplus);
 	}
 	const G4double mp = particle->GetPDGMass();
-	if(mp != mass)
+
+	if(fabs(mp - mass) > (1e-5*mass))
 	{
 		std::cout.precision(17);
 		std::cout << "GEANT4> Mass missmatch between Geant4 and SixTrack!" << std::endl;
@@ -91,6 +92,16 @@ void CollimationParticleGun::SetParticleDetails(double x, double y, double px, d
 		std::cout << "GEANT4> Please set the particle mass in SixTrack to the Geant4 (PDG) value!" << std::endl;
 		std::cout << "GEANT4> If the HION block is used, convert to GeV!" << std::endl;
 		exit(EXIT_FAILURE);
+	}
+	else
+	{
+		//scale mass
+/*
+ * From FLUKA coupling:
+        ECBEAM = (ECBEAM/AMBEAM)*AM(IONID)
+        AMBEAM = AM(IONID)
+*/
+		e = (e/mass)*mp;
 	}
 
 	//The kinetic energy (Total energy - rest mass)
