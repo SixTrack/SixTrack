@@ -8,9 +8,6 @@
 * More robust detection of lxplus at compilation. PR #1045 (J. Molson).
 * Fix pencil beam type 3 - the optics function at the entrance of the collimator were always used for beam sampling, even when those at the exit should have been used (e.g. because the beam is divergent on the cleaning plane). PR #1046 (A. Mereghetti).
 * Do not update the pair mapping for non-primary particles. PR #1050 (A. Mereghetti)
-* Removed updating napxo variable in the context of the Fluka-SixTrack coupling. This allows not to screw-up pair mapping in the context of DA studies. PR # 1052 (A. Mereghetti)
-* Removed the un-used fluka_init_brhono function (J. Molson).
-* When sending particles to geant4, if the particle mass is within a tolerance of the geant4 value, update the mass to this value and re-scale the particle energy (J. Molson).
 
 **User Side Changes**
 
@@ -27,6 +24,13 @@
     * relativistic gamma of lens beam added to calculation of theta_R2;
     * removed remaining signs of chebyshev polynomials in elens module;
   Documentation changed accordingly (user and physics manual).
+* When sending particles to geant4, if the particle mass is within a tolerance of the geant4 value, update the mass to this value and re-scale the particle energy. PR # 1055 (J. Molson).
+
+**Code Improvements and Changes**
+
+* Removed updating napxo variable in the context of the Fluka-SixTrack coupling. This allows not to screw-up pair mapping in the context of DA studies. PR # 1052 (A. Mereghetti)
+* Removed the un-used fluka_init_brhono function. PR # 1055 (J. Molson).
+* Print error codes from the fluka coupling. PR # 1055 (J. Molson)
 
 ### Version 5.4.3 [19.12.2019] - Release
 
