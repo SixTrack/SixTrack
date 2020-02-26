@@ -2157,7 +2157,7 @@ subroutine coll_exitCollimation
       "nimp","nabs","imp_av","imp_sig","length"
     do icoll = 1, cdb_nColl
       if(cdb_cLength(icoll) > zero .and. cdb_cFound(icoll)) then
-        write(coll_summaryUnit,"(i7,1x,a20,2(1x,i8),2(1x,e15.7),1x,f6.2)") icoll, cdb_cName(icoll)(1:20), cn_impact(icoll), &
+        write(coll_summaryUnit,"(i7,1x,a20,2(1x,i8),2(1x,e15.7),1x,f6.3)") icoll, cdb_cName(icoll)(1:20), cn_impact(icoll), &
           cn_absorbed(icoll), caverage(icoll), csigma(icoll), cdb_cLength(icoll)
       end if
     end do
