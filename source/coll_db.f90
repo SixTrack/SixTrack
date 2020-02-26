@@ -662,20 +662,21 @@ subroutine cdb_reconstructNSigFam
       end if
     end do
 
-    freq_max = 0
-    do k=1,count_sig
-      freq = count(NSig_collFam == NSig_collFam(k))
-      if(freq > freq_max) then
-        freq_max = freq
-        cdb_famNSig(j) = NSig_collFam(k)
-      end if
-    end do
-
     if(count_sig /= 0) then
+
+      freq_max = 0
+      do k=1,count_sig
+        freq = count(NSig_collFam == NSig_collFam(k))
+        if(freq > freq_max) then
+          freq_max = freq
+          cdb_famNSig(j) = NSig_collFam(k)
+        end if
+      end do
+
       call dealloc(NSig_collFam,"NSig_collFam")
-    else
-      cdb_famNSig(j) = 0
+
     end if
+    
   end do
 
 end subroutine cdb_reconstructNSigFam
