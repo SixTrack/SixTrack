@@ -42,6 +42,7 @@ program maincr
   use read_write,     only : writeFort12, readFort13, readFort33
   use collimation,    only : do_coll, coll_init, coll_exitCollimation
   use mod_ffield,     only : ffield_mod_init,ffield_mod_end
+  use elens,          only : elens_postLinopt
 
 #ifdef FLUKA
   use mod_fluka
@@ -486,7 +487,9 @@ program maincr
     call linopt(dp1)
   end if
 
-  call scatter_init ! Must be after linopt
+  ! must be after linot
+  call scatter_init
+  call elens_postLinopt
 
   ! beam-beam element
   nlino = nlin
@@ -1182,7 +1185,7 @@ program maincr
     fluka_con = fluka_init_max_uid( napx )
 
     if(fluka_con < 0) then
-      write(lerr,"(a,i0,a)") "FLUKA> ERROR Failed to send napx ",napx," to fluka "
+      write(lerr,"(a,i0,a,i0,a)") "FLUKA> ERROR ", fluka_con, ": Failed to send napx ",napx," to fluka "
       write(fluka_log_unit, *) "# failed to send napx to fluka ",napx
       call prror
     end if
@@ -1207,7 +1210,7 @@ program maincr
     fluka_con = fluka_set_synch_part( e0, e0f, nucm0, aa0, zz0, qq0)
 
     if(fluka_con < 0) then
-      write(lerr,"(a)") "FLUKA> ERROR Failed to update the reference particle"
+      write(lerr,"(a,i0,a)") "FLUKA> ERROR ", fluka_con, ": Failed to update the reference particle"
       write(fluka_log_unit,*) "# failed to update ref particle"
       call prror
     end if
@@ -1387,13 +1390,13 @@ program maincr
   ! print stable particles only
   write(lout,"(a)") ""
   write(lout,"(a)") str_divLine
-  if(napxo > 0) then
+  if(napx > 0) then
     write(lout,"(a)") ""
-    write(lout,10350) napxo
+    write(lout,10350) napx
     write(lout,"(a)") ""
     write(lout,10360) 'ID', 'GEN', 'WEIGHT', 'X [m]', 'XP []', 'Y [m]', 'YP[]', 'PC [GeV]', 'DE [eV]', 'DT [s]'
     write(lout,"(a)") ""
-    do ia=1,napxo
+    do ia=1,napx
       if(.not.pstop(ia)) then
         write(lout,10370) fluka_uid(ia),fluka_gen(ia),fluka_weight(ia), &
           xv1(ia)*c1m3, yv1(ia)*c1m3, xv2(ia)*c1m3, yv2(ia)*c1m3, &
