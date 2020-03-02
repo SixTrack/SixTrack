@@ -1185,7 +1185,7 @@ program maincr
     fluka_con = fluka_init_max_uid( napx )
 
     if(fluka_con < 0) then
-      write(lerr,"(a,i0,a)") "FLUKA> ERROR Failed to send napx ",napx," to fluka "
+      write(lerr,"(a,i0,a,i0,a)") "FLUKA> ERROR ", fluka_con, ": Failed to send napx ",napx," to fluka "
       write(fluka_log_unit, *) "# failed to send napx to fluka ",napx
       call prror
     end if
@@ -1210,7 +1210,7 @@ program maincr
     fluka_con = fluka_set_synch_part( e0, e0f, nucm0, aa0, zz0, qq0)
 
     if(fluka_con < 0) then
-      write(lerr,"(a)") "FLUKA> ERROR Failed to update the reference particle"
+      write(lerr,"(a,i0,a)") "FLUKA> ERROR ", fluka_con, ": Failed to update the reference particle"
       write(fluka_log_unit,*) "# failed to update ref particle"
       call prror
     end if

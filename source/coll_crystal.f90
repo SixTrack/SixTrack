@@ -213,7 +213,7 @@ end subroutine cry_startElement
 ! ================================================================================================ !
 !  Subroutine for checking for interactions with crystal
 ! ================================================================================================ !
-subroutine cry_doCrystal(ie,iturn,j,mat,x,xp,z,zp,s,p,x0,xp0,zlm,s_imp,nhit,nabs, &
+subroutine cry_doCrystal(ie,iturn,j,mat,x,xp,z,zp,s,p,x0,xp0,zlm,s_imp,isImp,nhit,nabs, &
   lhit,lhit_turn,part_abs,part_abs_turn,impact,indiv,c_length)
 
   use parpro
@@ -238,6 +238,8 @@ subroutine cry_doCrystal(ie,iturn,j,mat,x,xp,z,zp,s,p,x0,xp0,zlm,s_imp,nhit,nabs
   real(kind=fPrec), intent(inout) :: impact(npart)
   real(kind=fPrec), intent(inout) :: indiv(npart)
   real(kind=fPrec), intent(in)    :: c_length
+
+  logical,          intent(inout) :: isImp
 
   real(kind=fPrec) s_temp,s_shift,s_rot,s_int
   real(kind=fPrec) x_temp,x_shift,x_rot,x_int
@@ -296,6 +298,7 @@ subroutine cry_doCrystal(ie,iturn,j,mat,x,xp,z,zp,s,p,x0,xp0,zlm,s_imp,nhit,nabs
     s   = c_rcurv*c_sBend
     zlm = c_rcurv*c_sBend
     if(iProc /= proc_out) then
+      isImp        = .true.
       nhit         = nhit + 1
       lhit(j)      = ie
       lhit_turn(j) = iturn
@@ -353,6 +356,7 @@ subroutine cry_doCrystal(ie,iturn,j,mat,x,xp,z,zp,s,p,x0,xp0,zlm,s_imp,nhit,nabs
             xp0 = xp_shift
           end if
 
+          isImp        = .true.
           nhit         = nhit + 1
           lhit(j)      = ie
           lhit_turn(j) = iturn

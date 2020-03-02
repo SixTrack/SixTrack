@@ -8,14 +8,12 @@
 * More robust detection of lxplus at compilation. PR #1045 (J. Molson).
 * Fix pencil beam type 3 - the optics function at the entrance of the collimator were always used for beam sampling, even when those at the exit should have been used (e.g. because the beam is divergent on the cleaning plane). PR #1046 (A. Mereghetti).
 * Do not update the pair mapping for non-primary particles. PR #1050 (A. Mereghetti)
-* Removed updating napxo variable in the context of the Fluka-SixTrack coupling. This allows not to screw-up pair mapping in the context of DA studies. PR # 1052 (A. Mereghetti)
+* Increased number of digits for particle ID in FirstImpacts.dat and in collimator length in coll_summary.dat (to properly display crystal collimators which are usually a few mm long). First impacts on crystal collimators are now correctly flagged and a missing check on the `dowrite_impact` flag when writing Coll_Scatter.dat has been added. PR #1053 (M. D'Andrea)
+* When collimator settings are required to match those read from an old format CollDB, a separate subroutine reconstructs the family settings based on the most frequent setting in each family. PR #1053 (M. D'Andrea)
 
 **User Side Changes**
 
 * When specifying `XP` and `YP` in the `FORMAT` statement of the `DIST` block, the units are parsed. Accepted values are [1], [1000], [MRAD], [RAD]. PR # 1054 (A. Mereghetti)
-
-**User Side Changes**
-
 * Electron lenses have been inserted into FOX - PR #839 (A. Mereghetti).
 * Increased flexibility of e-lens module - PR #841 (A. Mereghetti):
   * elens module fully dynamic allocatable;
@@ -25,6 +23,14 @@
     * relativistic gamma of lens beam added to calculation of theta_R2;
     * removed remaining signs of chebyshev polynomials in elens module;
   Documentation changed accordingly (user and physics manual).
+* When sending particles to geant4, if the particle mass is within a tolerance of the geant4 value, update the mass to this value and re-scale the particle energy. PR # 1055 (J. Molson).
+* If no collimator are found for a given family, the aperture of that family is set to zero. PR #1053 (M. D'Andrea)
+
+**Code Improvements and Changes**
+
+* Removed updating napxo variable in the context of the Fluka-SixTrack coupling. This allows not to screw-up pair mapping in the context of DA studies. PR # 1052 (A. Mereghetti)
+* Removed the un-used fluka_init_brhono function. PR # 1055 (J. Molson).
+* Print error codes from the fluka coupling. PR # 1055 (J. Molson)
 
 ### Version 5.4.3 [19.12.2019] - Release
 
