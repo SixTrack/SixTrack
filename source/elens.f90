@@ -1,5 +1,5 @@
 ! M. Fitterer, FNAL, A. Mereghtti, CERN
-! last modified: 10-09-2019
+! last modified: 02-03-2020
 ! Common block for electron lens definition
 module elens
 
@@ -32,6 +32,7 @@ module elens
   integer, save               :: elens_iSet_def=0           ! default iSet
   logical, save               :: elens_lFox_def=.true.      ! default lFox
   integer, save               :: elens_radial_mpoints_def=2 ! default number of points for interpolating radial profiles from ASCI files
+  integer, save               :: elens_radial_mpoints_ori=3 ! default minimum number of points for interpolating radial profiles from ASCI files in case we are very close to the origin
 
   ! beam of the lens
   real(kind=fPrec), save      :: elens_beam_mass_def=pmae   ! default mass of lens beam [MeV/c2]
@@ -1389,7 +1390,7 @@ subroutine normaliseRadialProfile(ifile)
 end subroutine normaliseRadialProfile
 
 ! ================================================================================================ !
-!  Last modified: 2019-04-11
+!  Last modified: 2020-03-02
 !  compute kick from electron lens
 ! ================================================================================================ !
 subroutine elens_kick(i,ix,n)
@@ -1407,12 +1408,13 @@ subroutine elens_kick(i,ix,n)
   integer, intent(in) :: ix
   integer, intent(in) :: n
   
-  real(kind=fPrec) xx, yy, rr, frr, tmpBB, epsilon, gteps, lteps, r1oSigSq, rroSigSq
-  integer          jj
+  real(kind=fPrec) xx, yy, rr, frr, tmpBB, epsilon, gteps, lteps, r1oSigSq, rroSigSq, cl2ori
+  integer          jj, mPoints
 
   epsilon=c1m15
   gteps=one+epsilon
   lteps=one-epsilon
+  cl2ori=c1m7
 
   ! for Gaussian distribution, prepare some useful numbers
   r1oSigSq=zero
@@ -1458,7 +1460,7 @@ subroutine elens_kick(i,ix,n)
         case (2)
           ! GAUSSIAN: eLens with Gaussian profile
           if ( elens_lFull(ielens(ix)) ) then
-            if ( rr <= c1m7 ) then
+            if ( rr <= cl2ori ) then
               ! formula: r*Rref/2sig^2/(exp(-r1^2/2sig^2)-exp(-r2^2/2sig^2))
               frr=(((rr/elens_sig(ielens(ix)))*(elens_rref(ielens(ix))/elens_sig(ielens(ix))))/two)/elens_geo_norm(ielens(ix))
             else
@@ -1475,11 +1477,13 @@ subroutine elens_kick(i,ix,n)
         case (3)
           ! RADIAL PROFILE: eLens with radial profile as from file
           ! formula: (cumul_J(r)-cumul_J(r1))/(cumul_J(r2)-cumul_J(r1))*Rref/r
+          mPoints=elens_radial_mpoints(ielens(ix))
+          if ( elens_lFull(ielens(ix)) .and. rr <= cl2ori ) mPoints=elens_radial_mpoints_ori
           frr=polinterp( rr, &
                 elens_radial_profile_R(0:elens_radial_profile_nPoints(elens_iRadial(ielens(ix))),elens_iRadial(ielens(ix))), &
                 elens_radial_profile_J(0:elens_radial_profile_nPoints(elens_iRadial(ielens(ix))),elens_iRadial(ielens(ix))), &
                 elens_radial_profile_nPoints(elens_iRadial(ielens(ix)))+1, &
-                elens_radial_mpoints(ielens(ix)), elens_radial_jguess(ielens(ix)) )-elens_radial_fr1(ielens(ix))
+                mPoints, elens_radial_jguess(ielens(ix)) )-elens_radial_fr1(ielens(ix))
           frr=(frr/elens_geo_norm(ielens(ix)))*(elens_rref(ielens(ix))/rr)
            
         case default
@@ -1526,7 +1530,7 @@ subroutine elens_kick(i,ix,n)
 end subroutine elens_kick
 
 ! ================================================================================================ !
-!  Last modified: 2019-11-07
+!  Last modified: 2020-03-02
 !  compute kick from electron lens
 !  inspired by wireda
 ! ================================================================================================ !
@@ -1550,7 +1554,7 @@ subroutine elens_kick_fox(i,ix)
   
   integer          :: iLens, iRadial, nBin, nPoints, mPoints, kMin, kMax, kk
   real(kind=fPrec) :: rra, frra, xa, ya, xffset, yffset, ele_r1, ele_r2, ele_rr, elenor, elesig, elebet, tmpcof
-  real(kind=fPrec) :: eletrf, epsilon, gteps, lteps
+  real(kind=fPrec) :: eletrf, epsilon, gteps, lteps, cl2ori
   real(kind=fPrec), allocatable :: cof(:)
 
 ! for FOX
@@ -1594,6 +1598,7 @@ subroutine elens_kick_fox(i,ix)
   epsilon=c1m15
   gteps=one+epsilon
   lteps=one-epsilon
+  cl2ori=c1m7
 
   iLens=ielens(ix)
   XFFSET=elens_offset_x(iLens)
@@ -1683,7 +1688,7 @@ subroutine elens_kick_fox(i,ix)
       case (2)
         ! GAUSSIAN: eLens with Gaussian profile
         if ( elens_lFull(iLens) ) then
-          if ( RRA <= c1m7 ) then
+          if ( RRA <= cl2ori ) then
             ! formula: r*Rref/2sig^2/(exp(-r1^2/2sig^2)-exp(-r2^2/2sig^2))
 !FOX        FRR=(((RR/ELESIG)*(ELE_RR/ELESIG))/TWO)/ELENOR ;
             if (st_debug) write(lout,'(a)') "ELENS> ELENS_KICK_FOX: elens type GAUSSIAN, linearised formula"
@@ -1705,6 +1710,10 @@ subroutine elens_kick_fox(i,ix)
         iRadial=elens_iRadial(iLens)
         nPoints=elens_radial_profile_nPoints(iRadial)
         mPoints=elens_radial_mpoints(iLens)
+        if ( elens_lFull(iLens) .and. RRA <= cl2ori ) then
+          if (st_debug) write(lout,'(a,6(1X,i5))') "ELENS> ELENS_KICK_FOX: forcing mPoints to:", elens_radial_mpoints_ori
+          mPoints=elens_radial_mpoints_ori
+        end if
         nBin=huntBin(RRA,elens_radial_profile_R(0:nPoints,iRadial),nPoints+1,-1)-1
         kMin=min(max(nBin-(mPoints-1)/2,1),nPoints+2-mPoints)
         kMax=min(kMin+mPoints-1,nPoints+1)
