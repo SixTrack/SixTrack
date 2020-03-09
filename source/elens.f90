@@ -1,5 +1,5 @@
 ! M. Fitterer, FNAL, A. Mereghtti, CERN
-! last modified: 10-09-2019
+! last modified: 02-03-2020
 ! Common block for electron lens definition
 module elens
 
@@ -26,70 +26,73 @@ module elens
   integer, parameter, public  :: elens_ktrack=63            ! ktrack of electron lenses
   logical, save               :: lRequestOptics=.false.     ! request optics calculations, since there is at least
                                                             !    a lens where either R1 or R2 was given in normalised units
-  ! R1/R2 expressed in normalised units (either betatron or dispersion)
+  ! R1/R2/Rref expressed in normalised units (either betatron or dispersion)
   real(kind=fPrec), save      :: elens_emin_def=-one        ! default normalised emittance [m rad]
   real(kind=fPrec), save      :: elens_sigdpp_def=-one      ! default rms of distribution in delta_p / p []
   integer, save               :: elens_iSet_def=0           ! default iSet
   logical, save               :: elens_lFox_def=.true.      ! default lFox
   integer, save               :: elens_radial_mpoints_def=2 ! default number of points for interpolating radial profiles from ASCI files
+  integer, save               :: elens_radial_mpoints_ori=3 ! default minimum number of points for interpolating radial profiles from ASCI files in case we are very close to the origin
 
   ! beam of the lens
   real(kind=fPrec), save      :: elens_beam_mass_def=pmae   ! default mass of lens beam [MeV/c2]
   real(kind=fPrec), save      :: elens_beam_chrg_def=-one   ! default charge of lens beam [e]
   
   ! variables to save elens parameters for tracking etc.
-  integer, allocatable, save          :: elens_type(:)             ! integer for elens type (nelens)
-                                                                   ! 0 : Un-initialized.
-                                                                   ! 1 : uniform profile
-                                                                   ! 2 : Gaussian profile
-                                                                   ! 3 : radial profile from file
-  real(kind=fPrec), allocatable, public, save :: elens_theta_r2(:) ! kick strength at R2 [mrad] (nelens)
-  real(kind=fPrec), allocatable, save :: elens_r2(:)               ! outer radius R2 [mm] (nelens)
-  real(kind=fPrec), allocatable, save :: elens_r1(:)               ! inner radius R1 [mm] (nelens)
-  real(kind=fPrec), allocatable, save :: elens_offset_x(:)         ! hor offset of elens [mm] (nelens)
-  real(kind=fPrec), allocatable, save :: elens_offset_y(:)         ! vert. offset of elens [mm] (nelens)
-  real(kind=fPrec), allocatable, save :: elens_sig(:)              ! sig (Gaussian profile) [mm] (nelens)
-  real(kind=fPrec), allocatable, save :: elens_geo_norm(:)         ! normalisation of f(r) (nelens)
-  real(kind=fPrec), allocatable, save :: elens_len(:)              ! length of eLens (e-beam region) [m] (nelens)
-  real(kind=fPrec), allocatable, public, save :: elens_I(:)        ! current of e-beam [A] (nelens)
-                                                                   ! <0: e-beam opposite to beam
-  real(kind=fPrec), allocatable, public, save :: elens_Ek(:)       ! kinetic energy of e-beam [keV] (nelens)
-  real(kind=fPrec), allocatable, save :: elens_beta_lens_beam(:)   ! relativistic beta of lens beam (nelens)
-  logical, allocatable, save          :: elens_lThetaR2(:)         ! flag for computing theta@R2 (nelens)
-  logical, allocatable, public, save  :: elens_lAllowUpdate(:)     ! Flag for disabling updating of kick, (nelens)
-                                                                   !  i.e. after DYNK has touched thetaR2,
-                                                                   !  the energy update is disabled.
-  logical, allocatable, public, save  :: elens_lFox(:)             ! the kick from the elens should be taken into account
-                                                                   !  when searching for the closed orbit with DA algebra (nelens)
-  logical, allocatable, save          :: elens_lFull(:)            ! if .true., elens is full, i.e. not hollow and R1=0.0 (nelens)
-  logical, allocatable, save          :: elens_lZeroThick(:)       ! if .true., elens has no thickness, i.e. R2=R1 (nelens)
+  integer, allocatable, save          :: elens_type(:)              ! integer for elens type (nelens)
+                                                                    ! 0 : Un-initialized.
+                                                                    ! 1 : uniform profile
+                                                                    ! 2 : Gaussian profile
+                                                                    ! 3 : radial profile from file
+                                                                    ! 4 : degenerate case: wire
+  real(kind=fPrec), allocatable, public, save :: elens_theta_ref(:) ! kick strength at Rref [mrad] (nelens)
+  real(kind=fPrec), allocatable, save :: elens_r2(:)                ! outer radius R2 [mm] (nelens)
+  real(kind=fPrec), allocatable, save :: elens_r1(:)                ! inner radius R1 [mm] (nelens)
+  real(kind=fPrec), allocatable, save :: elens_rref(:)              ! radius at which theta_ref is given [mm] (nelens)
+  real(kind=fPrec), allocatable, save :: elens_offset_x(:)          ! hor offset of elens [mm] (nelens)
+  real(kind=fPrec), allocatable, save :: elens_offset_y(:)          ! vert. offset of elens [mm] (nelens)
+  real(kind=fPrec), allocatable, save :: elens_sig(:)               ! sig (Gaussian profile) [mm] (nelens)
+  real(kind=fPrec), allocatable, save :: elens_geo_norm(:)          ! normalisation of f(r) (nelens)
+  real(kind=fPrec), allocatable, save :: elens_len(:)               ! length of eLens (e-beam region) [m] (nelens)
+  real(kind=fPrec), allocatable, public, save :: elens_I(:)         ! current of e-beam [A] (nelens)
+                                                                    ! <0: e-beam opposite to beam
+  real(kind=fPrec), allocatable, public, save :: elens_Ek(:)        ! kinetic energy of e-beam [keV] (nelens)
+  real(kind=fPrec), allocatable, save :: elens_beta_lens_beam(:)    ! relativistic beta of lens beam (nelens)
+  logical, allocatable, save          :: elens_lThetaRref(:)        ! flag for computing theta@Rref (nelens)
+  logical, allocatable, public, save  :: elens_lAllowUpdate(:)      ! Flag for disabling updating of kick, (nelens)
+                                                                    !  i.e. after DYNK has touched thetaRref,
+                                                                    !  the energy update is disabled.
+  logical, allocatable, public, save  :: elens_lFox(:)              ! the kick from the elens should be taken into account
+                                                                    !  when searching for the closed orbit with DA algebra (nelens)
+  logical, allocatable, save          :: elens_lFull(:)             ! if .true., elens is full, i.e. not hollow and R1=0.0 (nelens)
+  logical, allocatable, save          :: elens_lZeroThick(:)        ! if .true., elens has no thickness, i.e. R2=R1 (nelens)
 #ifdef CR
-  logical, allocatable, save          :: elens_lAllowUpdate_CR(:)  ! (nelens)
+  logical, allocatable, save          :: elens_lAllowUpdate_CR(:)   ! (nelens)
 #endif
-  ! R1/R2 expressed in normalised units (either betatron or dispersion)
-  real(kind=fPrec), allocatable, save :: elens_emin(:)             ! normalised emittance [m rad] (nelens)
-  real(kind=fPrec), allocatable, save :: elens_sigdpp(:)           ! default rms of distribution in delta_p / p [] (nelens)
-  integer, allocatable, save          :: elens_iSet(:)             ! which value of beta or disp should be taken (nelens):
-                                                                   ! 0: none
-                                                                   ! 1: min
-                                                                   ! 2: max
-                                                                   ! 3: average
-                                                                   ! 4: quadratic average
-                                                                   ! 5: geometric average
-  real(kind=fPrec), allocatable, save :: elens_optVal(:)           ! value of optics function for normalised settings (nelens)
-  integer, allocatable, save          :: elens_nUpdates(:)         ! how many slices are being used (nelens)
+  ! R1/R2/Rref expressed in normalised units (either betatron or dispersion)
+  real(kind=fPrec), allocatable, save :: elens_emin(:)              ! normalised emittance [m rad] (nelens)
+  real(kind=fPrec), allocatable, save :: elens_sigdpp(:)            ! default rms of distribution in delta_p / p [] (nelens)
+  integer, allocatable, save          :: elens_iSet(:)              ! which value of beta or disp should be taken (nelens):
+                                                                    ! 0: none
+                                                                    ! 1: min
+                                                                    ! 2: max
+                                                                    ! 3: average
+                                                                    ! 4: quadratic average
+                                                                    ! 5: geometric average
+  real(kind=fPrec), allocatable, save :: elens_optVal(:)            ! value of optics function for normalised settings (nelens)
+  integer, allocatable, save          :: elens_nUpdates(:)          ! how many slices are being used (nelens)
                                                                   
   ! beam of the lens
-  real(kind=fPrec), allocatable, save :: elens_beam_mass(:)        ! mass of lens beam [MeV/c2] (nelens)
-  real(kind=fPrec), allocatable, save :: elens_beam_chrg(:)        ! charge of lens beam [e] (nelens)
+  real(kind=fPrec), allocatable, save :: elens_beam_mass(:)         ! mass of lens beam [MeV/c2] (nelens)
+  real(kind=fPrec), allocatable, save :: elens_beam_chrg(:)         ! charge of lens beam [e] (nelens)
   
   ! radial profile
-  integer, allocatable, save          :: elens_iRadial(:)          ! mapping to the radial profile (nelens)
-  real(kind=fPrec), allocatable, save :: elens_radial_fr1(:)       ! value of f(R1) in case of radial profiles from file [0:1] (nelens)
-  real(kind=fPrec), allocatable, save :: elens_radial_fr2(:)       ! value of f(R2) in case of radial profiles from file [0:1] (nelens)
-  integer, allocatable, save          :: elens_radial_mpoints(:)   ! how many points for polynomial interpolation (nelens) (default: 2,
-                                                                   !    i.e. linear interpolation
-  integer, allocatable, save          :: elens_radial_jguess(:)    ! bin for guessed search (nelens)
+  integer, allocatable, save          :: elens_iRadial(:)           ! mapping to the radial profile (nelens)
+  real(kind=fPrec), allocatable, save :: elens_radial_fr1(:)        ! value of f(R1) in case of radial profiles from file [0:1] (nelens)
+  real(kind=fPrec), allocatable, save :: elens_radial_fr2(:)        ! value of f(R2) in case of radial profiles from file [0:1] (nelens)
+  integer, allocatable, save          :: elens_radial_mpoints(:)    ! how many points for polynomial interpolation (nelens) (default: 2,
+                                                                    !    i.e. linear interpolation
+  integer, allocatable, save          :: elens_radial_jguess(:)     ! bin for guessed search (nelens)
   ! - file handling and data storage:
   character(len=:), allocatable, save :: elens_radial_filename(:)        ! names (nelens_radial_profiles)
   real(kind=fPrec), allocatable, save :: elens_radial_profile_R(:,:)     ! [mm] (0:elens_radial_dim,nelens_radial_profiles)
@@ -118,7 +121,8 @@ subroutine elens_expand_arrays_lenses(nelens_new)
   integer, intent(in) :: nelens_new
   ! elens charachteristics
   call alloc(elens_type           , nelens_new,                        0, 'elens_type'           )
-  call alloc(elens_theta_r2       , nelens_new,                     zero, 'elens_theta_r2'       )
+  call alloc(elens_theta_ref      , nelens_new,                     zero, 'elens_theta_ref'      )
+  call alloc(elens_rref           , nelens_new,                     zero, 'elens_rref'           )
   call alloc(elens_r2             , nelens_new,                     zero, 'elens_r2'             )
   call alloc(elens_r1             , nelens_new,                     zero, 'elens_r1'             )
   call alloc(elens_offset_x       , nelens_new,                     zero, 'elens_offset_x'       )
@@ -129,7 +133,7 @@ subroutine elens_expand_arrays_lenses(nelens_new)
   call alloc(elens_I              , nelens_new,                     zero, 'elens_I'              )
   call alloc(elens_Ek             , nelens_new,                     zero, 'elens_Ek'             )
   call alloc(elens_beta_lens_beam , nelens_new,                     zero, 'elens_beta_lens_beam' )
-  call alloc(elens_lThetaR2       , nelens_new,                  .false., 'elens_lThetaR2'       )
+  call alloc(elens_lThetaRref     , nelens_new,                  .false., 'elens_lThetaRref'     )
   call alloc(elens_lAllowUpdate   , nelens_new,                   .true., 'elens_lAllowUpdate'   )
   call alloc(elens_lFox           , nelens_new,           elens_lFox_def, 'elens_lFox'           )
   call alloc(elens_lFull          , nelens_new,                  .false., 'elens_lFull'          )
@@ -372,7 +376,7 @@ subroutine elens_parseInputLine(inLine, iLine, iErr)
     end if
     
     if(st_debug) then
-      call sixin_echoVal("interp. points",tmpi2,"ELENS",iLine)
+      call sixin_echoVal("number of interpolation points",tmpi2,"ELENS",iLine)
     end if
 
   case("SIGDPP")
@@ -579,17 +583,19 @@ subroutine elens_parseInputLine(inLine, iLine, iErr)
         iErr = .true.
         return
       end if
+    case("WIRE")
+      elens_type(ielens(iElem)) = 4
     case default
       write(lerr,"(a)") "ELENS> ERROR Elens type '"//trim(lnSplit(2))//"' not recognized. Remember to use all UPPER CASE."
       iErr = .true.
       return
     end select ! case (lnSplit(2))
     
-    call chr_cast(lnSplit(3),elens_theta_r2(ielens(iElem)),iErr)
-    call chr_cast(lnSplit(4),elens_r2(ielens(iElem)),      iErr)
-    call chr_cast(lnSplit(5),elens_r1(ielens(iElem)),      iErr)
-    call chr_cast(lnSplit(6),elens_offset_x(ielens(iElem)),iErr)
-    call chr_cast(lnSplit(7),elens_offset_y(ielens(iElem)),iErr)
+    call chr_cast(lnSplit(3),elens_theta_ref(ielens(iElem)),iErr)
+    call chr_cast(lnSplit(4),elens_r2(ielens(iElem)),       iErr)
+    call chr_cast(lnSplit(5),elens_r1(ielens(iElem)),       iErr)
+    call chr_cast(lnSplit(6),elens_offset_x(ielens(iElem)), iErr)
+    call chr_cast(lnSplit(7),elens_offset_y(ielens(iElem)), iErr)
     
     if(elens_type(ielens(iElem)) == 2) then
       ! GAUSSIAN profile of electrons: need also sigma of e-beam
@@ -627,20 +633,20 @@ subroutine elens_parseInputLine(inLine, iLine, iErr)
       tmpi1 = 8
       tmpi2 = 9
       tmpi3 = 10
-      elens_lThetaR2(ielens(iElem)) = .true.
+      elens_lThetaRref(ielens(iElem)) = .true.
     else if(elens_type(ielens(iElem)) == 2 .and. nSplit >= 11) then
       tmpi1 = 9
       tmpi2 = 10
       tmpi3 = 11
-      elens_lThetaR2(ielens(iElem)) = .true.
+      elens_lThetaRref(ielens(iElem)) = .true.
     else if(elens_type(ielens(iElem)) == 3 .and. nSplit >= 11) then
       tmpi1 = 9
       tmpi2 = 10
       tmpi3 = 11
-      elens_lThetaR2(ielens(iElem)) = .true.
+      elens_lThetaRref(ielens(iElem)) = .true.
     end if
     
-    if(elens_lThetaR2(ielens(iElem))) then
+    if(elens_lThetaRref(ielens(iElem))) then
       call chr_cast(lnSplit(tmpi1),elens_len(ielens(iElem)),iErr)
       call chr_cast(lnSplit(tmpi2),elens_I(ielens(iElem)),  iErr)
       call chr_cast(lnSplit(tmpi3),elens_Ek(ielens(iElem)), iErr)
@@ -663,7 +669,7 @@ subroutine elens_parseInputLine(inLine, iLine, iErr)
       elens_r2(ielens(iElem)) = elens_r1(ielens(iElem))
       elens_r1(ielens(iElem)) = tmpflt
     end if
-    if(elens_lThetaR2(ielens(iElem))) then
+    if(elens_lThetaRref(ielens(iElem))) then
       if(elens_len(ielens(iElem)) <= zero) then
         write(lerr,"(a)") "ELENS> ERROR L<0!"
         iErr = .true.
@@ -689,30 +695,67 @@ subroutine elens_parseInputLine(inLine, iLine, iErr)
         return
       end if
     end if
-    elens_lFull(ielens(iElem))=elens_r1(ielens(iElem))==zero
-    elens_lZeroThick(ielens(iElem))=elens_r1(ielens(iElem))==elens_r2(ielens(iElem))
-    if ( elens_lFull(ielens(iElem)).and.elens_lZeroThick(ielens(iElem)) ) then
-      write(lerr,"(a)") "ELENS> ERROR corner case of elens being a wire: R1=R2=0."
-      write(lerr,"(a)") "ELENS>       theta_R2 looses meaning. Try using a wire."
-      iErr = .true.
-      return
+    if( elens_type(ielens(iElem)) == 4 ) then
+      ! the user declares the e-lens as a degenerate one to a WIRE
+      ! R1 must be 0.0, whereas R2 must be != 0.0 
+      elens_lFull(ielens(iElem))=.true.
+      elens_lZeroThick(ielens(iElem))=.true.
+      if( elens_r1(ielens(iElem)) /= zero ) then
+        elens_r1(ielens(iElem))=zero
+        write(lout,"(a)") "ELENS> WARNING: Elens '"//trim(bez(iElem))//"' is a wire."
+        write(lout,"(a)") "ELENS>          Forcing R1 to 0 mm."
+      end if
+      if( elens_r2(ielens(iElem)) == zero ) then
+        write(lerr,"(a)") "ELENS> ERROR R2==0 for a WIRE e-lens!"
+        iErr = .true.
+        return
+      end if
+      elens_rref(ielens(iElem))=elens_r2(ielens(iElem))
+      elens_r2(ielens(iElem))=zero
+    else
+      elens_lFull(ielens(iElem))=elens_r1(ielens(iElem))==zero
+      elens_lZeroThick(ielens(iElem))=elens_r1(ielens(iElem))==elens_r2(ielens(iElem))
+      if ( elens_lFull(ielens(iElem)) .and. elens_lZeroThick(ielens(iElem)) ) then
+        ! degenerate e-lens to a wire, where user decided not to set Rref
+        ! set it to 1mm
+        elens_rref(ielens(iElem))=one
+        write(lout,"(a)") "ELENS> WARNING: Elens '"//trim(bez(iElem))//"' is actually a wire (i.e. R1=R2=0.0)."
+        write(lout,"(a)") "ELENS>          Forcing Rref to 1 mm, such that theta_ref keeps a meaning."
+        write(lout,"(a)") "ELENS>          If this is not what you want to do, please use the WIRE type or the wire element."
+      else
+        elens_rref(ielens(iElem))=elens_r2(ielens(iElem))
+      end if
     end if
     
     if(st_debug) then
-      call sixin_echoVal("name",    bez(iElem),                   "ELENS",iLine)
-      call sixin_echoVal("type",    elens_type(ielens(iElem)),    "ELENS",iLine)
-      call sixin_echoVal("theta_r2",elens_theta_r2(ielens(iElem)),"ELENS",iLine)
-      call sixin_echoVal("r1",      elens_r1(ielens(iElem)),      "ELENS",iLine)
-      call sixin_echoVal("r2",      elens_r2(ielens(iElem)),      "ELENS",iLine)
-      call sixin_echoVal("offset_x",elens_offset_x(ielens(iElem)),"ELENS",iLine)
-      call sixin_echoVal("offset_y",elens_offset_y(ielens(iElem)),"ELENS",iLine)
+      call sixin_echoVal("name",            bez(iElem),                    "ELENS",iLine)
+      call sixin_echoVal("type",            elens_type(ielens(iElem)),     "ELENS",iLine)
+      call sixin_echoVal("theta_ref [mrad]",elens_theta_ref(ielens(iElem)),"ELENS",iLine)
+      call sixin_echoVal("r1 [mm]",         elens_r1(ielens(iElem)),       "ELENS",iLine)
+      call sixin_echoVal("r2 [mm]",         elens_r2(ielens(iElem)),       "ELENS",iLine)
+      call sixin_echoVal("rRef [mm]",       elens_rref(ielens(iElem)),     "ELENS",iLine)
+      call sixin_echoVal("offset_x [mm]",   elens_offset_x(ielens(iElem)), "ELENS",iLine)
+      call sixin_echoVal("offset_y [mm]",   elens_offset_y(ielens(iElem)), "ELENS",iLine)
       if(elens_type(ielens(iElem)) == 2) then
-        call sixin_echoVal("sig",elens_sig(ielens(iElem)),"ELENS",iLine)
+        call sixin_echoVal("sig [mm]",elens_sig(ielens(iElem)),"ELENS",iLine)
       end if
-      if(elens_lThetaR2(ielens(iElem))) then
-        call sixin_echoVal("L", elens_len(ielens(iElem)),"ELENS",iLine)
-        call sixin_echoVal("I", elens_I(ielens(iElem)),  "ELENS",iLine)
-        call sixin_echoVal("Ek",elens_Ek(ielens(iElem)), "ELENS",iLine)
+      if(elens_lThetaRref(ielens(iElem))) then
+        call sixin_echoVal("L [m]",   elens_len(ielens(iElem)),"ELENS",iLine)
+        call sixin_echoVal("I [A]",   elens_I(ielens(iElem)),  "ELENS",iLine)
+        call sixin_echoVal("Ek [keV]",elens_Ek(ielens(iElem)), "ELENS",iLine)
+      end if
+      if ( elens_lFull(ielens(iElem)) ) then
+        if ( elens_lZeroThick(ielens(iElem)) ) then
+          write(lout,"(a)") "ELENS> Elens '"//trim(bez(iElem))//"' is actually a wire (i.e. R1=R2=0.0)."
+        else
+          write(lout,"(a)") "ELENS> Elens '"//trim(bez(iElem))//"' is full (i.e. R1=0.0, R2>0.0)."
+        end if
+      else 
+        if ( elens_lZeroThick(ielens(iElem)) ) then
+          write(lout,"(a)") "ELENS> Elens '"//trim(bez(iElem))//"' is a zero-thickness hollow electron lens (i.e. R1=R2>0.0)."
+        else
+          write(lout,"(a)") "ELENS> Elens '"//trim(bez(iElem))//"' is a regular hollow electron lens (i.e. R1>0.0, R2>0.0, R1<R2)."
+        end if
       end if
     end if
  
@@ -784,7 +827,7 @@ subroutine elens_postInput
 
   ! forcing calculation of linear optics, if necessary
   if ( lRequestOptics ) then
-    write(lout,"(a)") "ELENS> One of the lenses has either R1<0 or R2<0 hence expressed in normalised units"
+    write(lout,"(a)") "ELENS> One of the lenses has R1<0 or R2<0 or Rref<0 hence expressed in normalised units"
     write(lout,"(a)") "ELENS>     (i.e. units of beam sigma). Calculation of linear optics functions is necessary"
     select case(ilin)
     case (0) 
@@ -811,9 +854,9 @@ subroutine elens_postInput
    end select ! case(ilin)
   end if
 
-  ! check that, in case R1/R2 are declared by the user in terms of n-sigma, the provided info is consistent
+  ! check that, in case R1/R2/Rref are declared by the user in terms of n-sigma, the provided info is consistent
   do j=1,nelens
-    if (elens_r1(j)<zero .or. elens_r2(j)<zero .or. elens_sig(j)<zero) then
+    if (elens_r1(j)<zero .or. elens_r2(j)<zero .or. elens_rref(j)<zero .or. elens_sig(j)<zero) then
       ! printout:
       ! - find name of elens
       do jj=1,nele
@@ -826,16 +869,17 @@ subroutine elens_postInput
       write(lout,"(a,i0,a)") "ELENS> checking consistency of user input data for e-lens #",j," named "//trim(bez(jj))//"..."
       if (elens_r1(j)<zero) write(lout,"(a)") "ELENS> ...e-lens has R1<0"
       if (elens_r2(j)<zero) write(lout,"(a)") "ELENS> ...e-lens has R2<0"
+      if (elens_rref(j)<zero) write(lout,"(a)") "ELENS> ...e-lens has Rref<0"
       if (elens_sig(j)<zero) write(lout,"(a)") "ELENS> ...e-lens has sig_el<0"
       if (elens_emin(j)>zero.and.elens_sigdpp(j)>zero) then
-        write(lerr,"(a)") "ELENS> ERROR cannot express R1/R2 cuts in terms of both normalised emittance "// &
+        write(lerr,"(a)") "ELENS> ERROR cannot express R1/R2/Rref/sig cuts in terms of both normalised emittance "// &
               "and rms of delta distribution."
         write(lerr,"(a)") "ELENS>       please choose one of the two!"
         write(lerr,"(a,1pe22.15)") "ELENS>       got emin [m rad]=",elens_emin(j)
         write(lerr,"(a,1pe22.15)") "ELENS>       got sigdpp []=",elens_sigdpp(j)
         call prror
       elseif (elens_emin(j)<zero.and.elens_sigdpp(j)<zero) then
-        write(lerr,"(a)") "ELENS> ERROR cannot express R1/R2 cuts in terms of both normalised emittance "// &
+        write(lerr,"(a)") "ELENS> ERROR cannot express R1/R2/Rref/sig cuts in terms of both normalised emittance "// &
               "or rms of delta distribution without specifying one of the two."
         write(lerr,"(a)") "ELENS>       please choose one of the two!"
         if (elens_emin(j).ne.-one) then
@@ -873,7 +917,7 @@ end subroutine elens_postInput
 
 ! ================================================================================================ !
 !  operations after linopt has been called
-!  - compute r1, r2 and sig_el out of optics, if needed;
+!  - compute r1, r2, rRef and sig_el out of optics, if needed;
 !  - compute geometrical normalisation factors;
 ! ================================================================================================ !
 subroutine elens_postLinopt
@@ -882,7 +926,7 @@ subroutine elens_postLinopt
   use mod_utils, only : polinterp
   use mod_common, only : bez, kz, e0f, nucm0, fort3
   use mod_settings, only : st_debug
-  use numerical_constants, only : c1e3
+  use numerical_constants, only : c1e3, two
   use crcoall, only : lout, lerr
 
   integer j, jj, jguess
@@ -900,7 +944,7 @@ subroutine elens_postLinopt
       end if
     end do
 
-    if (elens_r1(j)<zero.or.elens_r2(j)<zero.or.elens_sig(j)<zero) then
+    if (elens_r1(j)<zero.or.elens_r2(j)<zero.or.elens_rref(j)<zero.or.elens_sig(j)<zero) then
       if (elens_iSet(j)==3 ) then
         elens_optVal(j)=elens_optVal(j)/real(elens_nUpdates(j),fPrec)
       elseif (elens_iSet(j)==4 ) then
@@ -937,6 +981,21 @@ subroutine elens_postLinopt
       write(lout,"(a,i0,a)") "ELENS> Recomputing R2 of e-lens #",j," named "//trim(bez(jj))//": "
       write(lout,"(a,1pe22.15)") "ELENS> - original value [sig]=",oldVal
       write(lout,"(a,1pe22.15)") "ELENS> - new value [mm]=",elens_r2(j)
+      lPrint=.true.
+    end if
+    ! compute Rref out of normalised settings
+    if (elens_rref(j)<zero) then
+      oldVal=elens_rref(j)
+      if (elens_emin(j)>zero) then ! betatron cut
+        elens_rref(j)=abs(elens_rref(j))*sqrt(elens_optVal(j)*elens_emin(j)/(e0f/nucm0))
+      else ! momentum cut
+        elens_rref(j)=abs(elens_rref(j))*(elens_optVal(j)*elens_sigdpp(j))
+      end if
+      elens_rref(j)=elens_rref(j)*c1e3
+      ! ...and printout:
+      write(lout,"(a,i0,a)") "ELENS> Recomputing Rref of e-lens #",j," named "//trim(bez(jj))//": "
+      write(lout,"(a,1pe22.15)") "ELENS> - original value [sig]=",oldVal
+      write(lout,"(a,1pe22.15)") "ELENS> - new value [mm]=",elens_rref(j)
       lPrint=.true.
     end if
     ! compute electron sigma out of normalised settings
@@ -984,29 +1043,31 @@ subroutine elens_postLinopt
       end if
     end if
 
-    ! compute geometrical normalisation factor
-    select case (elens_type(j))
-    case(1) ! Uniform distribution
-      elens_geo_norm(j) = (elens_r2(j)+elens_r1(j))*(elens_r2(j)-elens_r1(j))
-    case(2) ! Gaussian distribution
-      elens_geo_norm(j) = exp_mb(-0.5*(elens_r1(j)/elens_sig(j))**2)&
-                         -exp_mb(-0.5*(elens_r2(j)/elens_sig(j))**2)
-    case(3) ! Radial profile
-      elens_radial_fr1(j) = polinterp( elens_r1(j), &
-            elens_radial_profile_R(0:elens_radial_profile_nPoints(elens_iRadial(j)),elens_iRadial(j)), &
-            elens_radial_profile_J(0:elens_radial_profile_nPoints(elens_iRadial(j)),elens_iRadial(j)), &
-            elens_radial_profile_nPoints(elens_iRadial(j))+1, &
-            elens_radial_mpoints(elens_iRadial(j)), jguess )
-      elens_radial_fr2(j) = polinterp( elens_r2(j), &
-            elens_radial_profile_R(0:elens_radial_profile_nPoints(elens_iRadial(j)),elens_iRadial(j)), &
-            elens_radial_profile_J(0:elens_radial_profile_nPoints(elens_iRadial(j)),elens_iRadial(j)), &
-            elens_radial_profile_nPoints(elens_iRadial(j))+1, &
-            elens_radial_mpoints(elens_iRadial(j)), jguess  )
-      elens_geo_norm(j) = elens_radial_fr2(j) -elens_radial_fr1(j)
-    end select ! case (elens_type(j))
-    ! ...and printout:
-    write(lout,"(a,i0,a,1pe22.15)") "ELENS> Geometrical normalisation factor for elens #",j, &
-         " named "//trim(bez(jj))//": ",elens_geo_norm(j)
+    ! compute geometrical normalisation factor (only if lens is not wire!)
+    if ( .not.elens_lFull(j) .or. .not.elens_lZeroThick(j) ) then
+      select case (elens_type(j))
+      case(1) ! Uniform distribution
+        elens_geo_norm(j) = (elens_r2(j)+elens_r1(j))*(elens_r2(j)-elens_r1(j))
+      case(2) ! Gaussian distribution
+        elens_geo_norm(j) = exp_mb(-(((elens_r1(j)/elens_sig(j))*(elens_r1(j)/elens_sig(j)))/two)) &
+                           -exp_mb(-(((elens_r2(j)/elens_sig(j))*(elens_r2(j)/elens_sig(j)))/two))
+      case(3) ! Radial profile
+        elens_radial_fr1(j) = polinterp( elens_r1(j), &
+              elens_radial_profile_R(0:elens_radial_profile_nPoints(elens_iRadial(j)),elens_iRadial(j)), &
+              elens_radial_profile_J(0:elens_radial_profile_nPoints(elens_iRadial(j)),elens_iRadial(j)), &
+              elens_radial_profile_nPoints(elens_iRadial(j))+1, &
+              elens_radial_mpoints(elens_iRadial(j)), jguess )
+        elens_radial_fr2(j) = polinterp( elens_r2(j), &
+              elens_radial_profile_R(0:elens_radial_profile_nPoints(elens_iRadial(j)),elens_iRadial(j)), &
+              elens_radial_profile_J(0:elens_radial_profile_nPoints(elens_iRadial(j)),elens_iRadial(j)), &
+              elens_radial_profile_nPoints(elens_iRadial(j))+1, &
+              elens_radial_mpoints(elens_iRadial(j)), jguess  )
+        elens_geo_norm(j) = elens_radial_fr2(j) -elens_radial_fr1(j)
+      end select ! case (elens_type(j))
+      ! ...and printout:
+      write(lout,"(a,i0,a,1pe22.15)") "ELENS> Geometrical normalisation factor for elens #",j, &
+           " named "//trim(bez(jj))//": ",elens_geo_norm(j)
+    end if
 
     ! Compute elens theta at R2, if requested by user
     call eLensTheta(j)
@@ -1034,8 +1095,9 @@ subroutine elens_setOptics(iElem, bAlpha, bBeta, bOrbit, bOrbitP, bDisp, bDispP)
   real(kind=fPrec), intent(in) :: bDisp(2)
   real(kind=fPrec), intent(in) :: bDispP(2)
 
-  if(iElem<1 .or. iElem>nele .or. ( elens_r1(ielens(iElem))>zero .and. &
-       elens_r2(ielens(iElem))>zero .and. elens_sig(ielens(iElem))>zero)) return
+  if(iElem<1 .or. iElem>nele .or. &
+       ( elens_r1  (ielens(iElem))>zero .and. elens_r2(ielens(iElem))>zero .and. &
+         elens_rref(ielens(iElem))>zero .and. elens_sig(ielens(iElem))>zero ) ) return
 
   elens_nUpdates(ielens(iElem))=elens_nUpdates(ielens(iElem))+1
 
@@ -1090,7 +1152,7 @@ subroutine elens_setOptics(iElem, bAlpha, bBeta, bOrbit, bOrbitP, bDisp, bDispP)
 end subroutine elens_setOptics
   
 ! ================================================================================================ !
-!  Compute eLens theta at r2
+!  Compute eLens theta at rRef
 !  input variables:
 !  - length of eLens [m];
 !  - current intensity of e-beam [A]
@@ -1113,21 +1175,19 @@ subroutine eLensTheta(j)
   integer j,jj
   real(kind=fPrec) gamma_lens_beam
 
-  if(elens_lThetaR2(j) .and. elens_lAllowUpdate(j)) then
+  if(elens_lThetaRref(j) .and. elens_lAllowUpdate(j)) then
     ! the update of elens_beta_lens_beam is not strictly needed here,
     !   apart from the case of elens_Ek is DYNK-ed
     gamma_lens_beam  = ((elens_Ek(j)*c1m3)/elens_beam_mass(j))+one ! from kinetic energy
     elens_beta_lens_beam(j) = sqrt((one+one/gamma_lens_beam)*(one-one/gamma_lens_beam))
     
-    ! r2: from mm to m (c1m3)
+    ! rRef: from mm to m (c1m3)
     ! theta: from rad to mrad (c1e3)
-    elens_theta_r2(j) = gamma_lens_beam*((elens_len(j)*abs(elens_I(j)))/ &
-         ((((two*pi)*((eps0*clight)*clight))*brho)*(elens_r2(j)*c1m3)))*c1e3
-    elens_theta_r2(j) = sign(elens_theta_r2(j),elens_beam_chrg(j))
-    elens_theta_r2(j) = elens_theta_r2(j)*(one/(elens_beta_lens_beam(j)*beta0)- &
-         sign(one,elens_I(j)/elens_beam_chrg(j)))
-
-    if ( elens_type(j)>=2 ) elens_theta_r2(j) = elens_theta_r2(j) * elens_geo_norm(j)
+    elens_theta_ref(j) = gamma_lens_beam*((elens_len(j)*abs(elens_I(j)))/ &
+         ((((two*pi)*((eps0*clight)*clight))*brho)*(elens_rref(j)*c1m3)))*c1e3
+    elens_theta_ref(j) = sign(elens_theta_ref(j),elens_beam_chrg(j))
+    elens_theta_ref(j) = elens_theta_ref(j)*(one/(elens_beta_lens_beam(j)*beta0) &
+         -sign(one,elens_I(j)/elens_beam_chrg(j)))
 
     if(st_quiet < 2) then
       ! find name of elens
@@ -1138,10 +1198,8 @@ subroutine eLensTheta(j)
           end if
         end if
       end do
-      write(lout,"(a,i0,a,1pe22.15)") "ELENS> New theta at r2 for elens #",j, &
-           " named "//trim(bez(jj))//": ",elens_theta_r2(j)
-      if ( elens_type(j)>=2 ) write(lout,"(a,1pe22.15)") "ELENS>   ...considering also geom. norm. fact.: ", &
-           elens_geo_norm(j)
+      write(lout,"(a,i0,a,1pe22.15)") "ELENS> New theta at Rref for elens #",j, &
+           " named "//trim(bez(jj))//": ",elens_theta_ref(j)
     end if
   end if
 
@@ -1192,7 +1250,8 @@ subroutine parseRadialProfile(ifile)
 
 10 continue
   read(fUnit,"(a)",end=20,err=30) inLine
-  if(inLine(1:1) == "#") goto 10
+  if(inLine(1:1) == "#") goto 10 ! comment line
+  if(len(trim(inLine)) == 0 ) goto 10 ! empty line
 
   call chr_split(inLine, lnSplit, nSplit, spErr)
   if(spErr) then
@@ -1234,8 +1293,9 @@ subroutine parseRadialProfile(ifile)
     ! Echo parsed data (unless told to be quiet!)
     write(lout,"(a,i0,a)") "ELENS> Radial profile as from file "//&
       trim(elens_radial_filename(ifile))//" - #",ifile," - showing: ii, R[mm], J[A/mm2]"
+    write(lout,"(a)") "ELENS> NB: point at ii=0 (i.e. R=0) added automatically by SixTrack"
     do ii=0,elens_radial_profile_nPoints(ifile)
-      write(lout,"((a,i4),2(a,e22.15))") "ELENS> ",ii,",",elens_radial_profile_R(ii,ifile),",",elens_radial_profile_J(ii,ifile)
+      write(lout,"((a,i4),2(a,1pe22.15))") "ELENS> ",ii,",",elens_radial_profile_R(ii,ifile),",",elens_radial_profile_J(ii,ifile)
     end do
   end if
   return
@@ -1294,6 +1354,7 @@ subroutine integrateRadialProfile(ifile)
   if(st_quiet < 2) then
     write(lout,"(a,i0)") "ELENS> Integrated radial profile read from file "//&
       trim(elens_radial_filename(ifile))//" - #",ifile
+    write(lout,"(a)") "ELENS> NB: point at ii=0 (i.e. R=0) added automatically by SixTrack"
     do ii=0,elens_radial_profile_nPoints(ifile)
       write(lout,"((a,i4),2(a,1pe22.15))") "ELENS> ",ii,",",elens_radial_profile_R(ii,ifile),",",elens_radial_profile_J(ii,ifile)
     end do
@@ -1329,17 +1390,17 @@ subroutine normaliseRadialProfile(ifile)
 end subroutine normaliseRadialProfile
 
 ! ================================================================================================ !
-!  Last modified: 2019-04-11
+!  Last modified: 2020-03-02
 !  compute kick from electron lens
 ! ================================================================================================ !
 subroutine elens_kick(i,ix,n)
 
-  use mod_common, only : beta0, napx
+  use mod_common, only : beta0, napx, bez
   use mod_common_main, only : xv1, xv2, yv1, yv2, moidpsv, rvv
   use mathlib_bouncer
-  use numerical_constants, only : zero, one, two
+  use numerical_constants, only : zero, one, two, c1m15, c1m7
   use mod_utils, only : polinterp
-  use crcoall, only : lerr
+  use crcoall, only : lerr, lout
 
   implicit none
   
@@ -1347,81 +1408,139 @@ subroutine elens_kick(i,ix,n)
   integer, intent(in) :: ix
   integer, intent(in) :: n
   
-  real(kind=fPrec) xx, yy, rr, frr, rr_sq, r1_sq, elSig_sq, tmpBB
-  integer          jj
+  real(kind=fPrec) xx, yy, rr, frr, tmpBB, epsilon, gteps, lteps, r1oSigSq, rroSigSq, cl2ori
+  integer          jj, mPoints
 
-  r1_sq=elens_r1(ielens(ix))**2
-  elSig_sq=elens_sig(ielens(ix))**2
+  epsilon=c1m15
+  gteps=one+epsilon
+  lteps=one-epsilon
+  cl2ori=c1m7
+
+  ! for Gaussian distribution, prepare some useful numbers
+  r1oSigSq=zero
+  if ( elens_type(ielens(ix)) == 2 ) then
+    r1oSigSq=(elens_r1(ielens(ix))/elens_sig(ielens(ix)))*(elens_r1(ielens(ix))/elens_sig(ielens(ix)))
+  end if
   
   do jj=1,napx
+     
     ! 1) apply offset of e-lens
     !    xx = x(proton) - elens_offset_x
     !    yy = y(proton) - elens_offset_y
     xx=xv1(jj)-elens_offset_x(ielens(ix))
     yy=xv2(jj)-elens_offset_y(ielens(ix))
+    if (abs(xx)<epsilon) xx=zero
+    if (abs(yy)<epsilon) yy=zero
+    
     ! 2) calculate radius
     !    radial position of main beam relative to center of elens beam
     !    rr = sqrt(xx**2+yy**2)
-    rr_sq=(xx+yy)*(xx+yy)-two*(xx*yy)
-    rr=sqrt(rr_sq)
+    rr=sqrt((xx+yy)*(xx+yy)-two*(xx*yy))
+    if (abs(rr)<epsilon) rr=zero
+    
     ! 3) calculate kick
     !    shape function: spatial charge density depends on type:
-    !    0    if r <= R1
+    !    0    if r < R1
     !    frr  if R1 < r < R2
     !    1    if r >= R2
-    if (rr>elens_r1(ielens(ix)).or.(elens_lZeroThick(ielens(ix)).and.rr==elens_r1(ielens(ix)))) then ! rr<=R1 -> no kick from elens
-      if (rr<elens_r2(ielens(ix))) then ! R1<rr<R2
+    if ( rr > elens_r1(ielens(ix))*lteps .or. elens_lFull(ielens(ix)) ) then ! rr<R1: no kick from elens
+      if ( rr < elens_r2(ielens(ix))*lteps .and. .not.elens_lZeroThick(ielens(ix)) ) then ! R1<=rr<R2: type-dependent kick
+          
         select case (elens_type(ielens(ix)))
-        case (1)
-          ! UNIFORM: eLens with uniform profile
-          ! formula: (r^2-r1^2)/(r2^2-r1^2)
-          frr=rr_sq-r1_sq
+            
+        case (1) ! UNIFORM: eLens with uniform profile
+          if ( elens_lFull(ielens(ix)) ) then
+            ! formula: r/Rref
+            frr=rr/elens_Rref(ielens(ix))
+          else
+            ! formula: (r^2-r1^2)/(r2^2-r1^2)*Rref/r
+            frr=(((rr+elens_r1(ielens(ix)))*(rr-elens_r1(ielens(ix))))/elens_geo_norm(ielens(ix)))*(elens_rref(ielens(ix))/rr)
+          end if
+         
         case (2)
           ! GAUSSIAN: eLens with Gaussian profile
-          ! formula: (exp(-r1^2/2sig^2)-exp(-r^2/2sig^2))/(exp(-r1^2/2sig^2)-exp(-r2^2/2sig^2))
-          frr=exp_mb(-((r1_sq/elSig_sq)/two))-exp_mb(-((rr_sq/elSig_sq)/two))
+          if ( elens_lFull(ielens(ix)) ) then
+            if ( rr <= cl2ori ) then
+              ! formula: r*Rref/2sig^2/(exp(-r1^2/2sig^2)-exp(-r2^2/2sig^2))
+              frr=(((rr/elens_sig(ielens(ix)))*(elens_rref(ielens(ix))/elens_sig(ielens(ix))))/two)/elens_geo_norm(ielens(ix))
+            else
+              ! formula: (1-exp(-r^2/2sig^2))/(exp(-r1^2/2sig^2)-exp(-r2^2/2sig^2))*Rref/r
+              rroSigSq=(rr/elens_sig(ielens(ix)))*(rr/elens_sig(ielens(ix)))
+              frr=((one-exp_mb(-(rroSigSq/two)))/elens_geo_norm(ielens(ix)))*(elens_rref(ielens(ix))/rr)
+            end if     
+          else
+            ! formula: (exp(-r1^2/2sig^2)-exp(-r^2/2sig^2))/(exp(-r1^2/2sig^2)-exp(-r2^2/2sig^2))*Rref/r
+            rroSigSq=(rr/elens_sig(ielens(ix)))*(rr/elens_sig(ielens(ix)))
+            frr=((exp_mb(-(r1oSigSq/two))-exp_mb(-(rroSigSq/two)))/elens_geo_norm(ielens(ix)))*(elens_rref(ielens(ix))/rr)
+          end if
+           
         case (3)
           ! RADIAL PROFILE: eLens with radial profile as from file
-          ! formula: (cumul_J(r)-cumul_J(r1))/(cumul_J(r2)-cumul_J(r1))
+          ! formula: (cumul_J(r)-cumul_J(r1))/(cumul_J(r2)-cumul_J(r1))*Rref/r
+          mPoints=elens_radial_mpoints(ielens(ix))
+          if ( elens_lFull(ielens(ix)) .and. rr <= cl2ori ) mPoints=elens_radial_mpoints_ori
           frr=polinterp( rr, &
                 elens_radial_profile_R(0:elens_radial_profile_nPoints(elens_iRadial(ielens(ix))),elens_iRadial(ielens(ix))), &
                 elens_radial_profile_J(0:elens_radial_profile_nPoints(elens_iRadial(ielens(ix))),elens_iRadial(ielens(ix))), &
                 elens_radial_profile_nPoints(elens_iRadial(ielens(ix)))+1, &
-                elens_radial_mpoints(ielens(ix)), elens_radial_jguess(ielens(ix)) )-elens_radial_fr1(ielens(ix))
+                mPoints, elens_radial_jguess(ielens(ix)) )-elens_radial_fr1(ielens(ix))
+          frr=(frr/elens_geo_norm(ielens(ix)))*(elens_rref(ielens(ix))/rr)
+           
         case default
           write(lerr,"(a,i0,a)") "ELENS> ERROR elens_kick: elens_type=",elens_type(ielens(ix))," not recognized. "
           write(lerr,"(a)")      "ELENS>       Possible values for type are: 1, 2 and 3"
           call prror
+          
         end select
-        ! take into account normalisation factor (geometrical)
-        frr=frr/elens_geo_norm(ielens(ix))
+       
       else ! rr>=R2
-        frr=one
+        if ( rr > elens_r2(ielens(ix))*gteps ) then
+          ! rr>R2: formula: Rref/r
+          frr=elens_rref(ielens(ix))/rr
+        else
+          if ( elens_lFull(ielens(ix)) .and. elens_lZeroThick(ielens(ix)) ) then
+            ! degenerate e-lens to a wire: rr=R2=0.0!!!
+            write(lerr,"(a,i0,a)") "ELENS> ERROR E-lens # ",ielens(ix)," named '"//trim(bez(ix))// &
+                  "' degerate to a wire (R1=R2=0.0)"
+            write(lerr,"(a)")      "ELENS>       Kick cannot be computed at wire position!"
+            call prror
+          else 
+            ! rr=R2: formula: 1
+            frr=one
+          end if
+        end if
+        
       endif
+     
       ! 'radial kick'
-      frr = (elens_theta_r2(ielens(ix))*((elens_r2(ielens(ix))/rr)*frr))*moidpsv(jj)
-      if(elens_lThetaR2(ielens(ix))) then
+      frr = ( elens_theta_ref(ielens(ix))*frr )*moidpsv(jj)
+      if(elens_lThetaRref(ielens(ix))) then
         tmpBB=sign(elens_beta_lens_beam(ielens(ix))*beta0,elens_I(ielens(ix))/elens_beam_chrg(ielens(ix)))
         frr = frr*((rvv(jj)-tmpBB)/(one-tmpBB))
       endif
+     
+      ! apply 'radial kick'
       yv1(jj)=yv1(jj)+frr*(xx/rr)
       yv2(jj)=yv2(jj)+frr*(yy/rr)
-    endif
-  end do
+      
+    endif ! rr<R1: no kick from elens
+   
+  end do ! do jj=1,napx
+
 end subroutine elens_kick
 
 ! ================================================================================================ !
-!  Last modified: 2019-11-07
+!  Last modified: 2020-03-02
 !  compute kick from electron lens
 !  inspired by wireda
 ! ================================================================================================ !
 subroutine elens_kick_fox(i,ix)
 
-  use mod_common, only : beta0, mtcda
+  use mod_common, only : beta0, mtcda, bez
   use mod_settings, only : st_debug
   use crcoall, only : lout, lerr
   use mod_common_main
-  use numerical_constants, only : zero, one, two, pieni
+  use numerical_constants, only : zero, one, two, c1m15, c1m7
   use mod_utils, only : huntBin, polcof, polinterp
   use mod_lie_dab, only : lnv, idao, rscrri, iscrda
   use mod_common_track, only : comt_daStart, comt_daEnd
@@ -1434,8 +1553,8 @@ subroutine elens_kick_fox(i,ix)
   integer, intent(in) :: ix
   
   integer          :: iLens, iRadial, nBin, nPoints, mPoints, kMin, kMax, kk
-  real(kind=fPrec) :: rra, frra, xa, ya, xffset, yffset, ele_r1, er1_sq, ele_r2, elenor, elesig, elebet, tmpcof
-  real(kind=fPrec) :: eleTR2, esg_sq, epsilon
+  real(kind=fPrec) :: rra, frra, xa, ya, xffset, yffset, ele_r1, ele_r2, ele_rr, elenor, elesig, elebet, tmpcof
+  real(kind=fPrec) :: eletrf, epsilon, gteps, lteps, cl2ori
   real(kind=fPrec), allocatable :: cof(:)
 
 ! for FOX
@@ -1457,11 +1576,10 @@ subroutine elens_kick_fox(i,ix)
 !FOX  D V RE INT BETA0  ;
 !FOX  D V RE INT ELE_R1 ;
 !FOX  D V RE INT ELE_R2 ;
-!FOX  D V RE INT ER1_SQ ;
-!FOX  D V RE INT ELETR2 ;
+!FOX  D V RE INT ELE_RR ;
+!FOX  D V RE INT ELETRF ;
 !FOX  D V RE INT ELENOR ;
 !FOX  D V RE INT ELESIG ;
-!FOX  D V RE INT ESG_SQ ;
 !FOX  D V RE INT ELEBET ;
 !FOX  D V DA INT TMPRR  NORD NVAR ;
 !FOX  D V RE INT TMPCOF ;
@@ -1477,21 +1595,21 @@ subroutine elens_kick_fox(i,ix)
 !FOX  1 if(1==1) then
 !-----------------------------------------------------------------------
 
-  if (st_debug) write(lout,'(2(a,i0))')'ELENS> ELENS_KICK_FOX for i=',i,' - ix=',ix
-
-  epsilon=pieni
+  epsilon=c1m15
+  gteps=one+epsilon
+  lteps=one-epsilon
+  cl2ori=c1m7
 
   iLens=ielens(ix)
   XFFSET=elens_offset_x(iLens)
   YFFSET=elens_offset_y(iLens)
   ELE_R1=elens_r1(iLens)
   ELE_R2=elens_r2(iLens)
-  ELETR2=elens_theta_r2(iLens)
+  ELE_RR=elens_rref(iLens)
+  ELETRF=elens_theta_ref(iLens)
   ELENOR=elens_geo_norm(iLens)
   ELESIG=elens_sig(iLens)
   ELEBET=elens_beta_lens_beam(iLens)
-  ER1_SQ=ELE_R1**2
-  ESG_SQ=ELESIG**2
   
   FRRA=zero
   RRA=zero
@@ -1501,6 +1619,7 @@ subroutine elens_kick_fox(i,ix)
 !FOX    FRR=ZERO ;
 
   if (st_debug) then
+    write(lout,'(2(a,i0))')'ELENS> ELENS_KICK_FOX for i=',i,' - ix=',ix
     write(lout,'(a)')'ELENS> ELENS_KICK_FOX closed orbit BEFORE elens:'
     call dapri(XX(1),6)
     call dapri(XX(2),6)
@@ -1513,9 +1632,17 @@ subroutine elens_kick_fox(i,ix)
   !    yy = y(proton) - elens_offset_y
 !FOX  XI=(XX(1)-XFFSET) ;
 !FOX  YI=(XX(2)-YFFSET) ;
+  call dapek(XI,hh,XA)
+  call dapek(YI,hh,YA)
+  if (abs(XA)<epsilon) then
+!FOX  XI=ZERO ;
+    XA=zero
+  end if
+  if (abs(YA)<epsilon) then
+!FOX  YI=ZERO ;
+    YA=zero
+  end if
   if (st_debug) then
-    call dapek(XI,hh,XA)
-    call dapek(YI,hh,YA)
     write(lout,'(2(a,1pe23.16))')'ELENS> ELENS_KICK_FOX computing at XA=',XA,' - YA=',YA
   end if
   
@@ -1527,47 +1654,84 @@ subroutine elens_kick_fox(i,ix)
   if ( abs(RRA)>epsilon**2 ) then
 !FOX  RR=SQRT(RR_SQ) ;
   else
+!FOX  RR_SQ=ZERO ;
 !FOX  RR=ZERO ;
   end if
-  RRA=zero
+  call dapek(RR,hh,RRA)
+  if (st_debug) then
+    write(lout,'(a,1pe23.16)')   'ELENS> ELENS_KICK_FOX computing at RRA=',RRA
+    write(lout,'(2(a,1pe23.16))')'ELENS>                when R1=',elens_r1(iLens),' and R2=',elens_r2(iLens)
+    flush(lout)
+  end if
 
   ! 3) calculate kick
   !    shape function: spatial charge density depends on type:
   !    0    if r <= R1
   !    frr  if R1 < r < R2
   !    1    if r >= R2
-  call dapek(RR,hh,RRA)
-  if (st_debug) then
-    write(lout,'(a,1pe23.16)')   'ELENS> ELENS_KICK_FOX computing at RRA=',RRA
-    write(lout,'(2(a,1pe23.16))')'ELENS>                when R1=',elens_r1(iLens),' and R2=',elens_r2(iLens)
-  end if
-    
-  if ( RRA>elens_r1(iLens)+epsilon .or. &
-       (elens_lZeroThick(iLens).and.abs(RRA-elens_r1(iLens))<epsilon) ) then ! rr<=R1 -> no kick from elens
-    if (RRA<elens_r2(iLens)-epsilon) then ! R1<rr<R2
-      flush(lout)
+  if ( RRA > elens_r1(iLens)*lteps .or. elens_lFull(iLens) ) then ! rr<R1: no kick from elens
+    if ( RRA < elens_r2(iLens)*lteps.and..not.elens_lZeroThick(iLens) ) then ! R1<=rr<R2: type-dependent kick
+       
       select case (elens_type(iLens))
-      case (1)
-        ! UNIFORM: eLens with uniform profile
-        ! formula: (r^2-r1^2)/(r2^2-r1^2)
-!FOX    FRR=RR_SQ-ER1_SQ ;
+        
+      case (1) ! UNIFORM: eLens with uniform profile
+        if ( elens_lFull(iLens) ) then
+          ! formula: r/Rref
+!FOX      FRR=RR/ELE_RR ;
+          if (st_debug) write(lout,'(a)') "ELENS> ELENS_KICK_FOX: elens type UNIFORM, formula for full lens"
+        else
+          ! formula: (r^2-r1^2)/(r2^2-r1^2)*Rref/r
+!FOX      FRR=(((RR+ELE_R1)*(RR-ELE_R1))/ELENOR)*(ELE_RR/RR) ;
+          if (st_debug) write(lout,'(a)') "ELENS> ELENS_KICK_FOX: elens type UNIFORM, formula for hollow lens"
+        end if
          
       case (2)
         ! GAUSSIAN: eLens with Gaussian profile
-        ! formula: (exp(-r1^2/2sig^2)-exp(-r^2/2sig^2))/(exp(-r1^2/2sig^2)-exp(-r2^2/2sig^2))
-!FOX    FRR=EXP(-HALF*(ER1_SQ/ESG_SQ))-EXP(-HALF*(RR_SQ/ESG_SQ)) ;
-        
+        if ( elens_lFull(iLens) ) then
+          if ( RRA <= cl2ori ) then
+            ! formula: r*Rref/2sig^2/(exp(-r1^2/2sig^2)-exp(-r2^2/2sig^2))
+!FOX        FRR=(((RR/ELESIG)*(ELE_RR/ELESIG))/TWO)/ELENOR ;
+            if (st_debug) write(lout,'(a)') "ELENS> ELENS_KICK_FOX: elens type GAUSSIAN, linearised formula"
+          else
+            ! formula: (1-exp(-r^2/2sig^2))/(exp(-r1^2/2sig^2)-exp(-r2^2/2sig^2))*Rref/r
+!FOX        FRR=((ONE-EXP(-HALF*((RR/ELESIG)*(RR/ELESIG))))/ELENOR)*(ELE_RR/RR) ;
+            if (st_debug) write(lout,'(a)') "ELENS> ELENS_KICK_FOX: elens type GAUSSIAN, formula for full lens"
+          end if     
+        else
+          ! formula: (exp(-r1^2/2sig^2)-exp(-r^2/2sig^2))/(exp(-r1^2/2sig^2)-exp(-r2^2/2sig^2))*Rref/r
+!FOX      FRR=((EXP(-HALF*((ELE_R1/ELESIG)*(ELE_R1/ELESIG)))-EXP(-HALF*((RR/ELESIG)*(RR/ELESIG))))/ELENOR)*(ELE_RR/RR) ;
+          if (st_debug) write(lout,'(a)') "ELENS> ELENS_KICK_FOX: elens type GAUSSIAN, formula for hollow lens"
+        end if
+         
       case (3)
         ! RADIAL PROFILE: eLens with radial profile as from file
         ! formula: (cumul_J(r)-cumul_J(r1))/(cumul_J(r2)-cumul_J(r1))
+        if (st_debug) write(lout,'(a)') "ELENS> ELENS_KICK_FOX: elens type RADIAL"
         iRadial=elens_iRadial(iLens)
         nPoints=elens_radial_profile_nPoints(iRadial)
         mPoints=elens_radial_mpoints(iLens)
+        if ( elens_lFull(iLens) .and. RRA <= cl2ori ) then
+          if (st_debug) write(lout,'(a,6(1X,i5))') "ELENS> ELENS_KICK_FOX: forcing mPoints to:", elens_radial_mpoints_ori
+          mPoints=elens_radial_mpoints_ori
+        end if
         nBin=huntBin(RRA,elens_radial_profile_R(0:nPoints,iRadial),nPoints+1,-1)-1
         kMin=min(max(nBin-(mPoints-1)/2,1),nPoints+2-mPoints)
         kMax=min(kMin+mPoints-1,nPoints+1)
+        if (st_debug) write(lout,'(a,6(1X,i5))') "ELENS> ELENS_KICK_FOX: iRadial, nPoints, mPoints, nBin, kMin, kMax:", &
+             iRadial, nPoints, mPoints, nBin, kMin, kMax
         call alloc(cof,kMax-kMin+1,zero,'cof')
+        if (st_debug) then
+          do kk=kMin,kMax
+            write(lout,'(a,1X,i0,2(1X,1pe22.15))') "ELENS> ELENS_KICK_FOX: kk, R [mm], JJ [A/mm2]:", &
+                kk, elens_radial_profile_R(kk,iRadial), elens_radial_profile_J(kk,iRadial)
+          end do
+        end if 
         call polcof(elens_radial_profile_R(kMin:kMax,iRadial),elens_radial_profile_J(kMin:kMax,iRadial),kMax-kMin+1,cof)
+        if (st_debug) then
+          do kk=1,mPoints
+            write(lout,'(a,1X,i5,1X,1pe22.15)') "ELENS> ELENS_KICK_FOX: order, coefficient:", kk-1, cof(kk)
+          end do
+        end if 
         TMPCOF=COF(1)
 !FOX    FRR=TMPCOF ;
 !FOX    TMPRR=RR;
@@ -1576,32 +1740,56 @@ subroutine elens_kick_fox(i,ix)
 !FOX      FRR=FRR+(TMPRR*TMPCOF) ;
 !FOX      TMPRR=TMPRR*RR ;
         end do
+        if (st_debug) then
+          call dapek(FRR,hh,FRRA)
+          write(lout,'(a,1pe22.15)') "ELENS> ELENS_KICK_FOX: FRRA 1:", FRRA
+        end if
+!FOX    FRR=(FRR/ELENOR)*(ELE_RR/RR) ;
+        if (st_debug) then
+          call dapek(FRR,hh,FRRA)
+          write(lout,'(a,1pe22.15)') "ELENS> ELENS_KICK_FOX: FRRA 2:", FRRA
+        end if
         call dealloc(cof,'cof')
+        
       case default
-        write(lerr,"(a,i0,a)") "ELENS> ERROR in elens_kick_fox: elens_type=",elens_type(ielens(ix))," not recognized. "
+        write(lerr,"(a,i0,a)") "ELENS> ERROR in elens_kick_fox: elens_type=",elens_type(iLens)," not recognized. "
         write(lerr,"(a)")      "ELENS>       Possible values for type are: 1, 2 and 3"
         call prror
+        
       end select
-      ! take into account normalisation factor (geometrical)
-!FOX    FRR=FRR/ELENOR ;
+
     else ! rr>=R2
-!FOX    FRR=ONE ;
+      if ( rr > elens_r2(iLens)*gteps ) then
+        ! rr>R2: formula: Rref/r
+!FOX    FRR=ELE_RR/RR ;
+      else
+        if ( elens_lFull(iLens) .and. elens_lZeroThick(iLens) ) then
+          ! degenerate e-lens to a wire: rr=R2=0.0!!!
+          write(lerr,"(a,i0,a)") "ELENS> ERROR E-lens # ",iLens," named '"//trim(bez(ix))// &
+                "' degerate to a wire (R1=R2=0.0)"
+          write(lerr,"(a)")      "ELENS>       Kick cannot be computed at wire position!"
+          call prror
+        else 
+          ! rr=RREF: formula: 1
+!FOX      FRR=ONE ;
+        end if
+      end if
     endif
+   
     ! 'radial kick'
-!FOX    FRR=(((ELETR2/RR)*ELE_R2)*FRR)*(MTCDA/(ONE+DPDA)) ;
-    if(elens_lThetaR2(ielens(ix))) then
-      if(elens_I(ielens(ix))/elens_beam_chrg(ielens(ix)) < zero) then
+!FOX    FRR=(ELETRF*FRR)*(MTCDA/(ONE+DPDA)) ;
+    if(elens_lThetaRref(iLens)) then
+      if(elens_I(iLens)/elens_beam_chrg(iLens) < zero) then
 !FOX    FRR=FRR*((RV+ELEBET*BETA0)/(ONE+ELEBET*BETA0)) ;
       else
 !FOX    FRR=FRR*((RV-ELEBET*BETA0)/(ONE-ELEBET*BETA0)) ;
       end if
     end if
-    if (abs(RRA-elens_r1(iLens))<epsilon.or.abs(RRA-elens_r2(iLens))<epsilon) then ! rr==R1 and rr==R2 
-      ! set all derivatives to 0.0
+    if (st_debug) then
       call dapek(FRR,hh,FRRA)
-!FOX    FRR=ZERO ;
-      call dapok(FRR,hh,FRRA)
+      write(lout,'(a,1pe22.15)') "ELENS> ELENS_KICK_FOX: FRRA 3:", FRRA
     end if
+    
 !FOX  YY(1)=YY(1)+(FRR*XI)/RR ;
 !FOX  YY(2)=YY(2)+(FRR*YI)/RR ;
   end if

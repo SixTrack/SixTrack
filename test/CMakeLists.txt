@@ -128,7 +128,10 @@ list(APPEND SIXTRACK_TESTS
   elensidealthin6d
   elensidealthin6d_DYNK
   elensidealthin6d_FOX
-  elensidealthin6d_FOX_single
+  elensidealthin6d_FOX_gaussian
+  elensidealthin6d_FOX_radial
+  elensidealthin6d_FOX_uniform
+  elensidealthin6d_FOX_wire
   elensidealthin6d_ions
   elensidealthin6d_ions_spec
   elensidealthin6d_norm_settings
@@ -688,7 +691,10 @@ set(FAST_TESTS
   elensidealthin6d
   elensidealthin6d_DYNK
   elensidealthin6d_FOX
-  elensidealthin6d_FOX_single
+  elensidealthin6d_FOX_gaussian
+  elensidealthin6d_FOX_radial
+  elensidealthin6d_FOX_uniform
+  elensidealthin6d_FOX_wire
   elensidealthin6d_ions
   elensidealthin6d_ions_spec
   elensidealthin6d_norm_settings
