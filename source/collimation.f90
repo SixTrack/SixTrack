@@ -252,6 +252,9 @@ subroutine coll_shuffleLostPart
     nabs_type(j:tnapx)      = cshift(nabs_type(j:tnapx),      1)
     nhit_stage(j:tnapx)     = cshift(nhit_stage(j:tnapx),     1)
 
+    cry_proc_prev(j:tnapx)  = cshift(cry_proc_prev(j:tnapx),  1)
+    cry_proc_tmp(j:tnapx)   = cshift(cry_proc_tmp(j:tnapx),   1)
+
     tnapx = tnapx - 1
   end do
 
@@ -269,26 +272,6 @@ subroutine coll_shuffleLostPart
   end if
 
 end subroutine coll_shuffleLostPart
-
-subroutine cry_shuffleLostPart
-
-  use mod_common
-  use mod_common_main
-  use coll_common
-
-  integer j, tnapx
-
-  tnapx = napx
-  do j=napx,1,-1
-    if(llostp(j) .eqv. .false.) cycle
-
-    cry_proc_prev(j:tnapx) = cshift(cry_proc_prev(j:tnapx), 1)
-    cry_proc_tmp(j:tnapx) = cshift(cry_proc_tmp(j:tnapx), 1)
-
-    tnapx = tnapx - 1
-  end do
-
-end subroutine cry_shuffleLostPart
 
 ! ================================================================================================ !
 !  Collimation Init
