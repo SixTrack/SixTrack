@@ -252,6 +252,9 @@ subroutine coll_shuffleLostPart
     nabs_type(j:tnapx)      = cshift(nabs_type(j:tnapx),      1)
     nhit_stage(j:tnapx)     = cshift(nhit_stage(j:tnapx),     1)
 
+    cry_proc_prev(j:tnapx)  = cshift(cry_proc_prev(j:tnapx),  1)
+    cry_proc_tmp(j:tnapx)   = cshift(cry_proc_tmp(j:tnapx),   1)
+
     tnapx = tnapx - 1
   end do
 
@@ -1336,8 +1339,9 @@ subroutine coll_openFiles
 
     call f_requestUnit(coll_cryInterFile,coll_cryInterUnit)
     call f_open(unit=coll_cryInterUnit,file=coll_cryInterFile,formatted=.true.,mode="w",status="replace")
-    write(coll_cryInterUnit,"(a1,1x,a6,1x,a8,1x,a20,1x,a4,10(1x,a15))") &
-        "#","partID","turn",chr_rPad("collimator",20),"proc","kickx","kicky","Ein","Eout","xpin","ypin","cryangle","xin","yin"
+    write(coll_cryInterUnit,"(a1,1x,a6,1x,a8,1x,a20,1x,a4,1x,a4,10(1x,a15))") &
+        "#","partID","turn",chr_rPad("collimator",20),"prev","proc","kickx","kicky","Ein","Eout", &
+        "xpin","ypin","cryangle","xin","yin"
   end if
 
   if(do_select) then
@@ -1766,8 +1770,8 @@ subroutine coll_doCollimator(stracki)
       end if
       do j=1,napx
         if(cry_proc(j) > 0) then
-          write(coll_cryInterUnit,"(i8,1x,i8,1x,a20,1x,i4,10(1x,1pe15.8))")        &
-            partID(j), iturn, cdb_cName(icoll)(1:20),cry_proc(j),rcxp(j)-rcxp0(j), &
+          write(coll_cryInterUnit,"(i8,1x,i8,1x,a20,1x,i4,1x,i4,10(1x,1pe15.8))")        &
+            partID(j), iturn, cdb_cName(icoll)(1:20),cry_proc_prev(j),cry_proc(j),rcxp(j)-rcxp0(j), &
             rcyp(j)-rcyp0(j),rcp0(j),rcp(j),rcxp0(j),rcyp0(j),cry_tilt,rcx0(j),rcy0(j)
         end if
       end do
