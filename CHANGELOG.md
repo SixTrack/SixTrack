@@ -28,6 +28,7 @@
   Documentation changed accordingly (user and physics manual).
 * When sending particles to geant4, if the particle mass is within a tolerance of the geant4 value, update the mass to this value and re-scale the particle energy. PR # 1055 (J. Molson).
 * If no collimator are found for a given family, the aperture of that family is set to zero. PR #1053 (M. D'Andrea)
+* If a particle interacts with a crystal collimator after having previously interacted with another or the same crystal collimator, the process ID of the previous interaction is stored in the cry_interaction file. PR #1058 (M. D'Andrea)
 
 **Code Improvements and Changes**
 
