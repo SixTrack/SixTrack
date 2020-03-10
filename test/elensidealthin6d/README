@@ -6,7 +6,10 @@ Tests:
 - thin6d_ions is like thin6d but the machine is set for Xe-129 and 7*4 ion species are tracked (see initial.dat); moreover, the simulation starts at IP4;
 - thin6d_ions_spec is like thin6d_ions but the four e-lenses give the same kick, even if different species are used;
 - thin6d_FOX is like thin6d and checks that the kicks computed by FOX fit with the kicks from the tracking;
-- thin6d_FOX_single is a one-turn, one-pair calculation, where the user can check that an elens with KL=2E-3 rad/m (ie 20urad at R2=10mm) gives a hor/ver tune shift of ~4E-2/5E-2;
+- thin6d_FOX_gaussian is similar to thin6d_FOX_uniform, but checks the gaussian distribution. The elens has KL=3E-4 rad/m (requiring 0.34urad at R2=7mm), leading to a hor/ver tune shift of ~5.95E-3/6.29E-3;
+- thin6d_FOX_radial is similar to thin6d_FOX_uniform, but checks the radial distribution. The simple case of a uniform radial distribution is taken, and the elens has KL=4E-4 rad/m (ie 4urad at R2=10mm), leading to a hor/ver tune shift of ~7.93E-3/8.39E-3;
+- thin6d_FOX_uniform is a one-turn, one-pair calculation, where the user can check that an elens with KL=2E-4 rad/m (ie 2urad at R2=10mm) gives a hor/ver tune shift of ~3.96E-3/4.19E-3;
+- thin6d_FOX_wire is like thin6d_fox, but it deploys only 4 degenerate elenses to WIRE;
 - thin6d_norm_settings is like thin6d, apart from the settings, which are given in normalised units;
 - thin6d_ramp_DYNK is like thin6d but the energy is ramped (0.5MeV/turn, 100k turns) and two elenses are assigned time-varying kicks (pulsing) whereas the other two are kept on;
 

@@ -14,14 +14,17 @@
 **User Side Changes**
 
 * When specifying `XP` and `YP` in the `FORMAT` statement of the `DIST` block, the units are parsed. Accepted values are [1], [1000], [MRAD], [RAD]. PR # 1054 (A. Mereghetti)
-* Electron lenses have been inserted into FOX - PR #839 (A. Mereghetti).
-* Increased flexibility of e-lens module - PR #841 (A. Mereghetti):
+* Electron lenses have been inserted into FOX - PR #839 and #1056 (A. Mereghetti).
+* Increased flexibility of e-lens module - PR #841 and 1056 (A. Mereghetti):
   * elens module fully dynamic allocatable;
   * give possibility to express R_1 and R_2 in sigma;
   * add any ion species to be defined as possible lens beam;
+  * degenerate WIRE type of e-beam distribution is correctly handled;
   * other changes, including:
     * relativistic gamma of lens beam added to calculation of theta_R2;
     * removed remaining signs of chebyshev polynomials in elens module;
+    * empty lines allowed in file describing the radial profile;
+    * fixed bug in geometric normalisation factor of GAUSSIAN and RADIAL prpofiles;
   Documentation changed accordingly (user and physics manual).
 * When sending particles to geant4, if the particle mass is within a tolerance of the geant4 value, update the mass to this value and re-scale the particle energy. PR # 1055 (J. Molson).
 * If no collimator are found for a given family, the aperture of that family is set to zero. PR #1053 (M. D'Andrea)

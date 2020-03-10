@@ -2,7 +2,7 @@ GEOME-STRENG TITLE:eltck4_9mrad2016injnocollc15o+19_6noerru%1%s%62.28_60.31%0_10
 PRINTOUT OF INPUT PARAMETERS--------------------------------------------
 NEXT
 TRACKING PARAMETERS-----------------------------------------------------
-1 0 1 0 6.89493 0 1 0 0 10
+100 0 30 0 4.0220 0 1 0 0 10
 1 1 0 1 2
 0 0 1 1 1 50000 2
 NEXT
@@ -63,11 +63,28 @@ NEXT
 /%NO  %NV 1E-38 %nsix 0
 /NEXT
 ELEN
-/ 1 lens @450GeV, theta_r2=20urad, R2=10mm, R1=0mm;
-/   -> quad-like kick: KL=2E-2 rad/m;
-hel2 UNIFORM  -2E-2 10.0 0.0 0.0 0.0
+/ 4 lenses: 450GeV, sig=1.1547mm,
+/      theta_ref=4.92mrad
+/ 1. - WIRE as degenerate UNIFORM, half kick, offset=(5sig,12sig)
+/ 2. - as 1 but with re-computed kick and offset=(12sig,-5sig)
+/ 3. - WIRE, full kick, offset=(-5sig,-12sig)
+/ 4. - as 3 but with re-computed kick and offset=(-12sig,5sig)
+/ hel1 UNIFORM  -2.460e-03 0.0     0.0      5.7735      13.8564
+/ hel2 UNIFORM  -2.460e-03 0.0     0.0     13.8564      -5.7735 3 1.14591 15
+/ hel3 WIRE     -4.920e-03 5.7735  0.0     -5.7735     -13.8564
+/ hel4 WIRE      4.920e-03 5.7735  0      -13.8564       5.7735 3 6.61591 15
+hel1 UNIFORM  -2.460e-03 0.0     0.0      3.464      4.6187
+hel2 UNIFORM  -2.460e-03 0.0     0.0     4.6187      -3.464 3 1.14591 15
+hel3 WIRE     -4.920e-03 5.7735  0.0     -3.464     -4.6187
+hel4 WIRE      4.920e-03 5.7735  0      -4.6187       3.464 3 6.61591 15
+SPEC 510.998902E-3 1
 NEXT
 DUMP
+ip4..2 1 1030 2 HEL_DUMP_1 1 100
+ip4..3 1 1031 2 HEL_DUMP_2 1 100
+ip4..4 1 1032 2 HEL_DUMP_3 1 100
+ip4..5 1 1033 2 HEL_DUMP_4 1 100
+ip4..6 1 1034 2 HEL_DUMP_5 1 100
 ip4    1 -1   2 IP4_DUMP_last 100 100
 NEXT
 LINEAR OPTICS

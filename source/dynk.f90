@@ -2280,7 +2280,7 @@ subroutine dynk_setvalue(element_name, att_name, newValue)
   use mod_particles
   use string_tools
 
-  use elens, only: elens_theta_r2, elens_lAllowUpdate, elens_I, elens_Ek, eLensTheta, elens_kz, &
+  use elens, only: elens_theta_ref, elens_lAllowUpdate, elens_I, elens_Ek, eLensTheta, elens_kz, &
                    nelens, ielens
   use cheby
   use parbeam, only : beam_expflag
@@ -2462,9 +2462,9 @@ subroutine dynk_setvalue(element_name, att_name, newValue)
         end if
 
       case(elens_kz) ! Electron lens
-        if(att_name == "theta_r2") then ! [mrad]
-          elens_theta_r2(ielens(ii)) = newValue
-          !Energy update is locked down after setting theta_r2 with DYNK
+        if(att_name == "theta_ref") then ! [mrad]
+          elens_theta_ref(ielens(ii)) = newValue
+          !Energy update is locked down after setting theta_ref with DYNK
           elens_lAllowUpdate(ielens(ii)) = .false.
         elseif(att_name == "elens_I") then ! [A]
           elens_I(ielens(ii)) = newValue
@@ -2561,7 +2561,7 @@ real(kind=fPrec) function dynk_getvalue(element_name, att_name)
   use mod_common
   use mod_common_track
   use mod_common_main
-  use elens, only: elens_theta_r2, elens_I, elens_Ek, elens_kz, ielens
+  use elens, only: elens_theta_ref, elens_I, elens_Ek, elens_kz, ielens
   use cheby
   use parbeam, only : beam_expflag
   use string_tools
@@ -2713,8 +2713,8 @@ real(kind=fPrec) function dynk_getvalue(element_name, att_name)
         end if
 
       case(elens_kz) ! Electron lens
-        if(att_name == "theta_r2") then ! [mrad]
-          dynk_getvalue = elens_theta_r2(ielens(ii))
+        if(att_name == "theta_ref") then ! [mrad]
+          dynk_getvalue = elens_theta_ref(ielens(ii))
         elseif(att_name == "elens_I") then ! [A]
           dynk_getvalue = elens_I(ielens(ii))
         elseif(att_name == "elens_Ek") then ! [keV]
