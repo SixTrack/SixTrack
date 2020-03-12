@@ -891,9 +891,11 @@ subroutine dist_parseColumn(fmtName, fErr, fmtID, fmtFac, fmtCol, isValid)
     fmtCol = 3
 
   case("XP")
+    call dist_unitScale(fmtName, fmtUnit, 2, fmtFac, fErr)
     fmtID  = dist_fmtXP
     fmtCol = 2
   case("YP")
+    call dist_unitScale(fmtName, fmtUnit, 2, fmtFac, fErr)
     fmtID  = dist_fmtYP
     fmtCol = 4
 
@@ -1154,6 +1156,8 @@ subroutine dist_unitScale(fmtName, fmtUnit, unitType, unitScale, uErr)
       unitScale = one
     case("[1]")
       unitScale = one
+    case("[1000]")
+      unitScale = c1e3
     case default
       goto 100
     end select
@@ -1165,6 +1169,8 @@ subroutine dist_unitScale(fmtName, fmtUnit, unitType, unitScale, uErr)
       unitScale = one
     case("[1]")
       unitScale = one
+    case("[1000]")
+      unitScale = c1e3
     case default
       goto 100
     end select

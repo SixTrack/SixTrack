@@ -19,7 +19,7 @@ def parseFort6(iFileName='fort.6'):
             if ( line.startswith('ELENS> Radial profile') ):
                 readProf=True
                 continue
-            elif ( line.startswith('ELENS> Integrating radial profile') ):
+            elif ( line.startswith('ELENS> Normalising radial profile') ):
                 readProf=False
                 continue
             elif ( line.startswith('ELENS> Integrated radial profile') ):
@@ -27,6 +27,8 @@ def parseFort6(iFileName='fort.6'):
                 continue
             elif ( line.startswith('ELENS> Total current in radial') ):
                 readIntegr=False
+                continue
+            elif ( line.startswith('ELENS> NB: point at ii=0') ):
                 continue
             if ( readProf ):
                 data=line.strip().split(',')
@@ -53,7 +55,7 @@ axarr[0,0].set_xlabel(r'$r$ [mm]')
 axarr[0,0].set_ylabel(r'$J$ [A cm$^{-2}$]')
 axarr[0,0].xaxis.set_ticks(np.arange(0,25,2))
 if (len(rrs)>0):
-    axarr[0,0].plot(rrs,parsedFile*100,'rs-',markeredgewidth=0.0,label='6T')
+    axarr[0,0].plot(rrs,parsedFile*100,'rs-',markeredgewidth=0.0,label='6T echo')
 axarr[0,0].plot(profIN[:,0],profIN[:,1],'b.-',label='file')
 axarr[0,0].legend(loc='best')
 #
@@ -62,33 +64,43 @@ axarr[0,1].set_xlabel(r'$r$ [$\sigma$]')
 axarr[0,1].set_ylabel(r'$J$ [A cm$^{-2}$]')
 axarr[0,1].xaxis.set_ticks(np.arange(0,20,2))
 if (len(rrs)>0):
-    axarr[0,1].plot(rrs/sig,parsedFile*100,'rs-',markeredgewidth=0.0,label='6T')
+    axarr[0,1].plot(rrs/sig,parsedFile*100,'rs-',markeredgewidth=0.0,label='6T echo')
 axarr[0,1].plot(profIN[:,0]/sig,profIN[:,1],'b.-',label='file')
 axarr[0,1].legend(loc='best')
 
 # cumulative
 cumulIN=[0.0]
 tot=0.0
-for ii in range(1,len(profIN[:,1])):
-    tot+=((profIN[ii,1]+profIN[ii-1,1])/2-profIN[0,1])*np.pi*(profIN[ii,0]-profIN[ii-1,0])*(profIN[ii,0]+profIN[ii-1,0])*mm2cm**2
+oldVal=0.0
+oldR=0.0
+intRange=np.append(0.0,profIN[:,0])
+for ii in range(len(profIN[:,1])):
+    if (ii==0):
+        rMin=0.0
+    else:
+        rMin=profIN[ii-1,0]
+    tot+=profIN[ii,1]*np.pi*(profIN[ii,0]-rMin)*(profIN[ii,0]+rMin)*mm2cm**2
     cumulIN.append(tot)
+    oldVal=profIN[ii,1]
+    oldR=profIN[ii,0]
 cumulIN=np.array(cumulIN)
 axarr[1,0].grid()
 axarr[1,0].set_xlabel(r'$r$ [$\sigma$]')
 axarr[1,0].set_ylabel(r'$I$ [A]')
 axarr[1,0].xaxis.set_ticks(np.arange(0,20,2))
 if (len(rrs)>0):
-    axarr[1,0].plot(rrs/sig,integratedProfile,'rs-',markeredgewidth=0.0,label='6T')
-axarr[1,0].plot(profIN[:,0]/sig,cumulIN,'b.-',label='file')
+    axarr[1,0].plot(rrs/sig,integratedProfile,'rs-',markeredgewidth=0.0,label='6T echo')
+axarr[1,0].plot(intRange/sig,cumulIN,'b.-',label='file')
 axarr[1,0].legend(loc='best')
 # natural kick
 axarr[1,1].grid()
 axarr[1,1].set_xlabel(r'$r$ [$\sigma$]')
 axarr[1,1].set_ylabel(r'$\theta$ [A/mm]')
 axarr[1,1].xaxis.set_ticks(np.arange(0,20,2))
+# rrs[0]=0.0 but it is normal...
 if (len(rrs)>0):
-    axarr[1,1].plot(rrs/sig,integratedProfile/rrs,'rs-',markeredgewidth=0.0,label='6T')
-axarr[1,1].plot(profIN[:,0]/sig,cumulIN/profIN[:,0],'b.-',label='file')
+    axarr[1,1].plot(rrs/sig,integratedProfile/rrs,'rs-',markeredgewidth=0.0,label='6T echo')
+axarr[1,1].plot(intRange/sig,cumulIN/intRange,'b.-',label='file')
 axarr[1,1].legend(loc='best')
 
 plt.show()

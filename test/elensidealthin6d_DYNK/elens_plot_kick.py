@@ -53,7 +53,7 @@ plt.figure('elens kick',figsize=(10,10))
 for name,fnin,R in zip(names[1:],[1,2,3,4],[0.5,1,1,0.5]):
   theta_max=theta_r2*R
   plt.subplot(2,2,fnin)
-  plt.plot(dataSets['turn'],np.ones(len(dataSets['turn']))*theta_max,'k-',label='theta_r2')
+  plt.plot(dataSets['turn'],-np.ones(len(dataSets['turn']))*theta_max,'k-',label='theta_r2')
   plt.plot(dataSets['turn'],dataSets[name],'o-',label=name)
   plt.xlabel('turn []')
   plt.ylabel(r'$\theta(r)$ [mrad]')

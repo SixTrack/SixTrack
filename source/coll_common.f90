@@ -32,6 +32,8 @@ module coll_common
 
   ! Process index for interaction with crystals
   integer, allocatable, save :: cry_proc(:)
+  integer, allocatable, save :: cry_proc_prev(:)
+  integer, allocatable, save :: cry_proc_tmp(:)
 
   ! Pencil Beam
   integer,          save :: ipencil       = 0
@@ -137,6 +139,8 @@ subroutine coll_expandArrays(npart_new)
   call alloc(rcs,  npart_new, zero, "rcs")
 
   call alloc(cry_proc, npart_new, -1, "cry_proc")
+  call alloc(cry_proc_prev, npart_new, -1, "cry_proc_prev")
+  call alloc(cry_proc_tmp, npart_new, -1, "cry_proc_tmp")
 
 end subroutine coll_expandArrays
 

@@ -77,9 +77,9 @@ with open('dynksets.dat','r') as iFile:
       dataSets['turn'].append(turn)
 
 plt.figure('elens kick',figsize=(10,10))
-for name,fnin,peakVal,label in zip(names[1:],[1,2,3],[theta_r2,0.462226,450000.9781710788],[r'$\theta(r)$ [mrad]','I [A]','E [MeV]']):
+for name,fnin,peakVal,label,fact in zip(names[1:],[1,2,3],[theta_r2,0.5954,450000.9781710788],[r'$\theta(r)$ [mrad]','I [A]','E [MeV]'],[-1,1,1]):
   plt.subplot(2,2,fnin)
-  plt.plot(dataSets['turn'],np.ones(len(dataSets['turn']))*peakVal,'k-',label='theta_r2')
+  plt.plot(dataSets['turn'],fact*np.ones(len(dataSets['turn']))*peakVal,'k-',label='theta_r2')
   plt.plot(dataSets['turn'],dataSets[name],'o-',label=name,markeredgewidth=0.0)
   plt.xlabel('turn []')
   plt.ylabel(label)
