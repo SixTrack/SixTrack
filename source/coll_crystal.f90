@@ -217,7 +217,7 @@ subroutine cry_doCrystal(ie,iturn,j,mat,x,xp,z,zp,s,p,x0,xp0,zlm,s_imp,isImp,nhi
   lhit,lhit_turn,part_abs,part_abs_turn,impact,indiv,c_length)
 
   use parpro
-  use coll_common, only : cry_proc
+  use coll_common, only : cry_proc, cry_proc_prev, cry_proc_tmp
   use mathlib_bouncer
 
   integer,          intent(in)    :: ie
@@ -262,6 +262,11 @@ subroutine cry_doCrystal(ie,iturn,j,mat,x,xp,z,zp,s,p,x0,xp0,zlm,s_imp,isImp,nhi
   tilt_int   = zero
   shift      = zero
   s_imp      = zero
+
+  ! Determining if particle previously interacted with a crystal and storing the process ID
+  if(cry_proc_tmp(j) /= proc_out) then
+    cry_proc_prev(j) = cry_proc_tmp(j)
+  end if
 
   iProc       = proc_out
   cry_proc(j) = proc_out
@@ -433,6 +438,9 @@ subroutine cry_doCrystal(ie,iturn,j,mat,x,xp,z,zp,s,p,x0,xp0,zlm,s_imp,isImp,nhi
   else if(iProc == proc_ch_absorbed) then
     nabs = 1
   end if
+
+  ! Storing the process ID for the next interaction
+  cry_proc_tmp(j) = cry_proc(j)
 
 end subroutine cry_doCrystal
 

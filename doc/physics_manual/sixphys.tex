@@ -1029,13 +1029,13 @@ $f(r)$ reads like
 where $I(r)$ is the current enclosed in a radius
 $r$ and $\rho(r)$ is the electron beam density distribution. Taking into account the
 cylindrical symmetry of the electron distribution and the fact that the electron
-distribution is contained in a thick cylinder with $R_1<r<R_2$,
+distribution is contained in a thick cylinder with $R_1 \le r \le R_2$,
 $f(r)$ can be split into
 three expressions based on respective domains as follows
 \begin{equation}
 f(r) =
-\begin{cases} 0 &,\quad r \leq R_1\\
-\tilde f(r) &,\quad R_1 < r < R_2\\
+\begin{cases} 0 &,\quad r < R_1\\
+\tilde f(r) &,\quad R_1 \leq r < R_2\\
 1 &,\quad R_2 \leq r
 \end{cases}
 \label{elense:eqn:5}
@@ -1082,7 +1082,7 @@ before computing the radial position, without touching the above processing.
 The uniform distribution of the electron beam between $R_1$ and $R_2$
 can be described as:
 \begin{equation}
-\rho(r) = \frac{I_T}{\pi (R_2^2 -R_1^2) } \quad R_1 < r < R_2
+\rho(r) = \frac{I_T}{\pi (R_2^2 -R_1^2) } \quad R_1 \leq r < R_2
 \end{equation}
 This leads the middle term of $f(r)$ (see Eq.~\ref{elense:eqn:1}) to be:
 \begin{equation}
@@ -1093,7 +1093,8 @@ This leads the middle term of $f(r)$ (see Eq.~\ref{elense:eqn:1}) to be:
 The Gaussian distribution of the electron beam between $R_1$ and $R_2$
 can be described as:
 \begin{equation}
-\rho(r) = \frac{I_T}{2\pi\sigma^2} \exp\left[-\frac{r^2}{2\sigma^2}\right] \quad R_1 < r < R_2
+  \rho(r) = \frac{I_T}{2\pi\sigma^2} \frac{\exp\left[-\frac{r^2}{2\sigma^2}\right]}
+      {\exp\left[-\frac{R_1^2}{2\sigma^2}\right]-\exp\left[-\frac{R_2^2}{2\sigma^2}\right]}   \quad R_1 \leq r < R_2
 \end{equation}
 This leads the middle term of $f(r)$ (see Eq.~\ref{elense:eqn:1}) to be:
 \begin{equation}
@@ -1101,14 +1102,8 @@ This leads the middle term of $f(r)$ (see Eq.~\ref{elense:eqn:1}) to be:
                    {\exp\left[-\frac{R_1^2}{2\sigma^2}\right]-\exp\left[-\frac{R_2^2}{2\sigma^2}\right]}
   \label{elense:eqn:4}
 \end{equation}
-The denominator in Eq.~\ref{elense:eqn:4}, which is added after integrating
-the Gaussian profile as in Eq.~\ref{elense:eqn:1}, is a normalisation factor
-necessary to have $\tilde f(R_2)=1$. Hence, the same factor must be considered
-in the expression of $\theta_{\rm R_2}$ (see Eq.~\ref{elense:eqn:6}), which then becomes
-\begin{equation}
-  \theta_{\rm R_2} = -\frac{\gamma_eLI_T(1\pm\beta_e\beta_b)}{2\pi\epsilon_0  \left(B\rho\right)_b\beta_e\beta_b c^2}\cdot\frac{1}{R_2}
-  \cdot\left\{\exp\left[-\frac{R_1^2}{2\sigma^2}\right]-\exp\left[-\frac{R_2^2}{2\sigma^2}\right]\right\}
-\end{equation}
+The denominator in Eq.~\ref{elense:eqn:4} is a normalisation factor
+necessary to have $\tilde f(R_2)=1$.
 It should be noted that, contrary to the case of the uniform distribution,
 $\theta_{\rm R_2}$ does not coincide with the highest kick; the highest kick is
 found only at:
@@ -1130,14 +1125,18 @@ the domain of the radial profile must contain the one set by $R_1$ and $R_2$.
 The radial distribution $\rho(r)$ is numerically integrated and normalised
 according to Eq.~\ref{elense:eqn:1}.
 The numerical integration is performed with polinomials of the degree chosen by the user.
-In case of linear interpolation, the integration reads as
+In case of linear interpolation (the default used by the code), the integration reads as
 \begin{equation}
   I(n_R) = 2\pi \sum_{i=1}^{n_R} \frac{(r_i+r_{i-1})}{2} \, \rho_i \, (r_i-r_{i-1}),
-\label{elense:eqn:5}
+\label{elense:eqn:7}
 \end{equation}
 where $n_R$ is in the range [1:$N_R$], and $N_R$ is the number of points in the file.
 A point $(r=0,\rho=0)$ is automatically taken at $i=0$ for the numerical
 integration. $I(n_R)$ is then normalised by the total current $I(R_{\rm R_2})$.
+
+\subsubsection{Wire electron profile}
+The e-lens can be used also in the degenerate case of a wire, i.e.~where $R_1=R_2=0$.
+In this case, only the expression in Eq.~\ref{elense:eqn:5} for $R_2 < r$ is used.
 
 \subsubsection{Caveats}
 It should be noted that the sign of the charge of the beam of the lens is taken into account explicitly in $\theta_{\rm R_2}$, implying that:
