@@ -93,14 +93,14 @@ subroutine cheby_expand_arrays_map_echo(ncheby_mapEchoes_new)
   implicit none
   integer, intent(in) :: ncheby_mapEchoes_new
   ! map
-  call alloc(cheby_iLens      ,            ncheby_mapEchoes_new,               0, 'cheby_iLens'      )
-  call alloc(cheby_mapFileName, mFileName, ncheby_mapEchoes_new,             " ", 'cheby_mapFileName')
-  call alloc(cheby_mapXmin    ,            ncheby_mapEchoes_new, -10.0e+00_fPrec, 'cheby_mapXmin'    )
-  call alloc(cheby_mapXmax    ,            ncheby_mapEchoes_new,  10.0e+00_fPrec, 'cheby_mapXmax'    )
-  call alloc(cheby_mapNx      ,            ncheby_mapEchoes_new,             100, 'cheby_mapNx'      )
-  call alloc(cheby_mapYmin    ,            ncheby_mapEchoes_new, -10.0e+00_fPrec, 'cheby_mapYmin'    )
-  call alloc(cheby_mapYmax    ,            ncheby_mapEchoes_new,  10.0e+00_fPrec, 'cheby_mapYmax'    )
-  call alloc(cheby_mapNy      ,            ncheby_mapEchoes_new,             100, 'cheby_mapNy'      )
+  call alloc(cheby_iLens      ,            ncheby_mapEchoes_new,              0, 'cheby_iLens'      )
+  call alloc(cheby_mapFileName, mFileName, ncheby_mapEchoes_new,            " ", 'cheby_mapFileName')
+  call alloc(cheby_mapXmin    ,            ncheby_mapEchoes_new, -5.0e+00_fPrec, 'cheby_mapXmin'    )
+  call alloc(cheby_mapXmax    ,            ncheby_mapEchoes_new,  5.0e+00_fPrec, 'cheby_mapXmax'    )
+  call alloc(cheby_mapNx      ,            ncheby_mapEchoes_new,            100, 'cheby_mapNx'      )
+  call alloc(cheby_mapYmin    ,            ncheby_mapEchoes_new, -5.0e+00_fPrec, 'cheby_mapYmin'    )
+  call alloc(cheby_mapYmax    ,            ncheby_mapEchoes_new,  5.0e+00_fPrec, 'cheby_mapYmax'    )
+  call alloc(cheby_mapNy      ,            ncheby_mapEchoes_new,            100, 'cheby_mapNy'      )
 end subroutine cheby_expand_arrays_map_echo
 
 subroutine cheby_expand_arrays_tables(ncheby_tables_new)
@@ -1075,8 +1075,8 @@ subroutine cheby_getKick( xx, yy, dxp, dyp, iTable )
   Tpx(1)=one
   Tpy(1)=one
   do nn=2,cheby_maxOrder(iTable)
-    Tx(nn)=(two*(uu*Tx(nn-1)))-Tx(nn-2)
-    Ty(nn)=(two*(vv*Ty(nn-1)))-Ty(nn-2)
+    Tx(nn)=two*(uu*Tx(nn-1))-Tx(nn-2)
+    Ty(nn)=two*(vv*Ty(nn-1))-Ty(nn-2)
     Tpx(nn)=(real(nn,fPrec)*(Tx(nn-1)-(uu*Tx(nn))))/fu
     Tpy(nn)=(real(nn,fPrec)*(Ty(nn-1)-(vv*Ty(nn))))/fv
   end do
