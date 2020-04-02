@@ -1,10 +1,17 @@
 module cheby
-  use parpro
   use floatPrecision
-  use crcoall
-  use mod_alloc
   use numerical_constants, only : zero, one
   implicit none
+  private
+  public :: &
+       ! specific to allocate arrays
+       cheby_allocate_arrays, cheby_expand_arrays, &
+       ! specific to FOX
+       cheby_lFox, icheby, cheby_kz, cheby_ktrack, cheby_kick, cheby_kick_fox, &
+       ! specific to input parsing
+       cheby_parseInputLine, cheby_parseInputDone, cheby_postInput, &
+       ! specific to DYNK
+       cheby_resetI, cheby_setScaleKick, cheby_I
 
   ! A.Mereghetti (CERN, BE-ABP-HSS)
   ! last modified: 02-04-2020
@@ -51,18 +58,21 @@ module cheby
 contains
 
 subroutine cheby_allocate_arrays
+  use mod_alloc, only : alloc
+  use parpro, only : nele
   implicit none
-  integer stat
   call alloc(icheby,nele,0,'icheby')
 end subroutine cheby_allocate_arrays
 
 subroutine cheby_expand_arrays(nele_new)
+  use mod_alloc, only : alloc
   implicit none
   integer, intent(in) :: nele_new
   call alloc(icheby,nele_new,0,'icheby')
 end subroutine cheby_expand_arrays
 
 subroutine cheby_expand_arrays_lenses(ncheby_new)
+  use mod_alloc, only : alloc
   implicit none
   integer, intent(in) :: ncheby_new
   ! chebyshev lens charachteristics
@@ -78,6 +88,8 @@ subroutine cheby_expand_arrays_lenses(ncheby_new)
 end subroutine cheby_expand_arrays_lenses
 
 subroutine cheby_expand_arrays_map_echo(ncheby_mapEchoes_new)
+  use parpro, only : mFileName
+  use mod_alloc, only : alloc
   implicit none
   integer, intent(in) :: ncheby_mapEchoes_new
   ! map
@@ -92,6 +104,8 @@ subroutine cheby_expand_arrays_map_echo(ncheby_mapEchoes_new)
 end subroutine cheby_expand_arrays_map_echo
 
 subroutine cheby_expand_arrays_tables(ncheby_tables_new)
+  use parpro, only : mFileName
+  use mod_alloc, only : alloc
   implicit none
   integer, intent(in) :: ncheby_tables_new
   call alloc(cheby_filename   , mFileName,       ncheby_tables_new,  " ", 'cheby_filename'                      )
@@ -107,6 +121,7 @@ end subroutine cheby_expand_arrays_tables
 ! ================================================================================================ !
 subroutine cheby_parseInputLine(inLine, iLine, iErr)
 
+  use crcoall, only : lerr
   use mod_settings
   use sixtrack_input
   use string_tools
@@ -295,6 +310,8 @@ end subroutine cheby_parseInputDone
 
 subroutine cheby_postInput
 
+  use crcoall, only : lout, lerr
+  use parpro, only : nele
   use mod_common, only : kz,bez,fort3
   use mod_settings, only : st_quiet
 
@@ -366,8 +383,8 @@ subroutine cheby_postInput
       write(lerr,"(a)")      "CHEBY> ERROR R2 cannot be lower than zero!"
       goto 10
     end if
-    if (cheby_I (jj)<=zero) then
-      cheby_I (jj)=cheby_refI(cheby_itable(jj))
+    if (cheby_I(jj)<=zero) then
+      call cheby_resetI( jj )
     else
       call cheby_setScaleKick(jj)
     end if
@@ -466,6 +483,8 @@ end subroutine cheby_postInput
 ! ================================================================================================ !
 subroutine parseChebyFile(ifile)
 
+  use crcoall, only : lout, lerr
+  use mod_alloc, only : alloc
   use mod_common
   use mod_settings
   use string_tools
@@ -922,6 +941,7 @@ subroutine cheby_potentialMap(iLens,ix)
   ! last modified: 02-04-2020
   ! dump map of potential
 
+  use crcoall, only : lout, lerr
   use mod_common, only : bez
   use mod_common_main
   use mathlib_bouncer
@@ -1130,5 +1150,23 @@ subroutine cheby_setScaleKick( iCheby )
   cheby_scalingFact(iCheby)=cheby_I(iCheby)/cheby_refI(cheby_itable(iCheby))
 
 end subroutine cheby_setScaleKick
+
+subroutine cheby_resetI( iCheby, Inew )
+
+  ! A. Mereghetti (CERN, BE-ABP-HSS)
+  ! last modified: 02-04-2020
+  ! reset current of chebyshev lenses
+
+  ! interface vars
+  integer,                    intent(in) :: iCheby
+  real(kind=fPrec), optional, intent(in) :: Inew
+
+  real(kind=fPrec) Iupdate
+
+  Iupdate = cheby_refI(cheby_itable(iCheby))
+  if(present(Inew)) Iupdate = Inew
+  cheby_I(iCheby) = Iupdate
+
+end subroutine cheby_resetI
 
 end module cheby
