@@ -7,7 +7,7 @@ module cheby
   implicit none
 
   ! A.Mereghetti (CERN, BE-ABP-HSS)
-  ! last modified: 25-02-2019
+  ! last modified: 02-04-2020
   ! module for handling maps expressed by Chebyshev polynomials
 
   integer, allocatable, save  :: icheby(:)            ! index of chebyshev lens
@@ -361,6 +361,11 @@ subroutine cheby_postInput
       write(lerr,"(a)")      "CHEBY> ERROR R1 cannot be lower than zero!"
       goto 10
     end if
+    if (cheby_r2(jj)<zero) then
+      ! a sanity check, most probably will never be triggered, but better stay safe
+      write(lerr,"(a)")      "CHEBY> ERROR R2 cannot be lower than zero!"
+      goto 10
+    end if
     if (cheby_I (jj)<=zero) then
       cheby_I (jj)=cheby_refI(cheby_itable(jj))
     else
@@ -610,7 +615,7 @@ end subroutine parseChebyFile
 subroutine cheby_kick(i,ix,n)
 
   ! A. Mereghetti (CERN, BE-ABP-HSS)
-  ! last modified: 01-03-2019
+  ! last modified: 02-04-2020
   ! apply kick of Chebyshev lenses
 
   use mod_common, only : beta0, napx, brho
@@ -626,13 +631,15 @@ subroutine cheby_kick(i,ix,n)
   integer, intent(in) :: n
 
   real(kind=fPrec) xx, yy, ax, ay, rr, rr_sq, dxp, dyp
-  real(kind=fPrec) theta, angle_rad, epsilon, gteps, lteps
+  real(kind=fPrec) theta, angle_rad, epsilon, gteps, lteps, r1lteps, r2gteps
   integer          jj
   logical          lrotate
 
   epsilon=c1m15
   gteps=one+epsilon
   lteps=one-epsilon
+  r1lteps=cheby_r1(icheby(ix))*lteps
+  r2gteps=cheby_r2(icheby(ix))*gteps
   
   ! rotation angle
   lrotate = cheby_angle(icheby(ix)).ne.zero
@@ -658,8 +665,7 @@ subroutine cheby_kick(i,ix,n)
     ax=abs(xx)
     ay=abs(yy)
     ! (x,y)<r1 or ( (xx>r2) || (yy>r2) ): no kick from lens
-    if ( (ax.lt.cheby_r1(icheby(ix))*lteps.and.ay.lt.cheby_r1(icheby(ix))*lteps) .or. &
-         (ax.gt.cheby_r2(icheby(ix))*gteps .or.ay.gt.cheby_r2(icheby(ix))*gteps) ) cycle
+    if ( (ax.lt.r1lteps.and.ay.lt.r1lteps) .or. (ax.gt.r2gteps.or.ay.gt.r2gteps) ) cycle
 
     ! compute kick from cheby map
     call cheby_getKick( xx, yy, dxp, dyp, cheby_itable(icheby(ix)) )
@@ -689,7 +695,7 @@ end subroutine cheby_kick
 subroutine cheby_kick_fox(i,ix)
 
   ! A. Mereghetti (CERN, BE-ABP-HSS)
-  ! last modified: 25-04-2019
+  ! last modified: 02-04-2020
   ! apply kick of Chebyshev lenses (FOX)
 
   use mod_common, only : beta0, mtcda, brho
@@ -709,7 +715,7 @@ subroutine cheby_kick_fox(i,ix)
   integer          :: idaa, jj, morder, nn, mm, ll, oo
   integer          :: hh(lnv)=0
   real(kind=fPrec) :: rra, xa, ya, ax, ay, xclo, yclo, angrad, cscal, dxpa, dypa, refr, rnn, coeff
-  real(kind=fPrec) :: epsilon, gteps, lteps
+  real(kind=fPrec) :: epsilon, gteps, lteps, r1lteps, r2gteps
   logical          lrotate
 
   common/daele/alda,asda,aldaq,asdaq,smida,xx,yy,dpda,dpda1,sigmda,ej1,ejf1,rv
@@ -766,6 +772,8 @@ subroutine cheby_kick_fox(i,ix)
   epsilon=c1m15
   gteps=one+epsilon
   lteps=one-epsilon
+  r1lteps=cheby_r1(icheby(ix))*lteps
+  r2gteps=cheby_r2(icheby(ix))*gteps
   
   XCLO=cheby_offset_x(icheby(ix))
   YCLO=cheby_offset_y(icheby(ix))
@@ -818,8 +826,7 @@ subroutine cheby_kick_fox(i,ix)
   ax=abs(XA) ;
   ay=abs(YA) ;
   ! (x,y)<r1 or ( (xx>r2) || (yy>r2) ): no kick from lens
-  if (.not. ( (ax.lt.cheby_r1(icheby(ix))*lteps.and.ay.lt.cheby_r1(icheby(ix))*lteps) .or. &
-              (ax.gt.cheby_r2(icheby(ix))*gteps .or.ay.gt.cheby_r2(icheby(ix))*gteps) ) ) then
+  if (.not. ( (ax.lt.r1lteps.and.ay.lt.r1lteps) .or. (ax.gt.r2gteps.or.ay.gt.r2gteps) ) ) then
      
     if (st_debug) then
       write(lout,'(2(a,1pe22.15))')'CHEBY> CHEBY_KICK_FOX computing at XA=',XA,' - YA=',YA
@@ -912,7 +919,7 @@ end subroutine cheby_kick_fox
 subroutine cheby_potentialMap(iLens,ix)
 
   ! A. Mereghetti (CERN, BE-ABP-HSS)
-  ! last modified: 01-03-2019
+  ! last modified: 02-04-2020
   ! dump map of potential
 
   use mod_common, only : bez
@@ -925,13 +932,15 @@ subroutine cheby_potentialMap(iLens,ix)
   integer, intent(in) :: ix
 
   real(kind=fPrec) xx, yy, rr, zz, dx, dy, xxr, yyr, xxn, yyn, ax, ay
-  real(kind=fPrec) theta, radio, angle_rad, epsilon, gteps, lteps
+  real(kind=fPrec) theta, radio, angle_rad, epsilon, gteps, lteps, r1lteps, r2gteps
   integer          ii, jj, inside, fUnit
   logical          lrotate, err
 
   epsilon=c1m15
   gteps=one+epsilon
   lteps=one-epsilon
+  r1lteps=cheby_r1(icheby(ix))*lteps
+  r2gteps=cheby_r2(icheby(ix))*gteps
   
   write(lout,"(a)") "CHEBY> Dumping potential map..."
   call f_requestUnit(cheby_mapFileName(iLens),fUnit)
@@ -994,8 +1003,7 @@ subroutine cheby_potentialMap(iLens,ix)
       ax=abs(xxn)
       ay=abs(yyn)
       ! (x,y)<r1 or ( (xx>r2) || (yy>r2) ): no kick from lens
-      if ( (ax.lt.cheby_r1(icheby(ix))*lteps.and.ay.lt.cheby_r1(icheby(ix))*lteps) .or. &
-           (ax.gt.cheby_r2(icheby(ix))*gteps .or.ay.gt.cheby_r2(icheby(ix))*gteps) ) inside=0
+      if ( (ax.lt.r1lteps.and.ay.lt.r1lteps) .or. (ax.gt.r2gteps.or.ay.gt.r2gteps) ) inside=0
       ! compute kick from cheby map
       call cheby_getPotential( xxn, yyn, zz, cheby_itable(iLens) )
       write(fUnit,'(5(1X,1pe22.15),1X,i0)') xx, yy, xxn, yyn, zz, inside
