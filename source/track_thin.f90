@@ -830,7 +830,7 @@ subroutine thin6d(nthinerr)
         if(doFFIELD_q) then
           if(ic(i) /= ic(i-2) .and. ic(i) /= ic(i-3)) then
          if((trim(bezs(i-2))/=bez(ix)(1:len(trim(bez(ix)))-3)).and.(trim(bezs(i-3))/=bez(ix)(1:len(trim(bez(ix)))-3)))then
-             call ffield_enterQuad(i)  !A optimizer!!!
+             call ffield_enterQuad(n,i,ix)  !A optimizer!!!
           end if
           end if
         end if

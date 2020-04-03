@@ -586,11 +586,12 @@ contains
   ! ================================================================================================ !
   !  Lie 2 Tracking if particles enter the Quadupole
   !  B. Dalena, T. Pugnat and A. Simona from CEA
-  !  Last modified: 2020-01-31
+  !  Last modified: 2020-03-26
   ! ================================================================================================ !
-  subroutine ffield_enterQuad(ffi)
+  subroutine ffield_enterQuad(ffn,ffi,ffix)
     ! Mod from SixTrack
     ! ---------------------------------------------------------------------------------------------- !
+    use aperture,            only : apflag,lbacktracking,aperture_reportloss,aperture_savelastcoordinates
     use parpro,              only : nblo
     use mod_common,          only : napx, ic, tiltc, tilts
     use mod_common_track,    only : strack
@@ -601,7 +602,7 @@ contains
 
     ! Interface variables
     ! ---------------------------------------------------------------------------------------------- !
-    integer, intent(in):: ffi
+    integer, intent(in):: ffn,ffi,ffix
 
     ! Subroutine variables
     ! ---------------------------------------------------------------------------------------------- !
@@ -732,8 +733,16 @@ contains
 
     ! Check losses
     ! ---------------------------------------------------------------------------------------------- !
+    !if (llost) then
+    !  call shuffleLostParticles
+    !endif
     if (llost) then
-      call shuffleLostParticles
+      ! report losses to user
+      call aperture_reportLoss(ffn,ffi,ffix)
+      if(.not.apflag) call shuffleLostParticles
+      ! store old particle coordinates
+      ! necessary since aperture markers are downstream of lenses...
+      if ( lbacktracking ) call aperture_saveLastCoordinates(ffn,ffi,-1)
     endif
 
   end subroutine ffield_enterQuad
