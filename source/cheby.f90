@@ -17,15 +17,16 @@ module cheby
   ! last modified: 02-04-2020
   ! module for handling maps expressed by Chebyshev polynomials
 
-  integer, allocatable, save  :: icheby(:)            ! index of chebyshev lens
-  integer, save               :: ncheby=0             ! number of chebyshev lenses actually in memory
-  integer, save               :: ncheby_mapEchoes=0   ! number of requested echoes of maps
-  integer, save               :: ncheby_tables=0      ! number of chebyshev tables in memory
-  integer, parameter          :: cheby_kz=42          ! kz of chebyshev lenses
-  integer, parameter          :: cheby_ktrack=67      ! ktrack of chebyshev lenses
-  integer, parameter          :: cheby_maxOrderFox=21 ! max order (required by FOX)
-                                                      ! please keep this synched with TX, TY, TPX and TPY
-                                                      !    in the fox part of this module
+  integer, allocatable, save  :: icheby(:)              ! index of chebyshev lens
+  integer, save               :: ncheby=0               ! number of chebyshev lenses actually in memory
+  integer, save               :: ncheby_mapEchoes=0     ! number of requested echoes of maps
+  integer, save               :: ncheby_tables=0        ! number of chebyshev tables in memory
+  integer, parameter          :: cheby_kz=42            ! kz of chebyshev lenses
+  integer, parameter          :: cheby_ktrack=67        ! ktrack of chebyshev lenses
+  integer, parameter          :: cheby_maxOrderFox=21   ! max order (required by FOX)
+                                                        ! please keep this synched with TX, TY, TPX and TPY
+                                                        !    in the fox part of this module
+  logical, save               :: cheby_lFox_def=.false. ! default lFox
 
   ! variables to save parameters for tracking etc.
   integer,          allocatable, save :: cheby_itable(:)      ! index of chebyshev table
@@ -84,7 +85,7 @@ subroutine cheby_expand_arrays_lenses(ncheby_new)
   call alloc(cheby_offset_y   ,            ncheby_new,            zero, 'cheby_offset_y'   )
   call alloc(cheby_I          ,            ncheby_new,            -one, 'cheby_I'          )
   call alloc(cheby_scalingFact,            ncheby_new,             one, 'cheby_scalingFact')
-  call alloc(cheby_lFox       ,            ncheby_new,         .false., 'cheby_lFox'       )
+  call alloc(cheby_lFox       ,            ncheby_new,  cheby_lFox_def, 'cheby_lFox'       )
 end subroutine cheby_expand_arrays_lenses
 
 subroutine cheby_expand_arrays_map_echo(ncheby_mapEchoes_new)
@@ -121,7 +122,7 @@ end subroutine cheby_expand_arrays_tables
 ! ================================================================================================ !
 subroutine cheby_parseInputLine(inLine, iLine, iErr)
 
-  use crcoall, only : lerr
+  use crcoall, only : lerr, lout
   use mod_settings
   use sixtrack_input
   use string_tools
@@ -136,7 +137,7 @@ subroutine cheby_parseInputLine(inLine, iLine, iErr)
   character(len=:), allocatable   :: lnSplit(:)
   character(len=mStrLen) tmpch
   integer nSplit, iElem, j, chIdx, tmpi1
-  logical spErr
+  logical spErr, tmpl
 
   call chr_split(inLine, lnSplit, nSplit, spErr)
   if(spErr) then
@@ -208,6 +209,47 @@ subroutine cheby_parseInputLine(inLine, iLine, iErr)
       call sixin_echoVal("Ny     []",cheby_mapNy  (ncheby_mapEchoes),          "CHEBY",iLine)
     end if
 
+  case("FOX")
+    if(nSplit<2 .or. nSplit>3) then
+      write(lerr,"(a,i0)") "CHEBY> ERROR Expected 1 or 2 input parameters for FOX line, got ",nSplit-1
+      write(lerr,"(a)")    "CHEBY>       example:     FOX  on|off|true|false (ALL|BEF(ORE)|AFT(ER))"
+      iErr = .true.
+      return
+    end if
+   
+    call chr_cast(lnSPlit(2), tmpl,iErr)
+    if (ncheby>0) cheby_lFox(ncheby)=tmpl
+
+    if (nSplit>=3) then
+      select case (chr_toLower(trim(lnSplit(3))))
+      case('all')
+        do tmpi1=1,ncheby-1
+          cheby_lFox(tmpi1) = tmpl
+        end do
+        cheby_lFox_def=tmpl
+        if(st_debug) write(lout,"(a)") "CHEBY> Setting lFox as read to all chebyshev lenses"
+      case('bef','before')
+        do tmpi1=1,ncheby-1
+          cheby_lFox(tmpi1) = tmpl
+        end do
+        if(st_debug) write(lout,"(a)") "CHEBY> Setting lFox as read to all chebyshev lenses "// &
+             "declared before the current FOX line"
+      case('aft','after')
+        cheby_lFox_def=tmpl
+        if(st_debug) write(lout,"(a)") "CHEBY> Setting lFox as read to all chebyshev lenses "// &
+             "declared after the current FOX line"
+      case default
+        write(lerr,"(a)") "CHEBY> ERROR Unidentified third parameter of FOX line, got: '"//trim(lnSplit(3))//"'"
+        write(lerr,"(a)") "CHEBY>       example:     FOX  on|off|true|false (ALL|BEF(ORE)|AFT(ER))"
+        iErr = .true.
+        return
+      end select ! case (lnSplit(3))
+    end if
+    
+    if(st_debug) then
+      call sixin_echoVal("fox",tmpl,"CHEBY",iLine)
+    end if
+     
   case default
 
     if(nSplit < 2) then
@@ -824,7 +866,7 @@ subroutine cheby_kick_fox(i,ix)
     if (st_debug) then
       write(lout,'(1(a,1pe22.15))')'CHEBY> CHEBY_KICK_FOX taking into account angle [deg]=',cheby_angle(icheby(ix))
     end if
-    ! radial position of main beam relative to center of elens beam
+    ! radial position of main beam relative to center of cheby beam
     ! rr = sqrt(xx**2+yy**2)
 !FOX  RR_SQ=(XI+YI)*(XI+YI)-(TWO*XI)*YI ;
     call dapek(RR_SQ,hh,RRA)
@@ -922,7 +964,7 @@ subroutine cheby_kick_fox(i,ix)
     call dapek(DYP,hh,DYPA)
     write(lout,'(2(a,1pe22.15))')'CHEBY> CHEBY_KICK_FOX computed at XA=',XA,' - YA=',YA
     write(lout,'(2(a,1pe22.15))')'CHEBY> CHEBY_KICK_FOX - DXPA=',DXPA,' - DYPA=',DYPA
-    write(lout,'(a)')'CHEBY> CHEBY_KICK_FOX closed orbit AFTER elens:'
+    write(lout,'(a)')'CHEBY> CHEBY_KICK_FOX closed orbit AFTER cheby lens:'
     call dapri(XX(1),6)
     call dapri(XX(2),6)
     call dapri(YY(1),6)
@@ -1086,8 +1128,10 @@ subroutine cheby_getKick( xx, yy, dxp, dyp, iTable )
   dyp=zero
   do nn=0,cheby_maxOrder(iTable)
     do jj=0,nn
-      dxp=dxp+(cheby_coeffs(jj,nn-jj,iTable)*Tpx(jj))*Ty (nn-jj)
-      dyp=dyp+(cheby_coeffs(jj,nn-jj,iTable)*Tx (jj))*Tpy(nn-jj)
+      if (cheby_coeffs(jj,nn-jj,iTable) /= zero ) then
+        dxp=dxp+(cheby_coeffs(jj,nn-jj,iTable)*Tpx(jj))*Ty (nn-jj)
+        dyp=dyp+(cheby_coeffs(jj,nn-jj,iTable)*Tx (jj))*Tpy(nn-jj)
+      end if
     end do
   end do
   dxp=-(dxp*c1e3)/(cheby_refR(iTable)*c1m3) ! ref radius in [mm], kick in [mrad]
@@ -1133,7 +1177,7 @@ subroutine cheby_getPotential( xx, yy, zz, iTable )
   zz=zero
   do nn=0,cheby_maxOrder(iTable)
     do jj=0,nn
-      zz=zz+(cheby_coeffs(jj,nn-jj,iTable)*Tx(jj))*Ty(nn-jj)
+      if (cheby_coeffs(jj,nn-jj,iTable) /= zero ) zz=zz+(cheby_coeffs(jj,nn-jj,iTable)*Tx(jj))*Ty(nn-jj)
     end do
   end do
 
