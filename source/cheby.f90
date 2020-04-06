@@ -182,8 +182,8 @@ subroutine cheby_parseInputLine(inLine, iLine, iErr)
     call cheby_expand_arrays_map_echo(ncheby_mapEchoes)
     cheby_mapFileName(ncheby_mapEchoes) = trim(lnSplit(3))
     cheby_iLens(ncheby_mapEchoes) = icheby(iElem)
-    if (nSplit > 3 ) then
-      if (nSplit<9) then
+    if ( nSplit > 3 ) then
+      if ( nSplit < 9 ) then
         write(lerr,"(a,i0)") "CHEBY> ERROR Expected 8 input parameters, got ",nSplit
         write(lerr,"(a)")    "CHEBY> format of SHOW line:"
         write(lerr,"(a)")    "SHOW name filename xmin[mm] xmax[mm] nx ymin[mm] ymax[mm] ny"
@@ -619,7 +619,7 @@ subroutine parseChebyFile(ifile)
       goto 30
     end if
     cheby_maxOrder(ifile)=max(ii,jj,cheby_maxOrder(ifile))
-    if ( cheby_maxOrder(ifile).gt.cheby_maxNterms-1 ) then
+    if ( cheby_maxOrder(ifile) > cheby_maxNterms-1 ) then
       write(lerr,"(2(a,i0))") "CHEBY> ERROR order of map too high: ",cheby_maxOrder(ifile), &
                                             " >",cheby_maxNterms-1
       write(lerr,"(a)")       "CHEBY>       please increase cheby_maxNterms parameter"
@@ -732,7 +732,7 @@ subroutine cheby_kick(i,ix,n)
     ax=abs(xx)
     ay=abs(yy)
     ! (x,y)<r1 or ( (xx>r2) || (yy>r2) ): no kick from lens
-    if ( (ax.lt.r1lteps.and.ay.lt.r1lteps) .or. (ax.gt.r2gteps.or.ay.gt.r2gteps) ) cycle
+    if ( (ax < r1lteps .and. ay < r1lteps) .or. (ax > r2gteps .or. ay > r2gteps) ) cycle
 
     ! compute kick from cheby map
     call cheby_getKick( xx, yy, dxp, dyp, cheby_itable(icheby(ix)) )
@@ -935,7 +935,7 @@ subroutine cheby_kick_fox(i,ix)
   ax=abs(XA) ;
   ay=abs(YA) ;
   ! (x,y)<r1 or ( (xx>r2) || (yy>r2) ): no kick from lens
-  if (.not. ( (ax.lt.r1lteps.and.ay.lt.r1lteps) .or. (ax.gt.r2gteps.or.ay.gt.r2gteps) ) ) then
+  if (.not. ( (ax < r1lteps .and. ay < r1lteps) .or. (ax > r2gteps .or. ay > r2gteps) ) ) then
      
     if (st_debug) write(lout,'(2(a,1pe23.16))')'CHEBY> CHEBY_KICK_FOX computing kick when R1[mm]= ',&
          cheby_r1(icheby(ix)),' and R2[mm]= ',cheby_r2(icheby(ix))
@@ -1140,7 +1140,7 @@ subroutine cheby_potentialMap(iLens,ix)
       ax=abs(xxn)
       ay=abs(yyn)
       ! (x,y)<r1 or ( (xx>r2) || (yy>r2) ): no kick from lens
-      if ( (ax.lt.r1lteps.and.ay.lt.r1lteps) .or. (ax.gt.r2gteps.or.ay.gt.r2gteps) ) inside=0
+      if ( (ax < r1lteps .and. ay < r1lteps) .or. (ax > r2gteps .or. ay > r2gteps) ) inside=0
       ! compute kick from cheby map
       call cheby_getPotential( xxn, yyn, zz, cheby_itable(iLens) )
       write(fUnit,'(5(1X,1pe22.15),1X,i0)') xx, yy, xxn, yyn, zz, inside
