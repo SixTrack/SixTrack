@@ -26,7 +26,7 @@ module cheby
   integer, parameter          :: cheby_maxNterms=21     ! max number of terms in Chebyshev polynomials (required by FOX)
                                                         ! please keep this synched with TX, TY, TPX and TPY
                                                         !    in the FOX part of this module
-  logical, save               :: cheby_lFox_def=.false. ! default lFox
+  logical, save               :: cheby_lFox_def=.true.  ! default lFox
 
   ! variables to save parameters for tracking etc.
   integer,          allocatable, save :: cheby_itable(:)      ! index of chebyshev table
