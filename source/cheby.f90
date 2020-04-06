@@ -768,6 +768,8 @@ subroutine cheby_kick_fox(i,ix)
   ! A. Mereghetti (CERN, BE-ABP-HSS)
   ! last modified: 06-04-2020
   ! apply kick of Chebyshev lenses (FOX)
+  ! NB: for derivatives of polynomials, do not follow what is suggested by
+  !     G.Stancari, but get d(Tn(u))/du from its definition
 
   use mod_common, only : beta0, mtcda, brho
   use mod_settings, only : st_debug
@@ -783,7 +785,7 @@ subroutine cheby_kick_fox(i,ix)
   integer, intent(in) :: ix
 
   integer          :: jj, morder, nn, mm, ll, oo
-  real(kind=fPrec) :: rra, tta, xa, ya, ax, ay, xclo, yclo, angrad, cscal, dxpa, dypa, refr, rnn, coeff
+  real(kind=fPrec) :: rra, tta, xa, ya, ax, ay, xclo, yclo, angrad, cscal, dxpa, dypa, refr, coeff
   real(kind=fPrec) :: epsilon, gteps, lteps, r1lteps, r2gteps
   logical          lrotate
 
@@ -805,8 +807,6 @@ subroutine cheby_kick_fox(i,ix)
 !FOX  D V DA INT RADIO NORD NVAR ;
 !FOX  D V DA INT UU    NORD NVAR ;
 !FOX  D V DA INT VV    NORD NVAR ;
-!FOX  D V DA INT FU    NORD NVAR ;
-!FOX  D V DA INT FV    NORD NVAR ;
 !FOX  D V DA INT THETA NORD NVAR ;
 !FOX  D V DA INT TX    NORD NVAR 21 ;
 !FOX  D V DA INT TY    NORD NVAR 21 ;
@@ -824,7 +824,6 @@ subroutine cheby_kick_fox(i,ix)
 !FOX  D V RE INT REFR ;
 !FOX  D V RE INT DXPA ;
 !FOX  D V RE INT DYPA ;
-!FOX  D V RE INT RNN ;
 !FOX  D V RE INT COEFF ;
 !FOX  D V RE INT ANGRAD ;
 !FOX  D V RE INT ONE ;
@@ -946,9 +945,6 @@ subroutine cheby_kick_fox(i,ix)
     ! normalised variables
 !FOX  UU=XI/REFR ;
 !FOX  VV=YI/REFR ;
-    ! normalisation factors of derivatives
-!FOX  FU=(ONE-UU)*(ONE+UU) ;
-!FOX  FV=(ONE-VV)*(ONE+VV) ;
     
     ! fox: T/TP arrays go from 1 to NN
     ! - polynomials:
@@ -962,13 +958,15 @@ subroutine cheby_kick_fox(i,ix)
 !FOX  TPX(2)=ONE ;
 !FOX  TPY(2)=ONE ;
     do NN=3,morder+1
-      RNN=real(NN-1,fPrec)
       MM=NN-1
       OO=NN-2
 !FOX  TX(NN)=(TWO*(UU*TX(MM)))-TX(OO) ;
 !FOX  TY(NN)=(TWO*(VV*TY(MM)))-TY(OO) ;
-!FOX  TPX(NN)=(RNN*(TX(MM)-(UU*TX(NN))))/FU ;
-!FOX  TPY(NN)=(RNN*(TY(MM)-(VV*TY(NN))))/FV ;
+      ! use definition of derivative applied to definition of polynomial:
+      ! d/du Tn(u)= d/du[ 2u*T_(n-1)(u)-T_(n-2)(u) ] = 2T_(n-1)(u) +2u*T'_(n-1)(u) -T'_(n-2)(u)
+      !           = 2(T_(n-1)(u) +u*T'_(n-1)(u))-T'_(n-2)(u)
+!FOX  TPX(NN)=TWO*(TX(MM)+UU*TPX(MM))-TPX(OO) ;
+!FOX  TPY(NN)=TWO*(TY(MM)+VV*TPY(MM))-TPY(OO) ;
     end do
     
     ! get kicks
@@ -1158,9 +1156,11 @@ end subroutine cheby_potentialMap
 subroutine cheby_getKick( xx, yy, dxp, dyp, iTable )
 
   ! A. Mereghetti (CERN, BE-ABP-HSS)
-  ! last modified: 01-03-2019
+  ! last modified: 06-04-2020
   ! compute kicks from Chebyshev polinomials - see FermiLAB-FN-0972-APC
   ! coordinates and kicks are in the map reference frame!
+  ! NB: for derivatives of polynomials, do not follow what is suggested by
+  !     G.Stancari, but get d(Tn(u))/du from its definition
 
   use numerical_constants, only : zero, one, two, c1m3, c1e3
 
@@ -1173,15 +1173,12 @@ subroutine cheby_getKick( xx, yy, dxp, dyp, iTable )
 
   ! temp vars
   real(kind=fPrec) :: uu, vv, Tx (0:cheby_maxOrder(iTable)), Ty (0:cheby_maxOrder(iTable)), &
-                      fu, fv, Tpx(0:cheby_maxOrder(iTable)), Tpy(0:cheby_maxOrder(iTable))
+                              Tpx(0:cheby_maxOrder(iTable)), Tpy(0:cheby_maxOrder(iTable))
   integer          :: nn, jj
 
   ! normalised variables
   uu=xx/cheby_refR(iTable)
   vv=yy/cheby_refR(iTable)
-  ! normalisation factors of derivatives
-  fu=(one-uu)*(one+uu)
-  fv=(one-vv)*(one+vv)
 
   ! - polynomials:
   Tx(0)=one
@@ -1196,8 +1193,11 @@ subroutine cheby_getKick( xx, yy, dxp, dyp, iTable )
   do nn=2,cheby_maxOrder(iTable)
     Tx(nn)=two*(uu*Tx(nn-1))-Tx(nn-2)
     Ty(nn)=two*(vv*Ty(nn-1))-Ty(nn-2)
-    Tpx(nn)=(real(nn,fPrec)*(Tx(nn-1)-(uu*Tx(nn))))/fu
-    Tpy(nn)=(real(nn,fPrec)*(Ty(nn-1)-(vv*Ty(nn))))/fv
+    ! use definition of derivative applied to definition of polynomial:
+    ! d/du Tn(u)= d/du[ 2u*T_(n-1)(u)-T_(n-2)(u) ] = 2T_(n-1)(u) +2u*T'_(n-1)(u) -T'_(n-2)(u)
+    !           = 2(T_(n-1)(u) +u*T'_(n-1)(u))-T'_(n-2)(u)
+    Tpx(nn)=two*(Tx(nn-1)+uu*Tpx(nn-1))-Tpx(nn-2)
+    Tpy(nn)=two*(Ty(nn-1)+vv*Tpy(nn-1))-Tpy(nn-2)
   end do
 
   ! get kicks
