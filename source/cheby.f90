@@ -109,11 +109,11 @@ subroutine cheby_expand_arrays_tables(ncheby_tables_new)
   use mod_alloc, only : alloc
   implicit none
   integer, intent(in) :: ncheby_tables_new
-  call alloc(cheby_filename   , mFileName,       ncheby_tables_new,  " ", 'cheby_filename'                      )
-  call alloc(cheby_coeffs     ,            0, 0, ncheby_tables_new, zero, 'cheby_coeffs'  , 0, 0, ncheby_tables )
-  call alloc(cheby_maxOrder   ,                  ncheby_tables_new,    0, 'cheby_maxOrder'                      )
-  call alloc(cheby_refI       ,                  ncheby_tables_new,  one, 'cheby_refI'                          )
-  call alloc(cheby_refR       ,                  ncheby_tables_new, zero, 'cheby_refR'                          )
+  call alloc(cheby_filename   , mFileName,       ncheby_tables_new,  " ", 'cheby_filename'          )
+  call alloc(cheby_coeffs     ,            0, 0, ncheby_tables_new, zero, 'cheby_coeffs'  , 0, 0, 1 )
+  call alloc(cheby_maxOrder   ,                  ncheby_tables_new,    0, 'cheby_maxOrder'          )
+  call alloc(cheby_refI       ,                  ncheby_tables_new,  one, 'cheby_refI'              )
+  call alloc(cheby_refR       ,                  ncheby_tables_new, zero, 'cheby_refR'              )
 end subroutine cheby_expand_arrays_tables
 
 ! ================================================================================================ !
@@ -301,7 +301,7 @@ subroutine cheby_parseInputLine(inLine, iLine, iErr)
     ! Check if profile has already been requested:
     chIdx = -1
     do tmpi1=1,ncheby_tables
-      if(tmpch == cheby_filename(tmpi1)) then
+      if(trim(tmpch) == trim(cheby_filename(tmpi1))) then
         cheby_itable(icheby(iElem)) = tmpi1
         chIdx = tmpi1
         exit
@@ -310,9 +310,10 @@ subroutine cheby_parseInputLine(inLine, iLine, iErr)
     if(chIdx == -1) then
       ! Unsuccessful search
       ncheby_tables = ncheby_tables+1
+      if(st_debug) write(lout,"(a,i0,a)") "CHEBY> adding table" ,ncheby_tables,"'"//trim(tmpch)//"'"
       call cheby_expand_arrays_tables(ncheby_tables)
       cheby_itable(icheby(iElem)) = ncheby_tables
-      cheby_filename(tmpi1) = tmpch
+      cheby_filename(tmpi1) = trim(tmpch)
     end if
 
     ! Additional geometrical infos:
@@ -508,7 +509,7 @@ end subroutine cheby_postInput
 
 
 ! ================================================================================================ !
-!  Last modified: 2019-02-25
+!  Last modified: 2020-04-07
 !  Rewritten by VKBO, June 2018
 !  Read file with coefficients for chebyshev polynomials
 !  ifile is index of file in table of chebyshev files
@@ -522,11 +523,14 @@ end subroutine cheby_postInput
 !  coefficients are give with the following syntax:
 !  i j : value
 !  where i->x and j->y
+!  or in tabular format:
+!  TABLE : y   |   0    1    2    3  ...
+!  TABLE : x 0 | 0.0  1.2  2.4 -3.6  ...
 ! ================================================================================================ !
 subroutine parseChebyFile(ifile)
 
   use crcoall, only : lout, lerr
-  use mod_alloc, only : alloc
+  use mod_alloc, only : alloc, dealloc
   use mod_common
   use mod_settings
   use string_tools
@@ -537,13 +541,14 @@ subroutine parseChebyFile(ifile)
   integer, intent(in) :: ifile
 
   character(len=:), allocatable   :: lnSplit(:)
+  integer, allocatable :: jOrder(:)
   character(len=mInputLn) inLine
-  integer nSplit, ii, jj, fUnit, iDim, jDim
+  integer nSplit, ii, jj, fUnit, iDim, jDim, jMax
   logical spErr, err, lDefI
 
   lDefI=.true.
 
-  write(lout,"(a)") "CHEBY> Parsing file with coefficients for Chebyshev polynomials "//trim(cheby_filename(ifile))
+  write(lout,"(a)") "CHEBY> Parsing file with coefficients for Chebyshev polynomials '"//trim(cheby_filename(ifile))//"'..."
   call f_requestUnit(cheby_filename(ifile),fUnit)
   call f_open(unit=fUnit,file=cheby_filename(ifile),mode='r',err=err,formatted=.true.,status="old")
   if(err) then
@@ -560,7 +565,7 @@ subroutine parseChebyFile(ifile)
     write(lerr,"(a)") "CHEBY> ERROR Failed to split Chebyshev input line"
     goto 30
   end if
-
+ 
   if(inLine(1:1) == "I") then
     ! Read reference current of lens
     if(nSplit < 3) then
@@ -590,8 +595,66 @@ subroutine parseChebyFile(ifile)
       goto 30
     end if
 
+  else if(chr_toUpper(inLine(1:5)) == "TABLE" ) then
+    ! Read chebyshev coefficients in tabular format
+    if (chr_toLower(lnSplit(3)) == "y" ) then
+      ! line with header
+      if ( lnSplit(2) /= ":" .or. lnSplit(4) /= "|" ) then
+        write(lerr,"(a)") "CHEBY> ERROR Incorret format of header line."
+        goto 50
+      end if
+      ! - in case, de-allocate
+      if ( allocated( jOrder ) ) call dealloc(jOrder,'jOrder')
+      ! - allocate
+      call alloc( jOrder, nSplit-4, 0, 'jOrder' )
+      ! - parse header and store it in memory
+      do jj=1,nSplit-4
+        call chr_cast(lnSplit(jj+4),jOrder(jj),spErr)
+        if ( jOrder(jj) < 0 ) then
+          write(lerr,"(a)") "CHEBY> ERROR Header line contains a negative index."
+          goto 50
+        end if
+      end do
+      ! - find max order in header
+      jMax=maxval( jOrder )
+    elseif (chr_toLower(lnSplit(3)) == "x" ) then
+      ! line with actual coefficients
+      if ( .not. allocated( jOrder ) ) then
+        write(lerr,"(a)") "CHEBY> ERROR Coefficient line comes before/without header line."
+        goto 50
+      end if
+      if ( lnSplit(2) /= ":" .or. lnSplit(5) /= "|" ) then
+        write(lerr,"(a)") "CHEBY> ERROR Incorret format of line of coefficients."
+        goto 50
+      end if
+      if ( nSplit-5 > size(jOrder) ) then
+        write(lerr,"(a)") "CHEBY> ERROR Incorret format of line of coefficients."
+        goto 50
+      end if
+      call chr_cast(lnSplit(4),ii,spErr)
+      ! add new coefficients
+      iDim = size(cheby_coeffs,1)
+      jDim = size(cheby_coeffs,2)
+      if(ii>=iDim)   call alloc(cheby_coeffs,     ii, jDim-1, ncheby_tables, zero, 'cheby_coeffs', 0, 0, 1 )
+      iDim = size(cheby_coeffs,1)
+      if(jMax>=jDim) call alloc(cheby_coeffs, iDim-1,   jMax, ncheby_tables, zero, 'cheby_coeffs', 0, 0 ,1 )
+      do jj=1,nSplit-5
+        call chr_cast(lnSplit(jj+5),cheby_coeffs(ii,jOrder(jj),ifile),spErr)
+      end do
+      cheby_maxOrder(ifile)=max(ii,jMax,cheby_maxOrder(ifile))
+      if ( cheby_maxOrder(ifile) > cheby_maxNterms-1 ) then
+        write(lerr,"(2(a,i0))") "CHEBY> ERROR order of map too high: ",cheby_maxOrder(ifile), &
+             " > ",cheby_maxNterms-1
+        write(lerr,"(a)")       "CHEBY>       please increase cheby_maxNterms parameter"
+        goto 30
+      end if
+    else
+      write(lerr,"(a)") "CHEBY> ERROR Un-recognized line for tabular format of coefficients."
+      goto 50
+    end if
+    
   else
-    ! Read chebyshev coefficients
+    ! Read chebyshev coefficients in format: "ii jj : value"
     if(nSplit /= 4) then
       write(lerr,"(a)") "CHEBY> ERROR Not enough arguments for expressing Chebyshev coefficients [Vm]."
       write(lerr,"(a)") "CHEBY>       Correct format:"
@@ -610,9 +673,9 @@ subroutine parseChebyFile(ifile)
     end if
     iDim = size(cheby_coeffs,1)
     jDim = size(cheby_coeffs,2)
-    if(ii>=iDim) call alloc(cheby_coeffs,     ii, jDim-1, ifile, zero, 'cheby_coeffs', 0, 0, 1 )
+    if(ii>=iDim) call alloc(cheby_coeffs,     ii, jDim-1, ncheby_tables, zero, 'cheby_coeffs', 0, 0, 1 )
     iDim = size(cheby_coeffs,1)
-    if(jj>=jDim) call alloc(cheby_coeffs, iDim-1,     jj, ifile, zero, 'cheby_coeffs', 0, 0 ,1 )
+    if(jj>=jDim) call alloc(cheby_coeffs, iDim-1,     jj, ncheby_tables, zero, 'cheby_coeffs', 0, 0 ,1 )
     call chr_cast(lnSplit(4),cheby_coeffs(ii,jj,ifile),spErr)
     if(spErr) then
       write(lerr,"(a)") "CHEBY> ERROR in casting Chebyshev coefficient: "//trim(lnSplit(4))
@@ -621,7 +684,7 @@ subroutine parseChebyFile(ifile)
     cheby_maxOrder(ifile)=max(ii,jj,cheby_maxOrder(ifile))
     if ( cheby_maxOrder(ifile) > cheby_maxNterms-1 ) then
       write(lerr,"(2(a,i0))") "CHEBY> ERROR order of map too high: ",cheby_maxOrder(ifile), &
-                                            " >",cheby_maxNterms-1
+                                            " > ",cheby_maxNterms-1
       write(lerr,"(a)")       "CHEBY>       please increase cheby_maxNterms parameter"
       goto 30
     end if
@@ -640,25 +703,26 @@ subroutine parseChebyFile(ifile)
     write(lerr,"(a,i0,a)") "CHEBY> ERROR max order too low:",cheby_maxOrder(ifile)," - it should be at least 2."
     goto 30
   end if
+  if ( allocated( jOrder ) ) call dealloc(jOrder,'jOrder')
+  write(lout,"('CHEBY> ',a)") "...done."
 
   if(st_quiet < 2) then
     ! Echo parsed data (unless told to be quiet!)
-    write(lout,"(a,i0)") "CHEBY> Coefficients for Chebyshev polynomials as from file '"//&
-      trim(cheby_filename(ifile))//"' - #",ifile
-    write(lout,"(a,1pe22.15)") "CHEBY> * Reference current [A] : ",cheby_refI(ifile)
-    if (lDefI) write(lout,"(a)") "         --> default value!"
-    write(lout,"(a,1pe22.15)") "CHEBY> * reference radius [mm] : ",cheby_refR(ifile)
-    do ii=0,cheby_maxOrder(ifile)
-      do jj=0,cheby_maxOrder(ifile)
-        if(cheby_coeffs(ii,jj,ifile)/= zero) then
-          write(lout,"(2(a,i4),a,1pe22.15)") "CHEBY> Order ",ii,",",jj," : ",cheby_coeffs(ii,jj,ifile)
-        end if
-      end do
-    end do
-    write(lout,"(a)" ) ""
+    if (st_debug) then
+      ! detailed echo
+      call cheby_echoCoefficients_detailed(ifile,lDefI)
+    else 
+      ! tabbed echo (more human-readable)
+      call cheby_echoCoefficients(ifile,lDefI)
+    end if
   end if
   return
 
+50 continue
+  write(lerr,"(a)") "CHEBY>       Example of header line:"
+  write(lerr,"(a)") "CHEBY>       TABLE : Y   |     0     1     2    etc..."
+  write(lerr,"(a)") "CHEBY>       Example of coefficient line:"
+  write(lerr,"(a)") "CHEBY>       TABLE : x 1 |   0.0  -0.1   2.2    etc..."
 30 continue
   write(lout,"(a)") "CHEBY>       last line read:"
   write(lout,"(a)") trim(inLine)
@@ -671,6 +735,112 @@ subroutine parseChebyFile(ifile)
   call prror
 
 end subroutine parseChebyFile
+
+
+subroutine cheby_echoCoefficients(ifile,lDefI)
+  use crcoall, only : lout
+  use mod_alloc, only : alloc, dealloc
+  implicit none
+  integer, intent(in) :: ifile
+  logical, intent(in) :: lDefI
+  integer, allocatable :: jOrder(:)
+  integer ii, jj, kk, maxLen
+  character(len=:), allocatable :: ruler, header, tmpLine
+  character(len=10) :: tmpString
+
+  ! write header
+  write(lout,"(a,i0)") "CHEBY> Coefficients for Chebyshev polynomials as from file '"//&
+    trim(cheby_filename(ifile))//"' - #",ifile
+  write(lout,"(a,1pe9.2)")   "CHEBY> Reference current [A] : ",cheby_refI(ifile)
+  if (lDefI) write(lout,"(a)") "       --> default value!"
+  write(lout,"(a,1pe9.2)")   "CHEBY> reference radius [mm] : ",cheby_refR(ifile)
+
+  ! initialise writing strings
+  maxLen=7+10*cheby_maxOrder(ifile)
+  allocate(character(len=maxLen) :: ruler)
+  allocate(character(len=maxLen) :: header)
+  allocate(character(len=maxLen) :: tmpLine)
+  ruler=" "
+  header=" "
+  tmpLine=" "
+
+  ! initialise header and ruler
+  ruler =repeat("-",7)
+  header=repeat(" ",5)//"|"
+
+  ! get non-NULL columns
+  do jj=0,cheby_maxOrder(ifile)
+    do ii=0,cheby_maxOrder(ifile)
+      if ( cheby_coeffs(ii,jj,ifile) /= zero ) then
+        if ( allocated( jOrder ) ) then
+          call alloc( jOrder, size(jOrder)+1, jj, 'jOrder' )
+        else
+          call alloc( jOrder,              1, jj, 'jOrder' )
+        end if
+        ruler=trim(ruler)//repeat("-",10)
+        write(tmpString,'(1X,i9)') jj
+        header=trim(header)//tmpString
+        exit
+      end if
+    end do
+  end do
+
+  ! write table
+  write(lout,"('CHEBY> ',a)") trim(ruler)
+  write(lout,"('CHEBY> ',a)") trim(header)
+  write(lout,"('CHEBY> ',a)") trim(ruler)
+  do ii=0,cheby_maxOrder(ifile)
+    do kk=1,size(jOrder)
+      if ( cheby_coeffs(ii,jOrder(kk),ifile) /= zero ) then
+        ! the line should be written
+        write(tmpString,"(i4,1X,'|')") ii
+        tmpLine=tmpString
+        do jj=1,size(jOrder)
+          if ( cheby_coeffs(ii,jOrder(jj),ifile) == zero ) then
+            tmpLine=trim(tmpLine)//repeat(" ",10)
+          else   
+            write(tmpString,'(1X,1pe9.2)') cheby_coeffs(ii,jOrder(jj),ifile)
+            tmpLine=trim(tmpLine)//tmpString
+          end if
+        end do
+        write(lout,"('CHEBY> ',a)") trim(tmpLine)
+        exit
+      end if
+    end do
+  end do
+  write(lout,"('CHEBY> ',a)") trim(ruler)
+  write(lout,"('CHEBY> ',a)") ""
+  
+  call dealloc(jOrder,'jOrder')
+  deallocate(ruler)
+  deallocate(header)
+  deallocate(tmpLine)
+  return
+end subroutine cheby_echoCoefficients
+
+
+subroutine cheby_echoCoefficients_detailed(ifile,lDefI)
+  use crcoall, only : lout
+  implicit none
+  integer, intent(in) :: ifile
+  logical, intent(in) :: lDefI
+  integer ii, jj
+  
+  write(lout,"(a,i0)") "CHEBY> Coefficients for Chebyshev polynomials as from file '"//&
+    trim(cheby_filename(ifile))//"' - #",ifile
+  write(lout,"(a,1pe22.15)")   "CHEBY> Reference current [A] : ",cheby_refI(ifile)
+  if (lDefI) write(lout,"(a)") "       --> default value!"
+  write(lout,"(a,1pe22.15)")   "CHEBY> reference radius [mm] : ",cheby_refR(ifile)
+  do ii=0,cheby_maxOrder(ifile)
+    do jj=0,cheby_maxOrder(ifile)
+      if(cheby_coeffs(ii,jj,ifile)/= zero) then
+        write(lout,"(2(a,i4),a,1pe22.15)") "CHEBY> Order ",ii,",",jj," : ",cheby_coeffs(ii,jj,ifile)
+      end if
+    end do
+  end do
+  write(lout,"(a)" ) ""
+  return
+end subroutine cheby_echoCoefficients_detailed
 
 
 subroutine cheby_kick(i,ix,n)
