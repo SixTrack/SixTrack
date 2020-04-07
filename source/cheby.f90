@@ -847,12 +847,14 @@ subroutine cheby_kick(i,ix,n)
 
   ! A. Mereghetti (CERN, BE-ABP-HSS)
   ! last modified: 02-04-2020
-  ! apply kick of Chebyshev lenses
+  ! compute (see FermiLAB-FN-0972-APC) and apply kick of Chebyshev lenses
+  ! NB: for derivatives of polynomials, do not follow what is suggested by
+  !     G.Stancari, but get d(Tn(u))/du from its definition
 
   use mod_common, only : beta0, napx, brho
   use mod_common_main
   use mathlib_bouncer
-  use numerical_constants, only : zero, c180e0, pi, two, c1m15
+  use numerical_constants, only : zero, one, two, c180e0, pi, c1m15, c1m3, c1e3
   use physical_constants, only: clight
 
   implicit none
@@ -861,11 +863,16 @@ subroutine cheby_kick(i,ix,n)
   integer, intent(in) :: ix
   integer, intent(in) :: n
 
-  real(kind=fPrec) xx, yy, ax, ay, rr, dxp, dyp
+  real(kind=fPrec) xx, yy, ax, ay, rr, dxp, dyp, uu, vv
   real(kind=fPrec) theta, angle_rad, epsilon, gteps, lteps, r1lteps, r2gteps
-  integer          jj
+  integer          ii, jj, nn
   logical          lrotate
 
+  real(kind=fPrec) :: Tx (0:cheby_maxOrder(cheby_itable(icheby(ix)))), &
+                      Ty (0:cheby_maxOrder(cheby_itable(icheby(ix)))), &
+                      Tpx(0:cheby_maxOrder(cheby_itable(icheby(ix)))), &
+                      Tpy(0:cheby_maxOrder(cheby_itable(icheby(ix))))
+  
   epsilon=c1m15
   gteps=one+epsilon
   lteps=one-epsilon
@@ -876,11 +883,11 @@ subroutine cheby_kick(i,ix,n)
   lrotate = cheby_angle(icheby(ix)).ne.zero
   angle_rad = (cheby_angle(icheby(ix))/c180e0)*pi
 
-  do jj=1,napx
+  do ii=1,napx
 
     ! apply offset
-    xx=xv1(jj)-cheby_offset_x(icheby(ix))
-    yy=xv2(jj)-cheby_offset_y(icheby(ix))
+    xx=xv1(ii)-cheby_offset_x(icheby(ix))
+    yy=xv2(ii)-cheby_offset_y(icheby(ix))
     if (abs(xx)<epsilon) xx=zero
     if (abs(yy)<epsilon) yy=zero
 
@@ -905,7 +912,42 @@ subroutine cheby_kick(i,ix,n)
     if ( (ax < r1lteps .and. ay < r1lteps) .or. (ax > r2gteps .or. ay > r2gteps) ) cycle
 
     ! compute kick from cheby map
-    call cheby_getKick( xx, yy, dxp, dyp, cheby_itable(icheby(ix)) )
+    ! - normalised variables
+    uu=xx/cheby_refR(cheby_itable(icheby(ix)))
+    vv=yy/cheby_refR(cheby_itable(icheby(ix)))
+    ! - polynomials:
+    Tx(0)=one
+    Ty(0)=one
+    Tx(1)=uu
+    Ty(1)=vv
+    ! - derivatives:
+    Tpx(0)=zero
+    Tpy(0)=zero
+    Tpx(1)=one
+    Tpy(1)=one
+    do nn=2,cheby_maxOrder(cheby_itable(icheby(ix)))
+      Tx(nn)=two*(uu*Tx(nn-1))-Tx(nn-2)
+      Ty(nn)=two*(vv*Ty(nn-1))-Ty(nn-2)
+      ! use definition of derivative applied to definition of polynomial:
+      ! d/du Tn(u)= d/du[ 2u*T_(n-1)(u)-T_(n-2)(u) ] = 2T_(n-1)(u) +2u*T'_(n-1)(u) -T'_(n-2)(u)
+      !           = 2(T_(n-1)(u) +u*T'_(n-1)(u))-T'_(n-2)(u)
+      Tpx(nn)=two*(Tx(nn-1)+uu*Tpx(nn-1))-Tpx(nn-2)
+      Tpy(nn)=two*(Ty(nn-1)+vv*Tpy(nn-1))-Tpy(nn-2)
+    end do
+    ! - get actual kicks
+    dxp=zero
+    dyp=zero
+    do nn=0,cheby_maxOrder(cheby_itable(icheby(ix)))
+      do jj=0,nn
+        if (cheby_coeffs(jj,nn-jj,cheby_itable(icheby(ix))) /= zero ) then
+          dxp=dxp+(cheby_coeffs(jj,nn-jj,cheby_itable(icheby(ix)))*Tpx(jj))*Ty (nn-jj)
+          dyp=dyp+(cheby_coeffs(jj,nn-jj,cheby_itable(icheby(ix)))*Tx (jj))*Tpy(nn-jj)
+        end if
+      end do
+    end do
+    dxp=-(dxp*c1e3)/(cheby_refR(cheby_itable(icheby(ix)))*c1m3) ! ref radius in [mm], kick in [mrad]
+    dyp=-(dyp*c1e3)/(cheby_refR(cheby_itable(icheby(ix)))*c1m3) ! ref radius in [mm], kick in [mrad]
+    ! - check kicks are not NULL
     if (abs(dxp)<epsilon) dxp=zero
     if (abs(dyp)<epsilon) dyp=zero
     if ( dxp == zero .and. dyp == zero ) cycle
@@ -921,12 +963,12 @@ subroutine cheby_kick(i,ix,n)
 
     ! take into account scaling factor, Brho of beam and its relativistic beta,
     !    and magnetic rigidity and relativistic beta of particle being tracked
-    dxp=(((dxp*cheby_scalingFact(icheby(ix)))/(brho*(clight*beta0)))*moidpsv(jj))*rvv(jj)
-    dyp=(((dyp*cheby_scalingFact(icheby(ix)))/(brho*(clight*beta0)))*moidpsv(jj))*rvv(jj)
+    dxp=(((dxp*cheby_scalingFact(icheby(ix)))/(brho*(clight*beta0)))*moidpsv(ii))*rvv(ii)
+    dyp=(((dyp*cheby_scalingFact(icheby(ix)))/(brho*(clight*beta0)))*moidpsv(ii))*rvv(ii)
 
     ! apply kicks
-    yv1(jj)=yv1(jj)+dxp
-    yv2(jj)=yv2(jj)+dyp
+    yv1(ii)=yv1(ii)+dxp
+    yv2(ii)=yv2(ii)+dyp
 
   end do
 
@@ -1321,70 +1363,6 @@ subroutine cheby_potentialMap(iLens,ix)
   call f_freeUnit(fUnit)
 
 end subroutine cheby_potentialMap
-
-
-subroutine cheby_getKick( xx, yy, dxp, dyp, iTable )
-
-  ! A. Mereghetti (CERN, BE-ABP-HSS)
-  ! last modified: 06-04-2020
-  ! compute kicks from Chebyshev polinomials - see FermiLAB-FN-0972-APC
-  ! coordinates and kicks are in the map reference frame!
-  ! NB: for derivatives of polynomials, do not follow what is suggested by
-  !     G.Stancari, but get d(Tn(u))/du from its definition
-
-  use numerical_constants, only : zero, one, two, c1m3, c1e3
-
-  ! interface vars
-  real(kind=fPrec), intent(in ) :: xx
-  real(kind=fPrec), intent(in ) :: yy
-  real(kind=fPrec), intent(out) :: dxp
-  real(kind=fPrec), intent(out) :: dyp
-  integer,          intent(in ) :: iTable
-
-  ! temp vars
-  real(kind=fPrec) :: uu, vv, Tx (0:cheby_maxOrder(iTable)), Ty (0:cheby_maxOrder(iTable)), &
-                              Tpx(0:cheby_maxOrder(iTable)), Tpy(0:cheby_maxOrder(iTable))
-  integer          :: nn, jj
-
-  ! normalised variables
-  uu=xx/cheby_refR(iTable)
-  vv=yy/cheby_refR(iTable)
-
-  ! - polynomials:
-  Tx(0)=one
-  Ty(0)=one
-  Tx(1)=uu
-  Ty(1)=vv
-  ! - derivatives:
-  Tpx(0)=zero
-  Tpy(0)=zero
-  Tpx(1)=one
-  Tpy(1)=one
-  do nn=2,cheby_maxOrder(iTable)
-    Tx(nn)=two*(uu*Tx(nn-1))-Tx(nn-2)
-    Ty(nn)=two*(vv*Ty(nn-1))-Ty(nn-2)
-    ! use definition of derivative applied to definition of polynomial:
-    ! d/du Tn(u)= d/du[ 2u*T_(n-1)(u)-T_(n-2)(u) ] = 2T_(n-1)(u) +2u*T'_(n-1)(u) -T'_(n-2)(u)
-    !           = 2(T_(n-1)(u) +u*T'_(n-1)(u))-T'_(n-2)(u)
-    Tpx(nn)=two*(Tx(nn-1)+uu*Tpx(nn-1))-Tpx(nn-2)
-    Tpy(nn)=two*(Ty(nn-1)+vv*Tpy(nn-1))-Tpy(nn-2)
-  end do
-
-  ! get kicks
-  dxp=zero
-  dyp=zero
-  do nn=0,cheby_maxOrder(iTable)
-    do jj=0,nn
-      if (cheby_coeffs(jj,nn-jj,iTable) /= zero ) then
-        dxp=dxp+(cheby_coeffs(jj,nn-jj,iTable)*Tpx(jj))*Ty (nn-jj)
-        dyp=dyp+(cheby_coeffs(jj,nn-jj,iTable)*Tx (jj))*Tpy(nn-jj)
-      end if
-    end do
-  end do
-  dxp=-(dxp*c1e3)/(cheby_refR(iTable)*c1m3) ! ref radius in [mm], kick in [mrad]
-  dyp=-(dyp*c1e3)/(cheby_refR(iTable)*c1m3) ! ref radius in [mm], kick in [mrad]
-
- end subroutine cheby_getKick
 
 
 subroutine cheby_getPotential( xx, yy, zz, iTable )
