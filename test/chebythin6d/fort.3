@@ -2,13 +2,13 @@ GEOME-STRENG TITLE:eltck4_9mrad2016injnocollc15o+19_6noerru%1%s%62.28_60.31%0_10
 PRINTOUT OF INPUT PARAMETERS--------------------------------------------
 NEXT
 TRACKING PARAMETERS-----------------------------------------------------
-400 0 30 0 6.89493 0 1 0 0 10
+400 0 30 0 4.5 0 1 0 0 10
 1 1 0 1 2
 0 0 1 1 1 50000 2
 NEXT
-SETT--------------------------------------------------------------------
-DEBUG
-NEXT
+/ SETT--------------------------------------------------------------------
+/ DEBUG
+/ NEXT
 INITIAL COORDINATES-----------------------------------------------------
         2 0. 0. 0.666664 0
         0.
@@ -63,14 +63,15 @@ NEXT
 /%NO  %NV 1E-38 %nsix 0
 /NEXT
 CHEB
-cheby1  cheby.dat  -1  1.0
-cheby2  cheby.dat  6.4 0.7    0.0 -2.0  2.0
-cheby3  cheby.dat  6.0 0.0  -90.0  2.0 -2.0
-cheby4  cheby.dat  -1. 1.5  160.0  0.0  0.0 2
+FOX    off ALL
+cheby1  cheby.tab  -1  0.25
+cheby2  cheby.dat  3.2 0.7    0.0 -2.0  2.0
+cheby3  cheby_mixed.tab  3.0 0.0  -90.0  1.0 -1.0
+cheby4  cheby.dat  -1. 0.5  160.0  0.0  0.0 2
 SHOW    cheby1 cheby1_pot.dat
-SHOW    cheby2 cheby2_pot.dat -5  1 100 5 -1 100
+SHOW    cheby2 cheby2_pot.dat -6  2 100 6 -2 100
 SHOW    cheby3 cheby3_pot.dat
-SHOW    cheby4 cheby4_pot.dat -10 10 100 -7 7 100
+SHOW    cheby4 cheby4_pot.dat -4 4 100 -7 7 100
 NEXT
 DUMP
 ip4..2 1 1030 2 CHEBY_DUMP_1 1 400

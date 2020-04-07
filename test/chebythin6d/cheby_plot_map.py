@@ -11,10 +11,10 @@ import numpy as np
 
 chebyNames=['cheby1','cheby2','cheby3','cheby4']
 coords=['local','map']
-offx=[0,-2, 2,0]
-offy=[0, 2,-2,0]
-R1=[1.0,0.7,0.0,1.5] # [mm]
-R2=[6.4,6.4,6.0,6.4] #[mm]
+offx=[0,-2, 1,0]
+offy=[0, 2,-1,0]
+R1=[0.25,0.7,0.0,0.5] # [mm]
+R2=[3.2,3.2,3.0,3.2] #[mm]
 cAngles=np.deg2rad([0,0,-90,160])# [deg to rad]
 nRows=nCols=round(len(chebyNames)/2.)
 epsilon=1E-15
@@ -69,7 +69,7 @@ for jj in range(len(chebyNames)):
     plt.tight_layout()
     plt.colorbar()
     plt.grid()
-    plt.clim(-191,-136)
+    plt.clim(-190,-130)
     plt.title('%s - %s ref sys [V m]'%(chebyNames[jj],coords[ii]))
   
 plt.show()
