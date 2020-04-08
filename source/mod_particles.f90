@@ -49,8 +49,14 @@ subroutine part_setPairID
   use mod_common_main
   integer j
   do j=1,npart
+#ifndef G4COLLIMATION
     pairID(1,j) = (j+1)/2    ! The pairID of particle j
     pairID(2,j) = 2-mod(j,2) ! Either particle 1 or 2 of the pair
+#else
+!with g4, treat all particles as secondaries
+    pairID(1,j) = 0
+    pairID(2,j) = 0
+#endif
   end do
   call updatePairMap
 end subroutine part_setPairID

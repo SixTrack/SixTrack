@@ -1782,6 +1782,7 @@ subroutine coll_doCollimator(stracki)
 
   end if
 
+#ifndef G4COLLIMATION
   ! Calculate average impact parameter and save info for all collimators.
   ! Copy information back and do negative drift.
 
@@ -1799,6 +1800,7 @@ subroutine coll_doCollimator(stracki)
       end if
     end do
   end if
+#endif
 
 #ifdef G4COLLIMATION
   do j=1,napx
@@ -2408,9 +2410,10 @@ subroutine coll_endTurn
         llostp(j) = .true.
       end if
     end do
-
+#ifndef G4COLLIMATION
     ! Move the lost particles to the end of the arrays
     call shuffleLostParticles
+#endif
   end if
 
   ! Write final distribution

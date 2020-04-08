@@ -30,6 +30,7 @@ CollimationMaterials::CollimationMaterials()
 	G4Material* Mo = NManager->FindOrBuildMaterial("G4_Mo");
 	G4Material* W = NManager->FindOrBuildMaterial("G4_W");
 	G4Material* Pb = NManager->FindOrBuildMaterial("G4_Pb");
+	G4Material* Si = NManager->FindOrBuildMaterial("G4_Si");
 
 
 	//Only needed for pure elemental collimators
@@ -42,6 +43,8 @@ CollimationMaterials::CollimationMaterials()
 	AddMaterial("Mo", Mo);
 	AddMaterial("W", W);
 	AddMaterial("Pb", Pb);
+	AddMaterial("Si", Si);
+	AddMaterial("SI", Si);
 
 	AddMaterial("CU", Cu);
 
