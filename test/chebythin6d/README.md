@@ -1,8 +1,10 @@
 # Overview of the tests
-* `thin6d` is very similar to that of the elens. Test based on LHC lattice with CHEBY lenses inserted at IP4.
+* `thin6d` is very similar to that of the elens. Test based on LHC lattice with 4 CHEBY lenses inserted at IP4. The same set of coefficients is used for all lenses, but with 3 different ways of inputting them;
 * `thin6d_DYNK` is like `thin6d` but the four lenses are assigned time-varying kicks - switch off, pulsing, random on/off, random kick amplitude;
 * `thin6d_ions` is very similar to `thin6d` but ions are tracked, and for more turns (i.e. 10k);
 * `thin6d_ramp_DYNK` is like `thin6d_DYNK` but three (out of four) lenses are assigned time-varying kicks during a ramp;
+* `thin6d_FOX_kick` is like `thin6d` but the kick computed by FOX is plotted against the kicks computed during tracking. A simpler map is used, representing a quadrupole with different gradients on the vertical and horizontal planes. Shifts and rotation angles are kept as in the original test;
+* `thin6d_FOX_tune` is like `thin6d` but the test is used only to compute the tune by only a chebyshev map. The chebyshev lens implements a regular quad, which should induce a tune shift of the order of 2E-4;
 
 # Python scripts
 The python script `cheby_plot_kick.py` plots the kick received from the chebyshev leses. In total 4 lenses are inserted to check 4 different cases:

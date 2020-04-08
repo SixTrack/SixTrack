@@ -99,6 +99,8 @@ list(APPEND SIXTRACK_TESTS
   beambeamDYNK
   chebythin6d
   chebythin6d_DYNK
+  chebythin6d_FOX_kick
+  chebythin6d_FOX_tune
   chebythin6d_ions
   chebythin6d_ramp_DYNK
   crabs
@@ -357,6 +359,8 @@ set(TESTS_NO_STF
   beam-HO_6D-simple-newstyle-coupling
   chebythin6d
   chebythin6d_DYNK
+  chebythin6d_FOX_kick
+  chebythin6d_FOX_tune
   chebythin6d_ions
   chebythin6d_ramp_DYNK
   collimation_cry_ge_am_hor_b2
@@ -638,8 +642,9 @@ set(FAST_TESTS
   beambeamDYNK
   chebythin6d
   chebythin6d_DYNK
+  chebythin6d_FOX_kick
+  chebythin6d_FOX_tune
   chebythin6d_ions
-  chebythin6d_ramp_DYNK
   collimation_cry_ge_am_hor_b2
   collimation_cry_ge_vc_ver_b1
   collimation_cry_si_ch_hor_b1

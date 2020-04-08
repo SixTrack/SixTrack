@@ -1,0 +1,15 @@
+# A.Mereghetti, 2018-02-14
+# file with coefficients for chebyshev polynomials
+#
+# reference current [A]:
+I :         1.0
+#
+# reference radius [mm]:
+R :         10.0
+#
+# taking into account KL=1E-5 rad/m @450 GeV (i.e. 0.15m and 0.1T/m);
+#
+# coefficients [Vm]:
+0 2 : -112.422
+2 0 :  112.422
+#
