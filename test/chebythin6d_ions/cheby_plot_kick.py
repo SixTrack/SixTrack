@@ -10,15 +10,15 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 chebyNames=['cheby1','cheby2','cheby3','cheby4']
-offx=[0,-2, 2,0] # [mm]
-offy=[0, 2,-2,0] # [mm]
-R1=[1.0,0.7,0.0,1.5] # [mm]
-R2=[6.4,6.4,6.0,6.4] #[mm]
+offx=[0,-2, 1,0]
+offy=[0, 2,-1,0]
+R1=[0.25,0.7,0.0,0.5] # [mm]
+R2=[3.2,3.2,3.0,3.2] #[mm]
 cAngles=[0,0,-90,160] # [deg]
 kicks=['kx','ky','kr']
 nRows=len(chebyNames)/2
 nCols=len(chebyNames)/2*len(kicks)
-angle=135 # [-180:180] [deg]
+angle=160 # [-180:180] [deg]
 dAngle=10 # [deg]
 particlesToPlot=['p','C-12','Fe-56','Xe-129','Tl-208','Pb-207','Pb-208']
 colors=['b','g','r','c','m','k','y']
@@ -62,10 +62,11 @@ for label in ['nrad','kV']:
           z=np.array(chebout[:,4+ii*2]-chebin[:,4+ii*2])
         if (label=='nrad'):
           # show nrad
-          z=z*1e+6
+          fact=1e+6
         else:
           # show kV from mrad
-          z=z*1e-3*(betaRel*clight*Brho)*1e-3
+          fact=1e-3*(betaRel*clight*Brho)*1e-3
+        z=z*fact
         # particles outside domain (black)
         plt.scatter(chebin[:,3][id_out],chebin[:,5][id_out],c='k'   ,edgecolors='none')#, vmin=-3E-11, vmax=3E11)
         # non-zero kicks of particles outside domain (magenta)
@@ -88,12 +89,6 @@ for label in ['nrad','kV']:
         plt.tight_layout()
         plt.colorbar()
         plt.grid()
-        if (not label=='nrad'):
-          if ( kicks[ii]!='kr' ):
-            plt.clim(-7,7)
-        else:
-          if ( kicks[ii]!='kr' ):
-            plt.clim(-20,20)
         plt.title('%s - %s [%s]'%(chebyNames[jj],kicks[ii],label))
     else:
       print 'x or y has been changed in %s / %s - Chebyshev lens should only change xp,yp'%('CHEBY_DUMP_%s'%fnin,'CHEBY_DUMP_%s'%fnout)
@@ -147,7 +142,7 @@ for label in ['nrad','kV']:
         plt.legend(loc='best',fontsize=10)
         plt.tight_layout()
         plt.grid()
-        plt.title('%s - angle=%g'%(chebyNames[jj],angle))
+        plt.title('%s - angle=%g deg'%(chebyNames[jj],angle))
     else:
       print 'x or y has been changed in %s / %s - Chebyshev lens should only change xp,yp'%('CHEBY_DUMP_%s'%fnin,'CHEBY_DUMP_%s'%fnout)
     
