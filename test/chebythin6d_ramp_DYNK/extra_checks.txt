@@ -1,2 +1,1 @@
-aperture_losses.dat
-IP4_DUMP_last
+../chebythin6d/extra_checks.txt
