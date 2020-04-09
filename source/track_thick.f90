@@ -543,7 +543,7 @@ subroutine thck4d(nthinerr)
 
     if(nthinerr /= 0) return
     if(ntwin /= 2) call trackDistance
-#ifndef FLUKA
+#if !defined(FLUKA) && !defined(G4COLLIMATON)
     if(mod(n,nwr(4)) == 0) call trackPairReport(n)
 #else
     ! increase napxto, to get an estimation of particles*turns
@@ -1134,7 +1134,7 @@ subroutine thck6d(nthinerr)
 
     if(nthinerr /= 0) return
     if(ntwin /= 2) call trackDistance
-#ifndef FLUKA
+#if !defined(FLUKA) && !defined(G4COLLIMATON)
     if(mod(n,nwr(4)) == 0) call trackPairReport(n)
 #else
     ! increase napxto, to get an estimation of particles*turns

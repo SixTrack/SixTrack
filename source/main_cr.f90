@@ -1270,7 +1270,7 @@ program maincr
   numx = nnuml
   id   = 0
 
-#ifndef FLUKA
+#if !defined(FLUKA) && !defined(G4COLLIMATION)
   napxto = 0
 
 #ifdef CR
@@ -1382,8 +1382,9 @@ program maincr
         xv1(ie),yv1(ie),xv2(ie),yv2(ie),sigmv(ie),dpsv(ie),e0,ejv(ia),ejv(ie)
     end if
   end do
+#endif
 
-#else
+#ifdef FLUKA
   ! IFDEF FLUKA
   ! A.Mereghetti and D.Sinuela Pastor, for the FLUKA Team
   ! last modified: 17-07-2013
