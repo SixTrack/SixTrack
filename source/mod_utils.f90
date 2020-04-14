@@ -385,11 +385,20 @@ real(kind=fPrec) function polintegrate(xvals,yvals,datalen,mpoints,order,cumul,r
 #endif
 
   do jj=jMin+1,jMax ! loop over data points
-     ! current step is [jj-1:jj]
-     ! current polynomial is in range [kMin:kMax]
+     ! current step is [jj-1:jj], selected points are in range [kMin:kMax]
+     ! any jj:
      ! - mpoints=2: kMin=jj-1, kMax=jj
      ! - mpoints=3: kMin=jj-2, kMax=jj
      ! - mpoints=4: kMin=jj-2, kMax=jj+1
+     ! polynomial order is note reduced at extremes, eg:
+     ! jj=2 (ie leftmost step):
+     ! - mpoints=2: kMin=jj-1=1, kMax=jj  =2
+     ! - mpoints=3: kMin=jj-1=1, kMax=jj+1=3
+     ! - mpoints=4: kMin=jj-1=1, kMax=jj+2=4
+     ! jj=datalen (ie rightmost step):
+     ! - mpoints=2: kMin=jj-1=datalen-1, kMax=jj=datalen
+     ! - mpoints=3: kMin=jj-2=datalen-2, kMax=jj=datalen
+     ! - mpoints=4: kMin=jj-3=datalen-3, kMax=jj=datalen
      kMin=min(max(jj-1-(mpoints-1)/2,1),datalen+1-mpoints)
      kMax=min(kMin+mpoints-1,datalen)
      call polcof(xvals(kMin:kMax),yvals(kMin:kMax),kMax-kMin+1,cof)
