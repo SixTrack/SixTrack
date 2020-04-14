@@ -385,6 +385,11 @@ real(kind=fPrec) function polintegrate(xvals,yvals,datalen,mpoints,order,cumul,r
 #endif
 
   do jj=jMin+1,jMax ! loop over data points
+     ! current step is [jj-1:jj]
+     ! current polynomial is in range [kMin:kMax]
+     ! - mpoints=2: kMin=jj-1, kMax=jj
+     ! - mpoints=3: kMin=jj-2, kMax=jj
+     ! - mpoints=4: kMin=jj-2, kMax=jj+1
      kMin=min(max(jj-1-(mpoints-1)/2,1),datalen+1-mpoints)
      kMax=min(kMin+mpoints-1,datalen)
      call polcof(xvals(kMin:kMax),yvals(kMin:kMax),kMax-kMin+1,cof)
