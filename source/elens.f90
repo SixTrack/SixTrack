@@ -95,8 +95,8 @@ module elens
   integer, allocatable, save          :: elens_radial_jguess(:)     ! bin for guessed search (nelens)
   ! - file handling and data storage:
   character(len=:), allocatable, save :: elens_radial_filename(:)        ! names (nelens_radial_profiles)
-  real(kind=fPrec), allocatable, save :: elens_radial_profile_R(:,:)     ! [mm] (0:elens_radial_dim,nelens_radial_profiles)
-  real(kind=fPrec), allocatable, save :: elens_radial_profile_J(:,:)     ! [A]  (0:elens_radial_dim,nelens_radial_profiles)
+  real(kind=fPrec), allocatable, save :: elens_radial_profile_R(:,:)     ! [mm] (elens_radial_profile_nPoints,nelens_radial_profiles)
+  real(kind=fPrec), allocatable, save :: elens_radial_profile_J(:,:)     ! [A]  (elens_radial_profile_nPoints,nelens_radial_profiles)
   integer, allocatable, save          :: elens_radial_profile_nPoints(:) ! number of points in current radial profile (nelens_radial_profiles)
 
 contains
@@ -160,8 +160,8 @@ subroutine elens_expand_arrays_rad_profiles(nelens_profiles_new)
   implicit none
   integer, intent(in) :: nelens_profiles_new
   call alloc(elens_radial_filename,  mFileName,     nelens_profiles_new,  " ", 'elens_radial_filename' )
-  call alloc(elens_radial_profile_R,         0,     nelens_profiles_new, zero, 'elens_radial_profile_R', 0, 1 )
-  call alloc(elens_radial_profile_J,         0,     nelens_profiles_new, zero, 'elens_radial_profile_J', 0, 1 )
+  call alloc(elens_radial_profile_R,         1,     nelens_profiles_new, zero, 'elens_radial_profile_R' )
+  call alloc(elens_radial_profile_J,         1,     nelens_profiles_new, zero, 'elens_radial_profile_J' )
   call alloc(elens_radial_profile_nPoints,          nelens_profiles_new,    0, 'elens_radial_profile_nPoints' )
 end subroutine elens_expand_arrays_rad_profiles
 
@@ -1023,11 +1023,11 @@ subroutine elens_postLinopt
 
     ! check R1 and R2 against map
     if (elens_type(j)==3 ) then
-      if ( elens_r1(j)< elens_radial_profile_R(0,elens_iRadial(j)) ) then
+      if ( elens_r1(j)< elens_radial_profile_R(1,elens_iRadial(j)) ) then
         write(lerr,"(a,i0,a)") "ELENS> ERROR on elens #",j, " named "//trim(bez(jj))//": "
         write(lerr,"(a)")      "ELENS>       R1 declared in "//trim(fort3)//" falls outside range of map" // &
              " contained in "//trim(elens_radial_filename(elens_iRadial(j)))
-        write(lerr,"(2(a,1pe22.15),a)") "ELENS>       Rmin=",elens_radial_profile_R(0,elens_iRadial(j)), &
+        write(lerr,"(2(a,1pe22.15),a)") "ELENS>       Rmin=",elens_radial_profile_R(1,elens_iRadial(j)), &
              " mm, Rmax=",elens_radial_profile_R(elens_radial_profile_nPoints(elens_iRadial(j)),elens_iRadial(j))," mm"
         call prror
       end if
@@ -1035,7 +1035,7 @@ subroutine elens_postLinopt
         write(lerr,"(a,i0,a)") "ELENS> ERROR on elens #",j, " named "//trim(bez(jj))//": "
         write(lerr,"(a)")      "ELENS>       R2 declared in "//trim(fort3)//" falls outside range of map" // &
              " contained in "//trim(elens_radial_filename(elens_iRadial(j)))
-        write(lerr,"(2(a,1pe22.15),a)") "ELENS>       Rmin=",elens_radial_profile_R(0,elens_iRadial(j)), &
+        write(lerr,"(2(a,1pe22.15),a)") "ELENS>       Rmin=",elens_radial_profile_R(1,elens_iRadial(j)), &
              " mm, Rmax=",elens_radial_profile_R(elens_radial_profile_nPoints(elens_iRadial(j)),elens_iRadial(j))," mm"
         call prror
       end if
@@ -1051,14 +1051,14 @@ subroutine elens_postLinopt
                            -exp_mb(-(((elens_r2(j)/elens_sig(j))*(elens_r2(j)/elens_sig(j)))/two))
       case(3) ! Radial profile
         elens_radial_fr1(j) = polinterp( elens_r1(j), &
-              elens_radial_profile_R(0:elens_radial_profile_nPoints(elens_iRadial(j)),elens_iRadial(j)), &
-              elens_radial_profile_J(0:elens_radial_profile_nPoints(elens_iRadial(j)),elens_iRadial(j)), &
-              elens_radial_profile_nPoints(elens_iRadial(j))+1, &
+              elens_radial_profile_R(1:elens_radial_profile_nPoints(elens_iRadial(j)),elens_iRadial(j)), &
+              elens_radial_profile_J(1:elens_radial_profile_nPoints(elens_iRadial(j)),elens_iRadial(j)), &
+              elens_radial_profile_nPoints(elens_iRadial(j)), &
               elens_radial_mpoints(elens_iRadial(j)), jguess )
         elens_radial_fr2(j) = polinterp( elens_r2(j), &
-              elens_radial_profile_R(0:elens_radial_profile_nPoints(elens_iRadial(j)),elens_iRadial(j)), &
-              elens_radial_profile_J(0:elens_radial_profile_nPoints(elens_iRadial(j)),elens_iRadial(j)), &
-              elens_radial_profile_nPoints(elens_iRadial(j))+1, &
+              elens_radial_profile_R(1:elens_radial_profile_nPoints(elens_iRadial(j)),elens_iRadial(j)), &
+              elens_radial_profile_J(1:elens_radial_profile_nPoints(elens_iRadial(j)),elens_iRadial(j)), &
+              elens_radial_profile_nPoints(elens_iRadial(j)), &
               elens_radial_mpoints(elens_iRadial(j)), jguess  )
         elens_geo_norm(j) = elens_radial_fr2(j) -elens_radial_fr1(j)
       end select ! case (elens_type(j))
@@ -1264,10 +1264,14 @@ subroutine parseRadialProfile(ifile)
   end if
   call chr_cast(lnSplit(1),tmpR,spErr)
   call chr_cast(lnSplit(2),tmpJ,spErr)
+  if ( tmpR < zero ) then
+    write(lerr,"(a)") "ELENS> ERROR Negative radius found in radial profile."
+    goto 30
+  end if
   ii=ii+1
   if(ii>=size(elens_radial_profile_R,1)-1) then
-    call alloc(elens_radial_profile_R, ii, nelens_radial_profiles, zero, 'elens_radial_profile_R', 0, 1 )
-    call alloc(elens_radial_profile_J, ii, nelens_radial_profiles, zero, 'elens_radial_profile_J', 0, 1 )
+    call alloc(elens_radial_profile_R, ii, nelens_radial_profiles, zero, 'elens_radial_profile_R' )
+    call alloc(elens_radial_profile_J, ii, nelens_radial_profiles, zero, 'elens_radial_profile_J' )
   end if
   elens_radial_profile_nPoints(ifile) = ii
   elens_radial_profile_R(ii,ifile) = tmpR
@@ -1283,16 +1287,12 @@ subroutine parseRadialProfile(ifile)
     go to 30
   end if
 
-  ! set current density at r(0) as at r(1), to properly compute the cumulative curve
-  elens_radial_profile_J(0,ifile)=elens_radial_profile_J(1,ifile)
-
   write(lout,"(a,i0,a)") "ELENS> ...acquired ",elens_radial_profile_nPoints(ifile)," points."
   if(st_quiet < 2) then
     ! Echo parsed data (unless told to be quiet!)
     write(lout,"(a,i0,a)") "ELENS> Radial profile as from file "//&
       trim(elens_radial_filename(ifile))//" - #",ifile," - showing: ii, R[mm], J[A/mm2]"
-    write(lout,"(a)") "ELENS> NB: point at ii=0 (i.e. R=0) added automatically by SixTrack"
-    do ii=0,elens_radial_profile_nPoints(ifile)
+    do ii=1,elens_radial_profile_nPoints(ifile)
       write(lout,"((a,i4),2(a,1pe22.15))") "ELENS> ",ii,",",elens_radial_profile_R(ii,ifile),",",elens_radial_profile_J(ii,ifile)
     end do
   end if
@@ -1335,14 +1335,14 @@ subroutine integrateRadialProfile(ifile)
   write(lout,"(a)") "ELENS> Normalising radial profile described in "//trim(elens_radial_filename(ifile))
   if(st_quiet < 2) flush(lout)
   nn=elens_radial_profile_nPoints(ifile)
-  call alloc(cumul,nn+1,zero,'cumul')
+  call alloc(cumul,nn,zero,'cumul')
   if(st_quiet < 2) then
-    write(lout,"(a,i0,a)") "ELENS> Allocating cumul array to ",nn+1," elements"
+    write(lout,"(a,i0,a)") "ELENS> Allocating cumul array to ",nn," elements"
     flush(lout)
   end if
-  tmpTot=polintegrate(elens_radial_profile_R(0:nn,ifile), elens_radial_profile_J(0:nn,ifile), &
-                      nn+1, elens_radial_mpoints(ifile), 2, cumul)
-  elens_radial_profile_J(0:nn,ifile)=cumul(1:nn+1)
+  tmpTot=polintegrate(elens_radial_profile_R(1:nn,ifile), elens_radial_profile_J(1:nn,ifile), &
+                      nn, elens_radial_mpoints(ifile), 2, cumul)
+  elens_radial_profile_J(1:nn,ifile)=cumul(1:nn)
   call dealloc(cumul,'cumul')
   if(st_quiet < 2) then
     write(lout,"(a)") "ELENS> De-allocating cumul array"
@@ -1352,8 +1352,7 @@ subroutine integrateRadialProfile(ifile)
   if(st_quiet < 2) then
     write(lout,"(a,i0)") "ELENS> Integrated radial profile read from file "//&
       trim(elens_radial_filename(ifile))//" - #",ifile
-    write(lout,"(a)") "ELENS> NB: point at ii=0 (i.e. R=0) added automatically by SixTrack"
-    do ii=0,elens_radial_profile_nPoints(ifile)
+    do ii=1,elens_radial_profile_nPoints(ifile)
       write(lout,"((a,i4),2(a,1pe22.15))") "ELENS> ",ii,",",elens_radial_profile_R(ii,ifile),",",elens_radial_profile_J(ii,ifile)
     end do
   end if
@@ -1380,7 +1379,7 @@ subroutine normaliseRadialProfile(ifile)
 
   integer ii
 
-  do ii=0,elens_radial_profile_nPoints(ifile)
+  do ii=1,elens_radial_profile_nPoints(ifile)
     elens_radial_profile_J(ii,ifile)=elens_radial_profile_J(ii,ifile)/&
                                      elens_radial_profile_J(elens_radial_profile_nPoints(ifile),ifile)
   end do
@@ -1478,9 +1477,9 @@ subroutine elens_kick(i,ix,n)
           mPoints=elens_radial_mpoints(ielens(ix))
           if ( elens_lFull(ielens(ix)) .and. rr <= cl2ori ) mPoints=elens_radial_mpoints_ori
           frr=polinterp( rr, &
-                elens_radial_profile_R(0:elens_radial_profile_nPoints(elens_iRadial(ielens(ix))),elens_iRadial(ielens(ix))), &
-                elens_radial_profile_J(0:elens_radial_profile_nPoints(elens_iRadial(ielens(ix))),elens_iRadial(ielens(ix))), &
-                elens_radial_profile_nPoints(elens_iRadial(ielens(ix)))+1, &
+                elens_radial_profile_R(1:elens_radial_profile_nPoints(elens_iRadial(ielens(ix))),elens_iRadial(ielens(ix))), &
+                elens_radial_profile_J(1:elens_radial_profile_nPoints(elens_iRadial(ielens(ix))),elens_iRadial(ielens(ix))), &
+                elens_radial_profile_nPoints(elens_iRadial(ielens(ix))), &
                 mPoints, elens_radial_jguess(ielens(ix)) )-elens_radial_fr1(ielens(ix))
           frr=(frr/elens_geo_norm(ielens(ix)))*(elens_rref(ielens(ix))/rr)
            
@@ -1712,9 +1711,9 @@ subroutine elens_kick_fox(i,ix)
           if (st_debug) write(lout,'(a,6(1X,i5))') "ELENS> ELENS_KICK_FOX: forcing mPoints to:", elens_radial_mpoints_ori
           mPoints=elens_radial_mpoints_ori
         end if
-        nBin=huntBin(RRA,elens_radial_profile_R(0:nPoints,iRadial),nPoints+1,-1)-1
-        kMin=min(max(nBin-(mPoints-1)/2,1),nPoints+2-mPoints)
-        kMax=min(kMin+mPoints-1,nPoints+1)
+        nBin=huntBin(RRA,elens_radial_profile_R(1:nPoints,iRadial),nPoints,-1)
+        kMin=min(max(nBin-(mPoints-1)/2,1),nPoints+1-mPoints)
+        kMax=min(kMin+mPoints-1,nPoints)
         if (st_debug) write(lout,'(a,6(1X,i5))') "ELENS> ELENS_KICK_FOX: iRadial, nPoints, mPoints, nBin, kMin, kMax:", &
              iRadial, nPoints, mPoints, nBin, kMin, kMax
         call alloc(cof,kMax-kMin+1,zero,'cof')
