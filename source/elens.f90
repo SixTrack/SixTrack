@@ -160,10 +160,8 @@ subroutine elens_expand_arrays_rad_profiles(nelens_profiles_new)
   implicit none
   integer, intent(in) :: nelens_profiles_new
   call alloc(elens_radial_filename,  mFileName,     nelens_profiles_new,  " ", 'elens_radial_filename' )
-  call alloc(elens_radial_profile_R,         0,     nelens_profiles_new, zero, 'elens_radial_profile_R', &
-                                             0,     nelens_radial_profiles )
-  call alloc(elens_radial_profile_J,         0,     nelens_profiles_new, zero, 'elens_radial_profile_J', &
-                                             0,     nelens_radial_profiles )
+  call alloc(elens_radial_profile_R,         0,     nelens_profiles_new, zero, 'elens_radial_profile_R', 0, 1 )
+  call alloc(elens_radial_profile_J,         0,     nelens_profiles_new, zero, 'elens_radial_profile_J', 0, 1 )
   call alloc(elens_radial_profile_nPoints,          nelens_profiles_new,    0, 'elens_radial_profile_nPoints' )
 end subroutine elens_expand_arrays_rad_profiles
 
@@ -1268,8 +1266,8 @@ subroutine parseRadialProfile(ifile)
   call chr_cast(lnSplit(2),tmpJ,spErr)
   ii=ii+1
   if(ii>=size(elens_radial_profile_R,1)-1) then
-    call alloc(elens_radial_profile_R, ii, ifile, zero, 'elens_radial_profile_R', 0, 1 )
-    call alloc(elens_radial_profile_J, ii, ifile, zero, 'elens_radial_profile_J', 0, 1 )
+    call alloc(elens_radial_profile_R, ii, nelens_radial_profiles, zero, 'elens_radial_profile_R', 0, 1 )
+    call alloc(elens_radial_profile_J, ii, nelens_radial_profiles, zero, 'elens_radial_profile_J', 0, 1 )
   end if
   elens_radial_profile_nPoints(ifile) = ii
   elens_radial_profile_R(ii,ifile) = tmpR
