@@ -18,7 +18,7 @@ def parseFort6(iFileName='fort.6'):
             if ( line.startswith('ELENS> Radial profile') ):
                 readProf=True
                 continue
-            elif ( line.startswith('ELENS> Normalising radial profile') ):
+            elif ( line.startswith('ELENS> Integrating radial profile') ):
                 readProf=False
                 continue
             elif ( line.startswith('ELENS> Integrated radial profile') ):

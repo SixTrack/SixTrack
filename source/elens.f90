@@ -32,7 +32,8 @@ module elens
   integer, save               :: elens_iSet_def=0           ! default iSet
   logical, save               :: elens_lFox_def=.true.      ! default lFox
   integer, save               :: elens_radial_mpoints_def=2 ! default number of points for interpolating radial profiles from ASCI files
-  integer, save               :: elens_radial_mpoints_ori=3 ! default minimum number of points for interpolating radial profiles from ASCI files in case we are very close to the origin
+  integer, save               :: elens_radial_mpoints_ori=3 ! default minimum number of points for interpolating radial profiles from ASCI
+                                                            !    files in case we are very close to the origin
 
   ! beam of the lens
   real(kind=fPrec), save      :: elens_beam_mass_def=pmae   ! default mass of lens beam [MeV/c2]
@@ -90,14 +91,16 @@ module elens
   integer, allocatable, save          :: elens_iRadial(:)           ! mapping to the radial profile (nelens)
   real(kind=fPrec), allocatable, save :: elens_radial_fr1(:)        ! value of f(R1) in case of radial profiles from file [0:1] (nelens)
   real(kind=fPrec), allocatable, save :: elens_radial_fr2(:)        ! value of f(R2) in case of radial profiles from file [0:1] (nelens)
-  integer, allocatable, save          :: elens_radial_mpoints(:)    ! how many points for polynomial interpolation (nelens) (default: 2,
-                                                                    !    i.e. linear interpolation
-  integer, allocatable, save          :: elens_radial_jguess(:)     ! bin for guessed search (nelens)
+  integer, allocatable, save          :: elens_radial_mpoints(:)    ! how many points for polynomial interpolation (nelens_radial_profiles)
+                                                                    !    (default: 2, i.e. linear interpolation
+  integer, allocatable, save          :: elens_radial_jguess(:)     ! bin for guessed search (nelens_radial_profiles)
   ! - file handling and data storage:
-  character(len=:), allocatable, save :: elens_radial_filename(:)        ! names (nelens_radial_profiles)
-  real(kind=fPrec), allocatable, save :: elens_radial_profile_R(:,:)     ! [mm] (elens_radial_profile_nPoints,nelens_radial_profiles)
-  real(kind=fPrec), allocatable, save :: elens_radial_profile_J(:,:)     ! [A]  (elens_radial_profile_nPoints,nelens_radial_profiles)
-  integer, allocatable, save          :: elens_radial_profile_nPoints(:) ! number of points in current radial profile (nelens_radial_profiles)
+  character(len=:), allocatable, save :: elens_radial_filename(:)          ! names (nelens_radial_profiles)
+  real(kind=fPrec), allocatable, save :: elens_radial_profile_R(:,:)       ! [mm] (elens_radial_profile_nPoints,nelens_radial_profiles)
+  real(kind=fPrec), allocatable, save :: elens_radial_profile_J(:,:)       ! [A]  (elens_radial_profile_nPoints,nelens_radial_profiles)
+  real(kind=fPrec), allocatable, save :: elens_radial_profile_coeff(:,:,:) ! coefficients of polynomials (elens_radial_profile_nPoints-1,
+                                                                           !       nelens_radial_profiles,elens_radial_mpoints)
+  integer, allocatable, save          :: elens_radial_profile_nPoints(:)   ! number of points in current radial profile (nelens_radial_profiles)
 
 contains
 
@@ -120,49 +123,50 @@ subroutine elens_expand_arrays_lenses(nelens_new)
   implicit none
   integer, intent(in) :: nelens_new
   ! elens charachteristics
-  call alloc(elens_type           , nelens_new,                        0, 'elens_type'           )
-  call alloc(elens_theta_ref      , nelens_new,                     zero, 'elens_theta_ref'      )
-  call alloc(elens_rref           , nelens_new,                     zero, 'elens_rref'           )
-  call alloc(elens_r2             , nelens_new,                     zero, 'elens_r2'             )
-  call alloc(elens_r1             , nelens_new,                     zero, 'elens_r1'             )
-  call alloc(elens_offset_x       , nelens_new,                     zero, 'elens_offset_x'       )
-  call alloc(elens_offset_y       , nelens_new,                     zero, 'elens_offset_y'       )
-  call alloc(elens_sig            , nelens_new,                     zero, 'elens_sig'            )
-  call alloc(elens_geo_norm       , nelens_new,                     zero, 'elens_geo_norm'       )
-  call alloc(elens_len            , nelens_new,                     zero, 'elens_len'            )
-  call alloc(elens_I              , nelens_new,                     zero, 'elens_I'              )
-  call alloc(elens_Ek             , nelens_new,                     zero, 'elens_Ek'             )
-  call alloc(elens_beta_lens_beam , nelens_new,                     zero, 'elens_beta_lens_beam' )
-  call alloc(elens_lThetaRref     , nelens_new,                  .false., 'elens_lThetaRref'     )
-  call alloc(elens_lAllowUpdate   , nelens_new,                   .true., 'elens_lAllowUpdate'   )
-  call alloc(elens_lFox           , nelens_new,           elens_lFox_def, 'elens_lFox'           )
-  call alloc(elens_lFull          , nelens_new,                  .false., 'elens_lFull'          )
-  call alloc(elens_lZeroThick     , nelens_new,                  .false., 'elens_lZeroThick'     )
+  call alloc(elens_type           , nelens_new,                   0, 'elens_type'           )
+  call alloc(elens_theta_ref      , nelens_new,                zero, 'elens_theta_ref'      )
+  call alloc(elens_rref           , nelens_new,                zero, 'elens_rref'           )
+  call alloc(elens_r2             , nelens_new,                zero, 'elens_r2'             )
+  call alloc(elens_r1             , nelens_new,                zero, 'elens_r1'             )
+  call alloc(elens_offset_x       , nelens_new,                zero, 'elens_offset_x'       )
+  call alloc(elens_offset_y       , nelens_new,                zero, 'elens_offset_y'       )
+  call alloc(elens_sig            , nelens_new,                zero, 'elens_sig'            )
+  call alloc(elens_geo_norm       , nelens_new,                zero, 'elens_geo_norm'       )
+  call alloc(elens_len            , nelens_new,                zero, 'elens_len'            )
+  call alloc(elens_I              , nelens_new,                zero, 'elens_I'              )
+  call alloc(elens_Ek             , nelens_new,                zero, 'elens_Ek'             )
+  call alloc(elens_beta_lens_beam , nelens_new,                zero, 'elens_beta_lens_beam' )
+  call alloc(elens_lThetaRref     , nelens_new,             .false., 'elens_lThetaRref'     )
+  call alloc(elens_lAllowUpdate   , nelens_new,              .true., 'elens_lAllowUpdate'   )
+  call alloc(elens_lFox           , nelens_new,      elens_lFox_def, 'elens_lFox'           )
+  call alloc(elens_lFull          , nelens_new,             .false., 'elens_lFull'          )
+  call alloc(elens_lZeroThick     , nelens_new,             .false., 'elens_lZeroThick'     )
 #ifdef CR
-  call alloc(elens_lAllowUpdate_CR, nelens_new,                  .false., 'elens_lAllowUpdate_CR')
+  call alloc(elens_lAllowUpdate_CR, nelens_new,             .false., 'elens_lAllowUpdate_CR')
 #endif                                                            
-  call alloc(elens_emin           , nelens_new,           elens_emin_def, 'elens_emin'           )
-  call alloc(elens_sigdpp         , nelens_new,         elens_sigdpp_def, 'elens_sigdpp'         )
-  call alloc(elens_iSet           , nelens_new,           elens_iSet_def, 'elens_iSet'           )
-  call alloc(elens_optVal         , nelens_new,                     zero, 'elens_optVal'         )
-  call alloc(elens_nUpdates       , nelens_new,                        0, 'elens_nUpdates'       )
-  call alloc(elens_beam_mass      , nelens_new,      elens_beam_mass_def, 'elens_beam_mass'      )
-  call alloc(elens_beam_chrg      , nelens_new,      elens_beam_chrg_def, 'elens_beam_chrg'      )
-  call alloc(elens_iRadial        , nelens_new,                        0, 'elens_iRadial'        )
-  call alloc(elens_radial_fr1     , nelens_new,                     zero, 'elens_radial_fr1'     )
-  call alloc(elens_radial_fr2     , nelens_new,                     zero, 'elens_radial_fr2'     )
-  call alloc(elens_radial_mpoints , nelens_new, elens_radial_mpoints_def, 'elens_radial_mpoints' )
-  call alloc(elens_radial_jguess  , nelens_new,                       -1, 'elens_radial_jguess'  )
+  call alloc(elens_emin           , nelens_new,      elens_emin_def, 'elens_emin'           )
+  call alloc(elens_sigdpp         , nelens_new,    elens_sigdpp_def, 'elens_sigdpp'         )
+  call alloc(elens_iSet           , nelens_new,      elens_iSet_def, 'elens_iSet'           )
+  call alloc(elens_optVal         , nelens_new,                zero, 'elens_optVal'         )
+  call alloc(elens_nUpdates       , nelens_new,                   0, 'elens_nUpdates'       )
+  call alloc(elens_beam_mass      , nelens_new, elens_beam_mass_def, 'elens_beam_mass'      )
+  call alloc(elens_beam_chrg      , nelens_new, elens_beam_chrg_def, 'elens_beam_chrg'      )
+  call alloc(elens_iRadial        , nelens_new,                   0, 'elens_iRadial'        )
+  call alloc(elens_radial_fr1     , nelens_new,                zero, 'elens_radial_fr1'     )
+  call alloc(elens_radial_fr2     , nelens_new,                zero, 'elens_radial_fr2'     )
 end subroutine elens_expand_arrays_lenses
 
 subroutine elens_expand_arrays_rad_profiles(nelens_profiles_new)
   use mod_alloc, only : alloc
   implicit none
   integer, intent(in) :: nelens_profiles_new
-  call alloc(elens_radial_filename,  mFileName,     nelens_profiles_new,  " ", 'elens_radial_filename' )
-  call alloc(elens_radial_profile_R,         1,     nelens_profiles_new, zero, 'elens_radial_profile_R' )
-  call alloc(elens_radial_profile_J,         1,     nelens_profiles_new, zero, 'elens_radial_profile_J' )
-  call alloc(elens_radial_profile_nPoints,          nelens_profiles_new,    0, 'elens_radial_profile_nPoints' )
+  call alloc(elens_radial_filename,  mFileName, nelens_profiles_new,     " ", 'elens_radial_filename'        )
+  call alloc(elens_radial_profile_R,         1, nelens_profiles_new,    zero, 'elens_radial_profile_R'       )
+  call alloc(elens_radial_profile_J,         1, nelens_profiles_new,    zero, 'elens_radial_profile_J'       )
+  call alloc(elens_radial_profile_coeff,     1, nelens_profiles_new, 1, zero, 'elens_radial_profile_coeff'   )
+  call alloc(elens_radial_profile_nPoints,      nelens_profiles_new,       0, 'elens_radial_profile_nPoints' )
+  call alloc(elens_radial_mpoints,              nelens_profiles_new, elens_radial_mpoints_def, 'elens_radial_mpoints' )
+  call alloc(elens_radial_jguess,               nelens_profiles_new,    -1, 'elens_radial_jguess'  )
 end subroutine elens_expand_arrays_rad_profiles
 
 ! ================================================================================================ !
@@ -345,25 +349,25 @@ subroutine elens_parseInputLine(inLine, iLine, iErr)
       iErr = .true.
       return
     end if
-    if (nelens>0) elens_radial_mpoints(nelens)=tmpi2
+    if (nelens_radial_profiles>0) elens_radial_mpoints(nelens_radial_profiles)=tmpi2
     
     if (nSplit>=3) then
       select case (chr_toLower(trim(lnSplit(3))))
       case('all')
-        do tmpi1=1,nelens-1
+        do tmpi1=1,nelens_radial_profiles-1
           elens_radial_mpoints(tmpi1) = tmpi2
         end do
         elens_radial_mpoints_def=tmpi2
-        if(st_debug) write(lout,"(a)") "ELENS> Setting elens_radial_mpoints as read to all e-lenses"
+        if(st_debug) write(lout,"(a)") "ELENS> Setting elens_radial_mpoints as read to all e-lens radial profiles"
       case('bef','before')
-        do tmpi1=1,nelens-1
+        do tmpi1=1,nelens_radial_profiles-1
           elens_radial_mpoints(tmpi1) = tmpi2
         end do
-        if(st_debug) write(lout,"(a)") "ELENS> Setting elens_radial_mpoints as read to all e-lenses "// &
+        if(st_debug) write(lout,"(a)") "ELENS> Setting elens_radial_mpoints as read to all e-lens radial profiles "// &
              "declared before the current FOX line"
       case('aft','after')
         elens_radial_mpoints_def=tmpi2
-        if(st_debug) write(lout,"(a)") "ELENS> Setting elens_radial_mpoints as read to all e-lenses "// &
+        if(st_debug) write(lout,"(a)") "ELENS> Setting elens_radial_mpoints as read to all e-lens radial profiles "// &
              "declared after the current FOX line"
       case default
         write(lerr,"(a)") "ELENS> ERROR Unidentified third parameter of INTER line, got: '"//trim(lnSplit(3))//"'"
@@ -927,7 +931,7 @@ subroutine elens_postLinopt
   use numerical_constants, only : c1e3, two
   use crcoall, only : lout, lerr
 
-  integer j, jj, jguess
+  integer j, jj, jguess, nn, mm, iRadial
   real(kind=fPrec) oldVal
   logical lPrint
 
@@ -1050,16 +1054,15 @@ subroutine elens_postLinopt
         elens_geo_norm(j) = exp_mb(-(((elens_r1(j)/elens_sig(j))*(elens_r1(j)/elens_sig(j)))/two)) &
                            -exp_mb(-(((elens_r2(j)/elens_sig(j))*(elens_r2(j)/elens_sig(j)))/two))
       case(3) ! Radial profile
-        elens_radial_fr1(j) = polinterp( elens_r1(j), &
-              elens_radial_profile_R(1:elens_radial_profile_nPoints(elens_iRadial(j)),elens_iRadial(j)), &
-              elens_radial_profile_J(1:elens_radial_profile_nPoints(elens_iRadial(j)),elens_iRadial(j)), &
-              elens_radial_profile_nPoints(elens_iRadial(j)), &
-              elens_radial_mpoints(elens_iRadial(j)), jguess )
-        elens_radial_fr2(j) = polinterp( elens_r2(j), &
-              elens_radial_profile_R(1:elens_radial_profile_nPoints(elens_iRadial(j)),elens_iRadial(j)), &
-              elens_radial_profile_J(1:elens_radial_profile_nPoints(elens_iRadial(j)),elens_iRadial(j)), &
-              elens_radial_profile_nPoints(elens_iRadial(j)), &
-              elens_radial_mpoints(elens_iRadial(j)), jguess  )
+        iRadial = elens_iRadial(j)
+        nn = elens_radial_profile_nPoints(iRadial)
+        mm = elens_radial_mpoints(iRadial)
+        jguess = -1
+        elens_radial_fr1(j) = polinterp( elens_r1(j), elens_radial_profile_R(1:nn,iRadial), &
+                                                      elens_radial_profile_J(1:nn,iRadial), nn, mm, jguess )
+        jguess = -1
+        elens_radial_fr2(j) = polinterp( elens_r2(j), elens_radial_profile_R(1:nn,iRadial), &
+                                                      elens_radial_profile_J(1:nn,iRadial), nn, mm, jguess )
         elens_geo_norm(j) = elens_radial_fr2(j) -elens_radial_fr1(j)
       end select ! case (elens_type(j))
       ! ...and printout:
@@ -1269,7 +1272,7 @@ subroutine parseRadialProfile(ifile)
     goto 30
   end if
   ii=ii+1
-  if(ii>=size(elens_radial_profile_R,1)-1) then
+  if(ii>size(elens_radial_profile_R,1)) then
     call alloc(elens_radial_profile_R, ii, nelens_radial_profiles, zero, 'elens_radial_profile_R' )
     call alloc(elens_radial_profile_J, ii, nelens_radial_profiles, zero, 'elens_radial_profile_J' )
   end if
@@ -1287,6 +1290,12 @@ subroutine parseRadialProfile(ifile)
     go to 30
   end if
 
+  if( size(elens_radial_profile_coeff,1) < elens_radial_profile_nPoints(ifile)-1 .or. &
+      size(elens_radial_profile_coeff,3) < elens_radial_mpoints(ifile) ) then
+     call alloc( elens_radial_profile_coeff, elens_radial_profile_nPoints(ifile)-1, nelens_radial_profiles, &
+                 elens_radial_mpoints(ifile), zero, 'elens_radial_profile_coeff' )
+  end if
+  
   write(lout,"(a,i0,a)") "ELENS> ...acquired ",elens_radial_profile_nPoints(ifile)," points."
   if(st_quiet < 2) then
     ! Echo parsed data (unless told to be quiet!)
@@ -1320,7 +1329,7 @@ subroutine integrateRadialProfile(ifile)
   use numerical_constants
   use physical_constants
   use crcoall, only : lout
-  use mod_utils, only: polintegrate
+  use mod_utils, only: polcoeffs, polintegrate_coeffs
   use mod_alloc, only: alloc, dealloc
   use mod_settings, only: st_quiet
 
@@ -1328,27 +1337,18 @@ subroutine integrateRadialProfile(ifile)
 
   integer, intent(in) :: ifile
 
-  integer ii, nn
+  integer ii, nn, mm
   real(kind=fPrec) tmpTot
-  real(kind=fPrec), allocatable :: cumul(:)
 
-  write(lout,"(a)") "ELENS> Normalising radial profile described in "//trim(elens_radial_filename(ifile))
+  write(lout,"(a)") "ELENS> Integrating radial profile described in "//trim(elens_radial_filename(ifile))
   if(st_quiet < 2) flush(lout)
   nn=elens_radial_profile_nPoints(ifile)
-  call alloc(cumul,nn,zero,'cumul')
-  if(st_quiet < 2) then
-    write(lout,"(a,i0,a)") "ELENS> Allocating cumul array to ",nn," elements"
-    flush(lout)
-  end if
-  tmpTot=polintegrate(elens_radial_profile_R(1:nn,ifile), elens_radial_profile_J(1:nn,ifile), &
-                      nn, elens_radial_mpoints(ifile), 2, cumul)
-  elens_radial_profile_J(1:nn,ifile)=cumul(1:nn)
-  call dealloc(cumul,'cumul')
-  if(st_quiet < 2) then
-    write(lout,"(a)") "ELENS> De-allocating cumul array"
-    flush(lout)
-  end if
-  
+  mm=elens_radial_mpoints(ifile)
+  call polcoeffs( elens_radial_profile_R(1:nn,ifile), elens_radial_profile_J(1:nn,ifile), &
+                  nn, mm, elens_radial_profile_coeff(1:nn-1,ifile,1:mm) )
+  tmpTot=polintegrate_coeffs(elens_radial_profile_R(1:nn,ifile), elens_radial_profile_coeff(1:nn-1,ifile,1:mm), &
+                      nn, mm, 2, elens_radial_profile_J(1:nn,ifile) )
+
   if(st_quiet < 2) then
     write(lout,"(a,i0)") "ELENS> Integrated radial profile read from file "//&
       trim(elens_radial_filename(ifile))//" - #",ifile
@@ -1406,7 +1406,7 @@ subroutine elens_kick(i,ix,n)
   integer, intent(in) :: n
   
   real(kind=fPrec) xx, yy, rr, frr, tmpBB, epsilon, gteps, lteps, r1oSigSq, rroSigSq, cl2ori
-  integer          jj, mPoints
+  integer          jj, mPoints, mm, nn, iRadial
 
   epsilon=c1m15
   gteps=one+epsilon
@@ -1417,6 +1417,10 @@ subroutine elens_kick(i,ix,n)
   r1oSigSq=zero
   if ( elens_type(ielens(ix)) == 2 ) then
     r1oSigSq=(elens_r1(ielens(ix))/elens_sig(ielens(ix)))*(elens_r1(ielens(ix))/elens_sig(ielens(ix)))
+  elseif ( elens_type(ielens(ix)) == 3 ) then
+    iRadial = elens_iRadial(ielens(ix))
+    nn = elens_radial_profile_nPoints(iRadial)
+    mm = elens_radial_mpoints(iRadial)
   end if
   
   do jj=1,napx
@@ -1474,13 +1478,11 @@ subroutine elens_kick(i,ix,n)
         case (3)
           ! RADIAL PROFILE: eLens with radial profile as from file
           ! formula: (cumul_J(r)-cumul_J(r1))/(cumul_J(r2)-cumul_J(r1))*Rref/r
-          mPoints=elens_radial_mpoints(ielens(ix))
+          mPoints=mm
           if ( elens_lFull(ielens(ix)) .and. rr <= cl2ori ) mPoints=elens_radial_mpoints_ori
-          frr=polinterp( rr, &
-                elens_radial_profile_R(1:elens_radial_profile_nPoints(elens_iRadial(ielens(ix))),elens_iRadial(ielens(ix))), &
-                elens_radial_profile_J(1:elens_radial_profile_nPoints(elens_iRadial(ielens(ix))),elens_iRadial(ielens(ix))), &
-                elens_radial_profile_nPoints(elens_iRadial(ielens(ix))), &
-                mPoints, elens_radial_jguess(ielens(ix)) )-elens_radial_fr1(ielens(ix))
+          frr=polinterp( rr, elens_radial_profile_R(1:nn,iRadial), &
+                             elens_radial_profile_J(1:nn,iRadial), nn, mPoints, elens_radial_jguess(iRadial) ) &
+              -elens_radial_fr1(ielens(ix))
           frr=(frr/elens_geo_norm(ielens(ix)))*(elens_rref(ielens(ix))/rr)
            
         case default
@@ -1538,7 +1540,7 @@ subroutine elens_kick_fox(i,ix)
   use crcoall, only : lout, lerr
   use mod_common_main
   use numerical_constants, only : zero, one, two, c1m15, c1m7
-  use mod_utils, only : huntBin, polcof, polinterp
+  use mod_utils, only : huntBin, polcof_single, polinterp
   use mod_lie_dab, only : lnv, idao, rscrri, iscrda
   use mod_common_track, only : comt_daStart, comt_daEnd
   use mod_common_da
@@ -1550,7 +1552,7 @@ subroutine elens_kick_fox(i,ix)
   integer, intent(in) :: ix
   
   integer          :: iLens, iRadial, nBin, nPoints, mPoints, kMin, kMax, kk
-  real(kind=fPrec) :: rra, frra, xa, ya, xffset, yffset, ele_r1, ele_r2, ele_rr, elenor, elesig, elebet, tmpcof
+  real(kind=fPrec) :: rra, frra, xa, ya, xffset, yffset, ele_r1, ele_r2, elefr1, ele_rr, elenor, elesig, elebet, tmpcof
   real(kind=fPrec) :: eletrf, epsilon, gteps, lteps, cl2ori
   real(kind=fPrec), allocatable :: cof(:)
 
@@ -1573,6 +1575,7 @@ subroutine elens_kick_fox(i,ix)
 !FOX  D V RE INT BETA0  ;
 !FOX  D V RE INT ELE_R1 ;
 !FOX  D V RE INT ELE_R2 ;
+!FOX  D V RE INT ELEFR1 ;
 !FOX  D V RE INT ELE_RR ;
 !FOX  D V RE INT ELETRF ;
 !FOX  D V RE INT ELENOR ;
@@ -1602,6 +1605,7 @@ subroutine elens_kick_fox(i,ix)
   YFFSET=elens_offset_y(iLens)
   ELE_R1=elens_r1(iLens)
   ELE_R2=elens_r2(iLens)
+  ELEFR1=elens_radial_fr1(iLens)
   ELE_RR=elens_rref(iLens)
   ELETRF=elens_theta_ref(iLens)
   ELENOR=elens_geo_norm(iLens)
@@ -1706,37 +1710,34 @@ subroutine elens_kick_fox(i,ix)
         if (st_debug) write(lout,'(a)') "ELENS> ELENS_KICK_FOX: elens type RADIAL"
         iRadial=elens_iRadial(iLens)
         nPoints=elens_radial_profile_nPoints(iRadial)
-        mPoints=elens_radial_mpoints(iLens)
+        mPoints=elens_radial_mpoints(iRadial)
         if ( elens_lFull(iLens) .and. RRA <= cl2ori ) then
           if (st_debug) write(lout,'(a,6(1X,i5))') "ELENS> ELENS_KICK_FOX: forcing mPoints to:", elens_radial_mpoints_ori
           mPoints=elens_radial_mpoints_ori
         end if
         nBin=huntBin(RRA,elens_radial_profile_R(1:nPoints,iRadial),nPoints,-1)
-        kMin=min(max(nBin-(mPoints-1)/2,1),nPoints+1-mPoints)
-        kMax=min(kMin+mPoints-1,nPoints)
-        if (st_debug) write(lout,'(a,6(1X,i5))') "ELENS> ELENS_KICK_FOX: iRadial, nPoints, mPoints, nBin, kMin, kMax:", &
-             iRadial, nPoints, mPoints, nBin, kMin, kMax
-        call alloc(cof,kMax-kMin+1,zero,'cof')
+        call alloc(cof,mpoints,zero,'cof')
+        call polcof_single(elens_radial_profile_R(1:nPoints,iRadial),elens_radial_profile_J(1:nPoints,iRadial),&
+             nPoints,mPoints,nBin,cof,kMin,kMax)
         if (st_debug) then
+          write(lout,'(a,6(1X,i5))') "ELENS> ELENS_KICK_FOX: iRadial, nPoints, mPoints, nBin, kMin, kMax:", &
+             iRadial, nPoints, mPoints, nBin, kMin, kMax
           do kk=kMin,kMax
             write(lout,'(a,1X,i0,2(1X,1pe22.15))') "ELENS> ELENS_KICK_FOX: kk, R [mm], JJ [A/mm2]:", &
                 kk, elens_radial_profile_R(kk,iRadial), elens_radial_profile_J(kk,iRadial)
           end do
-        end if 
-        call polcof(elens_radial_profile_R(kMin:kMax,iRadial),elens_radial_profile_J(kMin:kMax,iRadial),kMax-kMin+1,cof)
-        if (st_debug) then
           do kk=1,mPoints
             write(lout,'(a,1X,i5,1X,1pe22.15)') "ELENS> ELENS_KICK_FOX: order, coefficient:", kk-1, cof(kk)
           end do
         end if 
-        TMPCOF=COF(1)
-!FOX    FRR=TMPCOF ;
-!FOX    TMPRR=RR;
-        do kk=2,kMax-kMin+1
+!FOX    FRR=ZERO ;
+!FOX    TMPRR=ONE;
+        do kk=1,mPoints
           TMPCOF=COF(kk)
 !FOX      FRR=FRR+(TMPRR*TMPCOF) ;
 !FOX      TMPRR=TMPRR*RR ;
         end do
+!FOX    FRR=FRR-ELEFR1 ;
         if (st_debug) then
           call dapek(FRR,hh,FRRA)
           write(lout,'(a,1pe22.15)') "ELENS> ELENS_KICK_FOX: FRRA 1:", FRRA

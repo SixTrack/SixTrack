@@ -353,6 +353,85 @@ end subroutine polcof
 
 ! ================================================================================================ !
 !  A.Mereghetti, CERN, BE-ABP-HSS
+!  Last modified: 20-04-2020
+!  select the subset of (xvals,yvals) points that should be used for polynomial interpolation
+! ================================================================================================ !
+subroutine polcof_single(xvals,yvals,datalen,mpoints,jj,cof,kMin,kMax)
+
+  use crcoall, only : lout, lerr
+  use numerical_constants, only : zero
+  use floatPrecision
+
+  integer,          intent(in)    :: datalen, mpoints, jj
+  real(kind=fPrec), intent(in)    :: xvals(1:datalen), yvals(1:datalen)
+  real(kind=fPrec), intent(out)   :: cof(1:datalen)
+  integer,          intent(out)   :: kMin, kMax
+
+  ! current step is [jj:jj+1], selected points are in range [kMin:kMax]
+  ! any jj:
+  ! - mpoints=2: kMin=jj  , kMax=jj+1
+  ! - mpoints=3: kMin=jj-1, kMax=jj+1
+  ! - mpoints=4: kMin=jj-1, kMax=jj+2
+  ! polynomial order is note reduced at extremes, eg:
+  ! jj=1 (ie leftmost step):
+  ! - mpoints=2: kMin=jj=1, kMax=jj+1=2
+  ! - mpoints=3: kMin=jj=1, kMax=jj+2=3
+  ! - mpoints=4: kMin=jj=1, kMax=jj+3=4
+  ! jj=datalen-1 (ie rightmost step):
+  ! - mpoints=2: kMin=jj-1=datalen-1, kMax=jj=datalen
+  ! - mpoints=3: kMin=jj-2=datalen-2, kMax=jj=datalen
+  ! - mpoints=4: kMin=jj-3=datalen-3, kMax=jj=datalen
+  
+  kMin=min(max(jj-(mpoints-1)/2,1),datalen+1-mpoints)
+  kMax=min(kMin+mpoints-1,datalen)
+  call polcof(xvals(kMin:kMax),yvals(kMin:kMax),mpoints,cof)
+  
+end subroutine polcof_single
+
+! ================================================================================================ !
+!  A.Mereghetti, CERN, BE-ABP-HSS
+!  Last modified: 20-04-2020
+!  Get coefficients of polynomial interpolation through data set (xvals,yvals) by mpoints
+! ================================================================================================ !
+subroutine polcoeffs(xvals,yvals,datalen,mpoints,coeffs)
+
+  use crcoall, only : lout, lerr
+  use numerical_constants, only : zero
+  use floatPrecision
+
+  integer,          intent(in)    :: datalen, mpoints
+  real(kind=fPrec), intent(in)    :: xvals(1:datalen), yvals(1:datalen)
+  real(kind=fPrec), intent(out)   :: coeffs(1:datalen-1,1:mpoints)
+
+  integer jj, kk, kMin, kMax
+
+  ! initialise coefficients
+  coeffs(1:datalen-1,1:mpoints)=zero
+  
+#ifdef DEBUG
+  write(lout,"(/a,2(1X,i0))") "UTILS> DEBUG polcoeffs start: ",datalen,mpoints
+#endif
+
+  do jj=1,datalen-1 ! loop over data points
+     ! current step is [jj:jj+1], selected points are in range [kMin:kMax]
+     call polcof_single(xvals(1:datalen),yvals(1:datalen),datalen,mpoints,jj,coeffs(jj,1:mpoints),kMin,kMax)
+#ifdef DEBUG
+     write(lout,"(A,3(1X,I4))") "UTILS> DEBUG polcoeffs jj-step: ", jj, kMin, kMax
+     do kk=1,mpoints
+        write(lout,"(A,1X,I4,1X,1PE16.9)") "UTILS> DEBUG polcoeffs: kk, value:", kk, coeffs(jj,kk)
+     end do
+#endif
+     
+  end do
+
+#ifdef DEBUG
+  write(lout,"(A)") "UTILS> DEBUG polcoeffs end."
+#endif
+    
+end subroutine polcoeffs
+
+! ================================================================================================ !
+!  A.Mereghetti, CERN, BE-ABP-HSS
 !  Last modified: 16-04-2019
 !  Integrate (xvals,yvals) with polynoms through mpoints data
 ! ================================================================================================ !
@@ -386,22 +465,7 @@ real(kind=fPrec) function polintegrate(xvals,yvals,datalen,mpoints,order,cumul,r
 
   do jj=jMin+1,jMax ! loop over data points
      ! current step is [jj-1:jj], selected points are in range [kMin:kMax]
-     ! any jj:
-     ! - mpoints=2: kMin=jj-1, kMax=jj
-     ! - mpoints=3: kMin=jj-2, kMax=jj
-     ! - mpoints=4: kMin=jj-2, kMax=jj+1
-     ! polynomial order is note reduced at extremes, eg:
-     ! jj=2 (ie leftmost step):
-     ! - mpoints=2: kMin=jj-1=1, kMax=jj  =2
-     ! - mpoints=3: kMin=jj-1=1, kMax=jj+1=3
-     ! - mpoints=4: kMin=jj-1=1, kMax=jj+2=4
-     ! jj=datalen (ie rightmost step):
-     ! - mpoints=2: kMin=jj-1=datalen-1, kMax=jj=datalen
-     ! - mpoints=3: kMin=jj-2=datalen-2, kMax=jj=datalen
-     ! - mpoints=4: kMin=jj-3=datalen-3, kMax=jj=datalen
-     kMin=min(max(jj-1-(mpoints-1)/2,1),datalen+1-mpoints)
-     kMax=min(kMin+mpoints-1,datalen)
-     call polcof(xvals(kMin:kMax),yvals(kMin:kMax),kMax-kMin+1,cof)
+     call polcof_single(xvals(1:datalen),yvals(1:datalen),datalen,mpoints,jj-1,cof,kMin,kMax)
      xmin=xvals(jj-1)
      if (present(rmin).and.jj==jMin+1) xmin=rmin
      xmax=xvals(jj)
@@ -419,7 +483,7 @@ real(kind=fPrec) function polintegrate(xvals,yvals,datalen,mpoints,order,cumul,r
      write(lout,"(/a,i4,6(1X,1pe16.9))") "UTILS> DEBUG polintegrate jj-step: ", &
             jj, tmax, tmin, fmax, fmin, xmax, xmin
 #endif
-     do kk=1,kMax-kMin+1
+     do kk=1,mpoints
         tmin=tmin*xmin
         tmax=tmax*xmax
         fmin=fmin+(tmin*cof(kk))/real(kk+order-1,fPrec)
@@ -458,7 +522,99 @@ real(kind=fPrec) function polintegrate(xvals,yvals,datalen,mpoints,order,cumul,r
 #endif
     
 end function polintegrate
+
+! ================================================================================================ !
+!  A.Mereghetti, CERN, BE-ABP-HSS
+!  Last modified: 20-04-2020
+!  Integrate (xvals,yvals) with polynoms through mpoints data
+!  Same functionality as polintegrate, but it starts from previously computed coefficients
+! ================================================================================================ !
+real(kind=fPrec) function polintegrate_coeffs(xvals,coeffs,datalen,mpoints,order,cumul,rmin,rmax)
+
+  use crcoall, only : lout, lerr
+  use numerical_constants, only : zero, one, two, four, pi
+  use floatPrecision
+
+  integer,                    intent(in)    :: datalen, mpoints, order
+  real(kind=fPrec),           intent(in)    :: xvals(1:datalen), coeffs(1:datalen-1,1:mpoints)
+  real(kind=fPrec),           intent(out)   :: cumul(1:datalen)
+  real(kind=fPrec), optional, intent(in)    :: rmin, rmax
+
+  integer jj, jMin, jMax, kk
+  real(kind=fPrec) xmin, xmax, fmax, fmin, tmin, tmax, tmpInt
+
+  polintegrate_coeffs = zero ! -Wmaybe-uninitialized
+  cumul(1:datalen)=zero
   
+  ! get bins
+  jMin=1
+  if(present(rmin)) jMin=huntBin(rmin,xvals,datalen,-1)
+  jMax=datalen
+  if(present(rmax)) jMax=huntBin(rmax,xvals,datalen,-1)
+
+#ifdef DEBUG
+  write(lout,"(/a,5(1X,i0))") "UTILS> DEBUG polintegrate_coeffs start: ",datalen,mpoints,order,jMin,jMax
+#endif
+
+  do jj=jMin+1,jMax ! loop over data points
+     ! current step is [jj-1:jj]
+     xmin=xvals(jj-1)
+     if (present(rmin).and.jj==jMin+1) xmin=rmin
+     xmax=xvals(jj)
+     if (present(rmax).and.jj==jMax) xmax=rmax
+     fmax=zero
+     fmin=zero
+     tmin=one
+     tmax=one
+     do kk=1,order-1
+        tmin=tmin*xmin
+        tmax=tmax*xmax
+     end do
+     tmpInt=zero
+#ifdef DEBUG
+     write(lout,"(/a,i4,6(1X,1pe16.9))") "UTILS> DEBUG polintegrate_coeffs jj-step: ", &
+            jj, tmax, tmin, fmax, fmin, xmax, xmin
+#endif
+     do kk=1,mpoints
+        tmin=tmin*xmin
+        tmax=tmax*xmax
+        fmin=fmin+(tmin*coeffs(jj-1,kk))/real(kk+order-1,fPrec)
+        fmax=fmax+(tmax*coeffs(jj-1,kk))/real(kk+order-1,fPrec)
+#ifdef DEBUG
+        write(lout,"(a,i4,5(1X,1pe16.9))") "UTILS> DEBUG polintegrate_coeffs kk-step: ", &
+               kk, tmax, tmin, fmax, fmin, coeffs(jj-1,kk)
+#endif
+     end do
+     select case(order)
+     case(1)
+        tmpInt=fmax-fmin
+     case(2)
+        tmpInt=two*(pi*(fmax-fmin))
+     case(3)
+        tmpInt=four*(pi*(fmax-fmin))
+     case default
+        write(lerr,"(a,i0)") "UTILS> ERROR polintegrate_coeffs: order not recognised:",order
+        write(lerr,"(a)")    "UTILS>       recognised values: 1D (1), 2D (2), 3D (3)"
+        call prror
+        return
+     end select
+     polintegrate_coeffs=polintegrate_coeffs+tmpInt
+     cumul(jj)=polintegrate_coeffs
+#ifdef DEBUG
+     write(lout,"(a,i4,6(1X,1pe16.9))") "UTILS> DEBUG polintegrate_coeffs jj-step: ", &
+            jj, tmax, tmin, fmax, fmin, tmpInt, cumul(jj)
+#endif
+  end do
+
+  ! fill outer range
+  cumul(jMax+1:datalen)=cumul(jMax)
+
+#ifdef DEBUG
+  write(lout,"(a,1pe16.9)") "UTILS> DEBUG polintegrate_coeffs end: ",polintegrate_coeffs
+#endif
+    
+end function polintegrate_coeffs
+
 ! ================================================================================================ !
 !  K. Koelbig, CERN
 !  Modification of wwerf, real complex error function, taken from mad8
