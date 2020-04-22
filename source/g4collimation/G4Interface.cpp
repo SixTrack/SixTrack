@@ -206,7 +206,7 @@ extern "C" void g4_add_collimator(char* name, char* material, double* length, do
 //  keep 48 value in sync with mNameLen in common_modules.f90
 	std::string CollimatorName = CleanFortranString(name, 48);
 	std::string CollimatorMaterialName = CleanFortranString(material, 4);
-	std::cout << "GEANT4> Adding \"" << CollimatorName << "\" with material \"" << CollimatorMaterialName << "\" and rotation \"" << *rotation << "\" and offset x: \"" << *x_offset << "\ y: \"" << *y_offset << "\" and length \"";
+	std::cout << "GEANT4> Adding \"" << CollimatorName << "\" with material \"" << CollimatorMaterialName << "\" and rotation \"" << *rotation << "\" and offset x: \"" << *x_offset << "\" y: \"" << *y_offset << "\" and length \"";
 	std::cout << *length << "\"" << std::endl;
 
 	G4double length_in = *length *CLHEP::m;
