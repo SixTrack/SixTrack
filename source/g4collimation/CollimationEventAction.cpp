@@ -19,7 +19,7 @@ CollimationEventAction::CollimationEventAction(bool edep) : G4UserEventAction(),
 
 }
 
-void CollimationEventAction::BeginOfEventAction(const G4Event* event)
+void CollimationEventAction::BeginOfEventAction(const G4Event* )
 {
 //	ThisEvent = event;
 }

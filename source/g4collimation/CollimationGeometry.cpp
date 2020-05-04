@@ -59,16 +59,25 @@ G4VPhysicalVolume* CollimationGeometry::Construct()
 
 	//Make the left/right jaws
 	Jaw1 = new G4Box("Jaw1_box", jaw_x, jaw_y, 0.5*Length);
+	if(!ThisCollimatorOneSided)
+	{
 	Jaw2 = new G4Box("Jaw2_box", jaw_x, jaw_y, 0.5*Length);
+	}
 
 	//Make the logical volumes, and attach materials
 	world_log = new G4LogicalVolume(world_box, Vacuum,                    "world_log");
 	Jaw1_log  = new G4LogicalVolume(Jaw1,      ThisCollimatorJawMaterial, "Jaw1_log");
+	if(!ThisCollimatorOneSided)
+	{
 	Jaw2_log  = new G4LogicalVolume(Jaw2,      ThisCollimatorJawMaterial, "Jaw2_log");
+	}
 
 	world_phys = new G4PVPlacement(0, G4ThreeVector(),                                world_log, "world", 0,         false, 0);
 	jaw1_phys  = new G4PVPlacement(0, G4ThreeVector( (jaw_x)+HalfGap, 0, 0.5*Length), Jaw1_log,  "jaw1",  world_log, false, 0, OverlapCheck);
+	if(!ThisCollimatorOneSided)
+	{
 	jaw2_phys  = new G4PVPlacement(0, G4ThreeVector(-(jaw_x)-HalfGap, 0, 0.5*Length), Jaw2_log,  "jaw2",  world_log, false, 0, OverlapCheck);
+	}
 
 	if(DoDebug)
 	{
@@ -151,13 +160,17 @@ void CollimationGeometry::ConstructSDandField()
 //	SetSensitiveDetector(G4LogicalVolume* logVol, G4VSensitiveDetector* aSD)
 
 	SetSensitiveDetector("Jaw1_log", LeftJaw_SD);
+	if(!ThisCollimatorOneSided)
+	{
 	SetSensitiveDetector("Jaw2_log", RightJaw_SD);
+	}
+
 	}
 #endif
 }
 
 
-void CollimationGeometry::AddCollimator(std::string name, double length, double gap, double rotation, double offset, std::string Material)
+void CollimationGeometry::AddCollimator(std::string name, double length, double gap, double rotation, double offset, std::string Material, bool onesided)
 {
 	CollimatorSettings NewCollimator;
 	NewCollimator.CollimatorJawLength = length;
@@ -167,12 +180,14 @@ void CollimationGeometry::AddCollimator(std::string name, double length, double 
 	G4Material* JawMaterial = Mmap->GetMaterial(Material);
 	NewCollimator.CollimatorJawMaterial = JawMaterial;
 	NewCollimator.CollimatorName = name;
+	NewCollimator.OneSided = onesided;
 
 	std::pair<std::string,CollimatorSettings> CollimatorKey;
 	CollimatorKey = std::make_pair(name,NewCollimator);
 
 	std::pair<std::map< std::string,CollimatorSettings >::const_iterator,bool > check;
 	check = CollimatorKeyMap.insert(CollimatorKey);
+
 
 	if(check.second == false)
 	{
@@ -196,6 +211,7 @@ void CollimationGeometry::SetCollimator(std::string CollimatorName)
 	ThisCollimatorJawOffset = CollimatorKey_itr->second.CollimatorJawOffset;
 	ThisCollimatorJawMaterial = CollimatorKey_itr->second.CollimatorJawMaterial;
 	ThisCollimatorName = CollimatorKey_itr->second.CollimatorName;
+	ThisCollimatorOneSided = CollimatorKey_itr->second.OneSided;
 
 	//Pass this info to the event action
 	((CollimationEventAction*)G4RunManager::GetRunManager()->GetUserEventAction())->SetCollimator(CollimatorName, ThisCollimatorJawLength, ThisCollimatorJawHalfGap);
