@@ -1777,7 +1777,7 @@ subroutine coll_doCollimator(stracki)
       end do
     end if
 #else
-    call coll_doCollimator_Geant4(c_aperture,c_rotation,c_length)
+    call coll_doCollimator_Geant4(c_aperture,c_rotation,c_length,onesided)
 #endif
 
   end if
@@ -3038,8 +3038,9 @@ end subroutine coll_writeTracks2
 ! ================================================================================================ !
 
 #ifdef G4COLLIMATION
-subroutine coll_doCollimator_Geant4(c_aperture,c_rotation,c_length)
+subroutine coll_doCollimator_Geant4(c_aperture,c_rotation,c_length,onesided)
 
+  use, intrinsic :: iso_c_binding
   use crcoall
   use mod_common
   use mod_common_main
@@ -3056,6 +3057,7 @@ subroutine coll_doCollimator_Geant4(c_aperture,c_rotation,c_length)
   real(kind=fPrec), intent(in) :: c_aperture
   real(kind=fPrec), intent(in) :: c_rotation
   real(kind=fPrec), intent(in) :: c_length
+  logical,          intent(in) :: onesided
 
   integer j
 
@@ -3072,7 +3074,8 @@ subroutine coll_doCollimator_Geant4(c_aperture,c_rotation,c_length)
 
   !! Add the geant4 geometry
   if(firstrun .and. iturn == 1) then
-    call g4_add_collimator(cdb_cName(icoll), cdb_cMaterial(icoll), c_length, c_aperture, c_rotation, torbx(ie), torby(ie))
+    call g4_add_collimator(cdb_cName(icoll), cdb_cMaterial(icoll), c_length, c_aperture, c_rotation, torbx(ie), torby(ie), &
+         logical(onesided,kind=C_BOOL))
   end if
 
 !! Here we do the real collimation
