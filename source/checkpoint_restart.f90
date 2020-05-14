@@ -74,11 +74,12 @@ module checkpoint_restart
   integer(kind=int16), allocatable, private, save :: crnqq(:)   ! (npart)
   integer(kind=int32), allocatable, private, save :: crpdgid(:) ! (npart)
 
+  integer(kind=int32), allocatable, private, save :: crpartID(:)   ! (npart)
+  integer(kind=int32), allocatable, private, save :: crparentID(:) ! (npart)
+
   integer,          allocatable, public,  save :: binrecs(:)    ! ((npart+1)/2)
   integer,          allocatable, public,  save :: crbinrecs(:)  ! (npart+1)/2)
   integer,          allocatable, private, save :: crnumxv(:)    ! (npart)
-  integer,          allocatable, private, save :: crpartID(:)   ! (npart)
-  integer,          allocatable, private, save :: crparentID(:) ! (npart)
   integer,          allocatable, private, save :: crpairID(:,:) ! (2,npart)
 
   logical,          allocatable, private, save :: crpstop(:)    ! (npart)

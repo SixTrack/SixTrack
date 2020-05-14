@@ -85,8 +85,8 @@ subroutine ApertureCheckWriteLossParticle(turn_in, i_in, ix_in, bez_in, bez_in_l
   integer(kind=C_INT), intent(in), value :: pdgid_in
 end subroutine ApertureCheckWriteLossParticle
 
-subroutine ApertureCheckWriteLossParticleF(turn_in, i_in, ix_in, bez_in, bez_in_len, slos_in, fluka_uid_in, fluka_gen_in, &
-& fluka_weight_in, x_in, xp_in, y_in, yp_in, p_in, dp_in, ct_in, naa_in, nzz_in, nqq_in, pdgid_in) &
+subroutine ApertureCheckWriteLossParticleF(turn_in, i_in, ix_in, bez_in, bez_in_len, slos_in, partID_in, parentID_in, &
+& partWeight_in, x_in, xp_in, y_in, yp_in, p_in, dp_in, ct_in, naa_in, nzz_in, nqq_in, pdgid_in) &
 & bind(C,name="ApertureCheckWriteLossParticleF")
   use, intrinsic :: iso_c_binding
   implicit none
@@ -96,9 +96,9 @@ subroutine ApertureCheckWriteLossParticleF(turn_in, i_in, ix_in, bez_in, bez_in_
   character(kind=C_CHAR,len=1), intent(in) :: bez_in
   integer(kind=C_INT), intent(in), value :: bez_in_len
   real(kind=C_DOUBLE), intent(in), value :: slos_in
-  integer(kind=C_INT32_T), intent(in), value :: fluka_uid_in
-  integer(kind=C_INT32_T), intent(in), value :: fluka_gen_in
-  real(kind=C_DOUBLE), intent(in), value :: fluka_weight_in
+  integer(kind=C_INT32_T), intent(in), value :: partID_in
+  integer(kind=C_INT32_T), intent(in), value :: parentID_in
+  real(kind=C_DOUBLE), intent(in), value :: partWeight_in
   real(kind=C_DOUBLE), intent(in), value :: x_in
   real(kind=C_DOUBLE), intent(in), value :: xp_in
   real(kind=C_DOUBLE), intent(in), value :: y_in

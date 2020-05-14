@@ -224,9 +224,9 @@ subroutine aperture_init
       apefilepos=0
 #endif
 
-#ifdef FLUKA
+#if defined(FLUKA) || defined(G4COLLIMATION)
       write(losses_unit,"(a1,1x,a7,2(1x,a8),1x,a48,1x,a12,2(1x,a9),8(1x,a14),3(1x,a8),1x,a12)")     &
-        "#","turn","block","bezid",chr_rPad("bez",48),"slos","fluka_uid","fluka_gen","fluka_weight",&
+        "#","turn","block","bezid",chr_rPad("bez",48),"slos","partID","parentID","partWeight",&
         "x[m]","xp","y[m]","yp","P_tot[GeV/c]","dE[eV]","dT[s]","A","Z","Q","PDGid"
 #else
       write(losses_unit,"(a1,1x,a7,2(1x,a8),1x,a48,1x,a12,1x,a8,7(1x,a14),3(1x,a8),1x,a12)") &
@@ -768,7 +768,7 @@ subroutine aperture_reportLoss(turn, i, ix)
   use physical_constants
 
 #ifdef FLUKA
-  use mod_fluka, only : fluka_uid, fluka_gen, fluka_weight, fluka_enable
+  use mod_fluka, only : fluka_enable
 #endif
 #ifdef HDF5
   use hdf5_output
@@ -997,7 +997,7 @@ subroutine aperture_reportLoss(turn, i, ix)
         do jj=1,npart_tmp
           if(plost(jj).ne.0) then
 #ifdef FLUKA
-            if( fluka_uid(j).eq.plost(jj).or. fluka_gen(j).eq.plost(jj) ) then
+            if( partID(j).eq.plost(jj).or. parentID(j).eq.plost(jj) ) then
               lparID=.true.
             end if
 #else
@@ -1016,7 +1016,7 @@ subroutine aperture_reportLoss(turn, i, ix)
         else
           !new lost particle, store ID and print it
 #ifdef FLUKA
-          plost(jjx) = fluka_uid(j)
+          plost(jjx) = partID(j)
 #else
           if (do_coll) then
             plost(jjx) = partID(j)
@@ -1045,9 +1045,9 @@ subroutine aperture_reportLoss(turn, i, ix)
         call h5_writeData(aper_setLostPart, 13, 1, naalos)
         call h5_writeData(aper_setLostPart, 14, 1, nzzlos)
 #ifdef FLUKA
-        call h5_writeData(aper_setLostPart, 15, 1, fluka_uid(j))
-        call h5_writeData(aper_setLostPart, 16, 1, fluka_gen(j))
-        call h5_writeData(aper_setLostPart, 17, 1, fluka_weight(j))
+        call h5_writeData(aper_setLostPart, 15, 1, partID(j))
+        call h5_writeData(aper_setLostPart, 16, 1, parentID(j))
+        call h5_writeData(aper_setLostPart, 17, 1, partWeight(j))
 #else
         call h5_writeData(aper_setLostPart, 15, 1, partID(j))
 #endif
@@ -1063,8 +1063,8 @@ subroutine aperture_reportLoss(turn, i, ix)
 #endif
 
      &       turn, i, ix, bezs(i), slos,                                     &
-#ifdef FLUKA
-     &       fluka_uid(j), fluka_gen(j), fluka_weight(j),                    &
+#if defined(FLUKA) || defined(G4COLLIMATION)
+     &       partID(j), parentID(j), partWeight(j),                    &
 #else
      &       partID(j),                                                      &
 #endif
@@ -1084,9 +1084,9 @@ subroutine aperture_reportLoss(turn, i, ix)
 ! root output
       if(root_flag .and. root_ApertureCheck.eq.1) then
         this_name = trim(adjustl(bezs(i))) // C_NULL_CHAR
-#ifdef FLUKA
+#if defined(FLUKA) || defined(G4COLLIMATION)
         call ApertureCheckWriteLossParticleF(turn, i, ix, this_name, len_trim(this_name), slos, &
-          fluka_uid(j), fluka_gen(j), fluka_weight(j), &
+          partID(j), parentID(j), partWeight(j), &
           xlos(1)*c1m3, ylos(1)*c1m3, xlos(2)*c1m3, ylos(2)*c1m3, ejfvlos*c1m3, (ejvlos-e0)*c1e6, &
           (-(c1m3 * (sigmvlos/clight))) * (e0/e0f), naalos, nzzlos, nqqlos, pdgidlos)
 #else

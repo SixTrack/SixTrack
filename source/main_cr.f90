@@ -1399,7 +1399,7 @@ program maincr
     write(lout,"(a)") ""
     do ia=1,napx
       if(.not.pstop(ia)) then
-        write(lout,10370) fluka_uid(ia),fluka_gen(ia),fluka_weight(ia), &
+        write(lout,10370) partID(ia),parentID(ia),partWeight(ia), &
           xv1(ia)*c1m3, yv1(ia)*c1m3, xv2(ia)*c1m3, yv2(ia)*c1m3, &
           ejfv(ia)*c1m3,(ejv(ia)-e0)*c1e6,-c1m3*(sigmv(ia)/clight)*(e0/e0f)
       end if
