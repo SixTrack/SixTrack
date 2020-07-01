@@ -277,6 +277,8 @@ subroutine cry_doCrystal(ie,iturn,j,mat,x,xp,z,zp,s,p,x0,xp0,zlm,s_imp,isImp,nhi
   iProc       = proc_out
   cry_proc(j) = proc_out
 
+  write(*,*) 'x before reference change', x, xp
+
   ! Transform in the crystal reference system
   ! 1st transformation: shift of the center of the reference frame
   if(cry_tilt < zero) then
@@ -302,6 +304,8 @@ subroutine cry_doCrystal(ie,iturn,j,mat,x,xp,z,zp,s,p,x0,xp0,zlm,s_imp,isImp,nhi
   z  = z - zp*s_rot
   s  = zero
 
+  write(*,*) 'x after reference change', x, xp
+
   ! Check that particle hit the crystal
   if(x >= zero .and. x < c_xmax) then
 
@@ -325,9 +329,13 @@ subroutine cry_doCrystal(ie,iturn,j,mat,x,xp,z,zp,s,p,x0,xp0,zlm,s_imp,isImp,nhi
   else
 
     if(x < zero) then ! Crystal hit from below
+      write(*,*) 'CHECK', x
       xp_tangent = sqrt((-(two*x)*c_rcurv + x**2)/c_rcurv**2)
+      write(*,*) 'tangent', xp_tangent, xp
     else ! Crystal hit from above
+      write(*,*) 'CHECK', x
       xp_tangent = asin_mb((c_rcurv*(one - c_cBend) - x)/sqrt(((two*c_rcurv)*(c_rcurv - x))*(one - c_cBend) + x**2))
+      write(*,*) 'tangent', xp_tangent, xp
     end if
 
     ! If the hit is below, the angle must be greater or equal than the tangent,
@@ -520,7 +528,7 @@ subroutine cry_interact(is,x,xp,y,yp,pc,length,s_P,x_P)
   real(kind=fPrec) alpha                ! Par for new chann prob
   real(kind=fPrec) Pvr                  ! Prob for VR->AM transition
 
-  real(kind=fPrec) const_dech,xpin,ypin,tchan,L_chan,mep
+  real(kind=fPrec) const_dech,xpin,ypin,tchan,tdefl,L_chan,mep
   real(kind=fPrec) s_K,x_K,s_M,x_M,s_F,x_F,r,a
   real(kind=fPrec) A_F,B_F,C_F,alpha_F,beta_F
 
@@ -555,6 +563,11 @@ subroutine cry_interact(is,x,xp,y,yp,pc,length,s_P,x_P)
   s_M = (c_rcurv-c_xmax)*sin_mb(cry_bend)
   x_M = c_xmax + (c_rcurv-c_xmax)*(1-cos_mb(cry_bend))
   r   = sqrt(s_P**2 + (x-x_P)**2)
+  write(*,*) "bending", length/c_rcurv
+  write(*,*) "Rcurv", c_rcurv
+  write(*,*) "P", s_P, x_P
+  write(*,*) "I", s, x
+  write(*,*) "L", s, c_xmax
   write(*,*) "K", s_K, x_K
   write(*,*) "M", s_M, x_M
   write(*,*) "r", r
@@ -589,18 +602,21 @@ subroutine cry_interact(is,x,xp,y,yp,pc,length,s_P,x_P)
       A_F = alpha_F**2 + one
       B_F = two*alpha_F*beta_F - two*c_rcurv
       C_F = beta_F**2 -c_xmax*(c_xmax-two*c_rcurv)
+      write(*,*) alpha_F, beta_F, A_F, B_F, C_F
     endif
     
     x_F = (-B_F-sqrt(B_F**2-four*A_F*C_F))/(two*A_F)
     s_F = alpha_F*x_F + beta_F
-
+    write(*,*) B_F**2, A_F*C_F, four*A_F*C_F, B_F**2-four*A_F*C_F
+    write(*,*) x_F, s_F
+    
   endif
 
   ! MISCUT fourth step: deflection and length
   a = sqrt(s_F**2+(x-x_F)**2)
-  tchan = acos_mb((two*r**2-a**2)/(two*r**2))
-  L_chan = r*tchan
-  write(*,*) "Results", tchan, L_chan
+  tdefl = asin_mb((s_f-s_P)/r)
+  L_chan = r*tdefl
+  write(*,*) "Results", tdefl, L_chan
 
   xp_rel = xp - c_miscut
 
@@ -711,7 +727,7 @@ subroutine cry_interact(is,x,xp,y,yp,pc,length,s_P,x_P)
       ! of the particle -not along the longitudinal coordinate...
       if(ldech < l_chan) then
         iProc = proc_DC
-        Dxp   = Ldech/c_rcurv ! Change angle from channeling [mrad]
+        Dxp   = Ldech/r ! Change angle from channeling [mrad]
         Sdech = Ldech*cos_mb(c_miscut + half*Dxp)
         x     = x  + Ldech*(sin_mb(half*Dxp+c_miscut)) ! Trajectory at channeling exit
         xp    = xp + Dxp + (two*(rndm4()-half))*xpcrit
@@ -744,9 +760,12 @@ subroutine cry_interact(is,x,xp,y,yp,pc,length,s_P,x_P)
           call cry_calcIonLoss(is,pc,length,dest)
           pc = pc - dest*length ! energy loss to ionization [GeV]
         else
-          Dxp = L_chan/c_rcurv + (half*ran_gauss(zero))*xpcrit ! Change angle[rad]
+          Dxp = tdefl + (half*ran_gauss(zero))*xpcrit ! Change angle[rad]
+          write(*,*) 'Deflection', tdefl
+          write(*,*) 'Dxp channeling', Dxp
+        
           xp  = Dxp
-          x   = x + L_chan*(sin_mb(half*Dxp+c_miscut)) ! Trajectory at channeling exit
+          x   = x + L_chan*(sin_mb(half*Dxp)) ! Trajectory at channeling exit
           y   = y + s_length * yp
 
           call cry_calcIonLoss(is,pc,length,dest)
@@ -759,7 +778,7 @@ subroutine cry_interact(is,x,xp,y,yp,pc,length,s_P,x_P)
       ! good for channeling but don't channel (1-2)
       iProc = proc_VR
 
-      xp = xp + (0.45_fPrec*(xp/xpcrit + one))*Ang_avr
+      xp = xp + (0.45_fPrec*(xp_rel/xpcrit + one))*Ang_avr
       x  = x  + (half*s_length)*xp
       y  = y  + (half*s_length)*yp
 
@@ -773,7 +792,7 @@ subroutine cry_interact(is,x,xp,y,yp,pc,length,s_P,x_P)
 
   else ! case 3-2: no good for channeling. check if the  can VR
 
-    Lrefl = xp_rel*c_rcurv ! Distance of refl. point [m]
+    Lrefl = xp_rel*r ! Distance of refl. point [m]
     Srefl = sin_mb(xp_rel/two + c_miscut)*Lrefl
 
     if(Lrefl > zero .and. Lrefl < Length) then ! VR point inside
@@ -854,7 +873,7 @@ subroutine cry_interact(is,x,xp,y,yp,pc,length,s_P,x_P)
             Dxp = (Length-Lrefl)/c_rcurv
             x   = x + sin_mb(half*Dxp+xp)*Rlength ! Trajectory at channeling exit
             y   = y + red_S*yp
-            xp  = Length/c_rcurv + (half*ran_gauss(zero))*xpcrit ! [mrad]
+            xp  = tdefl + (half*ran_gauss(zero))*xpcrit ! [mrad]
 
             call cry_calcIonLoss(is,pc,rlength,dest)
             pc = pc - (half*dest)*Rlength  ! "added" energy loss once captured
@@ -883,7 +902,7 @@ subroutine cry_interact(is,x,xp,y,yp,pc,length,s_P,x_P)
           x     = x + xp*Srefl
           y     = y + yp*Srefl
 
-          Dxp = (((-three*Ang_rms)*xp_rel)/(two*xpcrit) + Ang_avr) + ((three*Ang_rms)*(L_chan/c_rcurv))/(two*xpcrit)
+          Dxp = (((-three*Ang_rms)*xp_rel)/(two*xpcrit) + Ang_avr) + ((three*Ang_rms)*(tdefl))/(two*xpcrit)
           xp  = xp + Dxp
           x   = x + (half*xp)*(s_length-Srefl)
           y   = y + (half*yp)*(s_length-Srefl)
