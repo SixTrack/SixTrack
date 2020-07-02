@@ -938,6 +938,7 @@ module mod_common_main
 ! If these are to be changed, remember to also update the FLUKA IO C code (and the CR variables).
   integer(kind=int32), allocatable, save :: partID(:)   ! Particle ID
   integer(kind=int32), allocatable, save :: parentID(:) ! Particle parent ID in case of secondary particles
+  integer(kind=int32), save :: MaximumPartID            ! Maximum used particle ID
 #if defined(FLUKA) || defined(G4COLLIMATION)
   real(kind=fPrec),    allocatable, save :: partWeight(:) ! Particle weighting for FLUKA and geant4
 #endif

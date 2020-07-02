@@ -117,7 +117,7 @@ module mod_fluka
                                             FLUKA_EXIT    = 3    ! SINGLE ELEMENT marking the end   of the insertion
   ! ancillary tracking values
   integer(kind=int32), public :: fluka_max_npart                          ! Maximum number of particles (array size)
-  integer(kind=int32), public :: fluka_max_uid                            ! Highest particle ID
+  !integer(kind=int32), public :: fluka_max_uid                            ! Highest particle ID
   !integer(kind=int32), public, allocatable :: fluka_uid(:)    ! particle ID
   !integer(kind=int32), public, allocatable :: fluka_gen(:)    ! ID of parent particle
   !real(kind=fPrec), public, allocatable    :: fluka_weight(:) ! statistical weight (>0.0)
@@ -523,6 +523,7 @@ contains
 
     use parpro
     use mod_pdgid
+    use mod_common_main, only : MaximumPartID
 
     implicit none
 
@@ -636,8 +637,8 @@ contains
 
             partID(fluka_nrecv)    = flid
             parentID(fluka_nrecv)    = flgen
-            if (partID(fluka_nrecv).gt.fluka_max_uid) then
-               fluka_max_uid = partID(fluka_nrecv)
+            if (partID(fluka_nrecv).gt.MaximumPartID) then
+               MaximumPartID = partID(fluka_nrecv)
 ! AM ->                ! generate a new uid
 ! AM ->                fluka_max_uid = fluka_max_uid + 1
 ! AM ->                partID(fluka_nrecv) = fluka_max_uid
@@ -678,7 +679,7 @@ contains
       " ipt = ", ipt, &
       " sent = ", fluka_nsent, &
       " received = ", fluka_nrecv, &
-      " max_uid = ", fluka_max_uid
+      " max_uid = ", MaximumPartID
     flush(fluka_log_unit)
 
   end function fluka_receive
@@ -750,6 +751,9 @@ contains
   !----------------------------------------------------------------------------
   ! set max ID
   integer function fluka_init_max_uid( npart )
+
+    use mod_common_main, only : MaximumPartID
+
     implicit none
 
     ! interface variables
@@ -760,7 +764,7 @@ contains
 
     fluka_init_max_uid = 0
 
-    fluka_max_uid = npart
+    MaximumPartID = npart
 
     n = ntsendnpart(fluka_cid, npart)
     if (n .lt. 0) then
