@@ -13,7 +13,7 @@ public:
 	~CollimationParticleGun();
 
 	void GeneratePrimaries(G4Event*);
-	void SetParticleDetails(double x, double y, double xp, double yp, double zp, double e, double p, int pdgid, int q, double mass, double sx, double sy, double sz);
+	void SetParticleDetails(double x, double y, double xp, double yp, double zp, double e, double p, int pdgid, int q, double mass, double sx, double sy, double sz, double weight);
 	void SetReferenceEnergy(double);
 	double GetReferenceEnergy();
 	void SetDebug(bool);
@@ -24,6 +24,7 @@ private:
 	G4ParticleDefinition* particle;
 	G4double ReferenceEnergy;
 	bool do_debug;
+	double ThisWeight;
 };
 
 #endif

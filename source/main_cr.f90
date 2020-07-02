@@ -1175,6 +1175,9 @@ program maincr
     end if
   end if
 
+!Set the maximum Particle ID
+  MaximumPartID = npart
+
 #ifdef FLUKA
   ! P.Garcia Ortega, A.Mereghetti and V.Vlachoudis, for the FLUKA Team
   ! last modified: 26-08-2014
@@ -1225,8 +1228,9 @@ program maincr
 
   ! Initialise Modules
   call dump_initialise
-  if(ithick == 0 .and. do_coll) then
-    ! Only if thin and collimation enabled
+
+  if(do_coll) then
+    ! Now only if collimation enabled (for both thick + thin)
     call coll_init
   end if
 
@@ -1255,8 +1259,8 @@ program maincr
   call preTracking
   call startTracking(nthinerr)
 
-  if(ithick == 0 .and. do_coll) then
-    ! Only if thin 6D and collimation enabled
+  if(do_coll) then
+    ! Now only if collimation enabled (for both thick + thin)
     call coll_exitCollimation
   endif
 

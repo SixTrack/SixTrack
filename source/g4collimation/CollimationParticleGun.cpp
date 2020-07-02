@@ -1,3 +1,5 @@
+#include "G4Event.hh"
+
 #include "CollimationParticleGun.h"
 
 /*
@@ -8,7 +10,7 @@ CollimationParticleGun::CollimationParticleGun(
                                 G4ThreeVector momentumDirection)
   : G4VUserPrimaryGeneratorAction(), fParticleGun(0)
 */
-CollimationParticleGun::CollimationParticleGun() : G4VUserPrimaryGeneratorAction(), ParticleGun(new G4ParticleGun(1)),  particleTable(G4ParticleTable::GetParticleTable()), particle(nullptr), do_debug(false)
+CollimationParticleGun::CollimationParticleGun() : G4VUserPrimaryGeneratorAction(), ParticleGun(new G4ParticleGun(1)),  particleTable(G4ParticleTable::GetParticleTable()), particle(nullptr), do_debug(false), ThisWeight(1.0)
 {}
 
 CollimationParticleGun::~CollimationParticleGun()
@@ -19,9 +21,10 @@ CollimationParticleGun::~CollimationParticleGun()
 void CollimationParticleGun::GeneratePrimaries(G4Event* anEvent)
 {
 	ParticleGun->GeneratePrimaryVertex(anEvent);
+	anEvent->GetPrimaryVertex()->SetWeight(ThisWeight);
 }
 
-void CollimationParticleGun::SetParticleDetails(double x, double y, double px, double py, double pz, double e, double p, int pdgid, int q, double mass, double sx, double sy, double sz)
+void CollimationParticleGun::SetParticleDetails(double x, double y, double px, double py, double pz, double e, double p, int pdgid, int q, double mass, double sx, double sy, double sz, double weight)
 {
 //UNITS MUST BE MeV, mm, rad!
 	if(do_debug)
@@ -66,13 +69,21 @@ void CollimationParticleGun::SetParticleDetails(double x, double y, double px, d
 		}
 
 		//Remove states other than the ground state otherwise we get a crash.
+		bool e_state = false;
 		while(pdgid%10 !=0)
 		{
+			std::cout << "GEANT4> WARNING: Non-ground state particle!: " << pdgid << std::endl;
 			pdgid--;
+			e_state = true;
 		}
-
 		particle = G4IonTable::GetIonTable()->GetIon(pdgid);
-
+		if(e_state)
+		{
+			//rescale mass + energy here
+			const G4double mp = particle->GetPDGMass();
+			e = (e/mass)*mp;
+			mass = mp;
+		}
 	}
 
 	ParticleGun->SetParticleDefinition(particle);
@@ -87,6 +98,14 @@ void CollimationParticleGun::SetParticleDetails(double x, double y, double px, d
 	{
 		std::cout.precision(17);
 		std::cout << "GEANT4> Mass missmatch between Geant4 and SixTrack!" << std::endl;
+		std::cout << "GEANT4> name: " << particle->GetParticleName() << std::endl;
+		if(particle->IsGeneralIon())
+		{
+			int A = particle->GetAtomicNumber();
+			int Z = particle->GetAtomicMass();
+			std::cout << "GEANT4> (A,Z): (" << A << "," << Z << ")" << std::endl;
+		}
+		std::cout << "GEANT4> name: " << particle->GetParticleName() << std::endl;
 		std::cout << "GEANT4> PDG mass (MeV)     : " << mp << std::endl;
 		std::cout << "GEANT4> SixTrack mass (MeV): " << mass << std::endl;
 		std::cout << "GEANT4> Please set the particle mass in SixTrack to the Geant4 (PDG) value!" << std::endl;
@@ -113,6 +132,9 @@ void CollimationParticleGun::SetParticleDetails(double x, double y, double px, d
 //	ParticleGun->SetParticleMomentum(G4ThreeVector(px,py,pz));
 
 	ParticleGun->SetParticlePolarization(G4ThreeVector(sx,sy,sz));
+
+	//Set weight
+	ThisWeight = weight;
 
 	if(do_debug)
 	{
