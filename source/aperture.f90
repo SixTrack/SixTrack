@@ -1056,7 +1056,7 @@ subroutine aperture_reportLoss(turn, i, ix)
   ! END of #ifdef HDF5
 #endif
 
-#ifdef FLUKA
+#if defined(FLUKA) || defined(G4COLLIMATION)
         write(losses_unit,'(3(1X,I8),1X,A48,1X,F12.5,2(1X,I9),8(1X,1PE14.7),3(1X,I8),1X,I12)') &
 #else
         write(losses_unit,'(3(1X,I8),1X,A48,1X,F12.5,1X,I8,7(1X,1PE14.7),3(1X,I8),1X,I12)')    &
@@ -1064,11 +1064,10 @@ subroutine aperture_reportLoss(turn, i, ix)
 
      &       turn, i, ix, bezs(i), slos,                                     &
 #if defined(FLUKA) || defined(G4COLLIMATION)
-     &       partID(j), parentID(j), partWeight(j),                    &
+     &       partID(j), parentID(j), partWeight(j),                          &
 #else
      &       partID(j),                                                      &
 #endif
-
      &       xlos(1)*c1m3, ylos(1)*c1m3, xlos(2)*c1m3, ylos(2)*c1m3,         &
      &       ejfvlos*c1m3, (ejvlos*(nucm0/nucmlos)-e0)*c1e6,                 &
      &       (-(c1m3 * (sigmvlos/clight) ))* (e0/e0f),                       &
