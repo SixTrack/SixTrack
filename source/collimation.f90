@@ -3167,7 +3167,6 @@ subroutine coll_doCollimator_Geant4(c_aperture,c_rotation,c_length,onesided)
       sigmv(j), partID(j), parentID(j), partWeight(j), &
       part_hit_flag, part_abs_flag, part_impact(j), part_indiv(j), part_linteract(j), spin_x(j), spin_y(j), spin_z(j))
 
-    partID(j) = j
     pstop (j) = .false.
 
 !! Rotate back into the accelerator frame
