@@ -2395,7 +2395,15 @@ CRYSTAL  cry.h.b1 61.54 2.0e-3 50.0e-3 0.0 0.0 0.0 1
 It is possible to use the particle-matter scattering physics of Geant4 within SixTrack.
 To do this, the G4COLLIMATION flag must be added at build time, with an appropriate Geant4 library existing in your path.
 Many standard collimation features are currently not implemented.
-Particle longitudinal dynamics are also not currently implemented.
+Particle longitudinal dynamics are also not currently implemented - in the sixtrack collimation interface the time coordinate is always reset to 0, so effectively with this option enabled, tracking is 5D (to be fixed when time allows).
+
+Note: both geant4 and FLUKA collimation can now be enabled at the same time.
+This allows for different collimators to be simulated in different codes.
+It is highly important that when generating the FLUKA input, a collimator database file with ALL collimators to be simulated (both geant4 and FLUKA) is used.
+Collimators that the user wishes to use in geant4 should be commented out in the FLUKA block at run time in the fort.3 (in addition to the standard GNT4 options below).
+The full collimator database file should also be specified in the "standard" collimation input.
+Failure to do so will result in a numbering miss-match in the fort.208 output and will create corrupted results.
+
 The \texttt{GNT4} block specified below must be used in addition to the standard collimation block in the standard \texttt{fort.3} file. \index{GNT4} \index{Geant4}
 
 \bigskip
