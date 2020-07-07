@@ -2957,6 +2957,8 @@ The module handling Chebyshev maps is controlled by the \texttt{CHEB} block.
 \item The parameter \texttt{I} is used to re-scale the kick map, i.e.~the kicks are scaled by the ratio of the operational current to the nominal one, for which the coefficients are given (see Sec.~\ref{sec:cheby_format_coeff_file}).
 
 \item The user has to check that each lens defined in the \texttt{CHEB} block is also defined in the list of single elements and vice versa. All parameters in the single element definition except the type (type \texttt{42}) are ignored.
+
+\item The rotation angle is applied to tracked particles, with regular convention on sign of angles. Therefore, a positive angle corresponds to rotating the map clockwise.    
   
 \end{enumerate}
 
