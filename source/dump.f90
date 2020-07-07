@@ -1887,7 +1887,7 @@ call h5_finaliseWrite(dump_hdf5DataSet(ix))
           call chr_fromReal(yv2(j),       xyz_h(4),19,2,rErr)
           call chr_fromReal(sigmv(j),      xyz_h(5),19,2,rErr)
           call chr_fromReal((ejv(j)-e0)/e0,xyz_h(6),19,2,rErr)
-          write(unit,"(3(1x,i8),1x,2(f12.5),6(1x,a25),4(1x,i8),1x,i12)") fluka_uid(j), nturn, fluka_gen(j), fluka_weight(j), &
+          write(unit,"(3(1x,i8),1x,2(f12.5),6(1x,a25),4(1x,i8),1x,i12)") partID(j), nturn, parentID(j), partWeight(j), &
             localDcum, xyz_h(1),xyz_h(2),xyz_h(3),xyz_h(4),xyz_h(5),xyz_h(6),localKtrack, naa(j), nzz(j), nqq(j), pdgid(j)
         end do
       else
@@ -1898,7 +1898,7 @@ call h5_finaliseWrite(dump_hdf5DataSet(ix))
           call chr_fromReal(yv2(j),       xyz_l(4),10,2,rErr)
           call chr_fromReal(sigmv(j),      xyz_l(5),10,2,rErr)
           call chr_fromReal((ejv(j)-e0)/e0,xyz_l(6),10,2,rErr)
-          write(unit,"(3(1x,i8),1x,2(f12.5),6(1x,a16),4(1x,i8),1x,i12)") fluka_uid(j), nturn, fluka_gen(j), fluka_weight(j), &
+          write(unit,"(3(1x,i8),1x,2(f12.5),6(1x,a16),4(1x,i8),1x,i12)") partID(j), nturn, parentID(j), partWeight(j), &
             localDcum, xyz_l(1),xyz_l(2),xyz_l(3),xyz_l(4),xyz_l(5),xyz_l(6),localKtrack, naa(j), nzz(j), nqq(j), pdgid(j)
         end do
       end if

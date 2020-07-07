@@ -13,6 +13,8 @@
 * Do not perform the pair mapping when geant4 collimation is enabled.
 * Enable single sided collimators with geant4 collimation.
 * Fix building with geant4 collimation with geant4 releases >= 10.06.
+* Fix a mass miss-match with geant4 when entering non-ground state ions into geant4.
+* Fix a crash with miss-matched format strings when writing the aperture losses file with geant4 enabled (and not FLUKA).
 
 **User Side Changes**
 
@@ -32,6 +34,8 @@
 * When sending particles to geant4, if the particle mass is within a tolerance of the geant4 value, update the mass to this value and re-scale the particle energy. PR # 1055 (J. Molson).
 * If no collimator are found for a given family, the aperture of that family is set to zero. PR #1053 (M. D'Andrea)
 * If a particle interacts with a crystal collimator after having previously interacted with another or the same crystal collimator, the process ID of the previous interaction is stored in cry_interaction.dat. PR #1058 (M. D'Andrea)
+* Collimator material names are now case insensitive in geant4.
+* In the HION block the PDG ID can now be set as the 5th value. 
 
 **Code Improvements and Changes**
 
@@ -40,6 +44,11 @@
 * Print error codes from the fluka coupling. PR # 1055 (J. Molson)
 * Update FLUKAIO reference.
 * Add Si as a possible collimator material for G4.
+* Add particle ID and parent ID tracking with geant4.
+* Allow setting particle statistical weights in geant4
+* Always enable the EMD physics process in geant4.
+* Use global id/parent/weight variables in the FLUKA coupling.
+* Start to enable the ability to use collimation with thick lens lattices.
 
 ### Version 5.4.3 [19.12.2019] - Release
 

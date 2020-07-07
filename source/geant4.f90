@@ -105,7 +105,7 @@ module geant4
 
 !void g4_add_particle_(double* x, double* y, double* xp, double* yp, double* e, int32_t* pdgid, int16_t* nzz, int16_t* naa,
 ! int16_t* nqq, double* mass)
-  subroutine g4_add_particle(x, y, xp, yp, e, pdgid, nzz, naa, nqq, mass, sigmv, spin_x, spin_y, spin_z) &
+  subroutine g4_add_particle(x, y, xp, yp, e, pdgid, nzz, naa, nqq, mass, sigmv, partID, parentID, weight, spin_x, spin_y, spin_z)&
 & bind(C,name="g4_add_particle")
     use, intrinsic :: iso_c_binding
     implicit none
@@ -120,6 +120,9 @@ module geant4
     integer(kind=C_INT16_T),      intent(in) :: nqq
     real(kind=C_DOUBLE),          intent(in) :: mass
     real(kind=C_DOUBLE),          intent(in) :: sigmv
+    integer(kind=C_INT32_T),      intent(in) :: partID
+    integer(kind=C_INT32_T),      intent(in) :: parentID
+    real(kind=C_DOUBLE),          intent(in) :: weight
     real(kind=C_DOUBLE),          intent(in) :: spin_x
     real(kind=C_DOUBLE),          intent(in) :: spin_y
     real(kind=C_DOUBLE),          intent(in) :: spin_z
@@ -134,7 +137,8 @@ module geant4
 
 !void g4_collimate_return_(int* j, double* x, double* y, double* xp, double* yp, double* e, int32_t* pdgid, double* m,
 ! int16_t* z, int16_t* a, int16_t* q, int *part_hit, int *part_abs, double *part_impact, double *part_indiv, double *part_linteract)
-  subroutine g4_collimate_return(j, x, y, xp, yp, e, pdgid, m, z, a, q, sigmv, part_hit, part_abs, part_impact, part_indiv, &
+  subroutine g4_collimate_return(j, x, y, xp, yp, e, pdgid, m, z, a, q, sigmv, partID, parentID, weight, &
+& part_hit, part_abs, part_impact, part_indiv, &
 & part_linteract, spin_x, spin_y, spin_z) &
 & bind(C,name="g4_collimate_return")
     use, intrinsic :: iso_c_binding
@@ -151,6 +155,9 @@ module geant4
     integer(kind=C_INT16_T),      intent(out) :: a
     integer(kind=C_INT16_T),      intent(out) :: q
     real(kind=C_DOUBLE),          intent(out) :: sigmv
+    integer(kind=C_INT32_T),      intent(out) :: partID
+    integer(kind=C_INT32_T),      intent(out) :: parentID
+    real(kind=C_DOUBLE),          intent(out) :: weight
     integer(kind=C_INT),          intent(out) :: part_hit
     integer(kind=C_INT),          intent(out) :: part_abs
     real(kind=C_DOUBLE),          intent(out) :: part_impact
@@ -205,6 +212,18 @@ module geant4
     real(kind=C_DOUBLE),          intent(in) :: ybigmax
     real(kind=C_DOUBLE),          intent(in) :: zbigmax
   end subroutine g4_add_edep
+
+  subroutine g4_get_maximum_particle_id(m_id) bind(C,name="g4_get_maximum_particle_id")
+    use, intrinsic :: iso_c_binding
+    implicit none
+    integer(kind=C_INT32_T),        intent(out) :: m_id
+  end subroutine g4_get_maximum_particle_id
+
+  subroutine g4_set_maximum_particle_id(m_id) bind(C,name="g4_set_maximum_particle_id")
+    use, intrinsic :: iso_c_binding
+    implicit none
+    integer(kind=C_INT32_T),        intent(in)  :: m_id
+  end subroutine g4_set_maximum_particle_id
 
  end interface
 

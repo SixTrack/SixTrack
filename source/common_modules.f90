@@ -934,8 +934,16 @@ module mod_common_main
 
   integer,          allocatable, save :: numxv(:)      ! Turn in which a particle was lost
 
-  integer,          allocatable, save :: partID(:)     ! Particle ID
-  integer,          allocatable, save :: parentID(:)   ! Particle parent ID in case of secondary particles
+! The following variables are int32 for usage with the FLUKA IO TCP/IP communication
+! If these are to be changed, remember to also update the FLUKA IO C code (and the CR variables).
+! Also update the root output and geant4 interface (all fixed to int32s currently)
+  integer(kind=int32), allocatable, save :: partID(:)   ! Particle ID
+  integer(kind=int32), allocatable, save :: parentID(:) ! Particle parent ID in case of secondary particles
+  integer(kind=int32), save :: MaximumPartID            ! Maximum used particle ID
+#if defined(FLUKA) || defined(G4COLLIMATION)
+  real(kind=fPrec),    allocatable, save :: partWeight(:) ! Particle weighting for FLUKA and geant4
+#endif
+
   integer,          allocatable, save :: pairID(:,:)   ! The original particle pair ID for a particle
   integer,          allocatable, save :: pairMap(:,:)  ! A reverse map for pairID to index
   logical,          allocatable, save :: pstop(:)      ! Particle lost flag (post-processing)
@@ -985,6 +993,9 @@ subroutine mod_commonmn_expand_arrays(nblz_new,npart_new)
     call alloc(numxv,      npart_new, 0,       "numxv")
     call alloc(partID,     npart_new, 0,       "partID")
     call alloc(parentID,   npart_new, 0,       "parentID")
+#if defined(FLUKA) || defined(G4COLLIMATION)
+    call alloc(partWeight, npart_new, one,     "partWeight")
+#endif
     call alloc(pairID,  2, npart_new, 0,       "pairID")
     call alloc(pairMap, 2, npair_new, 0,       "pairMap")
     call alloc(pstop,      npart_new, .false., "pstop")
