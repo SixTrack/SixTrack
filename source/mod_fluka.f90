@@ -117,10 +117,6 @@ module mod_fluka
                                             FLUKA_EXIT    = 3    ! SINGLE ELEMENT marking the end   of the insertion
   ! ancillary tracking values
   integer(kind=int32), public :: fluka_max_npart                          ! Maximum number of particles (array size)
-  !integer(kind=int32), public :: fluka_max_uid                            ! Highest particle ID
-  !integer(kind=int32), public, allocatable :: fluka_uid(:)    ! particle ID
-  !integer(kind=int32), public, allocatable :: fluka_gen(:)    ! ID of parent particle
-  !real(kind=fPrec), public, allocatable    :: fluka_weight(:) ! statistical weight (>0.0)
   integer,          public, allocatable    :: pids(:)         ! Particle ID moved from hisixtrack, to be harmonised
 
   ! Useful values
@@ -161,24 +157,9 @@ contains
     fluka_clight    = clight
 
     call alloc(pids,               npart, 0, "pids")
-! These are now "global" ID variables and should be handled in other modules
-!    call alloc(partID,             npart, 0, 'partID')
-!    call alloc(parentID,           npart, 0, 'parentID')
-!    call alloc(fluka_weight,       npart, one, 'fluka_weight')
     call alloc(fluka_type,         nele, FLUKA_NONE, 'fluka_type')
     call alloc(fluka_geo_index,    nele, 0, 'fluka_geo_index')
     call alloc(fluka_synch_length, nele, zero, 'fluka_synch_length')
-
-! See above global comment
-!    do j = 1, npart
-!      partID(j) = j
-!      parentID(j) = j
-!    end do
-
-!    fluka_weight       = one
-!    fluka_type         = FLUKA_NONE
-!    fluka_geo_index    = 0
-!    fluka_synch_length = zero
 
     if(unit208 == -1) then
       call f_requestUnit(fort208,unit208)
@@ -201,17 +182,9 @@ contains
     integer :: npart_new, nele_new, j
 
     call alloc(pids,               npart_new, 0, "pids")
-!    call alloc(partID,          npart_new, 0, 'partID')
-!    call alloc(parentID,          npart_new, 0, 'parentID')
-!    call alloc(fluka_weight,       npart_new, one, 'fluka_weight')
     call alloc(fluka_type,         nele_new, FLUKA_NONE, 'fluka_type')
     call alloc(fluka_geo_index,    nele_new, 0, 'fluka_geo_index')
     call alloc(fluka_synch_length, nele_new, zero, 'fluka_synch_length')
-
-!    do j = npart+1, npart_new
-!      partID(j) = j
-!      parentID(j) = j
-!    end do
 
     fluka_max_npart = npart_new
 
@@ -222,9 +195,6 @@ contains
   subroutine fluka_mod_end()
     implicit none
     call dealloc(pids,"pids")
-!    call dealloc(partID,'partID')
-!    call dealloc(parentID,'parentID')
-!    call dealloc(fluka_weight,'fluka_weight')
     call dealloc(fluka_type,'fluka_type')
     call dealloc(fluka_geo_index,'fluka_geo_index')
     call dealloc(fluka_synch_length,'fluka_synch_length')
@@ -639,12 +609,8 @@ contains
             parentID(fluka_nrecv)    = flgen
             if (partID(fluka_nrecv).gt.MaximumPartID) then
                MaximumPartID = partID(fluka_nrecv)
-! AM ->                ! generate a new uid
-! AM ->                fluka_max_uid = fluka_max_uid + 1
-! AM ->                partID(fluka_nrecv) = fluka_max_uid
-!
+
 ! PH for hisix: write the particle species and their initial conditions to fort.822
-!
                write(isotope_log_unit,*) partID(fluka_nrecv),flgen, ipt, flaa, flzz, flet * c1e3
 
             end if
@@ -695,10 +661,6 @@ contains
       write(fluka_log_unit, *) '# fluka_shuffleLostParticles called with napx (lnapx for SixTrack) = ', tnapx, ', j = ', j
       flush(fluka_log_unit)
     end if
-
-!    partID(j:tnapx)    = cshift(partID(j:tnapx),    1)
-!    parentID(j:tnapx)    = cshift(parentID(j:tnapx),    1)
-!    fluka_weight(j:tnapx) = cshift(fluka_weight(j:tnapx), 1)
 
   end subroutine fluka_shuffleLostParticles
 
