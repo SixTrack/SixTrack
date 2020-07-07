@@ -10,6 +10,9 @@
 * Do not update the pair mapping for non-primary particles. PR #1050 (A. Mereghetti)
 * Increased number of digits for particle ID in FirstImpacts.dat and in collimator length in coll_summary.dat (to properly display crystal collimators which are usually a few mm long). First impacts on crystal collimators are now correctly flagged and a missing check on the `dowrite_impact` flag when writing Coll_Scatter.dat has been added. PR #1053 (M. D'Andrea)
 * When collimator settings are required to match those read from an old format CollDB, a separate subroutine reconstructs the family settings based on the most frequent setting in each family. PR #1053 (M. D'Andrea)
+* Do not perform the pair mapping when geant4 collimation is enabled.
+* Enable single sided collimators with geant4 collimation.
+* Fix building with geant4 collimation with geant4 releases >= 10.06.
 
 **User Side Changes**
 
@@ -35,6 +38,8 @@
 * Removed updating napxo variable in the context of the Fluka-SixTrack coupling. This allows not to screw-up pair mapping in the context of DA studies. PR # 1052 (A. Mereghetti)
 * Removed the un-used fluka_init_brhono function. PR # 1055 (J. Molson).
 * Print error codes from the fluka coupling. PR # 1055 (J. Molson)
+* Update FLUKAIO reference.
+* Add Si as a possible collimator material for G4.
 
 ### Version 5.4.3 [19.12.2019] - Release
 

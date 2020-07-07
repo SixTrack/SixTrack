@@ -404,7 +404,7 @@ subroutine trackBeginTurn(n, nthinerr)
   meta_nPartTurn = meta_nPartTurn + napx
   numx = n-1
 
-#ifndef FLUKA
+#if !defined(FLUKA) && !defined(G4COLLIMATION)
   if(mod(numx,nwri) == 0) call writebin(nthinerr)
   if(nthinerr /= 0) return
 #endif

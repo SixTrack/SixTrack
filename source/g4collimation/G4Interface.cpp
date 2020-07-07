@@ -196,7 +196,7 @@ extern "C" void g4_collimation_init(double* ReferenceE, int* seed, double* recut
 	std::cout << std::flush;
 }
 
-extern "C" void g4_add_collimator(char* name, char* material, double* length, double* aperture, double* rotation, double* x_offset, double* y_offset)
+extern "C" void g4_add_collimator(char* name, char* material, double* length, double* aperture, double* rotation, double* x_offset, double* y_offset, bool* onesided)
 {
 	//NOTE: The closed orbit offset (e.g. at TCTs due to the crossing angle) should be subtracted in the sixtrack part.
 	//rcx(j)  = (xv(1,j)-torbx(ie))/1d3
@@ -206,7 +206,7 @@ extern "C" void g4_add_collimator(char* name, char* material, double* length, do
 //  keep 48 value in sync with mNameLen in common_modules.f90
 	std::string CollimatorName = CleanFortranString(name, 48);
 	std::string CollimatorMaterialName = CleanFortranString(material, 4);
-	std::cout << "GEANT4> Adding \"" << CollimatorName << "\" with material \"" << CollimatorMaterialName << "\" and rotation \"" << *rotation << "\" and offset x: \"" << *x_offset << "\ y: \"" << *y_offset << "\" and length \"";
+	std::cout << "GEANT4> Adding \"" << CollimatorName << "\" with material \"" << CollimatorMaterialName << "\" and rotation \"" << *rotation << "\" and offset x: \"" << *x_offset << "\" y: \"" << *y_offset << "\" and length \"";
 	std::cout << *length << "\"" << std::endl;
 
 	G4double length_in = *length *CLHEP::m;
@@ -214,7 +214,7 @@ extern "C" void g4_add_collimator(char* name, char* material, double* length, do
 	G4double rotation_in = *rotation *CLHEP::rad;
 	G4double offset_in = *x_offset *CLHEP::m;
 
-	geometry->AddCollimator(CollimatorName, length_in, aperture_in, rotation_in, offset_in, CollimatorMaterialName);
+	geometry->AddCollimator(CollimatorName, length_in, aperture_in, rotation_in, offset_in, CollimatorMaterialName, *onesided);
 }
 
 extern "C" void g4_terminate()

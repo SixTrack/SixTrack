@@ -15,3 +15,4 @@ if(ROOT)
 endif(ROOT)
 
 add_library(g4collimation STATIC ${G4COLLIMATION_SOURCES})
+target_link_libraries(g4collimation ${Geant4_LIBRARIES})
