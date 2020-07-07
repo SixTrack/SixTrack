@@ -936,6 +936,7 @@ module mod_common_main
 
 ! The following variables are int32 for usage with the FLUKA IO TCP/IP communication
 ! If these are to be changed, remember to also update the FLUKA IO C code (and the CR variables).
+! Also update the root output and geant4 interface (all fixed to int32s currently)
   integer(kind=int32), allocatable, save :: partID(:)   ! Particle ID
   integer(kind=int32), allocatable, save :: parentID(:) ! Particle parent ID in case of secondary particles
   integer(kind=int32), save :: MaximumPartID            ! Maximum used particle ID
