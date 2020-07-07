@@ -719,7 +719,7 @@ Because of this, SixTrack does not accept a real single element in \texttt{fort.
     & \texttt{frequency}   & MHz     & Frequency \\
     & \texttt{phase}       & radians & Offset between zero-crossing and ideal bunch center \\
   \hline
-    \multirow{3}{*}{\parbox{4cm}{Electron lens \\ (29),\\ Section~\ref{sec:elen}}}
+    \multirow{3}{*}{\parbox{4cm}{Electron lens (29),\\ Section~\ref{sec:elen}}}
     & \texttt{theta\_R2}     & mrad      & Angular kick at R2 \\
     & \texttt{elens\_I}      & A         & Electron current   \\
     & \texttt{elens\_Ek}     & keV       & Electron kinetic energy \\
@@ -734,6 +734,10 @@ Because of this, SixTrack does not accept a real single element in \texttt{fort.
     & \texttt{b\{ORDER\}amp, e.g b2amp}& m\textsuperscript{-n}  & Corresponds to the 1st column in the multipole block. \\
     & \texttt{a\{ORDER\}pha, e.g a3pha}& radians & Corresponds to the 4th column in the multipole block. \\
     & \texttt{b\{ORDER\}pha, e.g b4pha}& radians & Corresponds to the 2nd column in the multipole block. \\
+  \hline
+    \multirow{2}{*}{\parbox{4cm}{Chebyshev lens (42),\\ Section~\ref{sec:cheby}}}
+    & \texttt{cheby\_I}      & A         & Powering of lens  \\
+    &      &       &  \\
   \hline
     \multirow{3}{*}{\parbox{4cm}{\texttt{GLOBAL-VARS} \\ Not a real element,\\ changes global variable}}
     & \texttt{E0}     & MeV      & Reference energy of synchronous particle \\
@@ -2863,7 +2867,7 @@ The fringe field vector potential profile is saved using the format shown in Tab
 Chebyshev maps\index{Chebyshev Maps} can be used to represent analytically any non--linear kick map~\cite{cheby:1}.
 The module allows to read in and deploy a set of coefficients for representing a 2D kick map by means of Chebyshev polynomials.
 For the time being, orders up to 20 are accepted.
-The coefficients are stored in an ASCII file (see Sec.~\ref{sec:cheby_coeff_file} for the formatting).
+The coefficients are stored in an ASCII file (see Sec.~\ref{sec:cheby_format_coeff_file} for the formatting).
 The map covers a squared domain, either full or hollow; the domain can be off-centred and/or tilted with respect to the local reference frame.
 The user can also ask SixTrack to echo the potential map (see Sec.~\ref{sec:cheby:SHOW}).
 The module handling Chebyshev maps is controlled by the \texttt{CHEB} block.
@@ -3012,7 +3016,7 @@ The columns have the meaning expressed in the following table.
 \end{longtable}
 \end{center}
 
-\subsection{Format of the Coefficient File} \label{cheby_format_coeff_file}
+\subsection{Format of the Coefficient File} \label{sec:cheby_format_coeff_file}
 There are two formats for the coefficient file: one lists line by line all the coefficients;
 the other format reports the coefficients in a table.
 Both formats can be freely used, also mixed together; it should be noted that the tabular format is more concise.
