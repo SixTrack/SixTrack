@@ -1060,7 +1060,7 @@ from the nominal one ($B\rho|_b$) given by
 \end{equation}
 where $\chi$ is the charge--over--mass ratio of the tracked and synchronous
 particles, i.e.~$\chi=(q/m)/(q_0/m_0)$ and $\delta$ is the one used in case of
-multi--isotop tracking, i.e.~$\frac{(p/m)}{p_0/m_0}-1$~\cite{Hermes:2241364}.
+multi--isotopic tracking, i.e.~$\frac{(p/m)}{p_0/m_0}-1$~\cite{Hermes:2241364}.
 The latter comes from the definition of $\theta_{\rm R_2}$ in Eq.~\ref{elense:eqn:6},
 and takes into account the fact that each tracked particle may have a value of
 the relativistic $\beta$ different from that of the reference particle $\beta_b$;
@@ -1073,8 +1073,8 @@ If the electron lens is centred around $(x_{\rm offset},y_{\rm offset})$
 (local reference frame), particle coordinates $(x,y)$ are simply transformed
 into:
 \begin{align}
-\tilde x&\rightarrow x-x_{\rm offset}\\
-\tilde y&\rightarrow y-y_{\rm offset}\\
+x&\rightarrow x-x_{\rm offset}\\
+y&\rightarrow y-y_{\rm offset}\\
 \end{align}
 before computing the radial position, without touching the above processing.
 
@@ -1152,6 +1152,100 @@ In addition, the current of the lens beam is positive when it flows in the same 
 \end{itemize}
 
 The direction of the lens beam determines which sign in the calculation of $\theta_{\rm R_2}$ should be taken in Eq.~\ref{elense:eqn:6}
+
+\subsection{Chebyshev Lenses}
+\label{cheby}
+Chebyshev lenses are thin lenses the kick of which is distributed according to a 2D map, represented analytically by Chebyshev polynomials~\cite{stancari:cheby}.
+The user provides SixTrack with the necessary coefficients.
+The domain of the map is squared, limited by a reference dimension.
+The domain can be made hollow (still squared) if a minimum dimension is provided.
+Chebyshev lenses can be used to describe any non-linear field.
+
+\subsubsection{Treatment of the Kick}
+\begin{table}
+  \centering
+  \begin{tabular}{|r|l|l|}
+    \hline   	
+    \textbf{order} & $\mathbf{T_j}$ & $\mathbf{T'_j}$ \\
+    \hline
+    $0$ & $1$ & $0$ \\
+    $1$ & $u$ & $1$ \\
+    $2$ & $2u^2-1$ & $4u$\\
+    $3$ & $4u^3-3u$ & $12u^2-3$\\
+    $4$ & $8u^4-8u^2+1$ & $32u^3-16u$ \\
+    $j$ & $2u\,T_{j-1}(u)-T_{j-2}(u)$ & $2\,T_{j-1}(u) +2u\,T'_{j-1}(u) -T'_{j-2}(u)$\\
+    \hline
+  \end{tabular}
+  \caption{\label{tab:ChebyDefs}Definition of Chebyshev polynomials and derivatives.
+  $u$ stands for either $x/a$ or $y/a$.}
+\end{table}
+The kick received by a beam particle is described in terms of Chebyshev polynomials as:
+\begin{align}
+  k_x (x,y) = & -\frac{1}{a} \sum_{n=0}^{N} \sum_{j=0}^{n} C_{j,n-j} \; T_j'\left( \frac{x}{a} \right) \; T_{n-j} \left( \frac{y}{a} \right) \\
+  k_y (x,y) = & -\frac{1}{a} \sum_{n=0}^{N} \sum_{j=0}^{n} C_{j,n-j} \; T_j \left( \frac{x}{a} \right) \; T'_{n-j}\left( \frac{y}{a} \right),
+  \label{cheby:eqn:1}
+\end{align}
+where $a$ is the half side of the map range (both in $x$ and $y$), $C_{j,n-j}$ (V m) is the coefficient of order $j$ on $x$ and $n-j$ on $y$, $T_j$ is the Chebyshev polynomial term of order $j$ and $T'_j$ its derivative (see Tab.~\ref{tab:ChebyDefs}).
+
+The change in $(x',y')$ due to the kick by the Chebyshev lens can then be expressed as
+\begin{align}
+x'&=x'+k_x(x,y) \frac{F}{B\rho c \beta_b} \; \frac{\chi}{1+\delta} \frac{\beta_b}{\beta} \\
+y'&=y'+k_y(x,y) \frac{F}{B\rho c \beta_b} \; \frac{\chi}{1+\delta} \frac{\beta_b}{\beta},
+\end{align}
+where $F=I_{\mathrm{OP}}/I_{\mathrm{ref}}$ is a scaling factor, obtained as ratio
+between the operational current of the device and the reference one at which
+the coefficients are computed.
+Off-momentum particles and different ion species are taken into
+account via the last two fractions. The former, $\chi/(1+\delta)$,
+comes from the definition of magnetic rigidity of ion species different
+from the nominal one ($B\rho|_b$) given by
+\begin{equation}
+  B\rho = B\rho|_b \frac{1+\delta}{\chi},
+\end{equation}
+where $\chi$ is the charge--over--mass ratio of the tracked and synchronous
+particles, i.e.~$\chi=(q/m)/(q_0/m_0)$ and $\delta$ is the one used in case of
+multi--isotopic tracking, i.e.~$\frac{(p/m)}{p_0/m_0}-1$~\cite{Hermes:2241364}.
+The latter comes from the fact that each tracked particle may have a value of
+the relativistic $\beta$ different from that of the reference particle $\beta_b$.
+
+If the lens is centred around $(x_{\rm offset},y_{\rm offset})$
+(local reference frame), particle coordinates $(x,y)$ are simply transformed
+into:
+\begin{align}
+ x&\rightarrow x-x_{\rm offset}\\
+ y&\rightarrow y-y_{\rm offset}\\
+\end{align}
+before computing the kick, without touching the above processing.
+
+In addition, if the map has to be used tilted by the angle $\theta_{\mathrm{map}}$,
+the particle is first rotated into the reference system of the map before
+computing the kick by means of the following transformation:
+\begin{align}
+  r &= \sqrt{x^2+y^2} \\
+  \theta &= \mathrm{atan2}(y,x) -\theta_{\mathrm{map}} \\
+  x &= r \cos (\theta) \\
+  y &= r \sin (\theta),
+\end{align}
+The kicks are then transformed accordingly with the opposite transformation prior
+to addition, i.e.
+\begin{align}
+  \theta &= \mathrm{atan2}(yp,xp) +\theta_{\mathrm{map}} \\
+  r &= \sqrt{xp^2+yp^2} \\
+  xp &= r \cos (\theta) \\
+  yp &= r \sin (\theta)
+\end{align}
+
+\subsubsection{Map Potential}
+SixTrack can also echo the (scalar) potential of the map represented by the Chebyshev coefficients~\cite{stancari:cheby}.
+The potential is defined as:
+\begin{equation}
+  V(x,y) = \sum_{n=0}^{N} \sum_{j=0}^{n} C_{j,n-j} \; T_j \left( \frac{x}{a} \right) \; T_{n-j} \left( \frac{y}{a} \right).
+\end{equation}
+It is related to the kicks $k_x(x,y)$ and $k_y(x,y)$ by differentiation, i.e.
+\begin{align}
+   k_x(x,y) =& -\frac{\partial V}{\partial x} \\
+   k_y(x,y) =& -\frac{\partial V}{\partial y}
+\end{align}
 
 \subsection{Misalignment}
 
