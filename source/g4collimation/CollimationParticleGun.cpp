@@ -82,6 +82,10 @@ void CollimationParticleGun::SetParticleDetails(double x, double y, double px, d
 			//rescale mass + energy here
 			const G4double mp = particle->GetPDGMass();
 			e = (e/mass)*mp;
+			if(fabs(mp - mass) > (1e-5*mass))
+			{
+				std::cout << "GEANT4> WARNING: Rescaling non-ground state mass difference for " << pdgid << " : " << mp << " vs " << mass << " - delta: " << fabs(mp - mass) << "MeV!" << std::endl;
+			}
 			mass = mp;
 		}
 	}
