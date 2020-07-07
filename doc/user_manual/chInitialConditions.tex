@@ -501,12 +501,12 @@ The default tracking in SixTrack is for protons.
 In case tracking of ions is wanted the following input block should be used.\index{ion tracking}
 The \texttt{HION} block only specifies the reference particle.
 By default, all particles are initialised to the same values, but if multiple ion species are needed, these can be provided by an input file in the \texttt{DIST} block.
-
+For the PDG ID numbers, see \url{http://pdg.lbl.gov/2020/reviews/rpp2020-rev-monte-carlo-numbering.pdf}.
 \bigskip
 \begin{tabular}{@{}lp{0.7\linewidth}}
     \textbf{Keyword}    & \texttt{HION}\index{HION} \\
     \textbf{Data lines} & 1 \\
-    \textbf{Format}     & Line 1: \texttt{A Z $m_a$ Q}
+    \textbf{Format}     & Line 1: \texttt{A Z $m_a$ Q PDGID}
 \end{tabular}
 
 \paragraph{Format Description}~
@@ -517,6 +517,7 @@ By default, all particles are initialised to the same values, but if multiple io
     \texttt{Z}     & integer & Total number of protons. \\
     \texttt{$m_a$} & float   & Mass of the ion [GeV/$c^2$]. \\
     \texttt{Q}     & integer & Electrical charge.
+    \texttt{PDGID} & integer & PDG ID number.
 \end{longtabu}
 
 % ================================================================================================================================ %

@@ -1,3 +1,6 @@
+#include <algorithm>
+#include <string>
+
 #include "CollimationMaterials.h"
 
 /*
@@ -34,19 +37,16 @@ CollimationMaterials::CollimationMaterials()
 
 
 	//Only needed for pure elemental collimators
-	AddMaterial("Be", Be);
+	AddMaterial("BE", Be);
 	AddMaterial("C", C);
 	AddMaterial("O", O);
-	AddMaterial("Al", Al);
-	AddMaterial("Cu", Cu);
-	AddMaterial("Ni", Ni);
-	AddMaterial("Mo", Mo);
-	AddMaterial("W", W);
-	AddMaterial("Pb", Pb);
-	AddMaterial("Si", Si);
-	AddMaterial("SI", Si);
-
+	AddMaterial("AL", Al);
 	AddMaterial("CU", Cu);
+	AddMaterial("NI", Ni);
+	AddMaterial("MO", Mo);
+	AddMaterial("W", W);
+	AddMaterial("PB", Pb);
+	AddMaterial("SI", Si);
 
 // Remember:
 //  void AddMaterial(G4Material* material,                        //the material
@@ -61,8 +61,6 @@ CollimationMaterials::CollimationMaterials()
 	G4Material* MoGr = new G4Material("MoGr", 2.5*CLHEP::g/CLHEP::cm3,2);
 	MoGr->AddMaterial(Mo,0.137);
 	MoGr->AddMaterial(C,0.863);
-	AddMaterial("MoGr", MoGr);
-	AddMaterial("MoGR", MoGr);
 	AddMaterial("MOGR", MoGr);
 
 	//Glidcop
@@ -72,7 +70,6 @@ CollimationMaterials::CollimationMaterials()
 	Glid->AddMaterial(Cu,0.9972);
 	Glid->AddMaterial(Al,0.0028 * Al_M / (Al_M + O_M));
 	Glid->AddMaterial(O,0.0028 * O_M / (Al_M + O_M));
-	AddMaterial("Glid", Glid);
 	AddMaterial("GLID", Glid);
 
 	//INERMET 180
@@ -80,7 +77,6 @@ CollimationMaterials::CollimationMaterials()
 	Iner->AddMaterial(W,0.95);
 	Iner->AddMaterial(Ni,0.035);
 	Iner->AddMaterial(Cu,0.015);
-	AddMaterial("Iner", Iner);
 	AddMaterial("INER", Iner);
 
 	//Copper diamond - fractions from https://twiki.cern.ch/twiki/pub/LHCAtHome/SixTrackCollimatVer/material_test_2015-03-30_corretto.xlsx
@@ -89,7 +85,6 @@ CollimationMaterials::CollimationMaterials()
 	CuCD->AddMaterial(Cu,0.647);
 	CuCD->AddMaterial(C,0.349);
 	CuCD->AddMaterial(B,0.004);
-	AddMaterial("CuCD", CuCD);
 	AddMaterial("CUCD", CuCD);
 }
 
@@ -103,6 +98,7 @@ void CollimationMaterials::AddMaterial(std::string MaterialName, G4Material* Mat
 
 G4Material* CollimationMaterials::GetMaterial(std::string MaterialName)
 {
+	std::transform(MaterialName.begin(), MaterialName.end(), MaterialName.begin(), ::toupper);
 	std::map<std::string, G4Material*>::const_iterator CollimationMaterialMap_itr;
 	CollimationMaterialMap_itr = CollimationMaterialMap.find(MaterialName);
 	if(CollimationMaterialMap_itr!=CollimationMaterialMap.end())

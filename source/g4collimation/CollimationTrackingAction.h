@@ -31,6 +31,24 @@ public:
 	void SetAbsoluteEnergyCut(double cut);
 	void SetRigidityCut(double cut);
 
+	void SetParticleID(int32_t);
+	int32_t GetParticleID();
+
+	void SetParentID(int32_t);
+	int32_t GetParentID();
+
+	void SetMaximumParticleID(int32_t);
+	int32_t GetMaximumParticleID();
+
+	//This particle's ID
+	int32_t particleID;
+
+	//This particle's parent particle ID
+	int32_t parentID;
+
+	//Maximum partID
+	int32_t partID_max;
+
 	double ReferenceEnergy;
 	double RelativeEnergyCut;
 	double AbsoluteEnergyCut;
