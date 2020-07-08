@@ -10,11 +10,11 @@
 * Do not update the pair mapping for non-primary particles. PR #1050 (A. Mereghetti)
 * Increased number of digits for particle ID in FirstImpacts.dat and in collimator length in coll_summary.dat (to properly display crystal collimators which are usually a few mm long). First impacts on crystal collimators are now correctly flagged and a missing check on the `dowrite_impact` flag when writing Coll_Scatter.dat has been added. PR #1053 (M. D'Andrea)
 * When collimator settings are required to match those read from an old format CollDB, a separate subroutine reconstructs the family settings based on the most frequent setting in each family. PR #1053 (M. D'Andrea)
-* Do not perform the pair mapping when geant4 collimation is enabled. PR #1060 (J. Molson)
+* Do not perform the pair mapping when geant4 collimation is enabled. PR #1059 (J. Molson)
 * Enable single sided collimators with geant4 collimation. PR #1060 (J. Molson)
 * Fix building with geant4 collimation with geant4 releases >= 10.06. PR #1060 (J. Molson)
-* Fix a mass miss-match with geant4 when entering non-ground state ions into geant4. PR #1060 (J. Molson)
-* Fix a crash with miss-matched format strings when writing the aperture losses file with geant4 enabled (and not FLUKA). PR #1060 (J. Molson)
+* Fix a mass miss-match with geant4 when entering non-ground state ions into geant4. PR #1062 (J. Molson)
+* Fix a crash with miss-matched format strings when writing the aperture losses file with geant4 enabled (and not FLUKA). PR #1062 (J. Molson)
 
 **User Side Changes**
 
@@ -50,8 +50,8 @@
 * Removed updating napxo variable in the context of the Fluka-SixTrack coupling. This allows not to screw-up pair mapping in the context of DA studies. PR # 1052 (A. Mereghetti)
 * Removed the un-used fluka_init_brhono function. PR # 1055 (J. Molson).
 * Print error codes from the fluka coupling. PR # 1055 (J. Molson)
-* Update FLUKAIO reference. PR #1062 (J. Molson)
-* Add Si as a possible collimator material for G4.  PR #1062 (J. Molson)
+* Update FLUKAIO reference. PR #1057 (J. Molson)
+* Add Si as a possible collimator material for G4.  PR #1059 (J. Molson)
 * Add particle ID and parent ID tracking with geant4. PR #1062 (J. Molson)
 * Allow setting particle statistical weights in geant4 PR #1062 (J. Molson)
 * Always enable the EMD physics process in geant4. PR #1062 (J. Molson)
