@@ -10,11 +10,11 @@
 * Do not update the pair mapping for non-primary particles. PR #1050 (A. Mereghetti)
 * Increased number of digits for particle ID in FirstImpacts.dat and in collimator length in coll_summary.dat (to properly display crystal collimators which are usually a few mm long). First impacts on crystal collimators are now correctly flagged and a missing check on the `dowrite_impact` flag when writing Coll_Scatter.dat has been added. PR #1053 (M. D'Andrea)
 * When collimator settings are required to match those read from an old format CollDB, a separate subroutine reconstructs the family settings based on the most frequent setting in each family. PR #1053 (M. D'Andrea)
-* Do not perform the pair mapping when geant4 collimation is enabled.
-* Enable single sided collimators with geant4 collimation.
-* Fix building with geant4 collimation with geant4 releases >= 10.06.
-* Fix a mass miss-match with geant4 when entering non-ground state ions into geant4.
-* Fix a crash with miss-matched format strings when writing the aperture losses file with geant4 enabled (and not FLUKA).
+* Do not perform the pair mapping when geant4 collimation is enabled. PR #1059 (J. Molson)
+* Enable single sided collimators with geant4 collimation. PR #1060 (J. Molson)
+* Fix building with geant4 collimation with geant4 releases >= 10.06. PR #1060 (J. Molson)
+* Fix a mass miss-match with geant4 when entering non-ground state ions into geant4. PR #1062 (J. Molson)
+* Fix a crash with miss-matched format strings when writing the aperture losses file with geant4 enabled (and not FLUKA). PR #1062 (J. Molson)
 
 **User Side Changes**
 
@@ -34,21 +34,29 @@
 * When sending particles to geant4, if the particle mass is within a tolerance of the geant4 value, update the mass to this value and re-scale the particle energy. PR # 1055 (J. Molson).
 * If no collimator are found for a given family, the aperture of that family is set to zero. PR #1053 (M. D'Andrea)
 * If a particle interacts with a crystal collimator after having previously interacted with another or the same crystal collimator, the process ID of the previous interaction is stored in cry_interaction.dat. PR #1058 (M. D'Andrea)
-* Collimator material names are now case insensitive in geant4.
-* In the HION block the PDG ID can now be set as the 5th value. 
+* Collimator material names are now case insensitive in geant4. PR #1062 (J. Molson)
+* In the HION block the PDG ID can now be set as the 5th value. PR #1062 (J. Molson)
+* Foxified lenses with Chebyshev maps - PR 849 (A. Mereghetti). In addition:
+  * Chebyshev maps are actually used on a squared domain;
+  * the check against R1 and R2 takes into account rounding issues;
+  * max order of cheby polynomials is a parameter in the module header;
+  * derivatives of Chebyshev polynomials, used to compute the kick, no longer go through a dangerous division by 1-u^2;
+  * update chebyshev tests;
+  * tabular method for inputting/outputting coefficients;
+  * some house-keeping.
 
 **Code Improvements and Changes**
 
 * Removed updating napxo variable in the context of the Fluka-SixTrack coupling. This allows not to screw-up pair mapping in the context of DA studies. PR # 1052 (A. Mereghetti)
 * Removed the un-used fluka_init_brhono function. PR # 1055 (J. Molson).
 * Print error codes from the fluka coupling. PR # 1055 (J. Molson)
-* Update FLUKAIO reference.
-* Add Si as a possible collimator material for G4.
-* Add particle ID and parent ID tracking with geant4.
-* Allow setting particle statistical weights in geant4
-* Always enable the EMD physics process in geant4.
-* Use global id/parent/weight variables in the FLUKA coupling.
-* Start to enable the ability to use collimation with thick lens lattices.
+* Update FLUKAIO reference. PR #1057 (J. Molson)
+* Add Si as a possible collimator material for G4.  PR #1059 (J. Molson)
+* Add particle ID and parent ID tracking with geant4. PR #1062 (J. Molson)
+* Allow setting particle statistical weights in geant4 PR #1062 (J. Molson)
+* Always enable the EMD physics process in geant4. PR #1062 (J. Molson)
+* Use global id/parent/weight variables in the FLUKA coupling. PR #1062 (J. Molson)
+* Start to enable the ability to use collimation with thick lens lattices. PR #1062 (J. Molson)
 
 ### Version 5.4.3 [19.12.2019] - Release
 

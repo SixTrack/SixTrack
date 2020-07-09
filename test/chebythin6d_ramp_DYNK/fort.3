@@ -5,7 +5,7 @@ SETTINGS----------------------------------------------------------------
   CRKILLSWITCH 23456 78910
 NEXT
 TRACKING PARAMETERS-----------------------------------------------------
-  100000 0 1 5.5 6.5 0 1
+  100000 0 1 4.5 6.5 0 1
   1 1 1 1 1
   0 0 50000 50000 50000 50000 2
 NEXT
@@ -50,14 +50,18 @@ POSTPROCESSING----------------------------------------------------------
   0 1 0 1 1 1 1 1 30
 NEXT
 CHEB
-  cheby1  cheby.dat  -1  1.0
-  cheby2  cheby.dat  6.4 0.7    0.0 -2.0  2.0
-  cheby3  cheby.dat  6.0 1.5  -90.0  2.0 -2.0
-  cheby4  cheby.dat  -1. 0.4  135.0  0.0  0.0 2
+  cheby1  cheby.tab        -1  0.25
+  FOX     0
+  cheby2  cheby.dat        3.2 0.7    0.0 -2.0  2.0
+  FOX     0
+  cheby3  cheby_mixed.tab  3.0 0.0  -90.0  1.0 -1.0
+  FOX     0
+  cheby4  cheby.dat       -1.0 0.5  160.0  0.0  0.0 2
+  FOX     0
   SHOW    cheby1 cheby1_pot.dat
-  SHOW    cheby2 cheby2_pot.dat -5  1 100 5 -1 100
+  SHOW    cheby2 cheby2_pot.dat -6  2 100 6 -2 100
   SHOW    cheby3 cheby3_pot.dat
-  SHOW    cheby4 cheby4_pot.dat -10 10 100 -7 7 100
+  SHOW    cheby4 cheby4_pot.dat -4 4 100 -7 7 100
 NEXT
 DUMP
   ip4..2 1 -1 2 CHEBY_DUMP_01 1 2000
@@ -91,7 +95,7 @@ DYNK
   SET GLOBAL-VARS E0 eramp_actual 1 -1 0
 
   ! 4 lenes:
-  ! 1. no kicking
+  ! 1. no modulation
   ! 2. compensate for energy ramp
   ! 3.-4. kicking 1k turns every 5k
   FUN cheby2-orig GET cheby2 cheby_I

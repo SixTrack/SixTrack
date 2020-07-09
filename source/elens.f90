@@ -1543,7 +1543,6 @@ subroutine elens_kick_fox(i,ix)
   use numerical_constants, only : zero, one, two, c1m15, c1m7
   use mod_utils, only : huntBin, polcof, polinterp
   use mod_lie_dab, only : lnv, idao, rscrri, iscrda
-  use mod_common_track, only : comt_daStart, comt_daEnd
   use mod_common_da
   use mod_alloc, only: alloc, dealloc
 
@@ -1722,14 +1721,14 @@ subroutine elens_kick_fox(i,ix)
         call alloc(cof,kMax-kMin+1,zero,'cof')
         if (st_debug) then
           do kk=kMin,kMax
-            write(lout,'(a,1X,i0,2(1X,1pe22.15))') "ELENS> ELENS_KICK_FOX: kk, R [mm], JJ [A/mm2]:", &
+            write(lout,'(a,1X,i0,2(1X,1pe23.16))') "ELENS> ELENS_KICK_FOX: kk, R [mm], JJ [A/mm2]:", &
                 kk, elens_radial_profile_R(kk,iRadial), elens_radial_profile_J(kk,iRadial)
           end do
         end if 
         call polcof(elens_radial_profile_R(kMin:kMax,iRadial),elens_radial_profile_J(kMin:kMax,iRadial),kMax-kMin+1,cof)
         if (st_debug) then
           do kk=1,mPoints
-            write(lout,'(a,1X,i5,1X,1pe22.15)') "ELENS> ELENS_KICK_FOX: order, coefficient:", kk-1, cof(kk)
+            write(lout,'(a,1X,i5,1X,1pe23.16)') "ELENS> ELENS_KICK_FOX: order, coefficient:", kk-1, cof(kk)
           end do
         end if 
         TMPCOF=COF(1)
@@ -1742,12 +1741,12 @@ subroutine elens_kick_fox(i,ix)
         end do
         if (st_debug) then
           call dapek(FRR,hh,FRRA)
-          write(lout,'(a,1pe22.15)') "ELENS> ELENS_KICK_FOX: FRRA 1:", FRRA
+          write(lout,'(a,1pe23.16)') "ELENS> ELENS_KICK_FOX: FRRA 1:", FRRA
         end if
 !FOX    FRR=(FRR/ELENOR)*(ELE_RR/RR) ;
         if (st_debug) then
           call dapek(FRR,hh,FRRA)
-          write(lout,'(a,1pe22.15)') "ELENS> ELENS_KICK_FOX: FRRA 2:", FRRA
+          write(lout,'(a,1pe23.16)') "ELENS> ELENS_KICK_FOX: FRRA 2:", FRRA
         end if
         call dealloc(cof,'cof')
         
@@ -1787,7 +1786,7 @@ subroutine elens_kick_fox(i,ix)
     end if
     if (st_debug) then
       call dapek(FRR,hh,FRRA)
-      write(lout,'(a,1pe22.15)') "ELENS> ELENS_KICK_FOX: FRRA 3:", FRRA
+      write(lout,'(a,1pe23.16)') "ELENS> ELENS_KICK_FOX: FRRA 3:", FRRA
     end if
     
 !FOX  YY(1)=YY(1)+(FRR*XI)/RR ;

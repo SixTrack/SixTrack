@@ -1,2 +1,1 @@
-initial.dat
-cheby.dat
+../chebythin6d/extra_inputs.txt
