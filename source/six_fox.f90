@@ -19,6 +19,7 @@ subroutine umlauda
   use mod_common_track, only : xxtr,yytr,crois,tasm,comt_daStart,comt_daEnd
   use mod_common_da
   use mod_commond2
+  use cheby, only : cheby_lFox, icheby, cheby_kz, cheby_kick_fox
   use wire
   use elens, only : elens_lFox, ielens, elens_kz, elens_kick_fox
   use mod_lie_dab, only : idao,iscrri,rscrri,iscrda
@@ -1323,6 +1324,18 @@ subroutine umlauda
 !FOX  Y(2)=YY(2) ;
       end if
     end if     
+    if(kzz.eq.cheby_kz) then ! Chebyshev map
+      if (cheby_lFox(icheby(ix))) then
+        ! inspired by wireda
+!FOX  XX(1)=X(1) ;
+!FOX  XX(2)=X(2) ;
+!FOX  YY(1)=Y(1) ;
+!FOX  YY(2)=Y(2) ;
+        call cheby_kick_fox(i,ix)
+!FOX  Y(1)=YY(1) ;
+!FOX  Y(2)=YY(2) ;
+      end if
+    end if
     if(kzz.eq.22) then ! Phase Trombone
       irrtr=imtr(ix)
 !FOX  YP(1)=Y(1)*(ONE+DPDA)/MTCDA ;

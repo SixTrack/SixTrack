@@ -1,1 +1,3 @@
 cheby.dat
+cheby.tab
+cheby_mixed.tab

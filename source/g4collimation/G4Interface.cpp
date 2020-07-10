@@ -10,6 +10,8 @@
 #include "CollimationStorage.h"
 #include "CollimationTrackingAction.h"
 
+#include "CollimationEMD.h"
+
 #ifdef USE_ROOT_FLAG
 #include "RootEnergyDeposition.h"
 #endif
@@ -42,6 +44,8 @@ std::vector<CollimationParticle> output_particles;
 std::vector<CollimationEnergyDeposition> EnergyDepositionConfiguration;
 
 std::set<int> keep_ids;
+
+int32_t MaximumParticleID;
 
 /**
 Geant4 needs the user to define several user classes.
@@ -91,7 +95,13 @@ extern "C" void g4_collimation_init(double* ReferenceE, int* seed, double* recut
 	}
 
 	PhysicsList->SetVerboseLevel(verbose);
-	PhysicsList->SetDefaultCutValue(*rangecut_mm);
+
+	if(*rangecut_mm != 0)
+	{
+		PhysicsList->SetDefaultCutValue(*rangecut_mm);
+	}
+	PhysicsList->RegisterPhysics(new EMDissociation());
+
 	runManager->SetUserInitialization(PhysicsList);
 
 	delete PlistFactory;
@@ -193,10 +203,12 @@ extern "C" void g4_collimation_init(double* ReferenceE, int* seed, double* recut
 	//Added everything now set up the run manager
 	runManager->Initialize();
 
+	MaximumParticleID = 0;
+
 	std::cout << std::flush;
 }
 
-extern "C" void g4_add_collimator(char* name, char* material, double* length, double* aperture, double* rotation, double* x_offset, double* y_offset)
+extern "C" void g4_add_collimator(char* name, char* material, double* length, double* aperture, double* rotation, double* x_offset, double* y_offset, bool* onesided)
 {
 	//NOTE: The closed orbit offset (e.g. at TCTs due to the crossing angle) should be subtracted in the sixtrack part.
 	//rcx(j)  = (xv(1,j)-torbx(ie))/1d3
@@ -206,7 +218,7 @@ extern "C" void g4_add_collimator(char* name, char* material, double* length, do
 //  keep 48 value in sync with mNameLen in common_modules.f90
 	std::string CollimatorName = CleanFortranString(name, 48);
 	std::string CollimatorMaterialName = CleanFortranString(material, 4);
-	std::cout << "GEANT4> Adding \"" << CollimatorName << "\" with material \"" << CollimatorMaterialName << "\" and rotation \"" << *rotation << "\" and offset x: \"" << *x_offset << "\ y: \"" << *y_offset << "\" and length \"";
+	std::cout << "GEANT4> Adding \"" << CollimatorName << "\" with material \"" << CollimatorMaterialName << "\" and rotation \"" << *rotation << "\" and offset x: \"" << *x_offset << "\" y: \"" << *y_offset << "\" and length \"";
 	std::cout << *length << "\"" << std::endl;
 
 	G4double length_in = *length *CLHEP::m;
@@ -214,7 +226,7 @@ extern "C" void g4_add_collimator(char* name, char* material, double* length, do
 	G4double rotation_in = *rotation *CLHEP::rad;
 	G4double offset_in = *x_offset *CLHEP::m;
 
-	geometry->AddCollimator(CollimatorName, length_in, aperture_in, rotation_in, offset_in, CollimatorMaterialName);
+	geometry->AddCollimator(CollimatorName, length_in, aperture_in, rotation_in, offset_in, CollimatorMaterialName, *onesided);
 }
 
 extern "C" void g4_terminate()
@@ -246,7 +258,7 @@ extern "C" void g4_set_collimator(char* name)
 	std::cout << std::flush;
 }
 
-extern "C" void g4_add_particle(double* x, double* y, double* xp, double* yp, double* e, int32_t* pdgid, int16_t* nzz, int16_t* naa, int16_t* nqq, double* mass, double* sigmv, double* sx, double* sy, double* sz)
+extern "C" void g4_add_particle(double* x, double* y, double* xp, double* yp, double* e, int32_t* pdgid, int16_t* nzz, int16_t* naa, int16_t* nqq, double* mass, double* sigmv, int32_t* partID, int32_t* parentID, double* weight, double* sx, double* sy, double* sz)
 {
 //WARNING: at this stage in SixTrack the units have been converted to GeV, m, and rad!
 //The particle energy input is the TOTAL energy
@@ -285,13 +297,23 @@ extern "C" void g4_add_particle(double* x, double* y, double* xp, double* yp, do
 	in_particle.a = *naa;
 	in_particle.q = *nqq;
 	in_particle.m = *mass;
-	in_particle.id = input_particles.size();
+
+	in_particle.id = *partID;
+	in_particle.parent_id = *parentID;
+	in_particle.weight = *weight;
 
 	in_particle.sx = *sx;
 	in_particle.sy = *sy;
 	in_particle.sz = *sz;
 
 	input_particles.push_back(in_particle);
+
+	if(*partID > MaximumParticleID)
+	{
+		MaximumParticleID = *partID;
+		std::cout << "GEANT4> WARNING: Particle ID entered (" << *partID << ") is greater than the expected maximum currently set: " << MaximumParticleID << std::endl;
+	}
+
 }
 
 extern "C" void g4_collimate()
@@ -300,12 +322,15 @@ extern "C" void g4_collimate()
 	//Update the gun with this particle's details
 	for(size_t n=0; n < input_particles.size(); n++)
 	{
-		part->SetParticleDetails(input_particles.at(n).x, input_particles.at(n).y, input_particles.at(n).px, input_particles.at(n).py, input_particles.at(n).pz, input_particles.at(n).e, input_particles.at(n).p, input_particles.at(n).pdgid, input_particles.at(n).q, input_particles.at(n).m, input_particles.at(n).sx, input_particles.at(n).sy, input_particles.at(n).sz);
+		part->SetParticleDetails(input_particles.at(n).x, input_particles.at(n).y, input_particles.at(n).px, input_particles.at(n).py, input_particles.at(n).pz, input_particles.at(n).e, input_particles.at(n).p, input_particles.at(n).pdgid, input_particles.at(n).q, input_particles.at(n).m, input_particles.at(n).sx, input_particles.at(n).sy, input_particles.at(n).sz,input_particles.at(n).weight);
 
-		//Tell the "event" about the parent particle ID for tracking secondaries
-
+		//Tell the "tracking" about the parent particle ID for tracking secondaries
+		tracking->SetParticleID(input_particles.at(n).id);
+		tracking->SetParentID(input_particles.at(n).parent_id);
+		tracking->SetMaximumParticleID(MaximumParticleID);
 		//Run!
 		runManager->BeamOn(1);
+		MaximumParticleID = tracking->GetMaximumParticleID();
 	}
 	input_particles.clear();
 	std::cout << std::flush;
@@ -314,7 +339,7 @@ extern "C" void g4_collimate()
 /**
 * Here we put the particles back into sixtrack and set any flags if needed
 */
-extern "C" void g4_collimate_return(int* j, double* x, double* y, double* xp, double* yp, double* e, int32_t* pdgid, double* m, int16_t* z, int16_t* a, int16_t* q, double* sigmv, int *part_hit, int *part_abs, double *part_impact, double *part_indiv, double *part_linteract, double* sx, double* sy, double* sz)
+extern "C" void g4_collimate_return(int* j, double* x, double* y, double* xp, double* yp, double* e, int32_t* pdgid, double* m, int16_t* z, int16_t* a, int16_t* q, double* sigmv, int32_t* partID, int32_t* parentID, double* weight, int *part_hit, int *part_abs, double *part_impact, double *part_indiv, double *part_linteract, double* sx, double* sy, double* sz)
 {
 /*
 part_hit(j), part_abs(j), part_impact(j), part_indiv(j),
@@ -353,6 +378,11 @@ double py = output_particles.at(*j).py;
 
 //time, must be converted for using with sigmv
 *sigmv  = output_particles.at(*j).t;
+
+
+*partID = output_particles.at(*j).id;
+*parentID = output_particles.at(*j).parent_id;
+*weight = output_particles.at(*j).weight;
 }
 
 std::string CleanFortranString(char* str, size_t count)
@@ -375,6 +405,18 @@ std::string CleanFortranString(char* str, size_t count)
 extern "C" void g4_get_particle_count(int* g4_npart)
 {
 	*g4_npart = output_particles.size();
+}
+
+extern "C" void g4_get_maximum_particle_id(int32_t* m_id)
+{
+	*m_id = tracking->GetMaximumParticleID();
+}
+
+//Sets the maximum particle ID (which could have been increased by FLUKA or other codes
+//These particles could then be lost before geant4 encounters them (so the maximum must be tracked)!
+extern "C" void g4_set_maximum_particle_id(int32_t* m_id)
+{
+	tracking->SetMaximumParticleID(*m_id);
 }
 
 extern "C" void g4_collimation_clear()

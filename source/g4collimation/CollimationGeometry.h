@@ -41,6 +41,7 @@ class CollimationGeometry : public G4VUserDetectorConstruction
 		ThisCollimatorJawOffset = 0.0;
 		ThisCollimatorJawMaterial = Mmap->GetMaterial("Iner");
 		ThisCollimatorName = "dummy";
+		ThisCollimatorOneSided = false;
 #ifdef USE_ROOT_FLAG
 		LeftJaw_SD = nullptr;
 		RightJaw_SD = nullptr;
@@ -52,7 +53,7 @@ class CollimationGeometry : public G4VUserDetectorConstruction
 	G4VPhysicalVolume* Construct();
 	void ConstructSDandField();
 	void SetCollimator(std::string);
-	void AddCollimator(std::string name, double length, double gap, double rotation, double offset, std::string Material);
+	void AddCollimator(std::string name, double length, double gap, double rotation, double offset, std::string Material, bool onesided);
 	void SetDebug(bool flag);
 	double GetCurrentCollimatorLength();
 
@@ -77,6 +78,9 @@ class CollimationGeometry : public G4VUserDetectorConstruction
 
 		//The name of this collimator
 		std::string CollimatorName;
+
+		//Is this collimator one sided or not? (e.g. LHC TCDQ, etc).
+		bool OneSided;
 	};
 
 	std::map<std::string,CollimatorSettings> CollimatorKeyMap;
@@ -103,6 +107,7 @@ class CollimationGeometry : public G4VUserDetectorConstruction
 	G4double ThisCollimatorJawOffset;
 	G4Material* ThisCollimatorJawMaterial;
 	std::string ThisCollimatorName;
+	bool ThisCollimatorOneSided;
 
 #ifdef USE_ROOT_FLAG
 	CollimationJawSD* LeftJaw_SD;
