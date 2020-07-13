@@ -22,7 +22,7 @@ oFile=open('kicks.dat','w')
 rrs,kicks=parseFort6()
 
 plt.figure('elens kick',figsize=(13,13))
-for fnin,fnout,offx,offy,R,R2f,peakT in [(1,2,sig,0,0.5,7,7),(2,3,-4*sig,4*sig,1,12,10.8),(3,4,5*sig,0,1,5,2.91604),(4,5,6*sig,6*sig,1/2.61,7,3.1704)]:
+for fnin,fnout,offx,offy,R,R2f,peakT in [(1,2,sig,0,0.5,7,7),(2,3,-4*sig,4*sig,1,12,10.85),(3,4,5*sig,0,1,5,2.91604),(4,5,6*sig,6*sig,1/2.61,7,3.1704)]:
   theta_max=theta_r2*R
   plt.subplot(2,2,fnin)
   helin=np.loadtxt('HEL_DUMP_%s'%fnin)
