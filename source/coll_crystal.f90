@@ -528,7 +528,7 @@ subroutine cry_interact(is,x,xp,y,yp,pc,length,s_P,x_P)
   real(kind=fPrec) alpha                ! Par for new chann prob
   real(kind=fPrec) Pvr                  ! Prob for VR->AM transition
 
-  real(kind=fPrec) const_dech,xpin,ypin,tchan,tdefl,L_chan,mep
+  real(kind=fPrec) const_dech,xpin,ypin,tchan,tdefl,tP,L_chan,mep
   real(kind=fPrec) s_K,x_K,s_M,x_M,s_F,x_F,r,a
   real(kind=fPrec) A_F,B_F,C_F,alpha_F,beta_F
 
@@ -608,14 +608,15 @@ subroutine cry_interact(is,x,xp,y,yp,pc,length,s_P,x_P)
     x_F = (-B_F-sqrt(B_F**2-four*A_F*C_F))/(two*A_F)
     s_F = alpha_F*x_F + beta_F
     write(*,*) B_F**2, A_F*C_F, four*A_F*C_F, B_F**2-four*A_F*C_F
-    write(*,*) x_F, s_F
+    write(*,*) 'new F', x_F, s_F
     
   endif
 
   ! MISCUT fourth step: deflection and length
   a = sqrt(s_F**2+(x-x_F)**2)
+  tP = acos_mb((2*r**2-a**2)/(2*r**2))
   tdefl = asin_mb((s_f-s_P)/r)
-  L_chan = r*tdefl
+  L_chan = r*tP
   write(*,*) "Results", tdefl, L_chan
 
   xp_rel = xp - c_miscut
@@ -794,8 +795,10 @@ subroutine cry_interact(is,x,xp,y,yp,pc,length,s_P,x_P)
 
     Lrefl = xp_rel*r ! Distance of refl. point [m]
     Srefl = sin_mb(xp_rel/two + c_miscut)*Lrefl
+    write(*,*) 'Lrefl', Lrefl
+    write(*,*) 'L_chan', L_chan
 
-    if(Lrefl > zero .and. Lrefl < Length) then ! VR point inside
+    if(Lrefl > zero .and. Lrefl < L_chan) then ! VR point inside
 
       ! 2 options: volume capture and volume reflection
 
@@ -885,7 +888,14 @@ subroutine cry_interact(is,x,xp,y,yp,pc,length,s_P,x_P)
 
       ! Case 3-3: move in amorphous substance (big input angles)
       ! Modified for transition vram daniele
-      if(xp_rel > L_chan/c_rcurv + two*xpcrit .or. xp_rel < -xpcrit) then
+      write(*,*) 'Transition VRAM check'
+      write(*,*) 'xp_rel', xp_rel
+      write(*,*) 'tdefl', tdefl
+      write(*,*) 'miscut', c_miscut
+      write(*,*) 'tdefl-miscut', tdefl-c_miscut
+      write(*,*) 'xp_rel >', L_chan/r+two*xpcrit, 'or xp_rel <', -xpcrit
+      if(xp_rel > tdefl-c_miscut + two*xpcrit .or. xp_rel < -xpcrit) then
+        write(*,*) 'Amorphous'
         iProc = proc_AM
         x     = x + (half*s_length)*xp
         y     = y + (half*s_length)*yp
@@ -896,13 +906,14 @@ subroutine cry_interact(is,x,xp,y,yp,pc,length,s_P,x_P)
         x = x + (half*s_length)*xp
         y = y + (half*s_length)*yp
       else
-        Pvr = (xp_rel-(L_chan/c_rcurv))/(two*xpcrit)
+        Pvr = (xp_rel-(tdefl-c_miscut))/(two*xpcrit)
         if(rndm4() > Pvr) then
+          write(*,*) 'TRVR'
           iProc = proc_TRVR
           x     = x + xp*Srefl
           y     = y + yp*Srefl
 
-          Dxp = (((-three*Ang_rms)*xp_rel)/(two*xpcrit) + Ang_avr) + ((three*Ang_rms)*(tdefl))/(two*xpcrit)
+          Dxp = (((-three*Ang_rms)*xp_rel)/(two*xpcrit) + Ang_avr) + ((three*Ang_rms)*(tdefl-c_miscut))/(two*xpcrit)
           xp  = xp + Dxp
           x   = x + (half*xp)*(s_length-Srefl)
           y   = y + (half*yp)*(s_length-Srefl)
@@ -912,11 +923,12 @@ subroutine cry_interact(is,x,xp,y,yp,pc,length,s_P,x_P)
           x = x + (half*xp)*(s_length - Srefl)
           y = y + (half*yp)*(s_length - Srefl)
         else
+          write(*,*) 'TRAM'
           iProc = proc_TRAM
           x = x + xp*Srefl
           y = y + yp*Srefl
           Dxp = ((((-one*(13.6_fPrec/pc))*sqrt(s_length/dlri(is)))*c1m3)*xp_rel)/(two*xpcrit) + &
-            (((13.6_fPrec/pc)*sqrt(s_length/DLRi(is)))*c1m3)*(one+(L_chan/c_rcurv)/(two*xpcrit))
+            (((13.6_fPrec/pc)*sqrt(s_length/DLRi(is)))*c1m3)*(one+(tdefl-c_miscut)/(two*xpcrit))
           xp = xp+Dxp
           x  = x + (half*xp)*(s_length-Srefl)
           y  = y + (half*yp)*(s_length-Srefl)
