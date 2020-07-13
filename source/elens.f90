@@ -98,8 +98,13 @@ module elens
   character(len=:), allocatable, save :: elens_radial_filename(:)          ! names (nelens_radial_profiles)
   real(kind=fPrec), allocatable, save :: elens_radial_profile_R(:,:)       ! [mm] (elens_radial_profile_nPoints,nelens_radial_profiles)
   real(kind=fPrec), allocatable, save :: elens_radial_profile_J(:,:)       ! [A]  (elens_radial_profile_nPoints,nelens_radial_profiles)
+                                                                           ! NB: elens_radial_profile_J(j,iProfile) stores the total current
+                                                                           !       inside elens_radial_profile_R(j,iProfile)
   real(kind=fPrec), allocatable, save :: elens_radial_profile_coeff(:,:,:) ! coefficients of polynomials (elens_radial_profile_nPoints-1,
                                                                            !       nelens_radial_profiles,elens_radial_mpoints)
+                                                                           ! NB: elens_radial_profile_coeff(j,iProfile,1:mpoints) stores the coefficients
+                                                                           !       to be used between elens_radial_profile_R(j,iProfile) and 
+                                                                           !       elens_radial_profile_R(j+1,iProfile) and 
   integer, allocatable, save          :: elens_radial_profile_nPoints(:)   ! number of points in current radial profile (nelens_radial_profiles)
 
 contains
@@ -1317,10 +1322,6 @@ end subroutine parseRadialProfile
 !  Last modified: 2018-10-04
 !  integrate radial profile of electron beam
 !  ifile is index of file in table of radial profiles
-!  original formula:
-!     cdf(ii)=2pi*pdf(ii)*Dr*r_ave
-!  becomes:
-!     cdf(ii)=pi*pdf(ii)*(r(ii)-r(ii-1))*(r(ii)+r(ii-1))
 ! ================================================================================================ !
 subroutine integrateRadialProfile(ifile)
 
@@ -1540,7 +1541,7 @@ subroutine elens_kick_fox(i,ix)
   use crcoall, only : lout, lerr
   use mod_common_main
   use numerical_constants, only : zero, one, two, c1m15, c1m7
-  use mod_utils, only : huntBin, polcof_single, polinterp
+  use mod_utils, only : huntBin, polcof, polinterp, getExtremes
   use mod_lie_dab, only : lnv, idao, rscrri, iscrda
   use mod_common_da
   use mod_alloc, only: alloc, dealloc
@@ -1716,8 +1717,8 @@ subroutine elens_kick_fox(i,ix)
         end if
         nBin=huntBin(RRA,elens_radial_profile_R(1:nPoints,iRadial),nPoints,-1)
         call alloc(cof,mpoints,zero,'cof')
-        call polcof_single(elens_radial_profile_R(1:nPoints,iRadial),elens_radial_profile_J(1:nPoints,iRadial),&
-             nPoints,mPoints,nBin,cof,kMin,kMax)
+        call getExtremes(nBin,mpoints,nPoints,kMin,kMax)
+        call polcof(elens_radial_profile_R(kMin:kMax,iRadial),elens_radial_profile_J(kMin:kMax,iRadial),mpoints,cof)
         if (st_debug) then
           write(lout,'(a,6(1X,i5))') "ELENS> ELENS_KICK_FOX: iRadial, nPoints, mPoints, nBin, kMin, kMax:", &
              iRadial, nPoints, mPoints, nBin, kMin, kMax
