@@ -74,6 +74,10 @@ tot=0.0
 oldVal=0.0
 oldR=0.0
 intRange=np.append(0.0,profIN[:,0])
+# approximate formula:
+#     sum_j I_j *2pi *R<ave> *DR = sum_j I_j *2pi *(Rj+R(j-1))/2 *(Rj-R(j-1))
+# this is NOT what is calculated internally by SixTrack!
+# ...but the overall shape and total (almost) should be correct!
 for ii in range(len(profIN[:,1])):
     if (ii==0):
         rMin=0.0
