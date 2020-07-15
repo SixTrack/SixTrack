@@ -698,7 +698,7 @@ subroutine scatter_parseProfile(lnSplit, nSplit, iErr)
 
   case("FIXED")
     proType = scatter_proFixed
-    if(nSplit /= 3) then
+    if(nSplit /= 4) then
       write(lerr,"(a,i0)") "SCATTER> ERROR PROfile type FIXED expected 1 argument, got ",nSplit-3
       write(lerr,"(a)")    "SCATTER>       PRO name FIXED density[targets/m^2]"
       iErr = .true.
