@@ -1811,6 +1811,8 @@ end subroutine elens_kick_fox
 #ifdef CR
 subroutine elens_crcheck(fileUnit,readErr)
 
+  use crcoall
+
   integer, intent(in)  :: fileUnit
   logical, intent(out) :: readErr
 
@@ -1831,6 +1833,8 @@ subroutine elens_crcheck(fileUnit,readErr)
 end subroutine elens_crcheck
 
 subroutine elens_crpoint(fileUnit, writeErr)
+
+  use crcoall
 
   integer, intent(in)  :: fileUnit
   logical, intent(out) :: writeErr
