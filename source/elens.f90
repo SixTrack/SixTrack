@@ -32,8 +32,6 @@ module elens
   integer, save               :: elens_iSet_def=0           ! default iSet
   logical, save               :: elens_lFox_def=.true.      ! default lFox
   integer, save               :: elens_radial_mpoints_def=2 ! default number of points for interpolating radial profiles from ASCI files
-  integer, save               :: elens_radial_mpoints_ori=3 ! default minimum number of points for interpolating radial profiles from ASCI
-                                                            !    files in case we are very close to the origin
 
   ! beam of the lens
   real(kind=fPrec), save      :: elens_beam_mass_def=pmae   ! default mass of lens beam [MeV/c2]
@@ -930,13 +928,13 @@ end subroutine elens_postInput
 subroutine elens_postLinopt
 
   use mathlib_bouncer
-  use mod_utils, only : polinterp
+  use mod_utils, only : poliEval_int, huntbin
   use mod_common, only : bez, kz, e0f, nucm0, fort3
   use mod_settings, only : st_debug
   use numerical_constants, only : c1e3, two
   use crcoall, only : lout, lerr
 
-  integer j, jj, jguess, nn, mm, iRadial
+  integer j, jj, jguess, nn, mm, iRadial, kk
   real(kind=fPrec) oldVal
   logical lPrint
 
@@ -1063,11 +1061,17 @@ subroutine elens_postLinopt
         nn = elens_radial_profile_nPoints(iRadial)
         mm = elens_radial_mpoints(iRadial)
         jguess = -1
-        elens_radial_fr1(j) = polinterp( elens_r1(j), elens_radial_profile_R(1:nn,iRadial), &
-                                                      elens_radial_profile_J(1:nn,iRadial), nn, mm, jguess )
+        kk = huntBin( elens_r1(j), elens_radial_profile_R(1:nn,iRadial), nn, jguess )
+        elens_radial_fr1(j) = ( &
+             poliEval_int( elens_r1(j)                       , elens_radial_profile_coeff(kk,iRadial,1:mm), mm, 2) &
+           - poliEval_int( elens_radial_profile_R(kk,iRadial), elens_radial_profile_coeff(kk,iRadial,1:mm), mm, 2) ) &
+           + elens_radial_profile_J(kk,iRadial)
         jguess = -1
-        elens_radial_fr2(j) = polinterp( elens_r2(j), elens_radial_profile_R(1:nn,iRadial), &
-                                                      elens_radial_profile_J(1:nn,iRadial), nn, mm, jguess )
+        kk = huntBin( elens_r2(j), elens_radial_profile_R(1:nn,iRadial), nn, jguess )
+        elens_radial_fr2(j) = ( &
+             poliEval_int( elens_r2(j)                       , elens_radial_profile_coeff(kk,iRadial,1:mm), mm, 2) &
+           - poliEval_int( elens_radial_profile_R(kk,iRadial), elens_radial_profile_coeff(kk,iRadial,1:mm), mm, 2) ) &
+           + elens_radial_profile_J(kk,iRadial)
         elens_geo_norm(j) = elens_radial_fr2(j) -elens_radial_fr1(j)
       end select ! case (elens_type(j))
       ! ...and printout:
@@ -1339,7 +1343,6 @@ subroutine integrateRadialProfile(ifile)
   integer, intent(in) :: ifile
 
   integer ii, nn, mm
-  real(kind=fPrec) tmpTot
 
   write(lout,"(a)") "ELENS> Integrating radial profile described in "//trim(elens_radial_filename(ifile))
   if(st_quiet < 2) flush(lout)
@@ -1347,7 +1350,7 @@ subroutine integrateRadialProfile(ifile)
   mm=elens_radial_mpoints(ifile)
   call polcoeffs( elens_radial_profile_R(1:nn,ifile), elens_radial_profile_J(1:nn,ifile), &
                   nn, mm, elens_radial_profile_coeff(1:nn-1,ifile,1:mm) )
-  tmpTot=polintegrate_coeffs(elens_radial_profile_R(1:nn,ifile), elens_radial_profile_coeff(1:nn-1,ifile,1:mm), &
+  call polintegrate_coeffs(elens_radial_profile_R(1:nn,ifile), elens_radial_profile_coeff(1:nn-1,ifile,1:mm), &
                       nn, mm, 2, elens_radial_profile_J(1:nn,ifile) )
 
   if(st_quiet < 2) then
@@ -1378,11 +1381,15 @@ subroutine normaliseRadialProfile(ifile)
 
   integer, intent(in) :: ifile
 
-  integer ii
+  integer ii, jj
 
   do ii=1,elens_radial_profile_nPoints(ifile)
     elens_radial_profile_J(ii,ifile)=elens_radial_profile_J(ii,ifile)/&
                                      elens_radial_profile_J(elens_radial_profile_nPoints(ifile),ifile)
+    do jj=1,elens_radial_mpoints(ifile)
+      elens_radial_profile_coeff(ii,ifile,jj)=elens_radial_profile_coeff(ii,ifile,jj)/&
+                                              elens_radial_profile_J(elens_radial_profile_nPoints(ifile),ifile)
+    end do
   end do
 
 end subroutine normaliseRadialProfile
@@ -1397,7 +1404,7 @@ subroutine elens_kick(i,ix,n)
   use mod_common_main, only : xv1, xv2, yv1, yv2, moidpsv, rvv
   use mathlib_bouncer
   use numerical_constants, only : zero, one, two, c1m15, c1m7
-  use mod_utils, only : polinterp
+  use mod_utils, only : poliEval_int, huntBin
   use crcoall, only : lerr, lout
 
   implicit none
@@ -1407,7 +1414,7 @@ subroutine elens_kick(i,ix,n)
   integer, intent(in) :: n
   
   real(kind=fPrec) xx, yy, rr, frr, tmpBB, epsilon, gteps, lteps, r1oSigSq, rroSigSq, cl2ori
-  integer          jj, mPoints, mm, nn, iRadial
+  integer          jj, mm, nn, iRadial, kk
 
   epsilon=c1m15
   gteps=one+epsilon
@@ -1479,11 +1486,17 @@ subroutine elens_kick(i,ix,n)
         case (3)
           ! RADIAL PROFILE: eLens with radial profile as from file
           ! formula: (cumul_J(r)-cumul_J(r1))/(cumul_J(r2)-cumul_J(r1))*Rref/r
-          mPoints=mm
-          if ( elens_lFull(ielens(ix)) .and. rr <= cl2ori ) mPoints=elens_radial_mpoints_ori
-          frr=polinterp( rr, elens_radial_profile_R(1:nn,iRadial), &
-                             elens_radial_profile_J(1:nn,iRadial), nn, mPoints, elens_radial_jguess(iRadial) ) &
-              -elens_radial_fr1(ielens(ix))
+          !     where cumul_J(r) is computed with the polynomial coefficients as from the fit to the original profile
+          ! get bin - current step will be [kk:kk+1]
+          kk=huntBin(rr,elens_radial_profile_R(1:nn,iRadial),nn,elens_radial_jguess(iRadial))
+          ! actually interpolate:
+          ! - get value of cumul_J(r) at rr (please remember that the coefficients are for the original radial profile,
+          !   whereas here we have to use its cumulative function, normalised to 1
+          frr= poliEval_int(rr                                ,elens_radial_profile_coeff(kk,iRadial,1:mm),mm,2) &
+              -poliEval_int(elens_radial_profile_R(kk,iRadial),elens_radial_profile_coeff(kk,iRadial,1:mm),mm,2)
+          ! - add to integral over current bin the integral up to the bin and take into account correctly the
+          !   normalisation
+          frr=frr+( elens_radial_profile_J(kk,iRadial) -elens_radial_fr1(ielens(ix)))
           frr=(frr/elens_geo_norm(ielens(ix)))*(elens_rref(ielens(ix))/rr)
            
         case default
@@ -1540,8 +1553,8 @@ subroutine elens_kick_fox(i,ix)
   use mod_settings, only : st_debug
   use crcoall, only : lout, lerr
   use mod_common_main
-  use numerical_constants, only : zero, one, two, c1m15, c1m7
-  use mod_utils, only : huntBin, polcof, polinterp, getExtremes
+  use numerical_constants, only : zero, one, two, c1m15, c1m7, pi
+  use mod_utils, only : huntBin, poliEval_int
   use mod_lie_dab, only : lnv, idao, rscrri, iscrda
   use mod_common_da
   use mod_alloc, only: alloc, dealloc
@@ -1551,9 +1564,9 @@ subroutine elens_kick_fox(i,ix)
   integer, intent(in) :: i
   integer, intent(in) :: ix
   
-  integer          :: iLens, iRadial, nBin, nPoints, mPoints, kMin, kMax, kk
+  integer          :: iLens, iRadial, nBin, nPoints, mPoints, kk
   real(kind=fPrec) :: rra, frra, xa, ya, xffset, yffset, ele_r1, ele_r2, elefr1, ele_rr, elenor, elesig, elebet, tmpcof
-  real(kind=fPrec) :: eletrf, epsilon, gteps, lteps, cl2ori
+  real(kind=fPrec) :: eletrf, epsilon, gteps, lteps, cl2ori, tmprkk, tmpint, tmp_jj
   real(kind=fPrec), allocatable :: cof(:)
 
 ! for FOX
@@ -1586,11 +1599,15 @@ subroutine elens_kick_fox(i,ix)
 !FOX  D V RE INT ONE    ;
 !FOX  D V RE INT ZERO   ;
 !FOX  D V RE INT TWO    ;
+!FOX  D V RE INT PI     ;
 !FOX  D V RE INT HALF   ;
 !FOX  D V RE INT RRA    ;
 !FOX  D V RE INT FRRA   ;
 !FOX  D V RE INT XA     ;
 !FOX  D V RE INT YA     ;
+!FOX  D V RE INT TMPRKK ;
+!FOX  D V RE INT TMPINT ;
+!FOX  D V RE INT TMP_JJ ;
 !FOX  E D ;
 !FOX  1 if(1==1) then
 !-----------------------------------------------------------------------
@@ -1707,37 +1724,34 @@ subroutine elens_kick_fox(i,ix)
       case (3)
         ! RADIAL PROFILE: eLens with radial profile as from file
         ! formula: (cumul_J(r)-cumul_J(r1))/(cumul_J(r2)-cumul_J(r1))
+        ! formula: (cumul_J(r)-cumul_J(r1))/(cumul_J(r2)-cumul_J(r1))*Rref/r
+        !     where cumul_J(r) is computed with the polynomial coefficients as from the fit to the original profile
         if (st_debug) write(lout,'(a)') "ELENS> ELENS_KICK_FOX: elens type RADIAL"
         iRadial=elens_iRadial(iLens)
         nPoints=elens_radial_profile_nPoints(iRadial)
         mPoints=elens_radial_mpoints(iRadial)
-        if ( elens_lFull(iLens) .and. RRA <= cl2ori ) then
-          if (st_debug) write(lout,'(a,6(1X,i5))') "ELENS> ELENS_KICK_FOX: forcing mPoints to:", elens_radial_mpoints_ori
-          mPoints=elens_radial_mpoints_ori
-        end if
         nBin=huntBin(RRA,elens_radial_profile_R(1:nPoints,iRadial),nPoints,-1)
-        call alloc(cof,mpoints,zero,'cof')
-        call getExtremes(nBin,mpoints,nPoints,kMin,kMax)
-        call polcof(elens_radial_profile_R(kMin:kMax,iRadial),elens_radial_profile_J(kMin:kMax,iRadial),mpoints,cof)
+        call alloc(cof,mPoints,zero,'cof')
+        cof(1:mPoints)=elens_radial_profile_coeff(nBin,iRadial,1:mPoints)
         if (st_debug) then
-          write(lout,'(a,6(1X,i5))') "ELENS> ELENS_KICK_FOX: iRadial, nPoints, mPoints, nBin, kMin, kMax:", &
-             iRadial, nPoints, mPoints, nBin, kMin, kMax
-          do kk=kMin,kMax
-            write(lout,'(a,1X,i0,2(1X,1pe23.16))') "ELENS> ELENS_KICK_FOX: kk, R [mm], JJ [A/mm2]:", &
-                kk, elens_radial_profile_R(kk,iRadial), elens_radial_profile_J(kk,iRadial)
-          end do
+          write(lout,'(a,5(1X,i5))') "ELENS> ELENS_KICK_FOX: iRadial, nPoints, mPoints, nBin, mPoints:", &
+            iRadial, nPoints, mPoints, nBin, mPoints
           do kk=1,mPoints
-            write(lout,'(a,1X,i5,1X,1pe23.16)') "ELENS> ELENS_KICK_FOX: order, coefficient:", kk-1, cof(kk)
+            write(lout,'(a,1X,i5,1X,1pe23.16)') "ELENS> ELENS_KICK_FOX: order [], coefficient [mm^{-order}]:", kk-1, cof(kk)
           end do
-        end if 
+        end if
 !FOX    FRR=ZERO ;
-!FOX    TMPRR=ONE;
+!FOX    TMPRR=RR ;
         do kk=1,mPoints
-          TMPCOF=COF(kk)
-!FOX      FRR=FRR+(TMPRR*TMPCOF) ;
 !FOX      TMPRR=TMPRR*RR ;
+          ! dimen=2;
+          TMPRKK=real(kk+1,fPrec)
+          TMPCOF=COF(kk)
+!FOX      FRR=FRR+(TMPRR*TMPCOF)/TMPRKK ;
         end do
-!FOX    FRR=FRR-ELEFR1 ;
+        TMPINT=poliEval_int(elens_radial_profile_R(nBin,iRadial),elens_radial_profile_coeff(nBin,iRadial,1:mPoints),mPoints,2)
+        TMP_JJ=elens_radial_profile_J(nBin,iRadial)
+!FOX    FRR=(TWO*(PI*FRR)-TMPINT)+(TMP_JJ-ELEFR1) ;
         if (st_debug) then
           call dapek(FRR,hh,FRRA)
           write(lout,'(a,1pe23.16)') "ELENS> ELENS_KICK_FOX: FRRA 1:", FRRA

@@ -485,11 +485,11 @@ end function polintegrate
 
 ! ================================================================================================ !
 !  A.Mereghetti, CERN, BE-ABP-HSS
-!  Last modified: 20-04-2020
+!  Last modified: 13-07-2020
 !  Integrate (xvals,yvals) with polynoms through mpoints data
 !  Same functionality as polintegrate, but it starts from previously computed coefficients
 ! ================================================================================================ !
-real(kind=fPrec) function polintegrate_coeffs(xvals,coeffs,datalen,mpoints,dimen,cumul,rmin,rmax)
+subroutine polintegrate_coeffs(xvals,coeffs,datalen,mpoints,dimen,cumul,rmin,rmax)
 
   use crcoall, only : lout, lerr
   use numerical_constants, only : zero, one, two, four, pi
@@ -503,7 +503,6 @@ real(kind=fPrec) function polintegrate_coeffs(xvals,coeffs,datalen,mpoints,dimen
   integer jj, jMin, jMax, kk
   real(kind=fPrec) xmin, xmax, fmax, fmin
 
-  polintegrate_coeffs = zero ! -Wmaybe-uninitialized
   cumul(1:datalen)=zero
   
   ! get bins
@@ -524,8 +523,7 @@ real(kind=fPrec) function polintegrate_coeffs(xvals,coeffs,datalen,mpoints,dimen
      if (present(rmax).and.jj==jMax) xmax=rmax
      fmax=poliEval_int(xmax,coeffs(jj-1,1:mpoints),mpoints,dimen)
      fmin=poliEval_int(xmin,coeffs(jj-1,1:mpoints),mpoints,dimen)
-     polintegrate_coeffs=polintegrate_coeffs+(fmax-fmin)
-     cumul(jj)=polintegrate_coeffs
+     cumul(jj)=cumul(jj-1)+(fmax-fmin)
 #ifdef DEBUG
      write(lout,"(a,i4,6(1X,1pe16.9))") "UTILS> DEBUG polintegrate_coeffs jj-step: ", &
             jj, xvals(jj-1), xvals(jj), fmax, fmin, fmax-fmin, cumul(jj)
@@ -536,10 +534,10 @@ real(kind=fPrec) function polintegrate_coeffs(xvals,coeffs,datalen,mpoints,dimen
   cumul(jMax+1:datalen)=cumul(jMax)
 
 #ifdef DEBUG
-  write(lout,"(a,1pe16.9)") "UTILS> DEBUG polintegrate_coeffs end: ",polintegrate_coeffs
+  write(lout,"(a,1pe16.9)") "UTILS> DEBUG polintegrate_coeffs end: ",cumul(jMax)
 #endif
     
-end function polintegrate_coeffs
+end subroutine polintegrate_coeffs
 
 ! ================================================================================================ !
 !  A.Mereghetti, CERN, BE-ABP-HSS
