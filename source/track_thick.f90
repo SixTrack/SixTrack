@@ -593,7 +593,6 @@ subroutine thck6d(nthinerr)
   use mod_commons
   use mod_common_track
   use mod_common_da
-  use aperture
   use elens, only : elens_ktrack, elens_kick
   use cheby, only : cheby_ktrack, cheby_kick
   use mod_utils
