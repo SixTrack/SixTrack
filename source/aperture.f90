@@ -756,7 +756,7 @@ subroutine aperture_checkApeMarker(turn, i, ix, llost)
 end subroutine aperture_checkApeMarker
 
 
-subroutine aperture_reportLoss(turn, i, ix)
+subroutine aperture_reportLoss(turn, i, ix, lbackin)
 !-----------------------------------------------------------------------
 !     P.Garcia Ortega, A.Mereghetti and D.Sinuela Pastor, for the FLUKA Team
 !     last modified: 17-01-2019
@@ -783,9 +783,10 @@ subroutine aperture_reportLoss(turn, i, ix)
   implicit none
 
 ! parameters
-  integer turn  ! turn number
-  integer i     ! element entry in the lattice
-  integer ix    ! single element type index
+  integer, intent(in) :: turn  ! turn number
+  integer, intent(in) :: i     ! element entry in the lattice
+  integer, intent(in) :: ix    ! single element type index
+  logical, optional, intent(in) :: lbackin
 
   integer j,jj,jjx
 
@@ -813,32 +814,35 @@ subroutine aperture_reportLoss(turn, i, ix)
 
   save
 
-  lback=.false.
-
   !-----------------------------------------------------------------------
   ! dump coordinates in case of losses
   ! if back-tracking is requested, get more detailed point of loss
   ! for the moment, only bi-section method
   !-----------------------------------------------------------------------
 
-  if(lbacktracking.and.kape(ix).ne.0.and.iBckTypeLast.ge.0) then
-    lback=.true.
-
-    ! Length between elements
-    length = dcum(i) - dcum(iLast)
-
-    ! - pay attention to overflow:
-    if( length .lt. zero ) then
-      length = length+dcum(iu)
+  if (present(lbackin)) then
+    lback=lbackin
+  else
+    lback=.false.
+    if(lbacktracking.and.kape(ix).ne.0.and.iBckTypeLast.ge.0) then
+      lback=.true.
+    
+      ! Length between elements
+      length = dcum(i) - dcum(iLast)
+    
+      ! - pay attention to overflow:
+      if( length .lt. zero ) then
+        length = length+dcum(iu)
+      end if
+    
+      ! - pay attention to too short thick elements
+      if( length .le. bktpre ) then
+        lback=.false.
+      end if
+    
     end if
-
-    ! - pay attention to too short thick elements
-    if( length .le. bktpre ) then
-      lback=.false.
-    end if
-
   end if
-
+    
   ! Number of iterations for bisection method (ln(2x/precision)/ln(2)+1)
   if(lback) then
     niter=nint(inv_ln2*log_mb((two*length)/bktpre)+2)
