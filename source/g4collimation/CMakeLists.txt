@@ -8,7 +8,15 @@ if(ROOT)
 	set(CMAKE_CXX_FLAGS "${ROOT_CXX_FLAGS} ${CMAKE_CXX_FLAGS}")
 endif(ROOT)
 
-set(G4COLLIMATION_SOURCES G4Interface.cpp CollimationGeometry.cpp CollimationParticleGun.cpp CollimationStackingAction.cpp CollimationMaterials.cpp CollimationEventAction.cpp CollimationTrackingAction.cpp  )
+set(G4COLLIMATION_SOURCES G4Interface.cpp
+CollimationGeometry.cpp
+CollimationParticleGun.cpp
+CollimationStackingAction.cpp
+CollimationMaterials.cpp
+CollimationEventAction.cpp
+CollimationTrackingAction.cpp
+CollimationEMD.cpp
+)
 
 if(ROOT)
 	set(G4COLLIMATION_SOURCES ${G4COLLIMATION_SOURCES} CollimationJawSD.cpp CollimationJawHit.cpp RootEDepHist.cpp RootEnergyDeposition.cpp)

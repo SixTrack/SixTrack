@@ -3098,6 +3098,12 @@ subroutine coll_doCollimator_Geant4(c_aperture,c_rotation,c_length,onesided)
     flush(lout)
   end if
 
+  call g4_set_maximum_particle_id(MaximumPartID)
+  if(g4_debug .eqv. .true.) then
+    write(lout,"(a,I11)") 'GEANT4>: Setting Maximum ParticleID: ', MaximumPartID
+    flush(lout)
+  end if
+
   do j = 1, napx
 !!!!          if(part_abs_pos(j).eq.0 .and. part_abs_turn(j).eq.0) then
 !! Rotate particles in the frame of the collimator
@@ -3107,6 +3113,7 @@ subroutine coll_doCollimator_Geant4(c_aperture,c_rotation,c_length,onesided)
     if(g4_debug .eqv. .true.) then
       write(lout,"(a,2(1X,I11),10(1X,E24.16))") 'g4 sending particle: ', j, pdgid(j), nucm(j), rcx(j), rcy(j), rcxp(j), &
         rcyp(j), rcp(j), spin_x(j), spin_y(j), spin_z(j), sigmv(j)
+        flush(lout)
     end if
 
     x_tmp = rcx(j)
@@ -3120,7 +3127,7 @@ subroutine coll_doCollimator_Geant4(c_aperture,c_rotation,c_length,onesided)
 
 !! Add all particles
     call g4_add_particle(rcx(j), rcy(j), rcxp(j), rcyp(j), rcp(j), pdgid(j), nzz(j), naa(j), nqq(j), nucm(j), &
-      sigmv(j), spin_x(j), spin_y(j), spin_z(j))
+      sigmv(j), partID(j), parentID(j), partWeight(j), spin_x(j), spin_y(j), spin_z(j))
 
 ! Log input energy + nucleons as per the FLUKA coupling
     nnuc0   = nnuc0 + naa(j)
@@ -3147,13 +3154,19 @@ subroutine coll_doCollimator_Geant4(c_aperture,c_rotation,c_length,onesided)
     flush(lout)
   end if
 
+  call g4_get_maximum_particle_id(MaximumPartID)
+  if(g4_debug .eqv. .true.) then
+    write(lout,"(a,I11)") 'GEANT4>: Got Maximum ParticleID: ', MaximumPartID
+    flush(lout)
+  end if
+
   do j = 1, napx
 !! Get the particle back + information
 !! Remember C arrays start at 0, fortran at 1 here.
     call g4_collimate_return(j-1, rcx(j), rcy(j), rcxp(j), rcyp(j), rcp(j), pdgid(j), nucm(j), nzz(j), naa(j), nqq(j), &
-      sigmv(j), part_hit_flag, part_abs_flag, part_impact(j), part_indiv(j), part_linteract(j), spin_x(j), spin_y(j), spin_z(j))
+      sigmv(j), partID(j), parentID(j), partWeight(j), &
+      part_hit_flag, part_abs_flag, part_impact(j), part_indiv(j), part_linteract(j), spin_x(j), spin_y(j), spin_z(j))
 
-    partID(j) = j
     pstop (j) = .false.
 
 !! Rotate back into the accelerator frame

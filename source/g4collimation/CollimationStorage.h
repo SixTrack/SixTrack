@@ -20,6 +20,7 @@ struct CollimationParticle
 	G4double sy;
 	G4double sz;
 	G4double t;
+	G4double weight;
 	G4int pdgid;
 	G4int a;
 	G4int z;

@@ -2282,7 +2282,7 @@ subroutine dynk_setvalue(element_name, att_name, newValue)
 
   use elens, only: elens_theta_ref, elens_lAllowUpdate, elens_I, elens_Ek, eLensTheta, elens_kz, &
                    nelens, ielens
-  use cheby
+  use cheby, only: cheby_resetI, cheby_setScaleKick, icheby, cheby_kz
   use parbeam, only : beam_expflag
   implicit none
 
@@ -2514,7 +2514,7 @@ subroutine dynk_setvalue(element_name, att_name, newValue)
 
       case(cheby_kz)
         if(att_name == "cheby_I") then ! [keV]
-          cheby_I(icheby(ii)) = newValue
+          call cheby_resetI(icheby(ii),newValue)
           call cheby_setScaleKick(icheby(ii))
         else
           goto 100 ! ERROR
@@ -2562,7 +2562,7 @@ real(kind=fPrec) function dynk_getvalue(element_name, att_name)
   use mod_common_track
   use mod_common_main
   use elens, only: elens_theta_ref, elens_I, elens_Ek, elens_kz, ielens
-  use cheby
+  use cheby, only: cheby_I, icheby, cheby_kz
   use parbeam, only : beam_expflag
   use string_tools
 
