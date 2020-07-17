@@ -140,6 +140,7 @@ subroutine thin4d(nthinerr)
       case (1)
         stracki=strack(i)
         if(iexact) then ! EXACT DRIFT
+#include "include/lostpart_exactDrift.f90"              
           do j=1,napx
             pz     = sqrt(c1e6 - (yv1(j)**2 + yv2(j)**2))*c1m3 ! pz/p0
             xv1(j) = xv1(j) + stracki*(yv1(j)/pz)
@@ -728,6 +729,7 @@ subroutine thin6d(nthinerr)
           call coll_doCollimator(stracki)
         else ! Normal SixTrack drifts
           if(iexact) then ! EXACT DRIFT
+#include "include/lostpart_exactDrift.f90"              
             do j=1,napx
               pz       = sqrt(c1e6 - (yv1(j)**2 + yv2(j)**2))*c1m3 ! pz/p0
               xv1(j)   = xv1(j)   + stracki*(yv1(j)/pz)
