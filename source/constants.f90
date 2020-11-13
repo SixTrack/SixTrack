@@ -74,12 +74,12 @@ module numerical_constants
   real(kind=fPrec), parameter :: rad     = transfer(z'3c8efa35',1.0_fPrec) ! pi/180.0_fPrec
 #endif
 #ifdef DOUBLE_MATH
-  real(kind=fPrec), parameter :: pi      = transfer(z'400921fb54442d18',1.0_fPrec)
-  real(kind=fPrec), parameter :: pi2     = transfer(z'3ff921fb54442d18',1.0_fPrec)
-  real(kind=fPrec), parameter :: twopi   = transfer(z'401921fb54442d18',1.0_fPrec)
-  real(kind=fPrec), parameter :: pisqrt  = transfer(z'3ffc5bf891b4ef6a',1.0_fPrec)
-  real(kind=fPrec), parameter :: inv_ln2 = transfer(z'3ff71547652b82fe',1.0_fPrec)
-  real(kind=fPrec), parameter :: rad     = transfer(z'3f91df46a2529d39',1.0_fPrec)
+  real(kind=fPrec), parameter :: pi      = transfer(int(z'400921fb54442d18'),1.0_fPrec)
+  real(kind=fPrec), parameter :: pi2     = transfer(int(z'3ff921fb54442d18'),1.0_fPrec)
+  real(kind=fPrec), parameter :: twopi   = transfer(int(z'401921fb54442d18'),1.0_fPrec)
+  real(kind=fPrec), parameter :: pisqrt  = transfer(int(z'3ffc5bf891b4ef6a'),1.0_fPrec)
+  real(kind=fPrec), parameter :: inv_ln2 = transfer(int(z'3ff71547652b82fe'),1.0_fPrec)
+  real(kind=fPrec), parameter :: rad     = transfer(int(z'3f91df46a2529d39'),1.0_fPrec)
 #endif
 #ifdef QUAD_MATH
 #ifdef GFORTRAN
