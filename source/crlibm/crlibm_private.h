@@ -42,7 +42,7 @@ development/debugging phase, until no type warning remains.
 /* setting the following variable adds variables and code for
    monitoring the performance.
    Note that sometimes only round to nearest is instrumented */
-#define EVAL_PERF  1
+#define EVAL_PERF 0
 
 
 #if EVAL_PERF==1
