@@ -74,7 +74,7 @@ message(STATUS "Project Binary:   ${PROJECT_BINARY_DIR}")
 option(CRLIBM "Use correctly rounded libmath instead of system libmath" ON)
 option(SIXDA "Build differential algebra version (NOT dynamic aperture!)" ON)
 option(NAFF "Link to external NAFFlib for FMA" ON)
-option(DISTLIB "Link to external DISTlib for the beam distribution" ON)
+option(DISTLIB "Link to external DISTlib for the beam distribution" OFF)
 option(HASHLIB "Build the md5 hash library" ON)
 option(ZLIB "Build and link zlib. Needed for BOINC and ZIPF block" ON)
 
@@ -602,6 +602,14 @@ if(Fortran_COMPILER_NAME MATCHES "gfortran.*")
   set(CMAKE_Fortran_FLAGS "-frecord-marker=4 -fno-second-underscore -funroll-loops -std=f2008")
   set(PREPRO_EXEC  ${CMAKE_Fortran_COMPILER})
   set(PREPRO_FLAGS -cpp -E -P)
+
+  #get the compiler version
+  string(REGEX MATCH "^([0-9]*)" VERSION_TMP ${CMAKE_Fortran_COMPILER_VERSION})
+  set(GFORTRAN_VERSION "${CMAKE_MATCH_1}")
+  #fix for building with gfortran >= 10
+  if(${GFORTRAN_VERSION} GREATER_EQUAL 10)
+    set(CMAKE_Fortran_FLAGS "${CMAKE_Fortran_FLAGS} -fallow-argument-mismatch")
+  endif(${GFORTRAN_VERSION} GREATER_EQUAL 10)
 
   if(${CMAKE_SYSTEM_PROCESSOR} MATCHES aarch64 )
     set (CMAKE_Fortran_FLAGS "-ffp-contract=off ${CMAKE_Fortran_FLAGS}")
@@ -1446,7 +1454,10 @@ endif()
 if(STATIC)
   if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
     get_filename_component(COMPILERDIR ${CMAKE_Fortran_COMPILER} DIRECTORY)
-    string(SUBSTRING ${CMAKE_Fortran_COMPILER_VERSION} 0 1 COMPILER_MAJOR_VERSION)
+    #Get the compiler version
+    string(REGEX MATCH "^([0-9]*)" VERSION_TMP ${CMAKE_Fortran_COMPILER_VERSION})
+    set(COMPILER_MAJOR_VERSION "${CMAKE_MATCH_1}")
+
     # search relative to the compiler executable
     find_library(lquadmath NAMES libquadmath.a PATHS "${COMPILERDIR}/../lib/gcc${COMPILER_MAJOR_VERSION}/" "${COMPILERDIR}/../lib/gcc/${COMPILER_MAJOR_VERSION}/")
     if (lquadmath)
