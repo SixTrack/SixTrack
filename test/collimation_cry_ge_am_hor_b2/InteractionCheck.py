@@ -11,7 +11,7 @@ iFilename = 'cry_interaction.dat'
 
 with open(iFilename,'r') as readFile:
 	for line in readFile:
-		partID, turn, collimator, proc, kickx, kicky, Ein, Eout, xpin, ypin, cryangle, xin, yin = np.genfromtxt(readFile, unpack=True)
+		partID, turn, collimator, prev, proc, kickx, kicky, Ein, Eout, xpin, ypin, cryangle, xin, yin = np.genfromtxt(readFile, unpack=True)
 
 # Calculations -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 

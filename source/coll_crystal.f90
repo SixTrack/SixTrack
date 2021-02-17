@@ -245,6 +245,7 @@ subroutine cry_doCrystal(ie,iturn,j,mat,x,xp,z,zp,s,p,x0,xp0,zlm,s_imp,isImp,nhi
   real(kind=fPrec) x_temp,x_shift,x_rot,x_int
   real(kind=fPrec) xp_temp,xp_shift,xp_rot,xp_int,xp_tangent
   real(kind=fPrec) tilt_int,shift,delta,a_eq,b_eq,c_eq
+  real(kind=fPrec) s_P, x_P, s_P_tmp, x_P_tmp
 
   s_temp     = zero
   s_shift    = zero
@@ -261,7 +262,12 @@ subroutine cry_doCrystal(ie,iturn,j,mat,x,xp,z,zp,s,p,x0,xp0,zlm,s_imp,isImp,nhi
   xp_tangent = zero
   tilt_int   = zero
   shift      = zero
+  delta      = zero
+  a_eq       = zero
+  b_eq       = zero
+  c_eq       = zero
   s_imp      = zero
+
 
   ! Determining if particle previously interacted with a crystal and storing the process ID
   if(cry_proc_tmp(j) /= proc_out) then
@@ -270,6 +276,8 @@ subroutine cry_doCrystal(ie,iturn,j,mat,x,xp,z,zp,s,p,x0,xp0,zlm,s_imp,isImp,nhi
 
   iProc       = proc_out
   cry_proc(j) = proc_out
+
+!  write(*,*) 'x before reference change', x, xp
 
   ! Transform in the crystal reference system
   ! 1st transformation: shift of the center of the reference frame
@@ -296,10 +304,17 @@ subroutine cry_doCrystal(ie,iturn,j,mat,x,xp,z,zp,s,p,x0,xp0,zlm,s_imp,isImp,nhi
   z  = z - zp*s_rot
   s  = zero
 
+!  write(*,*) 'x after reference change', x, xp
+
   ! Check that particle hit the crystal
   if(x >= zero .and. x < c_xmax) then
 
-    call cry_interact(mat,x,xp,z,zp,p,cry_length)
+    ! MISCUT first step: P coordinates
+    s_P = (c_rcurv-c_xmax)*sin_mb(-c_miscut)
+    x_P = c_xmax + (c_rcurv-c_xmax)*cos_mb(-c_miscut)
+!    write(*,*) "P front", s_P, x_P
+
+    call cry_interact(mat,x,xp,z,zp,p,cry_length,s_P,x_P)
     s   = c_rcurv*c_sBend
     zlm = c_rcurv*c_sBend
     if(iProc /= proc_out) then
@@ -314,9 +329,13 @@ subroutine cry_doCrystal(ie,iturn,j,mat,x,xp,z,zp,s,p,x0,xp0,zlm,s_imp,isImp,nhi
   else
 
     if(x < zero) then ! Crystal hit from below
+!      write(*,*) 'CHECK', x
       xp_tangent = sqrt((-(two*x)*c_rcurv + x**2)/c_rcurv**2)
+!      write(*,*) 'tangent', xp_tangent, xp
     else ! Crystal hit from above
+!      write(*,*) 'CHECK', x
       xp_tangent = asin_mb((c_rcurv*(one - c_cBend) - x)/sqrt(((two*c_rcurv)*(c_rcurv - x))*(one - c_cBend) + x**2))
+!      write(*,*) 'tangent', xp_tangent, xp
     end if
 
     ! If the hit is below, the angle must be greater or equal than the tangent,
@@ -331,6 +350,11 @@ subroutine cry_doCrystal(ie,iturn,j,mat,x,xp,z,zp,s,p,x0,xp0,zlm,s_imp,isImp,nhi
       s_int = (-b_eq - sqrt(delta))/(two*a_eq)
       s_imp = s_int
 
+      ! MISCUT first step: P coordinates
+      s_P_tmp = (c_rcurv-c_xmax)*sin_mb(-c_miscut)
+      x_P_tmp = c_xmax + (c_rcurv-c_xmax)*cos_mb(-c_miscut)
+!      write(*,*) "P side tmp", s_P_tmp, x_P_tmp
+
       if(s_int < c_rcurv*c_sBend) then
         ! Transform to a new reference system: shift and rotate
         x_int  = xp*s_int + x
@@ -342,7 +366,16 @@ subroutine cry_doCrystal(ie,iturn,j,mat,x,xp,z,zp,s,p,x0,xp0,zlm,s_imp,isImp,nhi
         tilt_int = s_int/c_rcurv
         xp       = xp-tilt_int
 
-        call cry_interact(mat,x,xp,z,zp,p,cry_length-(tilt_int*c_rcurv))
+        ! MISCUT first step (bis): transform P in new reference system
+        ! Translation
+        s_P_tmp = s_P_tmp - s_int
+        x_P_tmp = x_P_tmp - x_int
+        ! Rotation
+        s_P = s_P_tmp*cos_mb(tilt_int) + x_P_tmp*sin_mb(tilt_int)
+        x_P = -s_P_tmp*sin_mb(tilt_int) + s_P_tmp*cos_mb(tilt_int)
+!        write(*,*) "P front", s_P, x_P
+
+        call cry_interact(mat,x,xp,z,zp,p,cry_length-(tilt_int*c_rcurv),s_P,x_P)
         s   = c_rcurv*sin_mb(cry_bend - tilt_int)
         zlm = c_rcurv*sin_mb(cry_bend - tilt_int)
         if(iProc /= proc_out) then
@@ -448,7 +481,7 @@ end subroutine cry_doCrystal
 !  Subroutine for the movements of the particles in the crystal
 !  Simple tranport protons in crystal 2
 ! ================================================================================================ !
-subroutine cry_interact(is,x,xp,y,yp,pc,length)
+subroutine cry_interact(is,x,xp,y,yp,pc,length,s_P,x_P)
 
   use mod_ranlux
   use mod_funlux
@@ -465,6 +498,8 @@ subroutine cry_interact(is,x,xp,y,yp,pc,length)
   real(kind=fPrec), intent(inout) :: yp
   real(kind=fPrec), intent(inout) :: pc
   real(kind=fPrec), intent(in)    :: length
+  real(kind=fPrec), intent(in)    :: s_P
+  real(kind=fPrec), intent(in)    :: x_P
 
   integer nam,zn                        ! Switch on/off the nuclear interaction (NAM) and the MCS (ZN)
   real(kind=fPrec) ymax,ymin            ! Crystal geometrical parameters
@@ -493,7 +528,9 @@ subroutine cry_interact(is,x,xp,y,yp,pc,length)
   real(kind=fPrec) alpha                ! Par for new chann prob
   real(kind=fPrec) Pvr                  ! Prob for VR->AM transition
 
-  real(kind=fPrec) const_dech,xpin,ypin,tchan,L_chan,mep
+  real(kind=fPrec) const_dech,xpin,ypin,tchan,tdefl,tP,L_chan,mep
+  real(kind=fPrec) s_K,x_K,s_M,x_M,s_F,x_F,r,a
+  real(kind=fPrec) A_F,B_F,C_F,alpha_F,beta_F
 
   real(kind=fPrec), parameter :: c_v1 =  1.7_fPrec ! Fitting coefficient
   real(kind=fPrec), parameter :: c_v2 = -1.5_fPrec ! Fitting coefficient
@@ -520,11 +557,68 @@ subroutine cry_interact(is,x,xp,y,yp,pc,length)
   s_length = c_rcurv*(sin_mb(length/c_rcurv))
   L_chan   = length
 
-  if(c_miscut < zero .and. x > zero .and. x < -length*tan_mb(c_miscut)) then
-    L_chan = -x/sin_mb(c_miscut)
-  end if
+  ! MISCUT second step: fundamental coordinates
+  s_K = c_rcurv*sin_mb(cry_bend)
+  x_K = c_rcurv*(1-cos_mb(cry_bend))
+  s_M = (c_rcurv-c_xmax)*sin_mb(cry_bend)
+  x_M = c_xmax + (c_rcurv-c_xmax)*(1-cos_mb(cry_bend))
+  r   = sqrt(s_P**2 + (x-x_P)**2)
+!  write(*,*) "bending", length/c_rcurv
+!  write(*,*) "Rcurv", c_rcurv
+!  write(*,*) "P", s_P, x_P
+!  write(*,*) "I", s, x
+!  write(*,*) "L", s, c_xmax
+!  write(*,*) "K", s_K, x_K
+!  write(*,*) "M", s_M, x_M
+!  write(*,*) "r", r
 
-  tchan  = L_chan/c_rcurv
+  ! MISCUT third step: F coordinates on crystal exit face
+  A_F = tan_mb(cry_bend)**2 + one
+  B_F = -two*tan_mb(cry_bend)**2*c_rcurv + two*tan_mb(cry_bend)*s_P -two*x_P
+  C_F = tan_mb(cry_bend)**2*c_rcurv**2 - two*tan_mb(cry_bend)*s_P*c_rcurv + s_P**2 + x_P**2 - r**2
+
+  x_F = (-B_F-sqrt(B_F**2-four*A_F*C_F))/(two*A_F)
+  s_F = -tan_mb(cry_bend)*(x_F-c_rcurv)
+!  write(*,*) "F", s_F, x_F
+
+  if(x_F >= x_K .and. x_F <= x_M .and. s_F >= s_M .and. s_F <= s_K) then
+!    write(*,*) "F on exit face"
+    ! MISCUT No additional steps required
+  else
+!    write(*,*) "F NOT on exit face"
+
+    ! MISCUT Third step bis: F coordinates on bent side
+    if(c_miscut < 0) then
+      ! Intersect with bottom side
+      alpha_F = (c_rcurv-x_P)/x_P
+      beta_F = -(r**2-s_P**2-x_P**2)/(two*s_P)
+      A_F = alpha_F**2 + one
+      B_F = two*alpha_F*beta_F - two*c_rcurv
+      C_F = beta_F**2
+    else
+      ! Intersect with top side
+      alpha_F = (c_rcurv-x_P)/s_P
+      beta_F = -(r**2+c_xmax*(c_xmax-two*c_rcurv)-s_P**2-x_P**2)/(two*s_P)
+      A_F = alpha_F**2 + one
+      B_F = two*alpha_F*beta_F - two*c_rcurv
+      C_F = beta_F**2 -c_xmax*(c_xmax-two*c_rcurv)
+!      write(*,*) alpha_F, beta_F, A_F, B_F, C_F
+    endif
+    
+    x_F = (-B_F-sqrt(B_F**2-four*A_F*C_F))/(two*A_F)
+    s_F = alpha_F*x_F + beta_F
+!    write(*,*) B_F**2, A_F*C_F, four*A_F*C_F, B_F**2-four*A_F*C_F
+!    write(*,*) 'new F', x_F, s_F
+    
+  endif
+
+  ! MISCUT fourth step: deflection and length
+  a = sqrt(s_F**2+(x-x_F)**2)
+  tP = acos_mb((2*r**2-a**2)/(2*r**2))
+  tdefl = asin_mb((s_f-s_P)/r)
+  L_chan = r*tP
+!  write(*,*) "Results", tdefl, L_chan
+
   xp_rel = xp - c_miscut
 
   ymin = -c_ymax/two
@@ -634,7 +728,7 @@ subroutine cry_interact(is,x,xp,y,yp,pc,length)
       ! of the particle -not along the longitudinal coordinate...
       if(ldech < l_chan) then
         iProc = proc_DC
-        Dxp   = Ldech/c_rcurv ! Change angle from channeling [mrad]
+        Dxp   = Ldech/r ! Change angle from channeling [mrad]
         Sdech = Ldech*cos_mb(c_miscut + half*Dxp)
         x     = x  + Ldech*(sin_mb(half*Dxp+c_miscut)) ! Trajectory at channeling exit
         xp    = xp + Dxp + (two*(rndm4()-half))*xpcrit
@@ -667,9 +761,12 @@ subroutine cry_interact(is,x,xp,y,yp,pc,length)
           call cry_calcIonLoss(is,pc,length,dest)
           pc = pc - dest*length ! energy loss to ionization [GeV]
         else
-          Dxp = L_chan/c_rcurv + (half*ran_gauss(zero))*xpcrit ! Change angle[rad]
+          Dxp = tdefl + (half*ran_gauss(zero))*xpcrit ! Change angle[rad]
+!          write(*,*) 'Deflection', tdefl
+!          write(*,*) 'Dxp channeling', Dxp
+        
           xp  = Dxp
-          x   = x + L_chan*(sin_mb(half*Dxp+c_miscut)) ! Trajectory at channeling exit
+          x   = x + L_chan*(sin_mb(half*Dxp)) ! Trajectory at channeling exit
           y   = y + s_length * yp
 
           call cry_calcIonLoss(is,pc,length,dest)
@@ -682,7 +779,7 @@ subroutine cry_interact(is,x,xp,y,yp,pc,length)
       ! good for channeling but don't channel (1-2)
       iProc = proc_VR
 
-      xp = xp + (0.45_fPrec*(xp/xpcrit + one))*Ang_avr
+      xp = xp + (0.45_fPrec*(xp_rel/xpcrit + one))*Ang_avr
       x  = x  + (half*s_length)*xp
       y  = y  + (half*s_length)*yp
 
@@ -696,10 +793,12 @@ subroutine cry_interact(is,x,xp,y,yp,pc,length)
 
   else ! case 3-2: no good for channeling. check if the  can VR
 
-    Lrefl = xp_rel*c_rcurv ! Distance of refl. point [m]
+    Lrefl = xp_rel*r ! Distance of refl. point [m]
     Srefl = sin_mb(xp_rel/two + c_miscut)*Lrefl
+!    write(*,*) 'Lrefl', Lrefl
+!    write(*,*) 'L_chan', L_chan
 
-    if(Lrefl > zero .and. Lrefl < Length) then ! VR point inside
+    if(Lrefl > zero .and. Lrefl < L_chan) then ! VR point inside
 
       ! 2 options: volume capture and volume reflection
 
@@ -777,7 +876,7 @@ subroutine cry_interact(is,x,xp,y,yp,pc,length)
             Dxp = (Length-Lrefl)/c_rcurv
             x   = x + sin_mb(half*Dxp+xp)*Rlength ! Trajectory at channeling exit
             y   = y + red_S*yp
-            xp  = Length/c_rcurv + (half*ran_gauss(zero))*xpcrit ! [mrad]
+            xp  = tdefl + (half*ran_gauss(zero))*xpcrit ! [mrad]
 
             call cry_calcIonLoss(is,pc,rlength,dest)
             pc = pc - (half*dest)*Rlength  ! "added" energy loss once captured
@@ -789,7 +888,14 @@ subroutine cry_interact(is,x,xp,y,yp,pc,length)
 
       ! Case 3-3: move in amorphous substance (big input angles)
       ! Modified for transition vram daniele
-      if(xp_rel > L_chan/c_rcurv + two*xpcrit .or. xp_rel < -xpcrit) then
+!      write(*,*) 'Transition VRAM check'
+!      write(*,*) 'xp_rel', xp_rel
+!      write(*,*) 'tdefl', tdefl
+!      write(*,*) 'miscut', c_miscut
+!      write(*,*) 'tdefl-miscut', tdefl-c_miscut
+!      write(*,*) 'xp_rel >', L_chan/r+two*xpcrit, 'or xp_rel <', -xpcrit
+      if(xp_rel > tdefl-c_miscut + two*xpcrit .or. xp_rel < -xpcrit) then
+!        write(*,*) 'Amorphous'
         iProc = proc_AM
         x     = x + (half*s_length)*xp
         y     = y + (half*s_length)*yp
@@ -800,13 +906,14 @@ subroutine cry_interact(is,x,xp,y,yp,pc,length)
         x = x + (half*s_length)*xp
         y = y + (half*s_length)*yp
       else
-        Pvr = (xp_rel-(L_chan/c_rcurv))/(two*xpcrit)
+        Pvr = (xp_rel-(tdefl-c_miscut))/(two*xpcrit)
         if(rndm4() > Pvr) then
+!          write(*,*) 'TRVR'
           iProc = proc_TRVR
           x     = x + xp*Srefl
           y     = y + yp*Srefl
 
-          Dxp = (((-three*Ang_rms)*xp_rel)/(two*xpcrit) + Ang_avr) + ((three*Ang_rms)*(L_chan/c_rcurv))/(two*xpcrit)
+          Dxp = (((-three*Ang_rms)*xp_rel)/(two*xpcrit) + Ang_avr) + ((three*Ang_rms)*(tdefl-c_miscut))/(two*xpcrit)
           xp  = xp + Dxp
           x   = x + (half*xp)*(s_length-Srefl)
           y   = y + (half*yp)*(s_length-Srefl)
@@ -816,11 +923,12 @@ subroutine cry_interact(is,x,xp,y,yp,pc,length)
           x = x + (half*xp)*(s_length - Srefl)
           y = y + (half*yp)*(s_length - Srefl)
         else
+!          write(*,*) 'TRAM'
           iProc = proc_TRAM
           x = x + xp*Srefl
           y = y + yp*Srefl
           Dxp = ((((-one*(13.6_fPrec/pc))*sqrt(s_length/dlri(is)))*c1m3)*xp_rel)/(two*xpcrit) + &
-            (((13.6_fPrec/pc)*sqrt(s_length/DLRi(is)))*c1m3)*(one+(L_chan/c_rcurv)/(two*xpcrit))
+            (((13.6_fPrec/pc)*sqrt(s_length/DLRi(is)))*c1m3)*(one+(tdefl-c_miscut)/(two*xpcrit))
           xp = xp+Dxp
           x  = x + (half*xp)*(s_length-Srefl)
           y  = y + (half*yp)*(s_length-Srefl)
