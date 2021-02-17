@@ -66,29 +66,29 @@ module numerical_constants
   ! Note: Transfer to real128 only works for GNU
 
 #ifdef SINGLE_MATH
-  real(kind=fPrec), parameter :: pi      = transfer(z'40490fdb',1.0_fPrec)
-  real(kind=fPrec), parameter :: pi2     = transfer(z'3fc90fdb',1.0_fPrec) ! 0.5_fPrec*pi
-  real(kind=fPrec), parameter :: twopi   = transfer(z'40c90fdb',1.0_fPrec) ! 2.0_fPrec*pi
-  real(kind=fPrec), parameter :: pisqrt  = transfer(z'3fe2dfc5',1.0_fPrec) ! sqrt(pi)
-  real(kind=fPrec), parameter :: inv_ln2 = transfer(z'3fb8aa3b',1.0_fPrec) ! 1/log(2)
-  real(kind=fPrec), parameter :: rad     = transfer(z'3c8efa35',1.0_fPrec) ! pi/180.0_fPrec
+  real(kind=fPrec), parameter :: pi      = real(z'40490fdb',fPrec)
+  real(kind=fPrec), parameter :: pi2     = real(z'3fc90fdb',fPrec) ! 0.5_fPrec*pi
+  real(kind=fPrec), parameter :: twopi   = real(z'40c90fdb',fPrec) ! 2.0_fPrec*pi
+  real(kind=fPrec), parameter :: pisqrt  = real(z'3fe2dfc5',fPrec) ! sqrt(pi)
+  real(kind=fPrec), parameter :: inv_ln2 = real(z'3fb8aa3b',fPrec) ! 1/log(2)
+  real(kind=fPrec), parameter :: rad     = real(z'3c8efa35',fPrec) ! pi/180.0_fPrec
 #endif
 #ifdef DOUBLE_MATH
-  real(kind=fPrec), parameter :: pi      = transfer(int(z'400921fb54442d18'),1.0_fPrec)
-  real(kind=fPrec), parameter :: pi2     = transfer(int(z'3ff921fb54442d18'),1.0_fPrec)
-  real(kind=fPrec), parameter :: twopi   = transfer(int(z'401921fb54442d18'),1.0_fPrec)
-  real(kind=fPrec), parameter :: pisqrt  = transfer(int(z'3ffc5bf891b4ef6a'),1.0_fPrec)
-  real(kind=fPrec), parameter :: inv_ln2 = transfer(int(z'3ff71547652b82fe'),1.0_fPrec)
-  real(kind=fPrec), parameter :: rad     = transfer(int(z'3f91df46a2529d39'),1.0_fPrec)
+  real(kind=fPrec), parameter :: pi      = real(z'400921fb54442d18',fPrec)
+  real(kind=fPrec), parameter :: pi2     = real(z'3ff921fb54442d18',fPrec)
+  real(kind=fPrec), parameter :: twopi   = real(z'401921fb54442d18',fPrec)
+  real(kind=fPrec), parameter :: pisqrt  = real(z'3ffc5bf891b4ef6a',fPrec)
+  real(kind=fPrec), parameter :: inv_ln2 = real(z'3ff71547652b82fe',fPrec)
+  real(kind=fPrec), parameter :: rad     = real(z'3f91df46a2529d39',fPrec)
 #endif
 #ifdef QUAD_MATH
 #ifdef GFORTRAN
-  real(kind=fPrec), parameter :: pi      = transfer(z'4000921fb54442d18469898cc51701b8',1.0_fPrec)
-  real(kind=fPrec), parameter :: pi2     = transfer(z'3fff921fb54442d18469898cc51701b8',1.0_fPrec)
-  real(kind=fPrec), parameter :: twopi   = transfer(z'4001921fb54442d18469898cc51701b8',1.0_fPrec)
-  real(kind=fPrec), parameter :: pisqrt  = transfer(z'3fffc5bf891b4ef6aa79c3b0520d5db9',1.0_fPrec)
-  real(kind=fPrec), parameter :: inv_ln2 = transfer(z'3fff71547652b82fe1777d0ffda0d23a',1.0_fPrec)
-  real(kind=fPrec), parameter :: rad     = transfer(z'3ff91df46a2529d3915c1d8becdd290b',1.0_fPrec)
+  real(kind=fPrec), parameter :: pi      = real(z'4000921fb54442d18469898cc51701b8',fPrec)
+  real(kind=fPrec), parameter :: pi2     = real(z'3fff921fb54442d18469898cc51701b8',fPrec)
+  real(kind=fPrec), parameter :: twopi   = real(z'4001921fb54442d18469898cc51701b8',fPrec)
+  real(kind=fPrec), parameter :: pisqrt  = real(z'3fffc5bf891b4ef6aa79c3b0520d5db9',fPrec)
+  real(kind=fPrec), parameter :: inv_ln2 = real(z'3fff71547652b82fe1777d0ffda0d23a',fPrec)
+  real(kind=fPrec), parameter :: rad     = real(z'3ff91df46a2529d3915c1d8becdd290b',fPrec)
 #else
   real(kind=fPrec), parameter :: pi      = 3.141592653589793238462643383279502884197169399375105820974_fPrec
   real(kind=fPrec), parameter :: pi2     = 0.5_fPrec*pi
