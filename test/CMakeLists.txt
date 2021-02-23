@@ -551,6 +551,7 @@ foreach(TST IN ITEMS ${SIXTRACK_TESTS} ${SIXTRACK_DA_TESTS} ${SIXTRACK_ERROR})
         add_custom_command(TARGET test_copy_${TST} POST_BUILD COMMAND ${CMAKE_COMMAND} -E create_symlink ${TSFILE} ${CMAKE_BINARY_DIR}/test/${TST}/${TFILE})
       endif()
     endforeach()
+    add_custom_command(TARGET test_copy_${TST} POST_BUILD COMMAND ${CMAKE_COMMAND} -E create_symlink ${CMAKE_SOURCE_DIR}/test/${TST}/ ${CMAKE_BINARY_DIR}/test/${TST}/test_source)
   else()
     # Create Sixin.zip files
     set(TST_TO_ZIP fort.3) # Required
@@ -594,6 +595,7 @@ foreach(TST IN ITEMS ${SIXTRACK_TESTS} ${SIXTRACK_DA_TESTS} ${SIXTRACK_ERROR})
         add_custom_command(TARGET test_copy_${TST} POST_BUILD COMMAND ${CMAKE_COMMAND} -E create_symlink ${EXTRA_FILES} ${CMAKE_BINARY_DIR}/test/${TST}/${EXTRA_FILE})
       endif()
     endforeach()
+    add_custom_command(TARGET test_copy_${TST} POST_BUILD COMMAND ${CMAKE_COMMAND} -E create_symlink ${CMAKE_SOURCE_DIR}/test/${TST}/ ${CMAKE_BINARY_DIR}/test/${TST}/test_source)
 
   endif(NOT BOINC)
 
