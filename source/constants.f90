@@ -36,10 +36,15 @@ module physical_constants
 
   ! Avogadro constant
 ! real(kind=fPrec), parameter :: fnavo  = 6.02214129e23_fPrec           ! Old
-  real(kind=fPrec), parameter :: fnavo  = 6.022140857e23_fPrec          ! PDG 2018
+! real(kind=fPrec), parameter :: fnavo  = 6.022140857e23_fPrec          ! PDG 2018
+  real(kind=fPrec), parameter :: fnavo  = 6.02214076e23_fPrec           ! Exact by definition
 
   ! Planck constant
-  real(kind=fPrec), parameter :: planck = 6.626070040e-34_fPrec
+! real(kind=fPrec), parameter :: planck = 6.626070040e-34_fPrec
+  real(kind=fPrec), parameter :: planck = 6.62607015e-34_fPrec          ! Exact by definition
+
+  !Electric charge
+  real(kind=fPrec), parameter :: echarge = 1.602176634e-19_fPrec        ! Exact by definition
 
   ! Vacuum permittivity
   real(kind=fPrec), parameter :: eps0   = 8.854187817e-12_fPrec

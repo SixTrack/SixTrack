@@ -572,13 +572,19 @@ subroutine k2coll_scatin(plab)
   use coll_materials
   use mathlib_bouncer
   use physical_constants
+  use mod_units
+  use crcoall
 
   real(kind=fPrec), intent(in) :: plab
 
   real(kind=fPrec), parameter :: tlcut = 0.0009982_fPrec
   integer ma,i
 
-  ecmsq = (two*pmap) * plab
+  integer csUnit
+  character(len=23), parameter :: cs_fileName = "MaterialInformation.txt"
+  logical csErr
+
+  ecmsq = (two*(pmap*c1m3)) * plab
 #ifndef MERLINSCATTER
   xln15s = log_mb(0.15_fPrec*ecmsq)
   ! Claudia Fit from COMPETE collaboration points "arXiv:hep-ph/0206172v1 19Jun2002"
@@ -598,8 +604,8 @@ subroutine k2coll_scatin(plab)
   bpp = 7.156_fPrec + 1.439_fPrec*log_mb(sqrt(ecmsq))
 
   ! Unmeasured tungsten data, computed with lead data and power laws
-  bnref(4) = (bnref(5)*(anuc(4))/anuc(5))**(two/three)
-  emr(4)   = (emr(5)  *(anuc(4))/anuc(5))**(one/three)
+  bnref(4) = bnref(5)*(anuc(4)/anuc(5))**(two/three)
+  emr(4)   = emr(5)  *(anuc(4)/anuc(5))**(one/three)
 
   ! Compute cross-sections (CS) and probabilities + Interaction length
   ! Last two material treated below statement number 100
@@ -646,6 +652,44 @@ subroutine k2coll_scatin(plab)
   cprob(1,nmat)   = one
   xintl(nmat-1)   = c1e12
   xintl(nmat)     = zero
+
+!! Debugging for collimation cross sections
+!! Write out at runtime the core constants, (plab, pptot, etc)
+!! dump the material cross section table each run for every material
+
+  call f_requestUnit(cs_fileName, csUnit)
+  call f_open(unit=csUnit,file=cs_fileName,formatted=.true.,mode="w",err=csErr,status="replace")
+  if(csErr) then
+    write(lerr,"(a)") "COLL> ERROR Could not open the CS debugging file '"//trim(cs_fileName)//"'"
+    call prror
+  end if
+
+  write(csUnit,'(a,e24.16)') 'plab:  ', plab
+  write(csUnit,'(a,e24.16)') 'pmap:  ', pmap
+  write(csUnit,'(a,e24.16)') 'ecmsq: ', ecmsq
+  write(csUnit,'(a,e24.16)') 'pptot: ', pptot
+  write(csUnit,'(a,e24.16)') 'ppel:  ', ppel
+  write(csUnit,'(a,e24.16)') 'ppsd:  ', ppsd
+  write(csUnit,'(a,e24.16)') 'bpp:   ', bpp
+  write(csUnit,'(a,e24.16)') 'fnavo: ', fnavo
+  write(csUnit,'(a,e24.16)') 'freeco:', freeco
+
+! print cs header
+  write(csUnit,'(a)') ''
+  write(csUnit,'(a4,6(1x,a24))') '#mat','total','inelastic','nuclear el','nucleon el','single diffractive','coulomb'
+  do ma=1,nrmat
+    write(csUnit,'(a4,6(1x,e24.16))') colmats(ma),csect(0,ma),csect(1,ma),csect(2,ma),csect(3,ma),csect(4,ma),csect(5,ma)
+  end do
+
+! print other paramter header
+  write(csUnit,'(a)') ''
+  write(csUnit,'(a4,6(1x,a24))') '#mat','freep','b_nref','b_n','rho','emr','interactL'
+  do ma=1,nrmat
+    write(csUnit,'(a4,6(1x,e24.16))') colmats(ma), freep(ma), bnref(ma), bn(ma), rho(ma), emr(ma), xintl(ma)
+  end do
+
+  flush(csUnit)
+  call f_close(csUnit)
 
 end subroutine k2coll_scatin
 
@@ -1319,17 +1363,18 @@ end function k2coll_calcElectronDensity
 !<
 real(kind=fPrec) function k2coll_calcPlasmaEnergy(ElectronDensity)
 
+  use physical_constants
+
   real(kind=fPrec), intent(in) :: ElectronDensity
 
   real(kind=fPrec) sqrtAB,PartA
 
   ! Values from the 2016 PDG
   real(kind=fPrec), parameter :: PlanckConstantBar = 1.054571800e-34_fPrec
-  real(kind=fPrec), parameter :: ElectronCharge = 1.6021766208e-19_fPrec
+  real(kind=fPrec), parameter :: ElectronCharge = echarge 
   real(kind=fPrec), parameter :: ElectronCharge2 = ElectronCharge*ElectronCharge
   real(kind=fPrec), parameter :: ElectronMass = 9.10938356e-31_fPrec
-  real(kind=fPrec), parameter :: SpeedOfLight = 299792458.0_fPrec
-  real(kind=fPrec), parameter :: SpeedOfLight2 = SpeedOfLight*SpeedOfLight
+  real(kind=fPrec), parameter :: SpeedOfLight2 = clight*clight
   real(kind=fPrec), parameter :: FreeSpacePermeability = 16.0e-7_fPrec*atan(one)
   real(kind=fPrec), parameter :: FSPC2 = FreeSpacePermeability*SpeedOfLight2
   real(kind=fPrec), parameter :: FreeSpacePermittivity = one/FSPC2
