@@ -3,3 +3,4 @@ FirstImpacts.dat.trunc
 cry_interaction.dat
 final_state.dat
 hash.md5
+MaterialInformation.txt

@@ -3,3 +3,4 @@ final_state.dat
 collsettings.dat
 all_absorptions.dat
 all_impacts.dat
+MaterialInformation.txt
