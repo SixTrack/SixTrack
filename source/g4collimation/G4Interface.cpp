@@ -306,6 +306,9 @@ extern "C" void g4_add_particle(double* x, double* y, double* xp, double* yp, do
 	in_particle.sy = *sy;
 	in_particle.sz = *sz;
 
+//  This should now be in seconds
+	in_particle.t = *sigmv;
+
 	input_particles.push_back(in_particle);
 
 	if(*partID > MaximumParticleID)
@@ -322,7 +325,7 @@ extern "C" void g4_collimate()
 	//Update the gun with this particle's details
 	for(size_t n=0; n < input_particles.size(); n++)
 	{
-		part->SetParticleDetails(input_particles.at(n).x, input_particles.at(n).y, input_particles.at(n).px, input_particles.at(n).py, input_particles.at(n).pz, input_particles.at(n).e, input_particles.at(n).p, input_particles.at(n).pdgid, input_particles.at(n).q, input_particles.at(n).m, input_particles.at(n).sx, input_particles.at(n).sy, input_particles.at(n).sz,input_particles.at(n).weight);
+		part->SetParticleDetails(input_particles.at(n).x, input_particles.at(n).y, input_particles.at(n).px, input_particles.at(n).py, input_particles.at(n).pz, input_particles.at(n).e, input_particles.at(n).p, input_particles.at(n).t, input_particles.at(n).pdgid, input_particles.at(n).q, input_particles.at(n).m, input_particles.at(n).sx, input_particles.at(n).sy, input_particles.at(n).sz,input_particles.at(n).weight);
 
 		//Tell the "tracking" about the parent particle ID for tracking secondaries
 		tracking->SetParticleID(input_particles.at(n).id);
@@ -376,7 +379,7 @@ double py = output_particles.at(*j).py;
 *sy = output_particles.at(*j).sy;
 *sz = output_particles.at(*j).sz;
 
-//time, must be converted for using with sigmv
+//time, must be converted for using with sigmv (done on the Sixtrack fortran side)
 *sigmv  = output_particles.at(*j).t;
 
 

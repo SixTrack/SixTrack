@@ -24,7 +24,7 @@ void CollimationParticleGun::GeneratePrimaries(G4Event* anEvent)
 	anEvent->GetPrimaryVertex()->SetWeight(ThisWeight);
 }
 
-void CollimationParticleGun::SetParticleDetails(double x, double y, double px, double py, double pz, double e, double p, int pdgid, int q, double mass, double sx, double sy, double sz, double weight)
+void CollimationParticleGun::SetParticleDetails(double x, double y, double px, double py, double pz, double e, double p, double t, int pdgid, int q, double mass, double sx, double sy, double sz, double weight)
 {
 //UNITS MUST BE MeV, mm, rad!
 	if(do_debug)
@@ -130,11 +130,14 @@ void CollimationParticleGun::SetParticleDetails(double x, double y, double px, d
 	//The kinetic energy (Total energy - rest mass)
 	ParticleGun->SetParticleEnergy(e - mp);
 
-	//How to deal with longitudinal coordinate?
 	ParticleGun->SetParticlePosition(G4ThreeVector(x, y, 0));
 	ParticleGun->SetParticleMomentumDirection(G4ThreeVector(px,py,pz));
 //	ParticleGun->SetParticleMomentum(G4ThreeVector(px,py,pz));
 
+//	Internally g4 uses ns, so make sure to convert
+	ParticleGun->SetParticleTime(t*CLHEP::second);
+
+//	Set Spin polarisation
 	ParticleGun->SetParticlePolarization(G4ThreeVector(sx,sy,sz));
 
 	//Set weight
