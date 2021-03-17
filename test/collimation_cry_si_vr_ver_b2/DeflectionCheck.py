@@ -11,7 +11,7 @@ iFilename = 'cry_interaction.dat'
 
 with open(iFilename,'r') as readFile:
 	for line in readFile:
-		partID, turn, collimator, proc, kickx, kicky, Ein, Eout, xpin, ypin, cryangle, xin, yin = np.genfromtxt(readFile, unpack=True)
+		partID, turn, collimator, prev, proc, kickx, kicky, Ein, Eout, xpin, ypin, cryangle, xin, yin = np.genfromtxt(readFile, unpack=True)
 
 # Building histograms ----------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -30,7 +30,7 @@ plt.xlabel('x\' in [rad]')
 plt.ylabel('kick x [rad]')
 plt.ticklabel_format(style='sci', axis='y', scilimits=(0,0))
 plt.grid(color='gray', linestyle='--', linewidth=0.5)
-plt.colorbar(ticks = LogLocator(subs=range(10)))
+plt.colorbar()
 
 f1.show()
 f1.show()
@@ -40,12 +40,12 @@ f1.savefig('deflectionx.png')
 
 f2 = plt.figure(2)
 plt.hist2d(ypin, kicky, bins=[binang, binang], range=[(pmin,pmax), (kickmin,kickmax)], norm=LogNorm())
-plt.title('Deflection along y')
+plt.title('Deflection along ya')
 plt.xlabel('y\' in [rad]')
 plt.ylabel('kick y [rad]')
 plt.ticklabel_format(style='sci', axis='y', scilimits=(0,0))
 plt.grid(color='gray', linestyle='--', linewidth=0.5)
-plt.colorbar(ticks = LogLocator(subs=range(10)))
+plt.colorbar()
 
 f2.show()
 f2.set_size_inches((9, 6), forward=False)
