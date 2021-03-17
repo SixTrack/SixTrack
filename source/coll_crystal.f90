@@ -1305,6 +1305,7 @@ subroutine cry_moveCH(is,nam,dz,x,xp,yp,pc,r,rc)
     ichoix = i
 
     ! Do the interaction
+    t = 0 ! default value to cover ichoix=1
     select case(ichoix)
     case(1) ! deep inelastic, impinging p disappeared
       iProc = proc_ch_absorbed

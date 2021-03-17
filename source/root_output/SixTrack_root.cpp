@@ -44,6 +44,8 @@ extern "C" void DoSixTrackRootInit(int eos, int run_number, char* eos_server, ch
 
     RootFile = TFile::Open(fname.c_str(),"RECREATE");
 
+    std::cout << "Opened " << fname << std::endl;
+
     //Enable maximum compression
     RootFile->SetCompressionLevel(99);
 

@@ -3050,6 +3050,7 @@ subroutine coll_doCollimator_Geant4(c_aperture,c_rotation,c_length,onesided)
   use geant4
   use string_tools
   use mathlib_bouncer
+  use physical_constants
 #ifdef ROOT
   use root_output
 #endif
@@ -3066,6 +3067,8 @@ subroutine coll_doCollimator_Geant4(c_aperture,c_rotation,c_length,onesided)
   integer :: part_hit_flag = 0
   integer :: part_abs_flag = 0
   real(kind=fPrec) x_tmp,y_tmp,xp_tmp,yp_tmp
+
+  real(kind=fPrec) g4_time
 
   ! ien0,ien1: ion energy entering/leaving the collimator
   ! energy in MeV
@@ -3125,9 +3128,12 @@ subroutine coll_doCollimator_Geant4(c_aperture,c_rotation,c_length,onesided)
     rcxp(j) = xp_tmp*cos_mb(c_rotation) + sin_mb(c_rotation)*yp_tmp
     rcyp(j) = yp_tmp*cos_mb(c_rotation) - sin_mb(c_rotation)*xp_tmp
 
+!! Translate particle position into time.
+    g4_time = -(sigmv(j) * c1m3) / (beta0*clight)
+
 !! Add all particles
     call g4_add_particle(rcx(j), rcy(j), rcxp(j), rcyp(j), rcp(j), pdgid(j), nzz(j), naa(j), nqq(j), nucm(j), &
-      sigmv(j), partID(j), parentID(j), partWeight(j), spin_x(j), spin_y(j), spin_z(j))
+      g4_time, partID(j), parentID(j), partWeight(j), spin_x(j), spin_y(j), spin_z(j))
 
 ! Log input energy + nucleons as per the FLUKA coupling
     nnuc0   = nnuc0 + naa(j)
@@ -3164,7 +3170,7 @@ subroutine coll_doCollimator_Geant4(c_aperture,c_rotation,c_length,onesided)
 !! Get the particle back + information
 !! Remember C arrays start at 0, fortran at 1 here.
     call g4_collimate_return(j-1, rcx(j), rcy(j), rcxp(j), rcyp(j), rcp(j), pdgid(j), nucm(j), nzz(j), naa(j), nqq(j), &
-      sigmv(j), partID(j), parentID(j), partWeight(j), &
+      g4_time, partID(j), parentID(j), partWeight(j), &
       part_hit_flag, part_abs_flag, part_impact(j), part_indiv(j), part_linteract(j), spin_x(j), spin_y(j), spin_z(j))
 
     pstop (j) = .false.
@@ -3179,9 +3185,9 @@ subroutine coll_doCollimator_Geant4(c_aperture,c_rotation,c_length,onesided)
     rcxp(j) = xp_tmp*cos_mb(-one*c_rotation) + sin_mb(-one*c_rotation)*yp_tmp
     rcyp(j) = yp_tmp*cos_mb(-one*c_rotation) - sin_mb(-one*c_rotation)*xp_tmp
 
-! This needs fixing - FIXME
-!            sigmv(j) = zero
-!            sigmv(j) = s - (g4_v0*g4_time)
+!   L - (beta0 c t)
+    sigmv(j) = (c_length - (beta0 * (clight * g4_time))) * c1e3
+
     part_impact(j) = 0
     part_indiv(j) = 0
     part_linteract(j) = 0

@@ -15,6 +15,9 @@
 * Fix building with geant4 collimation with geant4 releases >= 10.06. PR #1060 (J. Molson)
 * Fix a mass miss-match with geant4 when entering non-ground state ions into geant4. PR #1062 (J. Molson)
 * Fix a crash with miss-matched format strings when writing the aperture losses file with geant4 enabled (and not FLUKA). PR #1062 (J. Molson)
+* Fix building with gcc >= 10. PR #1076 (J. Molson)
+* Fix 2 regressions in the K2 collimation cross section calculations from version 4 to 5. PR #1077 (J. Molson)
+* Fix the time coordinate when using geant4 based collimation. PR #1078 (J. Molson)
 
 **User Side Changes**
 
@@ -57,6 +60,7 @@
 * Always enable the EMD physics process in geant4. PR #1062 (J. Molson)
 * Use global id/parent/weight variables in the FLUKA coupling. PR #1062 (J. Molson)
 * Start to enable the ability to use collimation with thick lens lattices. PR #1062 (J. Molson)
+* Updated some physical constants to use their now fixed values. PR #1077 (J. Molson)
 
 ### Version 5.4.3 [19.12.2019] - Release
 
