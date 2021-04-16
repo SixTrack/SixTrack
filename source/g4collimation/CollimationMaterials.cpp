@@ -38,7 +38,7 @@ CollimationMaterials::CollimationMaterials()
 
 	//Only needed for pure elemental collimators
 	AddMaterial("BE", Be);
-	AddMaterial("C", C);
+//	AddMaterial("C", C);
 	AddMaterial("O", O);
 	AddMaterial("AL", Al);
 	AddMaterial("CU", Cu);
@@ -93,7 +93,13 @@ void CollimationMaterials::AddMaterial(std::string MaterialName, G4Material* Mat
 {
 	std::pair<std::string, G4Material*> MaterialMapKey;
 	MaterialMapKey = std::make_pair(MaterialName, Material);
-	CollimationMaterialMap.insert(MaterialMapKey);
+	std::pair<std::map<std::string,G4Material*>::iterator,bool> check = CollimationMaterialMap.insert(MaterialMapKey);
+	if(!check.second)
+	{
+		std::cerr << "GEANT4> ERROR: Failed to insert entry into G4Collimation material storage!: " << MaterialName << std::endl;
+		exit(EXIT_FAILURE);
+
+	}
 }
 
 G4Material* CollimationMaterials::GetMaterial(std::string MaterialName)
