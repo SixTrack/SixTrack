@@ -555,10 +555,12 @@ subroutine dump_initialise
         end do
         if (dumpfmt(i) == 3 .or. dumpfmt(i) == 8 .or. dumpfmt(i) == 101) then ! Binary dump
           call f_open(unit=dumpunit(i),file=trim(dump_fname(i)),formatted=.false.,mode="w",status="replace")
+#ifdef ROOT
         else if (dumpfmt(i) == rootfmt) then
           !no need to open a file for root
           !We do need to call the init function though
           call root_BunchDumpInit()
+#endif
         else ! ASCII dump
           call f_open(unit=dumpunit(i),file=trim(dump_fname(i)),formatted=.true.,mode="w",status="replace")
         end if
@@ -2027,6 +2029,7 @@ call h5_finaliseWrite(dump_hdf5DataSet(ix))
     end if
 #endif
 
+#ifdef ROOT
   !output directly to a root file
   else if(fmt == rootfmt) then
     if(i == 0 .and. ix == 0) then
@@ -2048,6 +2051,7 @@ call h5_finaliseWrite(dump_hdf5DataSet(ix))
       call root_DumpBunch(localBez, len_trim(localBez), i, ix, nturn, partID(j), parentID(j), pdgid(j), nqq(j), tmpWeight, &
 &     localDcum, xv1(j), yv1(j), xv2(j), yv2(j), sigmv(j), (ejv(j)-e0)/e0, spin_x(j), spin_y(j), spin_z(j), nucm(j))
     end do
+#endif
 
   ! Unrecognized format fmt
   ! ------------------------------------------------------------------ !
