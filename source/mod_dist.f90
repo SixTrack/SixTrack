@@ -2090,7 +2090,7 @@ subroutine dist_echoDist
   write(fUnit,"(a,1pe25.18)") "# Total energy of synch part [MeV]: ",e0
   write(fUnit,"(a,1pe25.18)") "# Momentum of synch part [MeV/c]:   ",e0f
   write(fUnit,"(a)")          "#"
-  write(fUnit,"(a)")          "# x[mm], y[mm], xp[mrad], yp[mrad], sigmv[mm], ejfv[MeV/c]"
+  write(fUnit,"(a)")          "# x[mm], xp[mrad], y[mm], yp[mrad], sigmv[mm], ejfv[MeV/c]"
   do j=1, napx
     write(fUnit,"(6(1x,1pe25.18))") xv1(j), yv1(j), xv2(j), yv2(j), sigmv(j), ejfv(j)
   end do
