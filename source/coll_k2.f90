@@ -180,11 +180,6 @@ subroutine k2coll_collimate(icoll, iturn, ie, c_length, c_rotation, c_aperture, 
     xp_flk = zero
     yp_flk = zero
 
-! Log input energy + nucleons as per the FLUKA coupling
-    nnuc0   = nnuc0 + naa(j)
-    ien0    = ien0 + rcp(j) * c1e3
-
-
     ! Transform particle coordinates to get into collimator coordinate  system
     ! First do rotation into collimator frame
     x  =  x_in(j)*cRot + sRot*y_in(j)
@@ -196,6 +191,11 @@ subroutine k2coll_collimate(icoll, iturn, ie, c_length, c_rotation, c_aperture, 
     if(onesided .and. x < zero .and. (icoll /= ipencil .or. iturn /= 1)) then
       cycle
     end if
+
+! Log input energy + nucleons as per the FLUKA coupling
+    nnuc0   = nnuc0 + naa(j)
+    ien0    = ien0 + rcp(j) * c1e3
+
 
     ! Now mirror at the horizontal axis for negative X offset
     if(x < zero) then
