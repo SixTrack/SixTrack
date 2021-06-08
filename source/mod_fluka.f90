@@ -615,6 +615,21 @@ contains
 
             end if
 
+
+!      flxp  = yv1(j) * c1m3 ! from [1.0E-03] to [1.0]
+!      flyp  = yv2(j) * c1m3 ! from [1.0E-03] to [1.0]
+      ! director cosines:
+      ! full transformation:
+ !     flzp  = sqrt( one / ( flxp**2 + flyp**2 + one ) )
+!!!      ! taylor expansion, for consistency with drifts in SixTrack:
+!!!      flzp  = 1d0 / ( 1d0 + ( flxp**2+flyp**2 )/2d0 )
+!      flxp  = flxp * flzp
+!      flyp  = flyp * flzp
+
+
+            
+
+
             partWeight(fluka_nrecv)  = flwgt
             xv1(fluka_nrecv)         = flx * c1e1   ! from [cm]  to [mm]
             xv2(fluka_nrecv)         = fly * c1e1   ! from [cm]  to [mm]

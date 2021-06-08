@@ -18,6 +18,7 @@ module collimation
 
   implicit none
 
+  integer, parameter :: collimator_ktrack = 75  ! collimators
   integer, parameter :: numeff     = 32
   integer, parameter :: numeffdpop = 29
 

@@ -19,6 +19,7 @@
 * Fix 2 regressions in the K2 collimation cross section calculations from version 4 to 5. PR #1077 (J. Molson)
 * Fix the time coordinate when using geant4 based collimation. PR #1078 (J. Molson)
 * Fix an incorrect file header in mod_dist. (J. Molson)
+* Fix a problem with the circular aperture check not working as expected (J. Molson)
 
 **User Side Changes**
 

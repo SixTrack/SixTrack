@@ -49,10 +49,10 @@ subroutine preTracking
   tr_isThick = ithick == 1
   part_isTracking = .true.
 
-  if(tr_isThick .and. do_coll) then
-    write(lerr,"(a)") "TRACKING> ERROR Collimation is not supported for thick tracking"
-    call prror
-  end if
+!  if(tr_isThick .and. do_coll) then
+!    write(lerr,"(a)") "TRACKING> ERROR Collimation is not supported for thick tracking"
+!    call prror
+!  end if
 
   ! Set up the tracking format for printout
   oPart = int(log10_mb(real(napxo, kind=fPrec))) + 1
@@ -336,7 +336,7 @@ subroutine startTracking(nthinerr)
   if(lbacktracking) call aperture_backTrackingInit
 
   if(ithick == 1) then
-    if(tr_is4D) then
+    if(tr_is4D .and. .not.do_coll) then
       write(lout,"(a)") ""
       write(lout,"(a)") "TRACKING> Starting Thick 4D Tracking"
       write(lout,"(a)") ""

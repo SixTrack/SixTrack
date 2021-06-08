@@ -571,7 +571,8 @@ subroutine thck6d(nthinerr)
   use mod_particles
   use bdex, only : bdex_enable
   use dump, only : dump_linesFirst, dump_lines, ldumpfront
-  use collimation, only: do_coll, part_abs_turn
+  use collimation !, only: do_coll, part_abs_turn
+  use coll_db
   use aperture
   use tracking
 
@@ -604,6 +605,9 @@ subroutine thck6d(nthinerr)
 #ifdef BOINC
   use mod_boinc
 #endif
+#ifdef ROOT
+  use root_output
+#endif
 
   implicit none
 
@@ -613,7 +617,7 @@ subroutine thck6d(nthinerr)
     acdipamp,qd,acphase,acdipamp2,acdipamp1,crabamp,crabfreq,kcrab,RTWO,NNORM,l,cur,dx,dy,tx,ty,    &
     embl,chi,xi,yi,dxi,dyi,rrelens,frrelens,xelens,yelens,onedp,fppsig,costh_temp,sinth_temp,pxf,   &
     pyf,r_temp,z_temp,sigf,q_temp,pttemp,xlv,zlv
-  logical llost
+  logical llost, is_coll
   real(kind=fPrec) crkveb(npart),cikveb(npart),rho2b(npart),tkb(npart),rb(npart),rkb(npart),        &
     xrb(npart),zrb(npart),xbb(npart),zbb(npart),crxb(npart),crzb(npart),cbxb(npart),cbzb(npart)
 
@@ -647,11 +651,19 @@ subroutine thck6d(nthinerr)
     call trackBeginTurn(n, nthinerr)
     if(nthinerr /= 0) return
 
+    if(do_coll) then
+      call coll_startTurn(n)
+    end if
+
     do 500 i=1,iu
       if(ktrack(i).eq.1) then
         ix=ic(i)
       else
         ix=ic(i)-nblo
+      end if
+
+      if(do_coll) then
+        call coll_startElement(i,ix)
       end if
       meta_nPTurnEle = meta_nPTurnEle + napx
 
@@ -705,11 +717,25 @@ subroutine thck6d(nthinerr)
       end if
 #endif
 
-            if (bdex_enable) then
-               !TODO - if you have a test case, please contact developers!
-               write(lout,"(a)") "BDEX> BDEX only available for thin6d"
-               call prror
-            endif
+      if (bdex_enable) then
+        !TODO - if you have a test case, please contact developers!
+        write(lout,"(a)") "BDEX> BDEX only available for thin6d"
+        call prror
+      endif
+
+      ! The below splitting of if-statements is needed to prevent out of bounds
+      ! error
+      ! when building with gfortran/debug
+      is_coll = .false.
+      if(do_coll .and. ix > 0) then
+        if(cdb_elemMap(ix) > 0) then
+          is_coll = .true.
+        end if
+      end if
+
+      if(is_coll) then
+        ktrack(i) = collimator_ktrack
+      end if
 
 !----------count 44
 !----------count 54! Eric
@@ -1078,6 +1104,14 @@ subroutine thck6d(nthinerr)
       case (cheby_ktrack) ! Chebyshev lens
         call cheby_kick(i,ix,n)
         goto 490
+      case (collimator_ktrack) ! Thick collimator
+        ! Check if collimation is enabled, and call the collimation code
+        ! as necessary
+        if(do_coll .and. is_coll) then
+          ! Collimator is in database, and we're doing collimation
+          call coll_doCollimator(strack(i))
+        end if
+        goto 490
       end select
       goto 500
 
@@ -1100,6 +1134,10 @@ subroutine thck6d(nthinerr)
       goto 490
 
 490   continue
+
+      if(do_coll) then
+        call coll_endElement
+      end if
 
 #include "include/lostpart.f90"
 
@@ -1132,11 +1170,23 @@ subroutine thck6d(nthinerr)
 500 continue
 ! End of loop over elements
 
+    if(do_coll) then
+      call coll_endTurn
+    end if
+#ifdef ROOT
+    if(root_flag .and. root_Collimation == 1) then
+      call SurvivalRootWrite(n, napx)
+    end if
+#endif
+
     if(nthinerr /= 0) return
-    if(ntwin /= 2) call trackDistance
+    if(do_coll .eqv. .false.) then
+      if(ntwin /= 2) call trackDistance
 #if !defined(FLUKA) && !defined(G4COLLIMATON)
-    if(mod(n,nwr(4)) == 0) call trackPairReport(n)
-#else
+      if(mod(n,nwr(4)) == 0) call trackPairReport(n)
+#endif
+    end if
+#ifdef FLUKA
     ! increase napxto, to get an estimation of particles*turns
     napxto = napxto + napx
 #endif
