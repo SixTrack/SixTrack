@@ -618,6 +618,7 @@ subroutine aperture_checkApeMarker(turn, i, ix, llost)
               isnan_mb(xv1(j)).or.isnan_mb(xv2(j))
           end if
         end if
+        llost=llost.or.llostp(j)
       end if
     end do
 
