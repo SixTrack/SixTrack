@@ -10,7 +10,7 @@ theta_r2=4.920e-03 # max. kick [mrad]
 oFile=open('kicks.dat','w')
 
 plt.figure('elens kick',figsize=(13,13))
-for fnin,fnout,offx,offy,R,R2f,peakT in [(1,2,0,0,0.5,7,7),(2,3,offsetx,offsety,1,12,10.8),(3,4,-offsetx,0,1,5,2.91604),(4,5,0,-offsety,1/2.,3,3.48995)]:
+for fnin,fnout,offx,offy,R,R2f,peakT in [(1,2,0,0,0.5,7,7),(2,3,offsetx,offsety,1,12,10.85),(3,4,-offsetx,0,1,5,2.91604),(4,5,0,-offsety,1/2.,3,3.48995)]:
   theta_max=theta_r2*R
   plt.subplot(2,2,fnin)
   helin=np.loadtxt('HEL_DUMP_%s'%fnin)
