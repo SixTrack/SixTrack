@@ -662,20 +662,24 @@ if(Fortran_COMPILER_NAME MATCHES "gfortran.*")
     endif(AVX)
 
     if(AVX2)
-      set(CMAKE_Fortran_FLAGS "-mavx -mavx2 -mno-fma4 -mno-fma ${CMAKE_Fortran_FLAGS}")
+      set(CMAKE_Fortran_FLAGS "-mavx -mavx2 ${CMAKE_Fortran_FLAGS}")
     endif(AVX2)
 
     if(AVX512)
-      set(CMAKE_Fortran_FLAGS "-mavx -mavx2 -mavx512f -mno-fma4 -mno-fma ${CMAKE_Fortran_FLAGS}")
+      set(CMAKE_Fortran_FLAGS "-mavx -mavx2 -mavx512f ${CMAKE_Fortran_FLAGS}")
     endif(AVX512)
 
     if(AVX512_SKYLAKE)
-      set(CMAKE_Fortran_FLAGS "-mavx -mavx2 -mavx512f -mavx512cd -mavx512bw -mavx512vl -mno-fma4 -mno-fma ${CMAKE_Fortran_FLAGS}")
+      set(CMAKE_Fortran_FLAGS "-mavx -mavx2 -mavx512f -mavx512cd -mavx512bw -mavx512vl ${CMAKE_Fortran_FLAGS}")
     endif(AVX512_SKYLAKE)
 
     if(NATIVE)
-      set(CMAKE_Fortran_FLAGS "-march=native -mno-fma4 -mno-fma ${CMAKE_Fortran_FLAGS}")
+      set(CMAKE_Fortran_FLAGS "-march=native ${CMAKE_Fortran_FLAGS}")
     endif(NATIVE)
+
+    if(CRLIBM)
+      set(CMAKE_Fortran_FLAGS "${CMAKE_Fortran_FLAGS} -mno-fma4 -mno-fma")
+    endif(CRLIBM)
 
     if(PREFETCH)
       set(CMAKE_Fortran_FLAGS "-fprefetch-loop-arrays ${CMAKE_Fortran_FLAGS}")
@@ -843,20 +847,24 @@ if(${CMAKE_C_COMPILER_ID} MATCHES "GNU")
     endif(AVX)
 
     if(AVX2)
-      set(CMAKE_C_FLAGS "-mavx -mavx2 -mno-fma4 -mno-fma ${CMAKE_C_FLAGS}")
+      set(CMAKE_C_FLAGS "-mavx -mavx2 ${CMAKE_C_FLAGS}")
     endif(AVX2)
 
     if(AVX512)
-      set(CMAKE_C_FLAGS "-mavx -mavx2 -mavx512f -mno-fma4 -mno-fma ${CMAKE_C_FLAGS}")
+      set(CMAKE_C_FLAGS "-mavx -mavx2 -mavx512f ${CMAKE_C_FLAGS}")
     endif(AVX512)
 
     if(AVX512_SKYLAKE)
-      set(CMAKE_C_FLAGS "-mavx -mavx2 -mavx512f -mavx512cd -mavx512bw -mavx512vl -mno-fma4 -mno-fma ${CMAKE_C_FLAGS}")
+      set(CMAKE_C_FLAGS "-mavx -mavx2 -mavx512f -mavx512cd -mavx512bw -mavx512vl ${CMAKE_C_FLAGS}")
     endif(AVX512_SKYLAKE)
 
     if(NATIVE)
       set(CMAKE_C_FLAGS "-march=native ${CMAKE_C_FLAGS}")
     endif(NATIVE)
+
+    if(CRLIBM)
+      set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -mno-fma4 -mno-fma")
+    endif(CRLIBM)
 
     if(PREFETCH)
       set(CMAKE_C_FLAGS "-fprefetch-loop-arrays ${CMAKE_C_FLAGS}")
@@ -999,20 +1007,24 @@ if(${CMAKE_CXX_COMPILER_ID} MATCHES "GNU")
     endif(AVX)
 
     if(AVX2)
-      set(CMAKE_CXX_FLAGS "-mavx -mavx2 -mno-fma4 -mno-fma ${CMAKE_CXX_FLAGS}")
+      set(CMAKE_CXX_FLAGS "-mavx -mavx2 ${CMAKE_CXX_FLAGS}")
     endif(AVX2)
 
     if(AVX512)
-      set(CMAKE_CXX_FLAGS "-mavx -mavx2 -mavx512f -mno-fma4 -mno-fma ${CMAKE_CXX_FLAGS}")
+      set(CMAKE_CXX_FLAGS "-mavx -mavx2 -mavx512f ${CMAKE_CXX_FLAGS}")
     endif(AVX512)
 
     if(AVX512_SKYLAKE)
-      set(CMAKE_CXX_FLAGS "-mavx -mavx2 -mavx512f -mavx512cd -mavx512bw -mavx512vl -mno-fma4 -mno-fma ${CMAKE_CXX_FLAGS}")
+      set(CMAKE_CXX_FLAGS "-mavx -mavx2 -mavx512f -mavx512cd -mavx512bw -mavx512vl ${CMAKE_CXX_FLAGS}")
     endif(AVX512_SKYLAKE)
 
     if(NATIVE)
       set(CMAKE_CXX_FLAGS "-march=native ${CMAKE_CXX_FLAGS}")
     endif(NATIVE)
+
+    if(CRLIBM)
+      set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -mno-fma4 -mno-fma")
+    endif(CRLIBM)
 
     if(PREFETCH)
       set(CMAKE_CXX_FLAGS "-fprefetch-loop-arrays ${CMAKE_CXX_FLAGS}")

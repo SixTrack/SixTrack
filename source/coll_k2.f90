@@ -67,18 +67,22 @@ subroutine k2coll_collimate(icoll, iturn, ie, c_length, c_rotation, c_aperture, 
   x_in, xp_in, y_in, yp_in, p_in, s_in, enom, lhit_pos, lhit_turn, part_abs_pos_local,             &
   part_abs_turn_local, impact, indiv, lint, onesided, nhit_stage, j_slices, nabs_type, linside)
 
+  use, intrinsic :: iso_fortran_env, only : int16
   use parpro
   use crcoall
   use coll_db
   use coll_common
   use coll_crystal, only : cry_doCrystal
   use coll_materials
-  use mod_common, only : iexact, napx
-  use mod_common_main, only : partID
+  use mod_common, only : iexact, napx, unit208
+  use mod_common_main, only : partID, naa
   use mathlib_bouncer
   use mod_ranlux
 #ifdef HDF5
   use hdf5_output
+#endif
+#ifdef ROOT
+  use root_output
 #endif
 
   integer,          intent(in)    :: icoll        ! Collimator ID
@@ -122,6 +126,11 @@ subroutine k2coll_collimate(icoll, iturn, ie, c_length, c_rotation, c_aperture, 
   real(kind=fPrec) xIn,xpIn,yIn,ypIn,xOut,xpOut,yOut,ypOut,sImp,sOut
   real(kind=fPrec) x_in0,xp_in0
 
+  ! ien0,ien1: particle energy entering/leaving the collimator
+  ! energy in MeV
+  real(kind=fPrec)    :: ien0, ien1
+  integer(kind=int16) :: nnuc0,nnuc1
+
   ! Initilaisation
   mat    = cdb_cMaterialID(icoll)
   length = c_length
@@ -140,6 +149,12 @@ subroutine k2coll_collimate(icoll, iturn, ie, c_length, c_rotation, c_aperture, 
   sRot   = sin_mb(c_rotation)
   cRRot  = cos_mb(-c_rotation)
   sRRot  = sin_mb(-c_rotation)
+
+  !Set energy and nucleon change variables as with the coupling
+  nnuc0 = 0
+  ien0  = zero
+  nnuc1 = 0
+  ien1  = zero
 
   do j=1,napx
 
@@ -176,6 +191,11 @@ subroutine k2coll_collimate(icoll, iturn, ie, c_length, c_rotation, c_aperture, 
     if(onesided .and. x < zero .and. (icoll /= ipencil .or. iturn /= 1)) then
       cycle
     end if
+
+! Log input energy + nucleons as per the FLUKA coupling
+    nnuc0   = nnuc0 + naa(j)
+    ien0    = ien0 + rcp(j) * c1e3
+
 
     ! Now mirror at the horizontal axis for negative X offset
     if(x < zero) then
@@ -535,6 +555,11 @@ subroutine k2coll_collimate(icoll, iturn, ie, c_length, c_rotation, c_aperture, 
       xp_in(j) = xp*cRRot + zp*sRRot
       yp_in(j) = zp*cRRot - xp*sRRot
 
+! Log output energy + nucleons as per the FLUKA coupling
+! Do not log dead particles
+      nnuc1       = nnuc1 + naa(j)                          ! outcoming nucleons
+      ien1        = ien1  + rcp(j) * c1e3                   ! outcoming energy
+
       if(icoll == ipencil .and. iturn == 1 .and. pencil_distr /= 3) then
         x00      = mirror * x00
         x_in(j)  = x00*cRRot + z00*sRRot
@@ -558,6 +583,17 @@ subroutine k2coll_collimate(icoll, iturn, ie, c_length, c_rotation, c_aperture, 
     end if
 
   end do ! End of loop over all particles
+
+! write out energy change over this collimator
+  if((ien0-ien1) > one) then
+#ifdef ROOT
+    if(root_flag .and. root_Collimation == 1) then
+      call root_EnergyDeposition(icoll, nnuc0-nnuc1,c1m3*(ien0-ien1))
+    end if
+#endif
+    write(unit208,"(2(i6,1x),e24.16)") icoll, (nnuc0-nnuc1), c1m3*(ien0-ien1)
+    flush(unit208)
+  end if
 
 end subroutine k2coll_collimate
 

@@ -312,6 +312,37 @@ subroutine root_DumpAperture(apname_in, apname_len, aptype_in, aptype_len, s_in,
   real(kind=C_DOUBLE), intent(in), value :: ap11_in
 end subroutine
 
+subroutine root_BunchDumpInit() bind(C,name="root_BunchDumpInit")
+  use, intrinsic :: iso_c_binding
+  implicit none
+end subroutine
+
+subroutine root_DumpBunch( name_in, name_len, i,ix, turn_in, particleID_in, parentID_in, pdgID_in, q_in, weight_in, &
+& s_in, x_in, xp_in, y_in, yp_in, z_in, dp_in, sx_in, sy_in, sz_in, m_in) bind(C,name="root_DumpBunch")
+  use, intrinsic :: iso_c_binding
+  implicit none
+  character(kind=C_CHAR,len=1), intent(in)  :: name_in
+  integer(kind=C_INT),    intent(in), value :: name_len
+  integer(kind=C_INT),    intent(in), value :: i
+  integer(kind=C_INT),    intent(in), value :: ix
+  integer(kind=C_INT),    intent(in), value :: turn_in
+  integer(kind=C_INT),    intent(in), value :: particleID_in
+  integer(kind=C_INT),    intent(in), value :: parentID_in
+  integer(kind=C_INT),    intent(in), value :: pdgID_in
+  integer(kind=C_INT16_T),intent(in), value :: q_in
+  real(kind=C_DOUBLE),    intent(in), value :: weight_in
+  real(kind=C_DOUBLE),    intent(in), value :: s_in
+  real(kind=C_DOUBLE),    intent(in), value :: x_in
+  real(kind=C_DOUBLE),    intent(in), value :: xp_in
+  real(kind=C_DOUBLE),    intent(in), value :: y_in
+  real(kind=C_DOUBLE),    intent(in), value :: yp_in
+  real(kind=C_DOUBLE),    intent(in), value :: z_in
+  real(kind=C_DOUBLE),    intent(in), value :: dp_in
+  real(kind=C_DOUBLE),    intent(in), value :: sx_in
+  real(kind=C_DOUBLE),    intent(in), value :: sy_in
+  real(kind=C_DOUBLE),    intent(in), value :: sz_in
+  real(kind=C_DOUBLE),    intent(in), value :: m_in
+end subroutine
 end interface
 
 contains

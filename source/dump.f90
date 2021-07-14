@@ -59,6 +59,9 @@ module dump
   integer, allocatable, private, save :: dumpfilepos(:), dumpfilepos_cr(:)
 #endif
 
+  integer, save :: rootfmt = 1000
+
+  logical, save :: request_root = .false. ! Do we want to dump to a root tree?
 ! ================================================================================================================================ !
 !  THE SUBROUTINES
 ! ================================================================================================================================ !
@@ -402,6 +405,9 @@ subroutine dump_parseInputDone(iErr)
   use crcoall
   use mod_common
   use string_tools
+#ifdef ROOT
+  use root_output, only : root_flag
+#endif
 
   implicit none
 
@@ -409,6 +415,7 @@ subroutine dump_parseInputDone(iErr)
 
   ! Temp variables
   integer ii,jj,kk
+  logical have_root
 
   ! HEADER
 ! 10460 format(//131('-')//t10,'DATA BLOCK ',a4,' INFOs'/ /t10, 'ELEMENT NAME',8x,'EVERY # TURNs',2x, &
@@ -447,6 +454,10 @@ subroutine dump_parseInputDone(iErr)
         iErr = .true.
         return
       end if
+      ! check if we are using a root dump
+      if(dumpfmt(ii) .eq. rootfmt) then
+        request_root = .true.
+      end if
     end if
   end do
 
@@ -458,6 +469,31 @@ subroutine dump_parseInputDone(iErr)
   end if
   return
 
+! Is there root support compiled in?
+  have_root = .false.
+#ifdef ROOT
+  have_root = .true.
+#endif
+
+! If we found a root dump, check we have root support built in.
+  if(request_root .eqv. .true.) then
+!   Check we have root compiled
+    if(have_root .eqv. .true.) then
+!     Check we have root enabled
+#ifdef ROOT
+      if(root_flag .eqv. .false.) then
+!     explode and exit
+        write(lerr,"(a)") "DUMP> Requested ROOT output in dump, but ROOT output is not enabled!"
+        call prror
+      end if
+#endif
+    else
+!   No root support compiled in
+!   explode and exit
+      write(lerr,"(a)") "DUMP> Requested ROOT output in dump, but this executable has no ROOT support!"
+      call prror
+    end if
+  end if
 end subroutine dump_parseInputDone
 
 ! ================================================================================================================================ !
@@ -474,6 +510,9 @@ subroutine dump_initialise
   use mod_units
 #ifdef HDF5
   use hdf5_output
+#endif
+#ifdef ROOT
+  use root_output
 #endif
 
   integer i,j,k,l
@@ -516,6 +555,12 @@ subroutine dump_initialise
         end do
         if (dumpfmt(i) == 3 .or. dumpfmt(i) == 8 .or. dumpfmt(i) == 101) then ! Binary dump
           call f_open(unit=dumpunit(i),file=trim(dump_fname(i)),formatted=.false.,mode="w",status="replace")
+#ifdef ROOT
+        else if (dumpfmt(i) == rootfmt) then
+          !no need to open a file for root
+          !We do need to call the init function though
+          call root_BunchDumpInit()
+#endif
         else ! ASCII dump
           call f_open(unit=dumpunit(i),file=trim(dump_fname(i)),formatted=.true.,mode="w",status="replace")
         end if
@@ -1008,6 +1053,9 @@ subroutine dump_initialise
           call h5_writeDataSetAttr(dump_hdf5DataSet(i),"colUnits",  colUnits)
         end block
 
+      case(rootfmt)
+        ! Format 1000: ROOT
+        ! Nothing to do here!
       end select
 
       if(allocated(setFields) .eqv. .true.) deallocate(setFields)
@@ -1051,6 +1099,9 @@ subroutine dump_beam_population(nturn, i, ix, unit, fmt, lhighprec, loc_clo, tas
 #ifdef FLUKA
   use mod_fluka
 #endif
+#ifdef ROOT
+  use root_output
+#endif
 
   implicit none
 
@@ -1074,6 +1125,9 @@ subroutine dump_beam_population(nturn, i, ix, unit, fmt, lhighprec, loc_clo, tas
 
   character(len=16) :: xyz_l(27)
   character(len=25) :: xyz_h(27)
+
+! temp variable for dealing with particle weights (only exist in FLUKA/G4 builds)
+  real(kind=fPrec) tmpWeight
 
 #ifdef CR
   ! For accessing dumpfilepos
@@ -1973,6 +2027,30 @@ call h5_finaliseWrite(dump_hdf5DataSet(ix))
 #endif
 #ifdef HDF5
     end if
+#endif
+
+#ifdef ROOT
+  !output directly to a root file
+  else if(fmt == rootfmt) then
+    if(i == 0 .and. ix == 0) then
+      localDcum = 0.0
+      localBez  = "StartDUMP"
+    else
+      localDcum = dcum(i)
+      if (ktrack(i) /= 1) then
+        localBez = bez(ix)
+      else                ! BLOCs
+        localBez = bezb(ic(i))
+      end if
+    end if
+    tmpWeight = 1.0
+    do j=1,napx
+#if defined(FLUKA) || defined(G4COLLIMATION)
+      tmpWeight = partWeight(j)
+#endif
+      call root_DumpBunch(localBez, len_trim(localBez), i, ix, nturn, partID(j), parentID(j), pdgid(j), nqq(j), tmpWeight, &
+&     localDcum, xv1(j), yv1(j), xv2(j), yv2(j), sigmv(j), (ejv(j)-e0)/e0, spin_x(j), spin_y(j), spin_z(j), nucm(j))
+    end do
 #endif
 
   ! Unrecognized format fmt

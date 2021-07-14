@@ -18,6 +18,8 @@
 * Fix building with gcc >= 10. PR #1076 (J. Molson)
 * Fix 2 regressions in the K2 collimation cross section calculations from version 4 to 5. PR #1077 (J. Molson)
 * Fix the time coordinate when using geant4 based collimation. PR #1078 (J. Molson)
+* Fix an incorrect file header in mod_dist. (J. Molson)
+* Fix a problem with the circular aperture check not working as expected (J. Molson)
 
 **User Side Changes**
 
@@ -47,6 +49,7 @@
   * update chebyshev tests;
   * tabular method for inputting/outputting coefficients;
   * some house-keeping.
+* Only disable generating fma instructions with gcc if CRLIBM is enabled.
 
 **Code Improvements and Changes**
 
@@ -61,6 +64,8 @@
 * Use global id/parent/weight variables in the FLUKA coupling. PR #1062 (J. Molson)
 * Start to enable the ability to use collimation with thick lens lattices. PR #1062 (J. Molson)
 * Updated some physical constants to use their now fixed values. PR #1077 (J. Molson)
+* Always output the collimator energy loss file fort.208 in all collimation modes. (J. Molson)
+* Add the ability to use the dump module with root output. (J. Molson)
 
 ### Version 5.4.3 [19.12.2019] - Release
 

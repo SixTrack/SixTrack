@@ -403,17 +403,17 @@ subroutine coll_init
   call k2coll_merlinInit
 #endif
 
+  ! Open the edep file
+  if(unit208 == -1) then
+    call f_requestUnit(fort208,unit208)
+    call f_open(unit=unit208,file=fort208,formatted=.true.,mode="w",status="replace")
+  end if
+
 #ifdef G4COLLIMATION
 
   if(n_slices /= 0) then
     write(lerr,"(a)") "COLL> ERROR Cannot use jaw fit in G4COLLIMATION version of SixTrack"
     call prror
-  end if
-
-  ! Open the edep file
-  if(unit208 == -1) then
-    call f_requestUnit(fort208,unit208)
-    call f_open(unit=unit208,file=fort208,formatted=.true.,mode="w",status="replace")
   end if
 
   ! This function lives in the G4Interface.cpp file in the g4collimat folder
@@ -1317,11 +1317,11 @@ subroutine coll_openFiles
     call f_requestUnit(coll_tracksFile,coll_tracksUnit)
     call f_open(unit=coll_tracksUnit,file=coll_tracksFile,formatted=.true.,mode="w",status="replace")
     write(coll_tracksUnit,"(a)") "# name turn s x xp y yp DE/E type"
-
-    call f_requestUnit(coll_pencilFile,coll_pencilUnit)
-    call f_open(unit=coll_pencilUnit, file=coll_pencilFile,formatted=.true.,mode="w",status="replace")
-    write(coll_pencilUnit,"(a)") "# x xp y yp"
   end if
+
+  call f_requestUnit(coll_pencilFile,coll_pencilUnit)
+  call f_open(unit=coll_pencilUnit, file=coll_pencilFile,formatted=.true.,mode="w",status="replace")
+  write(coll_pencilUnit,"(a)") "# x xp y yp"
 
   ! Crystal Files
   if(coll_hasCrystal .and. dowrite_crycoord) then
@@ -3136,8 +3136,9 @@ subroutine coll_doCollimator_Geant4(c_aperture,c_rotation,c_length,onesided)
       g4_time, partID(j), parentID(j), partWeight(j), spin_x(j), spin_y(j), spin_z(j))
 
 ! Log input energy + nucleons as per the FLUKA coupling
+! rcp is in GeV
     nnuc0   = nnuc0 + naa(j)
-    ien0    = ien0 + rcp(j) * c1e3
+    ien0    = ien0 + (rcp(j) * c1e3)
   end do
 
 !! Call the geant4 collimation function
@@ -3194,7 +3195,7 @@ subroutine coll_doCollimator_Geant4(c_aperture,c_rotation,c_length,onesided)
 
 ! Log output energy + nucleons as per the FLUKA coupling
     nnuc1       = nnuc1 + naa(j)                          ! outcoming nucleons
-    ien1        = ien1  + rcp(j) * c1e3                   ! outcoming energy
+    ien1        = ien1  + (rcp(j) * c1e3)                 ! outcoming energy
 
 ! Fix hits
 ! if(part_hit_pos(j) .eq.ie .and. part_hit_turn(j).eq.iturn)
@@ -3243,7 +3244,7 @@ subroutine coll_doCollimator_Geant4(c_aperture,c_rotation,c_length,onesided)
       call root_EnergyDeposition(icoll, nnuc0-nnuc1,c1m3*(ien0-ien1))
     end if
 #endif
-    write(unit208,"(2(i5,1x),e24.16)") icoll, (nnuc0-nnuc1), c1m3*(ien0-ien1)
+    write(unit208,"(2(i6,1x),e24.16)") icoll, (nnuc0-nnuc1), c1m3*(ien0-ien1)
     flush(unit208)
   end if
 
