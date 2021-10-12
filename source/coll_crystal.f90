@@ -309,6 +309,7 @@ subroutine cry_doCrystal(ie,iturn,j,mat,x,xp,z,zp,s,p,x0,xp0,zlm,s_imp,isImp,nhi
   ! Check that particle hit the crystal
   if(x >= zero .and. x < c_xmax) then
 
+!    write(*,*) "front face hit"
     ! MISCUT first step: P coordinates
     s_P = (c_rcurv-c_xmax)*sin_mb(-c_miscut)
     x_P = c_xmax + (c_rcurv-c_xmax)*cos_mb(-c_miscut)
@@ -329,6 +330,7 @@ subroutine cry_doCrystal(ie,iturn,j,mat,x,xp,z,zp,s,p,x0,xp0,zlm,s_imp,isImp,nhi
   else
 
     if(x < zero) then ! Crystal hit from below
+!      write(*,*) 'Crystal hit from below'
 !      write(*,*) 'CHECK', x
       xp_tangent = sqrt((-(two*x)*c_rcurv + x**2)/c_rcurv**2)
 !      write(*,*) 'tangent', xp_tangent, xp
@@ -364,16 +366,18 @@ subroutine cry_doCrystal(ie,iturn,j,mat,x,xp,z,zp,s,p,x0,xp0,zlm,s_imp,isImp,nhi
         s      = zero
 
         tilt_int = s_int/c_rcurv
+!        write(*,*) "tilt_int", tilt_int
         xp       = xp-tilt_int
 
         ! MISCUT first step (bis): transform P in new reference system
         ! Translation
         s_P_tmp = s_P_tmp - s_int
         x_P_tmp = x_P_tmp - x_int
+!        write(*,*) "P side after translation", s_P_tmp, x_P_tmp
         ! Rotation
         s_P = s_P_tmp*cos_mb(tilt_int) + x_P_tmp*sin_mb(tilt_int)
-        x_P = -s_P_tmp*sin_mb(tilt_int) + s_P_tmp*cos_mb(tilt_int)
-!        write(*,*) "P front", s_P, x_P
+        x_P = -s_P_tmp*sin_mb(tilt_int) + x_P_tmp*cos_mb(tilt_int)
+!        write(*,*) "P side after rotation", s_P, x_P
 
         call cry_interact(mat,x,xp,z,zp,p,cry_length-(tilt_int*c_rcurv),s_P,x_P)
         s   = c_rcurv*sin_mb(cry_bend - tilt_int)
@@ -424,6 +428,7 @@ subroutine cry_doCrystal(ie,iturn,j,mat,x,xp,z,zp,s,p,x0,xp0,zlm,s_imp,isImp,nhi
 
     else
 
+!      write(*,*) "not actually hit"
       s = c_rcurv*sin_mb(cry_length/c_rcurv)
       x = x + s*xp
       z = z + s*zp
