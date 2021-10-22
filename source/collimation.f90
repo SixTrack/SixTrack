@@ -150,6 +150,73 @@ module collimation
   real(kind=fPrec), private, save :: bx_dist   = zero
   real(kind=fPrec), private, save :: by_dist   = zero
 
+#ifdef CR
+  ! For resetting file positions
+  integer, public,  save :: fort208Pos                = -1
+  integer, public,  save :: fort208Pos_CR             =  0
+  integer, public,  save :: coll_survivalFilePos      = -1
+  integer, public,  save :: coll_survivalFilePos_CR   =  0
+  integer, public,  save :: coll_gapsFilePos          = -1
+  integer, public,  save :: coll_gapsFilePos_CR       =  0
+  integer, public,  save :: coll_settingsFilePos      = -1
+  integer, public,  save :: coll_settingsFilePos_CR   =  0
+  integer, public,  save :: coll_positionsFilePos     = -1
+  integer, public,  save :: coll_positionsFilePos_CR  =  0
+  integer, public,  save :: coll_tracksFilePos        = -1
+  integer, public,  save :: coll_tracksFilePos_CR     =  0
+  integer, public,  save :: coll_pencilFilePos        = -1
+  integer, public,  save :: coll_pencilFilePos_CR     =  0
+  integer, public,  save :: coll_cryEntFilePos        = -1
+  integer, public,  save :: coll_cryEntFilePos_CR     =  0
+  integer, public,  save :: coll_cryExitFilePos       = -1
+  integer, public,  save :: coll_cryExitFilePos_CR    =  0
+  integer, public,  save :: coll_cryInterFilePos      = -1
+  integer, public,  save :: coll_cryInterFilePos_CR   =  0
+  integer, public,  save :: coll_ellipseFilePos       = -1
+  integer, public,  save :: coll_ellipseFilePos_CR    =  0
+  integer, public,  save :: coll_allImpactFilePos     = -1
+  integer, public,  save :: coll_allImpactFilePos_CR  =  0
+  integer, public,  save :: coll_allAbsorbFilePos     = -1
+  integer, public,  save :: coll_allAbsorbFilePos_CR  =  0
+  integer, public,  save :: coll_scatterFilePos       = -1
+  integer, public,  save :: coll_scatterFilePos_CR    =  0
+  integer, public,  save :: coll_fstImpactFilePos     = -1
+  integer, public,  save :: coll_fstImpactFilePos_CR  =  0
+  integer, public,  save :: coll_flukImpFilePos       = -1
+  integer, public,  save :: coll_flukImpFilePos_CR    =  0
+  integer, public,  save :: coll_flukImpAllFilePos    = -1
+  integer, public,  save :: coll_flukImpAllFilePos_CR =  0
+  integer, public,  save :: coll_jawProfileFilePos    = -1
+  integer, public,  save :: coll_jawProfileFilePos_CR =  0
+  integer, public,  save :: coll_efficFilePos         = -1
+  integer, public,  save :: coll_efficFilePos_CR      =  0
+  integer, public,  save :: coll_efficDPFilePos       = -1
+  integer, public,  save :: coll_efficDPFilePos_CR    =  0
+  integer, public,  save :: coll_effic2DFilePos       = -1
+  integer, public,  save :: coll_effic2DFilePos_CR    =  0
+  integer, public,  save :: coll_summaryFilePos       = -1
+  integer, public,  save :: coll_summaryFilePos_CR    =  0
+  integer, public,  save :: coll_ampFilePos           = -1
+  integer, public,  save :: coll_ampFilePos_CR        =  0
+  integer, public,  save :: coll_orbitCheckFilePos    = -1
+  integer, public,  save :: coll_orbitCheckFilePos_CR =  0
+  integer, public,  save :: coll_sigmaSetFilePos      = -1
+  integer, public,  save :: coll_sigmaSetFilePos_CR   =  0
+  integer, public,  save :: coll_impactFilePos        = -1
+  integer, public,  save :: coll_impactFilePos_CR     =  0
+  integer, public,  save :: coll_trackoutPos          = -1
+  integer, public,  save :: coll_trackoutPos_CR       =  0
+#endif
+
+read(fileunit,err=100,end=100) fort208Pos_CR, coll_survivalFilePos_CR, coll_gapsFilePos_CR, coll_settingsFilePos_CR, //
+                                 coll_positionsFilePos_CR, coll_tracksFilePos_CR, coll_pencilFilePos_CR, coll_cryEntFilePos_CR, //
+                                 coll_cryExitFilePos_CR, coll_cryInterFilePos_CR, coll_ellipseFilePos_CR, //
+                                 coll_allImpactFilePos_CR, coll_allAbsorbFilePos_CR, coll_scatterFilePos_CR, //
+                                 coll_fstImpactFilePos_CR, coll_flukImpFilePos_CR, coll_flukImpAllFilePos_CR, //
+                                 coll_jawProfileFilePos_CR, coll_efficFilePos_CR, coll_efficDPFilePos_CR, coll_effic2DFilePos_CR, //
+                                 coll_summaryFilePos_CR, coll_ampFilePos_CR, coll_orbitCheckFilePos_CR, coll_sigmaSetFilePos_CR, //
+                                 coll_impactFilePos_CR, coll_trackoutPos_CR
+
 contains
 
 subroutine collimation_expand_arrays(npart_new, nblz_new)
@@ -3409,5 +3476,123 @@ subroutine coll_echoSettings
   write(lout,"(a)")
 
 end subroutine coll_echoSettings
+
+! ================================================================================================================================ !
+!  Begin Checkpoint Restart COPIED BY APERTURE MODULE
+! ================================================================================================================================ !
+#ifdef CR
+
+! ================================================================================================================================ !
+subroutine coll_crcheck_readdata(fileUnit,fileName,readerr)
+
+  implicit none
+
+  integer, intent(in)  :: fileUnit
+  character(len=*), intent(in) :: fileName
+  logical, intent(out)         :: readerr
+
+  integer j
+
+  read(fileunit,err=100,end=100) fort208Pos_CR, coll_survivalFilePos_CR, coll_gapsFilePos_CR, coll_settingsFilePos_CR, //
+                                 coll_positionsFilePos_CR, coll_tracksFilePos_CR, coll_pencilFilePos_CR, coll_cryEntFilePos_CR, //
+                                 coll_cryExitFilePos_CR, coll_cryInterFilePos_CR, coll_ellipseFilePos_CR, //
+                                 coll_allImpactFilePos_CR, coll_allAbsorbFilePos_CR, coll_scatterFilePos_CR, //
+                                 coll_fstImpactFilePos_CR, coll_flukImpFilePos_CR, coll_flukImpAllFilePos_CR, //
+                                 coll_jawProfileFilePos_CR, coll_efficFilePos_CR, coll_efficDPFilePos_CR, coll_effic2DFilePos_CR, //
+                                 coll_summaryFilePos_CR, coll_ampFilePos_CR, coll_orbitCheckFilePos_CR, coll_sigmaSetFilePos_CR, //
+                                 coll_impactFilePos_CR, coll_trackoutPos_CR
+
+  readerr = .false.
+  return
+
+100 continue
+  readerr = .true.
+  write(lout, "(a,i0,a)") "CR_CHECK> ERROR Reading C/R file ",fileName," in COLLIMATION"
+  write(crlog,"(a,i0,a)") "CR_CHECK> ERROR Reading C/R file ",fileName," in COLLIMATION"
+  flush(crlog)
+
+end subroutine aper_crcheck_readdata
+
+! ================================================================================================================================ !
+subroutine coll_crcheck_positionFiles
+
+  use parpro
+  use crcoall
+  use mod_units
+
+  logical isOpen, fErr
+  integer iError
+  integer j
+  character(len=mInputLn) aRecord
+
+  call f_positionFile(fort208, unit208, fort208Pos, fort208Pos_CR)
+
+  call f_positionFile(coll_survivalFile, coll_survivalUnit, coll_survivalFilePos, coll_survivalFilePos_CR)
+  call f_positionFile(coll_gapsFile, coll_gapsUnit, coll_gapsFilePos, coll_gapsFilePos_CR)
+  call f_positionFile(coll_settingsFile, coll_settingsUnit, coll_settingsFilePos, coll_settingsFilePos_CR)
+  call f_positionFile(coll_positionsFile, coll_positionsUnit, coll_positionsFilePos, coll_positionsFilePos_CR)
+  call f_positionFile(coll_tracksFile, coll_tracksUnit, coll_tracksFilePos, coll_tracksFilePos_CR)
+  call f_positionFile(coll_pencilFile, coll_pencilUnit, coll_pencilFilePos, coll_pencilFilePos_CR)
+  call f_positionFile(coll_cryEntFile, coll_cryEntUnit, coll_cryEntFilePos, coll_cryEntFilePos_CR)
+  call f_positionFile(coll_cryExitFile, coll_cryExitUnit, coll_cryExitFilePos, coll_cryExitFilePos_CR)
+  call f_positionFile(coll_cryInterFile, coll_cryInterUnit, coll_cryInterFilePos, coll_cryInterFilePos_CR)
+  call f_positionFile(coll_ellipseFile, coll_ellipseUnit, coll_ellipseFilePos, coll_ellipseFilePos_CR)
+  call f_positionFile(coll_allImpactFile, coll_allImpactUnit, coll_allImpactFilePos, coll_allImpactFilePos_CR)
+  call f_positionFile(coll_allAbsorbFile, coll_allAbsorbUnit, coll_allAbsorbFilePos, coll_allAbsorbFilePos_CR)
+  call f_positionFile(coll_scatterFile, coll_scatterUnit, coll_scatterFilePos, coll_scatterFilePos_CR)
+  call f_positionFile(coll_fstImpactFile, coll_fstImpactUnit, coll_fstImpactFilePos, coll_fstImpactFilePos_CR)
+  call f_positionFile(coll_flukImpFile, coll_flukImpUnit, coll_flukImpFilePos, coll_flukImpFilePos_CR)
+  call f_positionFile(coll_flukImpAllFile, coll_flukImpAllUnit, coll_flukImpAllFilePos, coll_flukImpAllFilePos_CR)
+  call f_positionFile(coll_jawProfileFile, coll_jawProfileUnit, coll_jawProfileFilePos, coll_jawProfileFilePos_CR)
+  call f_positionFile(coll_efficFile, coll_efficUnit, coll_efficFilePos, coll_efficFilePos_CR)
+  call f_positionFile(coll_efficDPFile, coll_efficDPUnit, coll_efficDPFilePos, coll_efficDPFilePos_CR)
+  call f_positionFile(coll_effic2DFile, coll_effic2DUnit, coll_effic2DFilePos, coll_effic2DFilePos_CR)
+  call f_positionFile(coll_summaryFile, coll_summaryUnit, coll_summaryFilePos, coll_summaryFilePos_CR)
+  call f_positionFile(coll_ampFile, coll_ampUnit, coll_ampFilePos, coll_ampFilePos_CR)
+  call f_positionFile(coll_orbitCheckFile, coll_orbitCheckUnit, coll_orbitCheckFilePos, coll_orbitCheckFilePos_CR)
+  call f_positionFile(coll_sigmaSetFile, coll_sigmaSetUnit, coll_sigmaSetFilePos, coll_sigmaSetFilePos_CR)
+  call f_positionFile(coll_impactFile, coll_impactUnit, coll_impactFilePos, coll_impactFilePos_CR)
+
+  call f_positionFile("colltrack.out", outlun, coll_trackoutPos, coll_trackoutPos_CR)
+
+end subroutine coll_crcheck_positionFiles
+
+! ================================================================================================================================ !
+subroutine coll_crpoint(fileUnit,fileName,lerror)
+
+  implicit none
+
+  integer, intent(in)  :: fileUnit
+  character(len=*), intent(in) :: fileName
+  logical, intent(out)         :: lerror
+
+  write(fileUnit,err=100) fort208Pos, coll_survivalFilePos, coll_gapsFilePos, coll_settingsFilePos, //
+                          coll_positionsFilePos, coll_tracksFilePos, coll_pencilFilePos, coll_cryEntFilePos, //
+                          coll_cryExitFilePos, coll_cryInterFilePos, coll_ellipseFilePos, //
+                          coll_allImpactFilePos, coll_allAbsorbFilePos, coll_scatterFilePos, //
+                          coll_fstImpactFilePos, coll_flukImpFilePos, coll_flukImpAllFilePos, //
+                          coll_jawProfileFilePos, coll_efficFilePos, coll_efficDPFilePos, coll_effic2DFilePos, //
+                          coll_summaryFilePos, coll_ampFilePos, coll_orbitCheckFilePos, coll_sigmaSetFilePos, //
+                          coll_impactFilePos, coll_trackoutPos
+  flush(fileunit)
+  return
+
+100 continue
+  lerror = .true.
+  write(lout, "(a,i0,a)") "CR_POINT> ERROR Reading C/R file ",fileName," in COLLIMATION"
+  write(crlog,"(a,i0,a)") "CR_POINT> ERROR Reading C/R file ",fileName," in COLLIMATION"
+  flush(crlog)
+
+end subroutine coll_crpoint
+
+! ================================================================================================================================ !
+subroutine coll_crstart()
+
+end subroutine coll_crstart
+
+#endif
+! ================================================================================================================================ !
+!  End Checkpoint Restart
+! ================================================================================================================================ !
 
 end module collimation
