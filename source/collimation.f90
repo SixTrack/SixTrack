@@ -3670,13 +3670,12 @@ end subroutine coll_echoSettings
 #ifdef CR
 
 ! ================================================================================================================================ !
-subroutine coll_crcheck_readdata(fileUnit,fileName,readerr)
+subroutine coll_crcheck_readdata(fileUnit,readerr)
 
   implicit none
 
   integer, intent(in)  :: fileUnit
-  character(len=*), intent(in) :: fileName
-  logical, intent(out)         :: readerr
+  logical, intent(out) :: readerr
 
   integer j
 
@@ -3694,11 +3693,11 @@ subroutine coll_crcheck_readdata(fileUnit,fileName,readerr)
 
 100 continue
   readerr = .true.
-  write(lout, "(a,i0,a)") "CR_CHECK> ERROR Reading C/R file ",fileName," in COLLIMATION"
-  write(crlog,"(a,i0,a)") "CR_CHECK> ERROR Reading C/R file ",fileName," in COLLIMATION"
+  write(lout, "(a,i0,a)") "CR_CHECK> ERROR Reading C/R file fort.",fileUnit," in COLLIMATION"
+  write(crlog,"(a,i0,a)") "CR_CHECK> ERROR Reading C/R file fort.",fileUnit," in COLLIMATION"
   flush(crlog)
 
-end subroutine aper_crcheck_readdata
+end subroutine coll_crcheck_readdata
 
 ! ================================================================================================================================ !
 subroutine coll_crcheck_positionFiles
@@ -3745,13 +3744,12 @@ subroutine coll_crcheck_positionFiles
 end subroutine coll_crcheck_positionFiles
 
 ! ================================================================================================================================ !
-subroutine coll_crpoint(fileUnit,fileName,lerror)
+subroutine coll_crpoint(fileUnit,lerror)
 
   implicit none
 
   integer, intent(in)  :: fileUnit
-  character(len=*), intent(in) :: fileName
-  logical, intent(out)         :: lerror
+  logical, intent(out) :: lerror
 
   write(fileUnit,err=100) fort208Pos, coll_survivalFilePos, coll_gapsFilePos, coll_settingsFilePos, &
                           coll_positionsFilePos, coll_tracksFilePos, coll_pencilFilePos, coll_cryEntFilePos, &
@@ -3766,8 +3764,8 @@ subroutine coll_crpoint(fileUnit,fileName,lerror)
 
 100 continue
   lerror = .true.
-  write(lout, "(a,i0,a)") "CR_POINT> ERROR Reading C/R file ",fileName," in COLLIMATION"
-  write(crlog,"(a,i0,a)") "CR_POINT> ERROR Reading C/R file ",fileName," in COLLIMATION"
+  write(lout, "(a,i0,a)") "CR_POINT> ERROR Reading C/R file fort.",fileUnit," in COLLIMATION"
+  write(crlog,"(a,i0,a)") "CR_POINT> ERROR Reading C/R file fort.",fileUnit," in COLLIMATION"
   flush(crlog)
 
 end subroutine coll_crpoint
