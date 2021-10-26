@@ -142,7 +142,6 @@ contains
   subroutine fluka_mod_init(npart, nele, clight)
 
     use mod_units
-    use mod_common, only : fort208, unit208
 
     implicit none
 
@@ -1090,6 +1089,9 @@ subroutine kernel_fluka_element( nturn, i, ix )
 !              reduce by factor 1e-3 to get the energy in GeV
       if((ien0-ien1).gt.one) then
         write(unit208,"(2(i6,1x),e24.16)") fluka_geo_index(fluka_ix), nnuc0-nnuc1, c1m3*(ien0-ien1)
+#ifdef CR
+        fort208Pos = fort208Pos + 1
+#endif
 #ifdef ROOT
         if(root_flag .and. root_FLUKA .eq. 1) then
           call root_EnergyDeposition(fluka_geo_index(fluka_ix), nnuc0-nnuc1, c1m3*(ien0-ien1))
@@ -1245,6 +1247,7 @@ subroutine kernel_fluka_exit
       use mod_common
       use mod_common_track
       use mod_common_main
+      use collimation, only : fort208Pos
 
 #ifdef ROOT
       use root_output
@@ -1309,6 +1312,9 @@ subroutine kernel_fluka_exit
 !              reduce by factor 1e-3 to get the energy in GeV
         if((ien0-ien1).gt.one) then
           write(unit208,"(2(i6,1x),e24.16)") fluka_geo_index(fluka_ix), nnuc0-nnuc1, c1m3*(ien0-ien1)
+#ifdef CR
+          fort208Pos = fort208Pos + 1
+#endif
 #ifdef ROOT
           if(root_flag .and. root_FLUKA .eq. 1) then
             call root_EnergyDeposition(fluka_geo_index(fluka_ix), nnuc0-nnuc1, c1m3*(ien0-ien1))

@@ -313,14 +313,15 @@ subroutine crcheck
   use mod_common_main
   use mod_version
 
-  use dynk,       only : dynk_enabled,dynk_crcheck_readdata,dynk_crcheck_positionFiles
-  use dump,       only : dump_crcheck_readdata,dump_crcheck_positionFiles
-  use aperture,   only : limifound, aper_crcheck_readdata, aper_crcheck_positionFiles
-  use scatter,    only : scatter_active, scatter_crcheck_readdata, scatter_crcheck_positionFiles
-  use elens,      only : nelens, elens_crcheck
-  use mod_meta,   only : meta_crcheck
-  use mod_time,   only : time_crcheck
-  use mod_random, only : rnd_crcheck
+  use dynk,        only : dynk_enabled,dynk_crcheck_readdata,dynk_crcheck_positionFiles
+  use dump,        only : dump_crcheck_readdata,dump_crcheck_positionFiles
+  use aperture,    only : limifound, aper_crcheck_readdata, aper_crcheck_positionFiles
+  use scatter,     only : scatter_active, scatter_crcheck_readdata, scatter_crcheck_positionFiles
+  use elens,       only : nelens, elens_crcheck
+  use mod_meta,    only : meta_crcheck
+  use mod_time,    only : time_crcheck
+  use mod_random,  only : rnd_crcheck
+  use collimation, only : coll_crcheck_readdata, coll_crcheck_positionFiles
 
   integer j,k,l,m
   integer nPoint, ioStat
@@ -470,6 +471,11 @@ subroutine crcheck
       if(rErr) cycle
     end if
 
+    write(crlog,"(a)") "CR_CHECK>  * COLLIMATION variables"
+    flush(crlog)
+    call coll_crcheck_readdata(cr_pntUnit(nPoint),rErr)
+    if(rErr) cycle
+
     write(crlog,"(a)") "CR_CHECK> File "//cr_pntFile(nPoint)//" successfully read"
     flush(crlog)
 
@@ -530,6 +536,10 @@ subroutine crcheck
     call aper_crcheck_positionFiles
   end if
 
+  write(crlog,"(a)") "CR_CHECK> Repositioning COLLIMATION files"
+  flush(crlog)
+  call coll_crcheck_positionFiles
+
   ! Set up flag for tracking routines to call CRSTART
   cr_restart = .true.
 
@@ -569,13 +579,14 @@ subroutine crpoint
   use mod_settings
   use numerical_constants
 
-  use dynk,       only : dynk_enabled,dynk_getvalue,dynk_fSets_cr,dynk_cSets_unique,dynk_nSets_unique,dynk_crpoint
-  use dump,       only : dump_crpoint
-  use aperture,   only : aper_crpoint,limifound
-  use scatter,    only : scatter_active, scatter_crpoint
-  use elens,      only : nelens, elens_crpoint
-  use mod_meta,   only : meta_crpoint
-  use mod_random, only : rnd_crpoint
+  use dynk,        only : dynk_enabled,dynk_getvalue,dynk_fSets_cr,dynk_cSets_unique,dynk_nSets_unique,dynk_crpoint
+  use dump,        only : dump_crpoint
+  use aperture,    only : aper_crpoint,limifound
+  use scatter,     only : scatter_active, scatter_crpoint
+  use elens,       only : nelens, elens_crpoint
+  use mod_meta,    only : meta_crpoint
+  use mod_random,  only : rnd_crpoint
+  use collimation, only : coll_crpoint
 
   integer j, k, l, m, nPoint
   logical wErr, fErr
@@ -724,6 +735,13 @@ subroutine crpoint
       if(wErr) goto 100
     end if
 
+    if(st_debug) then
+      write(crlog,"(a)") "CR_POINT>  * COLLIMATION variables"
+      flush(crlog)
+    end if
+    call coll_crpoint(cr_pntUnit(nPoint),wErr)
+    if(wErr) goto 100
+
     flush(crlog)
     flush(cr_pntUnit(nPoint))
 
@@ -759,12 +777,13 @@ subroutine crstart
   use mod_common_track
   use numerical_constants
 
-  use dynk,       only : dynk_enabled, dynk_crstart
-  use scatter,    only : scatter_active, scatter_crstart
-  use elens,      only : nelens, elens_crstart
-  use mod_meta,   only : meta_crstart
-  use mod_time,   only : time_crstart
-  use mod_random, only : rnd_crstart
+  use dynk,        only : dynk_enabled, dynk_crstart
+  use scatter,     only : scatter_active, scatter_crstart
+  use elens,       only : nelens, elens_crstart
+  use mod_meta,    only : meta_crstart
+  use mod_time,    only : time_crstart
+  use mod_random,  only : rnd_crstart
+  use collimation, only : coll_crstart
 
   logical fErr
   integer j, k, l, m, nPoint, ioStat
@@ -852,6 +871,7 @@ subroutine crstart
   if(nelens > 0) then
     call elens_crstart
   end if
+  call coll_crstart
 
   ! Done
   write(crlog,"(3(a,i0))") "CR_START> SixRecords: ",sixrecs,", SixRecords C/R: ",crsixrecs,", BinRecords: ",binrec
