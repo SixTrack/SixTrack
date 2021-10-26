@@ -78,6 +78,9 @@ subroutine k2coll_collimate(icoll, iturn, ie, c_length, c_rotation, c_aperture, 
   use mod_common_main, only : partID, naa
   use mathlib_bouncer
   use mod_ranlux
+  use collimation, only : fort208Pos, coll_pencilFilePos, coll_fstImpactFilePos,                   &
+                          coll_flukImpFilePos, coll_flukImpAllFilePos, coll_jawProfileFilePos
+
 #ifdef HDF5
   use hdf5_output
 #endif
@@ -298,6 +301,9 @@ subroutine k2coll_collimate(icoll, iturn, ie, c_length, c_rotation, c_aperture, 
       end if
 
       write(coll_pencilUnit,"(f10.8,4(2x,f10.8))") x, xp, z, zp, tiltangle
+#ifdef CR
+      coll_pencilFilePos = coll_pencilFilePos + 1
+#endif
     end if ! End pencil dist
 
     ! After finishing the coordinate transformation, or the coordinate manipulations in case of pencil beams,
@@ -398,6 +404,9 @@ subroutine k2coll_collimate(icoll, iturn, ie, c_length, c_rotation, c_aperture, 
             s_Dump = sp+real(j_slices-1,fPrec)*c_length
             write(coll_jawProfileUnit,"(3(1x,i7),5(1x,e17.9),1x,i1)") &
               icoll,iturn,partID(j),x_Dump,xpDump,y_Dump,ypDump,s_Dump,1
+#ifdef CR
+            coll_jawProfileFilePos = coll_jawProfileFilePos + 1
+#endif
           end if
         end if
 
@@ -447,10 +456,16 @@ subroutine k2coll_collimate(icoll, iturn, ie, c_length, c_rotation, c_aperture, 
             ! Write out all impacts to all_impacts.dat
             write(coll_flukImpAllUnit,"(i4,(1x,f6.3),(1x,f8.6),4(1x,e19.10),i2,2(1x,i7))") &
               icoll,c_rotation,s_flk,x_flk,xp_flk,y_flk,yp_flk,nabs,partID(j),iturn
+#ifdef CR
+            coll_flukImpAllFilePos = coll_flukImpAllFilePos + 1
+#endif
             if(nabs == 1 .or. nabs == 4) then
               ! Standard FLUKA_impacts writeout of inelastic and single diffractive
               write(coll_flukImpUnit,"(i4,(1x,f6.3),(1x,f8.6),4(1x,e19.10),i2,2(1x,i7))") &
                 icoll,c_rotation,s_flk,x_flk,xp_flk,y_flk,yp_flk,nabs,partID(j),iturn
+#ifdef CR
+              coll_flukImpFilePos = coll_flukImpFilePos + 1
+#endif
             end if
           end if
 
@@ -483,6 +498,9 @@ subroutine k2coll_collimate(icoll, iturn, ie, c_length, c_rotation, c_aperture, 
             s_Dump = s+sp+real(j_slices-1,fPrec)*c_length
             write(coll_jawProfileUnit,"(3(1x,i7),5(1x,e17.9),1x,i1)") &
               icoll,iturn,partID(j),x_Dump,xpDump,y_Dump,ypDump,s_Dump,2
+#ifdef CR
+            coll_jawProfileFilePos = coll_jawProfileFilePos + 1
+#endif
           end if
           if(iexact) then
             zpj = sqrt(one-xp**2-zp**2)
@@ -523,6 +541,9 @@ subroutine k2coll_collimate(icoll, iturn, ie, c_length, c_rotation, c_aperture, 
 #endif
       write(coll_fstImpactUnit,"(i8,1x,i7,1x,i2,1x,i1,2(1x,f5.3),8(1x,e17.9))") &
         partID(j),iTurn,iColl,nAbs,sImp,sOut,xIn,xpIn,yIn,ypIn,xOut,xpOut,yOut,ypOut
+#ifdef CR
+      coll_fstImpactFilePos = coll_fstImpactFilePos + 1
+#endif
 #ifdef HDF5
       end if
 #endif
@@ -592,6 +613,9 @@ subroutine k2coll_collimate(icoll, iturn, ie, c_length, c_rotation, c_aperture, 
     end if
 #endif
     write(unit208,"(2(i6,1x),e24.16)") icoll, (nnuc0-nnuc1), c1m3*(ien0-ien1)
+#ifdef CR
+    fort208Pos = fort208Pos + 1
+#endif
     flush(unit208)
   end if
 
@@ -752,6 +776,7 @@ subroutine k2coll_jaw(s, nabs, icoll, iturn, ipart)
   use coll_common
   use coll_materials
   use mathlib_bouncer
+  use collimation, only : coll_scatterFilePos
 #ifdef HDF5
   use hdf5_output
 #endif
@@ -780,6 +805,9 @@ subroutine k2coll_jaw(s, nabs, icoll, iturn, ipart)
       else
 #endif
       write(coll_scatterUnit,"(1x,i2,2x,i4,2x,i5,2x,i1,3(2x,e14.6))") icoll, iturn, ipart, 1, -one, zero, zero
+#ifdef CR
+      coll_scatterFilePos = coll_scatterFilePos + 1
+#endif
 #ifdef HDF5
       end if
 #endif
@@ -796,6 +824,9 @@ subroutine k2coll_jaw(s, nabs, icoll, iturn, ipart)
       else
 #endif
       write(coll_scatterUnit,"(1x,i2,2x,i4,2x,i5,2x,i1,3(2x,e14.6))") icoll, iturn, ipart, 0, -one, zero, zero
+#ifdef CR
+      coll_scatterFilePos = coll_scatterFilePos + 1
+#endif
 #ifdef HDF5
       end if
 #endif
@@ -840,6 +871,9 @@ subroutine k2coll_jaw(s, nabs, icoll, iturn, ipart)
       else
 #endif
       write(coll_scatterUnit,'(1x,i2,2x,i4,2x,i5,2x,i1,3(2x,e18.10))') icoll,iturn,ipart,nabs_tmp,(p-pBef)/pBef,xp-xpBef,zp-zpBef
+#ifdef CR
+      coll_scatterFilePos = coll_scatterFilePos + 1
+#endif
 #ifdef HDF5
       end if
 #endif
@@ -875,6 +909,9 @@ subroutine k2coll_jaw(s, nabs, icoll, iturn, ipart)
       else
 #endif
       write(coll_scatterUnit,'(1x,i2,2x,i4,2x,i5,2x,i1,3(2x,e18.10))') icoll,iturn,ipart,nabs_tmp,(p-pBef)/pBef,xp-xpBef,zp-zpBef
+#ifdef CR
+      coll_scatterFilePos = coll_scatterFilePos + 1
+#endif
 #ifdef HDF5
       end if
 #endif
@@ -919,6 +956,9 @@ subroutine k2coll_jaw(s, nabs, icoll, iturn, ipart)
       else
 #endif
       write(coll_scatterUnit,'(1x,i2,2x,i4,2x,i5,2x,i1,3(2x,e14.6))') icoll,iturn,ipart,nabs_tmp,-one,zero,zero
+#ifdef CR
+      coll_scatterFilePos = coll_scatterFilePos + 1
+#endif
 #ifdef HDF5
       end if
 #endif
@@ -970,6 +1010,9 @@ subroutine k2coll_jaw(s, nabs, icoll, iturn, ipart)
     else
 #endif
     write(coll_scatterUnit,'(1x,i2,2x,i4,2x,i5,2x,i1,3(2x,e18.10))') icoll,iturn,ipart,nabs_tmp,(p-pBef)/pBef,xp-xpBef,zp-zpBef
+#ifdef CR
+    coll_scatterFilePos = coll_scatterFilePos + 1
+#endif
 #ifdef HDF5
     end if
 #endif
