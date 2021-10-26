@@ -871,6 +871,7 @@ subroutine crstart
   if(nelens > 0) then
     call elens_crstart
   end if
+  call coll_crstart
 
   ! Done
   write(crlog,"(3(a,i0))") "CR_START> SixRecords: ",sixrecs,", SixRecords C/R: ",crsixrecs,", BinRecords: ",binrec
