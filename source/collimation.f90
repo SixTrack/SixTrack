@@ -150,64 +150,6 @@ module collimation
   real(kind=fPrec), private, save :: bx_dist   = zero
   real(kind=fPrec), private, save :: by_dist   = zero
 
-#ifdef CR
-  ! For resetting file positions
-  integer, public,  save :: fort208Pos                = -1
-  integer, public,  save :: fort208Pos_CR             =  0
-  integer, public,  save :: coll_survivalFilePos      = -1
-  integer, public,  save :: coll_survivalFilePos_CR   =  0
-  integer, public,  save :: coll_gapsFilePos          = -1
-  integer, public,  save :: coll_gapsFilePos_CR       =  0
-  integer, public,  save :: coll_settingsFilePos      = -1
-  integer, public,  save :: coll_settingsFilePos_CR   =  0
-  integer, public,  save :: coll_positionsFilePos     = -1
-  integer, public,  save :: coll_positionsFilePos_CR  =  0
-  integer, public,  save :: coll_tracksFilePos        = -1
-  integer, public,  save :: coll_tracksFilePos_CR     =  0
-  integer, public,  save :: coll_pencilFilePos        = -1
-  integer, public,  save :: coll_pencilFilePos_CR     =  0
-  integer, public,  save :: coll_cryEntFilePos        = -1
-  integer, public,  save :: coll_cryEntFilePos_CR     =  0
-  integer, public,  save :: coll_cryExitFilePos       = -1
-  integer, public,  save :: coll_cryExitFilePos_CR    =  0
-  integer, public,  save :: coll_cryInterFilePos      = -1
-  integer, public,  save :: coll_cryInterFilePos_CR   =  0
-  integer, public,  save :: coll_ellipseFilePos       = -1
-  integer, public,  save :: coll_ellipseFilePos_CR    =  0
-  integer, public,  save :: coll_allImpactFilePos     = -1
-  integer, public,  save :: coll_allImpactFilePos_CR  =  0
-  integer, public,  save :: coll_allAbsorbFilePos     = -1
-  integer, public,  save :: coll_allAbsorbFilePos_CR  =  0
-  integer, public,  save :: coll_scatterFilePos       = -1
-  integer, public,  save :: coll_scatterFilePos_CR    =  0
-  integer, public,  save :: coll_fstImpactFilePos     = -1
-  integer, public,  save :: coll_fstImpactFilePos_CR  =  0
-  integer, public,  save :: coll_flukImpFilePos       = -1
-  integer, public,  save :: coll_flukImpFilePos_CR    =  0
-  integer, public,  save :: coll_flukImpAllFilePos    = -1
-  integer, public,  save :: coll_flukImpAllFilePos_CR =  0
-  integer, public,  save :: coll_jawProfileFilePos    = -1
-  integer, public,  save :: coll_jawProfileFilePos_CR =  0
-  integer, public,  save :: coll_efficFilePos         = -1
-  integer, public,  save :: coll_efficFilePos_CR      =  0
-  integer, public,  save :: coll_efficDPFilePos       = -1
-  integer, public,  save :: coll_efficDPFilePos_CR    =  0
-  integer, public,  save :: coll_effic2DFilePos       = -1
-  integer, public,  save :: coll_effic2DFilePos_CR    =  0
-  integer, public,  save :: coll_summaryFilePos       = -1
-  integer, public,  save :: coll_summaryFilePos_CR    =  0
-  integer, public,  save :: coll_ampFilePos           = -1
-  integer, public,  save :: coll_ampFilePos_CR        =  0
-  integer, public,  save :: coll_orbitCheckFilePos    = -1
-  integer, public,  save :: coll_orbitCheckFilePos_CR =  0
-  integer, public,  save :: coll_sigmaSetFilePos      = -1
-  integer, public,  save :: coll_sigmaSetFilePos_CR   =  0
-  integer, public,  save :: coll_impactFilePos        = -1
-  integer, public,  save :: coll_impactFilePos_CR     =  0
-  integer, public,  save :: coll_trackoutPos          = -1
-  integer, public,  save :: coll_trackoutPos_CR       =  0
-#endif
-
 read(fileunit,err=100,end=100) fort208Pos_CR, coll_survivalFilePos_CR, coll_gapsFilePos_CR, coll_settingsFilePos_CR,               &
                                coll_positionsFilePos_CR, coll_tracksFilePos_CR, coll_pencilFilePos_CR, coll_cryEntFilePos_CR,      &
                                coll_cryExitFilePos_CR, coll_cryInterFilePos_CR, coll_ellipseFilePos_CR,                            &

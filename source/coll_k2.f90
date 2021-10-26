@@ -78,8 +78,6 @@ subroutine k2coll_collimate(icoll, iturn, ie, c_length, c_rotation, c_aperture, 
   use mod_common_main, only : partID, naa
   use mathlib_bouncer
   use mod_ranlux
-  use collimation, only : fort208Pos, coll_pencilFilePos, coll_fstImpactFilePos,                   &
-                          coll_flukImpFilePos, coll_flukImpAllFilePos, coll_jawProfileFilePos
 
 #ifdef HDF5
   use hdf5_output
@@ -776,7 +774,6 @@ subroutine k2coll_jaw(s, nabs, icoll, iturn, ipart)
   use coll_common
   use coll_materials
   use mathlib_bouncer
-  use collimation, only : coll_scatterFilePos
 #ifdef HDF5
   use hdf5_output
 #endif
