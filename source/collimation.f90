@@ -150,15 +150,6 @@ module collimation
   real(kind=fPrec), private, save :: bx_dist   = zero
   real(kind=fPrec), private, save :: by_dist   = zero
 
-read(fileunit,err=100,end=100) fort208Pos_CR, coll_survivalFilePos_CR, coll_gapsFilePos_CR, coll_settingsFilePos_CR,               &
-                               coll_positionsFilePos_CR, coll_tracksFilePos_CR, coll_pencilFilePos_CR, coll_cryEntFilePos_CR,      &
-                               coll_cryExitFilePos_CR, coll_cryInterFilePos_CR, coll_ellipseFilePos_CR,                            &
-                               coll_allImpactFilePos_CR, coll_allAbsorbFilePos_CR, coll_scatterFilePos_CR,                         &
-                               coll_fstImpactFilePos_CR, coll_flukImpFilePos_CR, coll_flukImpAllFilePos_CR,                        &
-                               coll_jawProfileFilePos_CR, coll_efficFilePos_CR, coll_efficDPFilePos_CR, coll_effic2DFilePos_CR,    &
-                               coll_summaryFilePos_CR, coll_ampFilePos_CR, coll_orbitCheckFilePos_CR, coll_sigmaSetFilePos_CR,     &
-                               coll_impactFilePos_CR, coll_trackoutPos_CR
-
 contains
 
 subroutine collimation_expand_arrays(npart_new, nblz_new)
