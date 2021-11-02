@@ -1247,7 +1247,7 @@ subroutine kernel_fluka_exit
       use mod_common
       use mod_common_track
       use mod_common_main
-      use collimation, only : fort208Pos
+      use coll_common, only : fort208Pos
 
 #ifdef ROOT
       use root_output
