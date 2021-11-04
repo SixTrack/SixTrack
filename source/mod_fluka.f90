@@ -142,7 +142,7 @@ contains
   subroutine fluka_mod_init(npart, nele, clight)
 
     use mod_units
-
+    use mod_common, only : fort208, unit208
     implicit none
 
     ! interface variables
@@ -1011,6 +1011,9 @@ subroutine kernel_fluka_element( nturn, i, ix )
       use mod_common
       use mod_common_track
       use mod_common_main
+#ifdef CR
+      use coll_common, only : fort208Pos
+#endif
 
 #ifdef ROOT
       use root_output
@@ -1247,8 +1250,9 @@ subroutine kernel_fluka_exit
       use mod_common
       use mod_common_track
       use mod_common_main
+#ifdef CR
       use coll_common, only : fort208Pos
-
+#endif
 #ifdef ROOT
       use root_output
 #endif
