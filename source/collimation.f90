@@ -3605,6 +3605,8 @@ end subroutine coll_echoSettings
 ! ================================================================================================================================ !
 subroutine coll_crcheck_readdata(fileUnit,readerr)
 
+  use crcoall
+  use coll_common
   implicit none
 
   integer, intent(in)  :: fileUnit
@@ -3638,6 +3640,8 @@ subroutine coll_crcheck_positionFiles
   use parpro
   use crcoall
   use mod_units
+  use coll_common
+  use mod_common, only : fort208, unit208
 
   logical isOpen, fErr
   integer iError
@@ -3678,7 +3682,8 @@ end subroutine coll_crcheck_positionFiles
 
 ! ================================================================================================================================ !
 subroutine coll_crpoint(fileUnit,lerror)
-
+  use crcoall
+  use coll_common
   implicit none
 
   integer, intent(in)  :: fileUnit
