@@ -1081,7 +1081,11 @@ subroutine kernel_fluka_element( nturn, i, ix )
          dpsv  (j) = (ejfv(j)*(nucm0/nucm(j))-e0f)/e0f         ! hisix: new delta
          oidpsv(j) = one/(one+dpsv(j))
          dpsv1 (j) = (dpsv(j)*c1e3)*oidpsv(j)
-         mtc     (j) = (nqq(j)*nucm0)/(qq0*nucm(j))            ! hisix: mass to charge
+         if(nqq(j) .eq. 0) then
+           mtc (j) = zero
+         else
+           mtc (j) = (nqq(j)*nucm0)/(qq0*nucm(j))              ! hisix: mass to charge
+         endif
          moidpsv (j) = mtc(j)*oidpsv(j)                        ! hisix
          omoidpsv(j) = c1e3*((one-mtc(j))*oidpsv(j))           ! hisix
          nnuc1       = nnuc1 + naa(j)                          ! outcoming nucleons

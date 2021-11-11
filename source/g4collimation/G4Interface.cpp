@@ -54,7 +54,7 @@ These include:
 2: The Physics to use.
 3: A particle source.
 */
-extern "C" void g4_collimation_init(double* ReferenceE, int* seed, double* recut, double* aecut, double* rcut, double* rangecut_mm, double* v0, char* PhysicsSelect, bool* g4_debug, bool* g4_keep_stable, bool *DoEnergyDeposition)
+extern "C" void g4_collimation_init(double* ReferenceE, int* seed, double* recut, double* aecut, double* rcut, double* rangecut_mm, double* v0, char* PhysicsSelect, bool* g4_debug, bool* g4_keep_stable, bool *DoEnergyDeposition, bool *g4_neutral)
 {
 
 	std::cout << "GEANT4> Using seed " << *seed << " in geant4 C++" << std::endl;
@@ -173,9 +173,11 @@ extern "C" void g4_collimation_init(double* ReferenceE, int* seed, double* recut
 
 	if(*g4_debug)
 	{
-		std::cout << "GEANT4> keep stable particles: " << *g4_keep_stable << std::endl;
+		std::cout << "GEANT4> keep stable particles:  " << *g4_keep_stable << std::endl;
+		std::cout << "GEANT4> keep neutral particles: " << *g4_neutral     << std::endl;
 	}
 	tracking->SetKeepStableParticles(*g4_keep_stable);
+	tracking->SetKeepNeutrals(*g4_neutral);
 	tracking->SetDebug(*g4_debug);
 
 	stack = new CollimationStackingAction();

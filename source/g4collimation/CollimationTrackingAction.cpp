@@ -55,7 +55,8 @@ void CollimationTrackingAction::PostUserTrackingAction(const G4Track* Track)
 	G4StepStatus Tstatus = Track->GetStep()->GetPostStepPoint()->GetStepStatus();
 
 //Extraction plane and charge cut
-    if (Tstatus == fWorldBoundary && Track->GetParticleDefinition()->GetPDGCharge() != 0)
+    //if (Tstatus == fWorldBoundary && Track->GetParticleDefinition()->GetPDGCharge() != 0)
+    if (Tstatus == fWorldBoundary)
 	{
 		bool keep_this = false;
 
@@ -196,6 +197,11 @@ void CollimationTrackingAction::SetParticlesToKeep(std::set<int>* iset)
 void CollimationTrackingAction::SetKeepStableParticles(bool flag)
 {
 	KeepOnlyStable = flag;
+}
+
+void CollimationTrackingAction::SetKeepNeutrals(bool flag)
+{
+	KeepNeutrals = flag;
 }
 
 void CollimationTrackingAction::SetParticleID(int32_t in)
