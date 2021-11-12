@@ -330,11 +330,12 @@ subroutine cry_doCrystal(ie,iturn,j,mat,x,xp,z,zp,s,p,x0,xp0,zlm,s_imp,isImp,nhi
   else
 
     if(x < zero) then ! Crystal hit from below
-!      write(*,*) 'Crystal hit from below'
+!      write(*,*) 'Crystal potentially hit from below'
 !      write(*,*) 'CHECK', x
       xp_tangent = sqrt((-(two*x)*c_rcurv + x**2)/c_rcurv**2)
 !      write(*,*) 'tangent', xp_tangent, xp
     else ! Crystal hit from above
+!      write(*,*) 'Crystal potentially hit from above'
 !      write(*,*) 'CHECK', x
       xp_tangent = asin_mb((c_rcurv*(one - c_cBend) - x)/sqrt(((two*c_rcurv)*(c_rcurv - x))*(one - c_cBend) + x**2))
 !      write(*,*) 'tangent', xp_tangent, xp
@@ -343,6 +344,8 @@ subroutine cry_doCrystal(ie,iturn,j,mat,x,xp,z,zp,s,p,x0,xp0,zlm,s_imp,isImp,nhi
     ! If the hit is below, the angle must be greater or equal than the tangent,
     ! or if the hit is above, the angle must be smaller or equal than the tangent
     if((x < zero .and. xp >= xp_tangent) .or. (x >= zero .and. xp <= xp_tangent)) then
+
+!      write(*,*) 'Crystal actually hit from above/below'
 
       ! If it hits the crystal, calculate in which point and apply the transformation and drift to that point
       a_eq  = one + xp**2
@@ -428,7 +431,7 @@ subroutine cry_doCrystal(ie,iturn,j,mat,x,xp,z,zp,s,p,x0,xp0,zlm,s_imp,isImp,nhi
 
     else
 
-!      write(*,*) "not actually hit"
+!      write(*,*) 'Crystal NOT actually hit'
       s = c_rcurv*sin_mb(cry_length/c_rcurv)
       x = x + s*xp
       z = z + s*zp
@@ -476,6 +479,8 @@ subroutine cry_doCrystal(ie,iturn,j,mat,x,xp,z,zp,s,p,x0,xp0,zlm,s_imp,isImp,nhi
   else if(iProc == proc_ch_absorbed) then
     nabs = 1
   end if
+
+!  write(*,*) 'Process', iProc
 
   ! Storing the process ID for the next interaction
   cry_proc_tmp(j) = cry_proc(j)
@@ -563,12 +568,17 @@ subroutine cry_interact(is,x,xp,y,yp,pc,length,s_P,x_P)
   L_chan   = length
 
   ! MISCUT second step: fundamental coordinates
-  s_K = c_rcurv*sin_mb(cry_bend)
-  x_K = c_rcurv*(1-cos_mb(cry_bend))
-  s_M = (c_rcurv-c_xmax)*sin_mb(cry_bend)
-  x_M = c_xmax + (c_rcurv-c_xmax)*(1-cos_mb(cry_bend))
+!  s_K = c_rcurv*sin_mb(cry_bend)
+!  x_K = c_rcurv*(1-cos_mb(cry_bend))
+!  s_M = (c_rcurv-c_xmax)*sin_mb(cry_bend)
+!  x_M = c_xmax + (c_rcurv-c_xmax)*(1-cos_mb(cry_bend))
+  s_K = c_rcurv*sin_mb(length/c_rcurv)
+  x_K = c_rcurv*(1-cos_mb(length/c_rcurv))
+  s_M = (c_rcurv-c_xmax)*sin_mb(length/c_rcurv)
+  x_M = c_xmax + (c_rcurv-c_xmax)*(1-cos_mb(length/c_rcurv))
   r   = sqrt(s_P**2 + (x-x_P)**2)
-!  write(*,*) "bending", length/c_rcurv
+!  write(*,*) "bending var", cry_bend
+!  write(*,*) "bending cal", length/c_rcurv
 !  write(*,*) "Rcurv", c_rcurv
 !  write(*,*) "P", s_P, x_P
 !  write(*,*) "I", s, x
@@ -578,17 +588,33 @@ subroutine cry_interact(is,x,xp,y,yp,pc,length,s_P,x_P)
 !  write(*,*) "r", r
 
   ! MISCUT third step: F coordinates on crystal exit face
-  A_F = tan_mb(cry_bend)**2 + one
-  B_F = -two*tan_mb(cry_bend)**2*c_rcurv + two*tan_mb(cry_bend)*s_P -two*x_P
-  C_F = tan_mb(cry_bend)**2*c_rcurv**2 - two*tan_mb(cry_bend)*s_P*c_rcurv + s_P**2 + x_P**2 - r**2
+!  A_F = tan_mb(cry_bend)**2 + one
+!  B_F = -two*tan_mb(cry_bend)**2*c_rcurv + two*tan_mb(cry_bend)*s_P -two*x_P
+!  C_F = tan_mb(cry_bend)**2*c_rcurv**2 - two*tan_mb(cry_bend)*s_P*c_rcurv + s_P**2 + x_P**2 - r**2
+  A_F = tan_mb(length/c_rcurv)**2 + one
+  B_F = -two*tan_mb(length/c_rcurv)**2*c_rcurv + two*tan_mb(length/c_rcurv)*s_P -two*x_P
+  C_F = tan_mb(length/c_rcurv)**2*c_rcurv**2 - two*tan_mb(length/c_rcurv)*s_P*c_rcurv + s_P**2 + x_P**2 - r**2
 
   x_F = (-B_F-sqrt(B_F**2-four*A_F*C_F))/(two*A_F)
-  s_F = -tan_mb(cry_bend)*(x_F-c_rcurv)
+!  s_F = -tan_mb(cry_bend)*(x_F-c_rcurv)
+  s_F = -tan_mb(length/c_rcurv)*(x_F-c_rcurv)
 !  write(*,*) "F", s_F, x_F
+!  write(*,*) "F-K", s_F-s_K, x_F-x_K
+!  write(*,*) "F-M", s_F-s_M, x_F-x_M
 
   if(x_F >= x_K .and. x_F <= x_M .and. s_F >= s_M .and. s_F <= s_K) then
 !    write(*,*) "F on exit face"
     ! MISCUT No additional steps required
+  else if (c_miscut == 0 .and. abs(x_F-x_K) <= c1m13 .and. abs(s_F-s_K) <= c1m13) then
+    ! no miscut, entrance from below: exit point is K
+!    write(*,*) "F on exit face"
+    x_F = x_K
+    s_F = s_K
+  else if (c_miscut == 0 .and. abs(x_F-x_M) <= c1m13 .and. abs(s_F-s_M) <= c1m13) then
+    ! no miscut, entrance from above: exit point is M
+!    write(*,*) "F on exit face"
+    x_F = x_M
+    s_F = s_M
   else
 !    write(*,*) "F NOT on exit face"
 
