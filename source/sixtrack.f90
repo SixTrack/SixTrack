@@ -705,10 +705,6 @@ subroutine daten
     end if
 
   case("COLL") ! Collimation Block
-#ifdef CR
-    write(lerr,"(a)") "INPUT> ERROR Collimation incompatible with checkpoint/restart (CR)"
-    goto 9999
-#endif
     if(openBlock) then
       ! If a collimation block is present, even disabled, allocate the storage.
       ! This mimmics the old compiler flag.
