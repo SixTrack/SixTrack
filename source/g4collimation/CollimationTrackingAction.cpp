@@ -7,7 +7,7 @@
 
 #include "G4Proton.hh"
 
-CollimationTrackingAction::CollimationTrackingAction() : do_debug(false),KeepOnlyStable(false),parentID(0),partID_max(0)
+CollimationTrackingAction::CollimationTrackingAction() : do_debug(false),KeepNeutrals(false),KeepOnlyStable(false),parentID(0),partID_max(0)
 {}
 
 void CollimationTrackingAction::PreUserTrackingAction(const G4Track*)
@@ -92,6 +92,12 @@ void CollimationTrackingAction::PostUserTrackingAction(const G4Track* Track)
 			{
 				std::cout << "RETURN STABLE> Not returning particle: " << Track->GetParticleDefinition()->GetParticleName() << "\t" << Track->GetParticleDefinition()->GetPDGEncoding() << "\t" << !Track->GetParticleDefinition()->GetPDGStable() << std::endl;
 			}
+		}
+
+//Check if the particle is neutral and if we are keeping them or not
+		if(Track->GetParticleDefinition()->GetPDGCharge() != 0 && KeepNeutrals != true)
+		{
+			keep_this = false;
 		}
 
 //Energy cut
