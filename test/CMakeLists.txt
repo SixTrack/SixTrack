@@ -197,7 +197,8 @@ list(APPEND SIXTRACK_TESTS
 # Tests depending on flags
 ##
 
-if(NOT CR)
+#collimation tests
+#previously disabled in CR mode
   list(APPEND SIXTRACK_TESTS
     collimation_cry_ge_am_hor_b2
     collimation_cry_ge_vc_ver_b1
@@ -225,7 +226,6 @@ if(NOT CR)
     collimation_tracks2
     scatter_collimation
   )
-endif()
 
 if(NAFF)
   list(APPEND SIXTRACK_TESTS
