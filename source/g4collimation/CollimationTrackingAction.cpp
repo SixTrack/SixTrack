@@ -7,7 +7,7 @@
 
 #include "G4Proton.hh"
 
-CollimationTrackingAction::CollimationTrackingAction() : do_debug(false),KeepOnlyStable(false),parentID(0),partID_max(0)
+CollimationTrackingAction::CollimationTrackingAction() : do_debug(false),KeepNeutrals(false),KeepOnlyStable(false),parentID(0),partID_max(0)
 {}
 
 void CollimationTrackingAction::PreUserTrackingAction(const G4Track*)
@@ -55,7 +55,8 @@ void CollimationTrackingAction::PostUserTrackingAction(const G4Track* Track)
 	G4StepStatus Tstatus = Track->GetStep()->GetPostStepPoint()->GetStepStatus();
 
 //Extraction plane and charge cut
-    if (Tstatus == fWorldBoundary && Track->GetParticleDefinition()->GetPDGCharge() != 0)
+    //if (Tstatus == fWorldBoundary && Track->GetParticleDefinition()->GetPDGCharge() != 0)
+    if (Tstatus == fWorldBoundary)
 	{
 		bool keep_this = false;
 
@@ -91,6 +92,12 @@ void CollimationTrackingAction::PostUserTrackingAction(const G4Track* Track)
 			{
 				std::cout << "RETURN STABLE> Not returning particle: " << Track->GetParticleDefinition()->GetParticleName() << "\t" << Track->GetParticleDefinition()->GetPDGEncoding() << "\t" << !Track->GetParticleDefinition()->GetPDGStable() << std::endl;
 			}
+		}
+
+//Check if the particle is neutral and if we are keeping them or not
+		if(Track->GetParticleDefinition()->GetPDGCharge() != 0 && KeepNeutrals != true)
+		{
+			keep_this = false;
 		}
 
 //Energy cut
@@ -196,6 +203,11 @@ void CollimationTrackingAction::SetParticlesToKeep(std::set<int>* iset)
 void CollimationTrackingAction::SetKeepStableParticles(bool flag)
 {
 	KeepOnlyStable = flag;
+}
+
+void CollimationTrackingAction::SetKeepNeutrals(bool flag)
+{
+	KeepNeutrals = flag;
 }
 
 void CollimationTrackingAction::SetParticleID(int32_t in)

@@ -21,6 +21,7 @@ module geant4
 
   logical(kind=C_BOOL) :: g4_enabled     = .false.
   logical(kind=C_BOOL) :: g4_debug       = .false.
+  logical(kind=C_BOOL) :: g4_neutral     = .false. !Keep neutral particles or not
   logical(kind=C_BOOL) :: g4_keep_stable = .false.
 
 
@@ -55,7 +56,7 @@ module geant4
 !void g4_collimation_init_(double* ReferenceE, int* seed, double* recut, double* aecut, double* rcut,
 !int* PhysicsSelect, bool* g4_debug, bool* g4_keep_stable)
   subroutine g4_collimation_init(ReferenceE, seed, recut, aecut, rcut, rangecut_mm, v0, PhysicsSelect, g4_debug, g4_keep_stable, &
-& g4_edep) &
+& g4_edep, g4_neutral) &
 & bind(C,name="g4_collimation_init")
     use, intrinsic :: iso_c_binding
     implicit none
@@ -71,6 +72,7 @@ module geant4
     logical(kind=C_BOOL),         intent(in) :: g4_debug
     logical(kind=C_BOOL),         intent(in) :: g4_keep_stable
     logical(kind=C_BOOL),         intent(in) :: g4_edep
+    logical(kind=C_BOOL),         intent(in) :: g4_neutral
   end subroutine g4_collimation_init
 
 !void g4_add_collimator_(char* name, char* material, double* length, double* aperture, double* rotation, double* offset)
@@ -298,6 +300,8 @@ subroutine geant4_parseInputLine(inLine,iErr)
       call g4_keep_id(g4_keep)
     end if
 
+  else if(lnSplit(1) == 'NEUTRAL') then
+    g4_neutral = .true.
 
 !Physics list to use string
   else if(lnSplit(1) == 'PHYSICS') then

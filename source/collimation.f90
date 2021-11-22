@@ -434,7 +434,7 @@ subroutine coll_init
   ! g4_physics = 0
 
   call g4_collimation_init(e0, rnd_seed, g4_recut, g4_aecut, g4_rcut, g4_rangecut_mm, g4_v0, trim(g4_phys_str), &
-    g4_debug, g4_keep_stable, g4_edep)
+    g4_debug, g4_keep_stable, g4_edep, g4_neutral)
 #endif
 
   write (lout,"(a)") ""
@@ -3356,6 +3356,12 @@ subroutine coll_doCollimator_Geant4(c_aperture,c_rotation,c_length,onesided)
       part_hit_flag, part_abs_flag, part_impact(j), part_indiv(j), part_linteract(j), spin_x(j), spin_y(j), spin_z(j))
 
     pstop (j) = .false.
+
+    if(nqq(j) .eq. 0) then
+      mtc (j) = zero
+    else
+      mtc (j) = (nqq(j)*nucm0)/(qq0*nucm(j))  ! hisix: mass to charge
+    endif
 
 !! Rotate back into the accelerator frame
     x_tmp   = rcx(j)
