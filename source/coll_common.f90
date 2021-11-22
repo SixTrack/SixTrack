@@ -178,6 +178,12 @@ module coll_common
   integer, public,  save :: coll_impactFilePos_CR     =  0
   integer, public,  save :: coll_trackoutPos          = -1
   integer, public,  save :: coll_trackoutPos_CR       =  0
+
+! For the RNG
+  integer, public,  save :: lux_CR  = 0
+  integer, public,  save :: seed_CR = 0
+  integer, public,  save :: k1_CR   = 0
+  integer, public,  save :: k2_CR   = 0
 #endif
 
 contains

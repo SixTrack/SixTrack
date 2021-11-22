@@ -163,6 +163,9 @@ contains
     if(unit208 == -1) then
       call f_requestUnit(fort208,unit208)
       call f_open(unit=unit208,file=fort208,formatted=.true.,mode="w")
+#ifdef CR
+      fort208Pos = 0
+#endif
     end if
 
     call f_requestUnit("fluka.log",        fluka_log_unit)

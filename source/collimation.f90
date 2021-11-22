@@ -335,6 +335,7 @@ subroutine coll_init
   call rluxgo(3, rnd_seed, 0, 0)
   write(outlun,*) 'INFO>  rnd_seed: ', rnd_seed
 #ifdef CR
+  flush(outlun)
   coll_trackoutPos = coll_trackoutPos + 1
 #endif
 
@@ -351,6 +352,7 @@ subroutine coll_init
     write(lout,"(a)") "COLL> WARNING Distributions reset to pencil beam!"
     write(outlun,*)   "WARN> Distributions reset to pencil beam!"
 #ifdef CR
+    flush(outlun)
     coll_trackoutPos = coll_trackoutPos + 1
 #endif
     xv1(1:napx) = zero
@@ -413,6 +415,9 @@ subroutine coll_init
   if(unit208 == -1) then
     call f_requestUnit(fort208,unit208)
     call f_open(unit=unit208,file=fort208,formatted=.true.,mode="w",status="replace")
+#ifdef CR
+    fort208Pos = 0
+#endif
   end if
 
 #ifdef G4COLLIMATION
@@ -495,6 +500,7 @@ subroutine coll_init
   write(outlun,*) 'SETTING> do_mingap        : ', do_mingap
   write(outlun,*) ' '
 #ifdef CR
+  flush(outlun)
   coll_trackoutPos = coll_trackoutPos + 15
 #endif
 
@@ -558,7 +564,7 @@ subroutine coll_init
   ! a given set of seeds.
   ! It is probably unnecessary to use different random seeds here in the first place.
   call rluxgo(3, rnd_seed, 0, 0)
-  dummy = rndm5(1) ! Reset rndm5 too
+!  dummy = coll_rand() ! Reset rndm5 too
 
 end subroutine coll_init
 
@@ -1298,144 +1304,236 @@ subroutine coll_openFiles
   integer fmtHdf
 #endif
 
+!open files, in CR mode perform additional checks
+
   ! Survival File
-  call f_requestUnit(coll_survivalFile,coll_survivalUnit)
-  call f_open(unit=coll_survivalUnit,file=coll_survivalFile,formatted=.true.,mode="w",status="replace")
-  write(coll_survivalUnit,"(a7,1x,a9)") "#  turn","n_part"
 #ifdef CR
-  coll_survivalFilePos = coll_survivalFilePos + 1
+  if(coll_survivalUnit == -1) then
+#endif
+    call f_requestUnit(coll_survivalFile,coll_survivalUnit)
+    call f_open(unit=coll_survivalUnit,file=coll_survivalFile,formatted=.true.,mode="w",status="replace")
+    write(coll_survivalUnit,"(a7,1x,a9)") "#  turn","n_part"
+    flush(coll_survivalUnit)
+#ifdef CR
+    coll_survivalFilePos = 1
+  end if
 #endif
 
   ! Collimator Gaps File
-  call f_requestUnit(coll_gapsFile,coll_gapsUnit)
-  call f_open(unit=coll_gapsUnit,file=coll_gapsFile,formatted=.true.,mode="w",status="replace")
-  write(coll_gapsUnit,"(a1,1x,a2,1x,a16,4(1x,a19),1x,a4,5(1x,a13),1x,a13)")     &
-    "#","ID","name            ","angle[rad]","betax[m]","betay[m]","halfgap[m]",&
-    "mat.","length[m]","sigx[m]","sigy[m]","tilt1[rad]","tilt2[rad]","nsig"
 #ifdef CR
-  coll_gapsFilePos = coll_gapsFilePos + 1
+  if(coll_gapsUnit == -1) then
+#endif
+    call f_requestUnit(coll_gapsFile,coll_gapsUnit)
+    call f_open(unit=coll_gapsUnit,file=coll_gapsFile,formatted=.true.,mode="w",status="replace")
+    write(coll_gapsUnit,"(a1,1x,a2,1x,a16,4(1x,a19),1x,a4,5(1x,a13),1x,a13)")     &
+      "#","ID","name            ","angle[rad]","betax[m]","betay[m]","halfgap[m]",&
+      "mat.","length[m]","sigx[m]","sigy[m]","tilt1[rad]","tilt2[rad]","nsig"
+    flush(coll_gapsUnit)
+#ifdef CR
+    coll_gapsFilePos = 1
+  end if
 #endif
 
   ! Collimator Settings (Jaw Slices)
-  call f_requestUnit(coll_settingsFile,coll_settingsUnit)
-  call f_open(unit=coll_settingsUnit,file=coll_settingsFile,formatted=.true.,mode="w",status="replace")
-  write(coll_settingsUnit,"(a20,1x,a10,5(1x,a13),1x,a4)") chr_rPad("# name",20),"slice","halfgap[m]","gapoffset[m]",&
-    "tiltjaw1[rad]","tiltjaw2[rad]","length[m]","mat."
 #ifdef CR
-  coll_settingsFilePos = coll_settingsFilePos + 1
+  if(coll_settingsUnit == -1) then
+#endif
+    call f_requestUnit(coll_settingsFile,coll_settingsUnit)
+    call f_open(unit=coll_settingsUnit,file=coll_settingsFile,formatted=.true.,mode="w",status="replace")
+    write(coll_settingsUnit,"(a20,1x,a10,5(1x,a13),1x,a4)") chr_rPad("# name",20),"slice","halfgap[m]","gapoffset[m]",&
+      "tiltjaw1[rad]","tiltjaw2[rad]","length[m]","mat."
+    flush(coll_settingsUnit)
+#ifdef CR
+    coll_settingsFilePos = 1
+  end if
 #endif
 
   ! Positions
-  call f_requestUnit(coll_positionsFile,coll_positionsUnit)
-  call f_open(unit=coll_positionsUnit,file=coll_positionsFile,formatted=.true.,mode="w",status="replace")
-  write(coll_positionsUnit,"(a)") "# Ind           Name   Pos[m]"
 #ifdef CR
-  coll_positionsFilePos = coll_positionsFilePos + 1
+  if(coll_positionsUnit == -1) then
+#endif
+    call f_requestUnit(coll_positionsFile,coll_positionsUnit)
+    call f_open(unit=coll_positionsUnit,file=coll_positionsFile,formatted=.true.,mode="w",status="replace")
+    write(coll_positionsUnit,"(a)") "# Ind           Name   Pos[m]"
+    flush(coll_positionsUnit)
+#ifdef CR
+    coll_positionsFilePos = 1
+  end if
 #endif
 
   ! Tracks Files
   if(dowrite_tracks) then
-    call f_requestUnit(coll_tracksFile,coll_tracksUnit)
-    call f_open(unit=coll_tracksUnit,file=coll_tracksFile,formatted=.true.,mode="w",status="replace")
-    write(coll_tracksUnit,"(a)") "# name turn s x xp y yp DE/E type"
-  end if
 #ifdef CR
-  coll_tracksFilePos = coll_tracksFilePos + 1
+    if(coll_tracksUnit == -1) then
 #endif
-
-  call f_requestUnit(coll_pencilFile,coll_pencilUnit)
-  call f_open(unit=coll_pencilUnit, file=coll_pencilFile,formatted=.true.,mode="w",status="replace")
-  write(coll_pencilUnit,"(a)") "# x xp y yp"
+      call f_requestUnit(coll_tracksFile,coll_tracksUnit)
+      call f_open(unit=coll_tracksUnit,file=coll_tracksFile,formatted=.true.,mode="w",status="replace")
+      write(coll_tracksUnit,"(a)") "# name turn s x xp y yp DE/E type"
+      flush(coll_tracksUnit)
 #ifdef CR
-  coll_pencilFilePos = coll_pencilFilePos + 1
+      coll_tracksFilePos = 1
+    end if
+#endif
+  end if
+
+#ifdef CR
+  if(coll_pencilUnit == -1) then
+#endif
+    call f_requestUnit(coll_pencilFile,coll_pencilUnit)
+    call f_open(unit=coll_pencilUnit, file=coll_pencilFile,formatted=.true.,mode="w",status="replace")
+    write(coll_pencilUnit,"(a)") "# x xp y yp"
+    flush(coll_pencilUnit)
+#ifdef CR
+    coll_pencilFilePos = 1
+  end if
 #endif
 
   ! Crystal Files
   if(coll_hasCrystal .and. dowrite_crycoord) then
     if(st_debug) then
-      call f_requestUnit(coll_cryEntFile,coll_cryEntUnit)
-      call f_open(unit=coll_cryEntUnit,file=coll_cryEntFile,formatted=.true.,mode="w",status="replace")
-      write(coll_cryEntUnit,"(a1,1x,a6,1x,a8,1x,a20,1x,a4,2(1x,a3),5(1x,a15))") &
-        "#","partID","turn",chr_rPad("collimator",20),"mat.","hit","abs","x","xp","y","yp","p"
 #ifdef CR
-      coll_cryEntFilePos = coll_cryEntFilePos + 1
+      if(coll_cryEntUnit == -1) then
+#endif
+        call f_requestUnit(coll_cryEntFile,coll_cryEntUnit)
+        call f_open(unit=coll_cryEntUnit,file=coll_cryEntFile,formatted=.true.,mode="w",status="replace")
+        write(coll_cryEntUnit,"(a1,1x,a6,1x,a8,1x,a20,1x,a4,2(1x,a3),5(1x,a15))") &
+          "#","partID","turn",chr_rPad("collimator",20),"mat.","hit","abs","x","xp","y","yp","p"
+        flush(coll_cryEntUnit)
+#ifdef CR
+        coll_cryEntFilePos = 1
+      end if
 #endif
 
-      call f_requestUnit(coll_cryExitFile,coll_cryExitUnit)
-      call f_open(unit=coll_cryExitUnit,file=coll_cryExitFile,formatted=.true.,mode="w",status="replace")
-      write(coll_cryExitUnit,"(a1,1x,a6,1x,a8,1x,a20,1x,a4,2(1x,a3),5(1x,a15))") &
-        "#","partID","turn",chr_rPad("collimator",20),"mat.","hit","abs","x","xp","y","yp","p"
 #ifdef CR
-      coll_cryExitFilePos = coll_cryExitFilePos + 1
+      if(coll_cryExitUnit == -1) then
+#endif
+        call f_requestUnit(coll_cryExitFile,coll_cryExitUnit)
+        call f_open(unit=coll_cryExitUnit,file=coll_cryExitFile,formatted=.true.,mode="w",status="replace")
+        write(coll_cryExitUnit,"(a1,1x,a6,1x,a8,1x,a20,1x,a4,2(1x,a3),5(1x,a15))") &
+          "#","partID","turn",chr_rPad("collimator",20),"mat.","hit","abs","x","xp","y","yp","p"
+        flush(coll_cryExitUnit)
+#ifdef CR
+        coll_cryExitFilePos = 1
+      end if
 #endif
     end if
 
-    call f_requestUnit(coll_cryInterFile,coll_cryInterUnit)
-    call f_open(unit=coll_cryInterUnit,file=coll_cryInterFile,formatted=.true.,mode="w",status="replace")
-    write(coll_cryInterUnit,"(a1,1x,a6,1x,a8,1x,a20,1x,a4,1x,a4,10(1x,a15))") &
-        "#","partID","turn",chr_rPad("collimator",20),"prev","proc","kickx","kicky","Ein","Eout", &
-        "xpin","ypin","cryangle","xin","yin"
 #ifdef CR
-    coll_cryInterFilePos = coll_cryInterFilePos + 1
+    if(coll_cryInterUnit == -1) then
+#endif
+      call f_requestUnit(coll_cryInterFile,coll_cryInterUnit)
+      call f_open(unit=coll_cryInterUnit,file=coll_cryInterFile,formatted=.true.,mode="w",status="replace")
+      write(coll_cryInterUnit,"(a1,1x,a6,1x,a8,1x,a20,1x,a4,1x,a4,10(1x,a15))") &
+          "#","partID","turn",chr_rPad("collimator",20),"prev","proc","kickx","kicky","Ein","Eout", &
+          "xpin","ypin","cryangle","xin","yin"
+      flush(coll_cryInterUnit)
+#ifdef CR
+      coll_cryInterFilePos = 1
+    end if
 #endif
   end if
 
   if(do_select) then
-    call f_requestUnit(coll_ellipseFile,coll_ellipseUnit)
-    call f_open(unit=coll_ellipseUnit,file=coll_ellipseFile,formatted=.true.,mode="w",status="replace")
-    write(coll_ellipseUnit,"(a)") "# name x y xp yp E s turn halo nabs_type"
 #ifdef CR
-    coll_ellipseFilePos = coll_ellipseFilePos + 1
+    if(coll_ellipseUnit == -1) then
+#endif
+      call f_requestUnit(coll_ellipseFile,coll_ellipseUnit)
+      call f_open(unit=coll_ellipseUnit,file=coll_ellipseFile,formatted=.true.,mode="w",status="replace")
+      write(coll_ellipseUnit,"(a)") "# name x y xp yp E s turn halo nabs_type"
+      flush(coll_ellipseUnit)
+#ifdef CR
+      coll_ellipseFilePos = 1
+    end if
 #endif
   end if
 
   if(dowrite_impact) then
-    call f_requestUnit(coll_allImpactFile, coll_allImpactUnit)
-    call f_requestUnit(coll_allAbsorbFile, coll_allAbsorbUnit)
-    call f_requestUnit(coll_scatterFile,   coll_scatterUnit)
-    call f_requestUnit(coll_fstImpactFile, coll_fstImpactUnit)
-    call f_requestUnit(coll_flukImpFile,   coll_flukImpUnit)
-    call f_requestUnit(coll_flukImpAllFile,coll_flukImpAllUnit)
-    call f_requestUnit(coll_jawProfileFile,coll_jawProfileUnit)
 
-    call f_open(unit=coll_allImpactUnit, file=coll_allImpactFile, formatted=.true.,mode="w",status="replace")
-    call f_open(unit=coll_allAbsorbUnit, file=coll_allAbsorbFile, formatted=.true.,mode="w",status="replace")
-    call f_open(unit=coll_scatterUnit,   file=coll_scatterFile,   formatted=.true.,mode="w",status="replace")
-    call f_open(unit=coll_fstImpactUnit, file=coll_fstImpactFile, formatted=.true.,mode="w",status="replace")
-    call f_open(unit=coll_flukImpUnit,   file=coll_flukImpFile,   formatted=.true.,mode="w",status="replace")
-    call f_open(unit=coll_flukImpAllUnit,file=coll_flukImpAllFile,formatted=.true.,mode="w",status="replace")
-    call f_open(unit=coll_jawProfileUnit,file=coll_jawProfileFile,formatted=.true.,mode="w",status="replace")
+#ifdef CR
+    if(coll_allImpactUnit == -1) then
+#endif
+      call f_requestUnit(coll_allImpactFile, coll_allImpactUnit)
+      call f_open(unit=coll_allImpactUnit, file=coll_allImpactFile, formatted=.true.,mode="w",status="replace")
+      write(coll_allImpactUnit,"(a)") "# 1=name 2=turn 3=s"
+      flush(coll_allImpactUnit)
+#ifdef CR
+      coll_allImpactFilePos = 1
+    end if
+#endif
 
-    write(coll_allImpactUnit,"(a)") "# 1=name 2=turn 3=s"
 #ifdef CR
-    coll_allImpactFilePos = coll_allImpactFilePos + 1
+    if(coll_allAbsorbUnit == -1) then
 #endif
-    write(coll_allAbsorbUnit,"(a)") "# 1=name 2=turn 3=s"
+      call f_requestUnit(coll_allAbsorbFile, coll_allAbsorbUnit)
+      call f_open(unit=coll_allAbsorbUnit, file=coll_allAbsorbFile, formatted=.true.,mode="w",status="replace")
+      write(coll_allAbsorbUnit,"(a)") "# 1=name 2=turn 3=s"
+      flush(coll_allAbsorbUnit)
 #ifdef CR
-    coll_allAbsorbFilePos = coll_allAbsorbFilePos + 1
+      coll_allAbsorbFilePos = 1
+    end if
 #endif
-    write(coll_fstImpactUnit,"(a)") "# 1=name, 2=iturn, 3=icoll, 4=nabs, 5=s_imp[m], 6=s_out[m], "//&
-      "7=x_in(b!)[m], 8=xp_in, 9=y_in, 10=yp_in, 11=x_out [m], 12=xp_out, 13=y_out, 14=yp_out"
+
 #ifdef CR
-    coll_fstImpactFilePos = coll_fstImpactFilePos + 1
+    if(coll_fstImpactUnit == -1) then
 #endif
-    write(coll_scatterUnit,"(a)") "# 1=icoll, 2=iturn, 3=np, 4=nabs (1:Nuclear-Inelastic,2:Nuclear-Elastic,3:pp-Elastic, "//&
-      "4:Single-Diffractive,5:Coulomb), 5=dp, 6=dx', 7=dy'"
+      call f_requestUnit(coll_fstImpactFile, coll_fstImpactUnit)
+      call f_open(unit=coll_fstImpactUnit, file=coll_fstImpactFile, formatted=.true.,mode="w",status="replace")
+      write(coll_fstImpactUnit,"(a)") "# 1=name, 2=iturn, 3=icoll, 4=nabs, 5=s_imp[m], 6=s_out[m], "//&
+        "7=x_in(b!)[m], 8=xp_in, 9=y_in, 10=yp_in, 11=x_out [m], 12=xp_out, 13=y_out, 14=yp_out"
+      flush(coll_fstImpactUnit)
 #ifdef CR
-    coll_scatterFilePos = coll_scatterFilePos + 1
+      coll_fstImpactFilePos = 1
+    end if
 #endif
-    write(coll_flukImpUnit,"(a)") "# 1=icoll 2=c_rotation 3=s 4=x 5=xp 6=y 7=yp 8=nabs 9=np 10=turn"
+
 #ifdef CR
-    coll_flukImpFilePos = coll_flukImpFilePos + 1
+    if(coll_scatterUnit == -1) then
 #endif
-    write(coll_flukImpAllUnit,"(a)") "# 1=icoll 2=c_rotation 3=s 4=x 5=xp 6=y 7=yp 8=nabs 9=np 10=turn"
+      call f_requestUnit(coll_scatterFile,   coll_scatterUnit)
+      call f_open(unit=coll_scatterUnit,   file=coll_scatterFile,   formatted=.true.,mode="w",status="replace")
+      write(coll_scatterUnit,"(a)") "# 1=icoll, 2=iturn, 3=np, 4=nabs (1:Nuclear-Inelastic,2:Nuclear-Elastic,3:pp-Elastic, "//&
+        "4:Single-Diffractive,5:Coulomb), 5=dp, 6=dx', 7=dy'"
+      flush(coll_scatterUnit)
 #ifdef CR
-    coll_flukImpAllFilePos = coll_flukImpAllFilePos + 1
+      coll_scatterFilePos = 1
+    end if
 #endif
-    write(coll_jawProfileUnit,"(a1,1x,a6,1x,2(a7,1x),5(a17,1x),a12)") "#", "icoll", "iturn", "np", "x[m]", "xp[]", "y[m]", "yp[]",&
-      "s[m]", "[1:in,2:out]"
+
 #ifdef CR
-    coll_jawProfileFilePos = coll_jawProfileFilePos + 1
+    if(coll_flukImpUnit == -1) then
+#endif
+      call f_requestUnit(coll_flukImpFile,   coll_flukImpUnit)
+      call f_open(unit=coll_flukImpUnit,   file=coll_flukImpFile,   formatted=.true.,mode="w",status="replace")
+      write(coll_flukImpUnit,"(a)") "# 1=icoll 2=c_rotation 3=s 4=x 5=xp 6=y 7=yp 8=nabs 9=np 10=turn"
+      flush(coll_flukImpUnit)
+#ifdef CR
+      coll_flukImpFilePos = 1
+    end if
+#endif
+
+#ifdef CR
+    if(coll_flukImpAllUnit == -1) then
+#endif
+      call f_requestUnit(coll_flukImpAllFile,coll_flukImpAllUnit)
+      call f_open(unit=coll_flukImpAllUnit,file=coll_flukImpAllFile,formatted=.true.,mode="w",status="replace")
+      write(coll_flukImpAllUnit,"(a)") "# 1=icoll 2=c_rotation 3=s 4=x 5=xp 6=y 7=yp 8=nabs 9=np 10=turn"
+      flush(coll_flukImpAllUnit)
+#ifdef CR
+      coll_flukImpAllFilePos = 1
+    end if
+#endif
+
+#ifdef CR
+    if(coll_jawProfileUnit == -1) then
+#endif
+      call f_requestUnit(coll_jawProfileFile,coll_jawProfileUnit)
+      call f_open(unit=coll_jawProfileUnit,file=coll_jawProfileFile,formatted=.true.,mode="w",status="replace")
+      write(coll_jawProfileUnit,"(a1,1x,a6,1x,2(a7,1x),5(a17,1x),a12)") "#", "icoll", "iturn", "np", "x[m]", "xp[]", "y[m]", &
+        "yp[]", "s[m]", "[1:in,2:out]"
+      flush(coll_jawProfileUnit)
+#ifdef CR
+      coll_jawProfileFilePos = 1
+    end if
 #endif
   end if
 
@@ -1639,6 +1737,7 @@ subroutine coll_doCollimator(stracki)
       write(coll_ellipseUnit,"(1x,i8,6(1x,e15.7),3(1x,i4,1x,i4))") partID(j),xv1(j),xv2(j),yv1(j),yv2(j), &
         ejv(j),sigmv(j),iturn,nhit_stage(j),nabs_type(j)
 #ifdef CR
+      flush(coll_ellipseUnit)
       coll_ellipseFilePos = coll_ellipseFilePos + 1
 #endif
     end do
@@ -1657,6 +1756,7 @@ subroutine coll_doCollimator(stracki)
     write(outlun,*) 'Design beta y [m]:   ', cdb_cBy(icoll)
     write(outlun,*) 'Optics beta x [m]:   ', tbetax(ie)
     write(outlun,*) 'Optics beta y [m]:   ', tbetay(ie)
+    flush(outlun)
 #ifdef CR
     coll_trackoutPos = coll_trackoutPos + 12
 #endif
@@ -1725,6 +1825,7 @@ subroutine coll_doCollimator(stracki)
       write(outlun,*) 'RMS error on halfgap [sigma]:  ', gap_rms_error(icoll)
       write(outlun,*) ' '
 #ifdef CR
+      flush(outlun)
       coll_trackoutPos = coll_trackoutPos + 11
 #endif
 
@@ -1733,6 +1834,7 @@ subroutine coll_doCollimator(stracki)
         cdb_cMaterial(icoll),cdb_cLength(icoll),sqrt(tbetax(ie)*c_emitx0_collgap), &
         sqrt(tbetay(ie)*c_emity0_collgap),cdb_cTilt(1,icoll),cdb_cTilt(2,icoll),nsig
 #ifdef CR
+      flush(coll_gapsUnit)
       coll_gapsFilePos = coll_gapsFilePos + 1
 #endif
 
@@ -1741,6 +1843,7 @@ subroutine coll_doCollimator(stracki)
         write(coll_settingsUnit,"(a20,1x,i10,5(1x,1pe13.6),1x,a)") cdb_cName(icoll)(1:20), nSlices, calc_aperture, &
           cdb_cOffset(icoll), cdb_cTilt(1,icoll), cdb_cTilt(2,icoll), cdb_cLength(icoll), cdb_cMaterial(icoll)
 #ifdef CR
+        flush(coll_settingsUnit)
         coll_settingsFilePos = coll_settingsFilePos + 1
 #endif
       end if
@@ -1812,6 +1915,10 @@ subroutine coll_doCollimator(stracki)
       if(firstrun) then
         write(coll_settingsUnit,"(a20,1x,i10,5(1x,1pe13.6),1x,a)") cdb_cName(icoll)(1:20), iSlice, &
           jawAperture/two, jawOffset, jawTilt(1), jawTilt(2), jawLength, cdb_cMaterial(icoll)
+#ifdef CR
+        flush(coll_settingsUnit)
+        coll_settingsFilePos = coll_settingsFilePos + 1
+#endif
       end if
       call k2coll_collimate(icoll, iturn, ie, jawLength, c_rotation, jawAperture,            &
         jawOffset, jawTilt, rcx, rcxp, rcy, rcyp, rcp, rcs, c_enom*c1m3, part_hit_pos,       &
@@ -1839,12 +1946,14 @@ subroutine coll_doCollimator(stracki)
             partID(j),iturn,cdb_cName(icoll)(1:20),cdb_cMaterial(icoll),isHit,isAbs, &
             rcx0(j),rcxp0(j),rcy0(j),rcyp0(j),rcp0(j)
 #ifdef CR
+          flush(coll_cryEntUnit)
           coll_cryEntFilePos = coll_cryEntFilePos + 1
 #endif
           write(coll_cryExitUnit,"(i8,1x,i8,1x,a20,1x,a4,2(3x,l1),5(1x,1pe15.8))")   &
             partID(j),iturn,cdb_cName(icoll)(1:20),cdb_cMaterial(icoll),isHit,isAbs, &
             rcx(j),rcxp(j),rcy(j),rcyp(j),rcp(j)
 #ifdef CR
+          flush(coll_cryExitUnit)
           coll_cryExitFilePos = coll_cryExitFilePos + 1
 #endif
         end do
@@ -1855,6 +1964,7 @@ subroutine coll_doCollimator(stracki)
             partID(j), iturn, cdb_cName(icoll)(1:20),cry_proc_prev(j),cry_proc(j),rcxp(j)-rcxp0(j), &
             rcyp(j)-rcyp0(j),rcp0(j),rcp(j),rcxp0(j),rcyp0(j),cry_tilt,rcx0(j),rcy0(j)
 #ifdef CR
+          flush(coll_cryInterUnit)
           coll_cryInterFilePos = coll_cryInterFilePos + 1
 #endif
         end if
@@ -1882,6 +1992,7 @@ subroutine coll_doCollimator(stracki)
         write(coll_jawProfileUnit,"(3(1x,i7),5(1x,e17.9),1x,i1)") &
           icoll,iturn,partID(j),x_Dump,xpDump,y_Dump,ypDump,s_Dump,2
 #ifdef CR
+        flush(coll_jawProfileUnit)
         coll_jawProfileFilePos = coll_jawProfileFilePos + 1
 #endif
       end if
@@ -2054,6 +2165,7 @@ subroutine coll_exitCollimation
   write(outlun,*) "INFO>  Number of absorbed particles  : ", n_tot_absorbed
   write(outlun,*)
 #ifdef CR
+  flush(outlun)
   coll_trackoutPos = coll_trackoutPos + 5
 #endif
 
@@ -2067,11 +2179,13 @@ subroutine coll_exitCollimation
         (neff(9)-neff(19))/(real(n_tot_absorbed,fPrec)), " !eff"
       write(outlun,*)
 #ifdef CR
+      flush(outlun)
       coll_trackoutPos = coll_trackoutPos + 6
 #endif
     else
       write(outlun,*) "INFO> Efficiency calculations not enabled"
 #ifdef CR
+      flush(outlun)
       coll_trackoutPos = coll_trackoutPos + 1
 #endif
     end if
@@ -2127,23 +2241,27 @@ subroutine coll_exitCollimation
       deallocate(fldHdf)
     else
 #endif
+
       call f_requestUnit(coll_efficFile,coll_efficUnit)
       call f_open(unit=coll_efficUnit,file=coll_efficFile,formatted=.true.,mode="w",status="replace")
       if(n_tot_absorbed /= 0) then
         write(coll_efficUnit,"(a1,1x,a13,6(1x,a15),1x,a8)") "#","rad_sigma",&
           "frac_x","frac_y","frac_r","eff_x","eff_y","eff_r","n_abs"
+        flush(coll_efficUnit)
 #ifdef CR
-        coll_efficFilePos = coll_efficFilePos + 1
+        coll_efficFilePos = 1
 #endif
         do k=1,numeff
           write(coll_efficUnit,"(7(e15.7,1x),i8)") rsig(k), neffx(k)/real(n_tot_absorbed,fPrec), &
             neffy(k)/real(n_tot_absorbed,fPrec), neff(k)/real(n_tot_absorbed,fPrec), neffx(k), neffy(k), neff(k), n_tot_absorbed
+          flush(coll_efficUnit)
 #ifdef CR
           coll_efficFilePos = coll_efficFilePos + 1
 #endif
         end do
       else
         write(coll_efficUnit,"(a)") "No particles absorbed"
+        flush(coll_efficUnit)
 #ifdef CR
         coll_efficFilePos = coll_efficFilePos + 1
 #endif
@@ -2178,18 +2296,21 @@ subroutine coll_exitCollimation
       call f_open(unit=coll_efficDPUnit,file=coll_efficDPFile,formatted=.true.,mode="w",status="replace")
       if(n_tot_absorbed /= 0) then
         write(coll_efficDPUnit,"(a1,1x,a13,2(1x,a15),2(1x,a8))") "#","dp/p","n_dpop/tot_nabs","n_dpop","tot_nabs","npart"
+        flush(coll_efficDPUnit)
 #ifdef CR
-        coll_efficDPFilePos = coll_efficDPFilePos + 1
+        coll_efficDPFilePos = 1
 #endif
         do k=1,numeffdpop
           write(coll_efficDPUnit,"(e15.7,2(1x,e15.7),2(1x,i8))") dpopbins(k), neffdpop(k)/real(n_tot_absorbed,fPrec), neffdpop(k), &
             n_tot_absorbed, npartdpop(k)
+          flush(coll_efficDPUnit)
 #ifdef CR
           coll_efficDPFilePos = coll_efficDPFilePos + 1
 #endif
         end do
       else
         write(coll_efficDPUnit,"(a)") "No particles absorbed"
+        flush(coll_efficDPUnit)
 #ifdef CR
         coll_efficDPFilePos = coll_efficDPFilePos + 1
 #endif
@@ -2226,13 +2347,15 @@ subroutine coll_exitCollimation
       call f_open(unit=coll_effic2DUnit,file=coll_effic2DFile,formatted=.true.,mode="w",status="replace")
       if(n_tot_absorbed /= 0) then
         write(coll_effic2DUnit,"(a1,1x,a13,3(1x,a15),1x,a8)") "#","rad_sigma","dp/p","n/tot_nabs","n","tot_nabs"
+        flush(coll_effic2DUnit)
 #ifdef CR
-        coll_effic2DFilePos = coll_effic2DFilePos + 1
+        coll_effic2DFilePos = 1
 #endif
         do i=1,numeff
           do k=1,numeffdpop
             write(coll_effic2DUnit,"(e15.7,3(1x,e15.7),1x,i8)") rsig(i), dpopbins(k), &
               neff2d(i,k)/real(n_tot_absorbed,fPrec), neff2d(i,k), n_tot_absorbed
+            flush(coll_effic2DUnit)
 #ifdef CR
             coll_effic2DFilePos = coll_effic2DFilePos + 1
 #endif
@@ -2240,6 +2363,7 @@ subroutine coll_exitCollimation
         end do
       else
         write(coll_effic2DUnit,"(a)") "No particles absorbed"
+        flush(coll_effic2DUnit)
 #ifdef CR
         coll_effic2DFilePos = coll_effic2DFilePos + 1
 #endif
@@ -2284,13 +2408,15 @@ subroutine coll_exitCollimation
     call f_open(unit=coll_summaryUnit,file=coll_summaryFile,formatted=.true.,mode="w",status="replace")
     write(coll_summaryUnit,"(a1,1x,a5,1x,a20,2(1x,a8),2(1x,a15),1x,a6)") "#","icoll",chr_rPad("collname",20),&
       "nimp","nabs","imp_av","imp_sig","length"
+      flush(coll_summaryUnit)
 #ifdef CR
-      coll_summaryFilePos = coll_summaryFilePos + 1
+      coll_summaryFilePos = 1
 #endif
     do icoll = 1, cdb_nColl
       if(cdb_cLength(icoll) > zero .and. cdb_cFound(icoll)) then
         write(coll_summaryUnit,"(i7,1x,a20,2(1x,i8),2(1x,e15.7),1x,f6.3)") icoll, cdb_cName(icoll)(1:20), cn_impact(icoll), &
           cn_absorbed(icoll), caverage(icoll), csigma(icoll), cdb_cLength(icoll)
+        flush(coll_summaryUnit)
 #ifdef CR
         coll_summaryFilePos = coll_summaryFilePos + 1
 #endif
@@ -2344,8 +2470,9 @@ subroutine coll_exitCollimation
     call f_open(unit=coll_ampUnit,file=coll_ampFile,formatted=.true.,mode="w",status="replace")
     write(coll_ampUnit,"(a1,1x,a6,1x,a20,17(1x,a20))") "#","ielem",chr_rPad("name",20),"s","AX_AV","AX_RMS","AY_AV","AY_RMS",&
       "alphax","alphay","betax","betay","orbitx","orbity","dispx","dispy","xbob","ybob","xpbob","ypbob"
+    flush(coll_ampUnit)
 #ifdef CR
-    coll_ampFilePos = coll_ampFilePos + 1
+    coll_ampFilePos = 1
 #endif
     do i=1,iu
       if(ic(i) <= nblo) then
@@ -2360,6 +2487,7 @@ subroutine coll_exitCollimation
         sqrt(abs((sqsum_ay(i)/real(max(nampl(i),1),fPrec))-(sum_ay(i)/real(max(nampl(i),1),fPrec))**2)), &
         talphax(i), talphay(i), tbetax(i), tbetay(i), torbx(i), torby(i), tdispx(i), tdispy(i),          &
         xbob(i), ybob(i), xpbob(i), ypbob(i)
+      flush(coll_ampUnit)
 #ifdef CR
       coll_ampFilePos = coll_ampFilePos + 1
 #endif
@@ -2371,11 +2499,13 @@ subroutine coll_exitCollimation
   call f_requestUnit(coll_orbitCheckFile,coll_orbitCheckUnit)
   call f_open(unit=coll_orbitCheckUnit,file=coll_orbitCheckFile,formatted=.true.,mode="w",status="replace")
   write(coll_orbitCheckUnit,"(a1,1x,a6,3(1x,a15))") "#","s","torbitx","torbity"
+  flush(coll_orbitCheckUnit)
 #ifdef CR
-  coll_orbitCheckFilePos = coll_orbitCheckFilePos + 1
+  coll_orbitCheckFilePos = 1
 #endif
   do i=1,iu
     write(coll_orbitCheckUnit,"(i8,3(1x,1pe15.7))") i, dcum(i), torbx(i), torby(i)
+    flush(coll_orbitCheckUnit)
 #ifdef CR
     coll_orbitCheckFilePos = coll_orbitCheckFilePos + 1
 #endif
@@ -2523,6 +2653,7 @@ subroutine coll_endTurn
 #endif
       write(coll_survivalUnit,"(i7,1x,i9)") iturn, nsurvive
 #ifdef CR
+      flush(coll_survivalUnit)
       coll_survivalFilePos = coll_survivalFilePos + 1
 #endif
 #ifdef HDF5
@@ -2765,13 +2896,18 @@ subroutine coll_getMinGapID(minGapID)
   integer i,j
   real(kind=fPrec) gapH1,gapH2,gapH3,gapH4,minGap,nSigErr,sigOffset
 
-  call f_requestUnit(coll_sigmaSetFile,coll_sigmaSetUnit)
-  call f_open(unit=coll_sigmaSetUnit,file=coll_sigmaSetFile,formatted=.true.,mode="w",status="replace")
-  write(coll_sigmaSetUnit,"(a1,1x,a18,12(1x,a16))") "#",chr_rPad("collimator",18),&
-    "gap_h1","gap_h2","gap_h3","gap_h4","sig_offset","coll_offset","nsig",        &
-    "gap_rms_error","beta_x","beta_y","orb_x","orb_y"
 #ifdef CR
-  coll_sigmaSetFilePos = coll_sigmaSetFilePos + 1
+  if(coll_sigmaSetUnit == -1) then
+#endif
+    call f_requestUnit(coll_sigmaSetFile,coll_sigmaSetUnit)
+    call f_open(unit=coll_sigmaSetUnit,file=coll_sigmaSetFile,formatted=.true.,mode="w",status="replace")
+    write(coll_sigmaSetUnit,"(a1,1x,a18,12(1x,a16))") "#",chr_rPad("collimator",18),&
+      "gap_h1","gap_h2","gap_h3","gap_h4","sig_offset","coll_offset","nsig",        &
+      "gap_rms_error","beta_x","beta_y","orb_x","orb_y"
+    flush(coll_sigmaSetUnit)
+#ifdef CR
+    coll_sigmaSetFilePos = 1
+  end if
 #endif
 
   minGap = 20.0_fPrec
@@ -2802,6 +2938,7 @@ subroutine coll_getMinGapID(minGapID)
       write(coll_sigmaSetUnit,"(a20,7(1x,f16.6),1x,1pe16.9,4(1x,f16.6))") cdb_cName(i),&
         gapH1,gapH2,gapH3,gapH4,sigOffset,cdb_cOffset(i),cdb_cNSig(i),gap_rms_error(i),&
         tbetax(j),tbetay(j),torbx(j),torby(j)
+      flush(coll_sigmaSetUnit)
 #ifdef CR
       coll_sigmaSetFilePos = coll_sigmaSetFilePos + 1
 #endif
@@ -2828,17 +2965,20 @@ subroutine coll_getMinGapID(minGapID)
   write(coll_sigmaSetUnit, "(a,i0)")   "# MinGap Coll ID:     ",minGapID
   write(coll_sigmaSetUnit, "(a,f0.6)") "# Min Gap Sigma:      ",minGap
   write(coll_sigmaSetUnit, "(a,i0)")   "# Pencil Initial:     ",ipencil
+  flush(coll_sigmaSetUnit)
 #ifdef CR
   coll_sigmaSetFilePos = coll_sigmaSetFilePos + 6
 #endif
 
   if(ipencil > 0 .and. do_mingap) then
     write(coll_sigmaSetUnit, "(a,i0)") "# Pencil (do_mingap): ",minGapID
+    flush(coll_sigmaSetUnit)
 #ifdef CR
     coll_sigmaSetFilePos = coll_sigmaSetFilePos + 1
 #endif
   end if
   write(coll_sigmaSetUnit, "(a,i0)") "# Seed before reinit: ",rnd_seed
+  flush(coll_sigmaSetUnit)
 #ifdef CR
   coll_sigmaSetFilePos = coll_sigmaSetFilePos + 1
 #endif
@@ -2989,6 +3129,7 @@ subroutine coll_writeImpactAbsorb
 #endif
         write(coll_allImpactUnit,"(i8,1x,i4,1x,f8.2)") partID(j),iturn,dcum(ie)
 #ifdef CR
+        flush(coll_allImpactUnit)
         coll_allImpactFilePos = coll_allImpactFilePos + 1
 #endif
 #ifdef HDF5
@@ -3006,6 +3147,7 @@ subroutine coll_writeImpactAbsorb
 #endif
           write(coll_allAbsorbUnit,"(i8,1x,i8,1x,f10.3)") partID(j),iturn,dcum(ie)
 #ifdef CR
+        flush(coll_allAbsorbUnit)
         coll_allAbsorbFilePos = coll_allAbsorbFilePos + 1
 #endif
 #ifdef HDF5
@@ -3041,11 +3183,16 @@ subroutine coll_writeSelectedCollimator
   sqsum      = zero
 
   if(dowrite_impact) then
-    call f_requestUnit(coll_impactFile,coll_impactUnit)
-    call f_open(unit=coll_impactUnit,file=coll_impactFile,formatted=.true.,mode="w",status="replace")
-    write(coll_impactUnit,"(a1,1x,a14,1x,a16)") "#","impact","divergence"
 #ifdef CR
-    coll_impactFilePos = coll_impactFilePos + 1
+    if(coll_impactUnit == -1) then
+#endif
+      call f_requestUnit(coll_impactFile,coll_impactUnit)
+      call f_open(unit=coll_impactUnit,file=coll_impactFile,formatted=.true.,mode="w",status="replace")
+      write(coll_impactUnit,"(a1,1x,a14,1x,a16)") "#","impact","divergence"
+      flush(coll_impactUnit)
+#ifdef CR
+      coll_impactFilePos = 1
+    end if
 #endif
   end if
 
@@ -3061,6 +3208,7 @@ subroutine coll_writeSelectedCollimator
       if(part_impact(j) < -half) then
         write(lerr,"(a,i0)") "COLL> ERROR Found invalid impact parameter ",part_impact(j)
         write(outlun,*)      "ERR>  Found invalid impact parameter ",part_impact(j)
+        flush(outlun)
 #ifdef CR
         coll_trackoutPos = coll_trackoutPos + 1
 #endif
@@ -3073,6 +3221,7 @@ subroutine coll_writeSelectedCollimator
 
       if(dowrite_impact) then
         write(coll_impactUnit,"(1pe16.9,1x,1pe16.9)") part_impact(j), part_indiv(j)
+        flush(coll_impactUnit)
 #ifdef CR
         coll_impactFilePos = coll_impactFilePos + 1
 #endif
@@ -3171,8 +3320,9 @@ subroutine coll_writeTracks2(iMode)
             partID(j),iturn,sj,xj,xpj,yj,ypj,pj,nhit_stage(j)
           write(coll_tracksUnit,"(i8,1x,i8,1x,f10.2,4(1x,e12.5),1x,e11.3,1x,i4)") &
             partID(j),iturn,sk,xk,xpk,yk,ypk,pj,nhit_stage(j)
+          flush(coll_tracksUnit)
 #ifdef CR
-            coll_tracksFilePos = coll_tracksFilePos + 2
+          coll_tracksFilePos = coll_tracksFilePos + 2
 #endif
 #ifdef HDF5
         end if
@@ -3200,6 +3350,7 @@ subroutine coll_writeTracks2(iMode)
 #endif
           write(coll_tracksUnit,"(i8,1x,i8,1x,f10.2,4(1x,e12.5),1x,e11.3,1x,i4)") partID(j),iturn,&
             dcum(ie),xv1(j),yv1(j),xv2(j),yv2(j),(ejv(j)-c_enom)/c_enom,nhit_stage(j)
+          flush(coll_tracksUnit)
 #ifdef CR
           coll_tracksFilePos = coll_tracksFilePos + 1
 #endif
@@ -3234,7 +3385,6 @@ subroutine coll_doCollimator_Geant4(c_aperture,c_rotation,c_length,onesided)
 #ifdef ROOT
   use root_output
 #endif
-  use collimation, only : fort208Pos
 
   real(kind=fPrec), intent(in) :: c_aperture
   real(kind=fPrec), intent(in) :: c_rotation
@@ -3297,7 +3447,7 @@ subroutine coll_doCollimator_Geant4(c_aperture,c_rotation,c_length,onesided)
     if(g4_debug .eqv. .true.) then
       write(lout,"(a,2(1X,I11),10(1X,E24.16))") 'g4 sending particle: ', j, pdgid(j), nucm(j), rcx(j), rcy(j), rcxp(j), &
         rcyp(j), rcp(j), spin_x(j), spin_y(j), spin_z(j), sigmv(j)
-        flush(lout)
+      flush(lout)
     end if
 
     x_tmp = rcx(j)
@@ -3417,6 +3567,7 @@ subroutine coll_doCollimator_Geant4(c_aperture,c_rotation,c_length,onesided)
     if(g4_debug .eqv. .true.) then
       write(lout,"(a,2(1X,I11),10(1X,E24.16))") 'g4 return particle:  ', j, pdgid(j), nucm(j), rcx(j), rcy(j), rcxp(j), &
             rcyp(j), rcp(j), spin_x(j), spin_y(j), spin_z(j), sigmv(j)
+      flush(lout)
     end if
 
     flush(lout)
@@ -3432,10 +3583,10 @@ subroutine coll_doCollimator_Geant4(c_aperture,c_rotation,c_length,onesided)
     end if
 #endif
     write(unit208,"(2(i6,1x),e24.16)") icoll, (nnuc0-nnuc1), c1m3*(ien0-ien1)
+    flush(unit208)
 #ifdef CR
     fort208Pos = fort208Pos + 1
 #endif
-    flush(unit208)
   end if
 
 end subroutine coll_doCollimator_Geant4
@@ -3481,7 +3632,8 @@ subroutine coll_echoSettings
   write(outlun,*)
   write(outlun,*)
 #ifdef CR
-  coll_trackoutPos = coll_trackoutPos + 19
+  flush(outlun)
+  coll_trackoutPos = 19
 #endif
 
   write(lout,"(a)")       ""
@@ -3601,6 +3753,8 @@ subroutine coll_echoSettings
   write(lout,"(a,e15.8)") 'COLL> Info: Sigma_y0            = ', sqrt(tbetay(1)*c_emity0_dist)
   write(lout,"(a)")
 
+  flush(lout)
+
 end subroutine coll_echoSettings
 
 ! ================================================================================================================================ !
@@ -3627,7 +3781,7 @@ subroutine coll_crcheck_readdata(fileUnit,readerr)
                                  coll_fstImpactFilePos_CR, coll_flukImpFilePos_CR, coll_flukImpAllFilePos_CR, &
                                  coll_jawProfileFilePos_CR, coll_efficFilePos_CR, coll_efficDPFilePos_CR, coll_effic2DFilePos_CR, &
                                  coll_summaryFilePos_CR, coll_ampFilePos_CR, coll_orbitCheckFilePos_CR, coll_sigmaSetFilePos_CR, &
-                                 coll_impactFilePos_CR, coll_trackoutPos_CR
+                                 coll_impactFilePos_CR, coll_trackoutPos_CR, lux_CR, seed_CR, k1_CR, k2_CR
 
   readerr = .false.
   return
@@ -3648,6 +3802,8 @@ subroutine coll_crcheck_positionFiles
   use mod_units
   use coll_common
   use mod_common, only : fort208, unit208
+
+  implicit none
 
   logical isOpen, fErr
   integer iError
@@ -3682,7 +3838,7 @@ subroutine coll_crcheck_positionFiles
   call f_positionFile(coll_sigmaSetFile, coll_sigmaSetUnit, coll_sigmaSetFilePos, coll_sigmaSetFilePos_CR)
   call f_positionFile(coll_impactFile, coll_impactUnit, coll_impactFilePos, coll_impactFilePos_CR)
 
-  call f_positionFile("colltrack.out", outlun, coll_trackoutPos, coll_trackoutPos_CR)
+!  call f_positionFile("colltrack.out", outlun, coll_trackoutPos, coll_trackoutPos_CR)
 
 end subroutine coll_crcheck_positionFiles
 
@@ -3690,10 +3846,16 @@ end subroutine coll_crcheck_positionFiles
 subroutine coll_crpoint(fileUnit,lerror)
   use crcoall
   use coll_common
+  use mod_ranlux
+
   implicit none
 
   integer, intent(in)  :: fileUnit
   logical, intent(out) :: lerror
+
+  integer lux,seed,k1,k2
+
+  call rluxat(lux,seed,k1,k2)
 
   write(fileUnit,err=100) fort208Pos, coll_survivalFilePos, coll_gapsFilePos, coll_settingsFilePos, &
                           coll_positionsFilePos, coll_tracksFilePos, coll_pencilFilePos, coll_cryEntFilePos, &
@@ -3702,7 +3864,7 @@ subroutine coll_crpoint(fileUnit,lerror)
                           coll_fstImpactFilePos, coll_flukImpFilePos, coll_flukImpAllFilePos, &
                           coll_jawProfileFilePos, coll_efficFilePos, coll_efficDPFilePos, coll_effic2DFilePos, &
                           coll_summaryFilePos, coll_ampFilePos, coll_orbitCheckFilePos, coll_sigmaSetFilePos, &
-                          coll_impactFilePos, coll_trackoutPos
+                          coll_impactFilePos, coll_trackoutPos, lux, seed, k1, k2
   flush(fileunit)
   return
 
@@ -3716,6 +3878,43 @@ end subroutine coll_crpoint
 
 ! ================================================================================================================================ !
 subroutine coll_crstart()
+
+  use coll_common
+  use mod_ranlux
+
+  implicit none
+
+!copy file positions
+  fort208Pos             = fort208Pos_CR
+  coll_survivalFilePos   = coll_survivalFilePos_CR
+  coll_gapsFilePos       = coll_gapsFilePos_CR
+  coll_settingsFilePos   = coll_settingsFilePos_CR
+  coll_positionsFilePos  = coll_positionsFilePos_CR
+  coll_tracksFilePos     = coll_tracksFilePos_CR
+  coll_pencilFilePos     = coll_pencilFilePos_CR
+  coll_cryEntFilePos     = coll_cryEntFilePos_CR
+  coll_cryExitFilePos    = coll_cryExitFilePos_CR
+  coll_cryInterFilePos   = coll_cryInterFilePos_CR
+  coll_ellipseFilePos    = coll_ellipseFilePos_CR
+  coll_allImpactFilePos  = coll_allImpactFilePos_CR
+  coll_allAbsorbFilePos  = coll_allAbsorbFilePos_CR
+  coll_scatterFilePos    = coll_scatterFilePos_CR
+  coll_fstImpactFilePos  = coll_fstImpactFilePos_CR
+  coll_flukImpFilePos    = coll_flukImpFilePos_CR
+  coll_flukImpAllFilePos = coll_flukImpAllFilePos_CR
+  coll_jawProfileFilePos = coll_jawProfileFilePos_CR
+  coll_efficFilePos      = coll_efficFilePos_CR
+  coll_efficDPFilePos    = coll_efficDPFilePos_CR
+  coll_effic2DFilePos    = coll_effic2DFilePos_CR
+  coll_summaryFilePos    = coll_summaryFilePos_CR
+  coll_ampFilePos        = coll_ampFilePos_CR
+  coll_orbitCheckFilePos = coll_orbitCheckFilePos_CR
+  coll_sigmaSetFilePos   = coll_sigmaSetFilePos_CR
+  coll_impactFilePos     = coll_impactFilePos_CR
+  coll_trackoutPos       = coll_trackoutPos_CR
+
+!reset ranlux RNG state
+  call rluxgo(lux_CR, seed_CR, k1_CR, k2_CR)
 
 end subroutine coll_crstart
 
