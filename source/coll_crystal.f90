@@ -332,7 +332,7 @@ subroutine cry_doCrystal(ie,iturn,j,mat,x,xp,z,zp,s,p,x0,xp0,zlm,s_imp,isImp,nhi
     if(x < zero) then ! Crystal hit from below
 !      write(*,*) 'Crystal potentially hit from below'
 !      write(*,*) 'CHECK', x
-      xp_tangent = sqrt((-(two*x)*c_rcurv + x**2)/c_rcurv**2)
+      xp_tangent = sqrt((-(two*x)*c_rcurv + x**2)/(c_rcurv**2))
 !      write(*,*) 'tangent', xp_tangent, xp
     else ! Crystal hit from above
 !      write(*,*) 'Crystal potentially hit from above'
@@ -564,7 +564,7 @@ subroutine cry_interact(is,x,xp,y,yp,pc,length,s_P,x_P)
   const_dech = const_dech*c1e3 ! [m/GeV]
 
   s        = zero
-  s_length = c_rcurv*(sin_mb(length/c_rcurv))
+  s_length = c_rcurv*sin_mb(length/c_rcurv)
   L_chan   = length
 
   ! MISCUT second step: fundamental coordinates
@@ -591,13 +591,13 @@ subroutine cry_interact(is,x,xp,y,yp,pc,length,s_P,x_P)
 !  A_F = tan_mb(cry_bend)**2 + one
 !  B_F = -two*tan_mb(cry_bend)**2*c_rcurv + two*tan_mb(cry_bend)*s_P -two*x_P
 !  C_F = tan_mb(cry_bend)**2*c_rcurv**2 - two*tan_mb(cry_bend)*s_P*c_rcurv + s_P**2 + x_P**2 - r**2
-  A_F = tan_mb(length/c_rcurv)**2 + one
-  B_F = -two*tan_mb(length/c_rcurv)**2*c_rcurv + two*tan_mb(length/c_rcurv)*s_P -two*x_P
-  C_F = tan_mb(length/c_rcurv)**2*c_rcurv**2 - two*tan_mb(length/c_rcurv)*s_P*c_rcurv + s_P**2 + x_P**2 - r**2
+  A_F = (tan_mb(length/c_rcurv))**2 + one
+  B_F = ((-two)*(tan_mb(length/c_rcurv))**2)*c_rcurv + (two*tan_mb(length/c_rcurv))*s_P - two*x_P
+  C_F = ((tan_mb(length/c_rcurv))**2)*(c_rcurv**2) - ((two*tan_mb(length/c_rcurv))*s_P)*c_rcurv + s_P**2 + x_P**2 - r**2
 
-  x_F = (-B_F-sqrt(B_F**2-four*A_F*C_F))/(two*A_F)
+  x_F = (-B_F-sqrt(B_F**2-four*(A_F*C_F)))/(two*A_F)
 !  s_F = -tan_mb(cry_bend)*(x_F-c_rcurv)
-  s_F = -tan_mb(length/c_rcurv)*(x_F-c_rcurv)
+  s_F = (-tan_mb(length/c_rcurv))*(x_F-c_rcurv)
 !  write(*,*) "F", s_F, x_F
 !  write(*,*) "F-K", s_F-s_K, x_F-x_K
 !  write(*,*) "F-M", s_F-s_M, x_F-x_M
@@ -624,19 +624,19 @@ subroutine cry_interact(is,x,xp,y,yp,pc,length,s_P,x_P)
       alpha_F = (c_rcurv-x_P)/x_P
       beta_F = -(r**2-s_P**2-x_P**2)/(two*s_P)
       A_F = alpha_F**2 + one
-      B_F = two*alpha_F*beta_F - two*c_rcurv
+      B_F = two*(alpha_F*beta_F) - two*c_rcurv
       C_F = beta_F**2
     else
       ! Intersect with top side
       alpha_F = (c_rcurv-x_P)/s_P
-      beta_F = -(r**2+c_xmax*(c_xmax-two*c_rcurv)-s_P**2-x_P**2)/(two*s_P)
+      beta_F = -(r**2+c_xmax*(c_xmax-(two*c_rcurv))-s_P**2-x_P**2)/(two*s_P)
       A_F = alpha_F**2 + one
-      B_F = two*alpha_F*beta_F - two*c_rcurv
-      C_F = beta_F**2 -c_xmax*(c_xmax-two*c_rcurv)
+      B_F = two*(alpha_F*beta_F) - two*c_rcurv
+      C_F = beta_F**2 - c_xmax*(c_xmax-two*c_rcurv)
 !      write(*,*) alpha_F, beta_F, A_F, B_F, C_F
     endif
     
-    x_F = (-B_F-sqrt(B_F**2-four*A_F*C_F))/(two*A_F)
+    x_F = (-B_F-sqrt(B_F**2-four*(A_F*C_F)))/(two*A_F)
     s_F = alpha_F*x_F + beta_F
 !    write(*,*) B_F**2, A_F*C_F, four*A_F*C_F, B_F**2-four*A_F*C_F
 !    write(*,*) 'new F', x_F, s_F
@@ -645,7 +645,7 @@ subroutine cry_interact(is,x,xp,y,yp,pc,length,s_P,x_P)
 
   ! MISCUT fourth step: deflection and length
   a = sqrt(s_F**2+(x-x_F)**2)
-  tP = acos_mb((2*r**2-a**2)/(2*r**2))
+  tP = acos_mb((2*(r**2)-a**2)/(2*(r**2)))
   tdefl = asin_mb((s_f-s_P)/r)
   L_chan = r*tP
 !  write(*,*) "Results", tdefl, L_chan
