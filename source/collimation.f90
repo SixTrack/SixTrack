@@ -150,6 +150,58 @@ module collimation
   real(kind=fPrec), private, save :: bx_dist   = zero
   real(kind=fPrec), private, save :: by_dist   = zero
 
+#ifdef CR
+! CR arrays
+  integer,          allocatable, private, save :: counteddpop_cr(:,:) ! (npart,numeffdpop)
+  integer,          allocatable, private, save :: npartdpop_cr(:)     ! (numeffdpop)
+  integer,          allocatable, private, save :: counted2d_cr(:,:,:) ! (npart,numeff,numeffdpop)
+  integer,          allocatable, private, save :: counted_r_cr(:,:)   ! (npart,numeff)
+  integer,          allocatable, private, save :: counted_x_cr(:,:)   ! (npart,numeff)
+  integer,          allocatable, private, save :: counted_y_cr(:,:)   ! (npart,numeff)
+  real(kind=fPrec), allocatable, private, save :: neffx_cr(:)         ! (numeff)
+  real(kind=fPrec), allocatable, private, save :: neffy_cr(:)         ! (numeff)
+  real(kind=fPrec), allocatable, private, save :: neff_cr(:)          ! (numeff)
+  real(kind=fPrec), allocatable, private, save :: rsig_cr(:)          ! (numeff)
+  real(kind=fPrec), allocatable, private, save :: neffdpop_cr(:)      ! (numeffdpop)
+  real(kind=fPrec), allocatable, private, save :: dpopbins_cr(:)      ! (numeffdpop)
+  real(kind=fPrec), allocatable, private, save :: neff2d_cr(:,:)      ! (numeff,numeffdpop)
+
+  ! Arrays allocated to nblz
+  integer,          allocatable, private, save :: nampl_cr(:)
+  real(kind=fPrec), allocatable, private, save :: sum_ax_cr(:)
+  real(kind=fPrec), allocatable, private, save :: sqsum_ax_cr(:)
+  real(kind=fPrec), allocatable, private, save :: sum_ay_cr(:)
+  real(kind=fPrec), allocatable, private, save :: sqsum_ay_cr(:)
+  real(kind=fPrec), allocatable, private, save :: xbob_cr(:)
+  real(kind=fPrec), allocatable, private, save :: ybob_cr(:)
+  real(kind=fPrec), allocatable, private, save :: xpbob_cr(:)
+  real(kind=fPrec), allocatable, private, save :: ypbob_cr(:)
+
+  ! Arrays allocated to npart
+  integer,          allocatable, private, save :: part_hit_pos_cr(:)   ! Hit flag for last hit
+  integer,          allocatable, private, save :: part_hit_turn_cr(:)  ! Hit flag for last hit
+  integer,          allocatable, public,  save :: part_abs_pos_cr(:)   ! Absorbed in element
+  integer,          allocatable, public,  save :: part_abs_turn_cr(:)  ! Absorbed in turn
+  integer,          allocatable, private, save :: part_select_cr(:)
+  integer,          allocatable, private, save :: nabs_type_cr(:)
+  integer,          allocatable, public,  save :: nhit_stage_cr(:)
+  real(kind=fPrec), allocatable, private, save :: part_linteract_cr(:)
+  real(kind=fPrec), allocatable, private, save :: part_indiv_cr(:)     ! Divergence of impacting particles
+  real(kind=fPrec), allocatable, private, save :: part_impact_cr(:)    ! Impact parameter (0 for inner face)
+
+  real(kind=fPrec), allocatable, private, save :: xineff_cr(:)  ! (npart)
+  real(kind=fPrec), allocatable, private, save :: yineff_cr(:)  ! (npart)
+  real(kind=fPrec), allocatable, private, save :: xpineff_cr(:) ! (npart)
+  real(kind=fPrec), allocatable, private, save :: ypineff_cr(:) ! (npart)
+
+  integer, private, save :: n_tot_absorbed_cr = 0
+  integer, private, save :: n_absorbed_cr     = 0
+  integer, private, save :: nabs_total_cr     = 0
+  integer, private, save :: nsurvive_cr       = 0
+  integer, private, save :: nsurvive_end_cr   = 0
+  integer, private, save :: num_selhit_cr     = 0
+#endif
+
 contains
 
 subroutine collimation_expand_arrays(npart_new, nblz_new)
@@ -334,8 +386,8 @@ subroutine coll_init
   if(rnd_seed <  0) rnd_seed = abs(rnd_seed)
   call rluxgo(3, rnd_seed, 0, 0)
   write(outlun,*) 'INFO>  rnd_seed: ', rnd_seed
-#ifdef CR
   flush(outlun)
+#ifdef CR
   coll_trackoutPos = coll_trackoutPos + 1
 #endif
 
@@ -351,8 +403,8 @@ subroutine coll_init
   if(ipencil > 0) then
     write(lout,"(a)") "COLL> WARNING Distributions reset to pencil beam!"
     write(outlun,*)   "WARN> Distributions reset to pencil beam!"
-#ifdef CR
     flush(outlun)
+#ifdef CR
     coll_trackoutPos = coll_trackoutPos + 1
 #endif
     xv1(1:napx) = zero
@@ -499,8 +551,8 @@ subroutine coll_init
   write(outlun,*) 'SETTING> c_rmserror_gap   : ', c_rmserror_gap
   write(outlun,*) 'SETTING> do_mingap        : ', do_mingap
   write(outlun,*) ' '
-#ifdef CR
   flush(outlun)
+#ifdef CR
   coll_trackoutPos = coll_trackoutPos + 15
 #endif
 
@@ -1308,7 +1360,7 @@ subroutine coll_openFiles
 
   ! Survival File
 #ifdef CR
-  if(coll_survivalUnit == -1) then
+  if(coll_survivalFilePos == -1) then
 #endif
     call f_requestUnit(coll_survivalFile,coll_survivalUnit)
     call f_open(unit=coll_survivalUnit,file=coll_survivalFile,formatted=.true.,mode="w",status="replace")
@@ -1321,7 +1373,7 @@ subroutine coll_openFiles
 
   ! Collimator Gaps File
 #ifdef CR
-  if(coll_gapsUnit == -1) then
+  if(coll_gapsFilePos == -1) then
 #endif
     call f_requestUnit(coll_gapsFile,coll_gapsUnit)
     call f_open(unit=coll_gapsUnit,file=coll_gapsFile,formatted=.true.,mode="w",status="replace")
@@ -1336,7 +1388,7 @@ subroutine coll_openFiles
 
   ! Collimator Settings (Jaw Slices)
 #ifdef CR
-  if(coll_settingsUnit == -1) then
+  if(coll_settingsFilePos == -1) then
 #endif
     call f_requestUnit(coll_settingsFile,coll_settingsUnit)
     call f_open(unit=coll_settingsUnit,file=coll_settingsFile,formatted=.true.,mode="w",status="replace")
@@ -1350,7 +1402,7 @@ subroutine coll_openFiles
 
   ! Positions
 #ifdef CR
-  if(coll_positionsUnit == -1) then
+  if(coll_positionsFilePos == -1) then
 #endif
     call f_requestUnit(coll_positionsFile,coll_positionsUnit)
     call f_open(unit=coll_positionsUnit,file=coll_positionsFile,formatted=.true.,mode="w",status="replace")
@@ -1364,7 +1416,7 @@ subroutine coll_openFiles
   ! Tracks Files
   if(dowrite_tracks) then
 #ifdef CR
-    if(coll_tracksUnit == -1) then
+    if(coll_tracksFilePos == -1) then
 #endif
       call f_requestUnit(coll_tracksFile,coll_tracksUnit)
       call f_open(unit=coll_tracksUnit,file=coll_tracksFile,formatted=.true.,mode="w",status="replace")
@@ -1377,7 +1429,7 @@ subroutine coll_openFiles
   end if
 
 #ifdef CR
-  if(coll_pencilUnit == -1) then
+  if(coll_pencilFilePos == -1) then
 #endif
     call f_requestUnit(coll_pencilFile,coll_pencilUnit)
     call f_open(unit=coll_pencilUnit, file=coll_pencilFile,formatted=.true.,mode="w",status="replace")
@@ -1392,7 +1444,7 @@ subroutine coll_openFiles
   if(coll_hasCrystal .and. dowrite_crycoord) then
     if(st_debug) then
 #ifdef CR
-      if(coll_cryEntUnit == -1) then
+      if(coll_cryEntFilePos == -1) then
 #endif
         call f_requestUnit(coll_cryEntFile,coll_cryEntUnit)
         call f_open(unit=coll_cryEntUnit,file=coll_cryEntFile,formatted=.true.,mode="w",status="replace")
@@ -1405,7 +1457,7 @@ subroutine coll_openFiles
 #endif
 
 #ifdef CR
-      if(coll_cryExitUnit == -1) then
+      if(coll_cryExitFilePos == -1) then
 #endif
         call f_requestUnit(coll_cryExitFile,coll_cryExitUnit)
         call f_open(unit=coll_cryExitUnit,file=coll_cryExitFile,formatted=.true.,mode="w",status="replace")
@@ -1419,7 +1471,7 @@ subroutine coll_openFiles
     end if
 
 #ifdef CR
-    if(coll_cryInterUnit == -1) then
+    if(coll_cryInterFilePos == -1) then
 #endif
       call f_requestUnit(coll_cryInterFile,coll_cryInterUnit)
       call f_open(unit=coll_cryInterUnit,file=coll_cryInterFile,formatted=.true.,mode="w",status="replace")
@@ -1435,7 +1487,7 @@ subroutine coll_openFiles
 
   if(do_select) then
 #ifdef CR
-    if(coll_ellipseUnit == -1) then
+    if(coll_ellipseFilePos == -1) then
 #endif
       call f_requestUnit(coll_ellipseFile,coll_ellipseUnit)
       call f_open(unit=coll_ellipseUnit,file=coll_ellipseFile,formatted=.true.,mode="w",status="replace")
@@ -1450,7 +1502,7 @@ subroutine coll_openFiles
   if(dowrite_impact) then
 
 #ifdef CR
-    if(coll_allImpactUnit == -1) then
+    if(coll_allImpactFilePos == -1) then
 #endif
       call f_requestUnit(coll_allImpactFile, coll_allImpactUnit)
       call f_open(unit=coll_allImpactUnit, file=coll_allImpactFile, formatted=.true.,mode="w",status="replace")
@@ -1462,7 +1514,7 @@ subroutine coll_openFiles
 #endif
 
 #ifdef CR
-    if(coll_allAbsorbUnit == -1) then
+    if(coll_allAbsorbFilePos == -1) then
 #endif
       call f_requestUnit(coll_allAbsorbFile, coll_allAbsorbUnit)
       call f_open(unit=coll_allAbsorbUnit, file=coll_allAbsorbFile, formatted=.true.,mode="w",status="replace")
@@ -1474,7 +1526,7 @@ subroutine coll_openFiles
 #endif
 
 #ifdef CR
-    if(coll_fstImpactUnit == -1) then
+    if(coll_fstImpactFilePos == -1) then
 #endif
       call f_requestUnit(coll_fstImpactFile, coll_fstImpactUnit)
       call f_open(unit=coll_fstImpactUnit, file=coll_fstImpactFile, formatted=.true.,mode="w",status="replace")
@@ -1487,7 +1539,7 @@ subroutine coll_openFiles
 #endif
 
 #ifdef CR
-    if(coll_scatterUnit == -1) then
+    if(coll_scatterFilePos == -1) then
 #endif
       call f_requestUnit(coll_scatterFile,   coll_scatterUnit)
       call f_open(unit=coll_scatterUnit,   file=coll_scatterFile,   formatted=.true.,mode="w",status="replace")
@@ -1500,7 +1552,7 @@ subroutine coll_openFiles
 #endif
 
 #ifdef CR
-    if(coll_flukImpUnit == -1) then
+    if(coll_flukImpFilePos == -1) then
 #endif
       call f_requestUnit(coll_flukImpFile,   coll_flukImpUnit)
       call f_open(unit=coll_flukImpUnit,   file=coll_flukImpFile,   formatted=.true.,mode="w",status="replace")
@@ -1512,7 +1564,7 @@ subroutine coll_openFiles
 #endif
 
 #ifdef CR
-    if(coll_flukImpAllUnit == -1) then
+    if(coll_flukImpAllFilePos == -1) then
 #endif
       call f_requestUnit(coll_flukImpAllFile,coll_flukImpAllUnit)
       call f_open(unit=coll_flukImpAllUnit,file=coll_flukImpAllFile,formatted=.true.,mode="w",status="replace")
@@ -1524,7 +1576,7 @@ subroutine coll_openFiles
 #endif
 
 #ifdef CR
-    if(coll_jawProfileUnit == -1) then
+    if(coll_jawProfileFilePos == -1) then
 #endif
       call f_requestUnit(coll_jawProfileFile,coll_jawProfileUnit)
       call f_open(unit=coll_jawProfileUnit,file=coll_jawProfileFile,formatted=.true.,mode="w",status="replace")
@@ -1628,7 +1680,8 @@ subroutine coll_computeStats
   gammax = (one + talphax(ie)**2)/tbetax(ie)
   gammay = (one + talphay(ie)**2)/tbetay(ie)
 
-  if(firstrun .and. iturn == 1) then
+!  if(firstrun .and. iturn == 1) then
+  if(iturn == 1) then
     sum_ax(ie) = zero
     sum_ay(ie) = zero
   end if
@@ -1701,7 +1754,7 @@ subroutine coll_doCollimator(stracki)
   c_tilt(:)  = cdb_cTilt(:,icoll)
   cRot       = cos_mb(c_rotation)
   sRot       = sin_mb(c_rotation)
-  if(firstrun .and. dowrite_amplitude) then
+  if(iturn == 1.and. dowrite_amplitude) then
     call coll_computeStats
   end if
 
@@ -1743,7 +1796,7 @@ subroutine coll_doCollimator(stracki)
     end do
   end if
 
-  if(iturn == 1 .and. firstrun) then
+  if(iturn == 1) then
     write(outlun,*) ' '
     write(outlun,*)   'Collimator information: '
     write(outlun,*) ' '
@@ -1811,7 +1864,7 @@ subroutine coll_doCollimator(stracki)
   end if
 
   ! Further output
-  if(firstrun) then
+  if(iturn == 1) then
     if(iturn == 1) then
       write(outlun,*) xp_pencil(icoll), yp_pencil(icoll), pencil_dx(icoll)
       write(outlun,'(a,i4)') 'Collimator number:   ', icoll
@@ -1824,8 +1877,8 @@ subroutine coll_doCollimator(stracki)
       write(outlun,*) 'Collimator halfgap [sigma]:  ', nsig
       write(outlun,*) 'RMS error on halfgap [sigma]:  ', gap_rms_error(icoll)
       write(outlun,*) ' '
-#ifdef CR
       flush(outlun)
+#ifdef CR
       coll_trackoutPos = coll_trackoutPos + 11
 #endif
 
@@ -1848,7 +1901,7 @@ subroutine coll_doCollimator(stracki)
 #endif
       end if
     end if
-  end if
+  end if !if(firstrun)
 
   c_aperture = two*calc_aperture
 
@@ -1912,7 +1965,7 @@ subroutine coll_doCollimator(stracki)
       jawOffset   = c_offset
       jawTilt     = c_tilt
       call jaw_getFitSliceValues(cdb_cSliced(icoll), iSlice, jawLength, jawAperture, jawOffset, jawTilt)
-      if(firstrun) then
+      if(iturn == 1) then
         write(coll_settingsUnit,"(a20,1x,i10,5(1x,1pe13.6),1x,a)") cdb_cName(icoll)(1:20), iSlice, &
           jawAperture/two, jawOffset, jawTilt(1), jawTilt(2), jawLength, cdb_cMaterial(icoll)
 #ifdef CR
@@ -2065,6 +2118,7 @@ subroutine coll_doCollimator(stracki)
         sigmv(j)         = zero
         part_abs_pos(j)  = ie
         part_abs_turn(j) = iturn
+        pstop(j)         = .true.
         numxv(j)         = numx
         nabs_type(j)     = 0
         nhit_stage(j)    = 0
@@ -2164,8 +2218,8 @@ subroutine coll_exitCollimation
   write(outlun,*) "INFO>  Number of surviving particles : ", nsurvive_end
   write(outlun,*) "INFO>  Number of absorbed particles  : ", n_tot_absorbed
   write(outlun,*)
-#ifdef CR
   flush(outlun)
+#ifdef CR
   coll_trackoutPos = coll_trackoutPos + 5
 #endif
 
@@ -2178,14 +2232,14 @@ subroutine coll_exitCollimation
       write(outlun,*) neff(5)/real(n_tot_absorbed,fPrec), neff(9)/real(n_tot_absorbed,fPrec), &
         (neff(9)-neff(19))/(real(n_tot_absorbed,fPrec)), " !eff"
       write(outlun,*)
-#ifdef CR
       flush(outlun)
+#ifdef CR
       coll_trackoutPos = coll_trackoutPos + 6
 #endif
     else
       write(outlun,*) "INFO> Efficiency calculations not enabled"
-#ifdef CR
       flush(outlun)
+#ifdef CR
       coll_trackoutPos = coll_trackoutPos + 1
 #endif
     end if
@@ -2558,12 +2612,14 @@ subroutine coll_startElement(iStru, iSing)
       nhit_stage(j)    = 0
       part_abs_pos(j)  = ie
       part_abs_turn(j) = iturn
+      pstop(j)         = .true.
+      numxv(j)         = numx
     end if
   end do
 #endif
 
   ! Save coordinates of particle 1 to check orbit for amplitude file
-  if(firstrun .and. dowrite_amplitude) then
+  if(iturn == 1.and. dowrite_amplitude) then
     xbob(ie)  = xv1(1)
     ybob(ie)  = xv2(1)
     xpbob(ie) = yv1(1)
@@ -2580,7 +2636,7 @@ subroutine coll_endElement
   use coll_common
   use mod_common
 
-  if(firstrun .and. dowrite_amplitude) then
+  if(iturn == 1.and. dowrite_amplitude) then
     call coll_computeStats
   end if
 
@@ -2835,10 +2891,10 @@ subroutine coll_matchedHalo(c_tilt,c_offset,c_aperture,c_length)
   ! Assign amplitudes in x and y for the halo generation function
   if(cdist_ampX > zero .and. cdist_ampY == zero) then ! Horizontal halo
     c_nex2 = minAmpl
-    c_ney2 = zero 
+    c_ney2 = zero
   else if(cdist_ampX == zero .and. cdist_ampY > zero) then ! Vertical halo
     c_ney2 = minAmpl
-    c_nex2 = zero 
+    c_nex2 = zero
   end if ! Other cases taken care of above - in these cases, program has already stopped
 
   ! Assign optics parameters to use for the generation of the starting halo - at start or end of collimator
@@ -2897,7 +2953,7 @@ subroutine coll_getMinGapID(minGapID)
   real(kind=fPrec) gapH1,gapH2,gapH3,gapH4,minGap,nSigErr,sigOffset
 
 #ifdef CR
-  if(coll_sigmaSetUnit == -1) then
+  if(coll_sigmaSetFilePos == -1) then
 #endif
     call f_requestUnit(coll_sigmaSetFile,coll_sigmaSetUnit)
     call f_open(unit=coll_sigmaSetUnit,file=coll_sigmaSetFile,formatted=.true.,mode="w",status="replace")
@@ -2907,7 +2963,6 @@ subroutine coll_getMinGapID(minGapID)
     flush(coll_sigmaSetUnit)
 #ifdef CR
     coll_sigmaSetFilePos = 1
-  end if
 #endif
 
   minGap = 20.0_fPrec
@@ -2981,6 +3036,7 @@ subroutine coll_getMinGapID(minGapID)
   flush(coll_sigmaSetUnit)
 #ifdef CR
   coll_sigmaSetFilePos = coll_sigmaSetFilePos + 1
+  end if !if(coll_sigmaSetFilePos == -1) then
 #endif
 
   call f_close(coll_sigmaSetUnit)
@@ -3184,10 +3240,11 @@ subroutine coll_writeSelectedCollimator
 
   if(dowrite_impact) then
 #ifdef CR
-    if(coll_impactUnit == -1) then
+    if(coll_impactFilePos == -1) then
 #endif
       call f_requestUnit(coll_impactFile,coll_impactUnit)
       call f_open(unit=coll_impactUnit,file=coll_impactFile,formatted=.true.,mode="w",status="replace")
+
       write(coll_impactUnit,"(a1,1x,a14,1x,a16)") "#","impact","divergence"
       flush(coll_impactUnit)
 #ifdef CR
@@ -3227,7 +3284,7 @@ subroutine coll_writeSelectedCollimator
 #endif
       end if
 
-    else if(do_select .and. firstrun) then
+    else if(do_select .and. iturn == 1) then
       ! If we want to select only partciles interacting at the specified
       ! collimator then remove all other particles and reset the number
       ! of the absorbed particles to the selected collimator.
@@ -3609,8 +3666,14 @@ subroutine coll_echoSettings
 
   integer i
 
+#ifdef CR
+  if(outlun == -1) then
+#endif
   call f_requestUnit("colltrack.out", outlun)
   call f_open(unit=outlun,file="colltrack.out",formatted=.true.,mode="w",status="replace")
+#ifdef CR
+  end if
+#endif
 
   write(outlun,*)
   write(outlun,*)
@@ -3631,8 +3694,8 @@ subroutine coll_echoSettings
   write(outlun,*) '         -------------------------------'
   write(outlun,*)
   write(outlun,*)
-#ifdef CR
   flush(outlun)
+#ifdef CR
   coll_trackoutPos = 19
 #endif
 
@@ -3767,21 +3830,159 @@ subroutine coll_crcheck_readdata(fileUnit,readerr)
 
   use crcoall
   use coll_common
+  use mod_alloc
+
+  use coll_db, only : cdb_nColl_cr
+
   implicit none
 
   integer, intent(in)  :: fileUnit
   logical, intent(out) :: readerr
 
-  integer j
+  integer j,k,i
 
-  read(fileunit,err=100,end=100) fort208Pos_CR, coll_survivalFilePos_CR, coll_gapsFilePos_CR, coll_settingsFilePos_CR, &
-                                 coll_positionsFilePos_CR, coll_tracksFilePos_CR, coll_pencilFilePos_CR, coll_cryEntFilePos_CR, &
-                                 coll_cryExitFilePos_CR, coll_cryInterFilePos_CR, coll_ellipseFilePos_CR, &
-                                 coll_allImpactFilePos_CR, coll_allAbsorbFilePos_CR, coll_scatterFilePos_CR, &
-                                 coll_fstImpactFilePos_CR, coll_flukImpFilePos_CR, coll_flukImpAllFilePos_CR, &
-                                 coll_jawProfileFilePos_CR, coll_efficFilePos_CR, coll_efficDPFilePos_CR, coll_effic2DFilePos_CR, &
-                                 coll_summaryFilePos_CR, coll_ampFilePos_CR, coll_orbitCheckFilePos_CR, coll_sigmaSetFilePos_CR, &
-                                 coll_impactFilePos_CR, coll_trackoutPos_CR, lux_CR, seed_CR, k1_CR, k2_CR
+  call alloc(part_hit_pos_cr,   npart, 0,       "part_hit_pos_cr")
+  call alloc(part_hit_turn_cr,  npart, 0,       "part_hit_turn_cr")
+  call alloc(part_abs_pos_cr,   npart, 0,       "part_abs_pos_cr")
+  call alloc(part_abs_turn_cr,  npart, 0,       "part_abs_turn_cr")
+  call alloc(part_select_cr,    npart, 0,       "part_select_cr")
+  call alloc(nabs_type_cr,      npart, 0,       "nabs_type_cr")
+  call alloc(nhit_stage_cr,     npart, 0,       "nhit_stage_cr")
+  call alloc(part_linteract_cr, npart, zero,    "part_linteract_cr")
+  call alloc(part_indiv_cr,     npart, -c1m6,   "part_indiv_cr")
+  call alloc(part_impact_cr,    npart, zero,    "part_impact_cr")
+
+  call alloc(cn_impact_cr,     cdb_nColl_cr, 0,    "cn_impact")
+  call alloc(cn_absorbed_cr,   cdb_nColl_cr, 0,    "cn_absorbed")
+  call alloc(caverage_cr,      cdb_nColl_cr, zero, "caverage")
+  call alloc(csigma_cr,        cdb_nColl_cr, zero, "csigma")
+  call alloc(gap_rms_error_cr, cdb_nColl_cr, zero, "gap_rms_error")
+  call alloc(csum_cr,          cdb_nColl_cr, zero, "csum")
+  call alloc(csqsum_cr,        cdb_nColl_cr, zero, "csqsum")
+
+  if(dowrite_amplitude) then
+    call alloc(nampl_cr,    nblz, 0,    "nampl_cr")
+    call alloc(sum_ax_cr,   nblz, zero, "sum_ax_cr")
+    call alloc(sqsum_ax_cr, nblz, zero, "sqsum_ax_cr")
+    call alloc(sum_ay_cr,   nblz, zero, "sum_ay_cr")
+    call alloc(sqsum_ay_cr, nblz, zero, "sqsum_ay_cr")
+    call alloc(xbob_cr,     nblz, zero, "xbob_cr")
+    call alloc(ybob_cr,     nblz, zero, "ybob_cr")
+    call alloc(xpbob_cr,    nblz, zero, "xpbob_cr")
+    call alloc(ypbob_cr,    nblz, zero, "ypbob_cr")
+  end if
+
+  if(dowrite_efficiency) then
+    call alloc(xineff_cr,      npart,                     zero, "xineff_cr")      ! (npart)
+    call alloc(yineff_cr,      npart,                     zero, "yineff_cr")      ! (npart)
+    call alloc(xpineff_cr,     npart,                     zero, "xpineff_cr")     ! (npart)
+    call alloc(ypineff_cr,     npart,                     zero, "ypineff_cr")     ! (npart)
+    call alloc(counted_r_cr,   npart, numeff,             0,    "counted_r_cr")   ! (npart,numeff)
+    call alloc(counted_x_cr,   npart, numeff,             0,    "counted_x_cr")   ! (npart,numeff)
+    call alloc(counted_y_cr,   npart, numeff,             0,    "counted_y_cr")   ! (npart,numeff)
+    call alloc(counteddpop_cr, npart, numeffdpop,         0,    "counteddpop_cr") ! (npart,numeffdpop)
+    call alloc(counted2d_cr,   npart, numeff, numeffdpop, 0,    "counted2d_cr")   ! (npart,numeff,numeffdpop)
+    call alloc(npartdpop_cr,   numeffdpop,                0,    "npartdpop_cr")   ! (numeffdpop)
+    call alloc(neff_cr,        numeff,                    zero, "neff_cr")        ! (numeff)
+    call alloc(rsig_cr,        numeff,                    zero, "rsig_cr")        ! (numeff)
+    call alloc(neffdpop_cr,    numeffdpop,                zero, "neffdpop_cr")    ! (numeffdpop)
+    call alloc(dpopbins_cr,    numeffdpop,                zero, "dpopbins_cr")    ! (numeffdpop)
+    call alloc(neff2d_cr,      numeff, numeffdpop,        zero, "neff2d_cr")      ! (numeff,numeffdpop)
+    call alloc(neffx_cr,       numeff,                    zero, "neffx_cr")       ! (numeff)
+    call alloc(neffy_cr,       numeff,                    zero, "neffy_cr")       ! (numeff)
+  end if
+
+  read(fileunit,err=100,end=100) &
+  fort208Pos_CR,                 &
+  coll_survivalFilePos_CR,       &
+  coll_gapsFilePos_CR,           &
+  coll_settingsFilePos_CR,       &
+  coll_positionsFilePos_CR,      &
+  coll_tracksFilePos_CR,         &
+  coll_pencilFilePos_CR,         &
+  coll_cryEntFilePos_CR,         &
+  coll_cryExitFilePos_CR,        &
+  coll_cryInterFilePos_CR,       &
+  coll_ellipseFilePos_CR,        &
+  coll_allImpactFilePos_CR,      &
+  coll_allAbsorbFilePos_CR,      &
+  coll_scatterFilePos_CR,        &
+  coll_fstImpactFilePos_CR,      &
+  coll_flukImpFilePos_CR,        &
+  coll_flukImpAllFilePos_CR,     &
+  coll_jawProfileFilePos_CR,     &
+  coll_efficFilePos_CR,          &
+  coll_efficDPFilePos_CR,        &
+  coll_effic2DFilePos_CR,        &
+  coll_summaryFilePos_CR,        &
+  coll_ampFilePos_CR,            &
+  coll_orbitCheckFilePos_CR,     &
+  coll_sigmaSetFilePos_CR,       &
+  coll_impactFilePos_CR,         &
+  coll_trackoutPos_CR,           &
+  lux_CR,                        &
+  seed_CR,                       &
+  k1_CR,                         &
+  k2_CR,                         &
+  n_tot_absorbed_cr,             &
+  n_absorbed_cr,                 &
+  nabs_total_cr,                 &
+  nsurvive_cr,                   &
+  nsurvive_end_cr,               &
+  num_selhit_cr,                 &
+  (part_hit_pos_cr(j)   ,j=1,npart), &
+  (part_hit_turn_cr(j)  ,j=1,npart), &
+  (part_abs_pos_cr(j)   ,j=1,npart), &
+  (part_abs_turn_cr(j)  ,j=1,npart), &
+  (part_select_cr(j)    ,j=1,npart), &
+  (nabs_type_cr(j)      ,j=1,npart), &
+  (nhit_stage_cr(j)     ,j=1,npart), &
+  (part_linteract_cr(j) ,j=1,npart), &
+  (part_indiv_cr(j)     ,j=1,npart), &
+  (part_impact_cr(j)    ,j=1,npart), &
+
+  (cn_impact_cr(j)      ,j=1,cdb_nColl_cr), &
+  (cn_absorbed_cr(j)    ,j=1,cdb_nColl_cr), &
+  (caverage_cr(j)       ,j=1,cdb_nColl_cr), &
+  (csigma_cr(j)         ,j=1,cdb_nColl_cr), &
+  (gap_rms_error_cr(j)  ,j=1,cdb_nColl_cr), &
+  (csum_cr(j)           ,j=1,cdb_nColl_cr), &
+  (csqsum_cr(j)         ,j=1,cdb_nColl_cr)
+
+  if(dowrite_efficiency) then
+    read(fileunit,err=100,end=100)                                  &
+    (xineff_cr(j)          ,j=1,npart),                             &
+    (yineff_cr(j)          ,j=1,npart),                             &
+    (xpineff_cr(j)         ,j=1,npart),                             &
+    (ypineff_cr(j)         ,j=1,npart),                             &
+    ((counted_r_cr(i,j)    ,j=1,numeff),i=1,npart),                 & ! (npart,numeff)
+    ((counted_x_cr(i,j)    ,j=1,numeff),i=1,npart),                 & ! (npart,numeff)
+    ((counted_y_cr(i,j)    ,j=1,numeff),i=1,npart),                 & ! (npart,numeff)
+    ((counteddpop_cr(i,j)  ,j=1,numeffdpop),i=1,npart),             & ! (npart,numeffdpop)
+    (((counted2d_cr(i,j,k) ,k=1,numeffdpop),j=1,numeff),i=1,npart), & ! (npart,numeff,numeffdpop)
+    (npartdpop_cr(j)       ,j=1,numeffdpop),                        & ! (numeffdpop)
+    (neff_cr(j)            ,j=1,numeff),                            & ! (numeff)
+    (rsig_cr(j)            ,j=1,numeff),                            & ! (numeff)
+    (neffdpop_cr(j)        ,j=1,numeffdpop),                        & ! (numeffdpop)
+    (dpopbins_cr(j)        ,j=1,numeffdpop),                        & ! (numeffdpop)
+    ((neff2d_cr(i,j)       ,j=1,numeffdpop),i=1,numeff),            & ! (numeff,numeffdpop)
+    (neffx_cr(j)           ,j=1,numeff),                            & ! (numeff)
+    (neffy_cr(j)           ,j=1,numeff)                               ! (numeff)
+  end if
+
+  if(dowrite_amplitude) then
+    read(fileunit,err=100,end=100)    &
+    (nampl_cr(j)          ,j=1,nblz), &
+    (sum_ax_cr(j)         ,j=1,nblz), &
+    (sqsum_ax_cr(j)       ,j=1,nblz), &
+    (sum_ay_cr(j)         ,j=1,nblz), &
+    (sqsum_ay_cr(j)       ,j=1,nblz), &
+    (xbob_cr(j)           ,j=1,nblz), &
+    (ybob_cr(j)           ,j=1,nblz), &
+    (xpbob_cr(j)          ,j=1,nblz), &
+    (ypbob_cr(j)          ,j=1,nblz)
+  end if
+!end read()
 
   readerr = .false.
   return
@@ -3829,16 +4030,18 @@ subroutine coll_crcheck_positionFiles
   call f_positionFile(coll_flukImpFile, coll_flukImpUnit, coll_flukImpFilePos, coll_flukImpFilePos_CR)
   call f_positionFile(coll_flukImpAllFile, coll_flukImpAllUnit, coll_flukImpAllFilePos, coll_flukImpAllFilePos_CR)
   call f_positionFile(coll_jawProfileFile, coll_jawProfileUnit, coll_jawProfileFilePos, coll_jawProfileFilePos_CR)
+  call f_positionFile(coll_sigmaSetFile, coll_sigmaSetUnit, coll_sigmaSetFilePos,coll_sigmaSetFilePos_CR)
+  call f_positionFile(coll_impactFile, coll_impactUnit, coll_impactFilePos, coll_impactFilePos_CR)
+
+  call f_positionFile("colltrack.out", outlun, coll_trackoutPos, coll_trackoutPos_CR)
+
+!Files in the final processing
   call f_positionFile(coll_efficFile, coll_efficUnit, coll_efficFilePos, coll_efficFilePos_CR)
   call f_positionFile(coll_efficDPFile, coll_efficDPUnit, coll_efficDPFilePos, coll_efficDPFilePos_CR)
   call f_positionFile(coll_effic2DFile, coll_effic2DUnit, coll_effic2DFilePos, coll_effic2DFilePos_CR)
   call f_positionFile(coll_summaryFile, coll_summaryUnit, coll_summaryFilePos, coll_summaryFilePos_CR)
   call f_positionFile(coll_ampFile, coll_ampUnit, coll_ampFilePos, coll_ampFilePos_CR)
   call f_positionFile(coll_orbitCheckFile, coll_orbitCheckUnit, coll_orbitCheckFilePos, coll_orbitCheckFilePos_CR)
-  call f_positionFile(coll_sigmaSetFile, coll_sigmaSetUnit, coll_sigmaSetFilePos, coll_sigmaSetFilePos_CR)
-  call f_positionFile(coll_impactFile, coll_impactUnit, coll_impactFilePos, coll_impactFilePos_CR)
-
-!  call f_positionFile("colltrack.out", outlun, coll_trackoutPos, coll_trackoutPos_CR)
 
 end subroutine coll_crcheck_positionFiles
 
@@ -3847,31 +4050,119 @@ subroutine coll_crpoint(fileUnit,lerror)
   use crcoall
   use coll_common
   use mod_ranlux
+  use parpro
 
+  use coll_db, only : cdb_nColl
+  use mod_units
   implicit none
 
   integer, intent(in)  :: fileUnit
   logical, intent(out) :: lerror
 
   integer lux,seed,k1,k2
+  integer i,j,k
 
   call rluxat(lux,seed,k1,k2)
 
-  write(fileUnit,err=100) fort208Pos, coll_survivalFilePos, coll_gapsFilePos, coll_settingsFilePos, &
-                          coll_positionsFilePos, coll_tracksFilePos, coll_pencilFilePos, coll_cryEntFilePos, &
-                          coll_cryExitFilePos, coll_cryInterFilePos, coll_ellipseFilePos, &
-                          coll_allImpactFilePos, coll_allAbsorbFilePos, coll_scatterFilePos, &
-                          coll_fstImpactFilePos, coll_flukImpFilePos, coll_flukImpAllFilePos, &
-                          coll_jawProfileFilePos, coll_efficFilePos, coll_efficDPFilePos, coll_effic2DFilePos, &
-                          coll_summaryFilePos, coll_ampFilePos, coll_orbitCheckFilePos, coll_sigmaSetFilePos, &
-                          coll_impactFilePos, coll_trackoutPos, lux, seed, k1, k2
+  write(fileUnit,err=100)   &
+    fort208Pos,             &
+    coll_survivalFilePos,   &
+    coll_gapsFilePos,       &
+    coll_settingsFilePos,   &
+    coll_positionsFilePos,  &
+    coll_tracksFilePos,     &
+    coll_pencilFilePos,     &
+    coll_cryEntFilePos,     &
+    coll_cryExitFilePos,    &
+    coll_cryInterFilePos,   &
+    coll_ellipseFilePos,    &
+    coll_allImpactFilePos,  &
+    coll_allAbsorbFilePos,  &
+    coll_scatterFilePos,    &
+    coll_fstImpactFilePos,  &
+    coll_flukImpFilePos,    &
+    coll_flukImpAllFilePos, &
+    coll_jawProfileFilePos, &
+    coll_efficFilePos,      &
+    coll_efficDPFilePos,    &
+    coll_effic2DFilePos,    &
+    coll_summaryFilePos,    &
+    coll_ampFilePos,        &
+    coll_orbitCheckFilePos, &
+    coll_sigmaSetFilePos,   &
+    coll_impactFilePos,     &
+    coll_trackoutPos,       &
+    lux,                    &
+    seed,                   &
+    k1,                     &
+    k2,                     &
+    n_tot_absorbed,         &
+    n_absorbed,             &
+    nabs_total,             &
+    nsurvive,               &
+    nsurvive_end,           &
+    num_selhit,             &
+    (part_hit_pos(j)   ,j=1,npart), &
+    (part_hit_turn(j)  ,j=1,npart), &
+    (part_abs_pos(j)   ,j=1,npart), &
+    (part_abs_turn(j)  ,j=1,npart), &
+    (part_select(j)    ,j=1,npart), &
+    (nabs_type(j)      ,j=1,npart), &
+    (nhit_stage(j)     ,j=1,npart), &
+    (part_linteract(j) ,j=1,npart), &
+    (part_indiv(j)     ,j=1,npart), &
+    (part_impact(j)    ,j=1,npart), &
+
+    (cn_impact(j)      ,j=1,cdb_nColl),  &
+    (cn_absorbed(j)    ,j=1,cdb_nColl),  &
+    (caverage(j)       ,j=1,cdb_nColl),  &
+    (csigma(j)         ,j=1,cdb_nColl),  &
+    (gap_rms_error(j)  ,j=1,cdb_nColl),  &
+    (csum(j)           ,j=1,cdb_nColl),  &
+    (csqsum(j)         ,j=1,cdb_nColl)
+
+  if(dowrite_efficiency) then
+    write(fileUnit,err=100)                                      &
+    (xineff(j)          ,j=1,npart),                             &
+    (yineff(j)          ,j=1,npart),                             &
+    (xpineff(j)         ,j=1,npart),                             &
+    (ypineff(j)         ,j=1,npart),                             &
+    ((counted_r(i,j)    ,j=1,numeff),i=1,npart),                 & ! (npart,numeff)
+    ((counted_x(i,j)    ,j=1,numeff),i=1,npart),                 & ! (npart,numeff)
+    ((counted_y(i,j)    ,j=1,numeff),i=1,npart),                 & ! (npart,numeff)
+    ((counteddpop(i,j)  ,j=1,numeffdpop),i=1,npart),             & ! (npart,numeffdpop)
+    (((counted2d(i,j,k) ,k=1,numeffdpop),j=1,numeff),i=1,npart), & ! (npart,numeff,numeffdpop)
+    (npartdpop(j)       ,j=1,numeffdpop),                        & ! (numeffdpop)
+    (neff(j)            ,j=1,numeff),                            & ! (numeff)
+    (rsig(j)            ,j=1,numeff),                            & ! (numeff)
+    (neffdpop(j)        ,j=1,numeffdpop),                        & ! (numeffdpop)
+    (dpopbins(j)        ,j=1,numeffdpop),                        & ! (numeffdpop)
+    ((neff2d(i,j)       ,j=1,numeffdpop),i=1,numeff),            & ! (numeff,numeffdpop)
+    (neffx(j)           ,j=1,numeff),                            & ! (numeff)
+    (neffy(j)           ,j=1,numeff)                               ! (numeff)
+  end if
+
+  if(dowrite_amplitude) then
+    write(fileUnit,err=100)    &
+    (nampl(j)      ,j=1,nblz), &
+    (sum_ax(j)     ,j=1,nblz), &
+    (sqsum_ax(j)   ,j=1,nblz), &
+    (sum_ay(j)     ,j=1,nblz), &
+    (sqsum_ay(j)   ,j=1,nblz), &
+    (xbob(j)       ,j=1,nblz), &
+    (ybob(j)       ,j=1,nblz), &
+    (xpbob(j)      ,j=1,nblz), &
+    (ypbob(j)      ,j=1,nblz)
+  end if
+!end write()
+
   flush(fileunit)
   return
 
 100 continue
   lerror = .true.
-  write(lout, "(a,i0,a)") "CR_POINT> ERROR Reading C/R file fort.",fileUnit," in COLLIMATION"
-  write(crlog,"(a,i0,a)") "CR_POINT> ERROR Reading C/R file fort.",fileUnit," in COLLIMATION"
+  write(lout, "(a,i0,a)") "CR_POINT> ERROR Writing C/R file fort.",fileUnit," in COLLIMATION"
+  write(crlog,"(a,i0,a)") "CR_POINT> ERROR Writing C/R file fort.",fileUnit," in COLLIMATION"
   flush(crlog)
 
 end subroutine coll_crpoint
@@ -3881,6 +4172,8 @@ subroutine coll_crstart()
 
   use coll_common
   use mod_ranlux
+  use mod_alloc
+  use coll_db, only : cdb_nColl
 
   implicit none
 
@@ -3915,6 +4208,116 @@ subroutine coll_crstart()
 
 !reset ranlux RNG state
   call rluxgo(lux_CR, seed_CR, k1_CR, k2_CR)
+
+  n_tot_absorbed = n_tot_absorbed_cr
+  n_absorbed     = n_absorbed_cr
+  nabs_total     = nabs_total_cr
+  nsurvive       = nsurvive_cr
+  nsurvive_end   = nsurvive_end_cr
+  num_selhit     = num_selhit_cr
+
+  part_hit_pos(1:npart)   = part_hit_pos_cr(1:npart)
+  part_hit_turn(1:npart)  = part_hit_turn_cr(1:npart)
+  part_abs_pos(1:npart)   = part_abs_pos_cr(1:npart)
+  part_abs_turn(1:npart)  = part_abs_turn_cr(1:npart)
+
+  part_select(1:npart)    = part_select_cr(1:npart)
+  nabs_type(1:npart)      = nabs_type_cr(1:npart)
+  nhit_stage(1:npart)     = nhit_stage_cr(1:npart)
+  part_linteract(1:npart) = part_linteract_cr(1:npart)
+  part_indiv(1:npart)     = part_indiv_cr(1:npart)
+  part_impact(1:npart)    = part_impact_cr(1:npart)
+
+  cn_impact(1:cdb_nColl)     = cn_impact_cr(1:cdb_nColl)
+  cn_absorbed(1:cdb_nColl)   = cn_absorbed_cr(1:cdb_nColl)
+  caverage(1:cdb_nColl)      = caverage_cr(1:cdb_nColl)
+  csigma(1:cdb_nColl)        = csigma_cr(1:cdb_nColl)
+  gap_rms_error(1:cdb_nColl) = gap_rms_error_cr(1:cdb_nColl)
+  csum(1:cdb_nColl)          = csum_cr(1:cdb_nColl)
+  csqsum(1:cdb_nColl)        = csqsum_cr(1:cdb_nColl)
+
+  if(dowrite_amplitude) then
+    nampl(1:nblz)    = nampl_cr(1:nblz)
+    sum_ax(1:nblz)   = sum_ax_cr(1:nblz)
+    sqsum_ax(1:nblz) = sqsum_ax_cr(1:nblz)
+    sum_ay(1:nblz)   = sum_ay_cr(1:nblz)
+    sqsum_ay(1:nblz) = sqsum_ay_cr(1:nblz)
+    xbob(1:nblz)     = xbob_cr(1:nblz)
+    ybob(1:nblz)     = ybob_cr(1:nblz)
+    xpbob(1:nblz)    = xpbob_cr(1:nblz)
+    ypbob(1:nblz)    = ypbob_cr(1:nblz)
+  end if
+
+  if(dowrite_efficiency) then
+   xineff(1:npart)                          = xineff_cr(1:npart)
+   yineff(1:npart)                          = yineff_cr(1:npart)
+   xpineff(1:npart)                         = xpineff_cr(1:npart)
+   ypineff(1:npart)                         = ypineff_cr(1:npart)
+   counted_r(1:npart,1:numeff)              = counted_r_cr(1:npart,1:numeff)
+   counted_x(1:npart,1:numeff)              = counted_x_cr(1:npart,1:numeff)
+   counted_y(1:npart,1:numeff)              = counted_y_cr(1:npart,1:numeff)
+   counteddpop(1:npart,1:numeffdpop)        = counteddpop_cr(1:npart,1:numeffdpop)
+   counted2d(1:npart,1:numeff,1:numeffdpop) = counted2d_cr(1:npart,1:numeff,1:numeffdpop)
+   npartdpop(1:numeffdpop)                  = npartdpop_cr(1:numeffdpop)
+   neff(1:numeff)                           = neff_cr(1:numeff)
+   rsig(1:numeff)                           = rsig_cr(1:numeff)
+   neffdpop(1:numeffdpop)                   = neffdpop_cr(1:numeffdpop)
+   dpopbins(1:numeffdpop)                   = dpopbins_cr(1:numeffdpop)
+   neff2d(1:numeff,1:numeffdpop)            = neff2d_cr(1:numeff,1:numeffdpop)
+   neffx(1:numeff)                          = neffx_cr(1:numeff)
+   neffy(1:numeff)                          = neffy_cr(1:numeff)
+  end if
+
+  call dealloc(part_hit_pos_cr,   "part_hit_pos_cr")
+  call dealloc(part_hit_turn_cr,  "part_hit_turn_cr")
+  call dealloc(part_abs_pos_cr ,  "part_abs_pos_cr")
+  call dealloc(part_abs_turn_cr,  "part_abs_turn_cr")
+  call dealloc(part_select_cr,    "part_select_cr")
+  call dealloc(nabs_type_cr,      "nabs_type_cr")
+  call dealloc(nhit_stage_cr,     "nhit_stage_cr")
+  call dealloc(part_linteract_cr, "part_linteract_cr")
+  call dealloc(part_indiv_cr,     "part_indiv_cr")
+  call dealloc(part_impact_cr,    "part_impact_cr")
+
+  call dealloc(cn_impact_cr,      "cn_impact")
+  call dealloc(cn_absorbed_cr,    "cn_absorbed")
+  call dealloc(caverage_cr,       "caverage")
+  call dealloc(csigma_cr,         "csigma")
+  call dealloc(gap_rms_error_cr,  "gap_rms_error")
+  call dealloc(csum_cr,           "csum")
+  call dealloc(csqsum_cr,         "csqsum")
+
+  if(dowrite_amplitude) then
+    call dealloc(nampl_cr,    "nampl_cr")
+    call dealloc(sum_ax_cr,   "sum_ax_cr")
+    call dealloc(sqsum_ax_cr, "sqsum_ax_cr")
+    call dealloc(sum_ay_cr,   "sum_ay_cr")
+    call dealloc(sqsum_ay_cr, "sqsum_ay_cr")
+    call dealloc(xbob_cr,     "xbob_cr")
+    call dealloc(ybob_cr,     "ybob_cr")
+    call dealloc(xpbob_cr,    "xpbob_cr")
+    call dealloc(ypbob_cr,    "ypbob_cr")
+  end if
+
+  if(dowrite_efficiency) then
+    call dealloc(xineff_cr,      "xineff_cr")
+    call dealloc(yineff_cr,      "yineff_cr")
+    call dealloc(xpineff_cr,     "xpineff_cr")
+    call dealloc(ypineff_cr,     "ypineff_cr")
+    call dealloc(counted_r_cr,   "counted_r_cr")
+    call dealloc(counted_x_cr,   "counted_x_cr")
+    call dealloc(counted_y_cr,   "counted_y_cr")
+    call dealloc(counteddpop_cr, "counteddpop_cr")
+    call dealloc(counted2d_cr,   "counted2d_cr")
+    call dealloc(npartdpop_cr,   "npartdpop_cr")
+    call dealloc(neff_cr,        "neff_cr")
+    call dealloc(rsig_cr,        "rsig_cr")
+    call dealloc(neffdpop_cr,    "neffdpop_cr")
+    call dealloc(dpopbins_cr,    "dpopbins_cr")
+    call dealloc(neff2d_cr,      "neff2d_cr")
+    call dealloc(neffx_cr,       "neffx_cr")
+    call dealloc(neffy_cr,       "neff_cr")
+  end if
 
 end subroutine coll_crstart
 
