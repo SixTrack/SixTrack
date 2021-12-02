@@ -25,12 +25,12 @@
 #    turn     napx bez                  generator            process     nScat    nLost   scatRat  crossSec[mb]       scaling
         3       64 ip5_scatter          sc_thin              Elastic        24        0  0.375000     11.250000  1.000000E+00
         4       51 ip5_scatter          sc_thin              Elastic        12        0  0.235294      7.058824  1.000000E+00
-        5       39 ip5_scatter          sc_thin              Elastic        11        0  0.282051      8.461538  1.000000E+00
-        6       33 ip5_scatter          sc_thin              Elastic        11        0  0.333333     10.000000  1.000000E+00
-        7       25 ip5_scatter          sc_thin              Elastic         3        0  0.120000      3.600000  1.000000E+00
-        8       25 ip5_scatter          sc_thin              Elastic         8        0  0.320000      9.600000  1.000000E+00
-        9       20 ip5_scatter          sc_thin              Elastic         5        0  0.250000      7.500000  1.000000E+00
-       10       16 ip5_scatter          sc_thin              Elastic         3        0  0.187500      5.625000  1.000000E+00
-       11       13 ip5_scatter          sc_thin              Elastic         4        0  0.307692      9.230769  1.000000E+00
-       12       10 ip5_scatter          sc_thin              Elastic         3        0  0.300000      9.000000  1.000000E+00
-       13        7 ip5_scatter          sc_thin              Elastic         2        0  0.285714      8.571429  1.000000E+00
+        5       41 ip5_scatter          sc_thin              Elastic        12        0  0.292683      8.780488  1.000000E+00
+        6       34 ip5_scatter          sc_thin              Elastic        10        0  0.294118      8.823529  1.000000E+00
+        7       29 ip5_scatter          sc_thin              Elastic         6        0  0.206897      6.206897  1.000000E+00
+        8       25 ip5_scatter          sc_thin              Elastic         7        0  0.280000      8.400000  1.000000E+00
+        9       18 ip5_scatter          sc_thin              Elastic         4        0  0.222222      6.666667  1.000000E+00
+       10       14 ip5_scatter          sc_thin              Elastic         2        0  0.142857      4.285714  1.000000E+00
+       11       12 ip5_scatter          sc_thin              Elastic         5        0  0.416667     12.500000  1.000000E+00
+       12        8 ip5_scatter          sc_thin              Elastic         2        0  0.250000      7.500000  1.000000E+00
+       13        6 ip5_scatter          sc_thin              Elastic         2        0  0.333333     10.000000  1.000000E+00
