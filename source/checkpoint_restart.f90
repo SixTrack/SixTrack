@@ -322,6 +322,7 @@ subroutine crcheck
   use mod_time,    only : time_crcheck
   use mod_random,  only : rnd_crcheck
   use collimation, only : coll_crcheck_readdata, coll_crcheck_positionFiles, do_coll
+  use coll_db    , only : coll_db_crcheck_readdata
 
   integer j,k,l,m
   integer nPoint, ioStat
@@ -475,6 +476,7 @@ subroutine crcheck
     if(do_coll) then
       write(crlog,"(a)") "CR_CHECK>  * COLLIMATION variables"
       flush(crlog)
+      call coll_db_crcheck_readdata(cr_pntUnit(nPoint),rErr)
       call coll_crcheck_readdata(cr_pntUnit(nPoint),rErr)
       if(rErr) cycle
     end if
@@ -593,6 +595,7 @@ subroutine crpoint
   use mod_meta,    only : meta_crpoint
   use mod_random,  only : rnd_crpoint
   use collimation, only : coll_crpoint, do_coll
+  use coll_db,     only : coll_db_crpoint
 
   integer j, k, l, m, nPoint
   logical wErr, fErr
@@ -751,6 +754,7 @@ subroutine crpoint
         write(crlog,"(a)") "CR_POINT>  * COLLIMATION variables"
         flush(crlog)
       end if
+      call coll_db_crpoint(cr_pntUnit(nPoint),wErr)
       call coll_crpoint(cr_pntUnit(nPoint),wErr)
       if(wErr) goto 100
     end if
