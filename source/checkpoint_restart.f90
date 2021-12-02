@@ -321,7 +321,8 @@ subroutine crcheck
   use mod_meta,    only : meta_crcheck
   use mod_time,    only : time_crcheck
   use mod_random,  only : rnd_crcheck
-  use collimation, only : coll_crcheck_readdata, coll_crcheck_positionFiles
+  use collimation, only : coll_crcheck_readdata, coll_crcheck_positionFiles, do_coll
+  use coll_db    , only : coll_db_crcheck_readdata
 
   integer j,k,l,m
   integer nPoint, ioStat
@@ -347,12 +348,13 @@ subroutine crcheck
 
   ! If we do we must have a fort.6 as it was created by CRPOINT
   ! NOT TRUE anymore??? We might be NOT rerun but using a Sixin.zip
-#ifndef BOINC
-  if(cr_rerun .eqv. .false.) then
-    write(lerr,"(a)") "CR_CHECK> ERROR Found checkpoint file(s) but no "//trim(fort6)
-    call prror
-  end if
-#endif
+!#ifndef BOINC
+!  This code is broken
+!  if(cr_rerun .eqv. .false.) then
+!    write(lerr,"(a)") "CR_CHECK> ERROR Found checkpoint file(s) but no "//trim(fort6)
+!    call prror
+!  end if
+!#endif
 
   ! Check at least one restart file is readable
   noRestart = .true.
@@ -471,10 +473,13 @@ subroutine crcheck
       if(rErr) cycle
     end if
 
-    write(crlog,"(a)") "CR_CHECK>  * COLLIMATION variables"
-    flush(crlog)
-    call coll_crcheck_readdata(cr_pntUnit(nPoint),rErr)
-    if(rErr) cycle
+    if(do_coll) then
+      write(crlog,"(a)") "CR_CHECK>  * COLLIMATION variables"
+      flush(crlog)
+      call coll_db_crcheck_readdata(cr_pntUnit(nPoint),rErr)
+      call coll_crcheck_readdata(cr_pntUnit(nPoint),rErr)
+      if(rErr) cycle
+    end if
 
     write(crlog,"(a)") "CR_CHECK> File "//cr_pntFile(nPoint)//" successfully read"
     flush(crlog)
@@ -536,9 +541,11 @@ subroutine crcheck
     call aper_crcheck_positionFiles
   end if
 
-  write(crlog,"(a)") "CR_CHECK> Repositioning COLLIMATION files"
-  flush(crlog)
-  call coll_crcheck_positionFiles
+  if(do_coll) then
+    write(crlog,"(a)") "CR_CHECK> Repositioning COLLIMATION files"
+    flush(crlog)
+    call coll_crcheck_positionFiles
+  end if
 
   ! Set up flag for tracking routines to call CRSTART
   cr_restart = .true.
@@ -578,6 +585,7 @@ subroutine crpoint
   use mod_version
   use mod_settings
   use numerical_constants
+  use mod_units,   only : f_flush
 
   use dynk,        only : dynk_enabled,dynk_getvalue,dynk_fSets_cr,dynk_cSets_unique,dynk_nSets_unique,dynk_crpoint
   use dump,        only : dump_crpoint
@@ -586,10 +594,16 @@ subroutine crpoint
   use elens,       only : nelens, elens_crpoint
   use mod_meta,    only : meta_crpoint
   use mod_random,  only : rnd_crpoint
-  use collimation, only : coll_crpoint
+  use collimation, only : coll_crpoint, do_coll
+  use coll_db,     only : coll_db_crpoint
 
   integer j, k, l, m, nPoint
   logical wErr, fErr
+
+! flush everything to be safe
+! This is to ensure that the logged file positions match what has been called in
+! each case by write()
+  call f_flush()
 
   if(numx >= numl) then
     write(crlog,"(a)") "CR_POINT> Called after last turn"
@@ -735,12 +749,15 @@ subroutine crpoint
       if(wErr) goto 100
     end if
 
-    if(st_debug) then
-      write(crlog,"(a)") "CR_POINT>  * COLLIMATION variables"
-      flush(crlog)
+    if(do_coll) then
+      if(st_debug) then
+        write(crlog,"(a)") "CR_POINT>  * COLLIMATION variables"
+        flush(crlog)
+      end if
+      call coll_db_crpoint(cr_pntUnit(nPoint),wErr)
+      call coll_crpoint(cr_pntUnit(nPoint),wErr)
+      if(wErr) goto 100
     end if
-    call coll_crpoint(cr_pntUnit(nPoint),wErr)
-    if(wErr) goto 100
 
     flush(crlog)
     flush(cr_pntUnit(nPoint))
@@ -783,7 +800,7 @@ subroutine crstart
   use mod_meta,    only : meta_crstart
   use mod_time,    only : time_crstart
   use mod_random,  only : rnd_crstart
-  use collimation, only : coll_crstart
+  use collimation, only : coll_crstart, do_coll
 
   logical fErr
   integer j, k, l, m, nPoint, ioStat
@@ -871,7 +888,9 @@ subroutine crstart
   if(nelens > 0) then
     call elens_crstart
   end if
-  call coll_crstart
+  if(do_coll) then
+    call coll_crstart
+  end if
 
   ! Done
   write(crlog,"(3(a,i0))") "CR_START> SixRecords: ",sixrecs,", SixRecords C/R: ",crsixrecs,", BinRecords: ",binrec

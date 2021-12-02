@@ -620,14 +620,14 @@ subroutine cry_interact(is,x,xp,y,yp,pc,length)
     N_atom = c1m1
 
     ! if they can channel: 2 options
-    if(rndm4() <= chann) then ! option 1:channeling
+    if(coll_rand() <= chann) then ! option 1:channeling
 
       TLdech1 = (const_dech*pc)*(one-one/ratio)**2 ! Updated calculate typical dech. length(m)
-      if(rndm4() <= n_atom) then
+      if(coll_rand() <= n_atom) then
         TLdech1 = ((const_dech/c2e2)*pc)*(one-one/ratio)**2  ! Updated dechanneling length (m)
       end if
 
-      Dechan = -log_mb(rndm4()) ! Probability of dechanneling
+      Dechan = -log_mb(coll_rand()) ! Probability of dechanneling
       Ldech  = TLdech1*Dechan   ! Actual dechan. length
 
       ! careful: the dechanneling lentgh is along the trajectory
@@ -637,7 +637,7 @@ subroutine cry_interact(is,x,xp,y,yp,pc,length)
         Dxp   = Ldech/c_rcurv ! Change angle from channeling [mrad]
         Sdech = Ldech*cos_mb(c_miscut + half*Dxp)
         x     = x  + Ldech*(sin_mb(half*Dxp+c_miscut)) ! Trajectory at channeling exit
-        xp    = xp + Dxp + (two*(rndm4()-half))*xpcrit
+        xp    = xp + Dxp + (two*(coll_rand()-half))*xpcrit
         y     = y  + yp * Sdech
 
         call cry_calcIonLoss(is,pc,ldech,dest)
@@ -703,7 +703,7 @@ subroutine cry_interact(is,x,xp,y,yp,pc,length)
 
       ! 2 options: volume capture and volume reflection
 
-      if(rndm4() > Vcapt .or. ZN == zero) then ! Option 1: VR
+      if(coll_rand() > Vcapt .or. ZN == zero) then ! Option 1: VR
 
         iProc = proc_VR
         x     = x + xp*Srefl
@@ -724,7 +724,7 @@ subroutine cry_interact(is,x,xp,y,yp,pc,length)
         y = y + yp*Srefl
 
         TLdech2 = (const_dech/c1e1)*pc*(one-one/ratio)**2          ! Updated typical dechanneling length(m)
-        Ldech   = TLdech2*(sqrt(c1m2 - log_mb(rndm4())) - c1m1)**2 ! Updated DC length
+        Ldech   = TLdech2*(sqrt(c1m2 - log_mb(coll_rand())) - c1m1)**2 ! Updated DC length
         tdech   = Ldech/c_rcurv
         Sdech   = Ldech*cos_mb(xp + half*tdech)
 
@@ -801,7 +801,7 @@ subroutine cry_interact(is,x,xp,y,yp,pc,length)
         y = y + (half*s_length)*yp
       else
         Pvr = (xp_rel-(L_chan/c_rcurv))/(two*xpcrit)
-        if(rndm4() > Pvr) then
+        if(coll_rand() > Pvr) then
           iProc = proc_TRVR
           x     = x + xp*Srefl
           y     = y + yp*Srefl
@@ -868,7 +868,7 @@ subroutine cry_calcIonLoss(is,pc,dz,EnLo)
     (log_mb(Tmax/Tt)*(betar**2)/(two*Tmax)) + ((Tmax-Tt)/((four*(gammar**2))*(pmap**2))))
   prob_tail = ((cs_tail*rho(is))*dz)*c1e2
 
-  if(rndm4() < prob_tail) then
+  if(coll_rand() < prob_tail) then
     EnLo = ((k*zatom(is))/(anuc(is)*betar**2)) * ( &
       half*log_mb((two*pmae*bgr*bgr*Tmax)/(c1e6*exenergy(is)**2)) -      &
       betar**2 - log_mb(plen/(exenergy(is)*c1e3)) - log_mb(bgr) + half + &
@@ -973,11 +973,11 @@ subroutine cry_moveAM(is,nam,dz,dei,dly,dlr,xp,yp,pc)
   if(nam == 0) return ! Turn on/off nuclear interactions
 
   ! Can nuclear interaction happen?
-  zlm = -collnt(is)*log_mb(rndm4())
+  zlm = -collnt(is)*log_mb(coll_rand())
 
   if(zlm < dz) then
     ! Choose nuclear interaction
-    aran = rndm4()
+    aran = coll_rand()
     i=1
 10  if(aran > cprob(i)) then
       i = i+1
@@ -993,15 +993,15 @@ subroutine cry_moveAM(is,nam,dz,dei,dly,dlr,xp,yp,pc)
 
     case(2) ! p-n elastic
       iProc = proc_pne
-      t     = -log_mb(rndm4())/bn
+      t     = -log_mb(coll_rand())/bn
 
     case(3) ! p-p elastic
       iProc = proc_ppe
-      t     = -log_mb(rndm4())/bpp
+      t     = -log_mb(coll_rand())/bpp
 
     case(4) ! Single diffractive
       iProc = proc_diff
-      xm2   = exp_mb(rndm4()*xln15s)
+      xm2   = exp_mb(coll_rand()*xln15s)
       pc    = pc*(one - xm2/ecmsq)
       if(xm2 < two) then
         bsd = two*bpp
@@ -1010,7 +1010,7 @@ subroutine cry_moveAM(is,nam,dz,dei,dly,dlr,xp,yp,pc)
       else if(xm2 > five) then
         bsd = 7.0_fPrec*bpp/12.0_fPrec
       end if
-      t = -log_mb(rndm4())/bsd
+      t = -log_mb(coll_rand())/bsd
 
     case(5)
       iProc      = proc_ruth
@@ -1182,13 +1182,13 @@ subroutine cry_moveCH(is,nam,dz,x,xp,yp,pc,r,rc)
   else
     nuc_cl_l = collnt(is)/avrrho
   end if
-  zlm = -nuc_cl_l*log_mb(rndm4())
+  zlm = -nuc_cl_l*log_mb(coll_rand())
 
   ! write(889,*) x_i,pv,Ueff,Et,Ec,N_am,avrrho,csref_tot_rsc,csref_inel_rsc,nuc_cl_l
 
   if(zlm < dz) then
     ! Choose nuclear interaction
-    aran = rndm4()
+    aran = coll_rand()
     i=1
 10  if(aran > cprob(i)) then
       i=i+1
@@ -1205,15 +1205,15 @@ subroutine cry_moveCH(is,nam,dz,x,xp,yp,pc,r,rc)
     case(2) ! p-n elastic
       iProc = proc_ch_pne
       bn    = (bnref(is)*cs(0))/csref_tot_rsc
-      t     = -log_mb(rndm4())/bn
+      t     = -log_mb(coll_rand())/bn
 
     case(3) ! p-p elastic
       iProc = proc_ch_ppe
-      t     = -log_mb(rndm4())/bpp
+      t     = -log_mb(coll_rand())/bpp
 
     case(4) ! Single diffractive
       iProc = proc_ch_diff
-      xm2   = exp_mb(rndm4()*xln15s)
+      xm2   = exp_mb(coll_rand()*xln15s)
       pc    = pc*(one - xm2/ecmsq)
       if(xm2 < two) then
         bsd = two*bpp
@@ -1222,7 +1222,7 @@ subroutine cry_moveCH(is,nam,dz,x,xp,yp,pc,r,rc)
       else if(xm2 > five) then
         bsd = (seven*bpp)/12.0_fPrec
       end if
-      t = -log_mb(rndm4())/bsd
+      t = -log_mb(coll_rand())/bsd
 
     case(5)
       iProc      = proc_ch_ruth

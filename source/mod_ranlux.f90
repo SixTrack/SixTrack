@@ -59,6 +59,7 @@ module mod_ranlux
   public rluxgo
   public rndm4
   public rndm5
+  public coll_rand
   public ran_gauss
   public ran_gauss2
 
@@ -435,6 +436,31 @@ function rndm5(irnd)
   end if
 
 end function rndm5
+
+!!! ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+! function coll_rand()
+! to be used for the collimation code with CR enabled.
+! we get a fresh random number every call, so no need to have a 30k buffer here.
+! Therefore this is the same as rndm5 with an argument of 1 every time
+!!! ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+function coll_rand()
+
+  use mathlib_bouncer
+
+  implicit none
+
+  integer len
+  real(kind=fPrec) coll_rand,a
+  save
+
+  parameter( len =  1 )
+  dimension a(len)
+
+  call ranlux(a,len)
+  coll_rand=a(1)
+
+end function coll_rand
+
 
 !*********************************************************************
 !
