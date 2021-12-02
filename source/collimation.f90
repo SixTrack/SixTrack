@@ -194,6 +194,10 @@ module collimation
   real(kind=fPrec), allocatable, private, save :: xpineff_cr(:) ! (npart)
   real(kind=fPrec), allocatable, private, save :: ypineff_cr(:) ! (npart)
 
+  integer, allocatable, save :: cry_proc_cr(:)
+  integer, allocatable, save :: cry_proc_prev_cr(:)
+  integer, allocatable, save :: cry_proc_tmp_cr(:)
+
   integer, private, save :: n_tot_absorbed_cr = 0
   integer, private, save :: n_absorbed_cr     = 0
   integer, private, save :: nabs_total_cr     = 0
@@ -3852,6 +3856,10 @@ subroutine coll_crcheck_readdata(fileUnit,readerr)
   call alloc(part_indiv_cr,     npart, -c1m6,   "part_indiv_cr")
   call alloc(part_impact_cr,    npart, zero,    "part_impact_cr")
 
+  call alloc(cry_proc_cr,       npart, -1,      "cry_proc_cr")
+  call alloc(cry_proc_prev_cr,  npart, -1,      "cry_proc_prev_cr")
+  call alloc(cry_proc_tmp_cr,   npart, -1,      "cry_proc_tmp_cr")
+
   call alloc(cn_impact_cr,     cdb_nColl_cr, 0,    "cn_impact")
   call alloc(cn_absorbed_cr,   cdb_nColl_cr, 0,    "cn_absorbed")
   call alloc(caverage_cr,      cdb_nColl_cr, zero, "caverage")
@@ -3940,6 +3948,10 @@ subroutine coll_crcheck_readdata(fileUnit,readerr)
   (part_linteract_cr(j) ,j=1,npart), &
   (part_indiv_cr(j)     ,j=1,npart), &
   (part_impact_cr(j)    ,j=1,npart), &
+
+  (cry_proc_cr(j)       ,j=1,npart), &
+  (cry_proc_prev_cr(j)  ,j=1,npart), &
+  (cry_proc_tmp_cr(j)   ,j=1,npart), &
 
   (cn_impact_cr(j)      ,j=1,cdb_nColl_cr), &
   (cn_absorbed_cr(j)    ,j=1,cdb_nColl_cr), &
@@ -4228,6 +4240,10 @@ subroutine coll_crstart()
   part_indiv(1:npart)     = part_indiv_cr(1:npart)
   part_impact(1:npart)    = part_impact_cr(1:npart)
 
+  cry_proc(1:npart)       = cry_proc_cr(1:npart)
+  cry_proc_prev(1:npart)  = cry_proc_prev_cr(1:npart)
+  cry_proc_tmp(1:npart)   = cry_proc_tmp_cr(1:npart)
+
   cn_impact(1:cdb_nColl)     = cn_impact_cr(1:cdb_nColl)
   cn_absorbed(1:cdb_nColl)   = cn_absorbed_cr(1:cdb_nColl)
   caverage(1:cdb_nColl)      = caverage_cr(1:cdb_nColl)
@@ -4278,6 +4294,10 @@ subroutine coll_crstart()
   call dealloc(part_linteract_cr, "part_linteract_cr")
   call dealloc(part_indiv_cr,     "part_indiv_cr")
   call dealloc(part_impact_cr,    "part_impact_cr")
+
+  call dealloc(cry_proc_cr,       "cry_proc_cr")
+  call dealloc(cry_proc_prev_cr,  "cry_proc_prev_cr")
+  call dealloc(cry_proc_tmp_cr,   "cry_proc_tmp_cr")
 
   call dealloc(cn_impact_cr,      "cn_impact")
   call dealloc(cn_absorbed_cr,    "cn_absorbed")
