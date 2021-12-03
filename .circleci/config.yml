@@ -13,7 +13,7 @@ jobs:
           command: |
              repo_size=`git count-objects -v | grep size-pack | awk '{print $2}' `
              echo "Repository size is $repo_size kbytes."
-             if [ "$repo_size" -gt "675000" ]
+             if [ "$repo_size" -gt "680000" ]
                 then
                 echo "Repository size has grown too much, please contact admins."
                 exit 1
