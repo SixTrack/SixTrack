@@ -74,6 +74,10 @@ module coll_db
   integer,          allocatable, public, save :: cdb_elemMap(:)     ! Map from single elements to DB
   integer,          allocatable, public, save :: cdb_struMap(:)     ! Map from collimator to structure index
 
+#ifdef CR
+  integer,                       public,  save :: cdb_nColl_cr = -1       ! Number of collimators
+#endif
+
 contains
 
 ! ================================================================================================ !
@@ -1513,5 +1517,48 @@ subroutine cdb_setLHCOnesided(doOneSide)
   end do
 
 end subroutine cdb_setLHCOneSided
+
+#ifdef CR
+! save cdb_nColl
+subroutine coll_db_crpoint(fileUnit,lerror)
+  use crcoall
+  implicit none
+
+  integer, intent(in)  :: fileUnit
+  logical, intent(out) :: lerror
+
+  write(fileUnit,err=100) cdb_nColl
+
+  flush(fileunit)
+  return
+
+100 continue
+  lerror = .true.
+  write(lout, "(a,i0,a)") "CR_POINT> ERROR Writing C/R file fort.",fileUnit," in COLL_DB"
+  write(crlog,"(a,i0,a)") "CR_POINT> ERROR Writing C/R file fort.",fileUnit," in COLL_DB"
+  flush(crlog)
+
+end subroutine coll_db_crpoint
+
+subroutine coll_db_crcheck_readdata(fileUnit,readerr)
+  use crcoall
+  implicit none
+
+  integer, intent(in)  :: fileUnit
+  logical, intent(out) :: readerr
+
+  read(fileunit,err=100,end=100) cdb_nColl_cr
+
+  readerr = .false.
+  return
+
+100 continue
+  readerr = .true.
+  write(lout, "(a,i0,a)") "CR_CHECK> ERROR Reading C/R file fort.",fileUnit," in COLL_DB"
+  write(crlog,"(a,i0,a)") "CR_CHECK> ERROR Reading C/R file fort.",fileUnit," in COLL_DB"
+  flush(crlog)
+
+end subroutine coll_db_crcheck_readdata
+#endif
 
 end module coll_db

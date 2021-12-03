@@ -21,8 +21,10 @@ public:
 	void SetDebug(bool flag);
 	void SetParticlesToKeep(std::set<int>*);
 	void SetKeepStableParticles(bool);
+	void SetKeepNeutrals(bool);
 
 	bool do_debug;
+	bool KeepNeutrals;
 	bool KeepOnlyStable;
 
 	CollimationEventAction* EventAction;

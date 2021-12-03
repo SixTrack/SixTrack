@@ -153,10 +153,10 @@ subroutine cdist_makeDist_fmt1
 
   if(cdist_ampX > zero) then
     do j=1, napx
-      emitX  = cdist_emitX*(cdist_ampX + ((two*(rndm4()-half))*cdist_smearX))**2
+      emitX  = cdist_emitX*(cdist_ampX + ((two*(coll_rand()-half))*cdist_smearX))**2
       sigmaX = sqrt(cdist_betaX*emitX)
-      xv1(j) = sigmaX * sin_mb(twopi*rndm4())
-      if(rndm4() > half) then
+      xv1(j) = sigmaX * sin_mb(twopi*coll_rand())
+      if(coll_rand() > half) then
         yv1(j) = sqrt(emitX/cdist_betaX-xv1(j)**2/cdist_betaX**2)-(cdist_alphaX*xv1(j))/cdist_betaX
       else
         yv1(j) = -one*sqrt(emitX/cdist_betaX-xv1(j)**2/cdist_betaX**2)-(cdist_alphaX*xv1(j))/cdist_betaX
@@ -169,10 +169,10 @@ subroutine cdist_makeDist_fmt1
 
   if(cdist_ampY > zero) then
     do j=1, napx
-      emitY  = cdist_emitY*(cdist_ampY + ((two*(rndm4()-half))*cdist_smearY))**2
+      emitY  = cdist_emitY*(cdist_ampY + ((two*(coll_rand()-half))*cdist_smearY))**2
       sigmaY = sqrt(cdist_betaY*emitY)
-      xv2(j) = sigmaY * sin_mb(twopi*rndm4())
-      if(rndm4() > half) then
+      xv2(j) = sigmaY * sin_mb(twopi*coll_rand())
+      if(coll_rand() > half) then
         yv2(j) = sqrt(emitY/cdist_betaY-xv2(j)**2/cdist_betaY**2)-(cdist_alphaY*xv2(j))/cdist_betaY
       else
         yv2(j) = -one*sqrt(emitY/cdist_betaY-xv2(j)**2/cdist_betaY**2)-(cdist_alphaY*xv2(j))/cdist_betaY
@@ -213,8 +213,8 @@ subroutine cdist_makeDist_fmt2
 
   if(cdist_ampX < pieni) then
     do j=1,napx
-      phiX   = twopi*rndm4()
-      iiX    = (-one*cdist_emitX) * log_mb(rndm4())
+      phiX   = twopi*coll_rand()
+      iiX    = (-one*cdist_emitX) * log_mb(coll_rand())
       xv1(j) = sqrt((two*iiX)*cdist_betaX) * cos_mb(phiX)
       yv1(j) = (-one*sqrt((two*iiX)/cdist_betaX)) * (sin_mb(phiX) + cdist_alphaX * cos_mb(phiX))
     end do
@@ -222,8 +222,8 @@ subroutine cdist_makeDist_fmt2
 
   if(cdist_ampY < pieni) then
     do j=1,napx
-      phiY   = twopi*rndm4()
-      iiY    = (-one*cdist_emitY) * log_mb(rndm4())
+      phiY   = twopi*coll_rand()
+      iiY    = (-one*cdist_emitY) * log_mb(coll_rand())
       xv2(j) = sqrt((two*iiY)*cdist_betaY) * cos_mb(phiY)
       yv2(j) = (-one*sqrt((two*iiY)/cdist_betaY)) * (sin_mb(phiY) + cdist_alphaY * cos_mb(phiY))
     end do
@@ -505,37 +505,37 @@ subroutine cdist_makeDist_coll(alphaX, alphaY, betaX, betaY, neX, neY)
   do j=1,napx
     if(neX > zero .and. neY == zero) then ! Halo in x
 10    continue
-      emitX  = cdist_emitXColl*(neX+(rndm4()*cdist_smearX))**2
+      emitX  = cdist_emitXColl*(neX+(coll_rand()*cdist_smearX))**2
       sigmaX = sqrt(betaX*emitX)
-      xv1(j) = sigmaX * sin_mb(twopi*rndm4())
+      xv1(j) = sigmaX * sin_mb(twopi*coll_rand())
       if(abs(xv1(j)) < cutoff) goto 10
 
-      if(rndm4() > half) then
+      if(coll_rand() > half) then
         yv1(j) = sqrt(emitX/betaX-xv1(j)**2/betaX**2)-(alphaX*xv1(j))/betaX
       else
         yv1(j) = -one*sqrt(emitX/betaX-xv1(j)**2/betaX**2)-(alphaX*xv1(j))/betaX
       end if
 
-      phiY   = twopi*rndm4()
-      iiY    = (-one*cdist_emitYColl) * log_mb(rndm4())
+      phiY   = twopi*coll_rand()
+      iiY    = (-one*cdist_emitYColl) * log_mb(coll_rand())
       xv2(j) = sqrt((two*iiY)*betaY) * cos_mb(phiY)
       yv2(j) = (-one*sqrt((two*iiY)/betaY)) * (sin_mb(phiY) + alphaY * cos_mb(phiY))
 
     else if(neX == zero .and. neY > zero) then ! Halo in y
 20    continue
-      emitY  = cdist_emitYColl*(neY+(rndm4()*cdist_smearY))**2
+      emitY  = cdist_emitYColl*(neY+(coll_rand()*cdist_smearY))**2
       sigmaY = sqrt(betaY*emitY)
-      xv2(j) = sigmaY * sin_mb(twopi*rndm4())
+      xv2(j) = sigmaY * sin_mb(twopi*coll_rand())
       if(abs(xv2(j)) < cutoff) goto 20
 
-      if(rndm4() > half) then
+      if(coll_rand() > half) then
         yv2(j) = sqrt(emitY/betaY-xv2(j)**2/betaY**2)-(alphaY*xv2(j))/betaY
       else
         yv2(j) = -one*sqrt(emitY/betaY-xv2(j)**2/betaY**2)-(alphaY*xv2(j))/betaY
       end if
 
-      phiX   = twopi*rndm4()
-      iiX    = (-one* cdist_emitXColl) * log_mb(rndm4())
+      phiX   = twopi*coll_rand()
+      iiX    = (-one* cdist_emitXColl) * log_mb(coll_rand())
       xv1(j) = sqrt((two*iiX)*betaX) * cos_mb(phiX)
       yv1(j) = (-one*sqrt((two*iiX)/betaX)) * (sin_mb(phiX) + alphaX * cos_mb(phiX))
 

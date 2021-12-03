@@ -178,6 +178,21 @@ module coll_common
   integer, public,  save :: coll_impactFilePos_CR     =  0
   integer, public,  save :: coll_trackoutPos          = -1
   integer, public,  save :: coll_trackoutPos_CR       =  0
+
+! For the RNG
+  integer, public,  save :: lux_CR  = 0
+  integer, public,  save :: seed_CR = 0
+  integer, public,  save :: k1_CR   = 0
+  integer, public,  save :: k2_CR   = 0
+
+
+  integer,          allocatable, save :: cn_impact_cr(:)
+  integer,          allocatable, save :: cn_absorbed_cr(:)
+  real(kind=fPrec), allocatable, save :: caverage_cr(:)
+  real(kind=fPrec), allocatable, save :: csigma_cr(:)
+  real(kind=fPrec), allocatable, save :: gap_rms_error_cr(:)
+  real(kind=fPrec), allocatable, save :: csum_cr(:)
+  real(kind=fPrec), allocatable, save :: csqsum_cr(:)
 #endif
 
 contains
