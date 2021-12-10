@@ -2009,7 +2009,7 @@ subroutine coll_doCollimator(stracki)
 
   ! Checking lower case of collimator name against name_sel (which is already lower case)
   ! This is to ensure compatibility with old style COLL block which used upper case collimator name
-  if(chr_toLower(cdb_cName(icoll)) == name_sel .and. iturn == 1) then
+  if(chr_toLower(cdb_cName(icoll)) == name_sel .and. iturn == 1 .and. do_select) then
     call coll_writeSelectedCollimator
   end if
 #endif
