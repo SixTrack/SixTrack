@@ -1204,7 +1204,7 @@ end function checkOC
 logical function checkRT( x, y, aptx, apty, apex, apey, apxx, apyy, apxy )
 !-----------------------------------------------------------------------
 !     A.Mereghetti and P.Garcia Ortega, for the FLUKA Team
-!     last modified: 16-01-2019
+!     last modified: 23-11-2021
 !     check particle position against RaceTrack aperture
 !-----------------------------------------------------------------------
   implicit none
@@ -1212,8 +1212,9 @@ logical function checkRT( x, y, aptx, apty, apex, apey, apxx, apyy, apxy )
 ! parameters
   real(kind=fPrec) x, y, aptx, apty, apex, apey, apxx, apyy, apxy
 
-  checkRT = checkRE( x, y, aptx+apex, apty+apey ) .or. &
-            checkEL( abs(x)-aptx, abs(y)-apty, apxx, apyy, apxy )
+  checkRT = checkRE( x, y, aptx, apty ) .or. &
+            checkEL( abs(x)-aptx+apex, abs(y)-apty+apey, apxx, apyy, apxy ) &
+            .and. abs(x) .gt. aptx-apex .and. abs(y) .gt. apty-apey
   return
 end function checkRT
 
