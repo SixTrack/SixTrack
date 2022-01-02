@@ -14,7 +14,7 @@ rm -rf pythia*/
 if [ ! -e $VERSION.tgz ]; then
   echo ""
   echo "Downloading:"
-  wget http://home.thep.lu.se/~torbjorn/pythia8/$VERSION.tgz
+  wget https://pythia.org/download/pythia82/$VERSION.tgz
 fi
 
 echo ""
@@ -24,7 +24,7 @@ tar -xf $VERSION.tgz --totals
 echo ""
 echo "Building:"
 cd $VERSION
-./configure --enable-64bit
+./configure --enable-64bit --enable-shared
 make
 
 echo ""
