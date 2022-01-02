@@ -22,7 +22,6 @@
 #   * orbitXP,   orbitYP   [mrad] =     -0.000003      0.294999
 #   * sigmaX,    sigmaY    [mm]   =      0.100275      0.100229
 #   * sigmaXeff, sigmaYeff [mm]   =      0.100275      0.102642
-#   * beam2 rotation x,y   [deg]  =    -90.000000
 #  Profile(2): 'ip5Beam2'
 #   * betaX,     betaY     [m]    =     29.998987     29.987486
 #   * alphaX,    alphaY    [1]    =      0.000280      0.000022
@@ -30,7 +29,6 @@
 #   * orbitXP,   orbitYP   [mrad] =      0.295000      0.295026
 #   * sigmaX,    sigmaY    [mm]   =      0.100262      0.100243
 #   * sigmaXeff, sigmaYeff [mm]   =      0.102675      0.102656
-#   * beam2 rotation x,y   [deg]  =    -45.010344
 #
 #  Cross Sections
 # ================

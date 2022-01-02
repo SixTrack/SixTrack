@@ -189,7 +189,7 @@ subroutine scatter_init
 
   real(kind=fPrec) betaX, betaY, alphaX, alphaY, orbX, orbY, orbXP, orbYP
   real(kind=fPrec) nBeam, normFac, kFac, sigmaX, sigmaY, sigmaXeff, sigmaYeff
-  real(kind=fPrec) xFac, yFac, elRot, sRot, cRot, orbEff
+  real(kind=fPrec) xFac, yFac, orbEff
   integer idElem, idPro, proType
   logical isMirror, isSet
 
@@ -254,34 +254,16 @@ subroutine scatter_init
         call prror
       end if
 
-    ! nBeam  = scatter_proList(idPro)%fParams(2)
-      betaX  = scatter_proList(idPro)%fParams(2)
-      betaY  = scatter_proList(idPro)%fParams(3)
-    ! alphaX = scatter_proList(idPro)%fParams(4)
-    ! alphaY = scatter_proList(idPro)%fParams(5)
-      orbXP  = scatter_proList(idPro)%fParams(6)
-      orbYP  = scatter_proList(idPro)%fParams(7)
-    ! orbX   = scatter_proList(idPro)%fParams(8)
-    ! orbY   = scatter_proList(idPro)%fParams(9)
+      betaX = scatter_proList(idPro)%fParams(2)
+      betaY = scatter_proList(idPro)%fParams(3)
+      orbXP = scatter_proList(idPro)%fParams(6)
+      orbYP = scatter_proList(idPro)%fParams(7)
 
       ! Compute the sigmas from beam 2 emittance
       sigmaX    = sqrt((scatter_beam2EmitX*betaX)/(gamma0/beta0))*c1m3
       sigmaY    = sqrt((scatter_beam2EmitY*betaY)/(gamma0/beta0))*c1m3
       sigmaXeff = sqrt(sigmaX**2 + (scatter_beam2Length*tan_mb(orbXP*c1m3))**2)
       sigmaYeff = sqrt(sigmaY**2 + (scatter_beam2Length*tan_mb(orbYP*c1m3))**2)
-
-      ! Compute approximate effective sigmas from crossing angle, assuming sigma_z >> sigma_x,y
-      ! xFac  = sqrt(one + ((scatter_beam2Length / sigmaX) * tan_mb(orbXP * c1m3))**2)
-      ! yFac  = sqrt(one + ((scatter_beam2Length / sigmaY) * tan_mb(orbYP * c1m3))**2)
-
-      ! Rotate beam 2 in x,y plane so the crossing angle is only in x
-      ! elRot = -atan2_mb(yFac-one,xFac-one)
-      elRot = -atan2_mb(sigmaYeff - sigmaY, sigmaXeff - sigmaX)
-      sRot  = sin_mb(elRot)
-      cRot  = cos_mb(elRot)
-
-      ! sigmaXeff = abs((sigmaX*xFac)*cRot - (sigmaY*yFac)*sRot)
-      ! sigmaYeff = abs(sigmaX*cRot - sigmaY*sRot)
 
       ! Compute approximate kinematic factor and the normalisation of the PDF
       kFac    = two*cos_mb(two*(sigmaXeff/scatter_beam2Length))*cos_mb(two*(sigmaYeff/scatter_beam2Length))
@@ -292,11 +274,6 @@ subroutine scatter_init
       scatter_proList(idPro)%fParams(12) = sigmaXeff
       scatter_proList(idPro)%fParams(13) = sigmaYeff
       scatter_proList(idPro)%fParams(14) = normFac
-      scatter_proList(idPro)%fParams(15) = sRot
-      scatter_proList(idPro)%fParams(16) = cRot
-      scatter_proList(idPro)%fParams(17) = elRot
-      scatter_proList(idPro)%fParams(18) = sin_mb(orbXP*c1m3)
-      scatter_proList(idPro)%fParams(19) = sin_mb(orbYP*c1m3)
 
     end select
 
@@ -761,7 +738,7 @@ subroutine scatter_parseProfile(lnSplit, nSplit, iErr)
       return
     end if
 
-    allocate(fParams(19))
+    allocate(fParams(14))
     fParams(:) = zero
     call chr_cast(lnSplit(4),fParams(1),iErr) ! Beam Charge
     if(nSplit > 4) then
@@ -1412,7 +1389,7 @@ subroutine scatter_getDensity(idPro, xPos, yPos, sPos, xProj, yProj, rhoOut)
   real(kind=fPrec), intent(out) :: yProj
   real(kind=fPrec), intent(out) :: rhoOut
 
-  real(kind=fPrec) retval, nBeam, normFac, sigmaX, sigmaY, orbX, orbY, cRot, sRot, xRot, yRot, sOrbXP, sOrbYP
+  real(kind=fPrec) retval, nBeam, normFac, sigmaX, sigmaY, orbX, orbY, xRot, yRot, sOrbXP, sOrbYP
 
   xProj = xPos
   yProj = yPos
@@ -2006,7 +1983,6 @@ subroutine scatter_initSummaryFile
       write(scatter_sumUnit,"(a,2(1x,f13.6))") "#   * orbitXP,   orbitYP   [mrad] =",scatter_proList(iPro)%fParams(6:7)
       write(scatter_sumUnit,"(a,2(1x,f13.6))") "#   * sigmaX,    sigmaY    [mm]   =",scatter_proList(iPro)%fParams(10:11)
       write(scatter_sumUnit,"(a,2(1x,f13.6))") "#   * sigmaXeff, sigmaYeff [mm]   =",scatter_proList(iPro)%fParams(12:13)
-      write(scatter_sumUnit,"(a,1x,f13.6)")    "#   * beam2 rotation x,y   [deg]  =",scatter_proList(iPro)%fParams(17)/rad
       nLine = nLine + 7
     case(scatter_proFlat)
     end select
