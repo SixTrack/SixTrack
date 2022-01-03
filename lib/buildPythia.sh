@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-VERSION=pythia8243
+VERSION=pythia8306
 
 echo ""
 echo " Building PYTHIA support for SixTrack "
@@ -14,7 +14,7 @@ rm -rf pythia*/
 if [ ! -e $VERSION.tgz ]; then
   echo ""
   echo "Downloading:"
-  wget http://home.thep.lu.se/~torbjorn/pythia8/$VERSION.tgz
+  wget https://pythia.org/download/pythia83/$VERSION.tgz
 fi
 
 echo ""
@@ -24,7 +24,7 @@ tar -xf $VERSION.tgz --totals
 echo ""
 echo "Building:"
 cd $VERSION
-./configure --enable-64bit
+./configure
 make
 
 echo ""

@@ -1281,7 +1281,7 @@ if(DISTLIB)
   if(CRLIBM)
     target_include_directories(distlib PRIVATE ${CMAKE_SOURCE_DIR}/source/crlibm)
     target_include_directories(distlib PRIVATE ${CMAKE_SOURCE_DIR}/source/roundctl)
-    target_compile_options(distlib PRIVATE -DCRLIBM)
+    target_compile_options(distlib PRIVATE -DCRLIBM -fcommon) # GCC 10 defaults to -fno-common https://gcc.gnu.org/gcc-10/porting_to.html
     target_link_libraries(distlib crlibm roundctl)
   endif()
 
