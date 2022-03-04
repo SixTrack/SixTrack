@@ -1243,7 +1243,7 @@ logical function checkTR( x, y, aprx, apry, apex, apey, apxx, apyy, apxy, aptx, 
 ! parameters
   real(kind=fPrec) x, y, aprx, apry, apex, apey, apxx, apyy, apxy, m, q, aptx, apty
   checkTR = checkRE( x, y, aprx, apry ) .or.  &
-            checkRT( x, y, aptx, apty, apex, apey, apxx, apyy, apxy) .or.  &
+            checkRT( x, y, aptx+apex, apty+apey, apex, apey, apxx, apyy, apxy) .or.  &
             checkOC( x, y, aprx, apry, m, q)
   return
 end function checkTR
