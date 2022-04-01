@@ -1183,7 +1183,7 @@ subroutine eLensTheta(j)
     
     ! rRef: from mm to m (c1m3)
     ! theta: from rad to mrad (c1e3)
-    elens_theta_ref(j) = gamma_lens_beam*((elens_len(j)*abs(elens_I(j)))/ &
+    elens_theta_ref(j) = one*((elens_len(j)*abs(elens_I(j)))/ &
          ((((two*pi)*((eps0*clight)*clight))*brho)*(elens_rref(j)*c1m3)))*c1e3
     elens_theta_ref(j) = sign(elens_theta_ref(j),elens_beam_chrg(j))
     elens_theta_ref(j) = elens_theta_ref(j)*(one/(elens_beta_lens_beam(j)*beta0) &
