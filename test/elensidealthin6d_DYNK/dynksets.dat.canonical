@@ -2,400 +2,400 @@
            1 hel1                 theta_ref              -1 N/A                  -0.246000000E-02
            1 hel2                 theta_ref               2 theta_mypulse        -0.492000000E-02
            1 hel3                 theta_ref              -1 N/A                  -0.492000000E-02
-           1 hel4                 theta_ref               4 theta_randupulse     -0.239764851E-02
+           1 hel4                 theta_ref               4 theta_randupulse     -0.232927436E-02
            2 hel1                 theta_ref              -1 N/A                  -0.246000000E-02
            2 hel2                 theta_ref               2 theta_mypulse        -0.492000000E-02
            2 hel3                 theta_ref              -1 N/A                  -0.492000000E-02
-           2 hel4                 theta_ref               4 theta_randupulse     -0.242118114E-02
+           2 hel4                 theta_ref               4 theta_randupulse     -0.235213590E-02
            3 hel1                 theta_ref              -1 N/A                  -0.246000000E-02
            3 hel2                 theta_ref               2 theta_mypulse        -0.492000000E-02
            3 hel3                 theta_ref              -1 N/A                  -0.492000000E-02
-           3 hel4                 theta_ref               4 theta_randupulse     -0.150339141E-03
+           3 hel4                 theta_ref               4 theta_randupulse     -0.146051894E-03
            4 hel1                 theta_ref              -1 N/A                  -0.246000000E-02
            4 hel2                 theta_ref               2 theta_mypulse        -0.492000000E-02
            4 hel3                 theta_ref              -1 N/A                  -0.492000000E-02
-           4 hel4                 theta_ref               4 theta_randupulse     -0.149038398E-02
+           4 hel4                 theta_ref               4 theta_randupulse     -0.144788244E-02
            5 hel1                 theta_ref              -1 N/A                  -0.246000000E-02
            5 hel2                 theta_ref               2 theta_mypulse        -0.000000000E+00
            5 hel3                 theta_ref              -1 N/A                  -0.492000000E-02
-           5 hel4                 theta_ref               4 theta_randupulse     -0.200212759E-02
+           5 hel4                 theta_ref               4 theta_randupulse     -0.194503258E-02
            6 hel1                 theta_ref              -1 N/A                  -0.246000000E-02
            6 hel2                 theta_ref               2 theta_mypulse        -0.000000000E+00
            6 hel3                 theta_ref              -1 N/A                  -0.492000000E-02
-           6 hel4                 theta_ref               4 theta_randupulse     -0.136260640E-02
+           6 hel4                 theta_ref               4 theta_randupulse     -0.132374873E-02
            7 hel1                 theta_ref              -1 N/A                  -0.246000000E-02
            7 hel2                 theta_ref               2 theta_mypulse        -0.000000000E+00
            7 hel3                 theta_ref              -1 N/A                  -0.492000000E-02
-           7 hel4                 theta_ref               4 theta_randupulse     -0.137287294E-02
+           7 hel4                 theta_ref               4 theta_randupulse     -0.133372249E-02
            8 hel1                 theta_ref              -1 N/A                  -0.246000000E-02
            8 hel2                 theta_ref               2 theta_mypulse        -0.492000000E-02
            8 hel3                 theta_ref              -1 N/A                  -0.492000000E-02
-           8 hel4                 theta_ref               4 theta_randupulse     -0.108849847E-02
+           8 hel4                 theta_ref               4 theta_randupulse     -0.105745757E-02
            9 hel1                 theta_ref              -1 N/A                  -0.246000000E-02
            9 hel2                 theta_ref               2 theta_mypulse        -0.492000000E-02
            9 hel3                 theta_ref              -1 N/A                  -0.492000000E-02
-           9 hel4                 theta_ref               4 theta_randupulse     -0.154395097E-02
+           9 hel4                 theta_ref               4 theta_randupulse     -0.149992185E-02
           10 hel1                 theta_ref              -1 N/A                  -0.246000000E-02
           10 hel2                 theta_ref               2 theta_mypulse        -0.000000000E+00
           10 hel3                 theta_ref              -1 N/A                  -0.492000000E-02
-          10 hel4                 theta_ref               4 theta_randupulse     -0.112069567E-02
+          10 hel4                 theta_ref               4 theta_randupulse     -0.108873660E-02
           11 hel1                 theta_ref              -1 N/A                  -0.246000000E-02
           11 hel2                 theta_ref               2 theta_mypulse        -0.000000000E+00
           11 hel3                 theta_ref              -1 N/A                  -0.492000000E-02
-          11 hel4                 theta_ref               4 theta_randupulse     -0.228941834E-02
+          11 hel4                 theta_ref               4 theta_randupulse     -0.222413061E-02
           12 hel1                 theta_ref              -1 N/A                  -0.246000000E-02
           12 hel2                 theta_ref               2 theta_mypulse        -0.000000000E+00
           12 hel3                 theta_ref              -1 N/A                  -0.492000000E-02
-          12 hel4                 theta_ref               4 theta_randupulse     -0.100007219E-02
+          12 hel4                 theta_ref               4 theta_randupulse     -0.971552960E-03
           13 hel1                 theta_ref              -1 N/A                  -0.246000000E-02
           13 hel2                 theta_ref               2 theta_mypulse        -0.492000000E-02
           13 hel3                 theta_ref              -1 N/A                  -0.492000000E-02
-          13 hel4                 theta_ref               4 theta_randupulse     -0.186485741E-02
+          13 hel4                 theta_ref               4 theta_randupulse     -0.181167696E-02
           14 hel1                 theta_ref              -1 N/A                  -0.246000000E-02
           14 hel2                 theta_ref               2 theta_mypulse        -0.492000000E-02
           14 hel3                 theta_ref              -1 N/A                  -0.492000000E-02
-          14 hel4                 theta_ref               4 theta_randupulse     -0.137690665E-02
+          14 hel4                 theta_ref               4 theta_randupulse     -0.133764117E-02
           15 hel1                 theta_ref              -1 N/A                  -0.246000000E-02
           15 hel2                 theta_ref               2 theta_mypulse        -0.000000000E+00
           15 hel3                 theta_ref              -1 N/A                  -0.492000000E-02
-          15 hel4                 theta_ref               4 theta_randupulse     -0.792847413E-05
+          15 hel4                 theta_ref               4 theta_randupulse     -0.770237648E-05
           16 hel1                 theta_ref              -1 N/A                  -0.246000000E-02
           16 hel2                 theta_ref               2 theta_mypulse        -0.000000000E+00
           16 hel3                 theta_ref              -1 N/A                  -0.492000000E-02
-          16 hel4                 theta_ref               4 theta_randupulse     -0.173937765E-02
+          16 hel4                 theta_ref               4 theta_randupulse     -0.168977552E-02
           17 hel1                 theta_ref              -1 N/A                  -0.246000000E-02
           17 hel2                 theta_ref               2 theta_mypulse        -0.000000000E+00
           17 hel3                 theta_ref              -1 N/A                  -0.492000000E-02
-          17 hel4                 theta_ref               4 theta_randupulse     -0.212200087E-02
+          17 hel4                 theta_ref               4 theta_randupulse     -0.206148741E-02
           18 hel1                 theta_ref              -1 N/A                  -0.246000000E-02
           18 hel2                 theta_ref               2 theta_mypulse        -0.492000000E-02
           18 hel3                 theta_ref              -1 N/A                  -0.492000000E-02
-          18 hel4                 theta_ref               4 theta_randupulse     -0.244878990E-02
+          18 hel4                 theta_ref               4 theta_randupulse     -0.237895734E-02
           19 hel1                 theta_ref              -1 N/A                  -0.246000000E-02
           19 hel2                 theta_ref               2 theta_mypulse        -0.492000000E-02
           19 hel3                 theta_ref              -1 N/A                  -0.492000000E-02
-          19 hel4                 theta_ref               4 theta_randupulse     -0.178902692E-02
+          19 hel4                 theta_ref               4 theta_randupulse     -0.173800893E-02
           20 hel1                 theta_ref              -1 N/A                  -0.246000000E-02
           20 hel2                 theta_ref               2 theta_mypulse        -0.000000000E+00
           20 hel3                 theta_ref              -1 N/A                  -0.492000000E-02
-          20 hel4                 theta_ref               4 theta_randupulse     -0.138399771E-02
+          20 hel4                 theta_ref               4 theta_randupulse     -0.134453002E-02
           21 hel1                 theta_ref              -1 N/A                  -0.246000000E-02
           21 hel2                 theta_ref               2 theta_mypulse        -0.000000000E+00
           21 hel3                 theta_ref              -1 N/A                  -0.492000000E-02
-          21 hel4                 theta_ref               4 theta_randupulse     -0.289441684E-03
+          21 hel4                 theta_ref               4 theta_randupulse     -0.281187627E-03
           22 hel1                 theta_ref              -1 N/A                  -0.246000000E-02
           22 hel2                 theta_ref               2 theta_mypulse        -0.000000000E+00
           22 hel3                 theta_ref              -1 N/A                  -0.492000000E-02
-          22 hel4                 theta_ref               4 theta_randupulse     -0.901081077E-03
+          22 hel4                 theta_ref               4 theta_randupulse     -0.875384795E-03
           23 hel1                 theta_ref              -1 N/A                  -0.246000000E-02
           23 hel2                 theta_ref               2 theta_mypulse        -0.492000000E-02
           23 hel3                 theta_ref              -1 N/A                  -0.492000000E-02
-          23 hel4                 theta_ref               4 theta_randupulse     -0.127148282E-02
+          23 hel4                 theta_ref               4 theta_randupulse     -0.123522373E-02
           24 hel1                 theta_ref              -1 N/A                  -0.246000000E-02
           24 hel2                 theta_ref               2 theta_mypulse        -0.492000000E-02
           24 hel3                 theta_ref              -1 N/A                  -0.492000000E-02
-          24 hel4                 theta_ref               4 theta_randupulse     -0.233370172E-02
+          24 hel4                 theta_ref               4 theta_randupulse     -0.226715115E-02
           25 hel1                 theta_ref              -1 N/A                  -0.246000000E-02
           25 hel2                 theta_ref               2 theta_mypulse        -0.000000000E+00
           25 hel3                 theta_ref              -1 N/A                  -0.492000000E-02
-          25 hel4                 theta_ref               4 theta_randupulse     -0.794371229E-03
+          25 hel4                 theta_ref               4 theta_randupulse     -0.771718010E-03
           26 hel1                 theta_ref              -1 N/A                  -0.246000000E-02
           26 hel2                 theta_ref               2 theta_mypulse        -0.000000000E+00
           26 hel3                 theta_ref              -1 N/A                  -0.492000000E-02
-          26 hel4                 theta_ref               4 theta_randupulse     -0.191801205E-03
+          26 hel4                 theta_ref               4 theta_randupulse     -0.186331578E-03
           27 hel1                 theta_ref              -1 N/A                  -0.246000000E-02
           27 hel2                 theta_ref               2 theta_mypulse        -0.000000000E+00
           27 hel3                 theta_ref              -1 N/A                  -0.492000000E-02
-          27 hel4                 theta_ref               4 theta_randupulse     -0.146362171E-02
+          27 hel4                 theta_ref               4 theta_randupulse     -0.142188336E-02
           28 hel1                 theta_ref              -1 N/A                  -0.246000000E-02
           28 hel2                 theta_ref               2 theta_mypulse        -0.492000000E-02
           28 hel3                 theta_ref              -1 N/A                  -0.492000000E-02
-          28 hel4                 theta_ref               4 theta_randupulse     -0.181701010E-02
+          28 hel4                 theta_ref               4 theta_randupulse     -0.176519412E-02
           29 hel1                 theta_ref              -1 N/A                  -0.246000000E-02
           29 hel2                 theta_ref               2 theta_mypulse        -0.492000000E-02
           29 hel3                 theta_ref              -1 N/A                  -0.492000000E-02
-          29 hel4                 theta_ref               4 theta_randupulse     -0.342461995E-03
+          29 hel4                 theta_ref               4 theta_randupulse     -0.332695948E-03
           30 hel1                 theta_ref              -1 N/A                  -0.246000000E-02
           30 hel2                 theta_ref               2 theta_mypulse        -0.000000000E+00
           30 hel3                 theta_ref              -1 N/A                  -0.492000000E-02
-          30 hel4                 theta_ref               4 theta_randupulse     -0.268359217E-03
+          30 hel4                 theta_ref               4 theta_randupulse     -0.260706372E-03
           31 hel1                 theta_ref              -1 N/A                  -0.246000000E-02
           31 hel2                 theta_ref               2 theta_mypulse        -0.000000000E+00
           31 hel3                 theta_ref              -1 N/A                  -0.492000000E-02
-          31 hel4                 theta_ref               4 theta_randupulse     -0.873497977E-03
+          31 hel4                 theta_ref               4 theta_randupulse     -0.848588287E-03
           32 hel1                 theta_ref              -1 N/A                  -0.246000000E-02
           32 hel2                 theta_ref               2 theta_mypulse        -0.000000000E+00
           32 hel3                 theta_ref              -1 N/A                  -0.492000000E-02
-          32 hel4                 theta_ref               4 theta_randupulse     -0.180448408E-02
+          32 hel4                 theta_ref               4 theta_randupulse     -0.175302530E-02
           33 hel1                 theta_ref              -1 N/A                  -0.246000000E-02
           33 hel2                 theta_ref               2 theta_mypulse        -0.492000000E-02
           33 hel3                 theta_ref              -1 N/A                  -0.492000000E-02
-          33 hel4                 theta_ref               4 theta_randupulse     -0.109789380E-02
+          33 hel4                 theta_ref               4 theta_randupulse     -0.106658498E-02
           34 hel1                 theta_ref              -1 N/A                  -0.246000000E-02
           34 hel2                 theta_ref               2 theta_mypulse        -0.492000000E-02
           34 hel3                 theta_ref              -1 N/A                  -0.492000000E-02
-          34 hel4                 theta_ref               4 theta_randupulse     -0.465723311E-03
+          34 hel4                 theta_ref               4 theta_randupulse     -0.452442201E-03
           35 hel1                 theta_ref              -1 N/A                  -0.246000000E-02
           35 hel2                 theta_ref               2 theta_mypulse        -0.000000000E+00
           35 hel3                 theta_ref              -1 N/A                  -0.492000000E-02
-          35 hel4                 theta_ref               4 theta_randupulse     -0.236353866E-02
+          35 hel4                 theta_ref               4 theta_randupulse     -0.229613722E-02
           36 hel1                 theta_ref              -1 N/A                  -0.246000000E-02
           36 hel2                 theta_ref               2 theta_mypulse        -0.000000000E+00
           36 hel3                 theta_ref              -1 N/A                  -0.492000000E-02
-          36 hel4                 theta_ref               4 theta_randupulse     -0.697580541E-03
+          36 hel4                 theta_ref               4 theta_randupulse     -0.677687518E-03
           37 hel1                 theta_ref              -1 N/A                  -0.246000000E-02
           37 hel2                 theta_ref               2 theta_mypulse        -0.000000000E+00
           37 hel3                 theta_ref              -1 N/A                  -0.492000000E-02
-          37 hel4                 theta_ref               4 theta_randupulse     -0.201578463E-02
+          37 hel4                 theta_ref               4 theta_randupulse     -0.195830016E-02
           38 hel1                 theta_ref              -1 N/A                  -0.246000000E-02
           38 hel2                 theta_ref               2 theta_mypulse        -0.492000000E-02
           38 hel3                 theta_ref              -1 N/A                  -0.492000000E-02
-          38 hel4                 theta_ref               4 theta_randupulse     -0.143647732E-02
+          38 hel4                 theta_ref               4 theta_randupulse     -0.139551305E-02
           39 hel1                 theta_ref              -1 N/A                  -0.246000000E-02
           39 hel2                 theta_ref               2 theta_mypulse        -0.492000000E-02
           39 hel3                 theta_ref              -1 N/A                  -0.492000000E-02
-          39 hel4                 theta_ref               4 theta_randupulse     -0.160861871E-02
+          39 hel4                 theta_ref               4 theta_randupulse     -0.156274545E-02
           40 hel1                 theta_ref              -1 N/A                  -0.246000000E-02
           40 hel2                 theta_ref               2 theta_mypulse        -0.000000000E+00
           40 hel3                 theta_ref              -1 N/A                  -0.492000000E-02
-          40 hel4                 theta_ref               4 theta_randupulse     -0.108484488E-02
+          40 hel4                 theta_ref               4 theta_randupulse     -0.105390818E-02
           41 hel1                 theta_ref              -1 N/A                  -0.246000000E-02
           41 hel2                 theta_ref               2 theta_mypulse        -0.000000000E+00
           41 hel3                 theta_ref              -1 N/A                  -0.492000000E-02
-          41 hel4                 theta_ref               4 theta_randupulse     -0.244567966E-02
+          41 hel4                 theta_ref               4 theta_randupulse     -0.237593579E-02
           42 hel1                 theta_ref              -1 N/A                  -0.246000000E-02
           42 hel2                 theta_ref               2 theta_mypulse        -0.000000000E+00
           42 hel3                 theta_ref              -1 N/A                  -0.492000000E-02
-          42 hel4                 theta_ref               4 theta_randupulse     -0.239392714E-02
+          42 hel4                 theta_ref               4 theta_randupulse     -0.232565911E-02
           43 hel1                 theta_ref              -1 N/A                  -0.246000000E-02
           43 hel2                 theta_ref               2 theta_mypulse        -0.492000000E-02
           43 hel3                 theta_ref              -1 N/A                  -0.492000000E-02
-          43 hel4                 theta_ref               4 theta_randupulse     -0.980371645E-03
+          43 hel4                 theta_ref               4 theta_randupulse     -0.952414221E-03
           44 hel1                 theta_ref              -1 N/A                  -0.246000000E-02
           44 hel2                 theta_ref               2 theta_mypulse        -0.492000000E-02
           44 hel3                 theta_ref              -1 N/A                  -0.492000000E-02
-          44 hel4                 theta_ref               4 theta_randupulse     -0.150023214E-04
+          44 hel4                 theta_ref               4 theta_randupulse     -0.145744977E-04
           45 hel1                 theta_ref              -1 N/A                  -0.246000000E-02
           45 hel2                 theta_ref               2 theta_mypulse        -0.000000000E+00
           45 hel3                 theta_ref              -1 N/A                  -0.492000000E-02
-          45 hel4                 theta_ref               4 theta_randupulse     -0.237626652E-02
+          45 hel4                 theta_ref               4 theta_randupulse     -0.230850212E-02
           46 hel1                 theta_ref              -1 N/A                  -0.246000000E-02
           46 hel2                 theta_ref               2 theta_mypulse        -0.000000000E+00
           46 hel3                 theta_ref              -1 N/A                  -0.492000000E-02
-          46 hel4                 theta_ref               4 theta_randupulse     -0.400197032E-03
+          46 hel4                 theta_ref               4 theta_randupulse     -0.388784545E-03
           47 hel1                 theta_ref              -1 N/A                  -0.246000000E-02
           47 hel2                 theta_ref               2 theta_mypulse        -0.000000000E+00
           47 hel3                 theta_ref              -1 N/A                  -0.492000000E-02
-          47 hel4                 theta_ref               4 theta_randupulse     -0.731776820E-04
+          47 hel4                 theta_ref               4 theta_randupulse     -0.710908617E-04
           48 hel1                 theta_ref              -1 N/A                  -0.246000000E-02
           48 hel2                 theta_ref               2 theta_mypulse        -0.492000000E-02
           48 hel3                 theta_ref              -1 N/A                  -0.492000000E-02
-          48 hel4                 theta_ref               4 theta_randupulse     -0.110414609E-02
+          48 hel4                 theta_ref               4 theta_randupulse     -0.107265897E-02
           49 hel1                 theta_ref              -1 N/A                  -0.246000000E-02
           49 hel2                 theta_ref               2 theta_mypulse        -0.492000000E-02
           49 hel3                 theta_ref              -1 N/A                  -0.492000000E-02
-          49 hel4                 theta_ref               4 theta_randupulse     -0.100949150E-02
+          49 hel4                 theta_ref               4 theta_randupulse     -0.980703660E-03
           50 hel1                 theta_ref               1 zero                  0.000000000E+00
           50 hel2                 theta_ref               2 theta_mypulse        -0.000000000E+00
           50 hel3                 theta_ref               3 theta_randonpulse    -0.000000000E+00
-          50 hel4                 theta_ref               4 theta_randupulse     -0.245195394E-02
+          50 hel4                 theta_ref               4 theta_randupulse     -0.238203115E-02
           51 hel1                 theta_ref               1 zero                  0.000000000E+00
           51 hel2                 theta_ref               2 theta_mypulse        -0.000000000E+00
           51 hel3                 theta_ref               3 theta_randonpulse    -0.000000000E+00
-          51 hel4                 theta_ref               4 theta_randupulse     -0.183169202E-02
+          51 hel4                 theta_ref               4 theta_randupulse     -0.177945735E-02
           52 hel1                 theta_ref               1 zero                  0.000000000E+00
           52 hel2                 theta_ref               2 theta_mypulse        -0.000000000E+00
           52 hel3                 theta_ref               3 theta_randonpulse    -0.492000000E-02
-          52 hel4                 theta_ref               4 theta_randupulse     -0.294832881E-03
+          52 hel4                 theta_ref               4 theta_randupulse     -0.286425082E-03
           53 hel1                 theta_ref               1 zero                  0.000000000E+00
           53 hel2                 theta_ref               2 theta_mypulse        -0.492000000E-02
           53 hel3                 theta_ref               3 theta_randonpulse    -0.000000000E+00
-          53 hel4                 theta_ref               4 theta_randupulse     -0.483839433E-03
+          53 hel4                 theta_ref               4 theta_randupulse     -0.470041702E-03
           54 hel1                 theta_ref               1 zero                  0.000000000E+00
           54 hel2                 theta_ref               2 theta_mypulse        -0.492000000E-02
           54 hel3                 theta_ref               3 theta_randonpulse    -0.000000000E+00
-          54 hel4                 theta_ref               4 theta_randupulse     -0.196852442E-02
+          54 hel4                 theta_ref               4 theta_randupulse     -0.191238768E-02
           55 hel1                 theta_ref               1 zero                  0.000000000E+00
           55 hel2                 theta_ref               2 theta_mypulse        -0.000000000E+00
           55 hel3                 theta_ref               3 theta_randonpulse    -0.000000000E+00
-          55 hel4                 theta_ref               4 theta_randupulse     -0.193025390E-02
+          55 hel4                 theta_ref               4 theta_randupulse     -0.187520852E-02
           56 hel1                 theta_ref               1 zero                  0.000000000E+00
           56 hel2                 theta_ref               2 theta_mypulse        -0.000000000E+00
           56 hel3                 theta_ref               3 theta_randonpulse    -0.000000000E+00
-          56 hel4                 theta_ref               4 theta_randupulse     -0.819078178E-03
+          56 hel4                 theta_ref               4 theta_randupulse     -0.795720387E-03
           57 hel1                 theta_ref               1 zero                  0.000000000E+00
           57 hel2                 theta_ref               2 theta_mypulse        -0.000000000E+00
           57 hel3                 theta_ref               3 theta_randonpulse    -0.492000000E-02
-          57 hel4                 theta_ref               4 theta_randupulse     -0.231966330E-04
+          57 hel4                 theta_ref               4 theta_randupulse     -0.225351307E-04
           58 hel1                 theta_ref               1 zero                  0.000000000E+00
           58 hel2                 theta_ref               2 theta_mypulse        -0.492000000E-02
           58 hel3                 theta_ref               3 theta_randonpulse    -0.000000000E+00
-          58 hel4                 theta_ref               4 theta_randupulse     -0.422601864E-03
+          58 hel4                 theta_ref               4 theta_randupulse     -0.410550455E-03
           59 hel1                 theta_ref               1 zero                  0.000000000E+00
           59 hel2                 theta_ref               2 theta_mypulse        -0.492000000E-02
           59 hel3                 theta_ref               3 theta_randonpulse    -0.492000000E-02
-          59 hel4                 theta_ref               4 theta_randupulse     -0.113398613E-02
+          59 hel4                 theta_ref               4 theta_randupulse     -0.110164806E-02
           60 hel1                 theta_ref               1 zero                  0.000000000E+00
           60 hel2                 theta_ref               2 theta_mypulse        -0.000000000E+00
           60 hel3                 theta_ref               3 theta_randonpulse    -0.000000000E+00
-          60 hel4                 theta_ref               4 theta_randupulse     -0.251168897E-03
+          60 hel4                 theta_ref               4 theta_randupulse     -0.244006271E-03
           61 hel1                 theta_ref               1 zero                  0.000000000E+00
           61 hel2                 theta_ref               2 theta_mypulse        -0.000000000E+00
           61 hel3                 theta_ref               3 theta_randonpulse    -0.492000000E-02
-          61 hel4                 theta_ref               4 theta_randupulse     -0.696569913E-03
+          61 hel4                 theta_ref               4 theta_randupulse     -0.676705710E-03
           62 hel1                 theta_ref               1 zero                  0.000000000E+00
           62 hel2                 theta_ref               2 theta_mypulse        -0.000000000E+00
           62 hel3                 theta_ref               3 theta_randonpulse    -0.000000000E+00
-          62 hel4                 theta_ref               4 theta_randupulse     -0.305310616E-04
+          62 hel4                 theta_ref               4 theta_randupulse     -0.296604021E-04
           63 hel1                 theta_ref               1 zero                  0.000000000E+00
           63 hel2                 theta_ref               2 theta_mypulse        -0.492000000E-02
           63 hel3                 theta_ref               3 theta_randonpulse    -0.000000000E+00
-          63 hel4                 theta_ref               4 theta_randupulse     -0.125409864E-02
+          63 hel4                 theta_ref               4 theta_randupulse     -0.121833530E-02
           64 hel1                 theta_ref               1 zero                  0.000000000E+00
           64 hel2                 theta_ref               2 theta_mypulse        -0.492000000E-02
           64 hel3                 theta_ref               3 theta_randonpulse    -0.492000000E-02
-          64 hel4                 theta_ref               4 theta_randupulse     -0.196236038E-02
+          64 hel4                 theta_ref               4 theta_randupulse     -0.190639942E-02
           65 hel1                 theta_ref               1 zero                  0.000000000E+00
           65 hel2                 theta_ref               2 theta_mypulse        -0.000000000E+00
           65 hel3                 theta_ref               3 theta_randonpulse    -0.000000000E+00
-          65 hel4                 theta_ref               4 theta_randupulse     -0.226295115E-02
+          65 hel4                 theta_ref               4 theta_randupulse     -0.219841819E-02
           66 hel1                 theta_ref               1 zero                  0.000000000E+00
           66 hel2                 theta_ref               2 theta_mypulse        -0.000000000E+00
           66 hel3                 theta_ref               3 theta_randonpulse    -0.000000000E+00
-          66 hel4                 theta_ref               4 theta_randupulse     -0.192239797E-03
+          66 hel4                 theta_ref               4 theta_randupulse     -0.186757662E-03
           67 hel1                 theta_ref               1 zero                  0.000000000E+00
           67 hel2                 theta_ref               2 theta_mypulse        -0.000000000E+00
           67 hel3                 theta_ref               3 theta_randonpulse    -0.000000000E+00
-          67 hel4                 theta_ref               4 theta_randupulse     -0.138280698E-02
+          67 hel4                 theta_ref               4 theta_randupulse     -0.134337324E-02
           68 hel1                 theta_ref               1 zero                  0.000000000E+00
           68 hel2                 theta_ref               2 theta_mypulse        -0.492000000E-02
           68 hel3                 theta_ref               3 theta_randonpulse    -0.000000000E+00
-          68 hel4                 theta_ref               4 theta_randupulse     -0.448660259E-03
+          68 hel4                 theta_ref               4 theta_randupulse     -0.435865739E-03
           69 hel1                 theta_ref               1 zero                  0.000000000E+00
           69 hel2                 theta_ref               2 theta_mypulse        -0.492000000E-02
           69 hel3                 theta_ref               3 theta_randonpulse    -0.000000000E+00
-          69 hel4                 theta_ref               4 theta_randupulse     -0.238959644E-02
+          69 hel4                 theta_ref               4 theta_randupulse     -0.232145191E-02
           70 hel1                 theta_ref               1 zero                  0.000000000E+00
           70 hel2                 theta_ref               2 theta_mypulse        -0.000000000E+00
           70 hel3                 theta_ref               3 theta_randonpulse    -0.492000000E-02
-          70 hel4                 theta_ref               4 theta_randupulse     -0.526816459E-04
+          70 hel4                 theta_ref               4 theta_randupulse     -0.511793144E-04
           71 hel1                 theta_ref               1 zero                  0.000000000E+00
           71 hel2                 theta_ref               2 theta_mypulse        -0.000000000E+00
           71 hel3                 theta_ref               3 theta_randonpulse    -0.492000000E-02
-          71 hel4                 theta_ref               4 theta_randupulse     -0.802189308E-03
+          71 hel4                 theta_ref               4 theta_randupulse     -0.779313140E-03
           72 hel1                 theta_ref               1 zero                  0.000000000E+00
           72 hel2                 theta_ref               2 theta_mypulse        -0.000000000E+00
           72 hel3                 theta_ref               3 theta_randonpulse    -0.000000000E+00
-          72 hel4                 theta_ref               4 theta_randupulse     -0.613860932E-04
+          72 hel4                 theta_ref               4 theta_randupulse     -0.596355356E-04
           73 hel1                 theta_ref               1 zero                  0.000000000E+00
           73 hel2                 theta_ref               2 theta_mypulse        -0.492000000E-02
           73 hel3                 theta_ref               3 theta_randonpulse    -0.000000000E+00
-          73 hel4                 theta_ref               4 theta_randupulse     -0.191041652E-02
+          73 hel4                 theta_ref               4 theta_randupulse     -0.185593685E-02
           74 hel1                 theta_ref               1 zero                  0.000000000E+00
           74 hel2                 theta_ref               2 theta_mypulse        -0.492000000E-02
           74 hel3                 theta_ref               3 theta_randonpulse    -0.492000000E-02
-          74 hel4                 theta_ref               4 theta_randupulse     -0.235336167E-03
+          74 hel4                 theta_ref               4 theta_randupulse     -0.228625046E-03
           75 hel1                 theta_ref               1 zero                  0.000000000E+00
           75 hel2                 theta_ref               2 theta_mypulse        -0.000000000E+00
           75 hel3                 theta_ref               3 theta_randonpulse    -0.492000000E-02
-          75 hel4                 theta_ref               4 theta_randupulse     -0.100858327E-02
+          75 hel4                 theta_ref               4 theta_randupulse     -0.979821328E-03
           76 hel1                 theta_ref               1 zero                  0.000000000E+00
           76 hel2                 theta_ref               2 theta_mypulse        -0.000000000E+00
           76 hel3                 theta_ref               3 theta_randonpulse    -0.000000000E+00
-          76 hel4                 theta_ref               4 theta_randupulse     -0.843824082E-03
+          76 hel4                 theta_ref               4 theta_randupulse     -0.819760607E-03
           77 hel1                 theta_ref               1 zero                  0.000000000E+00
           77 hel2                 theta_ref               2 theta_mypulse        -0.000000000E+00
           77 hel3                 theta_ref               3 theta_randonpulse    -0.000000000E+00
-          77 hel4                 theta_ref               4 theta_randupulse     -0.245032470E-02
+          77 hel4                 theta_ref               4 theta_randupulse     -0.238044837E-02
           78 hel1                 theta_ref               1 zero                  0.000000000E+00
           78 hel2                 theta_ref               2 theta_mypulse        -0.492000000E-02
           78 hel3                 theta_ref               3 theta_randonpulse    -0.492000000E-02
-          78 hel4                 theta_ref               4 theta_randupulse     -0.193171665E-02
+          78 hel4                 theta_ref               4 theta_randupulse     -0.187662956E-02
           79 hel1                 theta_ref               1 zero                  0.000000000E+00
           79 hel2                 theta_ref               2 theta_mypulse        -0.492000000E-02
           79 hel3                 theta_ref               3 theta_randonpulse    -0.492000000E-02
-          79 hel4                 theta_ref               4 theta_randupulse     -0.103414789E-02
+          79 hel4                 theta_ref               4 theta_randupulse     -0.100465692E-02
           80 hel1                 theta_ref               1 zero                  0.000000000E+00
           80 hel2                 theta_ref               2 theta_mypulse        -0.000000000E+00
           80 hel3                 theta_ref               3 theta_randonpulse    -0.492000000E-02
-          80 hel4                 theta_ref               4 theta_randupulse     -0.978780035E-04
+          80 hel4                 theta_ref               4 theta_randupulse     -0.950867998E-04
           81 hel1                 theta_ref               1 zero                  0.000000000E+00
           81 hel2                 theta_ref               2 theta_mypulse        -0.000000000E+00
           81 hel3                 theta_ref               3 theta_randonpulse    -0.000000000E+00
-          81 hel4                 theta_ref               4 theta_randupulse     -0.757888040E-03
+          81 hel4                 theta_ref               4 theta_randupulse     -0.736275218E-03
           82 hel1                 theta_ref               1 zero                  0.000000000E+00
           82 hel2                 theta_ref               2 theta_mypulse        -0.000000000E+00
           82 hel3                 theta_ref               3 theta_randonpulse    -0.492000000E-02
-          82 hel4                 theta_ref               4 theta_randupulse     -0.131346417E-02
+          82 hel4                 theta_ref               4 theta_randupulse     -0.127600789E-02
           83 hel1                 theta_ref               1 zero                  0.000000000E+00
           83 hel2                 theta_ref               2 theta_mypulse        -0.492000000E-02
           83 hel3                 theta_ref               3 theta_randonpulse    -0.492000000E-02
-          83 hel4                 theta_ref               4 theta_randupulse     -0.202818532E-02
+          83 hel4                 theta_ref               4 theta_randupulse     -0.197034721E-02
           84 hel1                 theta_ref               1 zero                  0.000000000E+00
           84 hel2                 theta_ref               2 theta_mypulse        -0.492000000E-02
           84 hel3                 theta_ref               3 theta_randonpulse    -0.000000000E+00
-          84 hel4                 theta_ref               4 theta_randupulse     -0.521302288E-03
+          84 hel4                 theta_ref               4 theta_randupulse     -0.506436222E-03
           85 hel1                 theta_ref               1 zero                  0.000000000E+00
           85 hel2                 theta_ref               2 theta_mypulse        -0.000000000E+00
           85 hel3                 theta_ref               3 theta_randonpulse    -0.492000000E-02
-          85 hel4                 theta_ref               4 theta_randupulse     -0.211088937E-02
+          85 hel4                 theta_ref               4 theta_randupulse     -0.205069278E-02
           86 hel1                 theta_ref               1 zero                  0.000000000E+00
           86 hel2                 theta_ref               2 theta_mypulse        -0.000000000E+00
           86 hel3                 theta_ref               3 theta_randonpulse    -0.000000000E+00
-          86 hel4                 theta_ref               4 theta_randupulse     -0.883575889E-04
+          86 hel4                 theta_ref               4 theta_randupulse     -0.858378805E-04
           87 hel1                 theta_ref               1 zero                  0.000000000E+00
           87 hel2                 theta_ref               2 theta_mypulse        -0.000000000E+00
           87 hel3                 theta_ref               3 theta_randonpulse    -0.000000000E+00
-          87 hel4                 theta_ref               4 theta_randupulse     -0.136383447E-02
+          87 hel4                 theta_ref               4 theta_randupulse     -0.132494177E-02
           88 hel1                 theta_ref               1 zero                  0.000000000E+00
           88 hel2                 theta_ref               2 theta_mypulse        -0.492000000E-02
           88 hel3                 theta_ref               3 theta_randonpulse    -0.000000000E+00
-          88 hel4                 theta_ref               4 theta_randupulse     -0.114826772E-02
+          88 hel4                 theta_ref               4 theta_randupulse     -0.111552237E-02
           89 hel1                 theta_ref               1 zero                  0.000000000E+00
           89 hel2                 theta_ref               2 theta_mypulse        -0.492000000E-02
           89 hel3                 theta_ref               3 theta_randonpulse    -0.492000000E-02
-          89 hel4                 theta_ref               4 theta_randupulse     -0.229593752E-02
+          89 hel4                 theta_ref               4 theta_randupulse     -0.223046388E-02
           90 hel1                 theta_ref               1 zero                  0.000000000E+00
           90 hel2                 theta_ref               2 theta_mypulse        -0.000000000E+00
           90 hel3                 theta_ref               3 theta_randonpulse    -0.000000000E+00
-          90 hel4                 theta_ref               4 theta_randupulse     -0.171056446E-02
+          90 hel4                 theta_ref               4 theta_randupulse     -0.166178400E-02
           91 hel1                 theta_ref               1 zero                  0.000000000E+00
           91 hel2                 theta_ref               2 theta_mypulse        -0.000000000E+00
           91 hel3                 theta_ref               3 theta_randonpulse    -0.000000000E+00
-          91 hel4                 theta_ref               4 theta_randupulse     -0.417441164E-03
+          91 hel4                 theta_ref               4 theta_randupulse     -0.405536923E-03
           92 hel1                 theta_ref               1 zero                  0.000000000E+00
           92 hel2                 theta_ref               2 theta_mypulse        -0.000000000E+00
           92 hel3                 theta_ref               3 theta_randonpulse    -0.492000000E-02
-          92 hel4                 theta_ref               4 theta_randupulse     -0.261688856E-03
+          92 hel4                 theta_ref               4 theta_randupulse     -0.254226231E-03
           93 hel1                 theta_ref               1 zero                  0.000000000E+00
           93 hel2                 theta_ref               2 theta_mypulse        -0.492000000E-02
           93 hel3                 theta_ref               3 theta_randonpulse    -0.492000000E-02
-          93 hel4                 theta_ref               4 theta_randupulse     -0.132582261E-02
+          93 hel4                 theta_ref               4 theta_randupulse     -0.128801390E-02
           94 hel1                 theta_ref               1 zero                  0.000000000E+00
           94 hel2                 theta_ref               2 theta_mypulse        -0.492000000E-02
           94 hel3                 theta_ref               3 theta_randonpulse    -0.000000000E+00
-          94 hel4                 theta_ref               4 theta_randupulse     -0.148783820E-02
+          94 hel4                 theta_ref               4 theta_randupulse     -0.144540926E-02
           95 hel1                 theta_ref               1 zero                  0.000000000E+00
           95 hel2                 theta_ref               2 theta_mypulse        -0.000000000E+00
           95 hel3                 theta_ref               3 theta_randonpulse    -0.492000000E-02
-          95 hel4                 theta_ref               4 theta_randupulse     -0.928164020E-04
+          95 hel4                 theta_ref               4 theta_randupulse     -0.901695409E-04
           96 hel1                 theta_ref               1 zero                  0.000000000E+00
           96 hel2                 theta_ref               2 theta_mypulse        -0.000000000E+00
           96 hel3                 theta_ref               3 theta_randonpulse    -0.492000000E-02
-          96 hel4                 theta_ref               4 theta_randupulse     -0.371323396E-03
+          96 hel4                 theta_ref               4 theta_randupulse     -0.360734303E-03
           97 hel1                 theta_ref               1 zero                  0.000000000E+00
           97 hel2                 theta_ref               2 theta_mypulse        -0.000000000E+00
           97 hel3                 theta_ref               3 theta_randonpulse    -0.492000000E-02
-          97 hel4                 theta_ref               4 theta_randupulse     -0.151232062E-02
+          97 hel4                 theta_ref               4 theta_randupulse     -0.146919352E-02
           98 hel1                 theta_ref               1 zero                  0.000000000E+00
           98 hel2                 theta_ref               2 theta_mypulse        -0.492000000E-02
           98 hel3                 theta_ref               3 theta_randonpulse    -0.492000000E-02
-          98 hel4                 theta_ref               4 theta_randupulse     -0.113130301E-03
+          98 hel4                 theta_ref               4 theta_randupulse     -0.109904145E-03
           99 hel1                 theta_ref               1 zero                  0.000000000E+00
           99 hel2                 theta_ref               2 theta_mypulse        -0.492000000E-02
           99 hel3                 theta_ref               3 theta_randonpulse    -0.000000000E+00
-          99 hel4                 theta_ref               4 theta_randupulse     -0.117900897E-02
+          99 hel4                 theta_ref               4 theta_randupulse     -0.114538697E-02
          100 hel1                 theta_ref               1 zero                  0.000000000E+00
          100 hel2                 theta_ref               2 theta_mypulse        -0.000000000E+00
          100 hel3                 theta_ref               3 theta_randonpulse    -0.000000000E+00
-         100 hel4                 theta_ref               4 theta_randupulse     -0.111338282E-02
+         100 hel4                 theta_ref               4 theta_randupulse     -0.108163229E-02
