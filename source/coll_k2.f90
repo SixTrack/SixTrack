@@ -667,10 +667,6 @@ subroutine k2coll_scatin(plab)
   ! Claudia new fit for the slope parameter with new data at sqrt(s)=7 TeV from TOTEM
   bpp = 7.156_fPrec + 1.439_fPrec*log_mb(sqrt(ecmsq))
 
-  ! Unmeasured tungsten data, computed with lead data and power laws
-  bnref(4) = bnref(5)*(anuc(4)/anuc(5))**(two/three)
-  emr(4)   = emr(5)  *(anuc(4)/anuc(5))**(one/three)
-
   ! Compute cross-sections (CS) and probabilities + Interaction length
   ! Last two material treated below statement number 100
   do ma=1,nrmat
