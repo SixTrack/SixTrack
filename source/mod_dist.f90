@@ -1122,7 +1122,7 @@ subroutine dist_setMultiColFormat(fmtName, isValid)
     call dist_appendFormat(dist_fmtIonZ,     one,  0)
     call dist_appendFormat(dist_fmtMASS,     c1e3, 0)
     call dist_appendFormat(dist_fmtP,        c1e3, 6)
-    call dist_appendFormat(dist_fmtDT,       one,  5)
+    call dist_appendFormat(dist_fmtDT,       c1e3, 5)
     isValid = .true.
   end select
 
@@ -1194,17 +1194,17 @@ subroutine dist_unitScale(fmtName, fmtUnit, unitType, unitScale, uErr)
   elseif(unitType == 4) then ! Time
     select case(chr_toLower(fmtUnit))
     case("[s]")
-      unitScale = one
-    case("[ms]")
       unitScale = c1e3
+    case("[ms]")
+      unitScale = 1
     case("[us]","[µs]")
-      unitScale = c1e6
+      unitScale = c1m3
     case("[ns]")
-      unitScale = c1e9
+      unitScale = c1m6
     case("[ps]")
-      unitScale = c1e12
+      unitScale = c1m9
     case("[1]")
-      unitScale = one
+      unitScale = c1e3
     case default
       goto 100
     end select
